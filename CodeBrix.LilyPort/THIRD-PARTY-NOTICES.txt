@@ -1,0 +1,984 @@
+THIRD-PARTY SOFTWARE NOTICES AND INFORMATION
+
+CodeBrix.LilyPort is a .NET-10 port of LilyPond 2.27.2 -- the GNU music
+typesetter. Because this project is a port, it incorporates source code
+from LilyPond, and in time will incorporate the whole of it: the C++
+engraving engine, the Scheme layer that drives it, the LilyPond input
+language, and the music fonts.
+
+This document is the complete attribution and licensing-compliance record
+for this project. Every piece of third-party code, data, script, font, or
+asset that has been adapted, copied, or pulled into CodeBrix.LilyPort is
+recorded here, with its authors, source location, exact upstream revision,
+license, the verbatim text of every notice that must travel with it, and
+the list of files in this repository derived from it.
+
+--------------------------------------------------------------------------------
+HOW THIS FILE IS MAINTAINED
+--------------------------------------------------------------------------------
+
+  1. This is a LIVING LEDGER. It is updated in the SAME COMMIT as any
+     change that incorporates, adapts, modifies, or removes third-party
+     source. It is never allowed to fall behind the code.
+
+  2. LilyPond is NOT uniformly GPL-3.0-or-later. Audit of the upstream tree
+     found FIVE distinct license regimes plus THREE third-party components
+     it redistributes -- see section 1.1. Material is filed by its ACTUAL
+     license, not by the project it arrived with. Note that one of those
+     three, mf2pt1 (section 9), does NOT appear on upstream's own license
+     exception list; it was found by auditing file headers directly.
+
+  3. Section 2 records ly/articulate.ly, which is GPL-3.0-ONLY, not "or
+     later". It IS included (Jeremy, 2026-08-02), and as a direct result the
+     shipped NuGet package declares GPL-3.0-only. Our own sources remain
+     GPL-3.0-or-later; only the aggregate is GPL-3-only. Flagged here rather
+     than buried, because the two statements look contradictory and are not.
+
+  4. Section 3 records fonts, which carry both a GPL font exception and a
+     dual OFL option with Reserved Font Names. Reserved Font Names restrict
+     what a modified font may be called.
+
+  5. Nothing is summarised away. Where a notice must be reproduced in full,
+     it is reproduced in full below, verbatim.
+
+--------------------------------------------------------------------------------
+STATUS
+--------------------------------------------------------------------------------
+
+  INCORPORATED SO FAR (2026-08-02):
+
+    mf/                            115 files, byte-identical mirror of
+                                   lilypond/mf -- the Metafont font sources.
+                                   Section 3.
+    tools/font-build/mf2pt1.pl     Scott Pakin, LPPL-1.3c-or-later.
+                                   Section 9.1.
+    tools/font-build/mf-to-table.py
+                                   LilyPond, GPL-3.0-or-later. Section 9.2.
+    Scheme/ly/articulate.ly        NICTA / Peter Chubb, GPL-3.0-ONLY.
+                                   Section 2. Drives the package license.
+    Scheme/lily/*.scm              91 files, LilyPond, GPL-3.0-or-later.
+    tests/regression/              2,146 .ly + 29 .ily, GPL-3.0-or-later.
+
+    flower/ (ported to C#)         src/CodeBrix.LilyPort.Flower/, with
+                                   upstream's own tests. Section 1.5.
+    entry-points.tsv, load-order   data extracted from lily/*.cc and
+                                   scm/lily.scm. Section 1.5.
+
+  NOT YET INCORPORATED: the C++ engine (lily/), the parser and lexer, and the
+  rest of ly/ beyond articulate.ly. The sections below record those upstream
+  components pinned to the exact revision being ported from, so that provenance
+  is unambiguous from the first ported file.
+
+  INCLUDED WITH A LICENSING CONSEQUENCE: ly/articulate.ly is GPL-3-ONLY and IS
+  vendored, so the shipped package declares GPL-3.0-only rather than -or-later.
+  See section 2.
+
+  Audit date:                2026-08-02
+  LilyPond revision audited:  v2.27.2
+                              (2d621459bd44cb1758f822a69757242eab843060)
+
+================================================================================
+
+1. LILYPOND
+================================================================================
+
+Project:   GNU LilyPond -- the GNU music typesetter
+Source:    https://gitlab.com/lilypond/lilypond
+           https://lilypond.org
+Version:   2.27.2 (git tag v2.27.2, commit
+           2d621459bd44cb1758f822a69757242eab843060, tagged 2026-08-02)
+License:   GPL-3.0-or-later, WITH the exceptions enumerated in section 1.1.
+           NOTE: the SHIPPED PACKAGE is GPL-3.0-ONLY, because it includes
+           ly/articulate.ly. See section 2.
+Copyright: Copyright (C) 1996--2026 Han-Wen Nienhuys <hanwen@xs4all.nl>
+           Copyright (C) 1996--2026 Jan Nieuwenhuizen <janneke@gnu.org>
+           Copyright (C) 2020--2026 Daniel Eble <nine.fierce.ballads@gmail.com>
+             (flower/ unit tests)
+           Copyright (C) 2011--2026 Joe Neeman <joeneeman@gmail.com>
+             (flower/interval-set)
+           and the LilyPond contributors
+           -- plus the additional holders named in sections 2, 3, 5, 6 and 7
+
+--------------------------------------------------------------------------------
+1.1  LILYPOND'S LICENSE LANDSCAPE -- FIVE REGIMES, NOT ONE
+--------------------------------------------------------------------------------
+
+  The upstream tree carries five license files, not one:
+
+    COPYING                  GNU GPL version 3, full text
+    LICENSE                  LilyPond's own grant + the exception list
+    LICENSE.OFL              SIL Open Font License 1.1 (for mf/)
+    LICENSE.DOCUMENTATION    the documentation grant
+    COPYING.FDL              GNU Free Documentation License 1.3, full text
+
+  Reproduced verbatim from upstream LICENSE, the exception list reads:
+
+    The following exceptions apply:
+
+      * It does not apply to the documentation files (contained in
+        the directory tree Documentation/).  The documentation is
+        covered in the file LICENSE.DOCUMENTATION.
+
+      * It does not apply to ly/articulate.ly, which is only licensed
+        under the GPL version 3 (not any later versions).
+
+      * The files under mf/ form a font, and this font is dual-licensed
+        under the GPL+Font exception and the SIL Open Font License (OFL).
+        A copy of the OFL is in the file LICENSE.OFL.
+
+      * It does not apply to python/auxiliar/vendored/pygments.zip, which
+        is a vendored dependency, itself licensed under the BSD 2-clause
+        "simplified" license.
+
+      * It does not apply to file `python/dllist.py`, which is licensed
+        under the MIT license.
+
+  Each of these is given its own section below. Summary of what applies
+  where:
+
+    Upstream path                       License
+    ----------------------------------  ----------------------------------
+    lily/, flower/, scm/, ly/ (except   GPL-3.0-or-later      -> section 1
+      articulate.ly), input/regression/
+      (except musicxml/)
+    ly/articulate.ly                    GPL-3.0-ONLY          -> section 2
+    mf/                                 GPL-3.0-or-later with -> section 3
+                                        Font Exception, OR
+                                        SIL OFL 1.1 (dual)
+    Documentation/                      GNU FDL 1.3           -> section 4
+    Documentation/snippets/ inputs      PUBLIC DOMAIN         -> section 5
+    input/regression/musicxml/          MIT                   -> section 6
+    python/auxiliar/vendored/           BSD 2-Clause          -> section 7
+      pygments.zip
+    python/dllist.py                    MIT                   -> section 8
+    scripts/build/mf2pt1.pl             LPPL-1.3c-or-later    -> section 9
+      and mf/mf2pt1.mp                    (NOT GPL, NOT on
+                                           upstream's own
+                                           exception list)
+    scripts/build/mf-to-table.py        GPL-3.0-or-later      -> section 9
+
+--------------------------------------------------------------------------------
+1.2  SCOPE OF THE PORT
+--------------------------------------------------------------------------------
+
+  Upstream components in scope, with sizes measured at v2.27.2:
+
+    lily/              448 .cc files / 107,099 lines, plus 237 headers --
+                       the engraving engine: grobs, contexts, iterators,
+                       engravers, performers, layout, and the aesthetic
+                       scorers
+    flower/            8,655 lines -- utility library (Rational, Interval,
+                       Offset, Polynomial, Matrix). No Guile dependency.
+    lily/parser.yy     Bison grammar and Flex lexer for the LilyPond input
+    lily/lexer.ll      language; 6,289 lines combined
+    scm/               91 .scm files / 59,680 lines -- the Scheme layer
+                       that drives the engine
+    ly/                62 .ly files / 16,553 lines -- the LilyPond-language
+                       standard library (SEE SECTION 2 for articulate.ly)
+    input/regression/  2,146 .ly files -- the regression suite, which is
+                       the only correctness oracle upstream provides;
+                       there are no unit tests in lily/
+                       (SEE SECTION 6 for the musicxml/ subtree)
+    mf/                Metafont sources for the music fonts
+                       (SEE SECTION 3 -- different license)
+
+--------------------------------------------------------------------------------
+1.3  HOW PORTED FILES ARE MARKED
+--------------------------------------------------------------------------------
+
+  LilyPond is C++17 with a flat class layout and has no namespaces in the
+  C# sense. The CodeBrix provenance comment therefore names the upstream
+  FILE, and is followed by the modification notice that GPL-3 section 5(a)
+  requires:
+
+      namespace CodeBrix.LilyPort.<Area>; //was previously: lily/beam.cc;
+      // Modified by Jeremy Ellis on <YYYY-MM-DD> as part of the CodeBrix port.
+
+  The upstream top-of-file copyright header is preserved verbatim above the
+  usings on every ported file. The per-file notice carried by LilyPond
+  source, which must survive on every ported file, reads:
+
+    This file is part of LilyPond, the GNU music typesetter.
+
+    Copyright (C) <years> <author(s)>
+
+    LilyPond is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    LilyPond is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with LilyPond.  If not, see <http://www.gnu.org/licenses/>.
+
+--------------------------------------------------------------------------------
+1.4  MODIFICATIONS MADE DURING THE PORT
+--------------------------------------------------------------------------------
+
+  * C++17 translated to C# targeting net10.0.
+  * Boehm GC bookkeeping removed entirely. scm_gc_mark (146 call sites),
+    scm_remember_upto_here* (46), scm_gc_protect_object /
+    scm_gc_unprotect_object (7) and the smob apply hooks (2) have no
+    analogue under .NET's precise, moving collector -- 201 call sites are
+    deleted rather than translated.
+  * The libguile C API replaced by CodeBrix.LilyScheme's managed
+    equivalent. 280 distinct scm_* symbols across 4,101 call sites were
+    measured in lily/ at v2.27.2 and form that library's API contract.
+  * Scheme source (scm/, ly/) incorporated verbatim wherever possible.
+    Minimising changes to LilyPond's Scheme is an explicit project goal;
+    where a change is unavoidable it is recorded in section 9.
+  * Bison/Flex grammar and lexer reimplemented for the managed pipeline.
+  * The aesthetic scorers -- beam-quanting.cc, slur-scoring.cc,
+    tie-formatting-problem.cc -- are translated FAITHFULLY rather than
+    cleanly. They are demerit-scoring heuristics tuned over decades and
+    are deliberately not refactored.
+
+--------------------------------------------------------------------------------
+1.5  SOURCE DERIVED FROM LILYPOND 2.27.2 (IN THIS REPOSITORY)
+--------------------------------------------------------------------------------
+
+  Production source (C++ translated to C#):
+
+  THE flower/ UTILITY LAYER IS PORTED. Every ported file preserves the upstream
+  copyright header verbatim at the top and carries the modification notice on the
+  namespace line, per section 9.1.
+
+    src/CodeBrix.LilyPort.Flower/Rational.cs
+        <- flower/rational.cc, flower/include/rational.hh
+           Copyright (C) 1997--2026 Han-Wen Nienhuys
+    src/CodeBrix.LilyPort.Flower/Direction.cs
+        <- flower/include/direction.hh, flower/include/drul-array.hh
+           Copyright (C) 1997--2026 Han-Wen Nienhuys
+    src/CodeBrix.LilyPort.Flower/Interval.cs
+        <- flower/interval.cc, flower/include/interval.hh,
+           flower/include/interval.tcc, flower/include/interval-traits.hh
+           Copyright (C) 1996--2026 Han-Wen Nienhuys
+    src/CodeBrix.LilyPort.Flower/IntervalSet.cs
+        <- flower/interval-set.cc, flower/include/interval-set.hh
+           Copyright (C) 2011--2026 Joe Neeman
+        <- flower/include/matrix.hh  (the Matrix<T> type)
+    src/CodeBrix.LilyPort.Flower/Offset.cs
+        <- flower/offset.cc, flower/include/offset.hh, flower/include/axis.hh
+           Copyright (C) 1997--2026 Han-Wen Nienhuys
+    src/CodeBrix.LilyPort.Flower/Polynomial.cs
+        <- flower/polynomial.cc, flower/include/polynomial.hh
+           Copyright (C) 1997--2026 Han-Wen Nienhuys, Jan Nieuwenhuizen
+    src/CodeBrix.LilyPort.Flower/FileName.cs
+        <- flower/file-name.cc, flower/include/file-name.hh,
+           flower/file-path.cc, flower/include/file-path.hh
+           Copyright (C) 1997--2026 Jan Nieuwenhuizen
+    src/CodeBrix.LilyPort.Flower/StringConvert.cs
+        <- flower/string-convert.cc, flower/include/string-convert.hh
+           Copyright (C) 1997--2026 Jan Nieuwenhuizen
+    src/CodeBrix.LilyPort.Flower/Warn.cs
+        <- flower/warn.cc, flower/include/warn.hh
+           Copyright (C) 1997--2026 Han-Wen Nienhuys, Jan Nieuwenhuizen
+        <- flower/include/pqueue.hh  (the PriorityQueue<T> type)
+
+    src/CodeBrix.LilyPort.Flower/PORT-COVERAGE.txt
+        Not third-party. Records exactly which upstream files were ported, which
+        were deliberately not ported and why, and every behavioural difference
+        from upstream. Read it before assuming the port is a literal translation.
+
+  Scheme source vendored verbatim (byte-identical to upstream):
+
+    src/CodeBrix.LilyPort.Engine/Scheme/lily/*.scm
+        <- lilypond/scm/*.scm   91 files, 59,680 lines, 2.5 MB
+           Copyright (C) 1996--2026 the LilyPond contributors
+           Shipped as embedded resources and read by CodeBrix.LilyScheme. NOT
+           modified -- minimising changes to LilyPond's Scheme is an explicit
+           project goal, and the vendored copies are verbatim.
+
+  Data extracted from LilyPond source:
+
+    src/CodeBrix.LilyPort.Engine/Scheme/entry-points.tsv
+           695 Scheme-visible entry points implemented in C++ (402 LY_DEFINE,
+           293 MAKE_SCHEME_CALLBACK / IMPLEMENT_CTOR_CALLBACK), with their
+           arities and declaring files. Extracted from lily/*.cc.
+
+           This is DATA DERIVED FROM LILYPOND and therefore GPL-3.0-or-later,
+           which is precisely why it lives here and not in CodeBrix.LilyScheme:
+           putting it there would pull GPL-3 material into an LGPL-3 library and
+           breach the separation recorded in section 11.
+
+           It is vendored rather than regenerated at build time because a CodeBrix
+           build must never read a non-CodeBrix checkout.
+
+    src/CodeBrix.LilyPort.Engine/Scheme/load-order.txt
+           LilyPond's own Scheme load order, from scm/lily.scm. Order matters:
+           these files define things for one another.
+
+  Regression suite:
+
+    tests/regression/*.ly       2,146 inputs, vendored verbatim
+    tests/regression/*.ily      29 include files, vendored verbatim
+        <- lilypond/input/regression/
+           Copyright (C) 1996--2026 the LilyPond contributors, GPL-3.0-or-later
+
+           This is LilyPond's ONLY correctness oracle for the engine -- there are
+           no unit tests in lily/. See tools/regression-harness/README.txt.
+
+           NOT vendored: input/regression/musicxml/ (165 files, MIT, Reinhold
+           Kainhofer -- see section 6) and ly/articulate.ly (GPL-3-ONLY -- see
+           section 2).
+
+  Test source and regression fixtures:
+
+    tests/CodeBrix.LilyPort.Flower.Tests/RationalTests.cs
+        <- flower/test-rational.cc          Copyright (C) 2020--2026 Daniel Eble
+    tests/CodeBrix.LilyPort.Flower.Tests/DirectionTests.cs
+        <- flower/test-direction.cc, flower/test-drul-array.cc
+                                            Copyright (C) 2020--2026 Daniel Eble
+    tests/CodeBrix.LilyPort.Flower.Tests/IntervalTests.cs
+        <- flower/test-interval.cc, flower/test-interval-set.cc,
+           flower/test-matrix.cc            Copyright (C) 2020--2026 Daniel Eble
+    tests/CodeBrix.LilyPort.Flower.Tests/FileNameTests.cs
+        <- flower/test-file-name.cc, flower/test-file-path.cc,
+           flower/test-string-convert.cc    Copyright (C) 1997--2026 Jan Nieuwenhuizen
+
+           All translated from C++/yaffut to C#/xUnit v3. Where upstream has a
+           test, the assertions and the cases they cover are UPSTREAM'S, so the
+           port is verified against LilyPond's own expectations rather than
+           against the porter's reading of the source.
+
+           NOTE that the direction document's claim of "zero unit tests upstream"
+           is true of lily/ but NOT of flower/, which ships roughly 2,000 lines of
+           tests for the value types.
+
+    tests/CodeBrix.LilyPort.Flower.Tests/OffsetTests.cs
+    tests/CodeBrix.LilyPort.Flower.Tests/WarnTests.cs
+           New-in-family: upstream ships no test-offset.cc, test-polynomial.cc,
+           test-warn.cc or test-pqueue.cc. These cases were written against the
+           upstream implementation, read directly while porting.
+
+--------------------------------------------------------------------------------
+1.6  LILYPOND LICENSE TEXT
+--------------------------------------------------------------------------------
+
+  The full text of the GNU General Public License version 3 is in the
+  LICENSE file at the root of this repository, which is the same license
+  CodeBrix.LilyPort itself is distributed under.
+
+================================================================================
+
+2. ly/articulate.ly -- GPL VERSION 3 ONLY, NOT "OR LATER"
+================================================================================
+
+*** THIS IS A COMPLIANCE CONSTRAINT, NOT A FOOTNOTE. ***
+
+Project:   articulate.ly, an articulation/performance script for LilyPond
+Source:    https://gitlab.com/lilypond/lilypond at path ly/articulate.ly
+Version:   as shipped in LilyPond 2.27.2
+License:   GPL-3.0-ONLY  (explicitly NOT "or later")
+Copyright: Copyright (C) 2008--2026 NICTA
+Author:    Peter Chubb <peter.chubb AT nicta.com.au>
+
+  --- Verbatim from the file header: ---
+
+    Copyright (C) 2008--2026 NICTA
+    Author: Peter Chubb <peter.chubb AT nicta.com.au>
+
+     This program is free software; you can redistribute it and/or modify
+     it under the terms of the GNU General Public License, version 3,
+     as published by the Free Software Foundation.
+
+     WARNING: this file under GPLv3 only, not GPLv3+
+
+     This program is distributed in the hope that it will be useful,
+     but WITHOUT ANY WARRANTY; without even the implied warranty of
+     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+     See the GNU General Public License for more details.  It is
+     available in the Lilypond source tree, or at
+     http://www.gnu.org/licenses/gpl-3.0.html
+
+WHAT articulate.ly DOES
+
+  It makes MIDI output musical. Articulation marks in notation are normally
+  purely visual -- a staccato dot prints a dot, and playback ignores it.
+  \articulate rewrites the music tree before performance so the marks are
+  actually heard: notes are shortened by factors (staccato 1/2, staccatissimo
+  1/4, portato 3/4, tenuto unchanged, unmarked 7/8), ornaments (trills, turns,
+  mordents, pralls) expand into their constituent notes, and rall./accel./
+  a tempo are observed.
+
+  It touches NOTHING in the engraving path: zero references to grobs, stencils
+  or \layout across all 973 lines.
+
+DECISION (Jeremy, 2026-08-02): INCLUDE IT. THE PACKAGE IS GPL-3.0-ONLY.
+
+  GPL-3-only and GPL-3-or-later material combine legally, but the COMBINED work
+  can then only be conveyed under GPL version 3 exactly: the "or later" option
+  cannot be exercised over a part that never granted it.
+
+  Accordingly:
+
+    * The NuGet package CodeBrix.LilyPort.GplLicenseForever declares
+      PackageLicenseExpression = GPL-3.0-only (NOT GPL-3.0-or-later), and says
+      so in its Description. Verified in the packed nuspec:
+          <license type="expression">GPL-3.0-only</license>
+
+    * OUR OWN source files remain GPL-3.0-or-later, which is what their headers
+      say and what we grant over our own contribution. Only the AGGREGATE
+      artifact conveys as GPL-3-only.
+
+      BOTH STATEMENTS ARE TRUE AT ONCE. Do not "correct" either one to match the
+      other; that is the most likely future mistake here.
+
+    * The declaration was made BEFORE publishing rather than after. Publishing
+      as GPL-3-or-later and then adding a GPL-3-only file would mislabel
+      artifacts already distributed, which cannot be undone.
+
+  DOWNSTREAM CONSEQUENCE: anything depending on CodeBrix.LilyPort inherits this.
+  Fresco.Brix, planned as GPL-3.0-or-later, will in practice also convey as
+  GPL-3-only once it takes the dependency. Expected and acceptable; recorded
+  here so it is not discovered as a surprise.
+
+Source derived from articulate.ly (in this repository):
+
+  src/CodeBrix.LilyPort.Engine/Scheme/ly/articulate.ly
+      <- lilypond/ly/articulate.ly   973 lines, vendored VERBATIM
+         Copyright (C) 2008--2026 NICTA, author Peter Chubb
+         GPL-3.0-ONLY. Shipped as an embedded resource.
+
+================================================================================
+
+3. LILYPOND MUSIC FONTS -- FETA, EMMENTALER, PARMESAN
+================================================================================
+
+Project:   The LilyPond music fonts, generated from Metafont sources
+Source:    https://gitlab.com/lilypond/lilypond at path mf/
+Version:   as shipped in LilyPond 2.27.2
+License:   DUAL-LICENSED, at the recipient's option:
+             (a) GPL-3.0-or-later WITH the LilyPond Font Exception, OR
+             (b) SIL Open Font License, Version 1.1
+Copyright: Copyright (c) 1996--2026, The LilyPond authors (lilypond.org)
+           Per-file, e.g. mf/feta-noteheads.mf:
+             Copyright (C) 1997--2026 Jan Nieuwenhuizen <janneke@gnu.org>
+                                    & Han-Wen Nienhuys <hanwen@xs4all.nl>
+                                    & Juergen Reuter <reuter@ipd.uka.de>
+
+RESERVED FONT NAMES: "Emmentaler" and "Feta"
+
+  --- Verbatim from upstream LICENSE.OFL, opening lines: ---
+
+    Copyright (c) 1996--2026, The LilyPond authors (lilypond.org)
+    with Reserved Font Name "Emmentaler" and "Feta".
+
+    This Font Software is licensed under the SIL Open Font License,
+    Version 1.1.
+
+  The OFL's Reserved Font Name clause means that a MODIFIED version of the
+  font may NOT be distributed under the names "Emmentaler" or "Feta" if the
+  OFL option is taken. Distributing an unmodified font under those names is
+  fine. If CodeBrix.LilyPort ever regenerates or alters the font, either
+  the name must change or the GPL+Font-Exception option (a) must be taken
+  instead, which carries no name reservation.
+
+  --- The GPL Font Exception, verbatim from upstream LICENSE: ---
+
+    The font exception for the GPL stipulates the following exception:
+
+      If you create a document which uses fonts included in LilyPond,
+      and embed this font or unaltered portions of this font into the
+      document, then this font does not by itself cause the resulting
+      document to be covered by the GNU General Public License.  This
+      exception does not however invalidate any other reasons why the
+      document might be covered by the GNU General Public License.
+      If you modify one or more of the fonts, you may extend this
+      exception to your version of the fonts but you are not obliged
+      to do so.  If you do not wish to do so, delete this exception
+      statement from your version.
+
+  --- The per-file grant, verbatim from mf/feta-noteheads.mf: ---
+
+    Feta (not the Font-En-Tja) music font -- implement noteheads
+    This file is part of LilyPond, the GNU music typesetter.
+
+    Copyright (C) 1997--2026 Jan Nieuwenhuizen <janneke@gnu.org>
+    & Han-Wen Nienhuys <hanwen@xs4all.nl>
+    & Juergen Reuter <reuter@ipd.uka.de>
+
+    The LilyPond font is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version, or under the SIL Open Font License.
+
+WHY THE FONT IS A SEPARATE ENGINEERING PROBLEM, NOT JUST A SEPARATE LICENSE
+
+  Emmentaler is not consumed as text. LilyPond addresses it by glyph name
+  (noteheads.s2, clefs.G) and reads two CUSTOM OpenType tables, LILC and
+  LILY, via lily/open-type-font.cc. These are zlib-compressed Scheme alists
+  written at font-build time by mf/gen-emmentaler.fontforge.py, and they
+  carry engraver-critical metadata: glyph extents in staff-space units,
+  stem attachment points, and ledger shortening ranges, keyed by LilyPond
+  glyph name as a Scheme symbol.
+
+DECIDED 2026-08-02: BUILD OUR OWN FONTS FROM THE METAFONT SOURCES
+
+  CodeBrix.LilyPort does NOT redistribute LilyPond's prebuilt font binaries.
+  It vendors the Metafont sources and builds the fonts itself, so that
+  provenance is verifiable end to end from Metafont source to shipped
+  binary. The build is a one-time operation whose OUTPUTS are committed; the
+  Metafont/FontForge toolchain is NOT required to build or use
+  CodeBrix.LilyPort. See tools/font-build/README.txt.
+
+  Consequences of that decision, and how each is handled:
+
+    * BOTH license options are conveyed onward, exactly as upstream does.
+      We do not choose between them and do not need to. The full SIL Open
+      Font License 1.1 text is now at LICENSE.OFL in the root of this
+      repository, alongside the GPL-3 LICENSE.
+
+    * The Reserved Font Names "Emmentaler" and "Feta" are NOT triggered.
+      Building unmodified sources through the documented pipeline is not a
+      modification, so our output legitimately keeps those names.
+
+      *** IF ANY .mf FILE IS EVER EDITED, THIS CHANGES. *** A modified font
+      may not carry a Reserved Font Name under the OFL. At that point either
+      rename the font or take the GPL+Font-Exception option, record the
+      choice here, and add a GPL-3 section 5(a) modification notice to the
+      edited file.
+
+    * The font build needs two scripts that live OUTSIDE mf/ in the upstream
+      tree, one of which is neither LilyPond's nor GPL. See section 9.
+
+Source derived from LilyPond's mf/ (in this repository):
+
+  mf/                     115 files, 1,008 KB, byte-identical mirror of
+                          lilypond/mf at v2.27.2. Verified with
+                          `diff -r`. 103 .mf files (23,111 lines of
+                          Metafont), 5 .py generator/helper scripts,
+                          3 .conf, mf2pt1.mp, invoke-mf2pt1.sh, GNUmakefile,
+                          README.md.
+
+                          Kept as a VERBATIM MIRROR deliberately: it makes
+                          re-syncing to a newer LilyPond a straight copy plus
+                          `diff -r`, and it keeps provenance trivially
+                          checkable. Nothing in it is modified. The build
+                          driver lives in tools/font-build/ precisely so that
+                          this directory can stay untouched.
+
+Font binaries produced from those sources (in this repository):
+
+  assets/fonts/otf/       nine .otf files, 892,500 bytes
+  assets/fonts/svg/       nine .svg files, 2,690,421 bytes
+
+                          18 files, 3,582,921 bytes total, built 2026-08-02 by
+                          tools/font-build/build-fonts.sh from the mf/ mirror
+                          above, stamped version 2.27.2, in both formats:
+
+                            emmentaler-11   emmentaler-18   emmentaler-23
+                            emmentaler-13   emmentaler-20   emmentaler-26
+                            emmentaler-14   emmentaler-16   emmentaler-brace
+
+                          These are OUR OWN BUILDS. LilyPond's prebuilt font
+                          binaries are NOT redistributed by this project.
+                          MD5 manifests and provenance: assets/fonts/README.txt
+
+                          The build is BYTE-REPRODUCIBLE (verified across two
+                          independent runs), which required pinning
+                          SOURCE_DATE_EPOCH to the v2.27.2 commit timestamp.
+                          It also sets USER/LOGNAME to "Nienhuys,
+                          Nieuwenhuizen and Reuter" so that FontForge's "By
+                          ..." annotation in the SVG metadata credits the
+                          font's actual designers rather than whoever ran the
+                          build.
+
+  Verified against the official lilypond-2.27.2-linux-x86_64 release on
+  2026-08-02: LILC and LILY tables byte-identical on all nine fonts, glyph
+  inventory identical (668 per design size, 577 brace), every advance width
+  an exact match. Bounding boxes differ on ~18% of glyphs by 1-3 units of a
+  1000-unit em -- a Metafont/FontForge version artifact that cannot affect
+  engraving, because the engraver reads glyph dimensions from LILC rather
+  than from the outlines (lily/open-type-font.cc:372). Full reasoning in
+  tools/font-build/README.txt section 7.
+
+  The SVG fonts carry no LILC/LILY tables -- those are OpenType tables with
+  no SVG equivalent -- so the verification above applies to the OTFs, which
+  are what the engraver reads metadata from. Both formats are generated from
+  the same outlines in the same FontForge pass.
+
+================================================================================
+
+4. LILYPOND DOCUMENTATION -- GNU FREE DOCUMENTATION LICENSE 1.3
+================================================================================
+
+Project:   LilyPond documentation
+Source:    https://gitlab.com/lilypond/lilypond at path Documentation/
+License:   GNU Free Documentation License, version 1.3 or later,
+           with no Invariant Sections, no Front-Cover Texts and no
+           Back-Cover Texts
+Copyright: Copyright (C) 1996--2026 the LilyPond authors
+
+  --- Verbatim from upstream LICENSE.DOCUMENTATION: ---
+
+    Permission is granted to copy, distribute and/or modify the
+    documentation for GNU LilyPond under the terms of the GNU Free
+    Documentation License as published by the Free Software Foundation,
+    either version 1.3, or (at your option) any later version; with no
+    Invariant Sections, no Front-Cover Texts and no Back-Cover Texts.
+
+    A copy of the license is contained in the file COPYING.FDL.
+
+    The following exceptions apply:
+
+      * It does not apply to input files (contained in the
+        directory tree Documentation/snippets/); these are in
+        the public domain.
+
+      * It does not apply to any manual which explicitly states
+        another license.
+
+      * It does not apply to the MusicXML unit test suite,
+        which is licensed under the MIT license.
+
+  The GNU FDL is NOT a software license and is NOT GPL-compatible in
+  either direction. FDL-licensed documentation text must therefore never be
+  copied into source files or XML doc comments in this repository.
+
+  CURRENT POSITION: CodeBrix.LilyPort does not incorporate LilyPond
+  documentation. If documentation is ever ported, COPYING.FDL (451 lines)
+  must be added to this repository and the FDL-covered material kept in a
+  clearly separated directory tree, never intermixed with GPL source.
+
+Source derived from Documentation/ (in this repository):
+  (none)
+
+================================================================================
+
+5. Documentation/snippets/ INPUT FILES -- PUBLIC DOMAIN
+================================================================================
+
+Source:    https://gitlab.com/lilypond/lilypond at path
+           Documentation/snippets/
+License:   PUBLIC DOMAIN
+Copyright: None asserted
+
+Recorded separately because these files are explicitly carved OUT of both
+the GPL (section 1) and the FDL (section 4) by upstream's own exception
+list. They are usable without restriction and without attribution
+obligation. Attribution is retained here as a matter of record, not
+obligation.
+
+Source derived from Documentation/snippets/ (in this repository):
+  (none yet)
+
+================================================================================
+
+6. THE MUSICXML UNIT TEST SUITE -- MIT
+================================================================================
+
+Project:   An (unofficial) MusicXML Test Suite
+Source:    https://gitlab.com/lilypond/lilypond at path
+           input/regression/musicxml/  (215 files; LICENSE included in that
+           directory)
+License:   MIT
+Copyright: Copyright (c) 2008--2026, Reinhold Kainhofer
+
+*** THIS SUBTREE SITS INSIDE THE REGRESSION SUITE THIS PROJECT PLANS TO
+    USE AS ITS CORRECTNESS ORACLE. It is MIT, not GPL, and must be
+    attributed separately if any of it is copied into this repository. ***
+
+  --- Verbatim from input/regression/musicxml/LICENSE: ---
+
+    An (unofficial) MusicXML Test Suite
+
+    This test suite of MusicXML unit tests is licenced under the MIT
+    license:
+
+    Copyright (c) 2008--2026, Reinhold Kainhofer
+
+    Permission is hereby granted, free of charge, to any person obtaining
+    a copy of this software and associated documentation files (the
+    "Software"), to deal in the Software without restriction, including
+    without limitation the rights to use, copy, modify, merge, publish,
+    distribute, sublicense, and/or sell copies of the Software, and to
+    permit persons to whom the Software is furnished to do so, subject to
+    the following conditions:
+
+    The above copyright notice and this permission notice shall be
+    included in all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+    EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+    MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+    NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+    LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+    OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+    WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+  NOTE FOR THE REGRESSION HARNESS: when the 2,146-file regression suite is
+  vendored for output comparison, these 215 files must be tracked under
+  this section and NOT silently absorbed into section 1. MIT permits the
+  use freely; the obligation is that the copyright notice and permission
+  notice above travel with any copy.
+
+Source derived from the MusicXML test suite (in this repository):
+  (none yet)
+
+================================================================================
+
+7. PYGMENTS (vendored by LilyPond) -- BSD 2-CLAUSE
+================================================================================
+
+Project:   Pygments -- a generic syntax highlighter
+Source:    https://pygments.org
+           https://github.com/pygments/pygments
+           Vendored by LilyPond at python/auxiliar/vendored/pygments.zip
+Version:   2.20.0 (per upstream's python/auxiliar/vendored/README.md)
+License:   BSD 2-Clause "Simplified"
+Copyright: Copyright (c) 2006-2025 by the Pygments team
+
+LilyPond vendors Pygments as a ZIP archive, imported via Python's ability
+to import from ZIP archives, and uses it for syntax highlighting IN THE
+DOCUMENTATION BUILD ONLY. Upstream's own note:
+
+    This directory contains an archive of the source of Pygments. It is
+    used for syntax highlighting in the documentation. It has been
+    included in the source tree to avoid an extra dependency until
+    versions of Pygments starting from 2.11.0 [...] are available in wide
+    enough a range of GNU/Linux distributions.
+
+  CURRENT POSITION: NOT IN SCOPE. CodeBrix.LilyPort is an engraving
+  library; it does not build LilyPond's documentation and has no Python
+  toolchain. Pygments is recorded here for completeness of the upstream
+  audit, and to document that it was consciously excluded rather than
+  overlooked.
+
+Source derived from Pygments (in this repository):
+  (none -- out of scope)
+
+================================================================================
+
+8. python/dllist.py -- MIT
+================================================================================
+
+Project:   dllist
+Source:    Vendored by LilyPond at python/dllist.py
+License:   MIT
+Copyright: as stated in the upstream file
+
+  CURRENT POSITION: NOT IN SCOPE, for the same reason as section 7 --
+  this project carries no Python toolchain. Recorded for completeness of
+  the upstream audit.
+
+Source derived from dllist.py (in this repository):
+  (none -- out of scope)
+
+================================================================================
+
+9. FONT BUILD TOOLCHAIN VENDORED INTO tools/font-build
+================================================================================
+
+Building the fonts (section 3) needs two scripts that live OUTSIDE mf/ in the
+upstream tree, under lilypond/scripts/build/. Copying mf/ alone leaves the
+build broken, so both are vendored into tools/font-build/.
+
+One of them is NOT LilyPond's code and NOT GPL. It does not appear on
+upstream's own license exception list (reproduced in section 1.1), which names
+only pygments.zip and dllist.py -- so it is easy to miss.
+
+--------------------------------------------------------------------------------
+9.1  mf2pt1 -- Scott Pakin -- LPPL-1.3c-or-later
+--------------------------------------------------------------------------------
+
+Project:   mf2pt1 -- convert stylized Metafont to PostScript Type 1
+Source:    Redistributed inside the LilyPond tree at
+           scripts/build/mf2pt1.pl and mf/mf2pt1.mp
+Author:    Scott Pakin <scott+mf@pakin.org>
+License:   LaTeX Project Public License, version 1.3c or later
+Copyright: Copyright (C) 2005-2021 Scott Pakin  (mf2pt1.pl)
+           Copyright (C) 2005-2020 Scott Pakin  (mf2pt1.mp)
+
+  --- Verbatim from scripts/build/mf2pt1.pl, lines 6-20: ---
+
+    mf2pt1
+    Copyright (C) 2005-2021 Scott Pakin
+
+    This program may be distributed and/or modified under the conditions
+    of the LaTeX Project Public License, either version 1.3c of this
+    license or (at your option) any later version.
+
+    The latest version of this license is in:
+
+       http://www.latex-project.org/lppl.txt
+
+    and version 1.3c or later is part of all distributions of LaTeX
+    version 2006/05/20 or later.
+
+  mf/mf2pt1.mp carries the same grant for 2005-2020.
+
+  RELATIONSHIP TO THIS PROJECT'S LICENSE. mf2pt1 is a BUILD TOOL. It is
+  executed to produce font outlines; none of its code is incorporated into
+  CodeBrix.LilyPort's assemblies or into the font binaries. Shipping an LPPL
+  tool beside GPL source in one repository is mere aggregation, and the two
+  do not combine into a single work. Nothing produced by running mf2pt1
+  becomes LPPL-licensed.
+
+  OBLIGATION THAT DOES APPLY. LPPL 1.3c requires that modified versions be
+  renamed. Neither vendored file is modified, and neither should be edited in
+  place -- if behaviour must change, wrap the script rather than patch it.
+  This is stated in tools/font-build/README.txt section 8 so that whoever
+  next runs the build sees it.
+
+  Vendored in this repository:
+    tools/font-build/mf2pt1.pl   <- lilypond/scripts/build/mf2pt1.pl
+                                    (1,213 lines, verbatim)
+    mf/mf2pt1.mp                 <- lilypond/mf/mf2pt1.mp
+                                    (verbatim, part of the mf/ mirror)
+
+--------------------------------------------------------------------------------
+9.2  mf-to-table.py -- LilyPond -- GPL-3.0-or-later
+--------------------------------------------------------------------------------
+
+Project:   LilyPond build scripts
+Source:    lilypond/scripts/build/mf-to-table.py
+License:   GPL-3.0-or-later
+Copyright: Copyright (C) 1997--2026 Han-Wen Nienhuys <hanwen@cs.uu.nl>
+
+Converts the spacing information in Metafont logs into the Scheme alists that
+become the LILC and LILY OpenType tables. Covered by section 1's grant;
+recorded separately only because it, too, lives outside mf/ and would be
+missed by a mirror of mf/ alone.
+
+  Vendored in this repository:
+    tools/font-build/mf-to-table.py   <- lilypond/scripts/build/mf-to-table.py
+                                         (verbatim)
+
+--------------------------------------------------------------------------------
+9.3  Scripts written for CodeBrix.LilyPort -- not third party
+--------------------------------------------------------------------------------
+
+  tools/font-build/build-fonts.sh     standalone reimplementation of the
+                                      font-producing subset of upstream
+                                      mf/GNUmakefile
+  tools/font-build/compare-fonts.sh   verification wrapper
+  tools/font-build/compare_fonts.py   structural comparison of built vs
+                                      released fonts
+  tools/font-build/README.txt         build documentation
+
+  These are new-in-family, Copyright (c) 2026 Jeremy Ellis and contributors,
+  GPL-3.0-or-later. They were written against upstream's makefile as a
+  specification rather than translated from it, and carry no upstream
+  copyright header.
+
+================================================================================
+
+10. GPL-3.0 COMPLIANCE OBLIGATIONS OBSERVED BY THIS PROJECT
+================================================================================
+
+--------------------------------------------------------------------------------
+10.1  PER-FILE MODIFICATION NOTICES
+--------------------------------------------------------------------------------
+
+  Obligation: GPL-3.0 section 5(a) -- "The work must carry prominent
+  notices stating that you modified it, and giving a relevant date."
+
+  A `//was previously: <upstream file>;` provenance comment identifies the
+  upstream origin but does NOT by itself satisfy this obligation, because
+  it states neither WHO modified the file nor WHEN. Every ported file
+  therefore carries the modification notice shown in section 1.3.
+
+--------------------------------------------------------------------------------
+10.2  SOURCE AVAILABILITY
+--------------------------------------------------------------------------------
+
+  Complete corresponding source is published at
+  https://github.com/ellisnet/CodeBrix.Samples.Gpl3 and is intrinsically
+  available to any recipient of the binary or the NuGet package.
+
+  Upstream LilyPond source, for comparison, is at
+  https://gitlab.com/lilypond/lilypond at tag v2.27.2, commit
+  2d621459bd44cb1758f822a69757242eab843060.
+
+--------------------------------------------------------------------------------
+10.3  LICENSE TEXT SHIPS WITH THE PACKAGE
+--------------------------------------------------------------------------------
+
+  The full GPL-3.0 text is in LICENSE at the root of this repository and is
+  packed into the CodeBrix.LilyPort.GplLicenseForever NuGet package, so
+  that a consumer who downloads only the package can read the full terms
+  and the warranty disclaimer.
+
+--------------------------------------------------------------------------------
+10.4  COPYRIGHT LINE HYGIENE
+--------------------------------------------------------------------------------
+
+  This project's own copyright line --
+
+      Copyright (c) 2026 Jeremy Ellis and contributors
+
+  -- is added ADDITIVELY. It never replaces, edits, or displaces an
+  upstream copyright line. Upstream headers are preserved verbatim.
+
+--------------------------------------------------------------------------------
+10.5  TRADEMARK AND NAMING
+--------------------------------------------------------------------------------
+
+  Copyleft licenses grant no trademark rights. "LilyPond" does not appear
+  in this project's assembly names, package IDs, namespaces, or type names.
+  It is named in prose, in documentation, and in this file purely as
+  factual attribution of origin. "Emmentaler" and "Feta" are Reserved Font
+  Names under the OFL -- see section 3.
+
+--------------------------------------------------------------------------------
+10.6  CHANGES MADE TO VENDORED SCHEME AND FIXTURES
+--------------------------------------------------------------------------------
+
+  Minimising changes to LilyPond's Scheme is an explicit project goal.
+  Files vendored verbatim need no modification notice; any file edited away
+  from verbatim upstream gains a row here AND a per-file modification
+  notice per section 10.1.
+
+  Vendored files edited away from verbatim upstream:
+
+    (none -- all vendored material is verbatim as of this writing)
+
+================================================================================
+
+11. RELATED REPOSITORIES AND THE SEPARATION OF MATERIAL
+================================================================================
+
+CodeBrix.LilyPort depends on CodeBrix.LilyScheme, a separate
+LGPL-3.0-or-later library that carries its own THIRD-PARTY-NOTICES.txt
+covering the GNU Guile material it incorporates.
+
+The separation is deliberate and is a licensing decision, not a filing
+convenience:
+
+    LilyPond-derived source -> ONLY in CodeBrix.LilyPort    (GPL-3.0-or-later)
+    Guile-derived source    -> ONLY in CodeBrix.LilyScheme  (LGPL-3.0-or-later)
+
+Keeping LilyPond material out of CodeBrix.LilyScheme keeps that library
+usable on its own terms: LGPL-3 permits a proprietary or permissively
+licensed consumer to link against it, which GPL-3 would not. A single
+LilyPond-derived file placed there would forfeit that permanently.
+
+This project, being GPL-3, may consume LGPL-3 material freely; the
+combination is explicitly contemplated by LGPL-3 section 2.
+
+Fresco.Brix, the Frescobaldi port that shares this repository, is a
+separate work with its own upstream (Frescobaldi, GPL-2.0-or-later) and
+will carry its own attribution records. Nothing in this document covers it.
+
+================================================================================
+
+Jeremy Ellis and contributors license the CodeBrix.LilyPort project
+to you under the terms set forth in the LICENSE file, which is located at
+the root of this repository.
+
+The shipped package conveys as GPL VERSION 3 ONLY, not "or later", because it
+includes ly/articulate.ly. See section 2 for the full reasoning.
+
+If you have any questions about any third-party code or services referenced
+here, or if you believe that any third-party code has been included in
+CodeBrix.LilyPort in error, please open a new issue at:
+https://github.com/ellisnet/CodeBrix.Samples.Gpl3/issues
+
+================================================================================
+
+END OF THIRD-PARTY SOFTWARE NOTICES AND INFORMATION

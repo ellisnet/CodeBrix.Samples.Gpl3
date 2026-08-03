@@ -1,0 +1,94 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <AssemblyName>CodeBrix.LilyPort</AssemblyName>
+    <RootNamespace>CodeBrix.LilyPort</RootNamespace>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+
+<!--
+    Package / assembly version: date-stamped and auto-incrementing.
+    1.<years-since-2026>.<day-of-year>.<minute-of-day>, all from UTC now, so the
+    value is strictly increasing over time. This is date-stamp versioning, not
+    SemVer: major/minor do not signal API compatibility.
+  -->
+  <PropertyGroup>
+    <_VersionBaseYear>2026</_VersionBaseYear>
+    <_VersionYears>$([MSBuild]::Subtract($([System.DateTime]::UtcNow.Year), $(_VersionBaseYear)))</_VersionYears>
+    <_VersionDayOfYear>$([System.DateTime]::UtcNow.DayOfYear)</_VersionDayOfYear>
+    <_VersionMinuteOfDay>$([System.Convert]::ToInt32($([System.Math]::Floor($([System.DateTime]::UtcNow.TimeOfDay.TotalMinutes)))))</_VersionMinuteOfDay>
+    <BuildVersion>1.$(_VersionYears).$(_VersionDayOfYear).$(_VersionMinuteOfDay)</BuildVersion>
+    <Version>$(BuildVersion)</Version>
+    <AssemblyVersion>$(BuildVersion)</AssemblyVersion>
+    <FileVersion>$(BuildVersion)</FileVersion>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <PackageId>CodeBrix.LilyPort.GplLicenseForever</PackageId>
+    <Product>CodeBrix.LilyPort</Product>
+    <Title>CodeBrix.LilyPort</Title>
+    <Authors>Jeremy Ellis</Authors>
+    <Description>A managed, cross-platform music engraving engine for .NET, ported from GNU LilyPond. Licensed GPL-3.0-only (not -or-later) because it includes LilyPond's articulate.ly, which is GPL-3-only. Early-stage: the flower utility layer is in place; the engraving engine is not yet ported.</Description>
+    <!--
+      GPL-3.0-ONLY rather than "or later", and this is deliberate.
+
+      CodeBrix.LilyPort incorporates ly/articulate.ly, which upstream licenses
+      under GPL version 3 ONLY; its header carries a literal
+      "WARNING: this file under GPLv3 only, not GPLv3+". Combining GPL-3-only
+      material with GPL-3-or-later material is perfectly legal, but the COMBINED
+      work can then only be conveyed under GPL-3 exactly: the "or later" option
+      cannot be exercised over a part that never granted it.
+
+      Note the distinction, because it is easy to "correct" one to match the
+      other and be wrong. OUR OWN source files remain GPL-3.0-or-later, which is
+      what their headers say and what we grant over our own contribution. It is
+      only the aggregate artifact that conveys as GPL-3-only. Both statements are
+      true at once and neither should be changed to match the other.
+
+      See THIRD-PARTY-NOTICES.txt section 2.
+    -->
+    <PackageLicenseExpression>GPL-3.0-only</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/ellisnet/CodeBrix.Samples.Gpl3</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/ellisnet/CodeBrix.Samples.Gpl3</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <Copyright>Copyright (c) 2026 Jeremy Ellis and contributors</Copyright>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+    <IsPackable>true</IsPackable>
+    <PackageTags>lilypond;music;engraving;notation;sheet-music;CodeBrix</PackageTags>
+  </PropertyGroup>
+
+  <!--
+    One package, several assemblies. PrivateAssets="all" stops each sub-assembly
+    becoming a package DEPENDENCY. TargetsForTfmSpecificBuildOutput then places its
+    .dll and .xml into lib/ instead. This is the CodeBrix.Audio pattern
+    (src/CodeBrix.Audio/CodeBrix.Audio.csproj). Consequence: this project must sit
+    ON TOP of everything it bundles, because you can only bundle what you reference.
+  -->
+  <ItemGroup>
+    <ProjectReference Include="..\CodeBrix.LilyPort.Flower\CodeBrix.LilyPort.Flower.csproj" PrivateAssets="all" />
+    <ProjectReference Include="..\CodeBrix.LilyPort.Engine\CodeBrix.LilyPort.Engine.csproj" PrivateAssets="all" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);IncludeSubAssembliesInPackage</TargetsForTfmSpecificBuildOutput>
+  </PropertyGroup>
+
+  <Target Name="IncludeSubAssembliesInPackage">
+    <ItemGroup>
+      <BuildOutputInPackage Include="$(OutputPath)CodeBrix.LilyPort.Flower.dll" />
+      <BuildOutputInPackage Include="$(OutputPath)CodeBrix.LilyPort.Flower.xml"
+                            Condition="Exists('$(OutputPath)CodeBrix.LilyPort.Flower.xml')" />
+      <BuildOutputInPackage Include="$(OutputPath)CodeBrix.LilyPort.Engine.dll" />
+      <BuildOutputInPackage Include="$(OutputPath)CodeBrix.LilyPort.Engine.xml"
+                            Condition="Exists('$(OutputPath)CodeBrix.LilyPort.Engine.xml')" />
+    </ItemGroup>
+  </Target>
+
+  <ItemGroup>
+    <None Include="..\..\..\LICENSE" Pack="true" PackagePath="" />
+    <None Include="..\..\THIRD-PARTY-NOTICES.txt" Pack="true" PackagePath="" />
+  </ItemGroup>
+
+</Project>

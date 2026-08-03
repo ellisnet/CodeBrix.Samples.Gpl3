@@ -1,0 +1,60 @@
+# LilyPond's Scheme load ORDER, extracted from scm/lily.scm (init-scheme-files-lib,
+# init-scheme-files-used, init-scheme-files-body) at v2.27.2 on 2026-08-02.
+#
+# Order matters: these files define things for each other, and loading them
+# alphabetically produces a cascade of spurious unbound-variable failures.
+# Names have no .scm suffix, matching upstream.
+color
+operators
+lily-library
+output-lib
+markup-macros
+parser-ly-from-scheme
+file-cache
+define-event-classes
+define-music-callbacks
+define-music-types
+define-note-names
+c++
+chord-entry
+skyline
+markup
+define-markup-commands
+stencil
+modal-transforms
+chord-ignatzek-names
+music-functions
+part-combiner
+autochange
+define-music-properties
+time-signature
+time-signature-settings
+auto-beam
+chord-name
+define-context-properties
+translation-functions
+breath
+script
+midi
+layout-beam
+parser-clef
+layout-slur
+font-encodings
+bar-line
+flag-styles
+fret-diagrams
+tablature
+harp-pedals
+define-woodwind-diagrams
+display-woodwind-diagrams
+predefined-fretboards
+define-grob-properties
+define-grobs
+define-grob-interfaces
+define-stencil-commands
+scheme-engravers
+scheme-performers
+titling
+paper
+backend-library
+context

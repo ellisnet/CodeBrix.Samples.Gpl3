@@ -1,0 +1,41 @@
+\version "2.25.35"
+
+\header {
+  texidoc = "Default values for time signature settings can vary by
+staff if the @code{Timing_translator} is moved from @code{Score} to
+@code{Staff}.  In this case, the upper staff should be beamed 3/4,
+1/4.  The lower staff should be beamed 1/4, 3/4."
+}
+
+\score {
+  \new StaffGroup <<
+     \new Staff {
+        \overrideTimeSignatureSettings
+          4/4        % timeSignature
+          1/4        % beatBase
+          3,1        % beatStructure
+          #'()       % beamExceptions
+        \time 4/4
+        \*8 c''8
+     }
+     \new Staff {
+        \overrideTimeSignatureSettings
+          4/4        % timeSignature
+          #1/4       % beatBase
+          1,3        % beatStructure
+          #'()       % beamExceptions
+        \time 4/4
+        \*8 c''8
+     }
+  >>
+  \layout {
+    \context {
+      \Score
+      \remove "Timing_translator"
+    }
+    \context {
+      \Staff
+      \consists "Timing_translator"
+    }
+  }
+}

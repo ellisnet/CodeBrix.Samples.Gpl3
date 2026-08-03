@@ -1,0 +1,51 @@
+\version "2.25.35"
+
+\header {
+  texidoc = "When subdividing tuplet ratios whose numerators are powers
+of@tie{}2, the beamlet removal depth of each subdivision should vary by
+the same level different, depending on the tuplet ratio magnitude."
+}
+
+
+\paper {
+  indent = 0
+  ragged-right = ##t
+}
+
+\relative c' {
+  \time 1/4
+  \set subdivideBeams = ##t
+  \omit Staff.Clef
+  \override TupletNumber.text = #tuplet-number::calc-fraction-text
+
+  \tuplet 1/2 {
+    \*8 c64
+  }
+  \break
+
+  \tuplet 1/4 {
+    \*8 c128
+  }
+  \break
+
+  \tuplet 1/8 {
+    \*8 c256
+  }
+  \break
+
+  \time 1/16
+  \tuplet 2/1 {
+    \*8 c64
+  }
+  \break
+
+  \tuplet 4/1 {
+    \*16 c64
+  }
+  \break
+
+  \tuplet 8/1 {
+    \*32 c64
+  }
+  \break
+}

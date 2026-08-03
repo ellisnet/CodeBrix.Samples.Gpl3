@@ -1,0 +1,15 @@
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path="THIRD-PARTY-NOTICES.txt" />
+    <File Path="assets/fonts/README.txt" />
+    <File Path="tools/font-build/README.txt" />
+  </Folder>
+  <Folder Name="/Tests/">
+    <Project Path="tests/CodeBrix.LilyPort.Tests/CodeBrix.LilyPort.Tests.csproj" />
+    <Project Path="tests/CodeBrix.LilyPort.Flower.Tests/CodeBrix.LilyPort.Flower.Tests.csproj" />
+    <Project Path="tests/CodeBrix.LilyPort.Engine.Tests/CodeBrix.LilyPort.Engine.Tests.csproj" />
+  </Folder>
+  <Project Path="src/CodeBrix.LilyPort/CodeBrix.LilyPort.csproj" />
+  <Project Path="src/CodeBrix.LilyPort.Flower/CodeBrix.LilyPort.Flower.csproj" />
+  <Project Path="src/CodeBrix.LilyPort.Engine/CodeBrix.LilyPort.Engine.csproj" />
+</Solution>

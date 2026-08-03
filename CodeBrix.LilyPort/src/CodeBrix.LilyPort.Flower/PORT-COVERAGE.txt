@@ -1,0 +1,147 @@
+================================================================================
+CodeBrix.LilyPort.Flower -- PORT COVERAGE AGAINST UPSTREAM flower/
+================================================================================
+
+Written 2026-08-02, against LilyPond v2.27.2
+(commit 2d621459bd44cb1758f822a69757242eab843060).
+
+This file records exactly what was ported, what was deliberately not ported and
+why, and where the port's behaviour differs from upstream's. It exists so that
+"milestone 4 is complete" is a checkable claim rather than an assertion.
+
+--------------------------------------------------------------------------------
+1. PORTED, WITH TESTS
+--------------------------------------------------------------------------------
+
+  Upstream                            Port                       Tests
+  ----------------------------------  -------------------------  -----
+  rational.cc + rational.hh           Rational.cs                27   (from upstream)
+  include/direction.hh                Direction.cs               12   (from upstream)
+  include/drul-array.hh               Direction.cs (DrulArray)    5
+  interval.cc + interval.hh           Interval.cs (Interval)     21   (from upstream)
+    + interval.tcc, interval-traits.hh  Interval.cs (Slice)       2
+  interval-set.cc + .hh               IntervalSet.cs              8
+  include/matrix.hh                   IntervalSet.cs (Matrix)     2
+  offset.cc + offset.hh               Offset.cs                  12
+    + include/axis.hh                 Offset.cs (Axis enum)
+  polynomial.cc + polynomial.hh       Polynomial.cs              12
+  file-name.cc + file-name.hh         FileName.cs                12
+  file-path.cc + file-path.hh         FileName.cs (FilePath)      5
+  string-convert.cc + .hh             StringConvert.cs            7
+  warn.cc + warn.hh                   Warn.cs                     6
+  include/pqueue.hh                   Warn.cs (PriorityQueue)     3
+  include/real.hh                     (no type needed -- Real is double)
+
+  139 tests, all passing. Release builds with 0 warnings.
+
+  Where upstream ships tests (test-rational.cc, test-interval.cc,
+  test-direction.cc, test-drul-array.cc), the assertions and the cases they cover
+  are TRANSLATED FROM UPSTREAM rather than invented. That is the point: it
+  verifies the port against LilyPond's own expectations, not against the porter's
+  reading of the source.
+
+  NOTE for the record: the project direction document says there are "zero unit
+  tests upstream". That is true of lily/ but NOT of flower/, which ships roughly
+  2,000 lines of them.
+
+--------------------------------------------------------------------------------
+2. DELIBERATELY NOT PORTED -- C++ CONSTRUCTS WITH NO C# ANALOGUE
+--------------------------------------------------------------------------------
+
+These files are part of flower/'s line count but consist of preprocessor macros,
+template plumbing, or standard-library shims that C# either provides natively or
+does not need. Porting them would produce nothing.
+
+  arithmetic-operator.hh   Macros generating operator+ from operator+= .
+                           C# declares operators directly.
+  compare.hh               Macros generating <, >, <=, >= from a compare()
+                           function. C# declares operators directly.
+  virtual-methods.hh       Macros for LilyPond's hand-rolled RTTI and class-name
+                           strings. C# has real reflection.
+  memory.hh                Smart-pointer helpers. C# is garbage collected.
+  std-string.hh            Includes <string> and pulls names into scope.
+  std-vector.hh            Includes <vector>, plus bounds-checked indexing under
+                           a debug flag. C# arrays and List<T> are already
+                           bounds-checked.
+  flower-proto.hh          Forward declarations. C# does not need them.
+  interval-traits.hh       Template traits supplying the empty-interval sentinels
+                           per element type. Folded into Interval and Slice as
+                           MaxSentinel / MinSentinel, because the port realises
+                           the template as two concrete types.
+  yaffut.hh                Upstream's test framework.
+  yaffut-parameters.hh     Ditto. Replaced by xUnit v3.
+  test-*.cc                Upstream's test bodies. Translated into the .Tests
+                           project rather than ported as source.
+
+--------------------------------------------------------------------------------
+3. NOT PORTED -- OUT OF SCOPE FOR A LIBRARY
+--------------------------------------------------------------------------------
+
+  getopt-long.cc/.hh       Command-line option parsing for the lilypond(1)
+                           executable. CodeBrix.LilyPort is a library; a future
+                           command-line front end would supply its own.
+  international.cc/.hh     gettext _() wrappers. Localisation for this port is a
+                           CodeBrix.Platform concern, not a flower/ one.
+  libc-extension.cc/.hh    Replacements for missing libc functions (snprintf and
+                           friends) on old platforms. .NET supplies these.
+  cpu-timer.cc/.hh         Wall/CPU timing. System.Diagnostics.Stopwatch covers
+                           it; will be wired in if the engine needs timing.
+  time-tracer.cc/.hh       A tracing profiler writing Chrome trace JSON. Useful
+                           later for performance work, not needed to engrave.
+
+--------------------------------------------------------------------------------
+4. BEHAVIOURAL DIFFERENCES FROM UPSTREAM -- ALL DELIBERATE
+--------------------------------------------------------------------------------
+
+4.1  Rational: denominator stored biased by one
+     Upstream's default-constructed Rational is ZERO (sign 0, num 0, den 1). C#
+     cannot reproduce that, because default(Rational) and array allocation zero
+     the fields and bypass constructors -- which would give a zero denominator,
+     and this type reads a zero denominator as NOT-A-NUMBER. Storing the
+     denominator biased by one makes the all-zeroes pattern mean denominator 1.
+     Caught by upstream's own init_default test.
+
+4.2  Interval: bounds stored behind an "assigned" flag
+     Same class of problem. Upstream's default-constructed Interval is EMPTY
+     (left +infinity, right -infinity), which is what lets Unite and AddPoint
+     accumulate from a fresh interval. Zeroed fields would give a zero-length
+     interval AT THE ORIGIN and silently corrupt every extent computed that way.
+     A bool defaults to false, so an unassigned Interval reads back as empty.
+
+4.3  Warn.Error throws instead of exiting
+     Upstream calls exit(). A library must not terminate its host process, so
+     Error raises LilyPondErrorException and the caller decides. This is the only
+     place in flower/ where the port does not mirror upstream control flow.
+
+4.4  Interval.Compare throws instead of asserting
+     Upstream assert()s when neither interval contains the other. The port throws
+     InvalidOperationException, which is the same contract with a better
+     diagnostic.
+
+4.5  DrulArray with a centre direction resolves to the negative side
+     Upstream assert()s that the direction is non-zero. The C# indexer has no way
+     to signal, so it resolves rather than throwing.
+
+4.6  NaN sign: a genuine C-to-.NET hazard, NOT a port defect
+     C's NAN macro is POSITIVE-signed (signbit(NAN) == 0). .NET's double.NaN is
+     NEGATIVE-signed: its bits are 0xFFF8000000000000 and double.IsNegative
+     returns true. So Direction(NAN) is POSITIVE in C while
+     new Direction(double.NaN) is NEGATIVE here. Both implementations follow the
+     sign bit correctly; only the language's default constant differs.
+
+     This is flagged prominently because it will recur: anywhere in the engine
+     port where a NaN can reach a sign-sensitive computation, the same trap
+     applies. Verified empirically on this machine against gcc.
+
+4.7  String_convert::form_string / vform_string not ported
+     printf-style formatting wrappers. C# has interpolation and composite
+     formatting; callers use those.
+
+4.8  Windows drive-letter handling is unconditional
+     Upstream guards it with #ifdef __MINGW32__. One managed binary serves every
+     platform, so the code is always compiled. It is inert on paths with no
+     drive letter.
+
+================================================================================
+END
+================================================================================

@@ -1,0 +1,55 @@
+\version "2.25.35"
+
+\header {
+  texidoc = "The @code{\\polymetric \\timeAbbrev} works like
+@code{\\polymetric \\time}.
+
+The staff named ``Test'' should change to (3+3+2)/8 time in the second measure
+and revert to common time in the third.  The other staves should remain in
+common time."
+}
+
+#(ly:set-option 'warning-as-error #t)
+
+\score {
+  \layout {}
+  \midi {}
+  \fixed c' <<
+    \time 4/4
+    \new Staff = "A" {
+      \*3 { \*8 f8 }
+    }
+    \new Staff = "B" \with { instrumentName = "Test" } {
+      \*8 f8
+
+      \context Staff \polymetric \timeAbbrev 3,3,2,8
+
+      \contextPropertyCheck Staff.beamExceptions #'()
+      \contextPropertyCheck Staff.beatBase #1/8
+      \contextPropertyCheck Staff.beatStructure #'(3 3 2)
+      \contextPropertyCheck Staff.measureLength \default
+      \contextPropertyCheck Staff.meterScalingFactor 1
+      \contextPropertyCheck Staff.submeasureStructure #'(8)
+      \contextPropertyCheck Staff.timeSignature #'((3 3 2) . 8)
+
+      \*8 f8
+
+      \context Staff \polymetric \default
+      %% A user would be well-advised to add \time 4/4 here, but omitting it
+      %% probably makes a more sensitive test.
+
+      \contextPropertyCheck Staff.beamExceptions \default
+      \contextPropertyCheck Staff.beatBase \default
+      \contextPropertyCheck Staff.beatStructure \default
+      \contextPropertyCheck Staff.measureLength \default
+      \contextPropertyCheck Staff.meterScalingFactor \default
+      \contextPropertyCheck Staff.submeasureStructure \default
+      \contextPropertyCheck Staff.timeSignature \default
+
+      \*8 f8
+    }
+    \new Staff = "C" {
+      \*3 { \*8 f8 }
+    }
+  >>
+}

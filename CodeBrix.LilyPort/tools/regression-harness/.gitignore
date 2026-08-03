@@ -1,0 +1,7 @@
+# Reference and candidate SVG output: regenerable in ~4 minutes, ~62 MB, and a
+# committed copy silently goes stale when the LilyPond version moves.
+# reference-manifest.tsv and reference-status.txt ARE committed -- they are the
+# durable record. See README.txt section 4.
+reference/
+candidate/
+out/

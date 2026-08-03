@@ -1,0 +1,37 @@
+\version "2.27.0"
+
+\header {
+
+  texidoc = "The @code{switchInstrument} music function modifies
+properties for an in staff instrument switch. "
+  }
+
+#(ly:set-option 'warning-as-error #t)
+#(ly:expect-warning (G_ "the function '~a' is deprecated")
+  "\\addInstrumentDefinition")
+#(ly:expect-warning (G_ "the function '~a' is deprecated")
+  "\\instrumentSwitch")
+
+\addInstrumentDefinition "bassClar"
+  #`((instrumentTransposition . ,(ly:make-pitch -1 6 FLAT))
+     (instrumentName . "bla") 
+     (shortInstrumentName . "bl")
+     (clefGlyph . "clefs.F") 
+     (middleCPosition . 6)
+     (clefPosition . 2)
+     (instrumentCueName . ,(make-bold-markup "cl. B"))
+     (midiInstrument . "clarinet"))
+
+
+\paper {
+  ragged-right = ##t
+}
+
+\relative
+{
+  c'4
+  \instrumentSwitch "bassClar"
+  c2.\break
+  c1\break
+  c
+}
