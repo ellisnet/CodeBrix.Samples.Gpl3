@@ -25,6 +25,12 @@ public enum EntryPointKind
 
     /// <summary>A <c>MAKE_SCHEME_CALLBACK</c> — a lazily-invoked grob property callback.</summary>
     Callback,
+
+    /// <summary>
+    /// A smob type predicate, declared by a C++ class's <c>type_p_name_</c> member rather
+    /// than by either macro — which is why the first extraction pass missed all 36 of them.
+    /// </summary>
+    TypePredicate,
 }
 
 /// <summary>One Scheme-visible entry point that LilyPond implements in C++.</summary>
@@ -154,9 +160,19 @@ public static class EnginePrimitives
                     continue;
                 }
 
-                EntryPointKind kind = string.Equals(parts[0], "callback", StringComparison.Ordinal)
-                    ? EntryPointKind.Callback
-                    : EntryPointKind.LyDefine;
+                EntryPointKind kind;
+                switch (parts[0])
+                {
+                    case "callback":
+                        kind = EntryPointKind.Callback;
+                        break;
+                    case "type-predicate":
+                        kind = EntryPointKind.TypePredicate;
+                        break;
+                    default:
+                        kind = EntryPointKind.LyDefine;
+                        break;
+                }
 
                 entries.Add(new EntryPoint(
                     kind,
@@ -218,6 +234,16 @@ public static class EnginePrimitives
                 if (ThrowOnUnported)
                 {
                     throw new NotPortedException(captured, arguments.Length);
+                }
+
+                // A type predicate over a type that has not been ported yet answers #f,
+                // and that answer is CORRECT rather than a placeholder: no instance of
+                // the type can exist, so nothing can be one. Returning the inert
+                // placeholder instead would be truthy, and every predicate in LilyPond's
+                // Scheme would silently say yes.
+                if (captured.Kind == EntryPointKind.TypePredicate)
+                {
+                    return false;
                 }
 
                 return new UnportedValue(captured);

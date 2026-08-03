@@ -279,6 +279,59 @@ Copyright: Copyright (C) 1996--2026 Han-Wen Nienhuys <hanwen@xs4all.nl>
            Copyright (C) 1997--2026 Han-Wen Nienhuys, Jan Nieuwenhuizen
         <- flower/include/pqueue.hh  (the PriorityQueue<T> type)
 
+    src/CodeBrix.LilyPort.Flower/Bezier.cs
+        <- lily/bezier.cc, lily/include/bezier.hh
+           Copyright (C) 1998--2026 Jan Nieuwenhuizen, Han-Wen Nienhuys
+           Placed in the Flower assembly rather than the Engine assembly because
+           it depends only on Offset and Interval; upstream keeps it in lily/.
+
+  THE FIRST OF THE lily/ ENGINE IS PORTED -- the musical value types and the
+  layout units that LilyPond's Scheme layer needs at load time. Same header and
+  modification-notice rules as above.
+
+    src/CodeBrix.LilyPort.Engine/Music/Pitch.cs
+        <- lily/pitch.cc, lily/include/pitch.hh
+           Copyright (C) 1998--2026 Han-Wen Nienhuys
+    src/CodeBrix.LilyPort.Engine/Music/Scale.cs
+        <- lily/scale.cc, lily/include/scale.hh
+           Copyright (C) 2007--2026 Han-Wen Nienhuys
+    src/CodeBrix.LilyPort.Engine/Music/Moment.cs
+        <- lily/moment.cc, lily/include/moment.hh
+           Copyright (C) 1997--2026 Han-Wen Nienhuys
+    src/CodeBrix.LilyPort.Engine/Music/Duration.cs
+        <- lily/duration.cc, lily/include/duration.hh
+           Copyright (C) 1997--2026 Han-Wen Nienhuys
+    src/CodeBrix.LilyPort.Engine/Layout/Dimensions.cs
+        <- lily/include/dimensions.hh, lily/dimensions.cc
+           Copyright (C) 1998--2026 Han-Wen Nienhuys
+    src/CodeBrix.LilyPort.Engine/Layout/Stencil.cs
+        <- lily/stencil.cc, lily/include/stencil.hh
+           Copyright (C) 1997--2026 Han-Wen Nienhuys
+           Only the value type so far: the expression, its extents, and nothing
+           that interprets them.
+    src/CodeBrix.LilyPort.Engine/Bootstrap/ProgramOptions.cs
+        <- lily/program-option.cc, lily/warn.cc
+           Copyright (C) 2001--2026 Han-Wen Nienhuys
+    src/CodeBrix.LilyPort.Engine/Bootstrap/EmbeddedLilyReader.cs
+        <- scm/parser-ly-from-scheme.scm
+           Copyright (C) 2004--2026 the LilyPond contributors
+           Ported from Scheme to C# rather than vendored, because the #{ ... #}
+           reader extension has to exist before any file that USES it can be
+           read -- and scm/define-markup-commands.scm uses it. A Scheme-level
+           implementation cannot bootstrap itself past that.
+
+  The Scheme entry points of the ported types are bound in
+  src/CodeBrix.LilyPort.Engine/Bootstrap/MusicPrimitives.cs,
+  GeneralPrimitives.cs and RegistryPrimitives.cs. Those files are new-in-family
+  C# whose BEHAVIOUR follows the corresponding LY_DEFINE bodies in
+  lily/pitch-scheme.cc, lily/moment-scheme.cc, lily/duration-scheme.cc,
+  lily/scale.cc, lily/dimensions-scheme.cc, lily/general-scheme.cc,
+  lily/warn-scheme.cc, lily/program-option-scheme.cc,
+  lily/grob-interface-scheme.cc, lily/translator-ctors.cc,
+  lily/stencil-scheme.cc, lily/bezier-scheme.cc, lily/unpure-pure-container.cc
+  and lily/glib-regex-scheme.cc. They carry no upstream copyright header because
+  they are not literal translations, but the derivation is recorded here.
+
     src/CodeBrix.LilyPort.Flower/PORT-COVERAGE.txt
         Not third-party. Records exactly which upstream files were ported, which
         were deliberately not ported and why, and every behavioural difference
@@ -296,8 +349,10 @@ Copyright: Copyright (C) 1996--2026 Han-Wen Nienhuys <hanwen@xs4all.nl>
   Data extracted from LilyPond source:
 
     src/CodeBrix.LilyPort.Engine/Scheme/entry-points.tsv
-           695 Scheme-visible entry points implemented in C++ (402 LY_DEFINE,
-           293 MAKE_SCHEME_CALLBACK / IMPLEMENT_CTOR_CALLBACK), with their
+           731 Scheme-visible entry points implemented in C++ (402 LY_DEFINE,
+           293 MAKE_SCHEME_CALLBACK / IMPLEMENT_CTOR_CALLBACK, and 36 smob type
+           predicates declared by a class's type_p_name_ member rather than by
+           either macro -- the first extraction pass missed all 36), with their
            arities and declaring files. Extracted from lily/*.cc.
 
            This is DATA DERIVED FROM LILYPOND and therefore GPL-3.0-or-later,

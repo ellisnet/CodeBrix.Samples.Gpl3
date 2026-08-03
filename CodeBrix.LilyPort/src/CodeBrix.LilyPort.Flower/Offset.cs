@@ -171,6 +171,50 @@ public readonly struct Offset : IEquatable<Offset>
             (z1.X * z2.Y) + (z1.Y * z2.X));
     }
 
+    /// <summary>
+    /// Returns the unit offset pointing at an angle, measured in degrees.
+    /// <para>
+    /// The angle is first folded into (-180, 180], then each component is computed from a
+    /// sine of an angle no larger than 90 degrees in absolute value. That is not a
+    /// simplification of cos/sin -- it is upstream's deliberate arrangement, which keeps
+    /// the rounding error of pi/180 from accumulating and makes the x and y magnitudes
+    /// come out exactly equal at odd multiples of 45 degrees. Do not "clean this up".
+    /// </para>
+    /// </summary>
+    /// <param name="degrees">The angle in degrees.</param>
+    /// <returns>The unit offset.</returns>
+    public static Offset Directed(double degrees)
+    {
+        double angle = degrees;
+        if (angle <= -360.0 || angle >= 360.0)
+        {
+            // C's fmod truncates toward zero; Math.IEEERemainder rounds to nearest, so
+            // it is the wrong operation here even though the names look interchangeable.
+            angle = angle % 360.0;
+        }
+
+        if (angle <= -180.0)
+        {
+            angle += 360.0;
+        }
+        else if (angle > 180.0)
+        {
+            angle -= 360.0;
+        }
+
+        const double ToRadians = Math.PI / 180.0;
+        if (angle > 0)
+        {
+            return angle > 90
+                ? new Offset(Math.Sin((90 - angle) * ToRadians), Math.Sin((180 - angle) * ToRadians))
+                : new Offset(Math.Sin((90 - angle) * ToRadians), Math.Sin(angle * ToRadians));
+        }
+
+        return angle < -90
+            ? new Offset(Math.Sin((90 + angle) * ToRadians), Math.Sin((-180 - angle) * ToRadians))
+            : new Offset(Math.Sin((90 + angle) * ToRadians), Math.Sin(angle * ToRadians));
+    }
+
     /// <summary>Gets the angle from the positive X axis, in degrees, in -180..180.</summary>
     /// <returns>The angle in degrees.</returns>
     public double AngleDegrees() => Math.Atan2(Y, X) * 180.0 / Math.PI;

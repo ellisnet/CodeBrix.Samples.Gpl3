@@ -145,3 +145,38 @@ does not need. Porting them would produce nothing.
 ================================================================================
 END
 ================================================================================
+
+================================================================================
+ADDED 2026-08-02 -- BEZIER, AND Offset.Directed
+================================================================================
+
+  lily/bezier.cc, lily/include/bezier.hh  ->  Bezier.cs
+
+    Ported: the cubic curve itself -- CurvePoint, DirectionAtPoint, Subdivide,
+    Extract, Scale, Rotate, Translate, Reverse, ControlPointExtent.
+
+    NOT ported yet: get_other_coordinate(s), solve_point, solve_derivative,
+    minmax, extent, polynomial, curve_coordinate, assert_sanity. Those are used
+    by slur and tie scoring, which is milestone-6 work not yet reached. They
+    depend on Polynomial, which IS ported, so they are a straight addition when
+    the demand appears.
+
+    Placed in the Flower assembly although upstream keeps it in lily/. It
+    depends only on Offset, Interval and Warn, all of which are here, and
+    nothing in it touches grobs or Scheme. Recorded so the divergence from
+    upstream's directory layout is deliberate and visible.
+
+  flower/offset.cc offset_directed()  ->  Offset.Directed(double)
+
+    DELIBERATE NON-SIMPLIFICATION. The obvious implementation is
+    (cos t, sin t). Upstream instead folds the angle into (-180, 180] and
+    computes BOTH components from sines of angles no larger than 90 degrees.
+    That is not clumsiness: it keeps the rounding error of pi/180 from
+    accumulating, and it makes |x| and |y| come out exactly equal at odd
+    multiples of 45 degrees. The comment in the source says so, and there is a
+    test for the 45-degree property. Do not "clean this up".
+
+    One genuine translation difference: C's fmod truncates toward zero, while
+    .NET's Math.IEEERemainder rounds to nearest. The port uses the % operator,
+    which matches fmod. Using IEEERemainder because the name looks closer would
+    be wrong.
