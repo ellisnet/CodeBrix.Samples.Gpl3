@@ -122,6 +122,21 @@ public static class SchemeConvert
         }
     }
 
+    /// <summary>
+    /// Determines whether a value is a Scheme number, the way <c>scm_is_number</c>
+    /// does.
+    /// <para>
+    /// The engine asks this constantly, because a great many LilyPond properties are
+    /// "a number, or the empty list meaning unset" and the two have to be told apart
+    /// before any conversion is attempted.
+    /// </para>
+    /// </summary>
+    /// <param name="value">The Scheme value.</param>
+    /// <returns><see langword="true"/> when the value is a number.</returns>
+    public static bool IsNumber(object value)
+        => value is long || value is int || value is BigInteger
+           || value is double || value is Ratio;
+
     // A double reaching a Rational is always a whole-note count that came through
     // Scheme arithmetic; approximate it over a fixed denominator rather than trying to
     // recover an exact value that was already lost.

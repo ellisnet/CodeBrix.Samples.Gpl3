@@ -69,6 +69,8 @@
   <ItemGroup>
     <ProjectReference Include="..\CodeBrix.LilyPort.Flower\CodeBrix.LilyPort.Flower.csproj" PrivateAssets="all" />
     <ProjectReference Include="..\CodeBrix.LilyPort.Engine\CodeBrix.LilyPort.Engine.csproj" PrivateAssets="all" />
+    <ProjectReference Include="..\CodeBrix.LilyPort.Backends\CodeBrix.LilyPort.Backends.csproj" PrivateAssets="all" />
+    <ProjectReference Include="..\CodeBrix.LilyPort.Parsing\CodeBrix.LilyPort.Parsing.csproj" PrivateAssets="all" />
   </ItemGroup>
 
   <PropertyGroup>
@@ -83,6 +85,12 @@
       <BuildOutputInPackage Include="$(OutputPath)CodeBrix.LilyPort.Engine.dll" />
       <BuildOutputInPackage Include="$(OutputPath)CodeBrix.LilyPort.Engine.xml"
                             Condition="Exists('$(OutputPath)CodeBrix.LilyPort.Engine.xml')" />
+      <BuildOutputInPackage Include="$(OutputPath)CodeBrix.LilyPort.Backends.dll" />
+      <BuildOutputInPackage Include="$(OutputPath)CodeBrix.LilyPort.Backends.xml"
+                            Condition="Exists('$(OutputPath)CodeBrix.LilyPort.Backends.xml')" />
+      <BuildOutputInPackage Include="$(OutputPath)CodeBrix.LilyPort.Parsing.dll" />
+      <BuildOutputInPackage Include="$(OutputPath)CodeBrix.LilyPort.Parsing.xml"
+                            Condition="Exists('$(OutputPath)CodeBrix.LilyPort.Parsing.xml')" />
     </ItemGroup>
   </Target>
 

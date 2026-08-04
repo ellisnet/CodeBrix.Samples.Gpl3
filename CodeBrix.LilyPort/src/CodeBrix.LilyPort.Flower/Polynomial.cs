@@ -74,6 +74,50 @@ public sealed class Polynomial
     /// </summary>
     public int Degree => Coefficients.Count - 1;
 
+    /// <summary>Adds another polynomial into this one, in place.</summary>
+    /// <param name="other">The polynomial to add.</param>
+    public void Add(Polynomial other)
+    {
+        if (other == null)
+        {
+            throw new ArgumentNullException(nameof(other));
+        }
+
+        while (Degree < other.Degree)
+        {
+            Coefficients.Add(0.0);
+        }
+
+        for (int i = 0; i <= other.Degree; i++)
+        {
+            Coefficients[i] += other.Coefficients[i];
+        }
+    }
+
+    /// <summary>Subtracts another polynomial from this one, in place.</summary>
+    /// <param name="other">The polynomial to subtract.</param>
+    public void Subtract(Polynomial other)
+    {
+        if (other == null)
+        {
+            throw new ArgumentNullException(nameof(other));
+        }
+
+        while (Degree < other.Degree)
+        {
+            Coefficients.Add(0.0);
+        }
+
+        for (int i = 0; i <= other.Degree; i++)
+        {
+            Coefficients[i] -= other.Coefficients[i];
+        }
+    }
+
+    /// <summary>Returns an independent copy.</summary>
+    /// <returns>The copy.</returns>
+    public Polynomial Copy() => new Polynomial(Coefficients);
+
     /// <summary>Evaluates the polynomial at a point, by Horner's method.</summary>
     /// <param name="x">The point to evaluate at.</param>
     /// <returns>The value.</returns>

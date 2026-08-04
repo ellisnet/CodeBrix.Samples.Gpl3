@@ -257,7 +257,222 @@ public sealed class Bezier
         return extent;
     }
 
+    /// <summary>
+    /// Returns the curve as a polynomial in t along one axis.
+    /// <para>
+    /// The four Bernstein basis terms are cached, because <see cref="SolvePoint"/> and
+    /// <see cref="SolveDerivative"/> rebuild this on every call and the slur and tie
+    /// scorers call them in inner loops.
+    /// </para>
+    /// </summary>
+    /// <param name="axis">The axis to project onto.</param>
+    /// <returns>The cubic polynomial.</returns>
+    public Polynomial ToPolynomial(Axis axis)
+    {
+        Polynomial p = new Polynomial(0.0);
+        for (int j = 0; j <= 3; j++)
+        {
+            Polynomial q = BernsteinTerms[j].Copy();
+            q.ScalarMultiply(_control[j][axis]);
+            p.Add(q);
+        }
+
+        return p;
+    }
+
+    /// <summary>
+    /// Returns the parameter values at which the curve's derivative is parallel to a
+    /// given direction.
+    /// </summary>
+    /// <param name="derivative">The direction to match.</param>
+    /// <returns>The solutions inside [0, 1].</returns>
+    public List<double> SolveDerivative(Offset derivative)
+    {
+        Polynomial xp = ToPolynomial(Axis.X);
+        Polynomial yp = ToPolynomial(Axis.Y);
+        xp.Differentiate();
+        yp.Differentiate();
+
+        Polynomial combine = (xp * derivative.Y) - (yp * derivative.X);
+
+        return FilterSolutions(combine.Solve());
+    }
+
+    /// <summary>
+    /// Returns the parameter values at which the curve crosses a given coordinate on
+    /// one axis.
+    /// </summary>
+    /// <param name="axis">The axis the coordinate is measured on.</param>
+    /// <param name="coordinate">The coordinate to hit.</param>
+    /// <returns>The solutions inside [0, 1].</returns>
+    public List<double> SolvePoint(Axis axis, double coordinate)
+    {
+        Polynomial p = ToPolynomial(axis);
+        p.Coefficients[0] -= coordinate;
+
+        return FilterSolutions(p.Solve());
+    }
+
+    /// <summary>
+    /// Returns the other coordinate where the curve crosses a coordinate on one axis,
+    /// taking the first solution.
+    /// </summary>
+    /// <param name="axis">The axis the coordinate is measured on.</param>
+    /// <param name="coordinate">The coordinate to hit.</param>
+    /// <returns>The other coordinate, or zero when the curve never gets there.</returns>
+    public double GetOtherCoordinate(Axis axis, double coordinate)
+    {
+        Axis other = Axes.Other(axis);
+        List<double> ts = SolvePoint(axis, coordinate);
+
+        if (ts.Count == 0)
+        {
+            Warn.ProgrammingError("no solution found for Bezier intersection");
+            return 0.0;
+        }
+
+        return CurveCoordinate(ts[0], other);
+    }
+
+    /// <summary>
+    /// Returns every other coordinate where the curve crosses a coordinate on one axis.
+    /// </summary>
+    /// <param name="axis">The axis the coordinate is measured on.</param>
+    /// <param name="coordinate">The coordinate to hit.</param>
+    /// <returns>The other coordinates, one per crossing.</returns>
+    public List<double> GetOtherCoordinates(Axis axis, double coordinate)
+    {
+        Axis other = Axes.Other(axis);
+        List<double> ts = SolvePoint(axis, coordinate);
+        List<double> solutions = new List<double>(ts.Count);
+        for (int i = 0; i < ts.Count; i++)
+        {
+            solutions.Add(CurveCoordinate(ts[i], other));
+        }
+
+        return solutions;
+    }
+
+    /// <summary>Returns one coordinate of the curve point at a parameter value.</summary>
+    /// <param name="t">The parameter, from 0 to 1.</param>
+    /// <param name="axis">The axis to read.</param>
+    /// <returns>The coordinate.</returns>
+    public double CurveCoordinate(double t, Axis axis) => CurvePoint(t)[axis];
+
+    /// <summary>
+    /// For the portion of the curve between <paramref name="left"/> and
+    /// <paramref name="right"/> along one axis, returns the bounding limit in one
+    /// direction along the other axis.
+    /// </summary>
+    /// <param name="axis">The axis the range is measured on.</param>
+    /// <param name="left">The lower end of the range.</param>
+    /// <param name="right">The upper end of the range.</param>
+    /// <param name="direction">Which limit to return.</param>
+    /// <returns>The limit, or zero when no part of the curve lies in the range.</returns>
+    public double MinMax(Axis axis, double left, double right, Direction direction)
+    {
+        Axis other = Axes.Other(axis);
+
+        // The curve could hit its bounding box limit along the other axis at:
+        //  points where the curve is parallel to this axis,
+        Offset vector = Offset.Zero.With(axis, 1.0);
+        List<double> solutions = SolveDerivative(vector);
+
+        //  or endpoints of the curve,
+        // (using points just inside the ends, so that an endpoint is evaluated
+        //  if it falls within rounding error of L or R and the curve lies inside)
+        solutions.Add(0.999);
+        solutions.Add(0.001);
+
+        Interval extent = Interval.Empty;
+        for (int i = solutions.Count - 1; i >= 0; i--)
+        {
+            Offset p = CurvePoint(solutions[i]);
+            if (p[axis] >= left && p[axis] <= right)
+            {
+                extent.AddPoint(p[other]);
+            }
+        }
+
+        //  or intersections of the curve with the bounding lines at L and R.
+        Interval range = new Interval(left, right);
+        foreach (Direction d in new[] { Direction.Negative, Direction.Positive })
+        {
+            List<double> crossings = GetOtherCoordinates(axis, range[d]);
+            for (int i = crossings.Count - 1; i >= 0; i--)
+            {
+                extent.AddPoint(crossings[i]);
+            }
+        }
+
+        if (extent.IsEmpty)
+        {
+            Warn.ProgrammingError("Bezier curve does not cross region of concern");
+            return 0.0;
+        }
+
+        return extent[direction];
+    }
+
+    /// <summary>
+    /// Returns the true bounding extent along an axis — the curve's own extent, not
+    /// the hull of its control points.
+    /// </summary>
+    /// <param name="axis">The axis to measure.</param>
+    /// <returns>The extent.</returns>
+    public Interval Extent(Axis axis)
+    {
+        Offset d = Offset.Zero.With(Axes.Other(axis), 1.0);
+        Interval extent = Interval.Empty;
+        List<double> solutions = SolveDerivative(d);
+        solutions.Add(1.0);
+        solutions.Add(0.0);
+
+        for (int i = solutions.Count - 1; i >= 0; i--)
+        {
+            Offset o = CurvePoint(solutions[i]);
+            extent.Unite(new Interval(o[axis], o[axis]));
+        }
+
+        return extent;
+    }
+
     /// <summary>Returns a copy of this curve.</summary>
     /// <returns>The copy.</returns>
     public Bezier Copy() => new Bezier(_control);
+
+    /// <summary>Removes all numbers outside [0, 1] from a solution set.</summary>
+    /// <param name="solutions">The solutions to filter. Filtered in place.</param>
+    /// <returns>The same list, with out-of-range solutions removed.</returns>
+    private static List<double> FilterSolutions(List<double> solutions)
+    {
+        for (int i = solutions.Count - 1; i >= 0; i--)
+        {
+            if (solutions[i] < 0 || solutions[i] > 1)
+            {
+                solutions.RemoveAt(i);
+            }
+        }
+
+        return solutions;
+    }
+
+    /*
+      Cache binom (3, j) t^j (1-t)^{3-j}
+    */
+    private static readonly Polynomial[] BernsteinTerms = BuildBernsteinTerms();
+
+    private static Polynomial[] BuildBernsteinTerms()
+    {
+        Polynomial[] terms = new Polynomial[4];
+        for (int j = 0; j <= 3; j++)
+        {
+            Polynomial term = Polynomial.Power(j, new Polynomial(0, 1))
+                              * Polynomial.Power(3 - j, new Polynomial(1, -1));
+            term.ScalarMultiply(BinomialCoefficient3[j]);
+            terms[j] = term;
+        }
+
+        return terms;
+    }
 }

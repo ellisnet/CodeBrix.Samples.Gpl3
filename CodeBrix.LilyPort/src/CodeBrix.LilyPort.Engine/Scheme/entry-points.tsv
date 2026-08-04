@@ -344,6 +344,7 @@ ly-define	ly:context-mod-apply!	2	0	0	context-mod-scheme.cc
 ly-define	ly:context-name	1	0	0	context-scheme.cc
 ly-define	ly:context-output-def	1	0	0	context-scheme.cc
 ly-define	ly:context-parent	1	0	0	context-scheme.cc
+ly-define	ly:context-property	2	0	1	context-scheme.cc
 ly-define	ly:context-property-where-defined	2	1	0	context-scheme.cc
 ly-define	ly:context-pushpop-property	3	1	0	context-scheme.cc
 ly-define	ly:context-schedule-moment	2	0	0	global-context-scheme.cc
@@ -415,8 +416,11 @@ ly-define	ly:grob-get-vertical-axis-group-index	1	0	0	grob-scheme.cc
 ly-define	ly:grob-interfaces	1	0	0	grob-scheme.cc
 ly-define	ly:grob-layout	1	0	0	grob-scheme.cc
 ly-define	ly:grob-list->grob-array	1	0	0	grob-array-scheme.cc
+ly-define	ly:grob-object	2	1	0	grob-scheme.cc
 ly-define	ly:grob-original	1	0	0	grob-scheme.cc
+ly-define	ly:grob-parent	2	1	0	grob-scheme.cc
 ly-define	ly:grob-pq<?	2	0	0	grob-pq-engraver.cc
+ly-define	ly:grob-property	2	1	0	grob-scheme.cc
 ly-define	ly:grob-property-data	2	0	0	grob-scheme.cc
 ly-define	ly:grob-pure-height	4	1	0	grob-scheme.cc
 ly-define	ly:grob-pure-property	4	1	0	grob-scheme.cc
@@ -501,6 +505,7 @@ ly-define	ly:moment-main-numerator	1	0	0	moment-scheme.cc
 ly-define	ly:moment-mod	2	0	0	moment-scheme.cc
 ly-define	ly:moment-mul	2	0	0	moment-scheme.cc
 ly-define	ly:moment-sub	2	0	0	moment-scheme.cc
+ly-define	ly:music-property	2	1	0	music-scheme.cc
 ly-define	ly:music?	1	0	0	music-scheme.cc
 ly-define	ly:music-deep-copy	1	1	0	music-scheme.cc
 ly-define	ly:music-duration-compress	2	0	0	music-scheme.cc
@@ -596,6 +601,7 @@ ly-define	ly:pointer-group-interface::add-grob	3	0	0	pointer-group-interface-sch
 ly-define	ly:position-on-line?	2	0	0	staff-symbol-referencer-scheme.cc
 ly-define	ly:prob-immutable-properties	1	0	0	prob-scheme.cc
 ly-define	ly:prob-mutable-properties	1	0	0	prob-scheme.cc
+ly-define	ly:prob-property	2	1	0	prob-scheme.cc
 ly-define	ly:prob-property?	2	0	0	prob-scheme.cc
 ly-define	ly:prob-set-property!	2	1	0	prob-scheme.cc
 ly-define	ly:prob-type?	2	0	0	prob-scheme.cc

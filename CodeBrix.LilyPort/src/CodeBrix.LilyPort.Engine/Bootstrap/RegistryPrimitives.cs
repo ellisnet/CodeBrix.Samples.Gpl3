@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using CodeBrix.LilyPort.Engine.Layout;
+using CodeBrix.LilyPort.Engine.Objects;
 using CodeBrix.LilyPort.Flower;
 using CodeBrix.LilyScheme;
 using CodeBrix.LilyScheme.Primitives;
@@ -41,6 +42,18 @@ public static class RegistryPrimitives
 
         EngineRegistries registries = new EngineRegistries();
         InstallInterfaces(interpreter, registries);
+
+        // Upstream's C++ ADD_INTERFACE macros register from static initialisers, so their
+        // 86 interfaces are in the table before any Scheme runs. The port has no static
+        // initialisers to run -- most of those grob classes are not ported yet -- so it
+        // reads the same declarations from a vendored extraction and registers them HERE,
+        // at the equivalent point: after the primitive exists, before the Scheme layer
+        // loads. scm/define-grob-interfaces.scm then adds its own 88 and overwrites the
+        // two that both halves declare, which is what upstream's ordering produces.
+        GrobInterfaceTable.Register(registries);
+
+        InstallGrobProperties(interpreter);
+
         InstallTranslators(interpreter, registries);
         InstallStencils(interpreter, registries);
         InstallUnpurePure(interpreter);
@@ -57,16 +70,31 @@ public static class RegistryPrimitives
             return Unspecified.Instance;
         });
 
+        // Upstream returns the interface HASH TABLE — document-backend hash-folds and
+        // hashq-refs it, so an alist is not an acceptable stand-in. The table is
+        // rebuilt per call from the registry (upstream hands out its live table); the
+        // interfaces are all registered at startup, so the difference is unobservable.
         interpreter.DefinePrimitive("ly:all-grob-interfaces", 0, 0, a =>
         {
-            List<object> entries = new List<object>(registries.GrobInterfaces.Count);
+            SchemeHashTable table = new SchemeHashTable(null);
             foreach (KeyValuePair<Symbol, object> entry in registries.GrobInterfaces)
             {
-                entries.Add(new Pair(entry.Key, entry.Value));
+                table.CreateHandle(entry.Key, entry.Value);
             }
 
-            return Pair.ListFrom(entries);
+            return table;
         });
+    }
+
+    private static void InstallGrobProperties(Interpreter interpreter)
+    {
+        // Packages a property alist as the override-stack container a context property
+        // named after a grob holds. Upstream's Grob_properties is a smob with a type
+        // predicate, so both are registered.
+        interpreter.DefinePrimitive("ly:make-grob-properties", 1, 1, a =>
+            new GrobProperties(a[0], Nil.Instance));
+
+        interpreter.DefinePrimitive("ly:grob-properties?", 1, 1, a => a[0] is GrobProperties);
     }
 
     private static void InstallTranslators(Interpreter interpreter, EngineRegistries registries)

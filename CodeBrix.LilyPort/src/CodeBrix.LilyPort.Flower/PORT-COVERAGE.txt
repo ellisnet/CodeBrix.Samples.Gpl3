@@ -155,11 +155,18 @@ ADDED 2026-08-02 -- BEZIER, AND Offset.Directed
     Ported: the cubic curve itself -- CurvePoint, DirectionAtPoint, Subdivide,
     Extract, Scale, Rotate, Translate, Reverse, ControlPointExtent.
 
-    NOT ported yet: get_other_coordinate(s), solve_point, solve_derivative,
-    minmax, extent, polynomial, curve_coordinate, assert_sanity. Those are used
-    by slur and tie scoring, which is milestone-6 work not yet reached. They
-    depend on Polynomial, which IS ported, so they are a straight addition when
-    the demand appears.
+    2026-08-03: the previously deferred set is now ported --
+    get_other_coordinate(s) -> GetOtherCoordinate(s), solve_point ->
+    SolvePoint, solve_derivative -> SolveDerivative, minmax -> MinMax,
+    extent -> Extent, polynomial -> ToPolynomial, curve_coordinate ->
+    CurveCoordinate. The demand was Lookup::slur and Lookup::bezier_sandwich.
+
+    Upstream caches the four Bernstein basis polynomials in a file-static
+    Polynomial_cache; the port does the same in a static array, because
+    SolvePoint and SolveDerivative rebuild them on every call and the slur and
+    tie scorers call those in inner loops.
+
+    STILL not ported: assert_sanity (a debug-only check).
 
     Placed in the Flower assembly although upstream keeps it in lily/. It
     depends only on Offset, Interval and Warn, all of which are here, and
@@ -180,3 +187,23 @@ ADDED 2026-08-02 -- BEZIER, AND Offset.Directed
     .NET's Math.IEEERemainder rounds to nearest. The port uses the % operator,
     which matches fmod. Using IEEERemainder because the name looks closer would
     be wrong.
+
+
+  ADDED 2026-08-03 -- Polynomial and Offset
+
+  flower/include/polynomial.hh operator+= / operator-=  ->  Polynomial.Add / .Subtract
+
+    C# cannot define a compound-assignment operator directly, and the binary
+    operators already present build a NEW polynomial. Bezier's polynomial()
+    accumulates in place, so the mutating pair is needed as named methods.
+    Polynomial.Copy() was added alongside for the same reason.
+
+  flower/include/offset.hh dot_product / cross_product
+                                    ->  Offset.DotProduct / Offset.CrossProduct
+
+    Free functions upstream; static methods here, since C# has no free
+    functions. Behaviour identical.
+
+  flower/include/axis.hh other_axis / NO_AXES  ->  Axes.Other / Axes.Count
+
+    Placed in Offset.cs, which already claims axis.hh in its provenance line.

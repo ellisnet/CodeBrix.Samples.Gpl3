@@ -145,6 +145,35 @@ public static class GeneralPrimitives
 
     private static void InstallGeneral(Interpreter interpreter)
     {
+        // Upstream returns the hash table of LY_DEFINE docstrings, built by the
+        // LY_DEFINE machinery at registration time. The port's primitives carry no
+        // docstrings, so the honest translation is an EMPTY hash table — the shape
+        // document-functions hash-maps over, with nothing to document (recorded in
+        // PORT-COVERAGE under DIVERGENCES).
+        interpreter.DefinePrimitive("ly:get-all-function-documentation", 0, 0, a =>
+            new SchemeHashTable(null));
+
+        // lily/ly-module.cc: dump a module's bindings as ((name . value) ...),
+        // skipping unbound variables the way upstream does.
+        interpreter.DefinePrimitive("ly:module->alist", 1, 1, a =>
+        {
+            if (!(a[0] is SchemeModule module))
+            {
+                throw SchemeErrors.WrongType("ly:module->alist", "module", a[0]);
+            }
+
+            object result = Nil.Instance;
+            foreach (KeyValuePair<Symbol, Variable> binding in module.Bindings)
+            {
+                if (binding.Value.IsBound)
+                {
+                    result = new Pair(new Pair(binding.Key, binding.Value.GetValue()), result);
+                }
+            }
+
+            return result;
+        });
+
         interpreter.DefinePrimitive("ly:version", 0, 0, a =>
         {
             string[] parts = LilyPondVersion.Split('.');

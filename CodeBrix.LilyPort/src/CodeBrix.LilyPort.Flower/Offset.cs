@@ -38,6 +38,18 @@ public enum Axis
     Y = 1,
 }
 
+/// <summary>Helpers over <see cref="Axis"/>.</summary>
+public static class Axes
+{
+    /// <summary>The number of axes. Upstream's <c>NO_AXES</c>.</summary>
+    public const int Count = 2;
+
+    /// <summary>Returns the axis that is not the one given.</summary>
+    /// <param name="axis">The axis to flip.</param>
+    /// <returns>The other axis.</returns>
+    public static Axis Other(Axis axis) => axis == Axis.Y ? Axis.X : Axis.Y;
+}
+
 /// <summary>
 /// A two-dimensional vector. LilyPond sometimes treats these as complex numbers
 /// (<c>x + iy</c>), which is why some members are named after complex arithmetic.
@@ -61,6 +73,21 @@ public readonly struct Offset : IEquatable<Offset>
 
     /// <summary>Gets the zero offset. This is also the default value.</summary>
     public static Offset Zero => new Offset(0.0, 0.0);
+
+    /// <summary>Returns the scalar product of two offsets.</summary>
+    /// <param name="a">The first offset.</param>
+    /// <param name="b">The second offset.</param>
+    /// <returns>The dot product.</returns>
+    public static double DotProduct(Offset a, Offset b) => (a.X * b.X) + (a.Y * b.Y);
+
+    /// <summary>
+    /// Returns the signed area of the parallelogram two offsets span. Positive means
+    /// the second offset lies anticlockwise of the first.
+    /// </summary>
+    /// <param name="a">The first offset.</param>
+    /// <param name="b">The second offset.</param>
+    /// <returns>The cross product.</returns>
+    public static double CrossProduct(Offset a, Offset b) => (a.X * b.Y) - (a.Y * b.X);
 
     /// <summary>Gets the coordinate on an axis.</summary>
     /// <param name="axis">The axis to read.</param>

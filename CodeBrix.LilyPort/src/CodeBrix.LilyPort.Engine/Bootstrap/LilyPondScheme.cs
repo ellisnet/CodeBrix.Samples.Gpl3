@@ -32,6 +32,8 @@ public static class LilyPondScheme
     private const string LoadOrderResource = "load-order.txt";
     private const string LilyFolderMarker = ".Scheme.lily.";
 
+    private const string LyFolderMarker = ".Scheme.ly.";
+
     private static readonly string[] LoadOrderCache = ReadLoadOrder();
 
     /// <summary>
@@ -48,6 +50,30 @@ public static class LilyPondScheme
     /// actually ran.
     /// </summary>
     public static EngineRegistries Registries { get; private set; } = new EngineRegistries();
+
+    /// <summary>
+    /// Gets the interpreter the engine talks to.
+    /// <para>
+    /// Process-global on purpose: LilyPond's C++ reaches one Guile through file-scope
+    /// state, and the object model needs the same reach for property type checks and
+    /// for calling Scheme callbacks. Plan risk 7 records the consequence — tests that
+    /// build an interpreter must serialise.
+    /// </para>
+    /// </summary>
+    public static Interpreter Current { get; private set; }
+
+    /// <summary>
+    /// Restores a previously captured ambient interpreter — the restore half of a
+    /// save/restore around a fixture that publishes a BARE interpreter through
+    /// <see cref="CreateInterpreter"/> without loading the Scheme layer. A bare
+    /// ambient interpreter has empty property tables, so leaving one published makes
+    /// every later <c>Context.SetProperty</c> in the process silently refuse its
+    /// type check — the exact defect the publication comment in
+    /// <see cref="CreateInterpreter"/> records for the half-built window.
+    /// </summary>
+    /// <param name="interpreter">The interpreter to publish again, or
+    /// <see langword="null"/> when none was ambient.</param>
+    internal static void RestoreAmbient(Interpreter interpreter) => Current = interpreter;
 
     /// <summary>
     /// Gets LilyPond's own load order, from <c>scm/lily.scm</c>, filtered to the files
@@ -108,6 +134,105 @@ public static class LilyPondScheme
     }
 
     /// <summary>
+    /// Makes <c>(lily <em>name</em>)</c> autoload from the vendored <c>scm/</c> mirror
+    /// the first time it is named.
+    /// <para>
+    /// LilyScheme's own autoloader (Milestone 3, finding 3) covers the Guile layer it
+    /// vendors — <c>(srfi srfi-1)</c>, <c>(ice-9 match)</c> and the rest. LilyPond's
+    /// SUBMODULES are not its to know about: <c>(lily ly-syntax-constructors)</c>,
+    /// <c>(lily curried-definitions)</c>, <c>(lily clip-region)</c> and
+    /// <c>(lily display-lily)</c> live in LilyPort's mirror, and upstream reaches them
+    /// the same lazy way — <c>lily/lily-imports.cc</c> declares
+    /// <c>Scm_module module ("lily ly-syntax-constructors")</c> and lets Guile find
+    /// the file.
+    /// </para>
+    /// <para>
+    /// <c>(lily)</c> ITSELF is excluded. It is not autoloadable: <c>lily.scm</c> DRIVES
+    /// the startup load rather than being one of the files loaded (Milestone 3,
+    /// finding 1), so autoloading it would re-enter the loader from inside itself.
+    /// </para>
+    /// </summary>
+    /// <param name="interpreter">The interpreter to extend.</param>
+    public static void EnableLilyModuleAutoload(Interpreter interpreter)
+    {
+        if (interpreter == null)
+        {
+            throw new ArgumentNullException(nameof(interpreter));
+        }
+
+        Func<object, SchemeModule, bool> previous = interpreter.Modules.ModuleLoader;
+        interpreter.Modules.ModuleLoader = (name, module) =>
+            AutoloadLilySubmodule(interpreter, name, module)
+            || (previous != null && previous(name, module));
+    }
+
+    private static bool AutoloadLilySubmodule(Interpreter interpreter, object name, SchemeModule module)
+    {
+        // Only (lily <one-more-component>), and only when the mirror has the file.
+        if (!(name is Pair head)
+            || !(head.Car is Symbol first)
+            || !string.Equals(first.Name, "lily", StringComparison.Ordinal)
+            || !(head.Cdr is Pair rest)
+            || !(rest.Car is Symbol second)
+            || !(rest.Cdr is Nil))
+        {
+            return false;
+        }
+
+        string source = ReadSource(second.Name);
+        if (source == null)
+        {
+            return false;
+        }
+
+        // LoadExpanded, not EvalString: the file OPENS with `(define-module (lily ...)
+        // #:use-module (lily) ...)`, and only the expander-driven load path treats that
+        // as the module declaration it is. Evaluating the forms directly reads
+        // `(lily)` as a procedure call and dies on an unbound variable — which is
+        // exactly what the first attempt did.
+        SchemeBootstrap.LoadExpanded(interpreter, source, second.Name + ".scm");
+        return true;
+    }
+
+    /// <summary>
+    /// Reads one vendored <c>ly/</c> initialisation file.
+    /// <para>
+    /// These are LilyPond source, not Scheme: <c>declarations-init.ly</c>,
+    /// <c>engraver-init.ly</c>, <c>music-functions-init.ly</c> and the rest of the
+    /// 62-file layer that <c>ly/init.ly</c> pulls in. They are vendored verbatim
+    /// beside the <c>scm/</c> layer and read by the PARSER, which is why they arrived
+    /// only once Track P was finished.
+    /// </para>
+    /// </summary>
+    /// <param name="name">The file name, with or without the <c>.ly</c> suffix.</param>
+    /// <returns>The source text, or <see langword="null"/> when there is no such file.</returns>
+    public static string ReadInitFile(string name)
+    {
+        if (name == null)
+        {
+            throw new ArgumentNullException(nameof(name));
+        }
+
+        string fileName = name.EndsWith(".ly", StringComparison.Ordinal) ? name : name + ".ly";
+        return ReadResource(LyFolderMarker + fileName);
+    }
+
+    /// <summary>Lists the vendored <c>ly/</c> initialisation files.</summary>
+    /// <returns>Their names, with the <c>.ly</c> suffix.</returns>
+    public static IEnumerable<string> InitFileNames()
+    {
+        Assembly assembly = typeof(LilyPondScheme).Assembly;
+        foreach (string resource in assembly.GetManifestResourceNames())
+        {
+            int marker = resource.IndexOf(LyFolderMarker, StringComparison.Ordinal);
+            if (marker >= 0 && resource.EndsWith(".ly", StringComparison.Ordinal))
+            {
+                yield return resource.Substring(marker + LyFolderMarker.Length);
+            }
+        }
+    }
+
+    /// <summary>
     /// Creates an interpreter with LilyScheme bootstrapped, the LilyPond Scheme-side
     /// support layer installed, and every unported C++ entry point stubbed.
     /// </summary>
@@ -125,8 +250,25 @@ public static class LilyPondScheme
         EmbeddedLilyReader.Install();
         Options = GeneralPrimitives.Install(interpreter);
         MusicPrimitives.Install(interpreter);
+        TypePredicates.Install(interpreter);
+        ProbPrimitives.Install(interpreter);
+        IteratorPrimitives.Install(interpreter);
         Registries = RegistryPrimitives.Install(interpreter);
+        GrobPrimitives.Install(interpreter);
+        TranslationPrimitives.Install(interpreter);
+        GrobCallbacks.Install(interpreter);
         EngineSupport.Install(interpreter);
+
+        // LAST, and it must stay last: it looks both halves of each getter/setter pair
+        // up by name, so every primitive involved has to exist first.
+        SetterBindings.Install(interpreter);
+
+        EnableLilyModuleAutoload(interpreter);
+
+        // Published only now. A half-built interpreter must never become the ambient
+        // one: anything that consults it for a property type check in that window
+        // sees empty tables and silently refuses every assignment.
+        Current = interpreter;
         return interpreter;
     }
 

@@ -7,6 +7,7 @@
 
 using System;
 using System.Collections.Generic;
+using CodeBrix.LilyPort.Engine.Translation;
 using CodeBrix.LilyPort.Engine.Music;
 using CodeBrix.LilyPort.Flower;
 using CodeBrix.LilyScheme;
@@ -257,7 +258,157 @@ public static class MusicPrimitives
 
             return result;
         });
+
+        InstallMusicObject(interpreter);
     }
+
+    /// <summary>
+    /// The <c>lily/music-scheme.cc</c> family, over the ported
+    /// <see cref="MusicObject"/>.
+    /// <para>
+    /// <c>ly:make-music</c> is the one <c>make-music</c> itself calls, and it is
+    /// deliberately the only way the Scheme layer builds a music object: everything
+    /// else in <c>music-functions.scm</c> goes through it. Note that
+    /// <c>ly:music-property</c> also has to carry a SETTER, because
+    /// <c>make-music</c> initialises the object with generalized <c>set!</c> — see
+    /// <see cref="SetterBindings"/>.
+    /// </para>
+    /// </summary>
+    private static void InstallMusicObject(Interpreter interpreter)
+    {
+        interpreter.DefinePrimitive("ly:music?", 1, 1, a => a[0] is MusicObject);
+
+        interpreter.DefinePrimitive("ly:make-music", 1, 1, a => new MusicObject(a[0]));
+
+        interpreter.DefinePrimitive("ly:music-property", 2, 3, a =>
+        {
+            MusicObject music = AsMusic(a[0], "ly:music-property");
+            object value = music.GetProperty(AsSymbol(a[1], "ly:music-property"));
+            return value is Nil && a.Length > 2 && !(a[2] is DefaultArgument) ? a[2] : value;
+        });
+
+        interpreter.DefinePrimitive("ly:music-set-property!", 3, 3, a =>
+        {
+            AsMusic(a[0], "ly:music-set-property!")
+                .SetProperty(AsSymbol(a[1], "ly:music-set-property!"), a[2]);
+            return Unspecified.Instance;
+        });
+
+        interpreter.DefinePrimitive("ly:music-mutable-properties", 1, 1, a =>
+            AsMusic(a[0], "ly:music-mutable-properties").GetPropertyAlist(true));
+
+        interpreter.DefinePrimitive("ly:music-length", 1, 1, a =>
+            AsMusic(a[0], "ly:music-length").GetLength());
+
+        interpreter.DefinePrimitive("ly:music-start", 1, 1, a =>
+            AsMusic(a[0], "ly:music-start").StartMoment());
+
+        interpreter.DefinePrimitive("ly:music-deep-copy", 1, 2, a =>
+        {
+            object copy = MusicObject.MusicDeepCopy(a[0]);
+            if (a.Length > 1 && !(a[1] is DefaultArgument) && a[1] is MusicObject origin)
+            {
+                MusicObject.SetOrigin(copy, origin.Origin);
+            }
+
+            return copy;
+        });
+
+        interpreter.DefinePrimitive("ly:music-list?", 1, 1, a =>
+        {
+            object cursor = a[0];
+            while (cursor is Pair pair)
+            {
+                if (!(pair.Car is MusicObject))
+                {
+                    return false;
+                }
+
+                cursor = pair.Cdr;
+            }
+
+            return cursor is Nil;
+        });
+
+        interpreter.DefinePrimitive("ly:music-transpose", 2, 2, a =>
+        {
+            MusicObject music = AsMusic(a[0], "ly:music-transpose");
+            music.Transpose(AsPitch(a[1], "ly:music-transpose"));
+            return music;
+        });
+
+        InstallMusicCallbacks(interpreter);
+    }
+
+    /// <summary>
+    /// The <c>MAKE_SCHEME_CALLBACK</c> family from <c>lily/music-sequence.cc</c>,
+    /// <c>lily/music.cc</c> and <c>lily/calculated-sequential-music.cc</c>.
+    /// <para>
+    /// <c>define-music-types.scm</c> stores these in the <c>length-callback</c>,
+    /// <c>start-callback</c> and <c>to-relative-callback</c> properties of the music
+    /// types that need them, so they are read by NAME out of a property alist rather
+    /// than called from C#. The implementations were already ported onto
+    /// <see cref="MusicSequence"/>; what was missing was the registration, and the
+    /// symptom was a piece of sequential music reporting zero length — which makes the
+    /// interpretation loop decide there is no music at all and stop.
+    /// </para>
+    /// </summary>
+    private static void InstallMusicCallbacks(Interpreter interpreter)
+    {
+        interpreter.DefinePrimitive("ly:music::duration-length-callback", 1, 1, a =>
+            MusicObject.DurationLengthCallback(AsMusic(a[0], "ly:music::duration-length-callback")));
+
+        interpreter.DefinePrimitive("ly:music-sequence::cumulative-length-callback", 1, 1, a =>
+            MusicSequence.CumulativeLengthCallback(
+                AsMusic(a[0], "ly:music-sequence::cumulative-length-callback")));
+
+        interpreter.DefinePrimitive("ly:music-sequence::maximum-length-callback", 1, 1, a =>
+            MusicSequence.MaximumLengthCallback(
+                AsMusic(a[0], "ly:music-sequence::maximum-length-callback")));
+
+        interpreter.DefinePrimitive("ly:music-sequence::event-chord-length-callback", 1, 1, a =>
+            MusicSequence.EventChordLengthCallback(
+                AsMusic(a[0], "ly:music-sequence::event-chord-length-callback")));
+
+        interpreter.DefinePrimitive("ly:music-sequence::first-start-callback", 1, 1, a =>
+            MusicSequence.FirstStartCallback(
+                AsMusic(a[0], "ly:music-sequence::first-start-callback")));
+
+        interpreter.DefinePrimitive("ly:music-sequence::minimum-start-callback", 1, 1, a =>
+            MusicSequence.MinimumStartCallback(
+                AsMusic(a[0], "ly:music-sequence::minimum-start-callback")));
+
+        // The relative-octave callbacks differ only in whether the FIRST element's
+        // pitch is what the rest are measured against: a chord takes its reference from
+        // its first note, while simultaneous music does not.
+        interpreter.DefinePrimitive("ly:music-sequence::simultaneous-relative-callback", 2, 2, a =>
+            MusicObject.MusicListToRelative(
+                AsMusic(a[0], "ly:music-sequence::simultaneous-relative-callback")
+                    .GetProperty(Symbol.Intern("elements")),
+                AsPitch(a[1], "ly:music-sequence::simultaneous-relative-callback"),
+                false));
+
+        interpreter.DefinePrimitive("ly:music-sequence::event-chord-relative-callback", 2, 2, a =>
+            MusicObject.MusicListToRelative(
+                AsMusic(a[0], "ly:music-sequence::event-chord-relative-callback")
+                    .GetProperty(Symbol.Intern("elements")),
+                AsPitch(a[1], "ly:music-sequence::event-chord-relative-callback"),
+                true));
+
+        interpreter.DefinePrimitive("ly:calculated-sequential-music::length", 1, 1, a =>
+            CalculatedSequentialMusic.Length(
+                AsMusic(a[0], "ly:calculated-sequential-music::length")));
+
+        interpreter.DefinePrimitive("ly:calculated-sequential-music::start", 1, 1, a =>
+            CalculatedSequentialMusic.Start(
+                AsMusic(a[0], "ly:calculated-sequential-music::start")));
+    }
+
+    private static MusicObject AsMusic(object value, string procedureName)
+        => value as MusicObject ?? throw SchemeErrors.WrongType(procedureName, "music", value);
+
+    private static Symbol AsSymbol(object value, string procedureName)
+        => value as Symbol ?? throw SchemeErrors.WrongType(procedureName, "symbol", value);
 
     /// <summary>
     /// Gets the scale new pitches are built against.

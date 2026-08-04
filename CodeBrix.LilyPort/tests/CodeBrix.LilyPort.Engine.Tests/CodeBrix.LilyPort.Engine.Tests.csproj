@@ -23,4 +23,18 @@
     <ProjectReference Include="..\..\src\CodeBrix.LilyPort.Engine\CodeBrix.LilyPort.Engine.csproj" />
   </ItemGroup>
 
+  <!--
+    The font-metadata tests need a real Emmentaler to read. These are the fonts this
+    repo builds and ships from its own vendored mf/ sources, so this is an in-repo
+    fixture, not an external dependency.
+  -->
+  <ItemGroup>
+    <None Include="..\..\assets\fonts\otf\emmentaler-20.otf"
+          Link="TestFonts\emmentaler-20.otf"
+          CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\assets\fonts\otf\emmentaler-brace.otf"
+          Link="TestFonts\emmentaler-brace.otf"
+          CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>

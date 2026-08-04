@@ -132,9 +132,19 @@ Rendering flags, and why each is there:
 
     TOLERANCE=0.01 ./compare-output.sh ...     # placement tolerance
 
-This is not usable yet in the sense that matters: CodeBrix.LilyPort cannot
-engrave anything until milestone 6 produces an engine. The harness is built and
-verified now so that milestone 6 has a scoreboard from its first day.
+*** FIRST RUN AGAINST THE PORT: 2026-08-03. ***
+
+    Input `{ c'4 }`, one file. Verdict: GLYPHS-DIFFER -- up the ladder from
+    MISSING, which is the position first light was expected to reach.
+
+    It earned its keep on the first run twice over: the port's very first
+    output was UNPARSEABLE (the SVG backend used xlink:href without binding
+    the namespace -- a real defect, now fixed and pinned by a test), and the
+    graded verdict then exposed the backend mismatch described in section 6.
+
+    The full 2,146-file sweep is not worth running until the port can engrave
+    more than a single note; the harness is now the active oracle, which is
+    what mattered.
 
 ================================================================================
 6.  HOW THE COMPARISON WORKS, AND WHY IT IS NOT A BYTE DIFF
@@ -161,6 +171,29 @@ PLACEMENT-DIFFERS, and PLACEMENT-DIFFERS long before MATCH, so progress can be
 measured continuously instead of as a single distant pass/fail. Getting the right
 notes on the page is a different milestone from getting them in the right place,
 and this reports them separately.
+
+*** CORRECTION, 2026-08-03, from the first run against the port ***
+
+  The `<use>` branch of parse_svg is DEAD against real LilyPond output.
+  LilyPond 2.27.2's SVG backend embeds each glyph's OUTLINE as a <path> with a
+  scaled transform; it never emits <use xlink:href="#glyphname">, and
+  -dsvg-woff does not change that (checked). Music glyphs therefore all land in
+  the deliberately coarse <path:N> bucket.
+
+  CodeBrix.LilyPort's own backend emits <use> with the glyph name. So for the
+  same music the comparator sees `<path:1> x2, <path:5> x1` on one side and
+  `noteheads.s2 x1, clefs.G x1` on the other, and reports GLYPHS-DIFFER for a
+  reason that has nothing to do with the engraving.
+
+  Why the validation below did not catch it: BOTH sides of both checks were
+  LilyPond output, and the coarse path signature does vary with staff size, so
+  the check still discriminated. It only fails to discriminate across BACKENDS.
+
+  What it means: glyph-level comparison needs the port to emit outlines too,
+  which needs a CFF charstring interpreter. That was recorded as deferred
+  ("only wanted for skyline tracing"); it is now also what stands between the
+  port and its only correctness oracle. See CodeBrix.LilyPort.Engine's
+  PORT-COVERAGE.txt, eighth pass.
 
 VALIDATION. A comparator that always says MATCH is worse than none, so this one
 was checked in both directions on 2026-08-02:

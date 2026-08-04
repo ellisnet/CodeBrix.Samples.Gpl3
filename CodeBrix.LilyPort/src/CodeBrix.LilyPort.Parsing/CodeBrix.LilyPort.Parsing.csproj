@@ -1,0 +1,38 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <AssemblyName>CodeBrix.LilyPort.Parsing</AssemblyName>
+    <RootNamespace>CodeBrix.LilyPort.Parsing</RootNamespace>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <_VersionBaseYear>2026</_VersionBaseYear>
+    <_VersionYears>$([MSBuild]::Subtract($([System.DateTime]::UtcNow.Year), $(_VersionBaseYear)))</_VersionYears>
+    <_VersionDayOfYear>$([System.DateTime]::UtcNow.DayOfYear)</_VersionDayOfYear>
+    <_VersionMinuteOfDay>$([System.Convert]::ToInt32($([System.Math]::Floor($([System.DateTime]::UtcNow.TimeOfDay.TotalMinutes)))))</_VersionMinuteOfDay>
+    <BuildVersion>1.$(_VersionYears).$(_VersionDayOfYear).$(_VersionMinuteOfDay)</BuildVersion>
+    <Version>$(BuildVersion)</Version>
+    <AssemblyVersion>$(BuildVersion)</AssemblyVersion>
+    <FileVersion>$(BuildVersion)</FileVersion>
+  </PropertyGroup>
+
+  <!--
+    The grammar and lexer sources are EMBEDDED, not read from disk. A CodeBrix build
+    must never depend on a path outside the assembly, and the generator has to read
+    exactly the mirror this assembly was built from. Same reasoning as the vendored
+    Scheme layer in CodeBrix.LilyPort.Engine.
+  -->
+  <ItemGroup>
+    <EmbeddedResource Include="..\..\parser-mirror\parser.yy" Link="Mirror\parser.yy" />
+    <EmbeddedResource Include="..\..\parser-mirror\lexer.ll" Link="Mirror\lexer.ll" />
+    <EmbeddedResource Include="Actions\rule-manifest.tsv" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\CodeBrix.LilyPort.Engine\CodeBrix.LilyPort.Engine.csproj" />
+  </ItemGroup>
+
+</Project>

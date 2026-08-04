@@ -1,0 +1,14 @@
+# The automaton facts the in-repo generator must reproduce.
+# Generated ONCE by GNU Bison 3.8.2 from parser-mirror/parser.yy at v2.27.2.
+fact	value
+bison-version	3.8.2
+states	913
+productions-including-accept	617
+productions-excluding-accept	616
+terminals-including-end-and-error	130
+nonterminals-including-accept	205
+nonterminals-excluding-accept	204
+mid-rule-nonterminals	15
+empty-productions	39
+shift-reduce-conflicts	0
+reduce-reduce-conflicts	0

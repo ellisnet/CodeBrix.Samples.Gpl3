@@ -19,6 +19,7 @@ namespace CodeBrix.LilyPort.Engine.Tests;
 /// documented behaviour of each entry point and against the arithmetic the C++ performs.
 /// </para>
 /// </summary>
+[Collection(EngineGlobalStateCollection.Name)]
 public class MusicValueTests
 {
     [Fact]

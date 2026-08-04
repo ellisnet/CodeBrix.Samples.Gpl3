@@ -1,0 +1,441 @@
+/*
+  This file is part of LilyPond, the GNU music typesetter.
+
+  Copyright (C) 1998--2026 Jan Nieuwenhuizen <janneke@gnu.org>
+  Han-Wen Nienhuys <hanwen@xs4all.nl>
+
+  LilyPond is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  LilyPond is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with LilyPond.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
+using System;
+using System.Collections.Generic;
+using CodeBrix.LilyPort.Engine.Bootstrap;
+using CodeBrix.LilyPort.Flower;
+using CodeBrix.LilyScheme;
+using CodeBrix.LilyScheme.Runtime;
+using CodeBrix.LilyScheme.Values;
+
+namespace CodeBrix.LilyPort.Engine.Objects; //was previously: lily/lily-guile.cc;
+
+// Modified by Jeremy Ellis on 2026-08-03 as part of the CodeBrix port.
+
+/// <summary>
+/// The association-list and type-checking operations the object model is built on.
+/// <para>
+/// LilyPond stores every property of every music object, grob and context in a Scheme
+/// alist, and reaches it through these. Keeping them here rather than scattering
+/// <c>assq</c> walks through the engine is what makes the property layer swappable.
+/// </para>
+/// </summary>
+public static class SchemeUtilities
+{
+    private static readonly Symbol OriginSymbol = Symbol.Intern("origin");
+
+    /// <summary>Looks a key up in an association list by identity.</summary>
+    /// <param name="key">The key to find.</param>
+    /// <param name="alist">The association list.</param>
+    /// <returns>The matching pair, or <see langword="null"/> when absent.</returns>
+    public static Pair Assq(object key, object alist)
+    {
+        object cursor = alist;
+        while (cursor is Pair pair)
+        {
+            if (pair.Car is Pair entry && ReferenceEquals(entry.Car, key))
+            {
+                return entry;
+            }
+
+            cursor = pair.Cdr;
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Looks a key up in a CHAIN of association lists, returning the first match.
+    /// <para>
+    /// The property alist chain is how a grob's own settings, its type's defaults and
+    /// the layout's defaults are consulted in that order without any of them being
+    /// merged. <see cref="Grob.GetPropertyAlistChain"/> builds the chain; this reads it.
+    /// </para>
+    /// </summary>
+    /// <param name="key">The key to find.</param>
+    /// <param name="chain">A list of association lists.</param>
+    /// <param name="fallback">What to answer when no list in the chain has the key.</param>
+    /// <returns>The value, or the fallback.</returns>
+    public static object ChainAssocGet(object key, object chain, object fallback)
+    {
+        object cursor = chain;
+        while (cursor is Pair pair)
+        {
+            Pair entry = Assq(key, pair.Car);
+            if (entry != null)
+            {
+                return entry.Cdr;
+            }
+
+            cursor = pair.Cdr;
+        }
+
+        return fallback;
+    }
+
+    /// <summary>Determines whether a list contains a value, compared by identity.</summary>
+    /// <param name="value">The value to look for.</param>
+    /// <param name="list">The list to search.</param>
+    /// <returns><see langword="true"/> when the value is present.</returns>
+    public static bool Memq(object value, object list)
+    {
+        object cursor = list;
+        while (cursor is Pair pair)
+        {
+            if (ReferenceEquals(pair.Car, value))
+            {
+                return true;
+            }
+
+            cursor = pair.Cdr;
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Calls a Scheme procedure through the ambient interpreter.
+    /// <para>
+    /// Answers the empty list when there is no interpreter or the value is not a
+    /// procedure, rather than throwing: the engine reads callbacks out of property
+    /// alists, where "no callback" is an ordinary state and not an error.
+    /// </para>
+    /// </summary>
+    /// <param name="callback">The procedure to call.</param>
+    /// <param name="arguments">The arguments.</param>
+    /// <returns>The result, or the empty list when nothing could be called.</returns>
+    public static object CallCallback(object callback, params object[] arguments)
+    {
+        Interpreter interpreter = LilyPondScheme.Current;
+        if (interpreter == null || !(callback is Procedure))
+        {
+            return Nil.Instance;
+        }
+
+        return interpreter.Evaluator.Apply(callback, arguments ?? Array.Empty<object>());
+    }
+
+    /// <summary>
+    /// Sets a key in an association list, returning the possibly-extended list.
+    /// <para>
+    /// Upstream's <c>scm_assq_set_x</c> mutates the existing pair when the key is
+    /// present and conses a new entry on the front when it is not — so the returned
+    /// list must always be stored back, exactly as the C++ does.
+    /// </para>
+    /// </summary>
+    /// <param name="alist">The association list.</param>
+    /// <param name="key">The key to set.</param>
+    /// <param name="value">The value to store.</param>
+    /// <returns>The updated list.</returns>
+    public static object AssqSet(object alist, object key, object value)
+    {
+        Pair entry = Assq(key, alist);
+        if (entry != null)
+        {
+            entry.Cdr = value;
+            return alist;
+        }
+
+        return new Pair(new Pair(key, value), alist ?? Nil.Instance);
+    }
+
+    /// <summary>Removes a key from an association list, returning the new list.</summary>
+    /// <param name="alist">The association list.</param>
+    /// <param name="key">The key to remove.</param>
+    /// <returns>The list without that key.</returns>
+    public static object AssqRemove(object alist, object key)
+    {
+        List<object> kept = new List<object>();
+        object cursor = alist;
+        while (cursor is Pair pair)
+        {
+            if (!(pair.Car is Pair entry && ReferenceEquals(entry.Car, key)))
+            {
+                kept.Add(pair.Car);
+            }
+
+            cursor = pair.Cdr;
+        }
+
+        object result = cursor ?? Nil.Instance;
+        for (int i = kept.Count - 1; i >= 0; i--)
+        {
+            result = new Pair(kept[i], result);
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// Copies a Scheme structure deeply: pairs and vectors are rebuilt, everything
+    /// else is shared.
+    /// </summary>
+    /// <param name="source">The value to copy.</param>
+    /// <returns>The copy.</returns>
+    public static object DeepCopy(object source)
+    {
+        if (source is Pair)
+        {
+            List<object> items = new List<object>();
+            object cursor = source;
+            while (cursor is Pair pair)
+            {
+                items.Add(DeepCopy(pair.Car));
+                cursor = pair.Cdr;
+            }
+
+            object result = DeepCopy(cursor);
+            for (int i = items.Count - 1; i >= 0; i--)
+            {
+                result = new Pair(items[i], result);
+            }
+
+            return result;
+        }
+
+        if (source is object[] vector)
+        {
+            object[] copy = new object[vector.Length];
+            for (int i = 0; i < vector.Length; i++)
+            {
+                copy[i] = DeepCopy(vector[i]);
+            }
+
+            return copy;
+        }
+
+        return source;
+    }
+
+    /// <summary>
+    /// Converts a Scheme value to a bool the way the engine does — and NOT the way
+    /// Scheme does.
+    /// <para>
+    /// Upstream's <c>from_scm&lt;bool&gt;</c> with its default fallback is
+    /// <c>scm_is_eq (s, SCM_BOOL_T)</c>: only <c>#t</c> is true, so an UNSET property
+    /// (which reads back as the empty list) is false. Scheme itself would call the
+    /// empty list true. Every <c>from_scm&lt;bool&gt;</c> in the C++ means this, and
+    /// using Scheme truthiness instead silently inverts every "does this grob have
+    /// this flag" test.
+    /// </para>
+    /// </summary>
+    /// <param name="value">The Scheme value.</param>
+    /// <returns><see langword="true"/> only for <c>#t</c>.</returns>
+    public static bool ToBool(object value) => value is bool flag && flag;
+
+    /// <summary>
+    /// Converts a Scheme value to a bool using SCHEME truthiness: everything except
+    /// <c>#f</c> is true. Use only where upstream calls <c>scm_is_true</c>.
+    /// </summary>
+    /// <param name="value">The Scheme value.</param>
+    /// <returns><see langword="true"/> for anything but <c>#f</c>.</returns>
+    public static bool IsSchemeTrue(object value) => !(value is bool flag) || flag;
+
+    /// <summary>
+    /// Determines whether two Scheme values are <c>equal?</c>, walking pairs and
+    /// vectors structurally.
+    /// </summary>
+    /// <param name="a">The first value.</param>
+    /// <param name="b">The second value.</param>
+    /// <returns><see langword="true"/> when the two are structurally equal.</returns>
+    public static bool IsEqual(object a, object b)
+    {
+        if (ReferenceEquals(a, b))
+        {
+            return true;
+        }
+
+        if (a == null || b == null)
+        {
+            return false;
+        }
+
+        if (a is Pair pa && b is Pair pb)
+        {
+            return IsEqual(pa.Car, pb.Car) && IsEqual(pa.Cdr, pb.Cdr);
+        }
+
+        if (a is object[] va && b is object[] vb)
+        {
+            if (va.Length != vb.Length)
+            {
+                return false;
+            }
+
+            for (int i = 0; i < va.Length; i++)
+            {
+                if (!IsEqual(va[i], vb[i]))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        return a.Equals(b);
+    }
+
+    /// <summary>
+    /// Type-checks a property assignment against the predicate recorded for the
+    /// property symbol.
+    /// <para>
+    /// The predicates were installed by <c>define-grob-properties.scm</c> and its
+    /// siblings as Guile object properties on each symbol, during the startup load.
+    /// When no predicate is recorded the assignment is refused, which is what makes a
+    /// typo in a property name visible rather than silent.
+    /// </para>
+    /// </summary>
+    /// <param name="symbol">The property being set.</param>
+    /// <param name="value">The value being assigned.</param>
+    /// <param name="typeSymbol">
+    /// Which family of properties this is: <c>music-type?</c>, <c>backend-type?</c> or
+    /// <c>translation-type?</c>.
+    /// </param>
+    /// <returns><see langword="true"/> when the assignment is allowed.</returns>
+    public static bool TypeCheckAssignment(Symbol symbol, object value, Symbol typeSymbol)
+    {
+        if (symbol == null)
+        {
+            return false;
+        }
+
+        Interpreter interpreter = LilyPondScheme.Current;
+        if (interpreter == null)
+        {
+            // Without a live interpreter there is nothing to check against. Allowing
+            // the assignment keeps the object model usable from plain unit tests.
+            return true;
+        }
+
+        object predicate = ObjectProperty(interpreter, symbol, typeSymbol);
+        if (!(predicate is Procedure))
+        {
+            // Upstream then consults the deprecated-property tables before refusing.
+            // Those tables live in Scheme and are consulted the same way; until the
+            // deprecation path is ported the property is simply unknown.
+            Warn.ProgrammingError("Not a "
+                + typeSymbol.Name
+                + ", "
+                + symbol.Name
+                + " (must be one of the properties defined in scm/define-*-properties.scm)");
+            return false;
+        }
+
+        object ok = interpreter.Evaluator.Apply(predicate, new[] { value });
+        if (Evaluator.IsTrue(ok))
+        {
+            return true;
+        }
+
+        Warn.ProgrammingError("Type check for `" + symbol.Name + "' failed; value found: " + Describe(value));
+        return false;
+    }
+
+    /// <summary>Reads a Guile object property from the interpreter's table.</summary>
+    /// <param name="interpreter">The interpreter holding the table.</param>
+    /// <param name="subject">The object the property hangs off, usually a symbol.</param>
+    /// <param name="key">The property name.</param>
+    /// <returns>The value, or <see langword="false"/> when unset.</returns>
+    public static object ObjectProperty(Interpreter interpreter, object subject, Symbol key)
+    {
+        if (interpreter == null)
+        {
+            throw new ArgumentNullException(nameof(interpreter));
+        }
+
+        if (key == null || !interpreter.ObjectProperties.TryGetValue(key, out object table))
+        {
+            return false;
+        }
+
+        object cursor = table;
+        while (cursor is Pair pair)
+        {
+            if (pair.Car is Pair entry && ReferenceEquals(entry.Car, subject))
+            {
+                return entry.Cdr;
+            }
+
+            cursor = pair.Cdr;
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Compares two property alists the way <c>Prob::equal_p</c> does: entry by entry,
+    /// in order, skipping <c>origin</c> entries on both sides.
+    /// </summary>
+    /// <param name="a">The first alist.</param>
+    /// <param name="b">The second alist.</param>
+    /// <returns><see langword="true"/> when the two carry the same properties.</returns>
+    public static bool PropertyAlistsEqual(object a, object b)
+    {
+        object aprop = a;
+        object bprop = b;
+
+        while (true)
+        {
+            // Skip over origin fields
+            while (aprop is Pair ap && ap.Car is Pair ae && ReferenceEquals(OriginSymbol, ae.Car))
+            {
+                aprop = ap.Cdr;
+            }
+
+            while (bprop is Pair bp && bp.Car is Pair be && ReferenceEquals(OriginSymbol, be.Car))
+            {
+                bprop = bp.Cdr;
+            }
+
+            /* is one list shorter? */
+            bool aIsPair = aprop is Pair;
+            bool bIsPair = bprop is Pair;
+            if (!aIsPair)
+            {
+                return !bIsPair;
+            }
+
+            if (!bIsPair)
+            {
+                return false;
+            }
+
+            Pair aPair = (Pair)aprop;
+            Pair bPair = (Pair)bprop;
+            if (!(aPair.Car is Pair aEntry) || !(bPair.Car is Pair bEntry))
+            {
+                return false;
+            }
+
+            if (!ReferenceEquals(aEntry.Car, bEntry.Car) || !IsEqual(aEntry.Cdr, bEntry.Cdr))
+            {
+                return false;
+            }
+
+            aprop = aPair.Cdr;
+            bprop = bPair.Cdr;
+        }
+    }
+
+    private static string Describe(object value)
+        => value == null ? "#<null>" : value.ToString();
+}

@@ -19,8 +19,32 @@
     </PackageReference>
   </ItemGroup>
 
+  <!--
+    The facade bundles its sub-assemblies with PrivateAssets="all" (the D8 packing
+    pattern), so they are deliberately NOT transitive to consumers. First light drives
+    the engine directly to build its music and inspect the grobs it produced, so the
+    test project references them explicitly. A consumer of the nuget does not need to:
+    all four assemblies ship inside the one package.
+  -->
   <ItemGroup>
     <ProjectReference Include="..\..\src\CodeBrix.LilyPort\CodeBrix.LilyPort.csproj" />
+    <ProjectReference Include="..\..\src\CodeBrix.LilyPort.Engine\CodeBrix.LilyPort.Engine.csproj" />
+    <ProjectReference Include="..\..\src\CodeBrix.LilyPort.Backends\CodeBrix.LilyPort.Backends.csproj" />
+  </ItemGroup>
+
+  <!--
+    First light engraves real music, so it needs a real Emmentaler to measure and to
+    name glyphs from. These are the fonts this repo builds and ships from its own
+    vendored mf/ sources, so this is an in-repo fixture, not an external dependency.
+    AllFontMetrics probes a TestFonts folder beside the assembly.
+  -->
+  <ItemGroup>
+    <None Include="..\..\assets\fonts\otf\emmentaler-20.otf"
+          Link="TestFonts\emmentaler-20.otf"
+          CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\assets\fonts\otf\emmentaler-brace.otf"
+          Link="TestFonts\emmentaler-brace.otf"
+          CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

@@ -1,0 +1,451 @@
+// Copyright (c) 2026 Jeremy Ellis and contributors
+//
+// CodeBrix.LilyPort is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Text;
+
+namespace CodeBrix.LilyPort.Engine.Fonts;
+
+/// <summary>
+/// A minimal OpenType/sfnt container reader: the table directory, the <c>head</c>
+/// table, and the CFF charset.
+/// <para>
+/// New-in-family. Upstream reaches all of this through FreeType, which LilyPort does
+/// not take a dependency on — the engine needs exactly three things from the font
+/// binary (the two custom LilyPond tables, units-per-em, and glyph name to glyph
+/// index), and those are cheaper to read directly than to bind a native library for.
+/// </para>
+/// <para>
+/// The glyph-name lookup comes from the CFF <c>charset</c>, NOT from the <c>post</c>
+/// table. Emmentaler's <c>post</c> is format 3.0, which by definition carries no
+/// glyph names at all — a reader written to parse <c>post</c> format 2.0 finds
+/// nothing. Master plan section 11, correction 2.
+/// </para>
+/// </summary>
+public sealed class SfntReader
+{
+    private readonly byte[] _data;
+    private readonly Dictionary<string, (uint Offset, uint Length)> _tables
+        = new Dictionary<string, (uint, uint)>(StringComparer.Ordinal);
+
+    /// <summary>Initializes a reader over a font file's bytes.</summary>
+    /// <param name="data">The whole font file.</param>
+    public SfntReader(byte[] data)
+    {
+        _data = data ?? throw new ArgumentNullException(nameof(data));
+        ReadTableDirectory();
+    }
+
+    /// <summary>Reads a font file from disk.</summary>
+    /// <param name="path">The path to the font.</param>
+    /// <returns>The reader.</returns>
+    public static SfntReader FromFile(string path) => new SfntReader(File.ReadAllBytes(path));
+
+    /// <summary>Gets the four-character tags of every table in the font.</summary>
+    public IEnumerable<string> TableTags => _tables.Keys;
+
+    /// <summary>Determines whether the font carries a table.</summary>
+    /// <param name="tag">The four-character table tag.</param>
+    /// <returns><see langword="true"/> when present.</returns>
+    public bool HasTable(string tag) => _tables.ContainsKey(tag);
+
+    /// <summary>Returns a table's raw bytes.</summary>
+    /// <param name="tag">The four-character table tag.</param>
+    /// <returns>The bytes, or <see langword="null"/> when the table is absent.</returns>
+    public byte[] GetTable(string tag)
+    {
+        if (!_tables.TryGetValue(tag, out (uint Offset, uint Length) entry))
+        {
+            return null;
+        }
+
+        byte[] result = new byte[entry.Length];
+        Array.Copy(_data, entry.Offset, result, 0, entry.Length);
+        return result;
+    }
+
+    /// <summary>
+    /// Gets the font's design units per em, from the <c>head</c> table. Emmentaler
+    /// uses 1000.
+    /// </summary>
+    public int UnitsPerEm
+    {
+        get
+        {
+            if (!_tables.TryGetValue("head", out (uint Offset, uint Length) head))
+            {
+                return 1000;
+            }
+
+            // head: version(4) fontRevision(4) checkSumAdjustment(4) magic(4)
+            //       flags(2) unitsPerEm(2)
+            return ReadUInt16((int)head.Offset + 18);
+        }
+    }
+
+    /// <summary>
+    /// Returns the glyph names in glyph-index order, read from the CFF charset.
+    /// <para>
+    /// Index 0 is always <c>.notdef</c> and is not listed in the charset itself, so it
+    /// is supplied here.
+    /// </para>
+    /// </summary>
+    /// <returns>The glyph names, or an empty list when the font has no CFF table.</returns>
+    public List<string> ReadCffGlyphNames()
+    {
+        byte[] cff = GetTable("CFF ");
+        if (cff == null)
+        {
+            return new List<string>();
+        }
+
+        return new CffCharsetReader(cff).ReadGlyphNames();
+    }
+
+    private void ReadTableDirectory()
+    {
+        if (_data.Length < 12)
+        {
+            throw new InvalidDataException("Not an sfnt font: file is too short.");
+        }
+
+        int numTables = ReadUInt16(4);
+        int position = 12;
+
+        for (int i = 0; i < numTables; i++)
+        {
+            if (position + 16 > _data.Length)
+            {
+                break;
+            }
+
+            string tag = Encoding.ASCII.GetString(_data, position, 4);
+            uint offset = ReadUInt32(position + 8);
+            uint length = ReadUInt32(position + 12);
+
+            if (offset <= _data.Length && offset + length <= _data.Length)
+            {
+                _tables[tag] = (offset, length);
+            }
+
+            position += 16;
+        }
+    }
+
+    private int ReadUInt16(int offset) => (_data[offset] << 8) | _data[offset + 1];
+
+    private uint ReadUInt32(int offset)
+        => ((uint)_data[offset] << 24)
+           | ((uint)_data[offset + 1] << 16)
+           | ((uint)_data[offset + 2] << 8)
+           | _data[offset + 3];
+}
+
+/// <summary>
+/// Reads glyph names out of a bare CFF table: the string INDEX plus the charset.
+/// <para>
+/// New-in-family. Only the parts needed to answer "what is glyph N called" are
+/// implemented — the charstrings themselves are the backend's problem, not the
+/// engine's.
+/// </para>
+/// </summary>
+internal sealed class CffCharsetReader
+{
+    private readonly byte[] _cff;
+
+    internal CffCharsetReader(byte[] cff) => _cff = cff;
+
+    internal List<string> ReadGlyphNames()
+    {
+        List<string> names = new List<string>();
+
+        // Header: major(1) minor(1) hdrSize(1) offSize(1)
+        int position = _cff[2];
+
+        // Name INDEX, then Top DICT INDEX, then String INDEX, then Global Subr INDEX.
+        position = SkipIndex(position);
+        int topDictStart = position;
+        List<(int Start, int End)> topDicts = ReadIndexEntries(ref position);
+        List<string> strings = ReadStringIndex(ref position);
+
+        if (topDicts.Count == 0)
+        {
+            return names;
+        }
+
+        Dictionary<int, List<double>> topDict = ParseDict(topDicts[0].Start, topDicts[0].End);
+
+        // CharStrings offset is operator 17; charset is operator 15.
+        if (!topDict.TryGetValue(17, out List<double> charStringsOperands)
+            || charStringsOperands.Count == 0)
+        {
+            return names;
+        }
+
+        int charStringsOffset = (int)charStringsOperands[charStringsOperands.Count - 1];
+        int cursor = charStringsOffset;
+        List<(int Start, int End)> charStrings = ReadIndexEntries(ref cursor);
+        int glyphCount = charStrings.Count;
+
+        names.Add(".notdef");
+        if (glyphCount <= 1)
+        {
+            return names;
+        }
+
+        if (!topDict.TryGetValue(15, out List<double> charsetOperands) || charsetOperands.Count == 0)
+        {
+            // No charset means the predefined ISOAdobe ordering, which Emmentaler
+            // never uses. Nothing more can be said about the names.
+            return names;
+        }
+
+        int charsetOffset = (int)charsetOperands[charsetOperands.Count - 1];
+        if (charsetOffset <= 2)
+        {
+            // 0, 1 and 2 name the predefined charsets rather than an offset.
+            return names;
+        }
+
+        ReadCharset(charsetOffset, glyphCount, strings, names);
+
+        // Keep the top-dict start referenced so the layout above stays readable.
+        _ = topDictStart;
+        return names;
+    }
+
+    private void ReadCharset(int offset, int glyphCount, List<string> strings, List<string> names)
+    {
+        int position = offset;
+        int format = _cff[position++];
+
+        switch (format)
+        {
+            case 0:
+                for (int i = 1; i < glyphCount && position + 1 < _cff.Length; i++)
+                {
+                    int sid = (_cff[position] << 8) | _cff[position + 1];
+                    position += 2;
+                    names.Add(SidToString(sid, strings));
+                }
+
+                break;
+
+            case 1:
+            case 2:
+                while (names.Count < glyphCount && position < _cff.Length)
+                {
+                    int first = (_cff[position] << 8) | _cff[position + 1];
+                    position += 2;
+
+                    int left;
+                    if (format == 1)
+                    {
+                        left = _cff[position];
+                        position += 1;
+                    }
+                    else
+                    {
+                        left = (_cff[position] << 8) | _cff[position + 1];
+                        position += 2;
+                    }
+
+                    for (int i = 0; i <= left && names.Count < glyphCount; i++)
+                    {
+                        names.Add(SidToString(first + i, strings));
+                    }
+                }
+
+                break;
+
+            default:
+                break;
+        }
+    }
+
+    private static string SidToString(int sid, List<string> strings)
+    {
+        if (sid < CffStandardStrings.Names.Length)
+        {
+            return CffStandardStrings.Names[sid];
+        }
+
+        int index = sid - CffStandardStrings.Names.Length;
+        return index >= 0 && index < strings.Count ? strings[index] : "sid" + sid;
+    }
+
+    private List<string> ReadStringIndex(ref int position)
+    {
+        List<string> result = new List<string>();
+        foreach ((int Start, int End) entry in ReadIndexEntries(ref position))
+        {
+            result.Add(Encoding.ASCII.GetString(_cff, entry.Start, entry.End - entry.Start));
+        }
+
+        return result;
+    }
+
+    private List<(int Start, int End)> ReadIndexEntries(ref int position)
+    {
+        List<(int Start, int End)> entries = new List<(int, int)>();
+
+        int count = (_cff[position] << 8) | _cff[position + 1];
+        position += 2;
+
+        if (count == 0)
+        {
+            return entries;
+        }
+
+        int offsetSize = _cff[position++];
+        int[] offsets = new int[count + 1];
+        for (int i = 0; i <= count; i++)
+        {
+            int value = 0;
+            for (int b = 0; b < offsetSize; b++)
+            {
+                value = (value << 8) | _cff[position++];
+            }
+
+            offsets[i] = value;
+        }
+
+        int dataStart = position - 1;
+        for (int i = 0; i < count; i++)
+        {
+            entries.Add((dataStart + offsets[i], dataStart + offsets[i + 1]));
+        }
+
+        position = dataStart + offsets[count];
+        return entries;
+    }
+
+    private int SkipIndex(int position)
+    {
+        int cursor = position;
+        ReadIndexEntries(ref cursor);
+        return cursor;
+    }
+
+    private Dictionary<int, List<double>> ParseDict(int start, int end)
+    {
+        Dictionary<int, List<double>> result = new Dictionary<int, List<double>>();
+        List<double> operands = new List<double>();
+
+        int position = start;
+        while (position < end)
+        {
+            int b0 = _cff[position];
+
+            if (b0 <= 21)
+            {
+                int op = b0;
+                position++;
+                if (b0 == 12)
+                {
+                    op = 1200 + _cff[position];
+                    position++;
+                }
+
+                result[op] = new List<double>(operands);
+                operands.Clear();
+            }
+            else if (b0 == 28)
+            {
+                operands.Add((short)((_cff[position + 1] << 8) | _cff[position + 2]));
+                position += 3;
+            }
+            else if (b0 == 29)
+            {
+                operands.Add((_cff[position + 1] << 24)
+                             | (_cff[position + 2] << 16)
+                             | (_cff[position + 3] << 8)
+                             | _cff[position + 4]);
+                position += 5;
+            }
+            else if (b0 == 30)
+            {
+                position++;
+                operands.Add(ReadRealOperand(ref position));
+            }
+            else if (b0 >= 32 && b0 <= 246)
+            {
+                operands.Add(b0 - 139);
+                position++;
+            }
+            else if (b0 >= 247 && b0 <= 250)
+            {
+                operands.Add(((b0 - 247) * 256) + _cff[position + 1] + 108);
+                position += 2;
+            }
+            else if (b0 >= 251 && b0 <= 254)
+            {
+                operands.Add((-(b0 - 251) * 256) - _cff[position + 1] - 108);
+                position += 2;
+            }
+            else
+            {
+                position++;
+            }
+        }
+
+        return result;
+    }
+
+    private double ReadRealOperand(ref int position)
+    {
+        StringBuilder text = new StringBuilder();
+        bool done = false;
+
+        while (!done && position < _cff.Length)
+        {
+            int b = _cff[position++];
+            for (int half = 0; half < 2; half++)
+            {
+                int nibble = half == 0 ? (b >> 4) & 0xF : b & 0xF;
+                switch (nibble)
+                {
+                    case 0xA:
+                        text.Append('.');
+                        break;
+                    case 0xB:
+                        text.Append('E');
+                        break;
+                    case 0xC:
+                        text.Append("E-");
+                        break;
+                    case 0xE:
+                        text.Append('-');
+                        break;
+                    case 0xF:
+                        done = true;
+                        break;
+                    case 0xD:
+                        break;
+                    default:
+                        text.Append((char)('0' + nibble));
+                        break;
+                }
+
+                if (done)
+                {
+                    break;
+                }
+            }
+        }
+
+        return double.TryParse(
+            text.ToString(),
+            System.Globalization.NumberStyles.Float,
+            System.Globalization.CultureInfo.InvariantCulture,
+            out double value)
+            ? value
+            : 0.0;
+    }
+}

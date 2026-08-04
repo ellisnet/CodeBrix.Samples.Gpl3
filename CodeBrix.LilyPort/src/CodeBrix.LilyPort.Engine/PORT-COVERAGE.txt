@@ -1,0 +1,987 @@
+PORT-COVERAGE -- CodeBrix.LilyPort.Engine
+=========================================
+
+Deliberate divergences from LilyPond's lily/ sources, with the reason. Read this
+before assuming any file here is a literal translation.
+
+Started 2026-08-03, at the beginning of the Milestone 6 Phase 1 work.
+
+
+-------------------------------------------------------------------------------
+VALUE-TYPE SEMANTICS
+-------------------------------------------------------------------------------
+
+  lily/stencil.cc, lily/include/stencil.hh  ->  Layout/Stencil.cs
+
+    Stencil is a mutable STRUCT, not a class.
+
+    Upstream's Stencil is a class held and copied BY VALUE: `Stencil toadd (s);`
+    appears all through stencil.cc, and stencil.hh states outright that C++ code
+    must not modify a Stencil shared with Scheme (it deletes the non-const
+    unsmob<Stencil> to enforce it). A C# class would have silently turned every
+    one of those copies into an alias, and add_at_edge / stack would then have
+    mutated their argument.
+
+    Stencil also carries a private _initialized flag. C# cannot intercept
+    `default(T)`, and a default-constructed Stencil must read back as EMPTY
+    extents rather than as a zero-size stencil at the origin. This is the same
+    device Interval and Rational already use in Flower, for the same reason.
+
+  lily/spring.cc, lily/include/spring.hh  ->  Layout/Spring.cs
+
+    Spring carries the same _initialized flag. Upstream's default constructor
+    sets every field to 1.0, not 0.0, so a zeroed Spring would be a zero-length
+    spring of zero strength -- which the line spacer would then divide by.
+
+    Spring::operator*= became Spring.ScaleBy plus an `operator *`, because C#
+    compound assignment cannot be defined directly.
+
+  lily/box.cc  ->  Layout/Box.cs
+
+    Box.IsEmptyOn(Axis) tests for the empty SENTINEL VALUES, not for
+    Interval.IsEmpty. Upstream's Box::is_empty(Axis) compares the bounds against
+    a default-constructed Interval bound for bound, so an inverted-but-finite
+    interval (left > right, both finite) is NOT empty by this test even though
+    Interval::is_empty() calls it empty. Skyline construction depends on the
+    distinction. There is a test for it.
+
+
+-------------------------------------------------------------------------------
+NAMING
+-------------------------------------------------------------------------------
+
+  lily/music.cc  ->  Music/MusicObject.cs
+
+    class Music -> MusicObject. The containing namespace is already
+    CodeBrix.LilyPort.Engine.Music; a type with the same name as its namespace
+    is legal C# but forces every reference to be fully qualified.
+
+  lily/system.cc  ->  Objects/SystemGrob.cs
+
+    class System -> SystemGrob, and this one is not cosmetic. A class named
+    `System` in a namespace shadows the ROOT NAMESPACE for every file beside
+    it, so System.Math, System.Collections and System.Numerics all stop
+    resolving -- in files that never mention the type. It broke Grob.cs and
+    Prob.cs the moment the file was added.
+
+  lily/translator.cc Translator::finalize  ->  Translator.FinalizeTranslation
+  lily/translator-group.cc likewise
+
+    `Finalize` in C# is object.Finalize -- the destructor. Overriding it would
+    have handed the method to the garbage collector instead of to the timestep
+    protocol, and the compiler warns (CS0465) rather than errors, so it would
+    have compiled and silently never run.
+
+
+-------------------------------------------------------------------------------
+ALGORITHMIC EQUIVALENTS
+-------------------------------------------------------------------------------
+
+  lily/skyline.cc internal_build_skyline  ->  Layout/Skyline.cs
+
+    Buildings are sorted with a hand-written STABLE MERGE SORT rather than
+    List<T>.Sort. This is the same problem the Scheme `sort` primitive already
+    hit: upstream's LessThanBuilding is not a strict weak ordering once heights
+    tie on infinity, and .NET's introsort VALIDATES its comparer and throws
+    "IComparer.Compare() returns inconsistent results" where the C++ simply
+    carries on. A merge sort asks only "does b precede a", so it copes.
+
+    The same applies to SimpleSpacer.CompressLine's spring ordering, where
+    upstream uses std::sort (unspecified tie order); the port's stable sort
+    makes a run reproducible and is equivalent to the algorithm either way.
+
+  lily/skyline.cc internal_merge_skyline  ->  Layout/Skyline.cs
+
+    Upstream walks two iterators and swaps BOTH the iterators and the containers
+    they point into. The port keeps an index plus a list reference per side and
+    swaps the pairs together. Same walk; C# has no iterator that can be
+    reseated across containers.
+
+  lily/lookup.cc polygon point lists  ->  Layout/Lookup.cs
+
+    Upstream conses each vertex onto the FRONT of the coordinate list, so the
+    emitted point order is the reverse of the order the vertices are visited.
+    Preserved exactly, because the regression comparator diffs output text. For
+    a closed polygon this only changes the winding, which is why upstream can
+    do it without visible consequence.
+
+
+-------------------------------------------------------------------------------
+NOT YET PORTED, AND WHY
+-------------------------------------------------------------------------------
+
+  lily/stencil-integral.cc
+
+    Needs glyph outlines, i.e. the CFF charstring interpreter. The metadata
+    reader (Fonts/OpenTypeFont.cs) covers everything the ENGINE needs; outlines
+    are only wanted for skyline tracing.
+
+  lily/line-interface.cc arrows / make_arrow / the property-driven `line`
+
+    Read grob properties. Only the grob-free constructors are ported.
+
+  Grob::pure_* (pure_y_extent, pure_relative_y_coordinate, the pure skyline
+  callbacks), and break SUBSTITUTION
+  (do_break_processing, handle_broken_dependencies, substitute_object_links,
+  System::break_into_pieces, System::do_break_substitution_and_fixup_refpoints).
+
+    Paper_column and System themselves ARE now ported, along with prebreaking
+    (System::pre_processing). What remains is the half that rewrites every
+    grob-to-grob pointer to refer to the correct broken piece, which needs
+    Paper_score and the line breaker above it.
+
+  System::get_paper_system / get_paper_systems / footnotes
+
+    Page layout. Needs Prob-based paper systems and Paper_score.
+
+  ~~Grob_property_info and the \override chain~~  -> PORTED 2026-08-03.
+
+    Objects/NestedProperty.cs + Objects/GrobProperties.cs, and
+    Engraver.LookupGrobDefinition now goes through GrobPropertyInfo.Updated().
+    See "Track T" below for the fallback it keeps and why.
+
+  Translator listener registration
+
+    Upstream builds a static per-class table from the ADD_LISTENER macro at
+    class-definition time. The port registers in ConnectToContext via
+    Translator.ListenTo. Same set of listeners, reached by a route C# can
+    express without macros.
+
+  Prob::transpose's pitch-alist branch
+
+    ly:transpose-key-alist lives in Scheme and no key alist exists until the
+    parser layer. Prob.TransposeKeyAlist is an identity copy for now.
+
+
+-------------------------------------------------------------------------------
+UPSTREAM BEHAVIOUR THAT LOOKS LIKE A BUG BUT IS NOT
+-------------------------------------------------------------------------------
+
+  ly:camel-case->lisp-identifier's DOCSTRING IS WRONG.
+
+    general-scheme.cc:352 claims FooBar_Bla -> foo-bar-bla. lily/misc.cc:59-77
+    inserts a hyphen before each capital AND separately replaces underscores
+    with hyphens, so the real answer is foo-bar--bla, with two. Ported
+    faithfully; the test says so.
+
+  from_scm<bool> IS NOT SCHEME TRUTHINESS.
+
+    lily-guile.hh:468-479 -- with its default fallback it is
+    scm_is_eq (s, SCM_BOOL_T): ONLY #t is true. An unset property reads back as
+    the empty list, which Scheme itself would call TRUE. Ported as
+    SchemeUtilities.ToBool. SchemeUtilities.IsSchemeTrue is the other one, for
+    the places upstream really does call scm_is_true. Getting these the wrong
+    way round inverts every "does this grob have this flag" test in the engine.
+
+  Grob::is_live() is scm_is_pair(immutable_property_alist_).
+
+    grob-property.cc:322-325. A grob built with an EMPTY immutable alist is dead
+    on arrival, and SetProperty/SetObject then silently do nothing. Real grobs
+    always carry a `meta` entry so this never bites upstream, but a test fixture
+    that builds a grob from '() will look like a property-storage bug.
+
+  Skyline::raise moves the outline in +y REGARDLESS of direction.
+
+    The stored intercept is signed by the direction on the way in and read back
+    signed by it again, so the two signs cancel. That is what lets a whole
+    Skyline_pair be moved without distorting it.
+
+  Skyline::height at a shared building edge returns the LEFT building's height.
+
+    std::lower_bound finds the first building whose right edge reaches x, so a
+    point exactly on a boundary belongs to the building that ENDS there.
+
+
+-------------------------------------------------------------------------------
+ADDED 2026-08-03 (second pass) -- the column and system layer
+-------------------------------------------------------------------------------
+
+  lily/grob-array.cc, lily/pointer-group-interface.cc  ->  Objects/GrobArray.cs
+
+    Grob_array privately inherits std::vector<Grob*> upstream and re-exports a
+    chosen subset; the port composes a List<Grob> and exposes the same subset,
+    because C# has no private inheritance.
+
+    Grob_array::remove_duplicates sorts by ADDRESS and uniquifies. The port
+    keeps first-occurrence order instead. That is a superset of what the
+    callers need (they only care that duplicates are gone) and it is
+    deterministic, where sorting by address is not.
+
+    PointerGroupInterface.ExtractGrobSet does NOT create the array, matching
+    upstream's extract_grob_set. Only GetGrobArray creates. Reading a link that
+    most grobs never have must not install an empty array on every one of them.
+
+  lily/paper-column.cc  ->  Objects/PaperColumn.cs
+
+    Paper_column::rank_ is vsize (unsigned) upstream and starts at VPOS, the
+    unsigned sentinel. The port uses int with InvalidRank = -1, because the
+    rank is compared and decremented in signed arithmetic all through the
+    spacing code and an unsigned sentinel there is a trap.
+
+    NOT ported: print, before_line_breaking, break_align_width,
+    get_interface_extent, is_extraneous_column_from_ligature. All need
+    Break_alignment_interface or Separation_item.
+
+    Paper_column::minimum_distance omits the Separation_item::conditional_skyline
+    merge, which needs Separation_item. The skyline half is exact.
+
+  lily/system.cc  ->  Objects/SystemGrob.cs
+
+    Ported: the element and column registries, typeset_grob, add_column,
+    column, used_columns_in_range, broken_col_range, element_count,
+    spanner_count, pre_processing, post_processing, and the paper-column-only
+    bound rule.
+
+    System::pre_processing's loop is bounded by the ORIGINAL element count on
+    purpose: breaking appends the clones to the same array and the clones must
+    not be broken in turn. Preserved exactly.
+
+  lily/spaceable-grob.cc  ->  Objects/SpaceableGrob.cs
+
+    Whole file except the ADD_INTERFACE declaration.
+
+  lily/simple-spacer.cc get_line_forces / get_line_configuration
+                                              ->  Layout/LineSpacing.cs
+
+    Split into its own file rather than appended to SimpleSpacer.cs: these read
+    the SCORE (columns, springs, rods, break permissions) while SimpleSpacer.cs
+    is pure arithmetic, and keeping the seam visible is worth one extra file.
+
+    get_column_description's rod-target lookup uses std::lower_bound over the
+    rank-ordered column list and then checks the ranks match. The port scans
+    forward comparing ranks, which gives the same answer without requiring the
+    list to be a random-access range over the very same objects.
+
+    Column_x_positions is in SimpleSpacer.cs (it is three fields and upstream's
+    own .cc is 26 lines).
+
+
+-------------------------------------------------------------------------------
+ADDED 2026-08-03 (third pass) -- the §7b unblock wirings
+-------------------------------------------------------------------------------
+
+  lily/prob-scheme.cc  ->  Bootstrap/ProbPrimitives.cs
+
+    The Prob Scheme bindings over the already-ported Objects/Prob.cs:
+    ly:prob?, ly:prob-property (2-3 args, the third a DEFAULT returned when the
+    property is unset), ly:prob-set-property!, ly:prob-property?, ly:prob-type?,
+    ly:make-prob, ly:prob-mutable-properties, ly:prob-immutable-properties.
+
+    ly:prob-property is declared upstream with LY_DEFINE_WITH_SETTER -- a THIRD
+    declaration macro alongside LY_DEFINE and MAKE_SCHEME_CALLBACK, which the
+    original entry-point extraction did not know about. All six WITH_SETTER
+    entry points (ly:context-property, ly:grob-property, ly:grob-object,
+    ly:grob-parent, ly:music-property, ly:prob-property) were missing from
+    entry-points.tsv and are now recorded there (737 entries; the file is 740
+    lines, 3 of which are comments -- an earlier note said "740 entries" and
+    was counting lines).
+
+  lily/ly-module.cc ly_module_2_alist  ->  GeneralPrimitives.cs
+
+    ly:module->alist dumps a module's bound variables as an alist, skipping
+    unbound variables the way upstream does (without upstream's programming
+    error -- an unbound variable in a LilyScheme module is an ordinary state,
+    not an inconsistency).
+
+  lily/function-documentation.cc  ->  GeneralPrimitives.cs   DIVERGENCE
+
+    ly:get-all-function-documentation returns an EMPTY hash table. Upstream
+    fills it with every LY_DEFINE docstring at registration time; the port's
+    primitives carry no docstrings. The shape is right, the contents are
+    deliberately absent, and document-functions.scm therefore documents only
+    Scheme-defined functions until docstrings are ever wanted.
+
+  lily/grob-interface-scheme.cc ly:all-grob-interfaces  ->  RegistryPrimitives.cs
+
+    Now returns a real Scheme hash table, as upstream does (document-backend
+    hash-folds and hashq-refs it; the earlier alist stand-in was a measured
+    §7b blocker). DIVERGENCE, minor: the table is rebuilt per call from the
+    C# registry, where upstream hands out its one live table. Interfaces are
+    all registered at startup, so the difference is unobservable today.
+
+-------------------------------------------------------------------------------
+ADDED 2026-08-03 (fifth pass) -- Track T: iterators, the override chain, engravers
+-------------------------------------------------------------------------------
+
+  lily/music-iterator.cc         ->  Translation/MusicIterator.cs
+  lily/simple-music-iterator.hh      (MusicIterator, SimpleMusicIterator,
+  lily/event-iterator.cc             EventIterator)
+  lily/sequential-iterator.cc    ->  Translation/SequentialIterator.cs
+  lily/music-wrapper-iterator.cc     (CalculatedSequentialMusic,
+  lily/simultaneous-music-iterator.cc MusicWrapperIterator, SequentialIterator,
+  lily/event-chord-iterator.cc       SimultaneousMusicIterator,
+  lily/rhythmic-music-iterator.cc    EventChordIterator, RhythmicMusicIterator)
+  lily/global-context.cc         ->  Translation/GlobalContext.cs
+  lily/nested-property.cc        ->  Objects/NestedProperty.cs
+  lily/context-property.cc       ->  Objects/GrobProperties.cs
+  lily/staff-symbol-engraver.cc  ->  Translation/FirstEngravers.cs
+  lily/clef-engraver.cc              (StaffSymbolEngraver, ClefEngraver,
+  lily/note-heads-engraver.cc         NoteHeadsEngraver, AxisGroupEngraver)
+  lily/axis-group-engraver.cc
+
+  FIVE DEFECTS THIS WORK UNCOVERED, each of which was silent:
+
+  1. THE SETTER HALF OF LY_DEFINE_WITH_SETTER WAS NEVER WIRED.
+     The macro does two things: define the getter as a primitive, AND bind the
+     Scheme name to scm_make_procedure_with_setter (getter, setter). The port
+     did only the first. Reading a property worked perfectly; the failure was
+     confined to generalized set! -- (set! (ly:music-property m 'duration) d)
+     -- which is exactly the form make-music uses, so NO music could be built
+     by LilyPond's own Scheme while every read-only test passed.
+     Fixed in Bootstrap/SetterBindings.cs, which must run LAST in
+     CreateInterpreter because it looks both halves up by name.
+     This is the same extraction gap that hid these six entry points from
+     entry-points.tsv in the first place; the tsv was corrected in the §7b
+     pass, the SETTER behaviour had still never been.
+
+  2. TYPE PREDICATES FOR PORTED TYPES STILL ANSWERED #f.
+     InstallStubs answers #f for a type predicate, and that is CORRECT while
+     the type is unported -- no instance can exist. The moment the type IS
+     ported the same stub is actively wrong: ly:duration? said a real Duration
+     was not one, and the symptom was "Type check for `duration' failed",
+     naming the property rather than the predicate. 16 predicates were in this
+     state. Bootstrap/TypePredicates.cs implements them and NAMES the ones
+     still legitimately unported, so the fence test can insist every declared
+     predicate is in one list or the other. PORTING A TYPE NOW CARRIES AN
+     OBLIGATION TO REGISTER ITS PREDICATE THERE.
+
+  3. THE MUSIC-SEQUENCE CALLBACKS WERE PORTED BUT NEVER REGISTERED.
+     MusicSequence already had CumulativeLength, FirstStart and the rest.
+     define-music-types.scm reaches them BY NAME through length-callback and
+     start-callback properties, so an unregistered callback left sequential
+     music reporting zero length -- which makes the interpretation loop decide
+     there is no music and stop, silently producing an empty score.
+
+  4. Context.NowMoment WAS PER-CONTEXT. Upstream's Context::now_mom walks to
+     the TOP context and returns its moment; only Global_context stores one.
+     A per-context clock leaves every engraver below the root reading zero
+     forever, and reading the wrong moment is not an error anywhere -- it just
+     puts every grob at the wrong time.
+
+  5. Context.IsBottomContext ALSO REQUIRED NO CHILDREN. Upstream's test is
+     purely !acceptance_.has_default (). The extra condition made a context
+     that accepts nothing but has a child look non-bottom, so the iterators'
+     descend_to_bottom_context would try to create one level too many. The
+     fixture in TranslationTests that covered this had never expressed
+     acceptance at all, and had been passing on the wrong implementation.
+
+  DIVERGENCES, all deliberate:
+
+  * CONTEXT CREATION IS FACTORY-DRIVEN. Upstream's core_find builds a path of
+    Context_defs (from the output definition) and creates the whole hierarchy
+    at once, so it knows an unbuilt type's acceptance list in advance. Those
+    definitions come from ly/engraver-init.ly and therefore arrive with the
+    PARSER (Track P). Until then Context.ContextFactory is the seam: the
+    caller supplies how a named type is built, and PathToAcceptableContext
+    descends ONE level at a time, recursing once the child exists and its own
+    acceptance list is readable. The search/create logic (Find, UncheckedFind,
+    CoreFind, and the CREATE_ONLY / FIND_CREATE modes) is upstream's shape.
+
+  * Engraver.LookupGrobDefinition falls back to all-grob-descriptions when the
+    context tree carries no Grob_properties at all. Upstream always has a
+    Global context holding the defaults, so it never needs the fallback; the
+    port has it so an engraver can be exercised on a hand-built tree.
+
+  * ClefEngraver.ProcessMusic omits upstream's break_allowed (context ())
+    guard, which limits clef creation to points where a break has not been
+    forbidden. That needs the break machinery, which is deliberately later
+    work. The effect is that a clef may be created where upstream would not
+    have bothered, never that one is missing.
+
+  * StaffSymbolEngraver omits the staff-span listener (Unique_span_event_
+    listener), so the staff symbol always opens at the first timestep and
+    closes at the end rather than responding to \startStaff / \stopStaff.
+    The span-event listener family is not ported yet.
+
+  * AxisGroupEngraver omits the hara-kiri "interesting item" bookkeeping,
+    which needs Hara_kiri_group_spanner.
+
+  * NOT PORTED, and recorded in IteratorPrimitives.NotYetPorted: 20 of the 28
+    iterator constructors upstream declares -- repeats, volta brackets,
+    property push/pop, grace, tuplets, part combining, lyric alignment,
+    context changes, quoting. Their stubs stay in place ON PURPOSE, so a music
+    type that needs one is REPORTED as new demand rather than being silently
+    handed a default iterator that would drop its meaning.
+
+-------------------------------------------------------------------------------
+ADDED 2026-08-03 (fourth pass) -- the C++ ADD_INTERFACE table (plan O8, option C)
+-------------------------------------------------------------------------------
+
+  lily/*.cc ADD_INTERFACE macros  ->  Scheme/grob-interfaces.tsv
+                                      Bootstrap/GrobInterfaceTable.cs
+
+    Upstream declares grob interfaces from TWO places, and the port needs both:
+
+      86 in C++, via ADD_INTERFACE (cl, description, properties) across 77
+         lily/*.cc files. The macro expands to a static Grob_interface<cl>
+         object whose constructor registers an init function, so all 86 are in
+         the interface hash table BEFORE any Scheme runs.
+      88 in Scheme, via ly:add-interface in scm/define-grob-interfaces.scm,
+         added while the Scheme layer loads.
+
+    Two interfaces are declared in BOTH halves -- clef-modifier-interface and
+    percent-repeat-interface. Upstream's ordering means the Scheme declaration
+    wins, because it runs later and internal_add_interface does a hashq_set_x
+    overwrite. The port reproduces that outcome by construction rather than by
+    special case: GrobInterfaceTable.Register runs inside RegistryPrimitives
+    .Install, which is before the Scheme layer loads.
+
+    NAME DERIVATION, ported exactly, because getting it wrong is silent:
+    lily/grob-interface.cc add_interface takes the C++ CLASS name, applies
+    camel_case_to_lisp_identifier (lily/misc.cc: lowercase the first character,
+    prefix '-' before every subsequent uppercase one, then replace '_' with
+    '-'), and appends "-interface" ONLY IF that is not already the suffix.
+    So Accidental_interface -> accidental-interface (not
+    accidental-interface-interface), while Accidental_placement ->
+    accidental-placement-interface. Property lists are whitespace-split, as
+    parse_symbol_list (lily/lily-guile.cc) does.
+
+    WHY A DATA TABLE AND NOT PER-CLASS DECLARATIONS (the O8 decision): the
+    classes those 86 macros name are mostly not ported yet, so waiting for them
+    would leave the interface table incomplete for as long as the port takes --
+    and document-backend.scm, which reads it, would stay blocked. Extracting up
+    front completes the table immediately.
+
+    THE ASSERT-ON-PORT RIDER, which is the other half of the decision: a grob
+    class, as it gets ported, does NOT re-declare its interfaces. It ASSERTS
+    them against this table (GrobInterfaceTable.CheckPortedGrob, exercised from
+    the class's tests). Re-declaration would let the two copies drift silently;
+    an assertion turns drift into a test failure -- including on any future
+    re-sync to a newer LilyPond, where the extraction is re-run and any changed
+    property set breaks the assertion rather than being absorbed.
+
+    MEASURED EFFECT: document-backend.scm now LOADS. It was the last §7b file
+    blocked on engine breadth rather than on the parser; the on-demand set went
+    from 34 of 37 to 35 of 37 (89 of 91 overall).
+
+-------------------------------------------------------------------------------
+THE ON-DEMAND LOAD FENCE (P7), AND A SECOND FIXTURE TRAP
+-------------------------------------------------------------------------------
+
+  tests/.../LilyPondOnDemandLoadTests.cs fences the 37 vendored scm/ files
+  LilyPond loads ON DEMAND, the way LilyPondSchemeLoadTests fences the 54 it
+  loads at startup. Together they account for all 91.
+
+  Two design points that are deliberate, not incidental:
+
+  1. Counts are asserted with EQUALITY and the non-loading files are named
+     INDIVIDUALLY with the unported piece each waits on. A floor would let an
+     unblocked file be absorbed silently; the point of the fence is that engine
+     or parser work which unblocks one of them BREAKS the test and forces the
+     milestone-6 exit checklist to be consulted.
+
+     This is not theoretical -- it fired within the hour. The fence was written
+     against 34 of 37 with document-backend on the blocked list; the O8 work
+     immediately below unblocked that file, the fence failed, and the recorded
+     state was updated to 35 of 37 with document-backend moved to the list of
+     files whose loading is asserted. Two remain, both parser-gated:
+     hyphenate-internal-words and documentation-generate.
+
+  2. The on-demand set is defined by SUBTRACTION -- every vendored file the
+     startup pass did not load -- not as "the files not in load-order.txt".
+     lily.scm is not in its own load list because it DRIVES that list, yet it
+     is loaded at startup. Defining the set the other way attempts it twice
+     and collects a correct ly:error about redefining default-global-scale as
+     if it were a failure.
+
+  THE TRAP: LoadViaLilyScm installs its primitive-load-path hook with the
+  startup LoadReport CAPTURED IN THE CLOSURE, and leaves it installed. Any
+  on-demand file that ly:loads another file therefore APPENDS to the startup
+  report afterwards -- documentation-generate alone pulls in the whole doc
+  pipeline. Reading startup.Loaded.Count after the on-demand pass reports 71,
+  not 54, and the "of 91" arithmetic built on it is meaningless. The count and
+  the name set must be SNAPSHOTTED before the on-demand pass begins. This cost
+  a measurement before it was understood; the fence snapshots, and comments
+  why at the point of the snapshot.
+
+-------------------------------------------------------------------------------
+A TEST-FIXTURE TRAP WORTH KNOWING
+-------------------------------------------------------------------------------
+
+  get_line_forces uses `end_spring_` for the LAST spring of every candidate
+  line, and get_column_description only records end_spring_ when the FOLLOWING
+  column has a LEFT prebroken piece. A line STARTER is likewise the right
+  prebroken piece, not the original column.
+
+  So a fixture of plain, un-prebroken columns silently falls back to a DEFAULT
+  spring for every candidate line, and every force comes out wrong in a way
+  that looks like a solver bug. The real pipeline never sees this because
+  System::pre_processing prebreaks first. Test fixtures must prebreak too, and
+  must register springs from the prebroken pieces as well as the originals.
+
+  -> Since later on 2026-08-03 the trap is GUARDED rather than merely
+  documented, in two places:
+
+  1. Engine side: both LineSpacing entry points now check for the state that
+     System::pre_processing makes impossible in the real pipeline — a column
+     that can begin or end a line but has never been prebroken — and report a
+     programming error naming the column ranks
+     (LineSpacing.WarnAboutUnbrokenBreakColumns). This check is NEW-IN-PORT
+     and DIAGNOSTIC ONLY: upstream has no equivalent because it never needs
+     one, and the computed results are unchanged — only the silence is gone.
+
+     A related leniency, also deliberate and previously unrecorded: upstream
+     get_line_configuration dereferences find_prebroken_piece (RIGHT/LEFT) on
+     its two boundary columns UNCHECKED, so an un-prebroken boundary column
+     would crash it. The port (PrebrokenOr) substitutes the original column
+     instead, so a fixture still gets a best-effort answer — after the
+     programming error above has named the real problem.
+
+  2. Fixture side: tests/CodeBrix.LilyPort.Engine.Tests/SpacingFixtures.cs is
+     the canonical way to build spacing fixtures. PrebrokenChain prebreaks
+     through the REAL SystemGrob.PreProcessing and registers every spring on
+     the prebroken pieces as well as the originals (RegisterSpring);
+     PlainChain is for spring/rod accounting tests only and must never reach
+     the solvers. One more piece of the same trap, guarded there by comment:
+     SystemGrob.AddColumn alone does NOT put a column in the system's element
+     list, and PreProcessing walks the element list — a fixture must call
+     TypesetGrob as well, or PreProcessing silently prebreaks nothing.
+
+  Three LineSpacingTests pin all of this: each entry point names the mistake
+  when handed an un-prebroken chain, and a PrebrokenChain runs both solvers
+  with no spacing diagnostics at all.
+
+
+-------------------------------------------------------------------------------
+ADDED 2026-08-03 (sixth pass) -- FIRST LIGHT: the score, output and font layers
+-------------------------------------------------------------------------------
+
+The Phase 2 "first light" pass: Paper_score, Score_engraver,
+Paper_column_engraver, Output_def, the font layer, and stencils on the four
+engravers' grobs. `{ c'4 }` now goes music tree -> iterators -> events ->
+engravers -> paper columns -> one system -> stencils -> SVG.
+
+THE DEFECT THIS FOUND, AND IT IS THE ONE TO REMEMBER
+....................................................
+
+  Spanner::set_bound had the RIGHT COMMENT and the WRONG TEST.
+
+  Upstream (lily/spanner.cc:257):
+
+      /**
+         We check for System to prevent the column -> line_of_score
+         -> column -> line_of_score -> etc situation */
+      if (d == LEFT && !dynamic_cast<System *> (this))
+        if (!dynamic_cast<Spanner *> (get_x_parent ()))
+          set_x_parent (g);
+
+  The port had inherited the comment but tested `GetParent (X) == null`
+  instead. That is TRUE the first time, so a System took its own left bound --
+  a paper column -- as its X parent, while Paper_column's X parent is the
+  system. A cycle.
+
+  Nothing detects it. Grob::common_refpoint opens with
+
+      for (c = this; c != null; balance++) c = c.GetParent (axis);
+
+  which simply never terminates. The symptom is the whole engrave spinning at
+  100% CPU with no exception, no diagnostic, and flat memory -- so it does not
+  even look like a leak. It cost the first light session a bisect to find.
+
+  Two things were wrong, not one: the guard subject (System, not "no parent
+  yet") AND the retained-parent rule (keep a SPANNER parent, because it is
+  split at line breaks too and later alignment measures against the original).
+  Both are now as upstream. PaperScoreTests pins all three cases: a system
+  keeps no X parent, an ordinary spanner does take its bound, and a spanner
+  whose parent is already a spanner keeps it.
+
+  The pattern is the same one the Track T session recorded five times over:
+  something DECLARED upstream that the port only half-reproduced. Here the
+  declaration survived as a comment while the code drifted, which is worse
+  than losing both -- the comment reads as evidence the case was handled.
+
+DELIBERATE DIVERGENCES IN THIS PASS
+...................................
+
+  * Output_def's scope is a Dictionary, not a Guile module. Nothing in the
+    engine treats an output definition's scope as a module; it is only ever
+    read and written by name. LookupVariable answers NULL for "never set",
+    which is upstream's SCM_UNDEFINED and a DIFFERENT answer from '() -- several
+    callers distinguish the two.
+
+  * PaperDefaults (Layout/PaperDefaults.cs) is NEW-IN-PORT and is a STAND-IN
+    for ly/paper-defaults-init.ly, which is a \paper block the PARSER reads.
+    The derivations are translated from scm/paper.scm
+    (layout-set-absolute-staff-size-in-module, calc-line-thickness), so the
+    numbers are upstream's rather than invented. Only the variables the
+    engrave path reads are set; the page-layout, titling and vertical-spacing
+    variables are deliberately ABSENT rather than guessed, so a caller that
+    needs one gets an honest "unset". It goes away with Track P.
+
+  * Font selection ports the fetaMusic/fetaBraces branch of
+    lily/font-select.cc FAITHFULLY -- including best_rounded_design_size over
+    the vendored feta-design-size-mapping, and find_scaled_font's
+    magnification/output-scale division. The latin1 and fetaText branches go
+    through Pango upstream; the port has no Pango dependency and text is the
+    CodeBrix.Platform TextLayout add-in's job (master plan section 11), so
+    asking for one WARNS and answers null rather than quietly substituting a
+    music font. A silently wrong font is a whole score laid out slightly wrong.
+
+  * All_font_metrics finds fonts through AllFontMetrics.SearchPaths (probed
+    beside the running assembly) rather than through FontConfig. The port
+    ships its own fonts and has no FontConfig dependency.
+
+  * GlobalContext.InitializeGrobProperties reads all-grob-descriptions
+    straight out of the Scheme layer. Upstream takes the same table from the
+    Global Context_def, which got it from `\grobdescriptions
+    #all-grob-descriptions` in ly/engraver-init.ly. The VALUE is identical;
+    only the route differs, and the route becomes upstream's with Track P.
+    This is also how `fonts` -- the family-to-font-name mapping -- reaches a
+    grob's property alist chain, which is where font selection reads it.
+
+  * Context.AddContext now connects AND initialises the child's translator
+    group, and does it AFTER the child is in the hierarchy. Upstream is
+    explicit about the ordering ("This cannot move before add_context (),
+    because \override operations require that we are in the hierarchy"), and
+    the port has two more reasons: Score_engraver registers its listeners on
+    the TOP context, and its initialize() reads the output definition, which
+    only resolves upward. A group a caller has already connected itself is
+    left alone, so an existing test fixture that wires its own translators
+    keeps working.
+
+  * SystemGrob.GetPaperSystemStencil returns the STENCIL. Upstream's
+    System::get_paper_system wraps it in a Paper_system prob carrying the
+    page-break permissions and skylines the PAGE breaker needs; page layout is
+    not ported, so the prob wrapper waits for it.
+
+  * Separation_item is a PARTIAL port: add_item only. calc_skylines and
+    add_conditional_item are not done, and they belong together with the
+    conditional-item merge that Paper_column::minimum_distance also omits.
+    Without add_item a column has no elements, therefore no X extent, and
+    therefore looks empty to everything downstream -- which is why the one
+    complete function was worth porting on its own.
+
+  * Paper_column::break_align_width handles the `break-alignment` case and
+    every no-alignment case exactly. Searching for a NAMED break-align group
+    needs Break_alignment_interface, which is not ported; that case falls back
+    to the column's own coordinate, which is also what upstream answers when
+    no group matches.
+
+  * ly:hara-kiri-group-spanner::y-extent and ::force-hara-kiri-callback are
+    registered as their non-suicide halves (Axis_group_interface::height and a
+    plain zero). consider_suicide -- which REMOVES an empty staff -- is not
+    ported. A staff that should have vanished therefore stays, which is
+    visible rather than silent.
+
+  * Grob does NOT install upstream's default X-extent/Y-extent/skyline
+    callbacks in its constructor (lily/grob.cc:75-90). Grobs whose definition
+    names them explicitly are unaffected; grobs relying on the default get an
+    empty extent. NOT YET PORTED, listed here because it is easy to mistake
+    the resulting empty extents for a stencil problem.
+
+WHAT FIRST LIGHT DOES NOT DO, AND WHY
+.....................................
+
+  Spacing. Spacing_spanner is not ported, so no column carries a spring and
+  every column sits at x = 0 -- the glyphs are right and their horizontal
+  places are not. The regression comparator grades exactly that distinction
+  (GLYPHS-DIFFER is a different verdict from PLACEMENT-DIFFERS), and reaching
+  the second is what first light is for.
+
+  The stand-in context tree in CodeBrix.LilyPort/LilyPortEngraver.cs NAMES the
+  translators a real ly/engraver-init.ly Score would carry and it does not
+  (EngraveResult.MissingTranslators). Naming them rather than merely omitting
+  them is what lets a comparison against real LilyPond tell a missing FEATURE
+  from a wrong one.
+
+  Two clefs come out of `{ c'4 }`, one per timestep. That is NOT a port
+  defect: Clef_engraver::process_music creates a clef wherever
+  break_allowed (context ()) is true, and with no Bar_engraver nothing ever
+  sets forbidBreak, so every timestep allows a break. Upstream does the same
+  under the same conditions. break_allowed itself is now ported
+  (Context.BreakAllowed), so the deferral note that used to sit in
+  ClefEngraver is gone.
+
+NEWLY PORTED TYPE PREDICATES (the standing obligation)
+......................................................
+
+  ly:music-output? (Paper_score) and ly:output-def? (Output_def) moved from
+  TypePredicates.NotYetPorted to Ported. ly:font-metric? was already
+  registered but tested the CONCRETE reader type (OpenTypeFont); the font a
+  grob actually holds is a ModifiedFontMetric wrapping it, so the predicate
+  denied every font in real use. It now tests FontMetric.
+
+
+-------------------------------------------------------------------------------
+ADDED 2026-08-03 (seventh pass) -- TRACK P begins: the vendored grammar
+-------------------------------------------------------------------------------
+
+parser-mirror/ is a byte-identical mirror of lily/parser.yy and lily/lexer.ll,
+and src/CodeBrix.LilyPort.Parsing reads it. See parser-mirror/README.txt for the
+mirror's rules and the upstream re-sync workflow, and master plan section 13 for
+decision O7.
+
+TWO CORRECTIONS TO THE O7 DECISION RECORD, both now measured and test-pinned:
+
+  * "~187 rules" is the count of NONTERMINALS WITH RULES, not of productions.
+    parser.yy has 633 productions once each | alternative is counted separately
+    and Bison's mid-rule rewrite is included. 633 is what the generator works
+    over; 479 of them carry an action body to hand-port.
+
+  * "the 36 precedence declarations" matches neither figure in the file.
+    parser.yy has TEN %left/%right/%nonassoc declarations -- Bison assigns one
+    precedence LEVEL per declaration, and conflict resolution compares levels,
+    so ten is the number that decides shift/reduce outcomes. 24 symbols carry
+    precedence.
+
+  Both are asserted in GrammarShapeTests/GrammarInventory with the correction
+  written next to them, so they cannot drift back.
+
+DELIBERATE CHOICES IN THE READER
+
+  * Unknown Bison declarations are a HARD ERROR
+    (UnsupportedBisonFeatureException), never a skip. Generating the tables
+    in-repo only buys anything if a re-sync onto a grammar using a new feature
+    stops at sync time; a silently skipped declaration changes the language the
+    parser accepts with nothing to say so.
+
+  * Action bodies are extracted as OPAQUE TEXT and never parsed. They are C++
+    and they are hand-ported; the reader's job is to know a rule HAS one and to
+    key it, not to understand it. The brace matching does have to respect C++
+    strings, character literals and comments -- an action containing '{' is not
+    hypothetical in this grammar.
+
+  * Mid-rule actions are REPRODUCED as Bison rewrites them: `a: B { x } C`
+    becomes `a: B $@1 C` plus `$@1: /*empty*/ { x }`. The rewrite changes the
+    grammar -- the synthesized empty rule is a real reduction point and can
+    create conflicts -- so hiding it would make the generated tables differ from
+    Bison's for reasons that never showed up anywhere.
+
+  * `error` is declared as a built-in terminal. Nothing in parser.yy declares
+    it, and left undeclared it reads as a nonterminal with no rules, which makes
+    every error-recovery rule unreachable.
+
+  * Rules are keyed by IDENTITY (the production written out, plus an ordinal for
+    genuine duplicates), not by index. An index shifts the moment anything is
+    inserted above it, so a re-sync adding one rule near the top would appear to
+    change every action below it.
+
+NOT YET DONE IN TRACK P
+
+  The LALR(1) table construction, the driver, the modal lexer and the 479 rule
+  actions. Also the ONE-TIME fidelity anchor: real Bison has NOT been run at
+  this pin, so tools/parser-baseline/ does not exist yet. Bison is not installed
+  on this machine and installing it needs Jeremy's approval; it is a one-time
+  need, and neither a downstream build nor an upstream re-sync ever wants it.
+
+
+-------------------------------------------------------------------------------
+ADDED 2026-08-03 (eighth pass) -- THE FIRST ORACLE COMPARISON, AND WHAT IT SAID
+-------------------------------------------------------------------------------
+
+The Milestone 5 comparator has now been run against the port for the first time,
+on `{ c'4 }`. Verdict: GLYPHS-DIFFER -- up the ladder from MISSING, which is
+exactly the position first light was expected to reach. Two findings came out of
+it, and the second one changes a priority.
+
+1. THE PORT'S SVG WAS NOT WELL-FORMED XML. Every glyph reference is an
+   xlink:href, and SvgBackend never bound the xlink namespace. A browser renders
+   it happily; an XML parser refuses it. The comparator's FIRST verdict was
+   UNPARSEABLE, and nothing in the port's own 21 backend tests had noticed,
+   because none of them parsed the output as XML. Fixed, and pinned by a test
+   that parses a rendered document rather than string-matching it.
+
+2. THE COMPARATOR CANNOT COMPARE MUSIC GLYPHS BETWEEN THE PORT AND LILYPOND,
+   and the reason is structural rather than a defect on either side.
+
+   LilyPond 2.27.2's SVG backend embeds each glyph's OUTLINE as a <path> with a
+   scaled transform. It does this unconditionally -- -dsvg-woff does not change
+   it, checked. The port's SvgBackend emits <use xlink:href="#noteheads.s2"/>,
+   which keeps the glyph NAME visible and leaves outlines to the font layer.
+
+   So the comparator sees, for the same music:
+
+       reference   <path:1> x2, <path:5> x1, <text> x1
+       candidate   noteheads.s2 x1, clefs.G x1, clefs.G_change x1
+
+   Its <use> branch -- written in Milestone 5 -- is DEAD against real LilyPond
+   output. Its <path:N> branch is a deliberately coarse signature (the README
+   says so: "the exact control points are the last thing a port gets right").
+   Milestone 5's two-directional validation did not expose this because BOTH
+   sides of it were LilyPond output, and the coarse path signature does vary
+   with staff size, so the check still discriminated.
+
+   CONSEQUENCE, AND IT IS A PRIORITY CHANGE: reaching glyph-level comparison
+   needs the port to emit outlines, which needs a CFF CHARSTRING INTERPRETER.
+   That piece is recorded above as deferred, on the grounds that it is "only
+   wanted for skyline tracing" (stencil-integral.cc). That is no longer true --
+   it is also what stands between the port and its only correctness oracle.
+
+   The alternative, teaching the comparator to resolve <use> names against the
+   font, was considered and is worse: it would compare the port against its own
+   idea of the glyph inventory rather than against LilyPond's rendered output,
+   which is the one thing the oracle exists to avoid.
+
+WHAT THE REMAINING DIFFERENCES ARE, ALL ALREADY KNOWN
+
+   * The reference carries a <text> tagline and a bar line; the port has neither
+     (no page layout, no Bar_engraver -- see EngraveResult.MissingTranslators).
+   * The port emits TWO clefs, clefs.G and clefs.G_change. Not a defect: with no
+     Bar_engraver nothing sets forbidBreak, so break_allowed is true at every
+     timestep and Clef_engraver makes a clef at each. Upstream does the same
+     under the same conditions.
+   * No placement comparison happened at all, because the inventories differ
+     first. Spacing is unported, so every column is still at x = 0.
+
+
+-------------------------------------------------------------------------------
+ADDED 2026-08-03 (ninth pass) -- TRACK P: the generator, the driver, the fences
+-------------------------------------------------------------------------------
+
+The machinery of decision O7 is BUILT AND VERIFIED. The bulk translation work --
+the lexer's nine remaining modes and 476 of the 479 rule actions -- is not.
+
+WHAT REAL BISON SAID, TWICE
+...........................
+
+The one-time baseline (tools/parser-baseline/, GNU Bison 3.8.2, 913 states, zero
+conflicts) corrected the port TWICE, and neither error was findable any other
+way.
+
+  1. THE GRAMMAR READER WAS WRONG BY 17 ON THREE COUNTS. It reported 633
+     productions, 32 mid-rule actions and 221 nonterminals; Bison has 616, 15
+     and 204. Seventeen rules are written `... { action } %prec X`, and the
+     reader treated the action as a MID-RULE action because something followed
+     it. %prec is an ANNOTATION on the enclosing rule, not a symbol. Reading it
+     the other way invents seventeen productions and seventeen nonterminals,
+     each a reduction point the real parser lacks.
+
+     The reader's own tests were green, the grammar was structurally consistent,
+     and every invented rule was individually plausible. Only the automaton knew.
+
+  2. THE GENERATOR BUILT TWO STATES BISON DOES NOT HAVE. Precedence resolution
+     DELETES shift actions -- when `%left '-'` makes `script_dir: '-' •` reduce
+     rather than shift, the '-' transition goes with it -- and Bison then removes
+     whatever became unreachable. A generator that resolves conflicts but keeps
+     the states produces the SAME PARSER with a different state count, after
+     which nothing it says about itself can be checked. LalrGenerator now prunes,
+     which is worth exactly the two states plus the two they alone led to.
+
+A THIRD THING THE DRIVER FOUND, WHICH IS BEHAVIOUR RATHER THAN COUNTING
+.......................................................................
+
+  Bison's $default is not a table compression. A state with a default reduction
+  NEVER reports an error: it reduces, and the error surfaces later, in whatever
+  state the reduce lands in. That decides which `error` rule can recover.
+
+  Without it, `lilypond: lilypond error` -- the production that lets LilyPond
+  report every error in a file rather than stopping at the first -- could never
+  fire, because the error was detected in state 0 before `lilypond` had been
+  reduced at all.
+
+  And Bison SUPPRESSES the default in exactly the states that can shift `error`:
+  of its 913 states, 703 carry a $default and the 13 that shift `error` carry
+  none. If they did, recovery could never fire in them. Measured from the
+  baseline and asserted.
+
+DELIBERATE CHOICES
+..................
+
+  * The item-set comparison against the baseline ignores STATE NUMBERING. Bison's
+    numbers come from its own exploration order, which is an artifact; what is
+    compared is the SET of item sets, which is numbering-independent and is what
+    decides how the parser behaves.
+
+  * %nonassoc plants an EXPLICIT error action rather than removing the entry, so
+    that the state's default reduction cannot quietly take it over. `a < b < c`
+    has to be rejected -- that is the only reason %nonassoc was written.
+
+  * The baseline reader is QUOTE-AWARE throughout. The obvious implementation
+    finds the lookahead list with IndexOf('['), and this grammar has
+    `br_bass_figure: '[' bass_figure` -- so that bracket is inside a character
+    literal, and truncating there silently mis-reads every state containing the
+    rule. It cost a real debugging session, chasing a difference that was in the
+    checker rather than in the thing being checked.
+
+  * Rule actions are keyed by IDENTITY, never by rule number. A number shifts the
+    moment anything is inserted above it, so a re-sync adding one rule near the
+    top would silently re-point every action below it. RuleActionTable.Bind
+    REFUSES an identity the grammar no longer has rather than dropping it.
+
+  * The lexer is a hand-ported modal scanner over .NET regular expressions
+    anchored with \G, reproducing flex's longest-match-then-earliest-rule and its
+    start-condition STACK (%option stack -- modes nest, so a \markup inside
+    \lyricmode returns to lyrics). %option nodefault is reproduced too: an
+    unmatched character is reported, not echoed.
+
+WHAT IS NOT DONE IN TRACK P
+...........................
+
+  * ~~The LEXER's token-producing rules~~ DONE 2026-08-03: ALL FOURTEEN start
+    conditions are ported and tested -- notes, chords, figures, lyrics, markup,
+    quote, commandquote, incl, maininput and the rest. What the scanner still
+    DELEGATES is the DATA those rules consult (note-name and keyword tables,
+    markup signatures, a Scheme reader), through Lexing/ILexerHost.cs -- the same
+    seam upstream reaches through Lily_parser and Guile.
+    LexerCoverage.DelegatedToHost names all five.
+
+    One deliberate divergence: upstream's "pseudo backup rules" -- the
+    {SYMBOL}/[-_] trailing-context patterns -- are NOT reproduced. They exist to
+    shape flex's generated tables (avoiding backup states) and have no effect on
+    which token comes out; the port's scanner does not generate tables, so they
+    would be noise.
+
+  * 476 of the 479 RULE ACTIONS. The worklist is computed from the committed
+    manifest (Actions/rule-manifest.tsv) rather than maintained by hand, so
+    porting one removes it by construction and a rule that stops existing cannot
+    linger on it.
+
+  Neither is a design question -- the seams are built and verified. Both are
+  translation.
+
+-------------------------------------------------------------------------------
+ADDED 2026-08-04 (RAG3 + RAG5) -- the parser-facing engine types
+-------------------------------------------------------------------------------
+
+  lily/book.cc, lily/include/book.hh    ->  Objects/Book.cs
+  lily/score.cc, lily/include/score.hh  ->  Objects/Score.cs
+
+    Ported for the parser's book/bookpart/score rule actions (RAG3): the
+    parser-facing halves only -- construction defaults, paper/header storage,
+    the reverse-order scores_/bookparts_ lists, add_score, add_output_def,
+    set_music/get_music with its error handling, error_found_, and the origin
+    spot. NOT ported: Book::process/process_score/process_bookparts/set_keys
+    and Score::book_rendering (the Paper_book layer is unreached), both copy
+    constructors and clone, and Book::set_parent/add_scores_to_bookpart/
+    add_bookpart/error_found -- the copy/parent members need Guile module
+    copying, which lives in the host/Scheme layer, and nothing reaches them
+    yet. Score::set_header stores what it is given where upstream asserts
+    ly_is_module (a debug-only assert; module-ness is a host-layer notion
+    here). Both types' origins start unset rather than as a fresh empty Input,
+    because ly:input-location? is itself not yet ported. ly:book? and
+    ly:score? moved to Ported in Bootstrap/TypePredicates.cs.
+
+  lily/context-def.cc, lily/include/context-def.hh  ->  Translation/ContextDef.cs
+  lily/context-mod.cc, lily/include/context-mod.hh  ->  Translation/ContextMod.cs
+  lily/acceptance-set.cc, lily/include/acceptance-set.hh
+                                    ->  AcceptanceSet, hosted IN ContextDef.cs
+
+    Ported for the parser's \context/\with actions (RAG5): the definition DATA
+    and the pure queries over it -- add_context_mod's full tag dispatch,
+    get_translator_names (Scheme_hash_table becomes a Dictionary over
+    ReferenceComparer.Instance, i.e. hashq), to_alist, lookup, is_alias, the
+    copy constructor and clone. DELIBERATELY NOT PORTED, because they are the
+    context-creation integration that retires the Context.ContextFactory seam
+    in a later session: path_to_acceptable_context, path_to_bottom_context
+    (both need find_context_def over Output_def) and
+    apply_default_property_operations (needs context-property.cc). Nothing
+    wires ContextDef into Context yet.
+
+    ContextDef.Origin is an OPAQUE object, not an Input smob -- the parser
+    stores its SourceSpan there and origin()->set_spot() is folded into
+    SetSpot, the same convention as MusicObject's origin property.
+
+    AcceptanceSet lives inside ContextDef.cs rather than its own file:
+    Context_def is its only owner in the port so far (upstream's Context also
+    carries one, and the type is public and ready for that session).
+
+    Context_def::set_acceptor is declared in context-def.hh and NEVER DEFINED
+    anywhere in upstream 2.27.2 -- a dead declaration, not ported.
+
+    ly:context-def? and ly:context-mod? are registered in TypePredicates (the
+    standing obligation). WATCH: the OPERATIONAL bindings over these types --
+    ly:make-context-mod, ly:add-context-mod, ly:get-context-mods,
+    ly:context-mod-apply!, ly:context-def-lookup, ly:context-def-modify,
+    ly:output-find-context-def -- are still stubs, and now that the types
+    exist those stubs are one Scheme call away from being actively wrong.
+    Wiring them is the natural first move of the integration session.
