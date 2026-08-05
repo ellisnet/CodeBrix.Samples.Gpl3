@@ -102,7 +102,7 @@ public class RuleActionRag3Tests
         //Assert
         parser.ErrorCount.Should().Be(0);
         host.Calls.Should().HaveCount(1);
-        host.Calls[0].Procedure.Should().Be("book-proc");
+        host.Calls[0].Procedure.AsText().Should().Be("book-proc");
 
         Book book = (Book)host.Calls[0].Arguments[0];
         book.Paper.Should().NotBeNull();
@@ -134,7 +134,7 @@ public class RuleActionRag3Tests
         host.Scopes.Should().BeEmpty();
 
         Book book = (Book)host.Calls[0].Arguments[0];
-        ((FakeModule)book.Header).Bindings[Symbol.Intern("title")].Should().Be("T");
+        ((FakeModule)book.Header).Bindings[Symbol.Intern("title")].AsText().Should().Be("T");
     }
 
     [Fact]
@@ -151,7 +151,7 @@ public class RuleActionRag3Tests
 
         //Assert
         // The empty score also reported its missing music; the structure still holds.
-        host.Calls[0].Procedure.Should().Be("book-score-proc");
+        host.Calls[0].Procedure.AsText().Should().Be("book-score-proc");
         host.Calls[0].Arguments[0].Should().BeOfType<Book>();
         host.Calls[0].Arguments[1].Should().BeOfType<Score>();
     }
@@ -170,7 +170,7 @@ public class RuleActionRag3Tests
 
         //Assert
         parser.ErrorCount.Should().Be(0);
-        host.Calls[0].Procedure.Should().Be("book-bookpart-proc");
+        host.Calls[0].Procedure.AsText().Should().Be("book-bookpart-proc");
         host.Calls[0].Arguments[0].Should().BeOfType<Book>();
         host.Calls[0].Arguments[1].Should().BeOfType<Book>();
         host.Calls[0].Arguments[1].Should().NotBeSameAs(host.Calls[0].Arguments[0]);
@@ -192,7 +192,7 @@ public class RuleActionRag3Tests
 
         //Assert
         parser.ErrorCount.Should().Be(0);
-        host.Calls[0].Procedure.Should().Be("bookpart-proc");
+        host.Calls[0].Procedure.AsText().Should().Be("bookpart-proc");
 
         Book part = (Book)host.Calls[0].Arguments[0];
         part.Paper.Should().BeNull();
@@ -218,7 +218,7 @@ public class RuleActionRag3Tests
         host.Scopes.Should().BeEmpty();
 
         Book part = (Book)host.Calls[0].Arguments[0];
-        ((FakeModule)part.Header).Bindings[Symbol.Intern("piece")].Should().Be("P");
+        ((FakeModule)part.Header).Bindings[Symbol.Intern("piece")].AsText().Should().Be("P");
     }
 
     // ------ score blocks, from real text ------
@@ -238,7 +238,7 @@ public class RuleActionRag3Tests
         parser.Diagnostics.Should().HaveCount(1);
         parser.Diagnostics[0].Should().Contain("Missing music in \\score");
 
-        host.Calls[0].Procedure.Should().Be("score-proc");
+        host.Calls[0].Procedure.AsText().Should().Be("score-proc");
         Score score = (Score)host.Calls[0].Arguments[0];
         score.GetMusic().Should().BeSameAs(Nil.Instance);
         score.Origin.Should().NotBeNull();
@@ -259,12 +259,12 @@ public class RuleActionRag3Tests
         parser.Parse(scanner, host);
 
         //Assert
-        host.ErrorLevel.Should().Be(1, "the score still has no music");
+        host.ErrorLevel.AsText().Should().Be(1, "the score still has no music");
         host.Scopes.Should().BeEmpty();
 
         Score score = (Score)host.Calls[0].Arguments[0];
         FakeModule header = (FakeModule)score.GetHeader();
-        header.Bindings[Symbol.Intern("opus")].Should().Be("1");
+        header.Bindings[Symbol.Intern("opus")].AsText().Should().Be("1");
     }
 
     // ------ score_items, invoked directly (music/output_def grammar is unported) ------
@@ -379,7 +379,7 @@ public class RuleActionRag3Tests
         result.Should().BeSameAs(score);
         FakeModule header = (FakeModule)score.GetHeader();
         header.Should().NotBeSameAs(supplied);
-        header.Bindings[Symbol.Intern("title")].Should().Be("From Scheme");
+        header.Bindings[Symbol.Intern("title")].AsText().Should().Be("From Scheme");
     }
 
     [Fact]
@@ -442,10 +442,10 @@ public class RuleActionRag3Tests
 
         //Assert
         result.Should().BeSameAs(book);
-        host.Calls[0].Procedure.Should().Be("text-proc");
+        host.Calls[0].Procedure.AsText().Should().Be("text-proc");
         host.Calls[0].Arguments[0].Should().BeSameAs(book);
         Pair wrapped = (Pair)host.Calls[0].Arguments[1];
-        wrapped.Car.Should().Be("a markup");
+        wrapped.Car.AsText().Should().Be("a markup");
         wrapped.Cdr.Should().BeSameAs(Nil.Instance);
     }
 
@@ -520,7 +520,7 @@ public class RuleActionRag3Tests
         //Assert
         FakeModule header = (FakeModule)part.Header;
         header.Should().NotBeSameAs(supplied);
-        header.Bindings[Symbol.Intern("title")].Should().Be("T");
+        header.Bindings[Symbol.Intern("title")].AsText().Should().Be("T");
     }
 
     [Fact]
@@ -592,6 +592,6 @@ public class RuleActionRag3Tests
 
         //Assert
         result.Should().BeSameAs(book);
-        host.EvaluatedTokens.Should().Equal("(display 1)");
+        host.EvaluatedTokens.AsText().Should().Equal("(display 1)");
     }
 }

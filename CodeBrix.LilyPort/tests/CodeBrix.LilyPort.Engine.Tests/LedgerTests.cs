@@ -1,0 +1,261 @@
+// Copyright (c) 2026 Jeremy Ellis and contributors
+//
+// CodeBrix.LilyPort is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using CodeBrix.LilyPort.Engine;
+using SilverAssertions;
+using Xunit;
+
+namespace CodeBrix.LilyPort.Engine.Tests;
+
+/// <summary>
+/// The fence over the engine porting effort: every upstream <c>lily/*.cc</c> file has
+/// exactly one disposition, and the remaining work is COMPUTED from that.
+/// <para>
+/// This is EPG0's reason to exist. Before it, "what is left" lived in a plan document,
+/// which is a record that can only be wrong in the flattering direction — a session lands
+/// a file, forgets to cross it off, and the remaining work silently overstates itself;
+/// or a plan lists a file upstream no longer has and the work is never questioned. Here a
+/// file cannot be in two groups, cannot be in none, and cannot claim a C# file that is
+/// not on disk.
+/// </para>
+/// </summary>
+public class LedgerTests
+{
+    /// <summary>
+    /// The groups that can own outstanding files. EPG0 is absent on purpose: it builds
+    /// this machinery and owes no upstream file.
+    /// </summary>
+    private static readonly IReadOnlyList<string> KnownGroups =
+        Enumerable.Range(1, 23).Select(n => "EPG" + n.ToString(System.Globalization.CultureInfo.InvariantCulture)).ToList();
+
+    [Fact]
+    public void every_upstream_file_has_exactly_one_ledger_row()
+    {
+        //Arrange
+        IReadOnlyList<LedgerRow> rows = PortLedger.Rows;
+
+        //Act
+        List<string> duplicated = rows
+            .GroupBy(row => row.File, StringComparer.Ordinal)
+            .Where(group => group.Count() > 1)
+            .Select(group => group.Key)
+            .ToList();
+
+        //Assert
+        // 448 is the pinned upstream's lily/*.cc count. If a re-sync moves it, this fails
+        // FIRST -- which is the point: the ledger is the vendored record of that file set,
+        // and standing rule 7 keeps the test out of ~/GitHome/lilypond entirely.
+        rows.Should().HaveCount(PortLedger.UpstreamFileCount);
+        duplicated.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void the_ledger_accounts_for_every_file_exactly_once()
+    {
+        //Arrange / Act
+        int ported = PortLedger.Ported.Count;
+        int owed = PortLedger.NotYetPorted.Count;
+        int noPort = PortLedger.NoPort.Count;
+
+        //Assert
+        (ported + owed + noPort).Should().Be(PortLedger.UpstreamFileCount);
+    }
+
+    [Fact]
+    public void the_worklist_is_computed_rather_than_remembered()
+    {
+        //Arrange
+        // NotYetPorted is derived from the rows, so porting a file moves it off the list
+        // by construction. Nothing maintains a second copy that could disagree.
+        IReadOnlyList<string> outstanding = PortLedger.NotYetPorted;
+
+        //Act
+        IEnumerable<string> fromRows = PortLedger.Rows
+            .Where(row => row.Disposition == LedgerDisposition.Group)
+            .Select(row => row.File);
+
+        //Assert
+        outstanding.Should().BeEquivalentTo(fromRows);
+        outstanding.Should().NotBeEmpty();
+    }
+
+    [Fact]
+    public void every_ported_row_names_c_sharp_files_that_exist()
+    {
+        //Arrange
+        string root = RepositoryRoot();
+
+        //Act
+        List<string> missing = new List<string>();
+        foreach (LedgerRow row in PortLedger.Rows.Where(r => r.Disposition == LedgerDisposition.Ported))
+        {
+            foreach (string relative in row.PortedFiles())
+            {
+                string full = Path.Combine(root, relative.Replace('/', Path.DirectorySeparatorChar));
+                if (!File.Exists(full))
+                {
+                    missing.Add(row.File + " -> " + relative);
+                }
+            }
+        }
+
+        //Assert
+        // A 'ported' row that names a file nobody can find is the exact failure this
+        // ledger replaces: a claim of done-ness with nothing behind it.
+        missing.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void every_ported_row_names_at_least_one_file()
+    {
+        //Arrange / Act
+        List<string> empty = PortLedger.Rows
+            .Where(row => row.Disposition == LedgerDisposition.Ported && row.PortedFiles().Count == 0)
+            .Select(row => row.File)
+            .ToList();
+
+        //Assert
+        empty.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void every_group_row_names_a_known_engine_port_group()
+    {
+        //Arrange / Act
+        List<string> unknown = PortLedger.Rows
+            .Where(row => row.Disposition == LedgerDisposition.Group)
+            .Select(row => row.Detail)
+            .Distinct(StringComparer.Ordinal)
+            .Where(group => !KnownGroups.Contains(group, StringComparer.Ordinal))
+            .ToList();
+
+        //Assert
+        unknown.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void every_no_port_row_records_a_reason()
+    {
+        //Arrange / Act
+        List<string> unreasoned = PortLedger.Rows
+            .Where(row => row.Disposition == LedgerDisposition.NoPort
+                          && string.IsNullOrWhiteSpace(row.Detail))
+            .Select(row => row.File)
+            .ToList();
+
+        //Assert
+        // "We are not porting this" is only a decision if the reason travels with it.
+        unreasoned.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void the_ledger_records_the_size_of_the_remaining_job()
+    {
+        //Arrange / Act
+        int ported = PortLedger.Ported.Count;
+        int noPort = PortLedger.NoPort.Count;
+
+        //Assert
+        // The baseline, asserted with EQUALITY so progress has to be re-stated here rather
+        // than silently absorbed. Moving these numbers is the point of the work; moving
+        // them without noticing is what the fence prevents.
+        //
+        // EPG0 opened at 75 / 344 / 29. EPG1's first session moved seven files across
+        // (input.cc, source-file.cc, sources.cc, diagnostics.cc, music-function.cc, and
+        // the input-scheme.cc / music-function-scheme.cc bindings), and six
+        // bindings-complete *-scheme.cc files were found to have been ported all along —
+        // see every_bindings_complete_scheme_file_is_marked_ported for what now stops
+        // that from recurring.
+        //
+        // EPG1's second session closed parse-scm.cc and pulled context-mod-scheme.cc
+        // forward out of EPG2, because the init layer demanded it: ly:make-context-mod
+        // being a stub is what made every \omit and \grobdescriptions in a \context
+        // block read as "not a context mod".
+        ported.Should().Be(90);
+        noPort.Should().Be(29);
+        PortLedger.NotYetPorted.Should().HaveCount(329);
+    }
+
+    [Fact]
+    public void the_translator_manifest_records_what_upstream_declares()
+    {
+        //Arrange / Act
+        int cpp = TranslatorManifest.Cpp.Count;
+        int groups = TranslatorManifest.Groups.Count;
+        int scheme = TranslatorManifest.Scheme.Count;
+
+        //Assert
+        // Gate G4's denominator. NOTE: the condensed plan says "34 Scheme"; the real
+        // count is 37 -- 35 in scm/scheme-engravers.scm plus 2 in scm/scheme-performers.scm.
+        cpp.Should().Be(126);
+        groups.Should().Be(4);
+        scheme.Should().Be(37);
+    }
+
+    [Fact]
+    public void every_cpp_translator_is_declared_by_a_file_the_ledger_knows()
+    {
+        //Arrange
+        HashSet<string> ledgerFiles = new HashSet<string>(
+            PortLedger.Rows.Select(row => row.File), StringComparer.Ordinal);
+
+        //Act
+        List<string> orphans = TranslatorManifest.Entries
+            .Where(entry => entry.Kind != TranslatorKind.Scheme)
+            .Where(entry => !ledgerFiles.Contains(entry.File))
+            .Select(entry => entry.Name + " (" + entry.File + ")")
+            .ToList();
+
+        //Assert
+        // Cross-check between the two manifests: a translator whose declaring file has no
+        // ledger row would be work with no home.
+        orphans.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void no_translator_is_declared_twice()
+    {
+        //Arrange / Act
+        List<string> duplicated = TranslatorManifest.Entries
+            .GroupBy(entry => entry.Name, StringComparer.Ordinal)
+            .Where(group => group.Count() > 1)
+            .Select(group => group.Key)
+            .ToList();
+
+        //Assert
+        duplicated.Should().BeEmpty();
+    }
+
+    /// <summary>
+    /// Finds the repository root by walking up from the test binaries, the same way
+    /// <c>BaselineAgreementTests</c> reaches committed repository data. The ledger's
+    /// 'ported' column names repo-relative paths, and checking them means touching the
+    /// working tree — this repo's own tree only, never the upstream reference.
+    /// </summary>
+    /// <returns>The absolute path of the repository root.</returns>
+    private static string RepositoryRoot()
+    {
+        string directory = AppContext.BaseDirectory;
+
+        for (int level = 0; level < 8 && directory != null; level++)
+        {
+            if (File.Exists(Path.Combine(directory, "CodeBrix.LilyPort.slnx")))
+            {
+                return directory;
+            }
+
+            directory = Path.GetDirectoryName(directory);
+        }
+
+        throw new DirectoryNotFoundException(
+            "CodeBrix.LilyPort.slnx was not found above " + AppContext.BaseDirectory);
+    }
+}

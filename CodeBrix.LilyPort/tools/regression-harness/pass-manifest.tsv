@@ -1,0 +1,16 @@
+# CodeBrix.LilyPort regression ratchet -- the BEST VERDICT EVER ACHIEVED
+# per reference page. A run must meet or beat every row here; see
+# ratchet.py for why this is a per-file floor and not a pass count.
+#
+# Advanced only by `ratchet.py update`, never by hand. A row that needs to
+# come DOWN is a decision, not a fix: record why in the commit message.
+#
+# EMPTY ON PURPOSE, EPG0 (2026-08-04). The port cannot yet engrave a
+# regression file end to end -- that arrives with EPG3 (output pipeline) and
+# becomes meaningful at EPG4 (horizontal spacing), which is where notes stop
+# sitting at x = 0. The machinery is committed FIRST so that the moment the
+# first file produces a verdict, the floor exists to hold it: a ratchet
+# retrofitted after the fact records whatever the port happened to be doing
+# that day, which is how a suite ends up enshrining its own bugs.
+#
+# name	best-verdict

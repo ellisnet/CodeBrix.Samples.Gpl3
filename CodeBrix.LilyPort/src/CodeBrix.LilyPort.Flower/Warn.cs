@@ -109,6 +109,9 @@ public static class Warn
 {
     private static readonly List<string> RecordedMessages = new List<string>();
 
+    private static readonly HashSet<string> LoggedDeprecations
+        = new HashSet<string>(StringComparer.Ordinal);
+
     /// <summary>Gets or sets the active log level mask.</summary>
     public static LogLevel Level { get; set; } = LogLevel.LevelWarn;
 
@@ -130,8 +133,21 @@ public static class Warn
     /// <summary>Gets the messages recorded while <see cref="RecordMessages"/> was set.</summary>
     public static IReadOnlyList<string> Messages => RecordedMessages;
 
-    /// <summary>Clears the recorded messages.</summary>
-    public static void ClearMessages() => RecordedMessages.Clear();
+    /// <summary>
+    /// Clears the recorded messages, and with them the set of deprecation warnings already
+    /// reported.
+    /// <para>
+    /// Upstream never clears that set — it lives for the process, because a run is one
+    /// document. Here a test run is many documents in one process, and a deprecation
+    /// warning suppressed by an EARLIER test is a test that silently stops checking
+    /// anything.
+    /// </para>
+    /// </summary>
+    public static void ClearMessages()
+    {
+        RecordedMessages.Clear();
+        LoggedDeprecations.Clear();
+    }
 
     /// <summary>Determines whether a severity would be emitted at the current level.</summary>
     /// <param name="severity">The severity to test.</param>
@@ -150,6 +166,29 @@ public static class Warn
         }
 
         Emit(LogLevel.Warn, "warning: ", message, location);
+    }
+
+    /// <summary>
+    /// Emits a deprecation warning the FIRST time each distinct message is seen, and
+    /// swallows every repeat.
+    /// <para>
+    /// The de-duplication is the whole point upstream: a deprecated construct inside a
+    /// loop or an included file would otherwise print once per use and bury everything
+    /// else. The set is keyed on the message text, exactly as upstream keys it.
+    /// </para>
+    /// </summary>
+    /// <param name="message">The warning text.</param>
+    /// <param name="location">Where the problem was found, or <see langword="null"/>.</param>
+    /// <returns><see langword="true"/> when the message was emitted rather than suppressed.</returns>
+    public static bool DeprecationWarning(string message, string location = null)
+    {
+        if (!LoggedDeprecations.Add(message))
+        {
+            return false;
+        }
+
+        Warning(message, location);
+        return true;
     }
 
     /// <summary>Emits an informational message.</summary>

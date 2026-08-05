@@ -92,7 +92,7 @@ public class LexerTests
         Drain(scanner);
 
         //Assert
-        scanner.LastVersionString.Should().Be("2.27.2");
+        scanner.LastVersionString.AsText().Should().Be("2.27.2");
         scanner.State.Should().Be(LexerState.Initial);
         scanner.StateDepth.Should().Be(0);
     }
@@ -145,7 +145,7 @@ public class LexerTests
         token.Symbol.Should().Be(2);
 
         // ...and between the two equally long ones, the earlier wins.
-        token.Value.Should().Be("abc");
+        token.Value.AsText().Should().Be("abc");
     }
 
     [Fact]
@@ -185,8 +185,8 @@ public class LexerTests
         //Assert
         // Most recently pushed comes out first, which is what makes the macros' order
         // of pushes produce the order upstream intends.
-        scanner.Next().Value.Should().Be("first");
-        scanner.Next().Value.Should().Be("second");
+        scanner.Next().Value.AsText().Should().Be("first");
+        scanner.Next().Value.AsText().Should().Be("second");
         scanner.Next().Symbol.Should().Be(0);
     }
 
@@ -302,7 +302,7 @@ public class LexerTests
         //Assert
         tokens.Should().ContainSingle();
         NameOf(tokens[0]).Should().Be("STRING");
-        tokens[0].Value.Should().Be("a\nb");
+        tokens[0].Value.AsText().Should().Be("a\nb");
     }
 
     [Fact]
@@ -329,7 +329,7 @@ public class LexerTests
 
         //Assert
         tokens.Should().ContainSingle();
-        tokens[0].Value.Should().Be("a b");
+        tokens[0].Value.AsText().Should().Be("a b");
     }
 
     [Fact]
@@ -409,6 +409,6 @@ public class LexerTests
         //Assert
         NameOf(tokens[0]).Should().Be("SCM_TOKEN");
         NameOf(tokens[1]).Should().Be("SYMBOL");
-        tokens[1].Value.Should().Be("e");
+        tokens[1].Value.AsText().Should().Be("e");
     }
 }

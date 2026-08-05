@@ -180,22 +180,22 @@ public class RuleActionRag8Tests
         ParserToken floor = scanner.Next();
 
         //Assert
-        function.Symbol.Should().Be(Sym("MUSIC_FUNCTION"));
+        function.Symbol.AsText().Should().Be(Sym("MUSIC_FUNCTION"));
         function.Value.Should().BeSameAs(MusicFunction);
 
         // The LAST argument (mandatory string) leads...
-        first.Symbol.Should().Be(Sym("EXPECT_SCM"));
+        first.Symbol.AsText().Should().Be(Sym("EXPECT_SCM"));
         first.Value.Should().BeSameAs(StringPred);
 
         // ...then the optional number, EXPECT_OPTIONAL carrying the DEFAULT before
         // EXPECT_SCM carrying the predicate...
-        second.Symbol.Should().Be(Sym("EXPECT_OPTIONAL"));
+        second.Symbol.AsText().Should().Be(Sym("EXPECT_OPTIONAL"));
         second.Value.Should().Be(7L);
-        third.Symbol.Should().Be(Sym("EXPECT_SCM"));
+        third.Symbol.AsText().Should().Be(Sym("EXPECT_SCM"));
         third.Value.Should().BeSameAs(NumberPred);
 
         // ...and the floor arrives last.
-        floor.Symbol.Should().Be(Sym("EXPECT_NO_MORE_ARGS"));
+        floor.Symbol.AsText().Should().Be(Sym("EXPECT_NO_MORE_ARGS"));
     }
 
     // ------ whole inputs through the real scanner and tables ------
@@ -243,12 +243,12 @@ public class RuleActionRag8Tests
         error.Should().NotBeNull();
         error.Arguments[0].Should().Be(1L);
         error.Arguments[1].Should().BeSameAs(NumberPred);
-        error.Arguments[2].Should().Be("x");
+        error.Arguments[2].AsText().Should().Be("x");
 
         SyntaxMark call = Dispatch(host, "music-function");
         call.Should().NotBeNull();
         Pair arglist = (Pair)call.Arguments[1];
-        arglist.Car.Should().Be("x");
+        arglist.Car.AsText().Should().Be("x");
         arglist.Cdr.Should().Be(false);
     }
 
@@ -276,11 +276,11 @@ public class RuleActionRag8Tests
         //Assert
         result.Should().Be(Nil.Instance);
         ParserToken reparse = scanner.Next();
-        reparse.Symbol.Should().Be(Sym("REPARSE"));
+        reparse.Symbol.AsText().Should().Be(Sym("REPARSE"));
         reparse.Value.Should().BeSameAs(NumberPred);
         ParserToken token = scanner.Next();
-        token.Symbol.Should().Be(Sym("SCM_ARG"));
-        token.Value.Should().Be("3");
+        token.Symbol.AsText().Should().Be(Sym("SCM_ARG"));
+        token.Value.AsText().Should().Be("3");
     }
 
     [Fact]
@@ -298,9 +298,9 @@ public class RuleActionRag8Tests
             default);
 
         //Assert
-        scanner.Next().Symbol.Should().Be(Sym("REPARSE"));
+        scanner.Next().Symbol.AsText().Should().Be(Sym("REPARSE"));
         ParserToken token = scanner.Next();
-        token.Symbol.Should().Be(Sym("REAL"));
+        token.Symbol.AsText().Should().Be(Sym("REAL"));
         token.Value.Should().Be(3L);
     }
 
@@ -334,7 +334,7 @@ public class RuleActionRag8Tests
         note.Name.Should().Be("NoteEvent");
         note.Properties.Should().Contain(p => p.Name == "duration");
         (string _, object articulations) = note.Properties.Find(p => p.Name == "articulations");
-        Cars(articulations).Should().Equal("first", "second");
+        Cars(articulations).AsText().Should().Equal("first", "second");
     }
 
     [Fact]
@@ -383,7 +383,7 @@ public class RuleActionRag8Tests
             default);
 
         //Assert
-        Cars(result).Should().Equal(3L, "earlier");
+        Cars(result).AsText().Should().Equal(3L, "earlier");
         host.SyntaxDispatches.Should().BeEmpty();
     }
 }

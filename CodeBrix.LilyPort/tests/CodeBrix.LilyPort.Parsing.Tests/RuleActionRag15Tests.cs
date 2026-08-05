@@ -375,7 +375,7 @@ public class RuleActionRag15Tests
         // decides what the value means.
         SyntaxMark mark = result.Should().BeOfType<SyntaxMark>().Which;
         mark.Name.Should().Be("create-script");
-        mark.Arguments.Should().Equal("the-script");
+        mark.Arguments.AsText().Should().Equal("the-script");
     }
 
     // ------ script abbreviations ------
@@ -428,7 +428,7 @@ public class RuleActionRag15Tests
         // needs its own location and direction.
         result.Should().BeOfType<MusicObject>().And.NotBeSameAs(dashDot);
         ((MusicObject)result).GetProperty("articulation-type")
-            .Should().Be(Symbol.Intern("staccato"));
+            .AsText().Should().Be(Symbol.Intern("staccato"));
 
         // The location is deliberately NOT set here — post_event_nofinger, which knows
         // the span including the script_dir, sets it.
@@ -538,7 +538,7 @@ public class RuleActionRag15Tests
 
         MusicObject text = Articulation(host, 0);
         text.Name.Should().Be("TextScriptEvent");
-        text.GetProperty("text").Should().Be("allegro");
+        text.GetProperty("text").AsText().Should().Be("allegro");
         text.GetProperty("direction").Should().Be(1L);
     }
 
@@ -575,8 +575,8 @@ public class RuleActionRag15Tests
 
         //Assert
         NoErrors(parser);
-        Articulation(host, 0).GetProperty("text").Should().Be("one");
-        Articulation(host, 1).GetProperty("text").Should().Be("two");
+        Articulation(host, 0).GetProperty("text").AsText().Should().Be("one");
+        Articulation(host, 1).GetProperty("text").AsText().Should().Be("two");
         Articulation(host, 0).GetProperty("direction").Should().Be(1L);
         Articulation(host, 1).GetProperty("direction").Should().Be(-1L);
     }

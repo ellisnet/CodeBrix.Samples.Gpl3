@@ -23,6 +23,7 @@ using System.Collections.Generic;
 using CodeBrix.LilyPort.Engine.Layout;
 using CodeBrix.LilyPort.Engine.Music;
 using CodeBrix.LilyPort.Engine.Objects;
+using CodeBrix.LilyPort.Parsing.Driver;
 using CodeBrix.LilyPort.Parsing.Lexing;
 using CodeBrix.LilyScheme.Numeric;
 using CodeBrix.LilyScheme.Primitives;
@@ -218,6 +219,38 @@ public sealed partial class LilyParserSession
         return IdentifierToken(value);
     }
 
+    /// <inheritdoc/>
+    public LexerLookup ScanSchemeValue(object value)
+        => value is DefaultArgument ? LexerLookup.None : IdentifierToken(value);
+
+    /// <inheritdoc/>
+    public LexerLookup MarkupFunctionToken(object value, out IReadOnlyList<MarkupPredicate> predicates)
+    {
+        predicates = EmptyPredicates;
+        if (!(value is Procedure) && !(value is IApplicable))
+        {
+            return LexerLookup.None;
+        }
+
+        object signature = Call(LilyImport("markup-command-signature"), value);
+        if (signature == null || signature is bool)
+        {
+            return LexerLookup.None;
+        }
+
+        List<MarkupPredicate> declared = new List<MarkupPredicate>();
+        foreach (object predicate in Pair.ToList(signature))
+        {
+            declared.Add(new MarkupPredicate(PredicateName(predicate), predicate));
+        }
+
+        predicates = declared;
+        return new LexerLookup(
+            IsMarkupListFunction(value) ? "MARKUP_LIST_FUNCTION" : "MARKUP_FUNCTION", value);
+    }
+
+    private static readonly IReadOnlyList<MarkupPredicate> EmptyPredicates = new List<MarkupPredicate>();
+
     /// <summary>
     /// Decides which token an identifier's VALUE lexes as, and hands back the value the
     /// token should carry.
@@ -303,28 +336,46 @@ public sealed partial class LilyParserSession
     }
 
     /// <inheritdoc/>
-    LexerLookup ILexerHost.LookupMarkupCommand(string word, out IReadOnlyList<string> predicates)
+    LexerLookup ILexerHost.LookupMarkupCommand(
+        string word, out IReadOnlyList<MarkupPredicate> predicates)
     {
-        predicates = new List<string>();
+        predicates = new List<MarkupPredicate>();
 
-        object value = LookupIdentifier(word);
-        if (value is DefaultArgument || !IsMarkupFunction(value))
+        // Upstream: lexer.ll's <markup>{COMMAND} rule calls lookup_markup_command, which
+        // is scm/markup-macros.scm's `lookup-markup-command` —
+        //
+        //   (module-ref (current-module) (string->symbol (format #f "~a-markup" code)))
+        //
+        // — and falls back to `lookup-markup-list-command` on `<code>-markup-list`. THE
+        // SUFFIX IS THE WHOLE POINT: define-markup-command binds `hspace-markup`, never
+        // `hspace`. An earlier pass looked the bare word up, so every markup command in
+        // the vendored layer read as an unknown command, and the only tests that covered
+        // this path used a scripted host with commands registered under bare names.
+        object command = LookupIdentifier(word + "-markup");
+        bool isList = false;
+        if (command is DefaultArgument || !SchemeTruth(LilyImport("markup-function?"), command))
         {
-            return LexerLookup.None;
+            command = LookupIdentifier(word + "-markup-list");
+            isList = true;
+            if (command is DefaultArgument || !IsMarkupListFunction(command))
+            {
+                return LexerLookup.None;
+            }
         }
 
         // The signature is a procedure property on the markup command; the scanner
-        // turns it into the EXPECT_* announcement.
-        List<string> declared = new List<string>();
-        object signature = Call(LilyImport("markup-command-signature"), value);
+        // turns it into the EXPECT_* announcement. Each entry carries BOTH the name the
+        // token choice is made from and the predicate itself, which EXPECT_SCM hands to
+        // the arglist rules.
+        List<MarkupPredicate> declared = new List<MarkupPredicate>();
+        object signature = Call(LilyImport("markup-command-signature"), command);
         foreach (object predicate in Pair.ToList(signature))
         {
-            declared.Add(PredicateName(predicate));
+            declared.Add(new MarkupPredicate(PredicateName(predicate), predicate));
         }
 
         predicates = declared;
-        return new LexerLookup(
-            IsMarkupListFunction(value) ? "MARKUP_LIST_FUNCTION" : "MARKUP_FUNCTION", value);
+        return new LexerLookup(isList ? "MARKUP_LIST_FUNCTION" : "MARKUP_FUNCTION", command);
     }
 
     /// <summary>
@@ -350,7 +401,7 @@ public sealed partial class LilyParserSession
     // ------ embedded Scheme (Lily_lexer's #{ } / # reader hand-off) ------
 
     /// <inheritdoc/>
-    public object ParseEmbeddedScheme(string input, int position, out int consumed)
+    public object ParseEmbeddedScheme(string input, int position, SourceSpan start, out int consumed)
     {
         // Upstream hands the input port straight to Guile's reader, which leaves the
         // port positioned after the datum. LilyScheme's reader starts at 0, so the
@@ -358,11 +409,104 @@ public sealed partial class LilyParserSession
         // answer, and the only visible difference is that a datum's recorded column
         // is relative to the expression rather than to the line. Recorded in
         // PORT-COVERAGE.
-        SchemeReader reader = new SchemeReader(input.Substring(position), "<embedded>");
-        object datum = reader.ReadDatum();
-        consumed = reader.Position;
-        return datum;
+
+        // `#@' / `$@' — the multiple-values prefix. The '@' is consumed before the
+        // datum is read and the form is wrapped in (apply values FORM) afterwards, so
+        // the value the token carries is a MultipleValues that eval_scm can spread into
+        // extra tokens.
+        bool multiple = position < input.Length && input[position] == '@';
+        int readFrom = multiple ? position + 1 : position;
+
+        object datum;
+        SchemeReader reader = new SchemeReader(input.Substring(readFrom), start.FileName);
+        try
+        {
+            datum = reader.ReadDatum();
+            consumed = (readFrom - position) + reader.Position;
+        }
+        catch (Exception error)
+        {
+            // parse_embedded_scheme's scm_c_catch, which is the whole reason the
+            // function is written around one: a `#(...)' the reader cannot make sense of
+            // must become a LOCATED diagnostic and let the parse carry on, so that a
+            // file reports every one of its errors instead of the first. The pre-unwind
+            // handler prints where the expression BEGAN — not where the reader gave up,
+            // which is usually inside a construct the author did not think they were
+            // writing — and the post-unwind handler returns SCM_UNDEFINED, which the
+            // lexer turns into error_level_ = 1.
+            ParserError(start, SchemeErrorText(error));
+
+            // ZERO characters are consumed, and that is upstream's behaviour rather than
+            // an approximation of it: `Parse_start::parsed_` is only `.set()` on the
+            // success path, so after a throw it is still a default-constructed Input,
+            // `parsed.size ()` is 0, and `skip_chars (0)` leaves the scan position right
+            // after the `#'. The text is then re-scanned as ordinary LilyPond, which
+            // produces further syntax errors — and is exactly right, because the reader
+            // has no idea how much of what follows was meant to be Scheme. Swallowing to
+            // the reader's stopping point instead would eat the rest of the file, since
+            // an unterminated list runs to end of input.
+            consumed = 0;
+            return DefaultArgument.Instance;
+        }
+
+        // SCM_EOF_OBJECT_P: `#' with nothing after it. Upstream returns SCM_UNDEFINED
+        // without a diagnostic of its own — the grammar reports the missing expression.
+        if (ReferenceEquals(datum, EofObject.Instance))
+        {
+            return DefaultArgument.Instance;
+        }
+
+        // The closures lookup. A parser CLONE carries an alist of offset-to-thunk built
+        // by the `#{ ... #}' reader, and a `#' at a recorded offset evaluates the THUNK
+        // rather than the text — which is what lets embedded Scheme see the lexical
+        // environment of the Scheme code the block was written in, the entire point of
+        // the construct. Only while reading the top input: an \include'd file has its
+        // own offsets and nothing to do with the clone's.
+        if (Scanner != null && Scanner.IncludeDepth < 2)
+        {
+            object closure = ClosureAt(position);
+            if (closure != null)
+            {
+                return closure;
+            }
+        }
+
+        return multiple
+            ? Pair.List(Symbol.Intern("apply"), Symbol.Intern("values"), datum)
+            : datum;
     }
+
+    /// <summary>
+    /// Looks a precompiled closure up by the offset of the expression it stands for —
+    /// <c>scm_assv_ref (parser-&gt;closures_, offset)</c>, whose <c>eqv?</c> over two
+    /// exact integers is an equality test here.
+    /// </summary>
+    /// <param name="offset">The offset of the first character after the <c>#</c>.</param>
+    /// <returns>The thunk, or <see langword="null"/> when nothing is recorded there.</returns>
+    private object ClosureAt(int offset)
+    {
+        for (object p = Closures; p is Pair pair; p = pair.Cdr)
+        {
+            if (pair.Car is Pair entry && entry.Car is long key && key == offset)
+            {
+                return entry.Cdr;
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Names what a Scheme-level failure was, for a parser diagnostic.
+    /// <para>Upstream prints the error with <c>scm_print_exception</c> under the heading
+    /// "Guile signaled an error for the expression beginning here"; the port keeps the
+    /// heading and appends what the interpreter said, because the two together are what
+    /// makes the message actionable.</para>
+    /// </summary>
+    /// <param name="error">The failure.</param>
+    /// <returns>The message.</returns>
+    private static string SchemeErrorText(Exception error)
+        => "Guile signaled an error for the expression beginning here: " + error.Message;
 
     private object LookupLily(string name)
     {

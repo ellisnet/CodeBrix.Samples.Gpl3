@@ -191,8 +191,27 @@ public sealed partial class LilyParserSession
 
     /// <inheritdoc/>
     public bool IsGrobSymbol(object value)
-        => value is Symbol symbol
-           && SchemeTruth(LilyImport("symbol-is-grob?"), symbol);
+    {
+        // Upstream: scm_object_property (sym, ly_symbol2scm ("is-grob?")) — an OBJECT
+        // PROPERTY on the symbol, set by scm/define-grobs.scm's
+        // (set-object-property! name-sym 'is-grob? #t) for every grob it declares. There
+        // is no `symbol-is-grob?` procedure anywhere in LilyPond; an earlier pass invented
+        // the name, and the LilyImport for it threw the moment property-init.ly reached a
+        // grob property path.
+        if (!(value is Symbol symbol))
+        {
+            return false;
+        }
+
+        Variable accessor = _interpreter.GuileModule.Lookup(Symbol.Intern("object-property"));
+        if (accessor == null)
+        {
+            return false;
+        }
+
+        object answer = Call(accessor.GetValue(), symbol, Symbol.Intern("is-grob?"));
+        return !(answer is bool flag && !flag);
+    }
 
     /// <inheritdoc/>
     public bool IsScale(object value) => SchemeTruth(LilyImport("scale?"), value);
@@ -277,13 +296,17 @@ public sealed partial class LilyParserSession
     /// <inheritdoc/>
     public void AddOutputDefScope(OutputDef definition)
     {
-        // RAG4's note: an OutputDef's scope is a DICTIONARY, not a module, so the host
-        // routes identifier traffic rather than pushing a module onto the scope stack.
-        _outputDefScopes.Add(definition);
+        // Upstream: parser->lexer_->add_scope (p->scope_). The SAME add_scope every other
+        // block uses, on the definition's own module.
+        //
+        // An earlier pass kept output-definition scopes in a list of their own, because
+        // the scope was a dictionary rather than a module. That left every \paper and
+        // \layout block UNBALANCED — one push on the private list, one pop from the module
+        // stack at the closing brace — so a session emptied its scope stack on the first
+        // output definition it read, and every assignment written inside the block landed
+        // outside it. Both halves are gone now that OutputDef.Scope is a real module.
+        AddScope(definition.Scope);
     }
-
-    private readonly System.Collections.Generic.List<OutputDef> _outputDefScopes
-        = new System.Collections.Generic.List<OutputDef>();
 
     // ------ the two engine types with no Clone of their own ------
 

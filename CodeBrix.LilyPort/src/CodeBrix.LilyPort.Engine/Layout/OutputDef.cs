@@ -20,6 +20,7 @@
 using System;
 using System.Collections.Generic;
 using CodeBrix.LilyPort.Engine.Bootstrap;
+using CodeBrix.LilyScheme.Runtime;
 using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Layout; //was previously: lily/output-def.cc, lily/include/output-def.hh;
@@ -47,18 +48,25 @@ namespace CodeBrix.LilyPort.Engine.Layout; //was previously: lily/output-def.cc,
 /// override two settings and inherit the other two hundred.
 /// </para>
 /// <para>
-/// Upstream's scope is a Guile module; the port uses a dictionary keyed by symbol. The
-/// difference is invisible from Scheme because nothing in the engine treats an output
-/// definition's scope as a module — it is only ever read and written by name.
+/// THE SCOPE IS A REAL MODULE. An earlier pass held it as a dictionary keyed by symbol,
+/// on the reasoning that nothing treated it as a module — which the <c>ly/</c> init layer
+/// disproved twice over. <c>output_def_head</c> pushes <see cref="Scope"/> onto the
+/// LEXER's scope stack, so every assignment inside a <c>\paper</c> or <c>\layout</c> block
+/// lands in the definition rather than in the enclosing file; and
+/// <c>declarations-init.ly</c> calls <c>(set-paper-dimension-variables (current-module))</c>
+/// from inside a <c>\layout</c> block, which can only mean the layout's own module. With a
+/// dictionary the block's variables silently went somewhere else and the scope stack came
+/// out one short.
 /// </para>
 /// </summary>
 public class OutputDef
 {
-    private readonly Dictionary<Symbol, object> _scope = new Dictionary<Symbol, object>();
+    private readonly SchemeModule _scope;
 
     /// <summary>Initializes an empty output definition.</summary>
     public OutputDef()
     {
+        _scope = LilyModules.Make("output-def");
     }
 
     /// <summary>Initializes a copy of another output definition.</summary>
@@ -74,10 +82,11 @@ public class OutputDef
             throw new ArgumentNullException(nameof(source));
         }
 
-        foreach (KeyValuePair<Symbol, object> entry in source._scope)
-        {
-            _scope[entry.Key] = entry.Value;
-        }
+        // Upstream: scope_ = ly_make_module (); ly_module_copy (scope_, s.scope_);
+        // A FRESH module copied into, not a shared one — a cloned \paper that is then
+        // edited must not write through to the definition it was cloned from.
+        _scope = LilyModules.Make("output-def");
+        LilyModules.Copy(_scope, source._scope);
 
         // input_origin_ = s.input_origin_; — upstream's copy constructor keeps the
         // original's location, so a \paper cloned from the $papers stack still says
@@ -111,8 +120,28 @@ public class OutputDef
     /// <summary>Gets the C++ class name this definition corresponds to.</summary>
     public virtual string ClassName => "Output_def";
 
+    /// <summary>
+    /// Gets the module the definition's variables live in — upstream's <c>scope_</c>.
+    /// <para>This is what <c>output_def_head</c> pushes onto the lexer's scope stack, and
+    /// what <c>(current-module)</c> answers inside the block.</para>
+    /// </summary>
+    public SchemeModule Scope => _scope;
+
     /// <summary>Gets the variables set in THIS definition, without the parent chain.</summary>
-    public IReadOnlyDictionary<Symbol, object> Scope => _scope;
+    /// <returns>The definition's own variables, by name.</returns>
+    public IReadOnlyDictionary<Symbol, object> Variables()
+    {
+        Dictionary<Symbol, object> variables = new Dictionary<Symbol, object>();
+        foreach (KeyValuePair<Symbol, Variable> binding in _scope.Bindings)
+        {
+            if (binding.Value.IsBound)
+            {
+                variables[binding.Key] = binding.Value.GetValue();
+            }
+        }
+
+        return variables;
+    }
 
     /// <summary>Returns an independent copy of this definition.</summary>
     /// <returns>The clone.</returns>
@@ -129,11 +158,16 @@ public class OutputDef
     /// </returns>
     public object LookupVariable(Symbol symbol)
     {
+        // Upstream: scm_module_variable (scope_, sym), which searches the module AND what
+        // it imports, then falls through to the parent definition. An UNBOUND variable is
+        // not an answer — psyntax reserves a slot before a definition runs — so a bound
+        // check stands where upstream's !SCM_UNBNDP does.
         for (OutputDef definition = this; definition != null; definition = definition.Parent)
         {
-            if (definition._scope.TryGetValue(symbol, out object value))
+            Variable variable = definition._scope.Lookup(symbol);
+            if (variable != null && variable.IsBound)
             {
-                return value;
+                return variable.GetValue();
             }
         }
 
@@ -155,7 +189,7 @@ public class OutputDef
             throw new ArgumentNullException(nameof(symbol));
         }
 
-        _scope[symbol] = value;
+        _scope.Define(symbol, value);
     }
 
     /// <summary>Sets a variable by name.</summary>

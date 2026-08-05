@@ -86,7 +86,7 @@ public class RuleActionRag12Tests
     private static object HandledMusic(ScriptedParserHost host)
     {
         (object procedure, object[] arguments) = host.Calls[host.Calls.Count - 1];
-        procedure.Should().Be("music-proc");
+        procedure.AsText().Should().Be("music-proc");
         return arguments[0];
     }
 
@@ -106,7 +106,7 @@ public class RuleActionRag12Tests
 
         //Assert
         parser.ErrorCount.Should().Be(0);
-        host.LexerModeOperations.Should().Equal("push-note-state", "pop-state");
+        host.LexerModeOperations.AsText().Should().Equal("push-note-state", "pop-state");
         host.Calls.Should().NotBeEmpty();
     }
 
@@ -130,7 +130,7 @@ public class RuleActionRag12Tests
 
             //Assert
             parser.ErrorCount.Should().Be(0);
-            host.LexerModeOperations.Should().Equal(operation, "pop-state");
+            host.LexerModeOperations.AsText().Should().Equal(operation, "pop-state");
         }
     }
 
@@ -152,7 +152,7 @@ public class RuleActionRag12Tests
         //Assert
         parser.ErrorCount.Should().Be(0);
         host.ChordModifierAssignments.Should().Equal(modifiers);
-        host.LexerModeOperations.Should().Equal("push-chord-state", "pop-state");
+        host.LexerModeOperations.AsText().Should().Equal("push-chord-state", "pop-state");
 
         SyntaxMark wrapped = (SyntaxMark)HandledMusic(host);
         wrapped.Name.Should().Be("unrelativable-music");
@@ -175,7 +175,7 @@ public class RuleActionRag12Tests
 
         //Assert
         parser.ErrorCount.Should().Be(0);
-        host.LexerModeOperations.Should().Equal("push-drum-state", "pop-state");
+        host.LexerModeOperations.AsText().Should().Equal("push-drum-state", "pop-state");
 
         SyntaxMark created = (SyntaxMark)HandledMusic(host);
         created.Name.Should().Be("context-create");
@@ -203,7 +203,7 @@ public class RuleActionRag12Tests
 
             //Assert
             parser.ErrorCount.Should().Be(0);
-            host.LexerModeOperations.Should().Equal(operation, "pop-state");
+            host.LexerModeOperations.AsText().Should().Equal(operation, "pop-state");
 
             SyntaxMark created = (SyntaxMark)HandledMusic(host);
             created.Name.Should().Be("context-create");
@@ -227,7 +227,7 @@ public class RuleActionRag12Tests
         //Assert
         parser.ErrorCount.Should().Be(0);
         host.ChordModifierAssignments.Should().Equal(DefaultArgument.Instance);
-        host.LexerModeOperations.Should().Equal("push-chord-state", "pop-state");
+        host.LexerModeOperations.AsText().Should().Equal("push-chord-state", "pop-state");
 
         SyntaxMark wrapped = (SyntaxMark)HandledMusic(host);
         wrapped.Name.Should().Be("unrelativable-music");
@@ -255,7 +255,7 @@ public class RuleActionRag12Tests
 
         //Assert
         parser.ErrorCount.Should().Be(0);
-        host.LexerModeOperations.Should().Equal("push-lyric-state", "pop-state");
+        host.LexerModeOperations.AsText().Should().Equal("push-lyric-state", "pop-state");
     }
 
     [Fact]
@@ -281,7 +281,7 @@ public class RuleActionRag12Tests
         SyntaxMark applied = (SyntaxMark)HandledMusic(host);
         applied.Name.Should().Be("constructor:context-create");
         applied.Arguments[0].Should().BeSameAs(Symbol.Intern("Staff"));
-        applied.Arguments[1].Should().Be("up");
+        applied.Arguments[1].AsText().Should().Be("up");
 
         bareParser.ErrorCount.Should().Be(0);
         SyntaxMark bareApplied = (SyntaxMark)HandledMusic(bareHost);
@@ -401,7 +401,7 @@ public class RuleActionRag12Tests
             //Assert
             result.Should().BeSameAs(Symbol.Intern(tag));
             host.ChordModifierAssignments.Should().Equal(modifiers);
-            host.LexerModeOperations.Should().Equal("push-chord-state");
+            host.LexerModeOperations.AsText().Should().Equal("push-chord-state");
         }
     }
 
@@ -422,7 +422,7 @@ public class RuleActionRag12Tests
 
         //Assert
         empty.Should().BeSameAs(Nil.Instance);
-        given.Should().Be("up");
+        given.AsText().Should().Be("up");
     }
 
     [Fact]
@@ -444,7 +444,7 @@ public class RuleActionRag12Tests
         //Assert
         pushed.Should().BeSameAs(Unspecified.Instance);
         result.Should().BeSameAs(music);
-        host.LexerModeOperations.Should().Equal("push-lyric-state", "pop-state");
+        host.LexerModeOperations.AsText().Should().Equal("push-lyric-state", "pop-state");
     }
 
     [Fact]
@@ -472,7 +472,7 @@ public class RuleActionRag12Tests
         passed.Should().BeSameAs(music);
         ((SyntaxMark)wrapped).Name.Should().Be("unrelativable-music");
         ((SyntaxMark)wrapped).Arguments[0].Should().BeSameAs(music);
-        host.LexerModeOperations.Should().Equal("pop-state", "pop-state");
+        host.LexerModeOperations.AsText().Should().Equal("pop-state", "pop-state");
     }
 
     [Fact]
@@ -510,7 +510,7 @@ public class RuleActionRag12Tests
         chords.Name.Should().Be("unrelativable-music");
         ((SyntaxMark)chords.Arguments[0]).Name.Should().Be("context-create");
 
-        host.LexerModeOperations.Should().Equal("pop-state", "pop-state");
+        host.LexerModeOperations.AsText().Should().Equal("pop-state", "pop-state");
     }
 
     // ------ direct invocation: lyric_element and lyric_element_music ------
@@ -558,7 +558,7 @@ public class RuleActionRag12Tests
         //Assert
         SyntaxMark mark = (SyntaxMark)result;
         mark.Name.Should().Be("lyric-event");
-        mark.Arguments.Should().Equal("la", "the-duration");
+        mark.Arguments.AsText().Should().Equal("la", "the-duration");
     }
 
     [Fact]
@@ -586,7 +586,7 @@ public class RuleActionRag12Tests
         //Assert
         host.SyntaxDispatches.Should().HaveCount(1);
         host.SyntaxDispatches[0].Name.Should().Be("lyric-event");
-        host.SyntaxDispatches[0].Arguments.Should().Equal("la", "the-duration");
+        host.SyntaxDispatches[0].Arguments.AsText().Should().Equal("la", "the-duration");
 
         MusicObject music = (MusicObject)result;
         Pair.ToList(music.GetProperty("articulations")).Should().Equal(first, second);

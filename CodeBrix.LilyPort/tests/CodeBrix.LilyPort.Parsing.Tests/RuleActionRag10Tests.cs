@@ -200,7 +200,7 @@ public class RuleActionRag10Tests
 
         //Assert
         parser.ErrorCount.Should().Be(0);
-        Cars(Dispatch(host, "music-function").Arguments[1]).Should().Equal("hi", 3L);
+        Cars(Dispatch(host, "music-function").Arguments[1]).AsText().Should().Equal("hi", 3L);
     }
 
     [Fact]
@@ -220,7 +220,7 @@ public class RuleActionRag10Tests
 
         //Assert
         parser.ErrorCount.Should().Be(0);
-        Cars(Dispatch(host, "music-function").Arguments[1]).Should().Equal("hi", 7L);
+        Cars(Dispatch(host, "music-function").Arguments[1]).AsText().Should().Equal("hi", 7L);
     }
 
     [Fact]
@@ -291,7 +291,7 @@ public class RuleActionRag10Tests
             default);
 
         //Assert
-        Cars(result).Should().Equal(7L, "inner");
+        Cars(result).AsText().Should().Equal(7L, "inner");
     }
 
     [Fact]

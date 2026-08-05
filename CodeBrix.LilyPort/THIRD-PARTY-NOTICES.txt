@@ -75,7 +75,9 @@ STATUS
     flower/ (ported to C#)         src/CodeBrix.LilyPort.Flower/, with
                                    upstream's own tests. Section 1.5.
     entry-points.tsv, load-order,  data extracted from lily/*.cc and
-    grob-interfaces.tsv            scm/lily.scm. Section 1.5.
+    grob-interfaces.tsv,           scm/*.scm. Section 1.5.
+    lily-cc-ledger.tsv,
+    translators.tsv
 
   NOT YET INCORPORATED: most of the C++ engine (lily/). The parser and lexer ARE
   incorporated as of 2026-08-03 -- parser.yy and lexer.ll are mirrored under
@@ -662,7 +664,8 @@ Copyright: Copyright (C) 1996--2026 Han-Wen Nienhuys <hanwen@xs4all.nl>
   src/CodeBrix.LilyPort.Engine/Bootstrap/MusicPrimitives.cs,
   GeneralPrimitives.cs, ProbPrimitives.cs, RegistryPrimitives.cs,
   IteratorPrimitives.cs, GrobPrimitives.cs, TranslationPrimitives.cs,
-  GrobCallbacks.cs, TypePredicates.cs and SetterBindings.cs. Those files
+  GrobCallbacks.cs, OriginPrimitives.cs, ParserPrimitives.cs,
+  TypePredicates.cs and SetterBindings.cs. Those files
   are new-in-family C# whose BEHAVIOUR follows the corresponding LY_DEFINE
   bodies in lily/pitch-scheme.cc, lily/moment-scheme.cc,
   lily/duration-scheme.cc, lily/scale.cc, lily/dimensions-scheme.cc,
@@ -674,10 +677,21 @@ Copyright: Copyright (C) 1996--2026 Han-Wen Nienhuys <hanwen@xs4all.nl>
   lily/context-scheme.cc, lily/grob-scheme.cc, lily/grob-array-scheme.cc,
   lily/stream-event-scheme.cc, lily/font-metric-scheme.cc,
   lily/output-def-scheme.cc, lily/staff-symbol-referencer-scheme.cc,
-  lily/all-font-metrics-scheme.cc, and the IMPLEMENT_CTOR_CALLBACK
+  lily/all-font-metrics-scheme.cc, lily/input-scheme.cc,
+  lily/music-function-scheme.cc, lily/lily-parser-scheme.cc, lily/sources.cc,
+  lily/context-mod-scheme.cc,
+  and the IMPLEMENT_CTOR_CALLBACK
   declarations across the lily/*-iterator.cc family. They carry no upstream
   copyright header because they are not literal translations, but the
   derivation is recorded here.
+
+  src/CodeBrix.LilyPort.Engine/Bootstrap/LilyModules.cs is new-in-family C#
+  reproducing the RECIPE of lily/ly-module.cc's ly_make_module and
+  ly_module_copy -- a fresh module exporting everything it defines and using
+  both the root module and (lily). The ledger carries ly-module.cc as a no-port
+  row because CodeBrix.LilyScheme's module objects replace Guile's plumbing
+  wholesale; what is reproduced here is the behaviour every LilyPond SCOPE
+  depends on, not the plumbing.
 
   Two of those files exist because of how upstream DECLARES things rather than
   what it computes, and both are recorded so the reasoning is not lost:
@@ -752,6 +766,33 @@ Copyright: Copyright (C) 1996--2026 Han-Wen Nienhuys <hanwen@xs4all.nl>
            not live in CodeBrix.LilyScheme. It is vendored rather than
            regenerated at build time because a CodeBrix build must never read a
            non-CodeBrix checkout.
+
+    src/CodeBrix.LilyPort.Engine/lily-cc-ledger.tsv
+           Added 2026-08-04 (EPG0). One row for each of the 448 files in
+           lily/*.cc: the file name, what the port does with it (ported to named
+           C# file(s), owed by a named engine port group, or deliberately not
+           ported), and the reason where one is needed. The row set IS the
+           record of upstream's file inventory at 2.27.2.
+
+           It carries no upstream code -- only file names and dispositions --
+           but it is an enumeration of LilyPond's source tree, so it is recorded
+           here as DATA DERIVED FROM LILYPOND on the same footing as
+           entry-points.tsv, and for the same reason it lives in the GPL-3
+           Engine assembly rather than in CodeBrix.LilyScheme.
+
+           Vendored rather than enumerated at build time because a CodeBrix
+           build must never read a non-CodeBrix checkout.
+
+    src/CodeBrix.LilyPort.Engine/Scheme/translators.tsv
+           Added 2026-08-04 (EPG0). Every translator upstream declares: 126 from
+           the C++ ADD_TRANSLATOR macro, 4 from ADD_TRANSLATOR_GROUP, and 37
+           registered from Scheme by ly:register-translator (35 in
+           scm/scheme-engravers.scm, 2 in scm/scheme-performers.scm), each with
+           its declaring upstream file.
+
+           Extracted from lily/*.cc and scm/*.scm. DATA DERIVED FROM LILYPOND,
+           GPL-3.0-or-later, vendored, on the same reasoning as entry-points.tsv
+           above.
 
   Grammar and lexer mirror:
 

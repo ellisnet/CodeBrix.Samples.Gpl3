@@ -125,7 +125,7 @@ public class RuleActionRag17Tests
             context, new object[] { "6+" }, new SourceSpan[1], default);
 
         //Assert
-        result.Should().Be("6+");
+        result.AsText().Should().Be("6+");
         host.ErrorLevel.Should().Be(0);
     }
 
@@ -198,7 +198,7 @@ public class RuleActionRag17Tests
         MadeMusic made = (MadeMusic)result;
         made.Properties.Should().HaveCount(1);
         made.Properties[0].Name.Should().Be("text");
-        made.Properties[0].Value.Should().Be("markup");
+        made.Properties[0].Value.AsText().Should().Be("markup");
     }
 
     [Fact]
@@ -508,7 +508,7 @@ public class RuleActionRag17Tests
             "UNSIGNED", "E_PLUS", "'['", "UNSIGNED", "']'", "UNSIGNED", "'/'",
             "E_BACKSLASH", "UNSIGNED", "E_EXCLAMATION", "UNSIGNED", "FIGURE_CLOSE");
         values[1].Should().Be(6L);
-        values[2].Should().Be("-");
+        values[2].AsText().Should().Be("-");
         values[4].Should().Be(4L);
         values[7].Should().Be(5L);
         values[9].Should().Be(2L);

@@ -10,7 +10,7 @@ using System.Collections.Generic;
 using System.IO;
 using CodeBrix.LilyScheme.Values;
 
-namespace CodeBrix.LilyPort.Engine.Bootstrap; //was previously: lily/program-option.cc, lily/warn.cc;
+namespace CodeBrix.LilyPort.Engine.Bootstrap; //was previously: lily/program-option.cc;
 
 // Modified by Jeremy Ellis on 2026-08-02 as part of the CodeBrix port.
 
@@ -39,6 +39,13 @@ public enum MessageSeverity
 /// <para>
 /// The two belong together because the options decide what the sink prints: <c>verbose</c>
 /// turns debug output on, and LilyPond's Scheme sets that option while it is loading.
+/// </para>
+/// <para>
+/// The sink here is engine-local plumbing, NOT a second port of <c>flower/warn.cc</c> —
+/// that file is carried in full by <c>CodeBrix.LilyPort.Flower</c>'s <c>Warn</c>. This one
+/// exists because the <c>ly:message</c> family is bound over program options rather than
+/// over Flower's static writer. The upstream bindings themselves
+/// (<c>lily/warn-scheme.cc</c>) are still owed, and the ledger routes them to EPG23.
 /// </para>
 /// </summary>
 public sealed class ProgramOptions

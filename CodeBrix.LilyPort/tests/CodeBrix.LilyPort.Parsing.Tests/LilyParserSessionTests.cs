@@ -64,8 +64,8 @@ public class LilyParserSessionTests
         // re-sync that adds or removes a keyword is visible here rather than as a
         // mysterious syntax error in one construct.
         LilyKeywords.Count.Should().Be(45);
-        LilyKeywords.Lookup("markup").Should().Be("MARKUP");
-        LilyKeywords.Lookup("new").Should().Be("NEWCONTEXT");
+        LilyKeywords.Lookup("markup").AsText().Should().Be("MARKUP");
+        LilyKeywords.Lookup("new").AsText().Should().Be("NEWCONTEXT");
         LilyKeywords.Lookup("notaword").Should().BeNull();
     }
 
@@ -142,7 +142,7 @@ public class LilyParserSessionTests
         object header = session.LookupIdentifier("$defaultheader");
         SchemeModule module = header as SchemeModule;
         module.Should().NotBeNull();
-        module.LookupLocal(Symbol.Intern("title")).GetValue().Should().Be("Adagio");
+        module.LookupLocal(Symbol.Intern("title")).GetValue().AsText().Should().Be("Adagio");
     }
 
     // ------ the lexer's mode stack, driven by the real host ------

@@ -201,6 +201,21 @@ public static class GrobCallbacks
 
         interpreter.DefinePrimitive("ly:output-def-clone", 1, 1, a =>
             a[0] is OutputDef definition ? (object)definition.Clone() : false);
+
+        // output-def-scheme.cc's `Output_def::scope_' accessor. It only became portable
+        // when the scope stopped being a dictionary and started being a real module —
+        // and until it was registered, scm/paper.scm's set-global-staff-size and
+        // set-default-paper-size both failed at their FIRST use in declarations-init.ly,
+        // one with "Not a module" and one with "Unbound variable: pt", because
+        //
+        //     (layout-set-absolute-staff-size-in-module new-scope (* sz (eval 'pt new-scope)))
+        //
+        // evaluates `pt' IN the scope it was handed. The two diagnostics name the
+        // symptom in two different places and have the same single cause.
+        interpreter.DefinePrimitive("ly:output-def-scope", 1, 1, a =>
+            a[0] is OutputDef scoped
+                ? (object)scoped.Scope
+                : throw SchemeErrors.WrongType("ly:output-def-scope", "output definition", a[0]));
     }
 
     private static object StencilExtent(Grob grob, Axis axis)

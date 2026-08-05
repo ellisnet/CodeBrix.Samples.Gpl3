@@ -21,6 +21,12 @@
 
   <ItemGroup>
     <EmbeddedResource Include="Scheme\**\*" />
+    <!--
+      The upstream lily/*.cc ledger. Embedded so the fence test reads the same bytes
+      the library ships, and so no test step needs the read-only ~/GitHome/lilypond
+      reference tree (standing rule 7).
+    -->
+    <EmbeddedResource Include="lily-cc-ledger.tsv" />
   </ItemGroup>
 
   <ItemGroup>

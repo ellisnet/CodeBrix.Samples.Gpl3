@@ -985,3 +985,324 @@ ADDED 2026-08-04 (RAG3 + RAG5) -- the parser-facing engine types
     ly:output-find-context-def -- are still stubs, and now that the types
     exist those stubs are one Scheme call away from being actively wrong.
     Wiring them is the natural first move of the integration session.
+
+
+-------------------------------------------------------------------------------
+ADDED 2026-08-04 (EPG0) -- THE LEDGER, THE RATCHET AND SUITE MODE
+-------------------------------------------------------------------------------
+
+EPG0 ports nothing. It builds the machinery that makes the REMAINING engine
+work computed rather than remembered, so no later session has to re-derive it.
+
+  lily-cc-ledger.tsv  (Engine project root, embedded)
+
+    One row per upstream lily/*.cc -- all 448 -- with a disposition of
+    `ported <C# file(s)>`, `group EPG<n>` or `no-port <reason>`. Read through
+    PortLedger.cs; fenced by LedgerTests.
+
+    The EPG0 baseline: 75 ported, 344 owed by a group, 29 no-port.
+
+    THE ROW SET IS VENDORED, not enumerated from ~/GitHome/lilypond. Standing
+    rule 7 keeps every build and test step out of the reference tree, so the
+    upstream inventory is captured here and PortLedger.UpstreamFileCount is the
+    figure a re-sync has to move.
+
+    A `ported` row asserts the file's TYPES AND ALGORITHMS are carried. It does
+    NOT assert its LY_DEFINE surface is complete -- the bindings rule owes that
+    separately, and EntryPointClosure measures it.
+
+  Scheme/translators.tsv  (embedded)
+
+    Gate G4's denominator: 126 ADD_TRANSLATOR + 4 ADD_TRANSLATOR_GROUP from
+    lily/*.cc, and 37 ly:register-translator from scm/. Read through
+    TranslatorManifest.
+
+    BY FILE the 37 split 35 / 2 (scheme-engravers.scm, scheme-performers.scm).
+    BY KIND they split 36 ENGRAVERS / 1 PERFORMER, which is the number that
+    matters to EPG2: scheme-performers.scm registers Beat_performer AND
+    Beat_engraver, the latter wrapping the same function with
+    (is-midi . #f) (is-layout . #t). So EPG2's scheme-engraver.cc bridge serves
+    36, not 35, and EPG19 owes the single Scheme performer.
+
+    CORRECTION TO THE PLAN: the condensed plan says "34 Scheme"; the real count
+    is 37. Counted from scm/scheme-engravers.scm and scm/scheme-performers.scm.
+
+  EntryPointClosure (PortLedger.cs)
+
+    Gate G3, measured rather than listed. Everything in entry-points.tsv is
+    installed as a stub first and the ported primitives overwrite the bindings
+    afterwards, so "is this name still bound to the object we installed" is the
+    only honest test of whether it is implemented. EntryPoint.Stub exists to
+    make that reference comparison possible. A name-list would drift; this
+    cannot.
+
+    An entry point whose binding VANISHED counts as stubbed, not implemented:
+    the Scheme cannot call it either way, and the other answer flatters G3.
+
+    MEASURED BASELINE, 2026-08-04: 234 of 737 implemented, 503 still stubs.
+    EntryPointClosureTests asserts it as a FLOOR, so a session that raises the
+    number need not come back and edit it, but a session that breaks a
+    registration fails.
+
+  tools/regression-harness/ratchet.py + pass-manifest.tsv
+
+    The per-file floor. The manifest records the BEST VERDICT EVER ACHIEVED per
+    reference page, and a run must meet or beat every row. A pass COUNT would
+    hide a swap -- one file gaining MATCH while another loses it -- so the gate
+    is per-file and asymmetric by design. `ratchet.py self-test` proves the
+    logic, including that a net-positive swap still fails.
+
+    compare-output.py grew a `--tsv PATH` option to emit machine-readable
+    per-file verdicts; its human report is not parseable and never was.
+
+    pass-manifest.tsv is COMMITTED EMPTY. The port cannot engrave a regression
+    file end to end until EPG3, and the verdicts only become meaningful at EPG4.
+    The machinery lands first on purpose: a ratchet retrofitted afterwards
+    records whatever the port happened to be doing that day, which is how a
+    suite ends up enshrining its own bugs.
+
+  Suite mode (EnginePrimitives.SuiteModeRequested / ThrowingScope)
+
+    LILYPORT_THROW_ON_UNPORTED=1 turns every placeholder into a failure.
+
+    It arms at the END of LoadViaLilyScm and not a line earlier. Loading is the
+    one phase that legitimately calls unported primitives -- LilyPond's Scheme
+    builds its tables by calling into C++ -- and a throwing stub there aborts
+    the file and hides every later call in it. After the layer is loaded, a
+    placeholder means the port RELIED on one, which is the defect class
+    standing rule 4 exists for.
+
+TWO PROVENANCE DEFECTS FOUND AND FIXED
+
+  Layout/Dimensions.cs claimed `lily/dimensions.cc` and Bootstrap/
+  ProgramOptions.cs claimed `lily/warn.cc`. NEITHER FILE EXISTS UPSTREAM.
+  Dimensions is header-only (lily/include/dimensions.hh); the warn
+  implementation is flower/warn.cc, and it is already carried in full by
+  CodeBrix.LilyPort.Flower's Warn. ProgramOptions' diagnostic sink is
+  engine-local plumbing for the ly:message family, not a second port of it, and
+  now says so.
+
+  Both were invisible: nothing reads the provenance comments, so a wrong one
+  costs nothing until someone trusts it. The ledger's fence is what will catch
+  the next one -- every `ported` row names a file that must exist on disk.
+
+ONE DISPOSITION WORTH ARGUING WITH
+
+  glib-regex-scheme.cc is NOT no-port infrastructure, despite the name. Three
+  vendored scm files -- backend-library.scm, document-functions.scm and
+  ps-to-png.scm -- call ly:make-regex at MODULE TOP LEVEL, so the output path
+  needs it; backend-library.scm is on the SVG path specifically.
+
+  CORRECTED SAME DAY: it is already PARTIALLY ported, 4 of 6, in
+  Bootstrap/RegistryPrimitives.cs (InstallRegex) over
+  System.Text.RegularExpressions -- ly:make-regex, ly:regex-exec,
+  ly:regex-replace and ly:regex? all work, and those three scm files load on
+  their own merits, not on a placeholder. Only ly:regex-exec->list and
+  ly:regex-quote remain, so the EPG3 row stands for a much smaller reason.
+
+  The first reading was wrong because the ledger scrapes `was previously:`
+  comments and binding files correctly carry none. See the EPG1 section's note
+  on every_bindings_complete_scheme_file_is_marked_ported, the fence added so
+  that blind spot cannot hide a finished file again.
+
+ONE GAP IN THE PLAN
+
+  figured-bass-continuation.cc, figured-bass-engraver.cc and
+  figured-bass-position-engraver.cc are named by NO EPG group. They are
+  referenced from ly/engraver-init.ly and scm/define-grobs.scm, so they are
+  real work. Parked in EPG20 and flagged for Jeremy's ruling; the ledger rows
+  carry "PLAN GAP" in their notes column so the decision is not lost.
+
+
+-------------------------------------------------------------------------------
+ADDED 2026-08-04 (EPG1, PARTIAL) -- SOURCE LOCATIONS AND MUSIC FUNCTIONS
+-------------------------------------------------------------------------------
+
+Seven of EPG1's nine ledger rows landed. lily-parser-scheme.cc and parse-scm.cc
+did NOT -- see "STILL OWED" at the end of this section.
+
+  lily/input.cc, lily/include/input.hh        ->  Origins/Input.cs
+  lily/source-file.cc, .../source-file.hh     ->  Origins/SourceFile.cs
+  lily/sources.cc, lily/include/sources.hh    ->  Origins/Sources.cs
+  lily/diagnostics.cc, .../diagnostics.hh     ->  Origins/IDiagnostics.cs
+  lily/music-function.cc, .../music-function.hh -> Music/MusicFunction.cs
+  lily/input-scheme.cc                        ->  Bootstrap/OriginPrimitives.cs
+  lily/music-function-scheme.cc               ->  Bootstrap/OriginPrimitives.cs
+
+POSITIONS ARE CHARACTER OFFSETS, NOT BYTE POINTERS
+
+  Upstream's Input holds two `char const *` into a UTF-8 buffer and Source_file
+  works in the same currency; get_counts explicitly skips UTF-8 continuation
+  bytes so that its column count comes out in CHARACTERS.
+
+  The port holds a SourceFile plus two character offsets. Line and column come
+  out identical by construction -- counting .NET chars, with a surrogate pair
+  counted once, is the same measurement upstream's continuation-byte skip
+  performs. The one figure that differs is the WITHIN-LINE offset, a character
+  offset here and a byte offset upstream; it is used only to split a line for
+  the error caret, and both split at the same place.
+
+  SourceFile.OffsetOfLineColumn is NEW, with no upstream counterpart: upstream's
+  parser carries pointers, so it never needs to go the other way. This port's
+  lexer reports line and column, and that method is the bridge back.
+
+Input IS A CLASS, NOT A VALUE TYPE
+
+  Upstream copies Input by value everywhere. Here it is a reference type so an
+  origin can be stored in a Scheme property as one object, which is what
+  MusicObject.SetSpot has always wanted. Spot() therefore copies EXPLICITLY
+  where upstream's copy is implicit in return-by-value; SetSpot copies fields
+  rather than rebinding, so an origin already handed out does not change under
+  its holder.
+
+Diagnostics IS AN INTERFACE
+
+  Upstream reaches it by multiple inheritance (class Music : public
+  Smob<Music>, public Diagnostics). C# has none, so IDiagnostics is an interface
+  with default implementations -- same routing, same fallbacks, no base-class
+  slot spent. Nothing implements it yet; Grob, MusicObject and MusicIterator
+  adopt it when their groups touch them.
+
+THE MUSIC-FUNCTION CALL PROTOCOL IS NOT SCHEME'S, AND IS TRANSLATED LITERALLY
+
+  When an optional argument's predicate REJECTS the next actual argument, that
+  argument is NOT consumed: the default is substituted, and every FOLLOWING
+  optional is unconditionally defaulted too. \default triggers the same skip
+  explicitly, and *unspecified* is its Scheme spelling -- which IS consumed.
+
+  Trailing optionals need no *unspecified* stand-in, because the end of the
+  argument list is recognisable on its own. That is what makes (key) in Scheme
+  mean what \key \default means in LilyPond.
+
+  The loop shape, the do/while over consecutive optionals and the two separate
+  trailing passes are load bearing. MusicFunctionTests pins each case; a tidier
+  rewrite rebinds arguments silently rather than failing.
+
+  Signature values are CLONED on the way in (a default is shared by every call
+  that uses it, and music is mutable), and the RESULT is not (it is freshly
+  made and has no other owner). That asymmetry is upstream's.
+
+MusicFunctionSupport IS NEW-IN-FAMILY
+
+  Upstream reaches %location, argument-error and music-function-call-error
+  through lily/lily-imports.cc's Scm_module/Variable pairs -- Guile module
+  handles this port does not have (lily-imports.cc is a no-port ledger row).
+  The replacements look their targets up BY NAME at the moment of use, because
+  ly-syntax-constructors.scm is an on-demand module: caching a variable at
+  install time captures whatever was bound before it loaded, which is nothing,
+  and the failure looks like a music function that silently reports no errors.
+
+FLOWER GAINED Warn.DeprecationWarning
+
+  flower/warn.cc's deprecation_warning was never ported, and it DE-DUPLICATES:
+  each distinct message is reported once. ly:deprecation-warning was bound to
+  the generic sink, so the port repeated a warning that upstream prints once.
+  Now ported, with the set cleared by Warn.ClearMessages -- upstream never
+  clears it (a run is one document), but a test run is many documents in one
+  process, and a warning suppressed by an EARLIER test is a test that has
+  silently stopped checking anything.
+
+STILL OWED BY EPG1
+
+  lily-parser-scheme.cc   16 bindings (the ly:parser-* family, ly:parse-file,
+                          ly:parse-string-expression, ly:parse-init,
+                          ly:output-file-name-for-input-file-name). These need
+                          the Track P parser session wired to the engine.
+  parse-scm.cc            the embedded-Scheme reader remainder.
+  ly:source-files, ly:note-extra-source-file
+                          sources.cc's two bindings. The TYPE is ported, but
+                          both need the lexer's list of opened files, which
+                          arrives with lily-parser-scheme.cc. Recorded here
+                          rather than left silent -- the ledger's `ported` row
+                          deliberately does not assert binding completeness,
+                          and the standing bindings rule still owes these.
+
+  Consequence: EPG1's exit criterion (all 62 ly/ init files load to completion,
+  pitchnames real, music-function calls run from .ly text) is NOT yet met.
+
+-------------------------------------------------------------------------------
+OUTPUT DEFINITIONS HOLD A REAL MODULE (corrected 2026-08-04, EPG1)
+-------------------------------------------------------------------------------
+
+  Output_def::scope_ is a Guile module upstream, and this file used to record
+  the port's dictionary as an invisible difference: "nothing in the engine
+  treats an output definition's scope as a module -- it is only ever read and
+  written by name."
+
+  The ly/ init layer disproved that twice over.
+
+    * parser.yy's output_def_head does `parser->lexer_->add_scope (p->scope_)`.
+      With a dictionary there was nothing to push, so the port kept output-def
+      scopes in a list of its own -- while output_def's closing brace still
+      called remove_scope on the MODULE stack. One push on one list, one pop
+      from another: a session emptied its scope stack on the first \paper or
+      \layout it read, and the next SetIdentifier indexed past the end.
+
+    * Every assignment inside the block therefore landed OUTSIDE the
+      definition, silently.
+
+    * declarations-init.ly calls (set-paper-dimension-variables (current-module))
+      from inside a \layout block, which can only mean the layout's own module.
+
+  OutputDef.Scope is now a SchemeModule built by Bootstrap/LilyModules.cs
+  (ly_make_module's recipe), LookupVariable goes through scm_module_variable
+  semantics -- the module AND its imports, then the parent definition -- and
+  the copy constructor makes a FRESH module and copies into it, as upstream's
+  does, so a cloned \paper cannot write through to its original.
+
+  The old dictionary view is still available as OutputDef.Variables(), which
+  reads the module's own bound bindings. It is a snapshot, not a live view.
+
+-------------------------------------------------------------------------------
+ly:set-origin! AND THE %location FLUID (EPG1)
+-------------------------------------------------------------------------------
+
+  Every syntax constructor in scm/ly-syntax-constructors.scm ends in
+  (ly:set-origin! ...). While that entry point was a stub, each constructor
+  handed its RESULT back as an inert UnportedValue placeholder and the next
+  rule action failed casting it -- one unported binding standing between the
+  port and the whole ly/ layer. It is bound now in MusicPrimitives.cs, with
+  ly_set_origin_x's three-way argument reading: absent means (*location*), a
+  MUSIC origin means that music's own origin property, and #f or '() means do
+  nothing at all.
+
+  MusicFunctionSupport.CurrentLocation reads %location from (lily), not from
+  the root module. scm/lily.scm defines it there and does NOT export it, so a
+  root-module lookup answered nothing and every origin came out #f.
+
+-------------------------------------------------------------------------------
+MUSIC FUNCTIONS ARE APPLICABLE (EPG1)
+-------------------------------------------------------------------------------
+
+  music-function.hh declares LY_DECLARE_SMOB_PROC (&Music_function::call, 0, 0, 1),
+  so a Music_function sits in operator position like any procedure. That is not
+  decoration: property-set, property-unset and their neighbours are built by
+  define-syntax-function, so they ARE music functions, and every
+  MAKE_SYNTAX (property_set, ...) applies one directly. The first \set in the
+  init layer failed with "wrong type to apply" until MusicFunction implemented
+  CodeBrix.LilyScheme's IApplicable, which is that library's equivalent of
+  Guile's scm_set_smob_apply.
+
+-------------------------------------------------------------------------------
+context-mod-scheme.cc -- PULLED FORWARD OUT OF EPG2 (2026-08-04)
+-------------------------------------------------------------------------------
+
+  All four bindings (ly:get-context-mods, ly:add-context-mod,
+  ly:make-context-mod, ly:context-mod-apply!) are in
+  Bootstrap/TranslationPrimitives.cs. They are EPG2's by the plan, and the EPG1
+  demand loop pulled them forward because the ly/ init layer could not finish
+  without them.
+
+  This is standing rule 3's textbook case. Context_mod itself had been ported
+  and its type predicate registered, so every C# caller worked; what nobody had
+  was ly:make-context-mod. context-mod-from-music -- the Scheme half of \with
+  and of every context-definition body -- therefore built its result out of an
+  unported placeholder, and the parser reported "not a context mod", naming the
+  symptom rather than the cause. Eight lines of engraver-init.ly failed that
+  way: every \omit, \stemUp, \cadenzaOn, \englishChords and \grobdescriptions
+  written inside a \context block.
+
+  ly:output-def-scope was pulled forward the same way and for the same kind of
+  reason -- scm/paper.scm's set-default-paper-size and set-global-staff-size
+  both need it at declarations-init.ly:156-157. The rest of
+  output-def-scheme.cc remains EPG3's; the ledger row says so.

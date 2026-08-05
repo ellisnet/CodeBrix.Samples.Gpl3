@@ -311,7 +311,7 @@ public static class LilyPondLexerRules
     private static void AddMusicWords(List<LexerRule> rules, ILexerHost host)
     {
         rules.Add(new LexerRule(LexerPatterns.RestName, ChordsNotesFigures, (s, t) =>
-            s.Token(s.Terminal("RESTNAME"), t)));
+            s.Token(s.Terminal("RESTNAME"), ModalScanner.SchemeText(t))));
 
         rules.Add(new LexerRule("q", ChordsNotesFigures, (s, t) =>
             s.Token(s.Terminal("CHORD_REPETITION"))));
@@ -322,21 +322,28 @@ public static class LilyPondLexerRules
 
     private static void AddEmbeddedScheme(List<LexerRule> rules, ILexerHost host)
     {
-        // #  -- embedded Scheme, read but not evaluated.
+        // #  -- embedded Scheme, READ but not evaluated: the grammar decides where the
+        // datum is evaluated, because a SCM_TOKEN in an argument position and one in a
+        // toplevel position mean different things. An unreadable expression raises the
+        // error level right here (lexer.ll 412) and still produces its token, so the
+        // parse continues and the file reports the rest of its errors.
         rules.Add(new LexerRule("#", EmbeddedSchemeModes, (s, t) =>
         {
             object value = s.ReadEmbeddedScheme(host);
+            if (value is DefaultArgument)
+            {
+                host.ErrorLevel = 1;
+            }
+
             return s.Token(s.Terminal("SCM_TOKEN"), value);
         }));
 
-        // $ -- immediate Scheme: upstream EVALUATES it here and decides the token from
-        // the value's type. The port reads it and hands back an identifier token; the
-        // type-directed choice needs the interpreter and belongs with the host.
+        // $ -- IMMEDIATE Scheme. Unlike `#', this one is evaluated by the lexer and the
+        // token is chosen from what the value turned out to BE, which is why `$foo' can
+        // stand in for a music expression, a pitch, a duration or a music function
+        // anywhere the corresponding *_IDENTIFIER is allowed.
         rules.Add(new LexerRule("\\$", EmbeddedSchemeModes, (s, t) =>
-        {
-            object value = s.ReadEmbeddedScheme(host);
-            return s.Token(s.Terminal("SCM_IDENTIFIER"), value);
-        }));
+            s.ReadImmediateScheme(host)));
     }
 
     private static void AddBrackets(List<LexerRule> rules)
@@ -371,7 +378,7 @@ public static class LilyPondLexerRules
             "(?:" + LexerPatterns.FigureAlterationExpression
             + @"|\[" + LexerPatterns.FigureAlterationExpression + @"\])",
             figures,
-            (s, t) => s.Token(s.Terminal("FIGURE_ALTERATION_EXPR"), t)));
+            (s, t) => s.Token(s.Terminal("FIGURE_ALTERATION_EXPR"), ModalScanner.SchemeText(t))));
 
         rules.Add(new LexerRule(@"[\[\]]", figures, (s, t) => s.CharacterToken(t[0])));
     }
@@ -426,7 +433,7 @@ public static class LilyPondLexerRules
 
             return wasCommand
                 ? s.ScanEscapedWord(host, text)
-                : s.Token(s.Terminal("STRING"), text);
+                : s.Token(s.Terminal("STRING"), ModalScanner.SchemeText(text));
         }));
 
         rules.Add(new LexerRule("\\\\", Quotes, (s, t) =>
@@ -493,7 +500,7 @@ public static class LilyPondLexerRules
                     return s.Token(s.Terminal("HYPHEN"));
                 }
 
-                return s.Token(s.Terminal("SYMBOL"), LyricFudge(t));
+                return s.Token(s.Terminal("SYMBOL"), ModalScanner.SchemeText(LyricFudge(t)));
             }));
 
         /* This should really just cover {} */
@@ -545,7 +552,8 @@ public static class LilyPondLexerRules
         {
             string word = t.Substring(1);
 
-            LexerLookup command = host.LookupMarkupCommand(word, out IReadOnlyList<string> predicates);
+            LexerLookup command = host.LookupMarkupCommand(
+                word, out IReadOnlyList<MarkupPredicate> predicates);
             if (!command.Found)
             {
                 // Neither a markup command nor a markup-list command: fall back to the
@@ -563,7 +571,7 @@ public static class LilyPondLexerRules
         }));
 
         rules.Add(new LexerRule("[^$#{}\"\\\\ \t\n\r\f]+", markup, (s, t) =>
-            s.Token(s.Terminal("SYMBOL"), t)));
+            s.Token(s.Terminal("SYMBOL"), ModalScanner.SchemeText(t))));
 
         rules.Add(new LexerRule(@"[{}]", markup, (s, t) => s.CharacterToken(t[0])));
     }

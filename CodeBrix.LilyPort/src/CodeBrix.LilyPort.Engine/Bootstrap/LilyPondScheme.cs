@@ -190,7 +190,37 @@ public static class LilyPondScheme
         // as the module declaration it is. Evaluating the forms directly reads
         // `(lily)` as a procedure call and dies on an unbound variable — which is
         // exactly what the first attempt did.
-        SchemeBootstrap.LoadExpanded(interpreter, source, second.Name + ".scm");
+        //
+        // SAVE AND RESTORE THE CURRENT MODULE — Guile's autoloader wraps the load in
+        // save-module-excursion, and the reason is this exact file. `define-module`
+        // makes its module current and never puts the old one back, so an autoload
+        // triggered from a `use-modules` line REDIRECTS EVERY LATER DEFINITION in the
+        // file that triggered it. lily.scm's header is
+        //
+        //     (use-modules ... (lily clip-region) (lily curried-definitions) ...)
+        //
+        // so without this, everything lily.scm defines after its own header — and every
+        // one of the 55 startup files it then loads — landed in
+        // `(lily curried-definitions)` instead of `(lily)`: 668 bindings in the wrong
+        // module. It went unnoticed for as long as it did because `(lily)` USES that
+        // module, so ordinary lookups still found everything.
+        //
+        // What it broke is SHADOWING, where the difference is the whole point.
+        // scm/operators.scm specialises `+`, `-`, `*` and `<` on <Moment>, <Pitch> and
+        // <Duration> with GOOPS methods, which have to REPLACE the arithmetic bound in
+        // the root module. Defined one module further out, they were found only after
+        // `(guile)`'s own `-` had already answered, so `(- pitch pitch)` — how
+        // chord-name.scm normalises every chord — raised wrong-type-arg instead.
+        SchemeModule saved = interpreter.CurrentModule;
+        try
+        {
+            SchemeBootstrap.LoadExpanded(interpreter, source, second.Name + ".scm");
+        }
+        finally
+        {
+            interpreter.CurrentModule = saved;
+        }
+
         return true;
     }
 
@@ -257,6 +287,8 @@ public static class LilyPondScheme
         GrobPrimitives.Install(interpreter);
         TranslationPrimitives.Install(interpreter);
         GrobCallbacks.Install(interpreter);
+        OriginPrimitives.Install(interpreter);
+        ParserPrimitives.Install(interpreter);
         EngineSupport.Install(interpreter);
 
         // LAST, and it must stay last: it looks both halves of each getter/setter pair
@@ -348,6 +380,16 @@ public static class LilyPondScheme
         catch (Exception ex)
         {
             report.Failed["lily"] = Describe(ex);
+        }
+
+        // Suite mode arms HERE and not a line earlier. Loading is the one phase that
+        // legitimately calls unported primitives -- LilyPond's Scheme builds its tables
+        // by calling into C++, and a throwing stub would abort the file and hide every
+        // later call in it. Once the layer is loaded, any further placeholder is
+        // something the port RELIED on, which is the whole point of the mode.
+        if (EnginePrimitives.SuiteModeRequested)
+        {
+            EnginePrimitives.ThrowOnUnported = true;
         }
 
         return report;

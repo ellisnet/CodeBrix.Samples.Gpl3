@@ -306,12 +306,22 @@ public static class MusicPrimitives
         interpreter.DefinePrimitive("ly:music-deep-copy", 1, 2, a =>
         {
             object copy = MusicObject.MusicDeepCopy(a[0]);
-            if (a.Length > 1 && !(a[1] is DefaultArgument) && a[1] is MusicObject origin)
+            if (a.Length > 1 && !(a[1] is DefaultArgument))
             {
-                MusicObject.SetOrigin(copy, origin.Origin);
+                SetOrigin(copy, a[1]);
             }
 
             return copy;
+        });
+
+        // ly:set-origin! — music-scheme.cc. Every syntax constructor in
+        // scm/ly-syntax-constructors.scm ends in one of these, so an unported stub here
+        // hands the CONSTRUCTOR'S RESULT back as a placeholder and the next rule action
+        // fails casting it. The whole ly/ init layer runs through this one binding.
+        interpreter.DefinePrimitive("ly:set-origin!", 1, 2, a =>
+        {
+            SetOrigin(a[0], a.Length > 1 ? a[1] : DefaultArgument.Instance);
+            return a[0];
         });
 
         interpreter.DefinePrimitive("ly:music-list?", 1, 1, a =>
@@ -402,6 +412,37 @@ public static class MusicPrimitives
         interpreter.DefinePrimitive("ly:calculated-sequential-music::start", 1, 1, a =>
             CalculatedSequentialMusic.Start(
                 AsMusic(a[0], "ly:calculated-sequential-music::start")));
+    }
+
+    /// <summary>
+    /// Sets an origin on music, or on every element of a music list, resolving what
+    /// <c>origin</c> means the way <c>ly:set-origin!</c> does.
+    /// <para>
+    /// Upstream <c>ly_set_origin_x</c>: an absent origin means <c>(*location*)</c>; a
+    /// MUSIC origin means that music's own <c>origin</c> property; <c>#f</c> or
+    /// <c>'()</c> means DO NOTHING, which is what lets a constructor call this
+    /// unconditionally outside a parse.
+    /// </para>
+    /// </summary>
+    /// <param name="music">The music, or a list of music.</param>
+    /// <param name="origin">The origin, or <see cref="DefaultArgument"/> for the current one.</param>
+    private static void SetOrigin(object music, object origin)
+    {
+        if (origin is DefaultArgument)
+        {
+            origin = MusicFunctionSupport.CurrentLocation();
+        }
+        else if (origin is MusicObject source)
+        {
+            origin = source.Origin;
+        }
+
+        if (origin is Nil || (origin is bool flag && !flag) || origin == null)
+        {
+            return;
+        }
+
+        MusicObject.SetOrigin(music, origin);
     }
 
     private static MusicObject AsMusic(object value, string procedureName)

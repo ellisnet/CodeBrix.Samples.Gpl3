@@ -145,6 +145,10 @@ def main():
                         help="maximum placement difference to still count as a match")
     parser.add_argument("--show", type=int, default=15,
                         help="how many examples to print per category")
+    parser.add_argument("--tsv", metavar="PATH",
+                        help="also write one machine-readable row per file: "
+                             "name <TAB> verdict <TAB> detail. This is what ratchet.py "
+                             "consumes; the human report above is not parseable.")
     arguments = parser.parse_args()
 
     references = sorted(
@@ -160,6 +164,14 @@ def main():
             os.path.join(arguments.candidate_dir, name),
             arguments.tolerance)
         results[verdict].append((name, detail))
+
+    if arguments.tsv:
+        with open(arguments.tsv, "w") as handle:
+            handle.write("# CodeBrix.LilyPort comparison run, one row per reference page.\n")
+            handle.write("# name\tverdict\tdetail\n")
+            for verdict in sorted(results):
+                for name, detail in results[verdict]:
+                    handle.write("%s\t%s\t%s\n" % (name, verdict, detail.replace("\t", " ")))
 
     total = len(references)
     print("reference : %s (%d files)" % (arguments.reference_dir, total))

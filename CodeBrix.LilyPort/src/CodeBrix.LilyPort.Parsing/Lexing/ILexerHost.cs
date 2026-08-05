@@ -6,6 +6,7 @@
 // (at your option) any later version.
 
 using System.Collections.Generic;
+using CodeBrix.LilyPort.Parsing.Driver;
 
 namespace CodeBrix.LilyPort.Parsing.Lexing;
 
@@ -61,6 +62,37 @@ public readonly struct LexerLookup
 }
 
 /// <summary>
+/// One entry of a markup command's signature, as the scanner needs it.
+/// <para>
+/// Upstream's <c>Lily_lexer::push_markup_predicates</c> compares each predicate against
+/// <c>Lily::markup_p</c> and <c>Lily::markup_list_p</c> BY IDENTITY to choose the token,
+/// and puts THE PREDICATE ITSELF on an <c>EXPECT_SCM</c>, because the grammar's arglist
+/// rules call it to decide whether the argument they just read is acceptable. Both halves
+/// matter: an earlier pass carried only the name the identity comparison produced, so
+/// every <c>EXPECT_SCM</c> arrived holding a string, and the first arglist rule to test an
+/// argument tried to call it.
+/// </para>
+/// </summary>
+public readonly struct MarkupPredicate
+{
+    /// <summary>Initializes a signature entry.</summary>
+    /// <param name="name">The name the token choice is made from: <c>markup?</c>,
+    /// <c>markup-list?</c>, or <c>scm?</c> for everything else.</param>
+    /// <param name="value">The predicate procedure an <c>EXPECT_SCM</c> carries.</param>
+    public MarkupPredicate(string name, object value)
+    {
+        Name = name;
+        Value = value;
+    }
+
+    /// <summary>Gets the name the token choice is made from.</summary>
+    public string Name { get; }
+
+    /// <summary>Gets the predicate procedure the token carries.</summary>
+    public object Value { get; }
+}
+
+/// <summary>
 /// The things the scanner cannot decide on its own.
 /// <para>
 /// LilyPond's lexer is not self-contained: what <c>c</c> means depends on the note-name
@@ -99,17 +131,62 @@ public interface ILexerHost
     /// <param name="word">The word, without its backslash.</param>
     /// <param name="predicates">Receives the command's argument predicates.</param>
     /// <returns>The token it names, or <see cref="LexerLookup.None"/>.</returns>
-    LexerLookup LookupMarkupCommand(string word, out IReadOnlyList<string> predicates);
+    LexerLookup LookupMarkupCommand(string word, out IReadOnlyList<MarkupPredicate> predicates);
 
     /// <summary>
     /// Reads one embedded Scheme expression starting at a position, for <c>#</c> and
     /// <c>$</c>.
+    /// <para>Upstream: <c>parse_embedded_scheme</c>, including its <c>scm_c_catch</c> —
+    /// an expression the reader cannot make sense of is reported AT
+    /// <paramref name="start"/> and answered with
+    /// <see cref="CodeBrix.LilyScheme.Values.DefaultArgument"/>, which is upstream's
+    /// <c>SCM_UNDEFINED</c>.</para>
     /// </summary>
     /// <param name="input">The whole input.</param>
     /// <param name="position">Where the expression starts, past the <c>#</c> or <c>$</c>.</param>
+    /// <param name="start">That same position as a span, for diagnostics.</param>
     /// <param name="consumed">Receives how many characters the expression occupied.</param>
-    /// <returns>The value read.</returns>
-    object ParseEmbeddedScheme(string input, int position, out int consumed);
+    /// <returns>The value read, or <c>DefaultArgument</c> when it could not be read.</returns>
+    object ParseEmbeddedScheme(string input, int position, SourceSpan start, out int consumed);
+
+    /// <summary>
+    /// Evaluates what <see cref="ParseEmbeddedScheme"/> produced.
+    /// <para>Upstream: <c>Lily_lexer::eval_scm</c>. The discriminator says how the extra
+    /// values of a <c>#@</c> / <c>$@</c> form become extra tokens.</para>
+    /// </summary>
+    /// <param name="token">The datum the reader produced.</param>
+    /// <param name="location">Where the expression began.</param>
+    /// <param name="extraToken"><c>'#'</c> or <c>'$'</c>.</param>
+    /// <returns>The value, or <see cref="CodeBrix.LilyScheme.Values.Unspecified"/> on failure.</returns>
+    object EvalScheme(object token, SourceSpan location, char extraToken);
+
+    /// <summary>
+    /// Decides which token a VALUE lexes as, and hands back the value the token carries.
+    /// <para>Upstream: <c>Lily_lexer::scan_scm_id</c>, reached from the <c>$</c> rule.
+    /// This is the same classification <see cref="LookupIdentifier"/> applies to
+    /// <c>\foo</c>'s value, which is why <c>$foo</c> and <c>\foo</c> are interchangeable
+    /// wherever both are legal.</para>
+    /// </summary>
+    /// <param name="value">The evaluated value.</param>
+    /// <returns>The token it names, or <see cref="LexerLookup.None"/>.</returns>
+    LexerLookup ScanSchemeValue(object value);
+
+    /// <summary>
+    /// Answers whether a VALUE is a markup command, for <c>$</c> read in markup mode.
+    /// <para>Upstream: the <c>YYSTATE == markup &amp;&amp; ly_is_procedure (sval)</c>
+    /// branch of the <c>$</c> rule, which asks
+    /// <c>Lily::markup_command_signature</c>.</para>
+    /// </summary>
+    /// <param name="value">The evaluated value.</param>
+    /// <param name="predicates">Receives the command's argument predicates.</param>
+    /// <returns>The token it names, or <see cref="LexerLookup.None"/>.</returns>
+    LexerLookup MarkupFunctionToken(object value, out IReadOnlyList<MarkupPredicate> predicates);
+
+    /// <summary>
+    /// Gets or sets the lexer's error level, which a <c>#</c> the reader could not read
+    /// raises (lexer.ll 412).
+    /// </summary>
+    int ErrorLevel { get; set; }
 }
 
 /// <summary>
@@ -154,9 +231,9 @@ public sealed class UnresolvedLexerHost : ILexerHost
     /// <param name="word">The word.</param>
     /// <param name="predicates">Receives an empty list.</param>
     /// <returns>Always <see cref="LexerLookup.None"/>.</returns>
-    public LexerLookup LookupMarkupCommand(string word, out IReadOnlyList<string> predicates)
+    public LexerLookup LookupMarkupCommand(string word, out IReadOnlyList<MarkupPredicate> predicates)
     {
-        predicates = new List<string>();
+        predicates = new List<MarkupPredicate>();
         return LexerLookup.None;
     }
 
@@ -171,9 +248,10 @@ public sealed class UnresolvedLexerHost : ILexerHost
     /// </summary>
     /// <param name="input">The whole input.</param>
     /// <param name="position">Where the expression starts.</param>
+    /// <param name="start">That same position as a span; unused, since nothing here can fail.</param>
     /// <param name="consumed">Receives how many characters it occupied.</param>
     /// <returns>The expression's text.</returns>
-    public object ParseEmbeddedScheme(string input, int position, out int consumed)
+    public object ParseEmbeddedScheme(string input, int position, SourceSpan start, out int consumed)
     {
         int i = position;
         while (i < input.Length && char.IsWhiteSpace(input[i]))
@@ -181,7 +259,7 @@ public sealed class UnresolvedLexerHost : ILexerHost
             i++;
         }
 
-        int start = i;
+        int begin = i;
 
         if (i < input.Length && input[i] == '(')
         {
@@ -227,6 +305,31 @@ public sealed class UnresolvedLexerHost : ILexerHost
         }
 
         consumed = i - position;
-        return start < i ? input.Substring(start, i - start) : string.Empty;
+        return begin < i ? input.Substring(begin, i - begin) : string.Empty;
     }
+
+    /// <summary>Answers with the datum unchanged — there is nothing here to evaluate in.</summary>
+    /// <param name="token">The datum.</param>
+    /// <param name="location">Ignored.</param>
+    /// <param name="extraToken">Ignored.</param>
+    /// <returns>The datum.</returns>
+    public object EvalScheme(object token, SourceSpan location, char extraToken) => token;
+
+    /// <summary>Answers no classification, since that needs the type table.</summary>
+    /// <param name="value">The value.</param>
+    /// <returns>Always <see cref="LexerLookup.None"/>.</returns>
+    public LexerLookup ScanSchemeValue(object value) => LexerLookup.None;
+
+    /// <summary>Answers no markup command table.</summary>
+    /// <param name="value">The value.</param>
+    /// <param name="predicates">Receives an empty list.</param>
+    /// <returns>Always <see cref="LexerLookup.None"/>.</returns>
+    public LexerLookup MarkupFunctionToken(object value, out IReadOnlyList<MarkupPredicate> predicates)
+    {
+        predicates = new List<MarkupPredicate>();
+        return LexerLookup.None;
+    }
+
+    /// <summary>Gets or sets the error level a bad embedded expression would raise.</summary>
+    public int ErrorLevel { get; set; }
 }

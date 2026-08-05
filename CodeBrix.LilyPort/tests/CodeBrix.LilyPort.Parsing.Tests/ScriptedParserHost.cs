@@ -431,19 +431,66 @@ internal sealed partial class ScriptedParserHost : IParserHost, ILexerHost
     // because a markup command's SIGNATURE is what the lexer announces as EXPECT_*
     // tokens — with no table, `\bold "x"` never produces them and the whole
     // markup-command half of the grammar is unreachable from real text.
-    LexerLookup ILexerHost.LookupMarkupCommand(string word, out IReadOnlyList<string> predicates)
+    LexerLookup ILexerHost.LookupMarkupCommand(
+        string word, out IReadOnlyList<MarkupPredicate> predicates)
     {
         if (MarkupCommands.TryGetValue(
                 word, out (string TokenName, object Value, string[] Predicates) entry))
         {
-            predicates = entry.Predicates;
+            // The scripted table names its predicates; a scripted predicate IS its name,
+            // which is all the arglist rules need when CallBehavior is scripted too.
+            List<MarkupPredicate> declared = new List<MarkupPredicate>();
+            foreach (string predicate in entry.Predicates)
+            {
+                declared.Add(new MarkupPredicate(predicate, predicate));
+            }
+
+            predicates = declared;
             return new LexerLookup(entry.TokenName, entry.Value);
         }
 
-        predicates = new List<string>();
+        predicates = new List<MarkupPredicate>();
         return LexerLookup.None;
     }
 
-    object ILexerHost.ParseEmbeddedScheme(string input, int position, out int consumed)
-        => _embeddedScheme.ParseEmbeddedScheme(input, position, out consumed);
+    object ILexerHost.ParseEmbeddedScheme(
+        string input, int position, SourceSpan start, out int consumed)
+        => _embeddedScheme.ParseEmbeddedScheme(input, position, start, out consumed);
+
+    /// <summary>
+    /// Hands the datum back unevaluated: a scripted host has no interpreter, so the only
+    /// honest answer is the text the bracket matcher produced.
+    /// </summary>
+    /// <param name="token">The datum.</param>
+    /// <param name="location">Where it was written.</param>
+    /// <param name="extraToken">Ignored — a scripted host produces no multiple values.</param>
+    /// <returns>The datum.</returns>
+    object ILexerHost.EvalScheme(object token, SourceSpan location, char extraToken) => token;
+
+    /// <summary>
+    /// Classifies an already-evaluated value the same way a <c>\word</c> lookup would,
+    /// when the script named one; otherwise refuses.
+    /// </summary>
+    /// <param name="value">The value.</param>
+    /// <returns>The token it names, or <see cref="LexerLookup.None"/>.</returns>
+    LexerLookup ILexerHost.ScanSchemeValue(object value)
+        => ScmValueTokens.TryGetValue(value ?? string.Empty, out LexerLookup found)
+            ? found
+            : LexerLookup.None;
+
+    /// <summary>
+    /// The tokens a scripted <c>$value</c> lexes as, keyed by the value the bracket
+    /// matcher produced. Empty unless a test fills it in.
+    /// </summary>
+    public Dictionary<object, LexerLookup> ScmValueTokens { get; } = new Dictionary<object, LexerLookup>();
+
+    /// <summary>Answers no markup command table for a value.</summary>
+    /// <param name="value">The value.</param>
+    /// <param name="predicates">Receives an empty list.</param>
+    /// <returns>Always <see cref="LexerLookup.None"/>.</returns>
+    LexerLookup ILexerHost.MarkupFunctionToken(object value, out IReadOnlyList<MarkupPredicate> predicates)
+    {
+        predicates = new List<MarkupPredicate>();
+        return LexerLookup.None;
+    }
 }

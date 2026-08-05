@@ -42,6 +42,60 @@ public static class TranslationPrimitives
 
         InstallStreamEvents(interpreter);
         InstallContexts(interpreter);
+        InstallContextMods(interpreter);
+    }
+
+    /// <summary>
+    /// <c>context-mod-scheme.cc</c> in full — the four bindings that make a ported
+    /// <see cref="ContextMod"/> reachable from Scheme.
+    /// <para>
+    /// These are the bindings rule's textbook case. <c>Context_mod</c> itself was ported
+    /// with the type predicate registered, and every C# caller worked; what nobody had
+    /// was <c>ly:make-context-mod</c>, so <c>context-mod-from-music</c> — the Scheme half
+    /// of <c>\with</c> and of every context-def body — built its result out of an
+    /// unported placeholder and handed back something that answered <c>#f</c> to
+    /// <c>ly:context-mod?</c>. The parser then reported "not a context mod", naming the
+    /// SYMPTOM. Eight of <c>engraver-init.ly</c>'s lines failed that way: every
+    /// <c>\omit</c>, <c>\stemUp</c>, <c>\cadenzaOn</c>, <c>\englishChords</c> and
+    /// <c>\grobdescriptions</c> written inside a <c>\context</c> block.
+    /// </para>
+    /// </summary>
+    /// <param name="interpreter">The interpreter to extend.</param>
+    private static void InstallContextMods(Interpreter interpreter)
+    {
+        interpreter.DefinePrimitive("ly:get-context-mods", 1, 1, a =>
+            AsContextMod(a[0], "ly:get-context-mods").GetMods());
+
+        interpreter.DefinePrimitive("ly:add-context-mod", 2, 2, a =>
+        {
+            AsContextMod(a[0], "ly:add-context-mod").AddContextMod(a[1]);
+            return Unspecified.Instance;
+        });
+
+        // 0 required, 1 optional: an absent mod-list means the empty modification, and
+        // Context_mod (SCM) stores the list REVERSED, which the ported constructor does.
+        interpreter.DefinePrimitive("ly:make-context-mod", 0, 1, a =>
+        {
+            if (!HasDefault(a, 0))
+            {
+                return new ContextMod();
+            }
+
+            if (!(a[0] is Nil) && !(a[0] is Pair))
+            {
+                throw SchemeErrors.WrongType("ly:make-context-mod", "list", a[0]);
+            }
+
+            return new ContextMod(a[0]);
+        });
+
+        interpreter.DefinePrimitive("ly:context-mod-apply!", 2, 2, a =>
+        {
+            Context target = AsContext(a[0], "ly:context-mod-apply!");
+            ContextMod mod = AsContextMod(a[1], "ly:context-mod-apply!");
+            GrobPropertyInfo.ApplyPropertyOperations(target, mod.GetMods());
+            return Unspecified.Instance;
+        });
     }
 
     private static void InstallStreamEvents(Interpreter interpreter)
@@ -202,4 +256,8 @@ public static class TranslationPrimitives
 
     private static Context AsContext(object value, string procedureName)
         => value as Context ?? throw SchemeErrors.WrongType(procedureName, "context", value);
+
+    private static ContextMod AsContextMod(object value, string procedureName)
+        => value as ContextMod
+            ?? throw SchemeErrors.WrongType(procedureName, "context modification", value);
 }

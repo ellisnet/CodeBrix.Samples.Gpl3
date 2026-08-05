@@ -83,7 +83,7 @@ public class RuleActionRag18Tests
     private static object HandledMarkup(ScriptedParserHost host)
     {
         host.Calls.Should().HaveCount(1);
-        host.Calls[0].Procedure.Should().Be("text-proc");
+        host.Calls[0].Procedure.AsText().Should().Be("text-proc");
         List<object> handed = Pair.ToList(host.Calls[0].Arguments[0]);
         handed.Should().HaveCount(1);
         return handed[0];
@@ -95,7 +95,7 @@ public class RuleActionRag18Tests
     private static List<object> HandledMarkupList(ScriptedParserHost host)
     {
         host.Calls.Should().HaveCount(1);
-        host.Calls[0].Procedure.Should().Be("text-proc");
+        host.Calls[0].Procedure.AsText().Should().Be("text-proc");
         return Pair.ToList(host.Calls[0].Arguments[0]);
     }
 
@@ -115,7 +115,7 @@ public class RuleActionRag18Tests
 
         //Assert
         NoErrors(parser);
-        HandledMarkup(host).Should().Be("hello");
+        HandledMarkup(host).AsText().Should().Be("hello");
     }
 
     [Fact]
@@ -130,7 +130,7 @@ public class RuleActionRag18Tests
 
         //Assert
         NoErrors(parser);
-        HandledMarkup(host).Should().Be("two words");
+        HandledMarkup(host).AsText().Should().Be("two words");
     }
 
     [Fact]
@@ -148,7 +148,7 @@ public class RuleActionRag18Tests
 
         //Assert
         NoErrors(parser);
-        host.LexerModeOperations.Should().Equal("push-markup-state", "pop-state");
+        host.LexerModeOperations.AsText().Should().Equal("push-markup-state", "pop-state");
         scanner.State.Should().Be(LexerState.Initial);
     }
 
@@ -170,7 +170,7 @@ public class RuleActionRag18Tests
         NoErrors(parser);
         object markup = HandledMarkup(host);
         Pair.ToList(((Pair)markup).Cdr).Should().HaveCount(1);
-        Pair.ToList(Pair.ToList(((Pair)markup).Cdr)[0]).Should().Equal("new", "c4");
+        Pair.ToList(Pair.ToList(((Pair)markup).Cdr)[0]).AsText().Should().Equal("new", "c4");
     }
 
     // ------ markup_braced_list, markup_braced_list_body, markup_top ------
@@ -191,10 +191,10 @@ public class RuleActionRag18Tests
         //Assert
         NoErrors(parser);
         Pair markup = (Pair)HandledMarkup(host);
-        markup.Car.Should().Be("lily:line-markup");
+        markup.Car.AsText().Should().Be("lily:line-markup");
         List<object> arguments = Pair.ToList(markup.Cdr);
         arguments.Should().HaveCount(1);
-        Pair.ToList(arguments[0]).Should().Equal("a", "b", "c");
+        Pair.ToList(arguments[0]).AsText().Should().Equal("a", "b", "c");
     }
 
     [Fact]
@@ -209,7 +209,7 @@ public class RuleActionRag18Tests
         //Assert
         NoErrors(parser);
         Pair markup = (Pair)HandledMarkup(host);
-        markup.Car.Should().Be("lily:line-markup");
+        markup.Car.AsText().Should().Be("lily:line-markup");
         Pair.ToList(markup.Cdr)[0].Should().Be(Nil.Instance);
     }
 
@@ -231,8 +231,8 @@ public class RuleActionRag18Tests
         //Assert
         NoErrors(parser);
         Pair markup = (Pair)HandledMarkup(host);
-        markup.Car.Should().Be("lily:line-markup");
-        Pair.ToList(Pair.ToList(markup.Cdr)[0]).Should().Equal("a", "b", "c", "d");
+        markup.Car.AsText().Should().Be("lily:line-markup");
+        Pair.ToList(Pair.ToList(markup.Cdr)[0]).AsText().Should().Equal("a", "b", "c", "d");
     }
 
     // ------ full_markup_list ------
@@ -252,8 +252,8 @@ public class RuleActionRag18Tests
 
         //Assert
         NoErrors(parser);
-        HandledMarkupList(host).Should().Equal("a", "b");
-        host.LexerModeOperations.Should().Equal("push-markup-state", "pop-state");
+        HandledMarkupList(host).AsText().Should().Equal("a", "b");
+        host.LexerModeOperations.AsText().Should().Equal("push-markup-state", "pop-state");
     }
 
     // ------ markup_head_1_list + simple_markup: composition ------
@@ -277,7 +277,7 @@ public class RuleActionRag18Tests
         host.SyntaxDispatches[0].Name.Should().Be("composed-markup-list");
 
         // The markup itself: the command applied to the word.
-        Pair.ToList(HandledMarkup(host)).Should().Equal("bold-proc", "x");
+        Pair.ToList(HandledMarkup(host)).AsText().Should().Equal("bold-proc", "x");
     }
 
     [Fact]
@@ -305,13 +305,13 @@ public class RuleActionRag18Tests
         // The commands list, as the constructor receives it: outermost last.
         List<object> commands = Pair.ToList(host.SyntaxDispatches[0].Arguments[0]);
         commands.Should().HaveCount(2);
-        Pair.ToList(commands[0]).Should().Equal("italic-proc");
-        Pair.ToList(commands[1]).Should().Equal("bold-proc");
+        Pair.ToList(commands[0]).AsText().Should().Equal("italic-proc");
+        Pair.ToList(commands[1]).AsText().Should().Equal("bold-proc");
 
         // And what that MEANS once composed: bold on the outside, wrapping italic.
         List<object> markup = Pair.ToList(HandledMarkup(host));
-        markup[0].Should().Be("bold-proc");
-        Pair.ToList(markup[1]).Should().Equal("italic-proc", "x");
+        markup[0].AsText().Should().Be("bold-proc");
+        Pair.ToList(markup[1]).AsText().Should().Equal("italic-proc", "x");
     }
 
     [Fact]
@@ -333,8 +333,8 @@ public class RuleActionRag18Tests
         NoErrors(parser);
         List<object> line = Pair.ToList(Pair.ToList(((Pair)HandledMarkup(host)).Cdr)[0]);
         line.Should().HaveCount(2);
-        Pair.ToList(line[0]).Should().Equal("bold-proc", "a");
-        line[1].Should().Be("b");
+        Pair.ToList(line[0]).AsText().Should().Equal("bold-proc", "a");
+        line[1].AsText().Should().Be("b");
     }
 
     [Fact]
@@ -353,15 +353,15 @@ public class RuleActionRag18Tests
         //Assert
         NoErrors(parser);
         host.SyntaxDispatches[0].Name.Should().Be("composed-markup-list");
-        Pair.ToList(host.SyntaxDispatches[0].Arguments[1]).Should().Equal("a", "b");
+        Pair.ToList(host.SyntaxDispatches[0].Arguments[1]).AsText().Should().Equal("a", "b");
 
         // The handler received the whole composed LIST — the command distributed over
         // BOTH markups — rather than its car, which is what makes this rule the
         // markup-list twin of `markup: markup_head_1_list simple_markup`.
         List<object> handed = HandledMarkupList(host);
         handed.Should().HaveCount(2);
-        Pair.ToList(handed[0]).Should().Equal("bold-proc", "a");
-        Pair.ToList(handed[1]).Should().Equal("bold-proc", "b");
+        Pair.ToList(handed[0]).AsText().Should().Equal("bold-proc", "a");
+        Pair.ToList(handed[1]).AsText().Should().Equal("bold-proc", "b");
     }
 
     [Fact]
@@ -383,7 +383,7 @@ public class RuleActionRag18Tests
         NoErrors(parser);
         List<object> handed = HandledMarkupList(host);
         handed.Should().HaveCount(1);
-        Pair.ToList(handed[0]).Should().Equal("toc-proc");
+        Pair.ToList(handed[0]).AsText().Should().Equal("toc-proc");
     }
 
     // ------ markup_scm: the embedded-Scheme classifier ($@12) ------
@@ -404,7 +404,7 @@ public class RuleActionRag18Tests
 
         //Assert
         NoErrors(parser);
-        HandledMarkup(host).Should().Be("Sonata");
+        HandledMarkup(host).AsText().Should().Be("Sonata");
     }
 
     [Fact]
@@ -420,7 +420,7 @@ public class RuleActionRag18Tests
 
         //Assert
         NoErrors(parser);
-        HandledMarkupList(host).Should().Equal("one", "two");
+        HandledMarkupList(host).AsText().Should().Equal("one", "two");
     }
 
     [Fact]
@@ -439,7 +439,7 @@ public class RuleActionRag18Tests
 
         //Assert
         NoErrors(parser);
-        host.EvaluatedTokens.Should().Equal("(side-effect)");
+        host.EvaluatedTokens.AsText().Should().Equal("(side-effect)");
         HandledMarkupList(host).Should().BeEmpty();
     }
 
@@ -486,12 +486,12 @@ public class RuleActionRag18Tests
             "push-markup-state", "push-note-state", "pop-state", "pop-state");
 
         Pair markup = (Pair)HandledMarkup(host);
-        markup.Car.Should().Be("lily:score-markup");
+        markup.Car.AsText().Should().Be("lily:score-markup");
 
         Score score = (Score)Pair.ToList(markup.Cdr)[0];
         score.Defs.Should().HaveCount(1);
         score.Defs[0].LookupVariable(Symbol.Intern("output-def-kind"))
-            .Should().Be(Symbol.Intern("layout"));
+            .AsText().Should().Be(Symbol.Intern("layout"));
         score.Origin.Should().NotBeNull();
     }
 
@@ -534,7 +534,7 @@ public class RuleActionRag18Tests
 
         List<object> call = Pair.ToList(handed[0]);
         call.Should().HaveCount(2);
-        call[0].Should().Be("lily:score-lines-markup-list");
+        call[0].AsText().Should().Be("lily:score-lines-markup-list");
         ((Score)call[1]).Defs.Should().HaveCount(1);
     }
 

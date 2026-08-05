@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- The terminal ENGINE - escape parsing, buffer, attributes; renders nothing -->
+    <PackageReference Include="CodeBrix.Terminal.MitLicenseForever" Version="1.0.165.232" />
+    <!-- SKXamlCanvas - the SkiaSharp drawing surface hosted in CodeBrix.Platform XAML -->
+    <PackageReference Include="CodeBrix.Platform.SkiaSharp.Views.MitLicenseForever" Version="4.151.0" />
+    <PackageReference Include="SkiaSharp" Version="4.151.0" />
+    <!-- MUST stay lock-stepped with the CodeBrix.Platform version the heads
+         reference - the family ships at one version. -->
+    <PackageReference Include="CodeBrix.Platform.ApacheLicenseForever" Version="1.0.214.1259" />
+    <PackageReference Include="CodeBrix.Platform.TextLayout.ApacheLicenseForever" Version="1.0.214.1259" />
+  </ItemGroup>
+</Project>

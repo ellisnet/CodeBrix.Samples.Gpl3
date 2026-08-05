@@ -24,6 +24,7 @@ using CodeBrix.LilyPort.Engine.Bootstrap;
 using CodeBrix.LilyPort.Engine.Layout;
 using CodeBrix.LilyPort.Engine.Music;
 using CodeBrix.LilyPort.Engine.Objects;
+using CodeBrix.LilyPort.Engine.Origins;
 using CodeBrix.LilyPort.Parsing.Actions;
 using CodeBrix.LilyPort.Parsing.Driver;
 using CodeBrix.LilyPort.Parsing.Lexing;
@@ -95,6 +96,30 @@ public sealed partial class LilyParserSession : IParserHost, ILexerHost
         AddScope(MakeModule());
     }
 
+    /// <summary>
+    /// Initializes a session sharing another's scopes — <c>ly:parser-clone</c>.
+    /// <para>Upstream's copy constructor builds a new <c>Lily_lexer</c> FROM the original,
+    /// which copies the scope list rather than starting a fresh one, so a cloned parser
+    /// sees every identifier the original had defined.</para>
+    /// </summary>
+    /// <param name="interpreter">The interpreter.</param>
+    /// <param name="source">The session to clone.</param>
+    private LilyParserSession(Interpreter interpreter, LilyParserSession source)
+    {
+        _interpreter = interpreter;
+        _lilyModule = source._lilyModule;
+        _scopes.AddRange(source._scopes);
+        _pitchNameTables.AddRange(source._pitchNameTables);
+        _pitchNameStates.AddRange(source._pitchNameStates);
+        _chordModifiers = source._chordModifiers;
+        IncludePath.AddRange(source.IncludePath);
+        foreach (KeyValuePair<string, SourceFile> entry in source._sourceFiles)
+        {
+            _sourceFiles[entry.Key] = entry.Value;
+            Sources.Add(entry.Value);
+        }
+    }
+
     /// <summary>Gets the interpreter this session runs on.</summary>
     public Interpreter Interpreter => _interpreter;
 
@@ -127,11 +152,21 @@ public sealed partial class LilyParserSession : IParserHost, ILexerHost
     /// <inheritdoc/>
     public object LookupIdentifier(string name)
     {
+        // Upstream: Lily_lexer::lookup_identifier_symbol, which walks the scope stack
+        // innermost-first and consults each scope with scm_module_variable — the module
+        // AND WHAT IT IMPORTS. Searching only each module's own bindings, as an earlier
+        // pass did, hides everything (lily) defines, so `\hspace` and every other
+        // identifier that lives in the Scheme layer rather than in a .ly assignment read
+        // as undefined. Since add_scope makes each new scope use the ones already open,
+        // the innermost scope alone usually answers; the loop is upstream's and is kept.
         Symbol symbol = Symbol.Intern(name);
         for (int i = _scopes.Count - 1; i >= 0; i--)
         {
-            Variable variable = _scopes[i].LookupLocal(symbol);
-            if (variable != null)
+            Variable variable = _scopes[i].Lookup(symbol);
+
+            // An UNBOUND variable is not an answer: psyntax reserves a slot before a
+            // definition runs, and reading one would hand back nothing at all.
+            if (variable != null && variable.IsBound)
             {
                 return variable.GetValue();
             }
@@ -232,26 +267,12 @@ public sealed partial class LilyParserSession : IParserHost, ILexerHost
     /// <inheritdoc/>
     public object MakeModule()
     {
-        // ly_make_module: a fresh module that uses the root module and (lily), which is
-        // what lets a \header or \with body call Scheme functions.
-        //
-        // DIVERGENCE, and it is load-bearing: upstream's module is ANONYMOUS, and this
-        // one is NAMED and REGISTERED. The expander resolves an imported MACRO only in
-        // a module it can name — in an anonymous one, `define-music-function` reads as
-        // an ordinary variable and its argument list is evaluated, so every music
-        // function in ly/music-functions-init.ly failed with an unbound variable named
-        // after its first parameter. Named modules expand it correctly. Recorded in
-        // PORT-COVERAGE; the underlying expander limitation is recorded there too,
-        // because a fix in LilyScheme would let this go back to matching upstream.
-        SchemeModule module = new SchemeModule(
-            Pair.List(Symbol.Intern("lily"), Symbol.Intern("parser-scope"), ++_scopeSerial));
-        module.AddUse(_interpreter.Modules.RootModule);
-        module.AddUse(_lilyModule);
-        _interpreter.Modules.Register(module);
-        return module;
+        // ly_make_module, which the Engine carries as LilyModules.Make so that a parser
+        // scope, a \header block and an output definition's scope are all built one way.
+        // The named-module divergence and the expander limitation behind it are recorded
+        // there and in PORT-COVERAGE.
+        return LilyModules.Make(_interpreter, "parser-scope");
     }
-
-    private static long _scopeSerial;
 
     /// <inheritdoc/>
     public void ModuleCopy(object destination, object source)
@@ -276,6 +297,87 @@ public sealed partial class LilyParserSession : IParserHost, ILexerHost
 
     /// <inheritdoc/>
     public object EvalSchemeToken(object token, SourceSpan location)
+        => EvalScheme(token, location, '#');
+
+    /// <summary>
+    /// <c>Lily_lexer::eval_scm</c> — evaluates what the embedded-Scheme reader produced,
+    /// and spreads a multiple-values result into extra tokens.
+    /// <para>
+    /// The <paramref name="extraToken"/> parameter is upstream's, and it decides how the
+    /// EXTRA values of a <c>#@</c> / <c>$@</c> form are delivered: <c>'#'</c> pushes each
+    /// as a plain <c>SCM_IDENTIFIER</c>, while <c>'$'</c> asks what each value IS and
+    /// pushes the matching <c>*_IDENTIFIER</c>. Values are pushed from the LAST back to
+    /// the second and the first is returned, so the pushback queue hands them out in
+    /// written order.
+    /// </para>
+    /// <para>
+    /// An unreadable expression arrives as <see cref="DefaultArgument"/> — the reader's
+    /// <c>SCM_UNDEFINED</c> — and is NOT evaluated; it only raises the error level, which
+    /// is what keeps one bad <c>#(...)</c> from being reported twice.
+    /// </para>
+    /// </summary>
+    /// <param name="token">The datum the reader produced.</param>
+    /// <param name="location">Where the expression began.</param>
+    /// <param name="extraToken">Upstream's extra-token discriminator: <c>'#'</c> or
+    /// <c>'$'</c>.</param>
+    /// <returns>The value, or <see cref="Unspecified"/> when evaluation failed.</returns>
+    public object EvalScheme(object token, SourceSpan location, char extraToken)
+    {
+        if (token is DefaultArgument)
+        {
+            ErrorLevel = 1;
+            return Unspecified.Instance;
+        }
+
+        object value = EvaluateEmbedded(token, location);
+        if (value is DefaultArgument)
+        {
+            ErrorLevel = 1;
+            return Unspecified.Instance;
+        }
+
+        if (!(value is MultipleValues values))
+        {
+            return value;
+        }
+
+        if (values.Items.Length == 0)
+        {
+            return Unspecified.Instance;
+        }
+
+        for (int i = values.Items.Length - 1; i >= 1; i--)
+        {
+            object extra = values.Items[i];
+            LexerLookup announced = extraToken == '$'
+                ? IdentifierToken(extra)
+                : new LexerLookup("SCM_IDENTIFIER", extra);
+            if (!announced.Found)
+            {
+                continue;
+            }
+
+            if (announced.FunctionSignature != null)
+            {
+                Scanner?.PushFunctionSignature(announced.FunctionSignature);
+            }
+
+            Scanner?.PushExtraToken(new ParserToken(
+                Scanner.Terminal(announced.TokenName), announced.Value, location));
+        }
+
+        return values.Items[0];
+    }
+
+    /// <summary>
+    /// <c>evaluate_embedded_scheme</c> — runs one embedded form with <c>(*location*)</c>
+    /// bound to where it was written, and turns a Scheme-level failure into a located
+    /// diagnostic instead of an abort.
+    /// </summary>
+    /// <param name="form">The form to evaluate.</param>
+    /// <param name="location">Where it was written.</param>
+    /// <returns>The value, or <see cref="DefaultArgument"/> when it raised.</returns>
+    private object EvaluateEmbedded(object form, SourceSpan location)
     {
         // The scanner hands over the DATUM it read; upstream evaluates it in the
         // current module, which is why an embedded #(...) sees the identifiers a
@@ -287,25 +389,42 @@ public sealed partial class LilyParserSession : IParserHost, ILexerHost
         // Evaluated without expansion they read as procedure calls and die on an
         // unbound variable named after their first argument, which is what the first
         // run of the init layer did, once per definition.
+        //
+        // WRAPPED IN THE LOCATION FLUID, because evaluate_embedded_scheme's whole
+        // prologue is `scm_dynwind_fluid (Lily::f_location, start.smobbed_copy ())`:
+        // an embedded expression that asks (*location*) — every music function that
+        // reports about its own argument does — must be told where IT was written and
+        // not where the enclosing construct happened to leave the fluid.
         try
         {
-            SchemeModule scope = CurrentSchemeModule();
-            SchemeModule saved = _interpreter.CurrentModule;
-            try
+            return WithLocation(location, () =>
             {
-                _interpreter.CurrentModule = scope;
-                return _interpreter.TreeIlEvaluator.ExpandAndEval(
-                    CurriedDefinitions.Expand(token), scope);
-            }
-            finally
-            {
-                _interpreter.CurrentModule = saved;
-            }
+                // A closure recorded by the #{ ... #} reader is already a thunk over its
+                // original lexical environment; upstream calls it rather than evaluating
+                // it (`if (ly_is_procedure (ps->form_)) return ly_call (ps->form_);`).
+                if (form is Procedure || form is IApplicable)
+                {
+                    return Call(form);
+                }
+
+                SchemeModule scope = CurrentSchemeModule();
+                SchemeModule saved = _interpreter.CurrentModule;
+                try
+                {
+                    _interpreter.CurrentModule = scope;
+                    return _interpreter.TreeIlEvaluator.ExpandAndEval(
+                        CurriedDefinitions.Expand(form), scope);
+                }
+                finally
+                {
+                    _interpreter.CurrentModule = saved;
+                }
+            });
         }
         catch (Exception ex)
         {
             ParserError(location, ex.Message);
-            return Unspecified.Instance;
+            return DefaultArgument.Instance;
         }
     }
 
@@ -356,27 +475,65 @@ public sealed partial class LilyParserSession : IParserHost, ILexerHost
     /// <inheritdoc/>
     public object MakeSyntax(string constructor, SourceSpan location, params object[] arguments)
     {
-        // MAKE_SYNTAX: the constructor is called with the LOCATION first, so a
-        // diagnostic raised inside it points at the right place in the file.
-        object[] all = new object[(arguments?.Length ?? 0) + 1];
-        all[0] = SchemeLocation(location);
-        if (arguments != null)
-        {
-            Array.Copy(arguments, 0, all, 1, arguments.Length);
-        }
-
-        return Call(SyntaxConstructor(constructor), all);
+        // MAKE_SYNTAX -> make_syntax -> with_location, which is
+        //
+        //   ly_with_fluid (Lily::f_location, <the Input>, [] { scm_call_n (proc, ...); })
+        //
+        // THE LOCATION IS NOT AN ARGUMENT. It is bound to the %location fluid for the
+        // dynamic extent of the call, and the constructor reads it back as (*location*)
+        // when it needs one — which is why not one constructor in
+        // scm/ly-syntax-constructors.scm declares a location parameter. An earlier pass
+        // passed it as the first argument, so every constructor was called with one
+        // argument too many; nothing caught it because the rule-action tests drive a
+        // scripted host whose MakeSyntax never reaches the real Scheme.
+        return WithLocation(location, () => Call(SyntaxConstructor(constructor), arguments));
     }
 
     /// <inheritdoc/>
     public object ApplySyntax(object constructor, SourceSpan location, object arguments)
     {
-        // FINISH_MAKE_SYNTAX: the constructor and its first arguments were consed
-        // together by START_MAKE_SYNTAX, and the location goes in between.
-        List<object> all = new List<object> { SchemeLocation(location) };
-        all.AddRange(Pair.ToList(arguments));
-        return Call(constructor, all.ToArray());
+        // FINISH_MAKE_SYNTAX: Guile's `apply` spreads the argument list over the
+        // constructor, under the same location binding as MAKE_SYNTAX.
+        object[] all = Pair.ToList(arguments).ToArray();
+        return WithLocation(location, () => Call(constructor, all));
     }
+
+    /// <summary>
+    /// Runs an action with <c>(*location*)</c> bound to a span, and restores whatever was
+    /// bound before.
+    /// <para>Upstream: <c>with_location_n</c> in <c>lily/input.cc</c>, over
+    /// <c>Lily::f_location</c> — the <c>%location</c> fluid <c>scm/lily.scm</c> defines.
+    /// A location that is not a real <see cref="Input"/> binds <see langword="false"/>,
+    /// exactly as upstream's <c>unsmob&lt;Input&gt; (loc) ? loc : SCM_BOOL_F</c> does.</para>
+    /// </summary>
+    /// <param name="location">The span to bind.</param>
+    /// <param name="action">What to run under it.</param>
+    /// <returns>What the action returned.</returns>
+    public object WithLocation(SourceSpan location, Func<object> action)
+    {
+        Fluid fluid = LocationFluid();
+        if (fluid == null)
+        {
+            return action();
+        }
+
+        object origin = SchemeLocation(location);
+        object saved = fluid.Value;
+        fluid.Value = origin ?? (object)false;
+        try
+        {
+            return action();
+        }
+        finally
+        {
+            fluid.Value = saved;
+        }
+    }
+
+    private Fluid LocationFluid()
+        => _locationFluid ??= _lilyModule.Lookup(Symbol.Intern("%location"))?.GetValue() as Fluid;
+
+    private Fluid _locationFluid;
 
     // ------ diagnostics ------
 
@@ -412,12 +569,69 @@ public sealed partial class LilyParserSession : IParserHost, ILexerHost
             : location.FileName + ":" + location.StartLine + ":" + location.StartColumn + ": ";
 
     /// <summary>
-    /// Presents a span as the value the Scheme layer expects for a location.
-    /// <para>Upstream passes the <c>Input</c> smob; the port boxes the span, which is
-    /// what <c>MusicObject.SetSpot</c> and the vendored constructors already store and
-    /// read back.</para>
+    /// Turns a span into the <see cref="Input"/> the Scheme layer expects for a location.
+    /// <para>
+    /// Upstream every location IS an <c>Input</c> — <c>ly:input-location?</c> answers on
+    /// it, <c>ly:input-file-line-char-column</c> reads it, <c>Input::warning</c> quotes
+    /// the line it points at. A span with no offsets — one built by hand in a fixture, or
+    /// from a file this session never opened — becomes an <see cref="Input"/> with no
+    /// source file, which reports "position unknown" rather than a plausible wrong place.
+    /// </para>
     /// </summary>
     /// <param name="location">The span.</param>
-    /// <returns>The boxed span.</returns>
-    private static object SchemeLocation(SourceSpan location) => location;
+    /// <returns>The origin.</returns>
+    public Input SchemeLocation(SourceSpan location)
+    {
+        if (location.StartOffset < 0 || location.FileName == null)
+        {
+            return new Input();
+        }
+
+        SourceFile file = SourceFileFor(location.FileName);
+        return file == null
+            ? new Input()
+            : new Input(
+                file,
+                Math.Min(location.StartOffset, file.Length),
+                Math.Min(Math.Max(location.EndOffset, location.StartOffset), file.Length));
+    }
+
+    /// <summary>
+    /// Gets the source files this session has opened, in the order it opened them.
+    /// <para>Upstream: the <c>Sources</c> object <c>Lily_parser</c> is constructed with,
+    /// which every <c>Input</c> points into and which <c>ly:source-files</c> reports.</para>
+    /// </summary>
+    public Sources Sources { get; } = new Sources();
+
+    private readonly Dictionary<string, SourceFile> _sourceFiles
+        = new Dictionary<string, SourceFile>(StringComparer.Ordinal);
+
+    /// <summary>
+    /// Records a file's text so locations in it can be turned into real origins, and adds
+    /// it to <see cref="Sources"/>.
+    /// <para>Upstream: <c>Includable_lexer::new_input</c>, which calls
+    /// <c>Sources::get_file</c> and keeps the <c>Source_file</c> for the rest of the
+    /// run — an origin made while a file was open must still be able to quote it when
+    /// the error surfaces much later.</para>
+    /// </summary>
+    /// <param name="fileName">The name locations in the text will carry.</param>
+    /// <param name="text">The file's text.</param>
+    /// <returns>The source file.</returns>
+    public SourceFile OpenSource(string fileName, string text)
+    {
+        string key = fileName ?? "<input>";
+        if (_sourceFiles.TryGetValue(key, out SourceFile existing)
+            && string.Equals(existing.Text, text, StringComparison.Ordinal))
+        {
+            return existing;
+        }
+
+        SourceFile file = new SourceFile(key, text ?? string.Empty);
+        _sourceFiles[key] = file;
+        Sources.Add(file);
+        return file;
+    }
+
+    private SourceFile SourceFileFor(string fileName)
+        => _sourceFiles.TryGetValue(fileName, out SourceFile file) ? file : null;
 }

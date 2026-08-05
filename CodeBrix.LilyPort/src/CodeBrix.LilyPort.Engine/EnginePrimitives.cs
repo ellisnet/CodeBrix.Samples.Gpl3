@@ -80,6 +80,17 @@ public sealed class EntryPoint
     /// <summary>Gets or sets how many times the stub for this entry point was invoked.</summary>
     public int CallCount { get; set; }
 
+    /// <summary>
+    /// Gets or sets the stub primitive installed for this entry point.
+    /// <para>
+    /// Kept so <see cref="EntryPointClosure"/> can tell an implemented primitive from an
+    /// unimplemented one by REFERENCE: everything is registered as a stub first and the
+    /// real implementations overwrite the bindings afterwards, so "is the binding still
+    /// the object we installed" is the only honest test. A name-list would drift.
+    /// </para>
+    /// </summary>
+    public Primitive Stub { get; set; }
+
     /// <summary>Returns the external representation.</summary>
     /// <returns>The name and arity.</returns>
     public override string ToString()
@@ -204,6 +215,62 @@ public static class EnginePrimitives
     public static bool ThrowOnUnported { get; set; }
 
     /// <summary>
+    /// The environment variable that asks for suite mode:
+    /// <c>LILYPORT_THROW_ON_UNPORTED=1</c>.
+    /// </summary>
+    public const string SuiteModeVariable = "LILYPORT_THROW_ON_UNPORTED";
+
+    /// <summary>
+    /// Gets a value indicating whether the environment asks for suite mode.
+    /// <para>
+    /// Suite mode turns every placeholder into a failure, which is the only way to see
+    /// the defect class standing rule 4 names: something upstream declares, the port
+    /// half-reproduces, and NOTHING FAILS because an inert
+    /// <see cref="UnportedValue"/> flowed politely through the caller. It is off by
+    /// default because loading LilyPond's Scheme layer legitimately calls unported
+    /// primitives while building its tables — see <see cref="ThrowOnUnported"/>.
+    /// </para>
+    /// <para>
+    /// Opt in per run rather than per assembly:
+    /// <c>LILYPORT_THROW_ON_UNPORTED=1 dotnet test CodeBrix.LilyPort.slnx -c Release</c>.
+    /// </para>
+    /// </summary>
+    public static bool SuiteModeRequested
+    {
+        get
+        {
+            string value = Environment.GetEnvironmentVariable(SuiteModeVariable);
+            return string.Equals(value, "1", StringComparison.Ordinal)
+                   || string.Equals(value, "true", StringComparison.OrdinalIgnoreCase);
+        }
+    }
+
+    /// <summary>
+    /// Turns <see cref="ThrowOnUnported"/> on for the lifetime of the returned scope, and
+    /// restores the previous setting when it is disposed.
+    /// <para>
+    /// Scoped rather than set-and-forget because the flag is process-global, like every
+    /// other piece of engine state here: a test that switched it on and returned would
+    /// change the meaning of every test that ran afterwards on the same thread pool.
+    /// </para>
+    /// </summary>
+    /// <returns>A scope that restores the previous setting on disposal.</returns>
+    public static IDisposable ThrowingScope() => new ThrowOnUnportedScope();
+
+    private sealed class ThrowOnUnportedScope : IDisposable
+    {
+        private readonly bool _previous;
+
+        internal ThrowOnUnportedScope()
+        {
+            _previous = ThrowOnUnported;
+            ThrowOnUnported = true;
+        }
+
+        public void Dispose() => ThrowOnUnported = _previous;
+    }
+
+    /// <summary>
     /// Installs every entry point into an interpreter as a stub. See
     /// <see cref="ThrowOnUnported"/> for what a stub does when called.
     /// </summary>
@@ -228,7 +295,7 @@ public static class EnginePrimitives
             // REACHABLE, not to type-check: rejecting a call for arity would hide the
             // fact that the Scheme wanted this primitive at all, which is the one thing
             // we are trying to measure.
-            interpreter.DefinePrimitive(entry.Name, 0, -1, arguments =>
+            entry.Stub = interpreter.DefinePrimitive(entry.Name, 0, -1, arguments =>
             {
                 captured.CallCount++;
                 if (ThrowOnUnported)

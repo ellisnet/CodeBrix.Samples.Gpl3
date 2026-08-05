@@ -59,12 +59,10 @@ public static class TypePredicates
         "ly:page-marker?",
         "ly:paper-book?",
 
-        // The parser and lexer themselves -- Track P.
-        "ly:input-location?",
+        // The parser and lexer themselves -- Track P. Input, Source_file and
+        // Music_function moved to Ported with EPG1; these two host types have not.
         "ly:lily-lexer?",
         "ly:lily-parser?",
-        "ly:music-function?",
-        "ly:source-file?",
 
         // Not yet demanded by anything.
         "ly:transform?",
@@ -96,6 +94,11 @@ public static class TypePredicates
         "ly:regex?",
         "ly:unpure-pure-container?",
 
+        // EPG1: source locations, the files they point into, and music functions.
+        "ly:input-location?",
+        "ly:music-function?",
+        "ly:source-file?",
+
         "ly:dispatcher?",
         "ly:duration?",
         "ly:font-metric?",
@@ -120,6 +123,10 @@ public static class TypePredicates
         {
             throw new ArgumentNullException(nameof(interpreter));
         }
+
+        interpreter.DefinePrimitive("ly:input-location?", 1, 1, a => a[0] is Origins.Input);
+        interpreter.DefinePrimitive("ly:source-file?", 1, 1, a => a[0] is Origins.SourceFile);
+        interpreter.DefinePrimitive("ly:music-function?", 1, 1, a => a[0] is Music.MusicFunction);
 
         interpreter.DefinePrimitive("ly:book?", 1, 1, a => a[0] is Book);
         interpreter.DefinePrimitive("ly:box?", 1, 1, a => a[0] is Box);

@@ -19,7 +19,7 @@
 
 using System.Globalization;
 
-namespace CodeBrix.LilyPort.Engine.Layout; //was previously: lily/include/dimensions.hh, lily/dimensions.cc;
+namespace CodeBrix.LilyPort.Engine.Layout; //was previously: lily/include/dimensions.hh;
 
 // Modified by Jeremy Ellis on 2026-08-02 as part of the CodeBrix port.
 

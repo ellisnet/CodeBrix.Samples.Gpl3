@@ -161,10 +161,10 @@ public class RuleActionRag19Tests
 
         // The head item as the constructor received it: the command and its number.
         List<object> commands = Pair.ToList(host.SyntaxDispatches[0].Arguments[0]);
-        Pair.ToList(commands[0]).Should().Equal("raise-proc", 2L);
+        Pair.ToList(commands[0]).AsText().Should().Equal("raise-proc", 2L);
 
         // And the finished markup, with the composed markup last.
-        Pair.ToList(HandledMarkup(host)).Should().Equal("raise-proc", 2L, "x");
+        Pair.ToList(HandledMarkup(host)).AsText().Should().Equal("raise-proc", 2L, "x");
     }
 
     [Fact]
@@ -185,7 +185,7 @@ public class RuleActionRag19Tests
 
         //Assert
         NoErrors(parser);
-        Pair.ToList(HandledMarkup(host)).Should().Equal("combine-proc", "a", "b");
+        Pair.ToList(HandledMarkup(host)).AsText().Should().Equal("combine-proc", "a", "b");
     }
 
     [Fact]
@@ -208,7 +208,7 @@ public class RuleActionRag19Tests
 
         //Assert
         NoErrors(parser);
-        Pair.ToList(HandledMarkup(host)).Should().Equal("fromproperty-proc", "header:title");
+        Pair.ToList(HandledMarkup(host)).AsText().Should().Equal("fromproperty-proc", "header:title");
         host.SyntaxDispatches.Should().BeEmpty();
     }
 
@@ -231,8 +231,8 @@ public class RuleActionRag19Tests
         NoErrors(parser);
         List<object> markup = Pair.ToList(HandledMarkup(host));
         markup.Should().HaveCount(2);
-        markup[0].Should().Be("column-proc");
-        Pair.ToList(markup[1]).Should().Equal("a", "b");
+        markup[0].AsText().Should().Be("column-proc");
+        Pair.ToList(markup[1]).AsText().Should().Equal("a", "b");
     }
 
     // ------ the predicate, and what a failed one does ------
@@ -262,7 +262,7 @@ public class RuleActionRag19Tests
         SyntaxMark error = host.SyntaxDispatches.Find(m => m.Name == "argument-error");
         error.Should().NotBeNull();
         error.Arguments[0].Should().Be(1L);
-        error.Arguments[1].Should().Be("number?");
+        error.Arguments[1].AsText().Should().Be("number?");
         error.Arguments[2].Should().Be(2L);
     }
 
@@ -292,7 +292,7 @@ public class RuleActionRag19Tests
 
         List<object> commands = Pair.ToList(host.SyntaxDispatches[0].Arguments[0]);
         List<object> raise = Pair.ToList(commands[0]);
-        raise[0].Should().Be("raise-proc");
+        raise[0].AsText().Should().Be("raise-proc");
         raise[1].Should().BeOfType<Duration>();
     }
 
@@ -396,10 +396,10 @@ public class RuleActionRag19Tests
 
         List<object> commands = Pair.ToList(partial.Arguments[0]);
         commands.Should().HaveCount(1);
-        Pair.ToList(commands[0]).Should().Equal("bold-proc");
+        Pair.ToList(commands[0]).AsText().Should().Equal("bold-proc");
 
         host.Globals.Bindings[Symbol.Intern("foo")].Should().BeSameAs(partial);
-        host.LexerModeOperations.Should().Equal("push-markup-state", "pop-state");
+        host.LexerModeOperations.AsText().Should().Equal("push-markup-state", "pop-state");
     }
 
     [Fact]
@@ -422,7 +422,7 @@ public class RuleActionRag19Tests
         //Assert
         NoErrors(parser);
         List<object> commands = Pair.ToList(host.SyntaxDispatches[0].Arguments[0]);
-        Pair.ToList(commands[0]).Should().Equal("raise-proc", 2L);
+        Pair.ToList(commands[0]).AsText().Should().Equal("raise-proc", 2L);
     }
 
     [Fact]
@@ -443,7 +443,7 @@ public class RuleActionRag19Tests
         //Assert
         NoErrors(parser);
         List<object> commands = Pair.ToList(host.SyntaxDispatches[0].Arguments[0]);
-        Pair.ToList(commands[0]).Should().Equal("raise-proc");
+        Pair.ToList(commands[0]).AsText().Should().Equal("raise-proc");
     }
 
     [Fact]
@@ -468,8 +468,8 @@ public class RuleActionRag19Tests
         NoErrors(parser);
         List<object> commands = Pair.ToList(host.SyntaxDispatches[0].Arguments[0]);
         commands.Should().HaveCount(2);
-        Pair.ToList(commands[0]).Should().Equal("raise-proc");
-        Pair.ToList(commands[1]).Should().Equal("bold-proc");
+        Pair.ToList(commands[0]).AsText().Should().Equal("raise-proc");
+        Pair.ToList(commands[1]).AsText().Should().Equal("bold-proc");
     }
 
     [Fact]
@@ -493,7 +493,7 @@ public class RuleActionRag19Tests
         //Assert
         NoErrors(parser);
         List<object> commands = Pair.ToList(host.SyntaxDispatches[0].Arguments[0]);
-        Pair.ToList(commands[0]).Should().Equal("padlist-proc");
+        Pair.ToList(commands[0]).AsText().Should().Equal("padlist-proc");
     }
 
     [Fact]
@@ -514,7 +514,7 @@ public class RuleActionRag19Tests
         //Assert
         NoErrors(parser);
         List<object> commands = Pair.ToList(host.SyntaxDispatches[0].Arguments[0]);
-        Pair.ToList(commands[0]).Should().Equal("numafter-proc");
+        Pair.ToList(commands[0]).AsText().Should().Equal("numafter-proc");
     }
 
     // ------ music as a markup command's argument ------
@@ -546,7 +546,7 @@ public class RuleActionRag19Tests
         SyntaxMark composed = host.SyntaxDispatches.Find(m => m.Name == "composed-markup-list");
 
         List<object> command = Pair.ToList(Pair.ToList(composed.Arguments[0])[0]);
-        command[0].Should().Be("test-proc");
+        command[0].AsText().Should().Be("test-proc");
         command[1].Should().BeSameAs(modeChange);
     }
 
@@ -572,7 +572,7 @@ public class RuleActionRag19Tests
         NoErrors(parser);
         List<object> command = Pair.ToList(
             Pair.ToList(host.SyntaxDispatches[0].Arguments[0])[0]);
-        Pair.ToList(HandledMarkup(host)).Should().Equal("test-proc", music, "x");
+        Pair.ToList(HandledMarkup(host)).AsText().Should().Equal("test-proc", music, "x");
         command[1].Should().BeSameAs(music);
     }
 }

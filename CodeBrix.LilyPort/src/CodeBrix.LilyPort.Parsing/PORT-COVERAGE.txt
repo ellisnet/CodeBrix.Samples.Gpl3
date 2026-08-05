@@ -1021,3 +1021,171 @@ NAMING
   groups the porting effort is planned and fenced by. The group's grammar
   content is named in each file's <content> doc; RuleActionFenceTests'
   CompletedGroups theory is the ledger of which groups are done.
+
+-------------------------------------------------------------------------------
+CORRECTIONS MADE 2026-08-04 (EPG1) -- FOUR CLAIMS ABOVE THAT WERE WRONG
+-------------------------------------------------------------------------------
+
+  Each of these was recorded here as a deliberate divergence, and each was
+  disproven the first time the ly/ init layer was actually driven end to end.
+  They are kept, with the reasoning, because the SHAPE of the mistake repeats:
+  a claim that a difference is invisible, made while the only thing exercising
+  the code was a scripted host.
+
+  1. "strings -> CLR string as produced by the lexer; MutableString is accepted
+     wherever a value is TESTED for stringness."
+
+     It is accepted wherever the PORT tests for stringness, and nowhere else.
+     CodeBrix.LilyScheme's `string?` is `value is MutableString`, so a CLR
+     string is not a Scheme string at all -- `markup?`, `markup-list?` and
+     everything built on them answer #f for one. `\markup { \italic "cresc." }`
+     therefore handed composed-markup-list a list whose element was not a
+     markup, and the init layer died inside a markup constructor, nowhere near
+     the lexer.
+
+     Now: every token value upstream builds with `to_scm (str)` is built with
+     ModalScanner.SchemeText, which is a MutableString. Tests that assert what
+     a token SAYS go through SchemeTextAssertions.AsText, because MutableString
+     is mutable and compares by identity.
+
+  2. MAKE_SYNTAX passed the location as the constructor's FIRST ARGUMENT.
+
+     It does not. parser.yy's make_syntax calls with_location, which is
+     `ly_with_fluid (Lily::f_location, loc, [] { scm_call_n (proc, ...); })` --
+     the location is bound to the %location fluid for the dynamic extent of the
+     call and read back as (*location*). Not one constructor in
+     scm/ly-syntax-constructors.scm declares a location parameter, so every
+     MAKE_SYNTAX in the port was calling with one argument too many.
+
+     Now: LilyParserSession.WithLocation binds the fluid; MakeSyntax and
+     ApplySyntax pass only the real arguments.
+
+  3. Locations were the port's own SourceSpan, boxed.
+
+     Upstream every location IS an Input: ly:input-location? answers on it,
+     ly:input-file-line-char-column reads it, Input::warning quotes the line it
+     points at, and ly:set-origin! type-checks it. SourceSpan now carries
+     character offsets, the session keeps a SourceFile per opened input, and
+     SchemeLocation builds a real Input. A span with no offsets -- one built by
+     hand in a fixture -- becomes an Input with no source file, which reports
+     "position unknown" rather than a plausible wrong place.
+
+  4. LookupIdentifier searched each scope's OWN bindings.
+
+     Lily_lexer::lookup_identifier_symbol uses scm_module_variable, which
+     searches the module AND WHAT IT IMPORTS. Since every parser scope uses
+     (lily), the local-only search hid the entire Scheme layer.
+
+  Two more of the same class, found the same way:
+
+  * ILexerHost.LookupMarkupCommand looked up the BARE word. Upstream's
+    lookup-markup-command looks up `<word>-markup`, falling back to
+    `<word>-markup-list` -- the suffix is what define-markup-command binds --
+    and it looks it up in the current module, not scope-locally. Every markup
+    command in the vendored layer read as an unknown command.
+
+  * push_markup_predicates puts THE PREDICATE on an EXPECT_SCM, because the
+    grammar's arglist rules call it. The port carried the NAME the token choice
+    was made from, so the first arglist rule to test an argument tried to call
+    a string. MarkupPredicate now carries both.
+
+  All six were invisible to the 520 tests here because the rule-action and
+  markup-reachability suites drive a ScriptedParserHost, which is honest about
+  being scripted -- it answers from tables, so nothing it does can disagree
+  with the Scheme layer. REGISTERED, BEHAVING and REACHABLE are three different
+  things, and a scripted host can only ever prove the first two.
+
+-------------------------------------------------------------------------------
+THE ly:parser-* SURFACE (EPG1)
+-------------------------------------------------------------------------------
+
+  lily-parser-scheme.cc's bindings live in the ENGINE
+  (Bootstrap/ParserPrimitives.cs), over the Origins/ILilyParser seam, because
+  CodeBrix.LilyPort.Parsing references the Engine and not the other way round.
+  LilyParserSession implements the seam (Session/LilyParserSession.Parser.cs).
+
+  The current parser is the %parser fluid scm/lily.scm defines, exactly as
+  upstream -- LilyParserSession.AsCurrentParser publishes itself into it for
+  the duration of a parse and restores what was there before. Upstream sets it
+  once per run; the port scopes it, because several sessions can exist in one
+  process and the innermost is the one those bindings mean.
+
+  ly:parser-set-note-names diverges from a LITERAL reading of upstream, and
+  must. Upstream's body only acts when the lexer is in note state -- but the
+  assignment inside it is `Lily::pitchnames = names`, a handle onto (lily)'s
+  own variable, so the table is stored regardless and the pop/push only makes
+  an ALREADY-OPEN note mode pick it up. declarations-init.ly calls
+  note-names-language at top level, outside any note mode; a port that only
+  acted inside note state stored nothing, and every note name in the init layer
+  read as "not a note name".
+
+  STILL OWED by this file: ly:parse-file and ly:parse-init. Both open a file,
+  build a Sources and a parser, and drive the whole thing -- which is EPG3's
+  internal batch runner, not a binding.
+
+-------------------------------------------------------------------------------
+EMBEDDED SCHEME -- parse-scm.cc COMPLETE (EPG1, 2026-08-04)
+-------------------------------------------------------------------------------
+
+  The reader half is LilyParserSession.ParseEmbeddedScheme; the evaluation half
+  is LilyParserSession.EvalScheme, which is Lily_lexer::eval_scm including its
+  extra-token discriminator. Both scm_c_catch handlers are ported.
+
+  THE CATCH IS THE POINT OF THE FILE. An expression the reader or the evaluator
+  cannot make sense of becomes a LOCATED non-fatal diagnostic and the parse
+  continues; before it, one bad #(...) took the run down with a CLR exception
+  and everything after it in the file was invisible. That is what turned the
+  ly/ init layer from "it fails" into a per-file, per-line worklist.
+
+  On a reader failure the port consumes ZERO characters, and that is upstream's
+  behaviour rather than an approximation: Parse_start::parsed_ is only .set()
+  on the success path, so after a throw it is a default-constructed Input,
+  parsed.size() is 0, and skip_chars(0) leaves the scan position just past the
+  `#'. The text is then re-scanned as ordinary LilyPond. Consuming to the
+  reader's stopping point instead would eat the rest of the file, because an
+  unterminated list runs to end of input.
+
+  `$' is EVALUATED BY THE LEXER and its token comes from the value's type
+  (scan_scm_id), which is why $foo stands in for a music expression, a pitch, a
+  duration or a music function wherever the corresponding *_IDENTIFIER is
+  legal. A failed evaluation produces NO TOKEN AT ALL -- upstream's rule ends in
+  `if (!scm_is_eq (yylval, SCM_UNSPECIFIED)) return token;' and otherwise falls
+  off the end of the action, which in flex means "text consumed, keep
+  scanning". Inventing a token there would report one mistake twice.
+
+  The CLOSURES alist is keyed by the offset of the character after the `#' or
+  `$', matching EmbeddedLilyReader's `offset = lily.Length'. Consulted only
+  while reading the top input (lexer_->top_input(), i.e. include depth < 2),
+  because an \include'd file's offsets have nothing to do with the clone's.
+
+  DELIBERATE DIVERGENCES, both recorded rather than fixed:
+    * No -dcompile-scheme-code path. LilyScheme has no byte-compiler, and the
+      option is off by default upstream for its own reasons (a byte-compiler
+      limitation above a few thousand expressions).
+    * No scm_display_backtrace under -ddebug-eval. The located diagnostic plus
+      the interpreter's own message is what the port reports.
+
+-------------------------------------------------------------------------------
+THE LEXER'S BASE MODE IS `notes' (EPG1, 2026-08-04)
+-------------------------------------------------------------------------------
+
+  Lily_lexer's constructor ends in push_note_state() -- lily-lexer.cc 129, and
+  again at 154 for the clone constructor. A lexer is therefore in NOTE MODE
+  from its first character, and nothing in the grammar ever pops down to
+  INITIAL. LilyParserSession.ParseText pushes it, and pops on the way out.
+
+  This is why
+
+      ignatzekExceptionMusic = { <c e gis>-\markup { "+" } }
+
+  reads as pitches at the top level of chord-modifiers-init.ly with no
+  \notemode anywhere: there is no mode change, the file simply never left note
+  mode. A port whose base was INITIAL lexed every one of those as a bare
+  SYMBOL, and the diagnostic named the note name rather than the mode.
+
+  Related, and found with it: a character terminal's NAME is the character
+  literal exactly as the grammar's text spells it, so `'` is the terminal
+  '\'' and not '''. ModalScanner.CharacterTerminalName does the escaping.
+  Getting it wrong is silent -- Terminal() answers -1 for an unknown name and
+  the driver reports "unexpected token -1" at what looks like an ordinary
+  syntax error. The octave mark accounted for 25 init-layer errors.

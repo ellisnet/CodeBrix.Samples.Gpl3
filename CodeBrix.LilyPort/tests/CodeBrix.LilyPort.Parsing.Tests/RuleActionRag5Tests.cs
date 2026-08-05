@@ -105,10 +105,10 @@ public class RuleActionRag5Tests
 
         //Assert
         parser.ErrorCount.Should().Be(0);
-        host.LexerModeOperations.Should().Equal("push-note-state", "pop-state");
+        host.LexerModeOperations.AsText().Should().Equal("push-note-state", "pop-state");
 
         (object procedure, object[] arguments) = host.Calls[host.Calls.Count - 1];
-        procedure.Should().Be("music-proc");
+        procedure.AsText().Should().Be("music-proc");
 
         SyntaxMark applied = (SyntaxMark)arguments[0];
         applied.Name.Should().Be("constructor:context-create");
@@ -120,7 +120,7 @@ public class RuleActionRag5Tests
         mods.Should().HaveCount(1);
         List<object> entry = Pair.ToList(mods[0]);
         entry[0].Should().BeSameAs(Symbol.Intern("consists"));
-        entry[1].Should().Be("Foo_engraver");
+        entry[1].AsText().Should().Be("Foo_engraver");
 
         ((SyntaxMark)applied.Arguments[3]).Name.Should().Be("sequential-music");
     }
@@ -145,8 +145,8 @@ public class RuleActionRag5Tests
         ContextDef def = (ContextDef)host.Globals.Bindings[Symbol.Intern("foo")];
         def.ContextName.Should().BeSameAs(Symbol.Intern("MyStaff"));
         Pair.ToList(def.GetTranslatorNames(Nil.Instance))
-            .Should().Equal(Symbol.Intern("Bar_engraver"));
-        Pair.ToList(def.Acceptance.GetList()).Should().Equal(Symbol.Intern("Voice"));
+            .AsText().Should().Equal(Symbol.Intern("Bar_engraver"));
+        Pair.ToList(def.Acceptance.GetList()).AsText().Should().Equal(Symbol.Intern("Voice"));
         def.Acceptance.GetDefault().Should().BeSameAs(Symbol.Intern("Voice"));
         def.Origin.Should().BeOfType<SourceSpan>();
     }
@@ -196,7 +196,7 @@ public class RuleActionRag5Tests
 
         //Assert
         result.Should().BeSameAs(music);
-        host.LexerModeOperations.Should().Equal("push-note-state", "pop-state");
+        host.LexerModeOperations.AsText().Should().Equal("push-note-state", "pop-state");
     }
 
     [Fact]
@@ -244,7 +244,7 @@ public class RuleActionRag5Tests
         //Assert
         ContextDef def = (ContextDef)result;
         Pair.ToList(def.GetTranslatorNames(Nil.Instance))
-            .Should().Equal(Symbol.Intern("X_engraver"));
+            .AsText().Should().Equal(Symbol.Intern("X_engraver"));
     }
 
     [Fact]
@@ -268,7 +268,7 @@ public class RuleActionRag5Tests
 
         //Assert
         host.Calls.Should().HaveCount(1);
-        host.Calls[0].Procedure.Should().Be("handler-proc");
+        host.Calls[0].Procedure.AsText().Should().Be("handler-proc");
         host.Calls[0].Arguments[0].Should().BeSameAs(music);
         context.ErrorCount.Should().Be(1);
         host.ErrorLevel.Should().Be(1);
@@ -324,8 +324,8 @@ public class RuleActionRag5Tests
         //Assert
         ContextDef def = (ContextDef)result;
         Pair.ToList(def.GetTranslatorNames(Nil.Instance))
-            .Should().Equal(Symbol.Intern("A_engraver"));
-        Pair.ToList(def.ContextAliases).Should().Equal(Symbol.Intern("Staff"));
+            .AsText().Should().Equal(Symbol.Intern("A_engraver"));
+        Pair.ToList(def.ContextAliases).AsText().Should().Equal(Symbol.Intern("Staff"));
     }
 
     [Fact]
@@ -546,9 +546,9 @@ public class RuleActionRag5Tests
         //Assert
         List<object> packed = Pair.ToList(result);
         packed.Should().HaveCount(4);
-        packed[0].Should().Be("constructor:context-find-or-create");
+        packed[0].AsText().Should().Be("constructor:context-find-or-create");
         packed[1].Should().BeSameAs(Symbol.Intern("Staff"));
-        packed[2].Should().Be("the-id");
+        packed[2].AsText().Should().Be("the-id");
         packed[3].Should().BeSameAs(mods);
         host.Calls.Should().BeEmpty();
     }
@@ -571,7 +571,7 @@ public class RuleActionRag5Tests
         SyntaxMark mark = (SyntaxMark)result;
         mark.Name.Should().Be("context-change");
         mark.Arguments[0].Should().BeSameAs(Symbol.Intern("Staff"));
-        mark.Arguments[1].Should().Be("up");
+        mark.Arguments[1].AsText().Should().Be("up");
     }
 
     [Fact]
@@ -631,7 +631,7 @@ public class RuleActionRag5Tests
         passed.Should().BeSameAs(operation);
         List<object> entry = Pair.ToList(paired);
         entry[0].Should().BeSameAs(Symbol.Intern("consists"));
-        entry[1].Should().Be("X_engraver");
+        entry[1].AsText().Should().Be("X_engraver");
     }
 
     [Fact]
@@ -661,8 +661,8 @@ public class RuleActionRag5Tests
 
         //Assert
         Pair.ToList(allowed)
-            .Should().Equal(Symbol.Intern("consists"), Symbol.Intern("Some_translator"));
-        Pair.ToList(stringy).Should().Equal(Symbol.Intern("accepts"), "Voice");
+            .AsText().Should().Equal(Symbol.Intern("consists"), Symbol.Intern("Some_translator"));
+        Pair.ToList(stringy).AsText().Should().Equal(Symbol.Intern("accepts"), "Voice");
         refused.Should().BeSameAs(Nil.Instance);
         context.ErrorCount.Should().Be(1);
         host.ErrorLevel.Should().Be(1);

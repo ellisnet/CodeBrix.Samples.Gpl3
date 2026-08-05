@@ -116,10 +116,10 @@ public class RuleActionRag4Tests
         OutputDef parsed = (OutputDef)host.Globals.Bindings[Symbol.Intern("$defaultpaper")];
         parsed.Should().NotBeSameAs(defaultPaper);
         parsed.CVariable("output-def-kind").Should().BeSameAs(Symbol.Intern("paper"));
-        parsed.CVariable("size").Should().Be("a4");
+        parsed.CVariable("size").AsText().Should().Be("a4");
         parsed.InputOrigin.Should().BeOfType<SourceSpan>();
 
-        host.LexerModeOperations.Should().Equal("push-initial-state", "pop-state");
+        host.LexerModeOperations.AsText().Should().Equal("push-initial-state", "pop-state");
         host.Scopes.Should().BeEmpty();
         host.OutputDefScopes.Should().HaveCount(1);
         host.OutputDefScopes[0].Definition.Should().BeSameAs(parsed);
@@ -142,7 +142,7 @@ public class RuleActionRag4Tests
         //Assert
         parser.ErrorCount.Should().Be(0);
         host.OutputDefScopes.Should().HaveCount(1);
-        host.OutputDefScopes[0].Module.Bindings[Symbol.Intern("foo")].Should().Be("bar");
+        host.OutputDefScopes[0].Module.Bindings[Symbol.Intern("foo")].AsText().Should().Be("bar");
 
         // The assignment also unwrapped the marker list, so the stored default is
         // the definition itself.
@@ -163,7 +163,7 @@ public class RuleActionRag4Tests
 
         //Assert
         parser.ErrorCount.Should().Be(0);
-        host.EvaluatedTokens.Should().Equal("(tweak)");
+        host.EvaluatedTokens.AsText().Should().Equal("(tweak)");
         host.Globals.Bindings[Symbol.Intern("$defaultpaper")].Should().BeOfType<OutputDef>();
     }
 
@@ -184,7 +184,7 @@ public class RuleActionRag4Tests
 
         //Assert
         parser.ErrorCount.Should().Be(0);
-        host.Calls[0].Procedure.Should().Be("book-proc");
+        host.Calls[0].Procedure.AsText().Should().Be("book-proc");
 
         Book book = (Book)host.Calls[0].Arguments[0];
         book.Paper.Should().NotBeSameAs(defaultPaper);
@@ -346,7 +346,7 @@ public class RuleActionRag4Tests
         //Assert
         result.Should().BeSameAs(layout);
         layout.LookupVariable(Symbol.Intern("")).Should().BeSameAs(contextDef);
-        host.LexerModeOperations.Should().Equal("pop-state");
+        host.LexerModeOperations.AsText().Should().Equal("pop-state");
         host.Calls.Should().BeEmpty();
     }
 
@@ -370,7 +370,7 @@ public class RuleActionRag4Tests
         //Assert
         result.Should().BeSameAs(midi);
         host.Calls.Should().HaveCount(1);
-        host.Calls[0].Procedure.Should().Be("odm-proc");
+        host.Calls[0].Procedure.AsText().Should().Be("odm-proc");
         host.Calls[0].Arguments[0].Should().BeSameAs(midi);
         host.Calls[0].Arguments[1].Should().BeSameAs(music);
     }
@@ -397,7 +397,7 @@ public class RuleActionRag4Tests
         //Assert
         result.Should().BeSameAs(layout);
         host.Calls.Should().HaveCount(1);
-        host.Calls[0].Procedure.Should().Be("odm-proc");
+        host.Calls[0].Procedure.AsText().Should().Be("odm-proc");
         host.Calls[0].Arguments[1].Should().BeSameAs(music);
     }
 
@@ -506,7 +506,7 @@ public class RuleActionRag4Tests
         //Assert
         SyntaxMark mark = (SyntaxMark)result;
         mark.Name.Should().Be("tempo");
-        mark.Arguments.Should().Equal("Allegro", duration, range);
+        mark.Arguments.AsText().Should().Equal("Allegro", duration, range);
     }
 
     [Fact]
@@ -526,7 +526,7 @@ public class RuleActionRag4Tests
         //Assert
         SyntaxMark mark = (SyntaxMark)result;
         mark.Name.Should().Be("tempo");
-        mark.Arguments.Should().Equal("Adagio");
+        mark.Arguments.AsText().Should().Equal("Adagio");
     }
 
     [Fact]
@@ -588,7 +588,7 @@ public class RuleActionRag4Tests
 
         //Assert
         result.Should().NotBeSameAs(stacked);
-        result.CVariable("from").Should().Be("stack");
+        result.CVariable("from").AsText().Should().Be("stack");
         result.CVariable("output-def-kind").Should().BeSameAs(Symbol.Intern("paper"));
     }
 
@@ -608,7 +608,7 @@ public class RuleActionRag4Tests
 
         //Assert
         fromDefault.Should().NotBeSameAs(fallback);
-        fromDefault.CVariable("from").Should().Be("default");
+        fromDefault.CVariable("from").AsText().Should().Be("default");
 
         fresh.CVariable("from").Should().BeNull();
         fresh.CVariable("output-def-kind").Should().BeSameAs(Symbol.Intern("paper"));
@@ -632,11 +632,11 @@ public class RuleActionRag4Tests
 
         //Assert
         midi.Should().NotBeSameAs(defaultMidi);
-        midi.CVariable("from").Should().Be("midi-default");
+        midi.CVariable("from").AsText().Should().Be("midi-default");
         midi.CVariable("output-def-kind").Should().BeSameAs(Symbol.Intern("midi"));
 
         layout.Should().NotBeSameAs(defaultLayout);
-        layout.CVariable("from").Should().Be("layout-default");
+        layout.CVariable("from").AsText().Should().Be("layout-default");
         layout.CVariable("output-def-kind").Should().BeSameAs(Symbol.Intern("layout"));
     }
 

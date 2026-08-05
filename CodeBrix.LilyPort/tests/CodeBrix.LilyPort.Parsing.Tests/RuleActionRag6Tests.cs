@@ -139,7 +139,7 @@ public class RuleActionRag6Tests
     private static object ToplevelMusic(ScriptedParserHost host)
     {
         (object procedure, object[] arguments) = host.Calls[host.Calls.Count - 1];
-        procedure.Should().Be("music-proc");
+        procedure.AsText().Should().Be("music-proc");
         return arguments[0];
     }
 
@@ -255,7 +255,7 @@ public class RuleActionRag6Tests
         parser.ErrorCount.Should().Be(0);
         SyntaxMark mark = (SyntaxMark)ToplevelMusic(host);
         mark.Name.Should().Be("repeat");
-        mark.Arguments[0].Should().Be("volta");
+        mark.Arguments[0].AsText().Should().Be("volta");
         mark.Arguments[1].Should().Be(2L);
         ((SyntaxMark)mark.Arguments[2]).Name.Should().Be("sequential-music");
     }
@@ -276,7 +276,7 @@ public class RuleActionRag6Tests
         parser.ErrorCount.Should().Be(0);
         SyntaxMark mark = (SyntaxMark)ToplevelMusic(host);
         mark.Name.Should().Be("repeat-alt");
-        mark.Arguments[0].Should().Be("volta");
+        mark.Arguments[0].AsText().Should().Be("volta");
         mark.Arguments[1].Should().Be(2L);
         ((SyntaxMark)mark.Arguments[2]).Name.Should().Be("sequential-music");
         SyntaxMark alternative = (SyntaxMark)mark.Arguments[3];
@@ -392,7 +392,7 @@ public class RuleActionRag6Tests
         parser.ErrorCount.Should().Be(0);
         SyntaxMark mark = (SyntaxMark)ToplevelMusic(host);
         mark.Name.Should().Be("lyric-combine");
-        mark.Arguments[0].Should().Be("sop");
+        mark.Arguments[0].AsText().Should().Be("sop");
         mark.Arguments[1].Should().BeSameAs(Nil.Instance);
 
         // Arguments[2] is lyric_mode_music, whose action is RAG12 and not pinned.
@@ -414,7 +414,7 @@ public class RuleActionRag6Tests
         parser.ErrorCount.Should().Be(0);
         SyntaxMark mark = (SyntaxMark)ToplevelMusic(host);
         mark.Name.Should().Be("lyric-combine");
-        mark.Arguments[0].Should().Be("sop");
+        mark.Arguments[0].AsText().Should().Be("sop");
         mark.Arguments[1].Should().BeSameAs(Symbol.Intern("NullVoice"));
     }
 
@@ -479,13 +479,13 @@ public class RuleActionRag6Tests
         //Assert
         // MYBACKUP pushes token-then-BACKUP, so BACKUP comes back FIRST; $$ stays
         // the pre-set $1, which both consumers ignore.
-        result.Should().Be("tra");
+        result.AsText().Should().Be("tra");
         ParserToken backup = scanner.Next();
-        backup.Symbol.Should().Be(Sym("BACKUP"));
+        backup.Symbol.AsText().Should().Be(Sym("BACKUP"));
         backup.Value.Should().BeSameAs(Unspecified.Instance);
         ParserToken element = scanner.Next();
-        element.Symbol.Should().Be(Sym("LYRIC_ELEMENT"));
-        element.Value.Should().Be("tra");
+        element.Symbol.AsText().Should().Be(Sym("LYRIC_ELEMENT"));
+        element.Value.AsText().Should().Be("tra");
     }
 
     [Fact]
@@ -773,7 +773,7 @@ public class RuleActionRag6Tests
         //Assert
         SyntaxMark mark = (SyntaxMark)result;
         mark.Name.Should().Be("lyric-event");
-        mark.Arguments[0].Should().Be("doo");
+        mark.Arguments[0].AsText().Should().Be("doo");
         mark.Arguments[1].Should().Be(new Duration(2, 1));
     }
 
@@ -980,11 +980,11 @@ public class RuleActionRag6Tests
         //Assert
         SyntaxMark plainMark = (SyntaxMark)plain;
         plainMark.Name.Should().Be("lyric-combine");
-        plainMark.Arguments.Should().Equal("sop", Nil.Instance, lyricMusic);
+        plainMark.Arguments.AsText().Should().Equal("sop", Nil.Instance, lyricMusic);
 
         SyntaxMark typedMark = (SyntaxMark)typed;
         typedMark.Name.Should().Be("lyric-combine");
-        typedMark.Arguments.Should().Equal("sop", Symbol.Intern("NullVoice"), lyricMusic);
+        typedMark.Arguments.AsText().Should().Equal("sop", Symbol.Intern("NullVoice"), lyricMusic);
     }
 
     [Fact]

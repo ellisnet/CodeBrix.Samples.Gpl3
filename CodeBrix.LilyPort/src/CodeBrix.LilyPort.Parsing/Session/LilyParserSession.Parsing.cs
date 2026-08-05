@@ -81,7 +81,20 @@ public sealed partial class LilyParserSession
     /// <param name="text">The source text.</param>
     /// <param name="fileName">The file's name, for locations.</param>
     /// <returns>What the parse produced and reported.</returns>
-    public ParseOutcome ParseText(string text, string fileName)
+    public ParseOutcome ParseText(string text, string fileName) => ParseText(text, fileName, null);
+
+    /// <summary>
+    /// Parses LilyPond source, optionally entering the grammar at a different start
+    /// symbol.
+    /// </summary>
+    /// <param name="text">The source text.</param>
+    /// <param name="fileName">The file's name, for locations.</param>
+    /// <param name="startToken">The terminal to deliver before the input — upstream's
+    /// <c>push_extra_token (Input (), EMBEDDED_LILY)</c>, which is how
+    /// <c>ly:parse-string-expression</c> asks for a music expression rather than a whole
+    /// file — or <see langword="null"/> for the ordinary toplevel entry.</param>
+    /// <returns>What the parse produced and reported.</returns>
+    public ParseOutcome ParseText(string text, string fileName, string startToken)
     {
         if (text == null)
         {
@@ -90,22 +103,73 @@ public sealed partial class LilyParserSession
 
         EnsureTables();
 
+        // The file has to be OPENED before it is scanned: every location the parse
+        // produces is an offset into this text, and turning one into a real Input needs
+        // the SourceFile to read it back from.
+        OpenSource(fileName ?? "<input>", text);
+
         ModalScanner scanner = new ModalScanner(
             LilyPondLexerRules.Create(this), text, fileName ?? "<input>");
         scanner.UseSymbols(_tables.Symbols, _tables.TerminalCount);
         scanner.IncludeResolver = ResolveInclude;
 
+        if (startToken != null)
+        {
+            scanner.PushExtraToken(new ParserToken(scanner.Terminal(startToken), null, default));
+        }
+
         ModalScanner previous = Scanner;
         Scanner = scanner;
+        _hasParsed = true;
         LalrParser parser = new LalrParser(_tables, _boundActions);
+
+        // THE BASE MODE IS `notes', NOT `INITIAL'. Lily_lexer's constructor
+        // (lily-lexer.cc 129, and again at 154 for the clone constructor) ends in
+        // `push_note_state ()', so a lexer is in note mode from its first character and
+        // nothing in the grammar ever pops down to INITIAL. That is why
+        //
+        //     ignatzekExceptionMusic = { <c e gis>-\markup { "+" } }
+        //
+        // reads as pitches at the top level of chord-modifiers-init.ly with no
+        // \notemode anywhere in sight: there is no mode change, the file simply never
+        // left note mode. A port whose base was INITIAL lexed every one of those as a
+        // bare SYMBOL, which is a syntax error inside < >, and the diagnostic named the
+        // note name rather than the mode — 41 of the init layer's 79 errors, in two
+        // files, all from this one line.
+        //
+        // push_note_state also pushes the pitch-name table, so this must run AFTER the
+        // scanner is live and be undone on the way out.
+        PushNoteState();
+
+        // Everything Lily_parser::parser_error reports lands in the SESSION's list rather
+        // than the driver's — an embedded #(...) that raises is not a syntax error and
+        // the driver never sees it. The outcome has to carry both, or a caller that reads
+        // AllDiagnostics() is told a file parsed cleanly when its Scheme did not. The
+        // ly/ init-layer fence is exactly such a caller.
+        int diagnosticsBefore = Diagnostics.Count;
 
         try
         {
-            object result = parser.Parse(scanner, this);
-            return new ParseOutcome(result, parser.ErrorCount, parser.Diagnostics, scanner.Diagnostics);
+            // The %parser fluid is live for the whole parse, because every ly:parser-*
+            // binding a rule action or an embedded #(...) reaches reads it to find out
+            // which parser it is talking about.
+            object result = AsCurrentParser(() => parser.Parse(scanner, this));
+
+            List<string> reported = new List<string>(parser.Diagnostics);
+            for (int i = diagnosticsBefore; i < Diagnostics.Count; i++)
+            {
+                reported.Add(Diagnostics[i]);
+            }
+
+            return new ParseOutcome(
+                result,
+                parser.ErrorCount + (Diagnostics.Count - diagnosticsBefore),
+                reported,
+                scanner.Diagnostics);
         }
         finally
         {
+            PopLexerState();
             Scanner = previous;
         }
     }
@@ -123,22 +187,28 @@ public sealed partial class LilyParserSession
     /// <returns>The source text, or <see langword="null"/>.</returns>
     private string ResolveInclude(string name)
     {
-        string vendored = LilyPondScheme.ReadInitFile(name);
-        if (vendored != null)
+        string text = LilyPondScheme.ReadInitFile(name);
+        if (text == null)
         {
-            return vendored;
-        }
-
-        foreach (string directory in IncludePath)
-        {
-            string path = System.IO.Path.Combine(directory, name);
-            if (System.IO.File.Exists(path))
+            foreach (string directory in IncludePath)
             {
-                return System.IO.File.ReadAllText(path);
+                string path = System.IO.Path.Combine(directory, name);
+                if (System.IO.File.Exists(path))
+                {
+                    text = System.IO.File.ReadAllText(path);
+                    break;
+                }
             }
         }
 
-        return null;
+        if (text != null)
+        {
+            // Upstream: Includable_lexer::new_input goes through Sources::get_file, so
+            // the included file joins the run's source set and stays there.
+            OpenSource(name, text);
+        }
+
+        return text;
     }
 
     /// <summary>Gets the directories an <c>\include</c> searches after the vendored layer.</summary>

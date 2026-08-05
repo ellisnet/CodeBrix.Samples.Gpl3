@@ -1,0 +1,19 @@
+<Page
+    x:Class="Lily.Shell.Views.MainPage"
+    xmlns="clr-namespace:Microsoft.UI.Xaml.Controls;assembly=CodeBrix.Platform.UI"
+    xmlns:d="clr-namespace:Microsoft.UI.Xaml.Data;assembly=CodeBrix.Platform.UI"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:vm="clr-namespace:Lily.Shell.ViewModels;assembly=Lily.Shell.Core"
+    xmlns:term="clr-namespace:Lily.Shell.TerminalView;assembly=Lily.Shell.TerminalView"
+    xmlns:local="using:Lily.Shell.Views"
+    FontFamily="{StaticResource RobotoFont}"
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+
+    <Page.DataContext>
+        <vm:MainViewModel />
+    </Page.DataContext>
+
+    <Grid Background="#FF000000">
+        <term:TerminalControl x:Name="Terminal" Margin="4" />
+    </Grid>
+</Page>

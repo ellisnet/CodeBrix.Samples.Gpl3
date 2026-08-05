@@ -21,13 +21,25 @@ public readonly struct SourceSpan
     /// <param name="startColumn">The first column, counting from one.</param>
     /// <param name="endLine">The last line.</param>
     /// <param name="endColumn">One past the last column.</param>
-    public SourceSpan(string fileName, int startLine, int startColumn, int endLine, int endColumn)
+    /// <param name="startOffset">The first character's offset in the file, or a negative
+    /// value when the span was made without one.</param>
+    /// <param name="endOffset">One past the last character's offset in the file.</param>
+    public SourceSpan(
+        string fileName,
+        int startLine,
+        int startColumn,
+        int endLine,
+        int endColumn,
+        int startOffset = -1,
+        int endOffset = -1)
     {
         FileName = fileName;
         StartLine = startLine;
         StartColumn = startColumn;
         EndLine = endLine;
         EndColumn = endColumn;
+        StartOffset = startOffset;
+        EndOffset = endOffset;
     }
 
     /// <summary>Gets the file the span is in.</summary>
@@ -46,6 +58,19 @@ public readonly struct SourceSpan
     public int EndColumn { get; }
 
     /// <summary>
+    /// Gets the first character's offset in the file, or a negative value when the span
+    /// carries none.
+    /// <para>What turns a span into a real <c>Input</c>: upstream's <c>Input</c> holds two
+    /// pointers into the source buffer, so a location can quote its own line and a
+    /// diagnostic can point a caret at it. A span built by hand in a fixture has no
+    /// offsets, and answers "position unknown" rather than a plausible wrong place.</para>
+    /// </summary>
+    public int StartOffset { get; }
+
+    /// <summary>Gets one past the last character's offset in the file.</summary>
+    public int EndOffset { get; }
+
+    /// <summary>
     /// Returns the span covering both of two spans, which is what a reduce does to its
     /// right-hand side.
     /// </summary>
@@ -58,7 +83,9 @@ public readonly struct SourceSpan
             first.StartLine,
             first.StartColumn,
             last.EndLine,
-            last.EndColumn);
+            last.EndColumn,
+            first.StartOffset,
+            last.EndOffset);
 
     /// <summary>Returns the external representation.</summary>
     /// <returns>The span as <c>file:line:column</c>.</returns>
@@ -475,7 +502,9 @@ public sealed class LalrParser
                 previous.EndLine,
                 previous.EndColumn,
                 previous.EndLine,
-                previous.EndColumn);
+                previous.EndColumn,
+                previous.EndOffset,
+                previous.EndOffset);
         }
 
         object result = _actions.TryGetValue(ruleNumber, out RuleAction ruleAction)

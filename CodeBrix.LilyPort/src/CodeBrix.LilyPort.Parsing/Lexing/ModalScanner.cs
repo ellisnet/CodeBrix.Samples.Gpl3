@@ -301,6 +301,25 @@ public sealed class ModalScanner : IParserInput
             return false;
         }
 
+        BeginIncludeText(name, text);
+        return true;
+    }
+
+    /// <summary>
+    /// Switches the scanner to text already in hand, remembering where to resume.
+    /// <para>Upstream: the <c>Includable_lexer::new_input</c> overload taking a string,
+    /// which <c>ly:parser-include-string</c> reaches — the caller has the text, so there
+    /// is nothing to resolve.</para>
+    /// </summary>
+    /// <param name="name">The name locations in the text should carry.</param>
+    /// <param name="text">The text.</param>
+    public void BeginIncludeText(string name, string text)
+    {
+        if (text == null)
+        {
+            throw new ArgumentNullException(nameof(text));
+        }
+
         _includes.Push(new IncludedInput
         {
             Input = _input,
@@ -315,7 +334,6 @@ public sealed class ModalScanner : IParserInput
         _position = 0;
         _line = 1;
         _column = 0;
-        return true;
     }
 
     /// <summary>Gets or sets the name a sourcefilename renamed the input to.</summary>
@@ -342,11 +360,30 @@ public sealed class ModalScanner : IParserInput
     public int Terminal(string name)
         => _terminals.TryGetValue(name, out int number) ? number : -1;
 
-    /// <summary>Returns a token for a character that is its own terminal, such as a brace.</summary>
+    /// <summary>
+    /// Returns a token for a character that is its own terminal, such as a brace.
+    /// <para>The terminal's NAME is the character literal exactly as the grammar writes
+    /// it, because that is the text the grammar reader kept — so the quote and the
+    /// backslash have to be escaped here the way Bison escapes them. Getting that wrong
+    /// is silent: <c>Terminal</c> answers -1 for a name it does not know, the scanner
+    /// delivers token -1, and the driver reports "unexpected token -1" at a position that
+    /// looks like an ordinary syntax error. The octave mark <c>'</c> was 25 of the init
+    /// layer's errors for exactly this reason — <c>&lt;e, a, d g b e'&gt;</c> in
+    /// <c>string-tunings-init.ly</c>, where the grammar's terminal is <c>'\''</c> and the
+    /// port asked for <c>'''</c>.</para>
+    /// </summary>
     /// <param name="character">The character.</param>
     /// <returns>The token.</returns>
     public ParserToken CharacterToken(char character)
-        => Token(Terminal("'" + character + "'"), character);
+        => Token(Terminal(CharacterTerminalName(character)), character);
+
+    /// <summary>Names a character terminal the way the grammar's text spells it.</summary>
+    /// <param name="character">The character.</param>
+    /// <returns>The terminal name, such as <c>'{'</c> or <c>'\''</c>.</returns>
+    internal static string CharacterTerminalName(char character)
+        => character == '\'' || character == '\\'
+            ? "'\\" + character + "'"
+            : "'" + character + "'";
 
     /// <summary>Opens a quoted string, which is a start condition of its own.</summary>
     public void StartQuote()
@@ -378,12 +415,72 @@ public sealed class ModalScanner : IParserInput
 
     /// <summary>Reads one embedded Scheme expression at the scan position and steps past it.</summary>
     /// <param name="host">The reader to use.</param>
-    /// <returns>The value read.</returns>
+    /// <returns>The value read, or <see cref="DefaultArgument"/> when it could not be read.</returns>
     public object ReadEmbeddedScheme(ILexerHost host)
     {
-        object value = host.ParseEmbeddedScheme(_input, _position, out int consumed);
+        // The scan position is already past the `#' or `$', which is upstream's
+        // `Input hi = here_input (); hi.step_forward ();' — the offset of the '(' in
+        // "... #(bla)", and the key the closures alist is built on.
+        object value = host.ParseEmbeddedScheme(_input, _position, PointLocation(), out int consumed);
         Advance(consumed);
         return value;
+    }
+
+    /// <summary>
+    /// Reads and EVALUATES one immediate-Scheme (<c>$</c>) expression, and delivers the
+    /// token its value calls for — lexer.ll 424.
+    /// <para>
+    /// Two branches, in upstream's order. In markup mode a procedure carrying a markup
+    /// signature becomes a <c>MARKUP_FUNCTION</c> (or <c>MARKUP_LIST_FUNCTION</c>) with
+    /// its predicates announced, so <c>$my-markup-command</c> can be written wherever
+    /// <c>\my-markup-command</c> could. Otherwise the value goes through
+    /// <c>scan_scm_id</c>, which is what makes <c>$</c> type-directed rather than a
+    /// second spelling of <c>#</c>.
+    /// </para>
+    /// <para>
+    /// A value of <see cref="Unspecified"/> produces NO TOKEN: upstream's rule ends in
+    /// <c>if (!scm_is_eq (yylval, SCM_UNSPECIFIED)) return token;</c> and otherwise falls
+    /// off the end of the action, which in flex means "having consumed the text, carry on
+    /// scanning". That is the path a failed evaluation takes — the error is already
+    /// reported, and inventing a token for it would produce a second, spurious syntax
+    /// error.
+    /// </para>
+    /// </summary>
+    /// <param name="host">The host that reads, evaluates and classifies.</param>
+    /// <returns>The token, or <see langword="null"/> to keep scanning.</returns>
+    public ParserToken? ReadImmediateScheme(ILexerHost host)
+    {
+        SourceSpan start = PointLocation();
+        object datum = ReadEmbeddedScheme(host);
+        object value = host.EvalScheme(datum, start, '$');
+
+        if (State == LexerState.Markup)
+        {
+            LexerLookup markup = host.MarkupFunctionToken(value, out IReadOnlyList<MarkupPredicate> predicates);
+            if (markup.Found)
+            {
+                PushMarkupPredicates(predicates);
+                return Token(Terminal(markup.TokenName), markup.Value);
+            }
+        }
+
+        if (value is Unspecified)
+        {
+            return null;
+        }
+
+        LexerLookup found = host.ScanSchemeValue(value);
+        if (!found.Found)
+        {
+            return null;
+        }
+
+        if (found.FunctionSignature != null)
+        {
+            PushFunctionSignature(found.FunctionSignature);
+        }
+
+        return Token(Terminal(found.TokenName), found.Value);
     }
 
     /// <summary>Looks a bare word up in the current mode's tables, falling back to a symbol.</summary>
@@ -395,7 +492,7 @@ public sealed class ModalScanner : IParserInput
         LexerLookup found = host.ScanWord(State, word);
         return found.Found
             ? Token(Terminal(found.TokenName), found.Value)
-            : Token(Terminal("SYMBOL"), word);
+            : Token(Terminal("SYMBOL"), SchemeText(word));
     }
 
     /// <summary>
@@ -431,7 +528,7 @@ public sealed class ModalScanner : IParserInput
         }
 
         Error("unknown command: `\\" + word + "'");
-        return Token(Terminal("STRING"), word);
+        return Token(Terminal("STRING"), SchemeText(word));
     }
 
     /// <summary>Looks a shorthand up as an identifier.</summary>
@@ -455,8 +552,25 @@ public sealed class ModalScanner : IParserInput
         }
 
         Error("undefined character or shorthand: " + text);
-        return Token(Terminal("STRING"), text);
+        return Token(Terminal("STRING"), SchemeText(text));
     }
+
+    /// <summary>
+    /// Presents matched text as the SCHEME STRING a token carries.
+    /// <para>
+    /// Upstream every such value is <c>yylval = to_scm (str)</c> — a real Guile string,
+    /// and <c>markup?</c>, <c>string?</c> and every predicate built on them answer on it.
+    /// An earlier pass carried the CLR string the rule matched, on the recorded reasoning
+    /// that "MutableString is accepted wherever a value is TESTED for stringness". That
+    /// holds inside the port and NOT ONE STEP FURTHER: the Scheme layer's <c>string?</c>
+    /// is <c>value is MutableString</c>, so `\markup { \italic "cresc." }` handed
+    /// <c>composed-markup-list</c> a list whose element was not a markup, and the init
+    /// layer died inside a markup constructor rather than anywhere near the lexer.
+    /// </para>
+    /// </summary>
+    /// <param name="text">The text.</param>
+    /// <returns>The Scheme string.</returns>
+    public static MutableString SchemeText(string text) => new MutableString(text ?? string.Empty);
 
     /// <summary>
     /// Pushes the <c>EXPECT_*</c> tokens a markup command's signature calls for.
@@ -468,20 +582,26 @@ public sealed class ModalScanner : IParserInput
     /// </para>
     /// </summary>
     /// <param name="predicates">The command's argument predicates, in signature order.</param>
-    public void PushMarkupPredicates(IReadOnlyList<string> predicates)
+    public void PushMarkupPredicates(IReadOnlyList<MarkupPredicate> predicates)
     {
         PushExtraToken(Token(Terminal("EXPECT_NO_MORE_ARGS")));
 
-        foreach (string predicate in predicates)
+        foreach (MarkupPredicate predicate in predicates)
         {
-            string token = predicate switch
+            // EXPECT_MARKUP and EXPECT_MARKUP_LIST carry nothing — the grammar knows what
+            // they mean. EXPECT_SCM carries THE PREDICATE, which the arglist rules call.
+            switch (predicate.Name)
             {
-                "markup-list?" => "EXPECT_MARKUP_LIST",
-                "markup?" => "EXPECT_MARKUP",
-                _ => "EXPECT_SCM",
-            };
-
-            PushExtraToken(Token(Terminal(token), predicate));
+                case "markup-list?":
+                    PushExtraToken(Token(Terminal("EXPECT_MARKUP_LIST")));
+                    break;
+                case "markup?":
+                    PushExtraToken(Token(Terminal("EXPECT_MARKUP")));
+                    break;
+                default:
+                    PushExtraToken(Token(Terminal("EXPECT_SCM"), predicate.Value));
+                    break;
+            }
         }
     }
 
@@ -655,11 +775,19 @@ public sealed class ModalScanner : IParserInput
             }
         }
 
-        return new SourceSpan(_fileName, _line, _column + 1, endLine, endColumn + 1);
+        return new SourceSpan(
+            _fileName,
+            _line,
+            _column + 1,
+            endLine,
+            endColumn + 1,
+            _position,
+            _position + text.Length);
     }
 
     private SourceSpan PointLocation()
-        => new SourceSpan(_fileName, _line, _column + 1, _line, _column + 1);
+        => new SourceSpan(
+            _fileName, _line, _column + 1, _line, _column + 1, _position, _position);
 
     private void Advance(int count)
     {

@@ -164,7 +164,7 @@ public class RuleActionRag9Tests
         call.Should().NotBeNull();
 
         // Reversed arglist: last argument first, then the skipped optional's default.
-        Cars(call.Arguments[1]).Should().Equal("hi", 7L);
+        Cars(call.Arguments[1]).AsText().Should().Equal("hi", 7L);
         Dispatch(host, "argument-error").Should().BeNull();
     }
 
@@ -184,7 +184,7 @@ public class RuleActionRag9Tests
         parser.ErrorCount.Should().Be(0);
         SyntaxMark call = Dispatch(host, "music-function");
         call.Should().NotBeNull();
-        Cars(call.Arguments[1]).Should().Equal("hi", 3L);
+        Cars(call.Arguments[1]).AsText().Should().Equal("hi", 3L);
     }
 
     // ------ token choreography, invoked over a drainable scanner ------
@@ -211,9 +211,9 @@ public class RuleActionRag9Tests
 
         // ...and BACKUP leads the pushed-back token, exactly MYBACKUP's push order.
         ParserToken backup = scanner.Next();
-        backup.Symbol.Should().Be(Sym("BACKUP"));
+        backup.Symbol.AsText().Should().Be(Sym("BACKUP"));
         ParserToken token = scanner.Next();
-        token.Symbol.Should().Be(Sym("SCM_ARG"));
+        token.Symbol.AsText().Should().Be(Sym("SCM_ARG"));
         token.Value.Should().BeSameAs(refused);
     }
 
@@ -237,10 +237,10 @@ public class RuleActionRag9Tests
 
         //Assert
         Cars(result).Should().Equal(7L);
-        scanner.Next().Symbol.Should().Be(Sym("'-'"));
-        scanner.Next().Symbol.Should().Be(Sym("BACKUP"));
+        scanner.Next().Symbol.AsText().Should().Be(Sym("'-'"));
+        scanner.Next().Symbol.AsText().Should().Be(Sym("BACKUP"));
         ParserToken number = scanner.Next();
-        number.Symbol.Should().Be(Sym("UNSIGNED"));
+        number.Symbol.AsText().Should().Be(Sym("UNSIGNED"));
         number.Value.Should().Be(5L);
     }
 
@@ -261,9 +261,9 @@ public class RuleActionRag9Tests
             default);
 
         //Assert
-        scanner.Next().Symbol.Should().Be(Sym("BACKUP"));
+        scanner.Next().Symbol.AsText().Should().Be(Sym("BACKUP"));
         ParserToken real = scanner.Next();
-        real.Symbol.Should().Be(Sym("REAL"));
+        real.Symbol.AsText().Should().Be(Sym("REAL"));
         real.Value.Should().Be(-3.5);
     }
 
@@ -286,10 +286,10 @@ public class RuleActionRag9Tests
 
         //Assert
         Cars(result).Should().Equal(7L);
-        scanner.Next().Symbol.Should().Be(Sym("BACKUP"));
+        scanner.Next().Symbol.AsText().Should().Be(Sym("BACKUP"));
         ParserToken token = scanner.Next();
-        token.Symbol.Should().Be(Sym("STRING"));
-        token.Value.Should().Be("word");
+        token.Symbol.AsText().Should().Be(Sym("STRING"));
+        token.Value.AsText().Should().Be("word");
     }
 
     [Fact]
@@ -320,9 +320,9 @@ public class RuleActionRag9Tests
         //Assert
         result.Should().Be(Nil.Instance);
         ((MadeMusic)accepted).Name.Should().Be("NoteEvent");
-        scanner.Next().Symbol.Should().Be(Sym("REPARSE"));
+        scanner.Next().Symbol.AsText().Should().Be(Sym("REPARSE"));
         ParserToken token = scanner.Next();
-        token.Symbol.Should().Be(Sym("PITCH_IDENTIFIER"));
+        token.Symbol.AsText().Should().Be(Sym("PITCH_IDENTIFIER"));
         token.Value.Should().Be(pitch);
     }
 }

@@ -105,7 +105,7 @@ public class RuleActionRag1Tests
 
         //Assert
         parser.ErrorCount.Should().Be(0);
-        host.Globals.Bindings[Symbol.Intern("title")].Should().Be("Adagio");
+        host.Globals.Bindings[Symbol.Intern("title")].AsText().Should().Be("Adagio");
     }
 
     [Fact]
@@ -123,8 +123,8 @@ public class RuleActionRag1Tests
         host.Scopes.Should().BeEmpty();
 
         FakeModule header = (FakeModule)host.Globals.Bindings[Symbol.Intern("$defaultheader")];
-        header.Bindings[Symbol.Intern("title")].Should().Be("Adagio");
-        header.Bindings[Symbol.Intern("composer")].Should().Be("Someone");
+        header.Bindings[Symbol.Intern("title")].AsText().Should().Be("Adagio");
+        header.Bindings[Symbol.Intern("composer")].AsText().Should().Be("Someone");
     }
 
     [Fact]
@@ -147,9 +147,9 @@ public class RuleActionRag1Tests
         //Assert
         FakeModule header = (FakeModule)host.Globals.Bindings[Symbol.Intern("$defaultheader")];
         header.Should().NotBeSameAs(earlier);
-        header.Bindings[Symbol.Intern("composer")].Should().Be("Kept");
-        header.Bindings[Symbol.Intern("title")].Should().Be("New");
-        earlier.Bindings[Symbol.Intern("title")].Should().Be("Old");
+        header.Bindings[Symbol.Intern("composer")].AsText().Should().Be("Kept");
+        header.Bindings[Symbol.Intern("title")].AsText().Should().Be("New");
+        earlier.Bindings[Symbol.Intern("title")].AsText().Should().Be("Old");
     }
 
     [Fact]
@@ -172,7 +172,7 @@ public class RuleActionRag1Tests
         parser.ErrorCount.Should().Be(0);
 
         FakeModule assigned = (FakeModule)host.Globals.Bindings[Symbol.Intern("foo")];
-        assigned.Bindings[Symbol.Intern("title")].Should().Be("T");
+        assigned.Bindings[Symbol.Intern("title")].AsText().Should().Be("T");
         assigned.Bindings.ContainsKey(Symbol.Intern("composer")).Should().BeFalse();
         host.Globals.Bindings[Symbol.Intern("$defaultheader")].Should().BeSameAs(earlier);
     }
@@ -190,7 +190,7 @@ public class RuleActionRag1Tests
         //Assert
         parser.ErrorCount.Should().Be(0);
         host.EvaluatedTokens.Should().HaveCount(1);
-        host.EvaluatedTokens[0].Should().Be("(display \"hi\")");
+        host.EvaluatedTokens[0].AsText().Should().Be("(display \"hi\")");
     }
 
     [Fact]
@@ -208,7 +208,7 @@ public class RuleActionRag1Tests
 
         //Assert
         host.Calls.Should().HaveCount(1);
-        host.Calls[0].Procedure.Should().Be("book-proc");
+        host.Calls[0].Procedure.AsText().Should().Be("book-proc");
         host.Calls[0].Arguments[0].Should().BeSameAs(book);
     }
 
@@ -225,7 +225,7 @@ public class RuleActionRag1Tests
 
         //Assert
         host.Calls.Should().HaveCount(1);
-        host.Calls[0].Procedure.Should().Be("bookpart-proc");
+        host.Calls[0].Procedure.AsText().Should().Be("bookpart-proc");
     }
 
     [Fact]
@@ -240,9 +240,9 @@ public class RuleActionRag1Tests
 
         //Assert
         host.Calls.Should().HaveCount(1);
-        host.Calls[0].Procedure.Should().Be("text-proc");
+        host.Calls[0].Procedure.AsText().Should().Be("text-proc");
         Pair wrapped = (Pair)host.Calls[0].Arguments[0];
-        wrapped.Car.Should().Be("a markup");
+        wrapped.Car.AsText().Should().Be("a markup");
         wrapped.Cdr.Should().BeSameAs(Nil.Instance);
     }
 
@@ -275,7 +275,7 @@ public class RuleActionRag1Tests
         //Assert
         FakeModule header = (FakeModule)host.Globals.Bindings[Symbol.Intern("$defaultheader")];
         header.Should().NotBeSameAs(supplied);
-        header.Bindings[Symbol.Intern("title")].Should().Be("From Scheme");
+        header.Bindings[Symbol.Intern("title")].AsText().Should().Be("From Scheme");
     }
 
     [Fact]
@@ -307,7 +307,7 @@ public class RuleActionRag1Tests
 
         //Assert
         host.Calls.Should().HaveCount(1);
-        host.Calls[0].Procedure.Should().Be("score-proc");
+        host.Calls[0].Procedure.AsText().Should().Be("score-proc");
         host.Calls[0].Arguments[0].Should().BeSameAs(score);
     }
 
@@ -499,7 +499,7 @@ public class RuleActionRag1Tests
 
         //Assert
         result.Should().BeSameAs(music);
-        host.LexerModeOperations.Should().Equal("push-note-state", "pop-state");
+        host.LexerModeOperations.AsText().Should().Equal("push-note-state", "pop-state");
     }
 
     [Fact]
@@ -523,7 +523,7 @@ public class RuleActionRag1Tests
         SyntaxMark mark = (SyntaxMark)result;
         mark.Name.Should().Be("partial-music-function");
         Pair reversed = (Pair)mark.Arguments[0];
-        reversed.Car.Should().Be("first-call");
-        ((Pair)reversed.Cdr).Car.Should().Be("second-call");
+        reversed.Car.AsText().Should().Be("first-call");
+        ((Pair)reversed.Cdr).Car.AsText().Should().Be("second-call");
     }
 }

@@ -124,8 +124,8 @@ public class RuleActionRag11Tests
         // (property-override (NoteHead color) Bottom) — the path's REST before its
         // HEAD, the reverse of music_property_def's argument order.
         List<object> entry = Cars(entries[0]);
-        entry[0].Should().Be("constructor:property-override");
-        Cars(entry[1]).Should().Equal(Symbol.Intern("NoteHead"), Symbol.Intern("color"));
+        entry[0].AsText().Should().Be("constructor:property-override");
+        Cars(entry[1]).AsText().Should().Equal(Symbol.Intern("NoteHead"), Symbol.Intern("color"));
         entry[2].Should().BeSameAs(Symbol.Intern("Bottom"));
     }
 
@@ -143,7 +143,7 @@ public class RuleActionRag11Tests
 
         // (property-set fontSize-symbol context) — scm_cadr before scm_car.
         List<object> entry = Cars(entries[0]);
-        entry[0].Should().Be("constructor:property-set");
+        entry[0].AsText().Should().Be("constructor:property-set");
         entry[1].Should().BeSameAs(Symbol.Intern("autoBeaming"));
         entry[2].Should().BeSameAs(Symbol.Intern("Bottom"));
     }
@@ -162,8 +162,8 @@ public class RuleActionRag11Tests
         parser.ErrorCount.Should().Be(0);
         List<object> entries = Cars(callList);
         entries.Should().HaveCount(2);
-        Cars(entries[0])[0].Should().Be("constructor:property-set");
-        Cars(entries[1])[0].Should().Be("constructor:property-override");
+        Cars(entries[0])[0].AsText().Should().Be("constructor:property-set");
+        Cars(entries[1])[0].AsText().Should().Be("constructor:property-override");
     }
 
     [Fact]
@@ -180,8 +180,8 @@ public class RuleActionRag11Tests
         parser.ErrorCount.Should().Be(0);
         List<object> entries = Cars(callList);
         entries.Should().HaveCount(2);
-        Cars(entries[0])[0].Should().Be("constructor:property-override");
-        Cars(entries[1])[0].Should().Be("constructor:property-set");
+        Cars(entries[0])[0].AsText().Should().Be("constructor:property-override");
+        Cars(entries[1])[0].AsText().Should().Be("constructor:property-set");
     }
 
     [Fact]
@@ -197,7 +197,7 @@ public class RuleActionRag11Tests
         entries.Should().HaveCount(1);
 
         // (repeat count type) — ly_list (Syntax::repeat, $3, $2).
-        Cars(entries[0]).Should().Equal("constructor:repeat", 2L, "volta");
+        Cars(entries[0]).AsText().Should().Equal("constructor:repeat", 2L, "volta");
     }
 
     [Fact]
@@ -211,8 +211,8 @@ public class RuleActionRag11Tests
         parser.ErrorCount.Should().Be(0);
         List<object> entries = Cars(callList);
         entries.Should().HaveCount(2);
-        Cars(entries[0])[0].Should().Be("constructor:property-override");
-        Cars(entries[1]).Should().Equal("constructor:repeat", 2L, "volta");
+        Cars(entries[0])[0].AsText().Should().Be("constructor:property-override");
+        Cars(entries[1]).AsText().Should().Equal("constructor:repeat", 2L, "volta");
     }
 
     [Fact]
@@ -226,7 +226,7 @@ public class RuleActionRag11Tests
         parser.ErrorCount.Should().Be(0);
         List<object> entries = Cars(callList);
         entries.Should().HaveCount(1);
-        Cars(entries[0]).Should().Equal("constructor:repeat", "volta");
+        Cars(entries[0]).AsText().Should().Equal("constructor:repeat", "volta");
     }
 
     [Fact]
@@ -240,8 +240,8 @@ public class RuleActionRag11Tests
         parser.ErrorCount.Should().Be(0);
         List<object> entries = Cars(callList);
         entries.Should().HaveCount(2);
-        Cars(entries[0])[0].Should().Be("constructor:property-set");
-        Cars(entries[1]).Should().Equal("constructor:repeat", "volta");
+        Cars(entries[0])[0].AsText().Should().Be("constructor:property-set");
+        Cars(entries[1]).AsText().Should().Equal("constructor:repeat", "volta");
     }
 
     [Fact]
@@ -439,7 +439,7 @@ public class RuleActionRag11Tests
         entry[2].Should().Be(1L);
 
         // parser->lexer_->pop_state () — markup_mode pushed it, this action pops it.
-        host.LexerModeOperations.Should().Equal("pop-state");
+        host.LexerModeOperations.AsText().Should().Equal("pop-state");
     }
 
     [Fact]
@@ -475,7 +475,7 @@ public class RuleActionRag11Tests
         //Assert
         // scm_acons (Syntax::create_script_function, ly_list ($1), $2).
         Pair entry = (Pair)((Pair)result).Car;
-        entry.Car.Should().Be("constructor:create-script-function");
+        entry.Car.AsText().Should().Be("constructor:create-script-function");
         Cars(entry.Cdr).Should().Equal(-1L);
         ((Pair)result).Cdr.Should().BeSameAs(chain);
     }
@@ -512,7 +512,7 @@ public class RuleActionRag11Tests
 
         //Assert
         Pair entry = (Pair)((Pair)result).Car;
-        entry.Car.Should().Be("constructor:create-script-function");
+        entry.Car.AsText().Should().Be("constructor:create-script-function");
         Cars(entry.Cdr).Should().Equal(1L);
         ((Pair)result).Cdr.Should().BeSameAs(Nil.Instance);
     }
