@@ -65,6 +65,21 @@ public static class FontInterface
     private static readonly Symbol StaffHeightSymbol = Symbol.Intern("staff-height");
     private static readonly Symbol OutputScaleSymbol = Symbol.Intern("output-scale");
     private static readonly Symbol FetaDesignSizeMapping = Symbol.Intern("feta-design-size-mapping");
+    private static readonly Symbol TextFontSizeSymbol = Symbol.Intern("text-font-size");
+    private static readonly Symbol FontShapeSymbol = Symbol.Intern("font-shape");
+    private static readonly Symbol FontSeriesSymbol = Symbol.Intern("font-series");
+    private static readonly Symbol FontVariantSymbol = Symbol.Intern("font-variant");
+    private static readonly Symbol ItalicSymbol = Symbol.Intern("italic");
+    private static readonly Symbol ObliqueSymbol = Symbol.Intern("oblique");
+    private static readonly Symbol SlantedSymbol = Symbol.Intern("slanted");
+    private static readonly Symbol SmallCapsSymbol = Symbol.Intern("small-caps");
+
+    // Upstream keeps its Pango fonts in the definition's `pango-fonts` variable; this
+    // is that list, keyed the same way the scaled-font table is — by TOPMOST
+    // definition, so a \layout and the \paper above it share one instance per request.
+    private static readonly Dictionary<OutputDef,
+        Dictionary<(string, bool, bool, bool, double), TextFontMetric>> TextFonts
+        = new Dictionary<OutputDef, Dictionary<(string, bool, bool, bool, double), TextFontMetric>>();
 
     // The layout's cache of scaled fonts, keyed by the font it scales. Upstream keeps
     // this in a Scheme hash table hanging off the topmost Output_def; the port keeps a
@@ -151,18 +166,15 @@ public static class FontInterface
             encoding = Latin1Symbol;
         }
 
-        if (!IsMusicEncoding(encoding))
-        {
-            // See the class remark: the text path is Pango's upstream and the
-            // TextLayout add-in's here. Refusing is the honest answer.
-            Warn.Warning(
-                "text fonts are not resolved by the engine port; requested encoding "
-                + Describe(encoding));
-            return null;
-        }
+        bool music = IsMusicEncoding(encoding);
 
-        // A music font's base size comes from the staff height, in points.
-        double baseSize = layout.GetDimension(StaffHeightSymbol) / Dimensions.Point;
+        // A music font's base size comes from the staff height, in points; a text
+        // font's from text-font-size, which is a POINT SIZE and so is multiplied by the
+        // point constant rather than divided by it. Getting that inversion wrong scales
+        // all text by about eight.
+        double baseSize = music
+            ? layout.GetDimension(StaffHeightSymbol) / Dimensions.Point
+            : layout.GetDimension(TextFontSizeSymbol) * Dimensions.Point;
 
         object step = SchemeUtilities.ChainAssocGet(FontSizeSymbol, chain, false);
         double requestedStep = SchemeConvert.IsNumber(step)
@@ -170,15 +182,28 @@ public static class FontInterface
             : 0.0;
         double requestedSize = baseSize * Math.Pow(2.0, requestedStep / 6.0);
 
-        object family = SchemeUtilities.ChainAssocGet(FontFamilySymbol, chain, false);
-        if (!(family is Symbol)
-            || ReferenceEquals(family, SerifSymbol)
-            || ReferenceEquals(family, SansSymbol)
-            || ReferenceEquals(family, TypewriterSymbol))
+        object family;
+        if (music)
         {
-            // This is ugly and should be improved. It happens with things like
-            // \markup \sans { piu \dynamic p }
-            family = MusicSymbol;
+            family = SchemeUtilities.ChainAssocGet(FontFamilySymbol, chain, false);
+            if (!(family is Symbol)
+                || ReferenceEquals(family, SerifSymbol)
+                || ReferenceEquals(family, SansSymbol)
+                || ReferenceEquals(family, TypewriterSymbol))
+            {
+                // This is ugly and should be improved. It happens with things like
+                // \markup \sans { piu \dynamic p }
+                family = MusicSymbol;
+            }
+        }
+        else
+        {
+            family = SchemeUtilities.ChainAssocGet(FontFamilySymbol, chain, SerifSymbol);
+        }
+
+        if (!music)
+        {
+            return SelectTextFont(layout, chain, family, fonts, stringDescription, requestedSize);
         }
 
         Pair nameEntry = SchemeUtilities.Assq(family, fonts);
@@ -215,6 +240,190 @@ public static class FontInterface
 
         return FindScaledFont(layout, font, requestedSize / actualSize);
     }
+
+    /// <summary>
+    /// Chooses a TEXT font — upstream's Pango branch of <c>select_font</c>.
+    /// <para>
+    /// Upstream builds a <c>PangoFontDescription</c>, tweaks it from the property chain
+    /// and hands it to FontConfig. The port has neither, so it resolves the same three
+    /// decisions — family, weight, slant — into a <see cref="TextFontMetric"/> over the
+    /// vendored faces (D23's chain). What survives verbatim is the DESCRIPTION STRING,
+    /// because that string is what the SVG backend parses back out.
+    /// </para>
+    /// </summary>
+    /// <param name="layout">The output definition.</param>
+    /// <param name="chain">The property alist chain.</param>
+    /// <param name="family">The family symbol resolved from the chain.</param>
+    /// <param name="fonts">The layout's family-to-name alist.</param>
+    /// <param name="stringDescription">A <c>font-name</c> description string, or <see langword="false"/>.</param>
+    /// <param name="requestedSize">The size wanted, in LilyPond's internal length unit.</param>
+    /// <returns>The font.</returns>
+    private static FontMetric SelectTextFont(
+        OutputDef layout,
+        object chain,
+        object family,
+        object fonts,
+        object stringDescription,
+        double requestedSize)
+    {
+        bool bold = false;
+        bool italic = false;
+        bool smallCaps = false;
+        string name;
+
+        string given = TextOf(stringDescription);
+        if (given != null)
+        {
+            // font-name is a Pango description string: it supplies the family and the
+            // style words, and its SIZE is deliberately disregarded — the size always
+            // comes from font-size and text-font-size.
+            name = ParseDescription(given, ref bold, ref italic, ref smallCaps);
+        }
+        else
+        {
+            Pair nameEntry = SchemeUtilities.Assq(family, fonts);
+            name = nameEntry == null ? null : TextOf(nameEntry.Cdr);
+            if (name == null)
+            {
+                Warn.Warning("no entry for font family " + Describe(family) + " in fonts alist");
+                name = "LilyPond Serif";
+            }
+
+            // tweak_pango_description: font-shape, font-series and font-variant only
+            // reach a font this way, and only for real text.
+            object shape = SchemeUtilities.ChainAssocGet(FontShapeSymbol, chain, false);
+            italic = ReferenceEquals(shape, ItalicSymbol)
+                     || ReferenceEquals(shape, ObliqueSymbol)
+                     || ReferenceEquals(shape, SlantedSymbol);
+
+            object series = SchemeUtilities.ChainAssocGet(FontSeriesSymbol, chain, false);
+            bold = IsBoldSeries(series);
+
+            object variant = SchemeUtilities.ChainAssocGet(FontVariantSymbol, chain, false);
+            smallCaps = ReferenceEquals(variant, SmallCapsSymbol);
+        }
+
+        OutputDef top = layout;
+        while (top.Parent != null)
+        {
+            top = top.Parent;
+        }
+
+        double outputScale = top.GetDimension(OutputScaleSymbol);
+        if (outputScale <= 0.0)
+        {
+            outputScale = 1.0;
+        }
+
+        (string, bool, bool, bool, double) key = (name, bold, italic, smallCaps, requestedSize);
+        if (!TextFonts.TryGetValue(top, out Dictionary<(string, bool, bool, bool, double), TextFontMetric> table))
+        {
+            table = new Dictionary<(string, bool, bool, bool, double), TextFontMetric>();
+            TextFonts[top] = table;
+        }
+
+        if (table.TryGetValue(key, out TextFontMetric cached))
+        {
+            return cached;
+        }
+
+        TextFontMetric font = new TextFontMetric(
+            name, bold, italic, smallCaps, requestedSize, outputScale);
+        table[key] = font;
+        return font;
+    }
+
+    private static bool IsBoldSeries(object series)
+    {
+        if (!(series is Symbol symbol))
+        {
+            return false;
+        }
+
+        switch (symbol.Name)
+        {
+            case "bold":
+            case "semibold":
+            case "demibold":
+            case "ultrabold":
+            case "extrabold":
+            case "black":
+            case "heavy":
+            case "ultraheavy":
+            case "extrablack":
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    /// <summary>
+    /// Splits a Pango description string into its family and its style words.
+    /// </summary>
+    /// <param name="description">The description, such as <c>Nimbus Sans Bold Italic</c>.</param>
+    /// <param name="bold">Set when the description asks for bold.</param>
+    /// <param name="italic">Set when the description asks for italic or oblique.</param>
+    /// <param name="smallCaps">Set when the description asks for small capitals.</param>
+    /// <returns>The family part.</returns>
+    private static string ParseDescription(
+        string description,
+        ref bool bold,
+        ref bool italic,
+        ref bool smallCaps)
+    {
+        string remaining = description.Trim();
+
+        // A trailing size is dropped: font-name supplies style, never size.
+        int lastSpace = remaining.LastIndexOf(' ');
+        if (lastSpace > 0
+            && double.TryParse(
+                remaining.Substring(lastSpace + 1),
+                System.Globalization.NumberStyles.Float,
+                CultureInfo.InvariantCulture,
+                out double _))
+        {
+            remaining = remaining.Substring(0, lastSpace).TrimEnd();
+        }
+
+        bool changed = true;
+        while (changed)
+        {
+            changed = false;
+            foreach ((string Word, int Which) style in DescriptionStyles)
+            {
+                if (remaining.EndsWith(" " + style.Word, StringComparison.OrdinalIgnoreCase))
+                {
+                    remaining = remaining.Substring(0, remaining.Length - style.Word.Length - 1)
+                        .TrimEnd();
+                    switch (style.Which)
+                    {
+                        case 0:
+                            bold = true;
+                            break;
+                        case 1:
+                            italic = true;
+                            break;
+                        default:
+                            smallCaps = true;
+                            break;
+                    }
+
+                    changed = true;
+                    break;
+                }
+            }
+        }
+
+        return remaining.Length == 0 ? "serif" : remaining;
+    }
+
+    private static readonly (string Word, int Which)[] DescriptionStyles =
+    {
+        ("Bold", 0),
+        ("Italic", 1),
+        ("Oblique", 1),
+        ("Small-Caps", 2),
+    };
 
     /// <summary>
     /// Returns the design size the Emmentaler is actually drawn at that is closest to a
@@ -293,8 +502,54 @@ public static class FontInterface
         return scaled;
     }
 
-    /// <summary>Discards every layout's scaled-font table.</summary>
-    public static void ResetScaledFonts() => ScaledFonts.Clear();
+    /// <summary>Discards every layout's scaled-font and text-font table.</summary>
+    public static void ResetScaledFonts()
+    {
+        ScaledFonts.Clear();
+        TextFonts.Clear();
+    }
+
+    /// <summary>
+    /// The fonts a definition has scaled so far — <c>ly:paper-fonts</c>'s answer.
+    /// <para>Upstream reads the definition's <c>scaled-fonts</c> hash variable plus its
+    /// <c>pango-fonts</c> list and keeps the Modified_font_metric and Pango_font
+    /// entries. Both halves are here, keyed by topmost definition.</para>
+    /// </summary>
+    /// <param name="layout">The output definition asked.</param>
+    /// <returns>The scaled font metrics, newest first as upstream conses them.</returns>
+    public static IReadOnlyList<FontMetric> PaperFonts(OutputDef layout)
+    {
+        List<FontMetric> fonts = new List<FontMetric>();
+        if (layout == null)
+        {
+            return fonts;
+        }
+
+        OutputDef top = layout;
+        while (top.Parent != null)
+        {
+            top = top.Parent;
+        }
+
+        if (ScaledFonts.TryGetValue(top, out Dictionary<(FontMetric, double), FontMetric> table))
+        {
+            foreach (FontMetric scaled in table.Values)
+            {
+                fonts.Add(scaled);
+            }
+        }
+
+        if (TextFonts.TryGetValue(
+            top, out Dictionary<(string, bool, bool, bool, double), TextFontMetric> text))
+        {
+            foreach (TextFontMetric font in text.Values)
+            {
+                fonts.Add(font);
+            }
+        }
+
+        return fonts;
+    }
 
     private static bool IsMusicEncoding(object encoding)
         => ReferenceEquals(encoding, FetaMusicSymbol)

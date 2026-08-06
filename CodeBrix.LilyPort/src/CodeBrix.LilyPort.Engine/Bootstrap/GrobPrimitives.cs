@@ -153,6 +153,16 @@ public static class GrobPrimitives
 
             return false;
         });
+
+        // item-scheme.cc, PULLED FORWARD out of EPG23 by EPG4's demand loop: the
+        // moment a StaffSpacing grob exists, Staff_spacing::get_spacing reads the
+        // space-alist off a break-aligned grob, and several of those entries are
+        // break-alignment-list callbacks -- which ask an item which side of a break it
+        // is on. Recorded in PORT-COVERAGE; the ledger row moved with it.
+        interpreter.DefinePrimitive("ly:item-break-dir", 1, 1, a =>
+            AsGrob(a[0], "ly:item-break-dir") is Item item
+                ? (object)(long)item.BreakStatusDirection().Value
+                : false);
     }
 
     private static void InstallGeometry(Interpreter interpreter)

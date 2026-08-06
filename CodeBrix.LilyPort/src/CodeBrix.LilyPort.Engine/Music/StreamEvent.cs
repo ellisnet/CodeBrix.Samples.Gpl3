@@ -46,6 +46,7 @@ public class StreamEvent : Prob
     private static readonly Symbol ElementSymbol = Symbol.Intern("element");
     private static readonly Symbol ElementsSymbol = Symbol.Intern("elements");
     private static readonly Symbol PitchAlistSymbol = Symbol.Intern("pitch-alist");
+    private static readonly Symbol MakeEventClassSymbol = Symbol.Intern("ly:make-event-class");
 
     /// <summary>Initializes an event with no class.</summary>
     public StreamEvent()
@@ -79,6 +80,44 @@ public class StreamEvent : Prob
     /// <summary>Returns an independent copy of this event.</summary>
     /// <returns>The clone.</returns>
     public virtual StreamEvent Clone() => new StreamEvent(this);
+
+    /// <summary>
+    /// Expands an event-class leaf name into the whole ancestry, which is what
+    /// <c>ly:make-event-class</c> does.
+    /// <para>
+    /// The expansion is load bearing everywhere a listener is registered for a
+    /// SUPERCLASS: an engraver listening for <c>rhythmic-event</c> hears a note only
+    /// because the note's class list carries its ancestors too. The engine's own
+    /// internal events — <c>CreateContext</c>, <c>RemoveContext</c>, <c>Prepare</c> —
+    /// go through the same table, where every one of them descends from
+    /// <c>StreamEvent</c>.
+    /// </para>
+    /// <para>
+    /// <c>ly:make-event-class</c> is defined in <c>scm/define-event-classes.scm</c>
+    /// rather than in C++, so there is nothing to port and nothing to cache across
+    /// interpreters. With no interpreter standing — a fixture exercising the dispatcher
+    /// alone — the leaf name is its own one-element class list, which is what the
+    /// dispatcher needs and all it needs.
+    /// </para>
+    /// </summary>
+    /// <param name="className">The leaf class name.</param>
+    /// <returns>The class list.</returns>
+    public static object MakeEventClass(Symbol className)
+    {
+        if (className == null)
+        {
+            return Nil.Instance;
+        }
+
+        object procedure = Bootstrap.LilyPondScheme.LookupProcedure(MakeEventClassSymbol);
+        if (procedure == null)
+        {
+            return Pair.List(className);
+        }
+
+        object expanded = SchemeUtilities.CallCallback(procedure, className);
+        return expanded is Pair ? expanded : Pair.List(className);
+    }
 
     /// <summary>Determines whether this event belongs to a given class.</summary>
     /// <param name="className">The class to test for.</param>

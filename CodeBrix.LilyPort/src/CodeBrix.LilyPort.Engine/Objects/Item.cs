@@ -105,6 +105,25 @@ public class Item : Grob
         => _brokenToDrul[direction] = piece;
 
     /// <summary>
+    /// Returns the paper column this item hangs off, by walking the horizontal parent
+    /// chain. A column answers itself.
+    /// </summary>
+    /// <returns>The column, or <see langword="null"/> when the item has no column.</returns>
+    public virtual PaperColumn GetColumn()
+        => GetParent(Axis.X) is Item parent ? parent.GetColumn() : null;
+
+    /// <summary>
+    /// Returns the system this item ended up on, which is the answer its column gives
+    /// and is therefore <see langword="null"/> until line breaking has run.
+    /// </summary>
+    /// <returns>The system, or <see langword="null"/>.</returns>
+    public override SystemGrob GetSystem()
+    {
+        Grob parent = GetParent(Axis.X);
+        return parent != null ? parent.GetSystem() : null;
+    }
+
+    /// <summary>
     /// Returns which side of a break this item is on: negative for the copy at the end
     /// of a line, positive for the one at the start of the next, centre for an
     /// unbroken original.

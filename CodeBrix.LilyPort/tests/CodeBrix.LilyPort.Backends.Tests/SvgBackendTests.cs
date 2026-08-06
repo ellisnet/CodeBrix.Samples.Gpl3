@@ -486,11 +486,13 @@ public class SvgBackendTests
     public void a_rendered_document_is_well_formed_xml_with_the_xlink_namespace_bound()
     {
         //Arrange
-        // Found by the regression comparator on the port's very first output: every
-        // glyph reference is an xlink:href, and a document using that prefix without
-        // binding the namespace is not well-formed XML. It renders fine in a browser
-        // and fails in an XML parser, so nothing catches it until something parses the
-        // output -- which is exactly what the comparator does.
+        // Found by the regression comparator on the port's very first output: a
+        // document using the xlink prefix without binding the namespace is not
+        // well-formed XML. It renders fine in a browser and fails in an XML parser, so
+        // nothing catches it until something parses the output -- which is exactly what
+        // the comparator does. The binding stays even though EPG13 retired the
+        // `use xlink:href` glyph stand-in that first needed it, because the declaration
+        // is what upstream's own SVG carries and the documents are compared.
         SvgBackend backend = new SvgBackend();
         Stencil glyph = new Stencil(
             Pair.List(Symbol.Intern("named-glyph"), new MutableString("font"), new MutableString("clefs.G")),
@@ -502,7 +504,10 @@ public class SvgBackendTests
 
         //Assert
         document.Should().Contain("xmlns:xlink=\"http://www.w3.org/1999/xlink\"");
-        document.Should().Contain("xlink:href=");
+
+        // A glyph whose first element is not a real font draws nothing at all rather
+        // than a reference to a name no document defines.
+        document.Should().NotContain("xlink:href=");
 
         System.Action parse = () => System.Xml.Linq.XDocument.Parse(document);
         parse.Should().NotThrow();

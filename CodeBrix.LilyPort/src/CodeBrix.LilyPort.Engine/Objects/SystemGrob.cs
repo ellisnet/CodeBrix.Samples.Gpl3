@@ -61,6 +61,24 @@ public class SystemGrob : Spanner
     private static readonly Symbol LayerSymbol = Symbol.Intern("layer");
     private static readonly Symbol ExtraOffsetSymbol = Symbol.Intern("extra-offset");
     private static readonly Symbol CombineStencilSymbol = Symbol.Intern("combine-stencil");
+    private static readonly Symbol LineBreakSystemDetailsSymbol
+        = Symbol.Intern("line-break-system-details");
+
+    private static readonly Symbol VerticalSkylinesSymbol = Symbol.Intern("vertical-skylines");
+    private static readonly Symbol PageBreakPermissionSymbol
+        = Symbol.Intern("page-break-permission");
+
+    private static readonly Symbol PageTurnPermissionSymbol
+        = Symbol.Intern("page-turn-permission");
+
+    private static readonly Symbol PageBreakPenaltySymbol = Symbol.Intern("page-break-penalty");
+    private static readonly Symbol PageTurnPenaltySymbol = Symbol.Intern("page-turn-penalty");
+    private static readonly Symbol LastInScoreSymbol = Symbol.Intern("last-in-score");
+    private static readonly Symbol SystemGrobSymbol = Symbol.Intern("system-grob");
+    private static readonly Symbol BeforeLineBreakingSymbol
+        = Symbol.Intern("before-line-breaking");
+
+    private static readonly Symbol SpringsAndRodsSymbol = Symbol.Intern("springs-and-rods");
 
     /// <summary>Initializes a system from its type's basic property alist.</summary>
     /// <param name="basicProperties">The immutable alist for this grob type.</param>
@@ -274,11 +292,26 @@ public class SystemGrob : Spanner
     public new PaperColumn GetBound(Direction direction) => base.GetBound(direction) as PaperColumn;
 
     /// <summary>
-    /// Prebreaks every breakable item on this system, so that a copy exists for each
-    /// side of every candidate line break.
+    /// Prepares the system for line breaking: every breakable item is prebroken, then
+    /// every grob is asked for its <c>before-line-breaking</c> and
+    /// <c>springs-and-rods</c> properties.
     /// <para>
-    /// The iteration is bounded by the ORIGINAL count on purpose: breaking appends the
-    /// clones to the same list, and the clones must not themselves be broken.
+    /// Those last two reads ARE the calls. Nothing invokes the spacing spanner directly;
+    /// its <c>springs-and-rods</c> property resolves to
+    /// <c>ly:spacing-spanner::set-springs</c>, so reading the property is what states the
+    /// entire horizontal spacing problem. A grob whose callback is never reached simply
+    /// contributes nothing, silently — which is why this loop covers every element
+    /// rather than a list of the ones known to care.
+    /// </para>
+    /// <para>
+    /// The prebreak iteration is bounded by the ORIGINAL count on purpose: breaking
+    /// appends the clones to the same list, and the clones must not themselves be broken.
+    /// </para>
+    /// <para>
+    /// DIVERGENCE, recorded in PORT-COVERAGE: upstream also runs
+    /// <c>handle_prebroken_dependencies</c> and <c>fixup_refpoint</c> between the two
+    /// halves. Both re-point grobs at the prebroken pieces they belong with, which only
+    /// matters once lines are actually broken — EPG15's subsystem.
     /// </para>
     /// </summary>
     public void PreProcessing()
@@ -290,6 +323,43 @@ public class SystemGrob : Spanner
         {
             BreakBreakableItem(all[i]);
         }
+
+        // Order is significant: the broken pieces were appended above and are asked
+        // BEFORE the originals they came from, which upstream relies on because an
+        // original may kill itself while answering.
+        GetProperty(BeforeLineBreakingSymbol);
+        for (int i = all.Count; i-- > 0;)
+        {
+            all[i].GetProperty(BeforeLineBreakingSymbol);
+        }
+
+        GetProperty(SpringsAndRodsSymbol);
+        for (int i = all.Count; i-- > 0;)
+        {
+            all[i].GetProperty(SpringsAndRodsSymbol);
+        }
+    }
+
+    /// <summary>
+    /// Returns the system a grob is typeset into, by walking VERTICAL parents to the
+    /// root.
+    /// <para>
+    /// The vertical chain is the one that always ends at the system, which is what makes
+    /// this reliable before line breaking, when no grob has been assigned to a line yet.
+    /// </para>
+    /// </summary>
+    /// <param name="me">The grob to start from.</param>
+    /// <returns>The root system, or <see langword="null"/> when the chain does not end at one.</returns>
+    public static SystemGrob GetRootSystem(Grob me)
+    {
+        Grob systemGrob = me;
+
+        while (systemGrob != null && systemGrob.GetParent(Axis.Y) != null)
+        {
+            systemGrob = systemGrob.GetParent(Axis.Y);
+        }
+
+        return systemGrob as SystemGrob;
     }
 
     /// <summary>
@@ -400,6 +470,62 @@ public class SystemGrob : Spanner
         combined.AddRange(expressions);
 
         return new Stencil(new Box(x, y), Pair.ListFrom(combined));
+    }
+
+    /// <summary>
+    /// Wraps this system's stencil in the <c>paper-system</c> prob the page breaker and
+    /// the backends consume, carrying the page-break permissions off its bounds.
+    /// <para>
+    /// The permissions come from the RIGHT bound and the layout details from the LEFT
+    /// one, which is not symmetry for its own sake: a line's break details were decided
+    /// where it started, and whether a page may end after it is decided where it stops.
+    /// </para>
+    /// <para>
+    /// DIVERGENCE, recorded in PORT-COVERAGE: <c>staff-refpoint-extent</c> is left
+    /// unset. Upstream computes it from the vertical alignment's spaceable staves, which
+    /// is <c>Page_layout_problem::is_spaceable</c> — EPG16's file. An absent property is
+    /// an honest "not computed"; a zero interval would read as "the staves are all at
+    /// the origin", which is a different and wrong claim.
+    /// </para>
+    /// </summary>
+    /// <returns>The paper system.</returns>
+    public Prob GetPaperSystem()
+    {
+        Stencil systemStencil = GetPaperSystemStencil();
+
+        PaperColumn left = GetBound(Direction.Negative);
+        PaperColumn right = GetBound(Direction.Positive);
+
+        object propertyInit = left != null
+            ? left.GetProperty(LineBreakSystemDetailsSymbol)
+            : Nil.Instance;
+
+        Prob paperSystem = PaperSystem.Make(propertyInit);
+        PaperSystem.SetStencil(paperSystem, systemStencil);
+
+        /* information that the page breaker might need */
+        paperSystem.SetProperty(VerticalSkylinesSymbol, GetProperty(VerticalSkylinesSymbol));
+
+        if (right != null)
+        {
+            paperSystem.SetProperty(
+                PageBreakPermissionSymbol, right.GetProperty(PageBreakPermissionSymbol));
+            paperSystem.SetProperty(
+                PageTurnPermissionSymbol, right.GetProperty(PageTurnPermissionSymbol));
+            paperSystem.SetProperty(
+                PageBreakPenaltySymbol, right.GetProperty(PageBreakPenaltySymbol));
+            paperSystem.SetProperty(
+                PageTurnPenaltySymbol, right.GetProperty(PageTurnPenaltySymbol));
+
+            SystemGrob source = Original ?? this;
+            if (ReferenceEquals(right.Original ?? right, source.GetBound(Direction.Positive)))
+            {
+                paperSystem.SetProperty(LastInScoreSymbol, true);
+            }
+        }
+
+        paperSystem.SetProperty(SystemGrobSymbol, this);
+        return paperSystem;
     }
 
     private static int LayerOf(Grob grob)

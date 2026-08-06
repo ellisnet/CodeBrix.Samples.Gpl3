@@ -20,6 +20,7 @@
 using System;
 using System.Collections.Generic;
 using CodeBrix.LilyPort.Flower;
+using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Layout; //was previously: lily/skyline-pair.cc, lily/include/skyline-pair.hh;
 
@@ -155,5 +156,49 @@ public sealed class SkylinePair
 
         Up.Merge(other.Up);
         Down.Merge(other.Down);
+    }
+
+    /// <summary>
+    /// Returns this pair in the form a grob property holds it: a Scheme CONS of the two
+    /// skylines.
+    /// <para>
+    /// There is no skyline-pair object in Scheme. <c>ly:skyline-pair?</c> is defined in
+    /// <c>scm/c++.scm</c> as "a pair whose car and cdr are both skylines", so a property
+    /// holding anything else — including this class — fails its own type check and is
+    /// rejected, and every Scheme reader that expects to <c>car</c> it breaks.
+    /// </para>
+    /// </summary>
+    /// <returns>The Scheme representation.</returns>
+    public object ToScheme() => new Pair(Down, Up);
+
+    /// <summary>
+    /// Reads a pair back out of its Scheme representation.
+    /// <para>
+    /// The two sides must face the right ways round — down/left first, up/right second —
+    /// which upstream enforces by raising rather than by silently swapping them.
+    /// </para>
+    /// </summary>
+    /// <param name="value">The Scheme value.</param>
+    /// <returns>The pair, or <see langword="null"/> when the value is not one.</returns>
+    public static SkylinePair FromScheme(object value)
+    {
+        if (!(value is Pair pair) || !(pair.Car is Skyline left) || !(pair.Cdr is Skyline right))
+        {
+            return null;
+        }
+
+        if (left.Sky != Direction.Negative)
+        {
+            throw new InvalidOperationException(
+                "direction of first skyline in skyline pair must be DOWN/LEFT");
+        }
+
+        if (right.Sky != Direction.Positive)
+        {
+            throw new InvalidOperationException(
+                "direction of second skyline in skyline pair must be UP/RIGHT");
+        }
+
+        return new SkylinePair(left, right);
     }
 }

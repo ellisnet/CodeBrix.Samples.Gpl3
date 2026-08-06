@@ -110,11 +110,15 @@ ALGORITHMIC EQUIVALENTS
 NOT YET PORTED, AND WHY
 -------------------------------------------------------------------------------
 
-  lily/stencil-integral.cc
+  lily/stencil-integral.cc   -- CLOSED 2026-08-05. Left here for the record.
 
-    Needs glyph outlines, i.e. the CFF charstring interpreter. The metadata
-    reader (Fonts/OpenTypeFont.cs) covers everything the ENGINE needs; outlines
-    are only wanted for skyline tracing.
+    Was: "Needs glyph outlines, i.e. the CFF charstring interpreter. The
+    metadata reader (Fonts/OpenTypeFont.cs) covers everything the ENGINE needs;
+    outlines are only wanted for skyline tracing." Both halves proved wrong --
+    the interpreter was also what stood between the port and its comparator
+    (see the 2026-08-05 note further down), and it is now built and the walk
+    landed on top of it. See THE STENCIL EXPRESSION WALK at the end of this
+    file.
 
   lily/line-interface.cc arrows / make_arrow / the property-driven `line`
 
@@ -1306,3 +1310,703 @@ context-mod-scheme.cc -- PULLED FORWARD OUT OF EPG2 (2026-08-04)
   reason -- scm/paper.scm's set-default-paper-size and set-global-staff-size
   both need it at declarations-init.ly:156-157. The rest of
   output-def-scheme.cc remains EPG3's; the ledger row says so.
+
+===============================================================================
+EPG2 -- CONTEXTS GO REAL (2026-08-05)
+===============================================================================
+
+  The whole group landed: context-handle.cc, context-scheme.cc,
+  deprecated-property.cc, engraver-scheme.cc, global-context-scheme.cc,
+  scheme-engraver.cc, translator-ctors.cc, translator-group-ctors.cc,
+  translator-dispatch-list.cc and translator-scheme.cc.
+
+  THE STAND-IN IS RETIRED. Context.ContextFactory is gone. Every context is now
+  built from a Context_def read out of the Output_def the score is laid out
+  under, which is where ly/engraver-init.ly put it, and LilyPortEngraver builds
+  Global -> Score -> Staff -> Voice from those definitions with their real
+  \consists lists.
+
+-------------------------------------------------------------------------------
+THE DEFECT THE STAND-IN WAS HIDING: TRANSLATOR LISTENERS WERE ON THE WRONG
+DISPATCHER
+-------------------------------------------------------------------------------
+
+  Translator::ListenTo registered on Context.EventSource. Upstream's
+  Translator_group::connect_to_context takes c->events_below () and registers
+  every translator's listeners THERE. The difference is invisible while every
+  engraver lives in the context its events are addressed at -- which is exactly
+  what the hand-built stand-in tree produced -- and it silently deafens every
+  ancestor-context engraver the moment a real Staff sits above a real Voice.
+
+  Fixing it alone was not enough, and the second half is the more interesting
+  one. The port had never done upstream's
+
+      events_below ()->register_as_listener (event_source_)
+
+  and had instead compensated by making Context::SendStreamEvent broadcast on
+  BOTH dispatchers. That compensation cannot work, because the iterators do not
+  go through SendStreamEvent: Music_iterator::report_event broadcasts on the
+  event source directly, upstream and here alike. So with listeners moved to
+  EventsBelow, note events stopped being heard at all -- the note head vanished
+  while the clef and the staff symbol stayed, because those two engravers do
+  their work without listening.
+
+  Both halves are now upstream's: the chain is registered in the Context
+  constructor, and SendStreamEvent broadcasts once, on the event source.
+
+-------------------------------------------------------------------------------
+DELIBERATE DIVERGENCES (EPG2)
+-------------------------------------------------------------------------------
+
+  Context (Symbol, string) -- a name-only constructor building a SYNTHETIC
+  Context_def carrying nothing but the name. Upstream has no such constructor
+  because upstream always has an output definition to read a real one out of.
+  It exists for fixtures that exercise the dispatcher, the property lookup or
+  one engraver without standing up the whole init layer, and such a context has
+  an empty acceptance set -- so it is a bottom context until the fixture says
+  otherwise through Context.Acceptance.
+
+  translator-dispatch-list.cc -- the interface-keyed acknowledger lookup lives
+  in SchemeEngraver.Acknowledge rather than in a per-group memoised
+  Engraver_dispatch_list. Upstream's list is a CACHE keyed on the grob's name,
+  and the port has nothing to key it on: the C# engravers filter inside their
+  own AcknowledgeGrob overrides rather than registering per-interface
+  acknowledgers. The set of procedures that run, and the order they run in, is
+  the same.
+
+  PerformerGroupPlaceholder stands in for Performer_group and Score_performer
+  until EPG19. It is a real, empty Translator_group rather than a null return,
+  and the difference matters: a null group makes \midi fail at context creation
+  with a programming error, whereas an empty one builds the same context tree
+  and simply produces no performance. That keeps ly/performer-init.ly loadable.
+
+  Context_handle carries no destructor assertion. Upstream asserts the handle
+  was cleared, because garbage collection makes RAII unreliable and it wants a
+  leak detected early; C# has no deterministic destructor to assert in and a
+  finalizer would fire on the collector's thread. The owner's obligation is
+  unchanged.
+
+  GlobalContext registers all five of Context's listeners (CreateContext,
+  RemoveContext, ChangeParent, SetProperty, UnsetProperty). Upstream's
+  Global_context registers only CreateContext and Prepare, "the most basic
+  stuff to bootstrap the context tree". The port's set is a superset, so a \set
+  addressed at Global takes effect here and is ignored upstream.
+
+-------------------------------------------------------------------------------
+G4's MEASUREMENT IS COMPUTED (EPG2)
+-------------------------------------------------------------------------------
+
+  TranslatorRegistry.RegisterBuiltIn lists the port's C#-side translators and
+  runs when the interpreter's registries are built -- the equivalent point to
+  upstream's ADD_TRANSLATOR static initialisers, which run before Guile starts.
+  ly:register-translator writes into the SAME dictionary, so a \consists
+  resolves identically whether the translator is C# or Scheme.
+
+  EngraveResult.MissingTranslators () measures that registry against
+  Scheme/translators.tsv rather than against a hand-kept list. An unknown name
+  in a \consists produces a warning naming it, which is the demand loop's
+  signal: silence there would turn a missing engraver into missing OUTPUT with
+  nothing to explain it.
+
+===============================================================================
+EPG3 -- OUTPUT PIPELINE, FIRST SLICE (2026-08-05)
+===============================================================================
+
+  Landed: music-output.cc, paper-system.cc (+scheme), page-marker.cc
+  (+scheme), point-and-click.cc, score-scheme.cc, paper-score-scheme.cc,
+  glib-regex-scheme.cc, most of book-scheme.cc and most of
+  output-def-scheme.cc.
+
+  STILL OWED BY EPG3, and the ledger rows say so per file: paper-book.cc,
+  paper-outputter.cc (+scheme), function-documentation.cc, lily-version.cc,
+  the general-scheme.cc remainder, ly:book-process / ly:book-process-to-systems
+  (both go through Book::process into Paper_book, which is page layout), and
+  the INTERNAL in-process batch runner.
+
+-------------------------------------------------------------------------------
+DELIBERATE DIVERGENCES (EPG3, first slice)
+-------------------------------------------------------------------------------
+
+  Paper_score::get_paper_systems answers the SINGLE unbroken system. Upstream
+  runs calc_breaking and System::break_into_pieces first, so its answer is one
+  paper system per LINE. Line breaking is EPG15. This is the right answer for
+  music that fits on one line and the wrong one for anything longer, which is
+  what the regression ratchet will report by file rather than something
+  silently plausible.
+
+  System::get_paper_system leaves staff-refpoint-extent unset. Upstream
+  computes it from the vertical alignment's spaceable staves, which is
+  Page_layout_problem::is_spaceable -- EPG16's file. An absent property is an
+  honest "not computed"; a zero interval would read as "the staves are all at
+  the origin", which is a different and wrong claim.
+
+  scale_output_def calls scm/paper.scm's scale-layout when it is bound and
+  falls back to a plain clone when it is not. A clone is the identity at
+  scale 1, which is every case the port reaches today.
+
+  LilyPondInit parents the reconstructed PaperDefaults under $defaultlayout's
+  root when the layout cannot resolve output-scale. When ly/paper-defaults-init
+  .ly's half has arrived this does nothing; when it has not, every dimension
+  below would silently come out zero.
+
+-------------------------------------------------------------------------------
+ly:regex-exec RETURNS A GOOPS <regex-match> (EPG3)
+-------------------------------------------------------------------------------
+
+  Not a bare match object, and this cost a whole file. scm/lily-library.scm
+  defines ly:regex-match?, ly:regex-match-positions, ly:regex-match-substring,
+  ly:regex-match-prefix and ly:regex-match-suffix in SCHEME, over the
+  original-string and substring-positions slots of a GOOPS <regex-match>. Those
+  definitions REPLACE the port's own primitives of the same names when
+  lily-library.scm loads, so anything else handed back makes every one of them
+  slot-ref a non-object.
+
+  ly:regex-replace was wrong in the same area and in two ways: its replacements
+  are a REST list whose elements are strings emitted as-is, non-negative
+  integers naming capture groups, or PROCEDURES called on the match object. The
+  port read the third argument as a single .NET replacement pattern, which made
+  a procedure a type error and let `$1' in an ordinary replacement string
+  expand where upstream emits it literally.
+
+  Together these are what unblocked hyphenate-internal-words.scm, whose whole
+  job is ly:regex-replace with a procedure replacement over $defaultlayout's
+  context names.
+
+-------------------------------------------------------------------------------
+DELIBERATE DIVERGENCES (EPG3, finish -- 2026-08-05)
+-------------------------------------------------------------------------------
+
+  THE BATCH RUNNER runs D20's short-circuit. BatchRunner (src/CodeBrix.LilyPort)
+  defines default-toplevel-book-handler -- the escape hatch ly/init.ly itself
+  checks for -- and takes each book's scores STRAIGHT to the SVG backend,
+  score by score, instead of through ly:book-process. Page assembly is EPG16's
+  subsystem; when Paper_book lands there, the handler comes out and the real
+  book path goes in. Until then:
+
+    * The runner's prologue and epilogue are VERBATIM extracts of the vendored
+      ly/init.ly (lines 27-35 and 54-91), parsed around an \include of the
+      target file. \maininput itself is session-lifecycle machinery the
+      port's caller owns -- the same recorded divergence as LoadInitLayer
+      driving declarations-init.ly. The verbose gc-stats block is omitted:
+      it prints Guile's collector statistics, which do not exist here.
+
+    * session-replay is NOT carried. One parser session serves the whole
+      batch; the prologue's re-defines reset the toplevel collection state
+      per file, but an identifier a file defines stays visible to later
+      files of the same batch. Upstream resets by replaying the session.
+      Accepted until a regression file bites it -- which will be loud and
+      per-file in the ratchet, not silent.
+
+    * A score engraves under its own \layout (else $defaultlayout), CLONED and
+      parented into the book's \paper so paper variables resolve; the scale
+      stays 1 because Paper_book's scaling pass is EPG16's. Toplevel markups
+      and page markers are SKIPPED with a named diagnostic (text interface is
+      EPG13, page layout EPG16).
+
+  ly:format renders ~f/~$/~Nf through .NET's "F<precision>" invariant
+  formatting where upstream goes through C's %.*lf. The two agree except
+  possibly in the last digit of exact-halfway ties. If EPG13's glyph-level
+  comparator ever reports a last-digit coordinate delta, look here first.
+
+  ly:stderr-redirect's FILE form redirects the port's diagnostic writer
+  (Warn.Output) and Console.Error together. The FD form is dup2 on descriptor
+  2, which has no in-process equivalent; it throws with its reason rather
+  than pretending.
+
+  function-documentation.cc: the TABLE mechanism is real and
+  ly:get-all-function-documentation answers it; the docstring CONTENT is
+  EPG24's (the port's bindings declare none yet, so the table is honestly
+  sparse). The procedure-property half of ly_add_function_documentation is
+  not carried -- nothing in the vendored layer reads the property where it
+  reads the table. ly_check_name guards C++-to-Scheme name mangling at
+  compile time and has no analogue in C#.
+
+  ly:spawn, ly:shutdown-gs and ly:gs-api are N/A per D25 (category
+  ps-backend, rows in entry-point-na-candidates.tsv): they exist to drive the
+  PostScript/Ghostscript pipeline D15 rules out. The bindings exist and THROW
+  with their reason -- never a silent #f.
+
+  Paper_outputter writes bytevector results to its port as Latin-1 text --
+  the identity on byte values -- because the port's Scheme ports are text
+  writers. Only the PS/PNG pipelines ever hand a Paper_outputter bytevectors.
+
+  ly:make-book's rest arguments now walk upstream's add_score PREPEND loop.
+  The earlier AppendRest preserved the newest-first order init.ly collects
+  in, which silently REVERSED every multi-score file the moment the batch
+  runner made multi-score files reachable.
+
+  Type-check failure messages name the value's CLR type in brackets
+  ("... [SourceSpan]"). Port-side diagnostic text only, never engraved
+  output; it is what told a raw parser span apart from a real Input when
+  both printed as file:line:col.
+
+===============================================================================
+EPG4 -- HORIZONTAL SPACING (2026-08-05)
+===============================================================================
+
+  The whole group landed: spacing-options.cc, rod.cc, spacing-interface.cc,
+  note-spacing.cc, staff-spacing.cc, spacing-basic.cc, spacing-spanner.cc,
+  spacing-determine-loose-columns.cc, spacing-loose-columns.cc,
+  spacing-engraver.cc, note-spacing-engraver.cc and
+  separating-line-group-engraver.cc.
+
+  Upstream splits Spacing_spanner across three translation units. The port
+  keeps that split as three C# files declaring one `partial class
+  SpacingSpanner`, so each file keeps its own `//was previously:` provenance
+  line and the shape of the upstream source is still legible.
+
+-------------------------------------------------------------------------------
+NAMING
+-------------------------------------------------------------------------------
+
+  Spacing_spanner::note_spacing is SpacingSpanner.NoteSpacingSpring. A static
+  method called NoteSpacing on that class would shadow the NoteSpacing type
+  that sits beside it in the same namespace -- for every line of the class,
+  including the ones that legitimately want the type.
+
+-------------------------------------------------------------------------------
+THE THREE THINGS EPG4 PULLED FORWARD, AND WHY
+-------------------------------------------------------------------------------
+
+  separation-item.cc was carried as a PARTIAL port: add_item only. Its skyline
+  half is not optional for EPG4 and was completed here -- calc_skylines,
+  boxes, set_distance, is_empty, conditional_skyline, add_conditional_item.
+  Without calc_skylines, every column's horizontal-skylines property answers
+  nothing, Paper_column::minimum_distance answers 0 for every pair, and the
+  spacing problem is stated with no rods at all: a solution would exist, and
+  it would let everything collide.
+
+  ly:item-break-dir (item-scheme.cc, EPG23's file) came forward the moment a
+  StaffSpacing grob existed. Staff_spacing::get_spacing reads the space-alist
+  off a break-aligned grob, and several space-alist entries are
+  break-alignment-list callbacks from scm/output-lib.scm, whose first act is to
+  ask an item which side of a break it is on. The rest of item-scheme.cc is
+  still EPG23's and the ledger row says so.
+
+  robust_relative_extent (misc.cc) is carried on LooseColumns, its only
+  port-side caller so far.
+
+-------------------------------------------------------------------------------
+THE DEFECT THIS FOUND, AND IT IS THE ONE TO REMEMBER: A SKYLINE PAIR IS A CONS
+-------------------------------------------------------------------------------
+
+  The port had a SkylinePair class and stored it directly as the value of the
+  horizontal-skylines grob property. There is no skyline-pair object in Scheme.
+  scm/c++.scm defines
+
+      (define-public (ly:skyline-pair? x)
+        (and (pair? x) (ly:skyline? (car x)) (ly:skyline? (cdr x))))
+
+  and lily-guile.cc's scm_conversions<Skyline_pair> is scm_cons of the two
+  smobbed skylines. So the property is a CONS, and a CLR object in that slot
+  fails ly:skyline-pair? -- which is the property's own type predicate --
+  and breaks every Scheme reader that expects to car it (skyline.scm,
+  paper-system.scm).
+
+  This was invisible until EPG4, because nothing had ever WRITTEN
+  horizontal-skylines: the property was only ever read, and reading an unset
+  property answers '() rather than a wrong type. The first write is what
+  surfaced it. SkylinePair now carries ToScheme/FromScheme -- including
+  upstream's guard that the first skyline must face DOWN/LEFT and the second
+  UP/RIGHT, which upstream raises on rather than silently swapping -- and
+  every reader goes through them.
+
+  The same class of defect, one layer along: the spacing engraver writes
+  shortest-playing-duration and shortest-starter-duration, whose type
+  predicate is positive-musical-length-as-number?. A flower Rational is not a
+  Scheme number, so those writes were rejected too. They go through
+  SchemeConvert.FromRational now. The INEXACT case is the one that bites:
+  Rational::infinity reaches Scheme as +inf.0, a real, and
+  Paper_column::is_musical reads it back -- so PaperColumn's rational reader
+  had to learn doubles, or a column where no note starts would have been
+  silently reclassified as non-musical.
+
+-------------------------------------------------------------------------------
+THE OTHER DEFECT: A LISTENER REGISTERED IN A CONSTRUCTOR TAKES THE TREE DOWN
+-------------------------------------------------------------------------------
+
+  Spacing_engraver has ADD_LISTENER (spacing_section). The port's first cut
+  called ListenTo from the engraver's constructor. A context's below-dispatcher
+  is wired up AFTER its translators are allocated, so that call failed -- and
+  because it failed while the Score context was being built, there was no Score
+  engraver left to report anything. The symptom was an empty drawing with no
+  diagnostic at all.
+
+  Every port engraver with listeners registers them in ConnectToContext and
+  drops them in DisconnectFromContext, which is what NoteHeadsEngraver already
+  did. Worth knowing because the failure is silent in the worst possible place.
+
+-------------------------------------------------------------------------------
+DELIBERATE DIVERGENCES IN THIS PASS
+-------------------------------------------------------------------------------
+
+  PaperScore.PlaceColumnsOnOneLine is a STAND-IN for calc_breaking +
+  System::break_into_pieces. Line breaking is EPG15 and page layout EPG16;
+  until they land the score is spaced as ONE unbroken line. The per-column
+  half is upstream's shape verbatim -- translate by the solved configuration,
+  record the system, then set_loose_columns -- so what EPG15 replaces is the
+  choice of where lines end, not the placement itself. Music that fits on one
+  line is right; anything longer is visibly wrong rather than silently
+  plausible, and the ratchet reports it by file.
+
+  System::pre_processing now reads before-line-breaking and springs-and-rods
+  across every element, which is what actually invokes the spacing spanner --
+  nothing calls set_springs by name. handle_prebroken_dependencies and
+  fixup_refpoint, which sit between those two halves upstream, are still
+  absent: both re-point grobs at prebroken pieces, which only matters once
+  lines are really broken (EPG15).
+
+  Spacing_interface::skylines shifts by a PURE relative Y coordinate upstream.
+  The pure/unpure machinery is EPG15's (unpure-pure-container.cc). The port
+  uses the real coordinate: the same answer for every grob with no separate
+  pure callback -- all of them, today -- but it does compute and cache a Y
+  offset earlier than upstream would, which is a thing to re-check when EPG7's
+  vertical alignment starts moving staves.
+
+  Three named absences, each taking upstream's OWN fallback path rather than
+  inventing one:
+
+    * Note_spacing::stem_dir_correction is structurally complete, bar handling
+      included. The branch that measures a note column's stem takes upstream's
+      undeterminable-stem exit -- a bare return, leaving the space unchanged --
+      and says so once, loudly. Note columns are EPG5, stems EPG6.
+
+    * Staff_spacing::optical_correction answers 0, which is upstream's answer
+      whenever the note column has no stem. EPG6.
+
+    * Break_alignment_interface::find_nonempty_break_align_group is EPG8.
+      Note_spacing then measures to the right side of the non-musical column,
+      which is upstream's own no-staff-bar-group fallback; in
+      Spacing_spanner::is_loose_column the consequence is different and worth
+      knowing -- the do-not-float-a-bar-line guard cannot fire, so a bar-line
+      column may be declared loose. The guard ahead of it (a column with real
+      width whose two neighbours are in series) is ported and catches the
+      ordinary bar line.
+
+  Separation_item::boxes takes the unfiltered branch for conditional elements:
+  the filter is Accidental_placement::get_relevant_accidentals (EPG9), and
+  nothing carries accidental-placement-interface yet, so the branch is
+  currently unreachable rather than wrong.
+
+-------------------------------------------------------------------------------
+WHERE line-width COMES FROM, AND THE TWO REASONS IT WAS NOWHERE (EPG4)
+-------------------------------------------------------------------------------
+
+  The spacing solver takes a line width. The port had none, and fell back to a
+  guess; both halves of the reason are worth recording, because neither was
+  visible until something asked for the number.
+
+  FIRST: Output_def::normalize was never ported. output-def.cc's ledger row said
+  "ported", which is true of the TYPE -- but normalize is the ONLY thing that
+  ever computes line-width. scm/paper.scm's set-paper-dimensions deliberately
+  REMOVES line-width from the paper module (a stale one from lilypond-book is
+  worse than none), so between paper setup and normalize there is genuinely no
+  line width anywhere in the system. It is ported now, asymmetric
+  unstated-margin cases and consistency checks included.
+
+  SECOND: the score's layout was parented onto the book's paper only when it
+  had no parent at all. Score::book_rendering does it UNCONDITIONALLY --
+  scale_output_def, then def->parent_ = layoutbook. The port's $defaultlayout
+  arrives already parented to the ORIGINAL $defaultpaper, while ly:make-book
+  hands the book a CLONE; so every variable the book's paper computed resolved
+  to nothing from the score's side, and normalize could not have helped even
+  once it existed. Both are fixed; the scaling half of scale_output_def stays
+  at 1 with the rest of the D20 divergence.
+
+  Upstream calls normalize from Book::process. The port calls it from
+  BatchRunner.ScoreLayout -- same object, same point in the sequence -- until
+  EPG16 lands the real book path and it can move to where it belongs.
+
+  Measured effect on the 2,146-file sweep: 121 of the 915 files that produce
+  SVG went from a zero-width page to a real one, and 108 from every grob at
+  x = 0 to real horizontal positions. The comparator's verdict does not move
+  yet (897 pages stay at the GLYPHS-DIFFER floor) because it cannot grade
+  positions while the glyph inventories differ -- that is EPG13's upgrade, and
+  it is why the plan slots EPG13 immediately after EPG4.
+
+
+-------------------------------------------------------------------------------
+EPG13 -- TEXT INTERFACE, GLYPH OUTLINES AND FONT ASSETS (2026-08-05)
+-------------------------------------------------------------------------------
+
+  WHERE THE FONTS LIVE
+
+  lily/all-font-metrics.cc  ->  Fonts/AllFontMetrics.cs, Fonts/FontAssets.cs
+
+  Upstream finds font files through FontConfig, seeded with LilyPond's
+  installed data directory. The port has no FontConfig dependency and now
+  carries every font INSIDE the assembly as an embedded resource, exactly as it
+  already carried the ly/ and scm/ layers. A consuming application may put a
+  directory in front of the embedded copies (FontAssets.SearchPaths); nothing
+  can make the lookup fail.
+
+  This replaced a directory probe that walked up six levels from the running
+  assembly looking for assets/fonts/otf. Six levels reaches the repository root
+  from a project under src/, and falls exactly ONE level short from
+  tools/regression-harness/BatchDriver. The consequence was not subtle in
+  effect and completely silent in appearance: the entire regression sweep ran
+  with NO music font at all. 354 files died on ly:font-get-glyph against a null
+  font, and the 915 that did produce SVG produced staff lines and stems with
+  not one note head among them -- while the only diagnostic was one
+  "cannot find font: `emmentaler-20'" warning per file. Embedding removes the
+  failure mode rather than lengthening the probe.
+
+  WHERE GLYPH OUTLINES COME FROM
+
+  Fonts/SvgFontOutlines.cs (new-in-family), from scm/output-svg.scm
+
+  Music glyph outlines are lifted VERBATIM out of the shipped .svg font, which
+  is what upstream's own SVG backend does (music-string-to-path ->
+  cache-font -> extract-glyph). They are NOT rasterised from the OTF's CFF
+  charstrings, even though the port can now do that: an independently produced
+  outline would be the same SHAPE and a different STRING, and the parity
+  yardstick compares strings.
+
+  The units-per-em divisor is hardcoded at 1000, carrying upstream's own
+  "TODO: not urgent, but do not hard-code this value" comment. Every shipped
+  music font is drawn on a 1000-unit em, so the two agree.
+
+  THE CFF CHARSTRING INTERPRETER
+
+  Fonts/CffFont.cs, Fonts/CharstringRun.cs (new-in-family)
+
+  Written from the Type 2 Charstring Format specification, because a glyph's
+  INK extent is recorded nowhere in an OpenType font -- it is a property of the
+  outline, so the only way to learn it is to run the program. Text layout needs
+  it: how tall a line of text is decides what the engraver puts above and below
+  it.
+
+  Validated against an oracle that ships in this repository. Every music font
+  is vendored twice, once as an OTF holding glyph PROGRAMS and once as an SVG
+  font holding the same glyphs as finished OUTLINES, both produced from one
+  source by the font build. CffOutlineTests runs all 600-odd charstrings and
+  compares the control hull to the SVG outline's, to within 1.5 units of a
+  1000-unit em.
+
+  DIVERGENCE: the bounding box is the CONTROL HULL, not the true ink extremum
+  -- a cubic's control points are included rather than the curve's own maxima.
+  The hull always CONTAINS the curve, so a text line is never reported shorter
+  than it draws, which is the direction that matters when an engraver reserves
+  room from it.
+
+  TEXT FONTS
+
+  lily/pango-font.cc  ->  Fonts/TextFontMetric.cs  (ledger: no-port, replaced)
+  lily/pango-select.cc ->  Fonts/FontInterface.cs   (ledger: no-port, replaced)
+
+  There is no Pango, no FontConfig and no FreeType. What survives verbatim is
+  the CONTRACT, in two places that the rest of the system depends on exactly:
+
+    1. The stencil expression is (utf-8-string DESCRIPTION TEXT INNER), and the
+       DESCRIPTION is a Pango-style string -- "serif Bold Italic 8.25". The SVG
+       backend recovers the family, weight, slant and size from it by pattern
+       matching, using upstream's own regular expression. The style words and
+       their order are therefore not free: a different order does not fail, it
+       silently lands inside the font family name.
+
+    2. Horizontal extent is the advance sum, from hmtx. VERTICAL extent is the
+       INK extent, from the charstrings. Upstream takes exactly this split --
+       logical rectangle for X, ink rectangle for Y -- in
+       pango_item_string_stencil, and reading Y off the logical rectangle
+       instead would make every line of text the same height.
+
+  The INNER expression is left empty. It is the glyph-by-glyph drawing that the
+  utf-8-string encapsulation replaces, and it is consumed only by backends that
+  do not handle utf-8-string themselves. The port's SVG backend does handle it,
+  and SVG is the parity yardstick (D15), so filling it in would be an
+  unverifiable guess rather than a fidelity gain.
+
+  Pango's scale_ member is not reproduced. Its constants cancel: an advance
+  measured at PANGO_RESOLUTION dots per inch, multiplied by
+  INCH_TO_BP / (PANGO_SCALE * PANGO_RESOLUTION * output_scale), leaves
+  size / output_scale, and that is what TextFontMetric.Scale computes.
+
+  D23 FALLBACK CHAIN
+
+  Fonts/TextFace.cs
+
+  serif      -> C059-*          -> texgyreschola-*
+  sans       -> NimbusSans-*    -> texgyreheros-*
+  typewriter -> NimbusMonoPS-*  -> texgyrecursor-*
+
+  and STOPS. Upstream's 00-lilypond-fonts.conf continues into DejaVu and Noto
+  CJK, which it does not ship. There is NO system-font fallback: a code point
+  no face covers draws missing-glyph tofu by design, and the .notdef glyph
+  keeps its own advance so the tofu takes up room instead of collapsing the
+  line.
+
+  The face file names are spelled out rather than generated from a template,
+  because the three collections do not agree on how to name a face: URW writes
+  "Regular" and "BoldItalic", C059 writes "Roman" and "BdIta", and TeX Gyre
+  writes everything in lower case. A template silently produces a name that
+  does not exist, and a missing face does not fail -- it drops out of the chain
+  and leaves text measured by the FALLBACK font.
+
+  THE BACKEND OPTION
+
+  Bootstrap/LilyPondScheme.cs
+
+  `backend` is set to 'svg and `music-strings-to-paths` to #t once the scm/
+  layer has loaded. Upstream's option defaults to 'ps because upstream ships
+  all three backends; the port has exactly one (D15). This is not cosmetic:
+  ly/paper-defaults-init.ly branches on the same option to choose text font
+  family names, and under 'ps it picks the FontConfig aliases "LilyPond Serif",
+  "LilyPond Sans Serif" and "LilyPond Monospace" where the SVG backend wants
+  the generic CSS families "serif", "sans" and "monospace". Those names are
+  written verbatim into every text element.
+
+  ENGRAVING IN OUTPUT UNITS  (pulled forward; upstream lily/paper-def.cc)
+
+  Layout/OutputDef.cs (ScaledClone), CodeBrix.LilyPort/BatchRunner.cs
+
+  Upstream scales BOTH the book's paper (Paper_book's constructor) and each
+  score's layout (Score::book_rendering) by the paper's output-scale before a
+  single grob is made, so engraving happens in output units -- one unit is one
+  staff space -- and a coordinate reaching a stencil needs no further
+  conversion. The port did neither, and the D20 note recorded the scale as
+  staying at 1.
+
+  Skipping it does not fail. Everything is laid out in millimetres instead and
+  the whole page comes out scaled by about 1.757 with no diagnostic anywhere,
+  which is why it survived EPG3 and EPG4. It is fixed here because EPG13's
+  purpose is to make the comparator able to grade POSITIONS, and no position
+  could ever have matched.
+
+  output-scale and staff-height are deliberately NOT in the paper's
+  dimension-variables list: the first has to survive scaling so the framework
+  can convert back to millimetres for the page, and the second is read in
+  POINTS to size fonts.
+
+  ONE PROCESS PER INPUT FILE  (harness; no upstream analogue)
+
+  CodeBrix.LilyPort/LilyPondInit.cs (RestoreDefaults)
+
+  Upstream engraves one input file per process, so the defaults a file mutates
+  die with it. The batch runner shares one session across 2,146 files, and the
+  mutations are not hypothetical: a toplevel \paper block rewrites the shared
+  definition IN PLACE, and #(set-global-staff-size 30) does something else
+  again -- it CLONES the paper, scales the clone, and rebinds the toplevel
+  $defaultpaper identifier to it, deliberately leaving the original object
+  untouched ("maybe someone still refers to the old one").
+
+  Both halves have to be undone, and the second is the one that bites:
+  restoring only the object's variables fixes nothing, because the next book
+  still picks up the clone by name. Measured: before this, the two
+  absolute-dimensions-* files at the head of the suite rescaled every file
+  swept after them -- staff line thickness read 0.0781 where the oracle says
+  0.1000 -- and it looked like a port-wide unit error rather than leakage.
+
+  LIMIT: this restores the value of every variable the definitions had after
+  initialisation, which covers the numeric leaks. A variable a file INVENTS is
+  left in place, because the scope has no unbind.
+
+  SKYLINES FROM STENCILS
+
+  lily/stencil-integral.cc  ->  Layout/StencilIntegral.cs
+
+  All ten callbacks land. Eight are exact: the four from-extents ones use the
+  grob's own bounding box, and the four from-element-stencils ones merge the
+  children's skylines (Shift along the horizon axis, Raise along the other --
+  upstream's comment records that getting those two the wrong way round cost
+  six months).
+
+  DIVERGENCE, and the largest one in this pass: the two from-stencil callbacks
+  take the stencil's EXTENT BOX rather than walking the stencil expression.
+  Upstream turns each drawing command into segments and flattens every Bezier,
+  so a slur's skyline follows the curve; this port produces its rectangular
+  hull. That is upstream's OWN fallback -- the branch it takes for expressions
+  it cannot decompose, such as embedded PostScript.
+
+  The consequence is bounded and one-directional: a box always CONTAINS the
+  outline, so nothing is ever placed too close, and the cost is extra space
+  around non-rectangular grobs rather than a collision. The expression walk
+  plus Lazy_skyline_pair is the one EPG13 work item left owed, and it wants to
+  land with or before EPG10-EPG12 (beams, ties, slurs), whose whole point is
+  outlines that are not boxes.
+
+  CLOSED 2026-08-05 (later the same day) -- the walk landed. See THE STENCIL
+  EXPRESSION WALK at the end of this file; the only case that still takes the
+  box is a stencil containing TEXT, and that one is recorded there.
+
+  PURE VARIANTS
+
+  The pure-* skyline callbacks answer the ordinary extents. The port has no
+  pure-property machinery yet -- that is unpure-pure-container.cc, EPG15 -- and
+  answering the ordinary extent is what a grob declaring no pure callback would
+  give anyway.
+
+
+-------------------------------------------------------------------------------
+ADDED 2026-08-05 (EPG13 carry-forward) -- THE STENCIL EXPRESSION WALK
+-------------------------------------------------------------------------------
+
+  lily/include/lazy-skyline-pair.hh  ->  Layout/LazySkylinePair.cs
+  lily/stencil-integral.cc           ->  Layout/StencilIntegral.cs  (the walk)
+  lily/freetype.cc Path_interpreter  ->  Fonts/CffFont.cs  (OutlineWalker)
+
+  The item EPG13 left owed. The two from-stencil callbacks now WALK the stencil
+  expression instead of taking its bounding box: every draw-line, dashed-line,
+  circle, ellipse, partial-ellipse, round-filled-box, polygon, path and
+  named-glyph is turned into segments, curves are flattened at one segment per
+  0.2 output units, and the structural heads (combine, translate, scale, rotate,
+  grob-cause, color, output-attributes, with-outline) carry the transform down.
+
+  WHAT IS FAITHFUL, DELIBERATELY, EVEN WHERE IT LOOKS WRONG
+
+  * A curve's LAST piece is added as a plain segment, not as a contour segment,
+    so it lands in both skylines while its earlier pieces land in one. That
+    asymmetry is upstream's, in Path_interpreter::curve3to. Kept: the
+    faithfulness rule says a plausible tidy-up is a parity bug.
+  * dashed-line is measured as one solid run from the origin to (dx, dy). The
+    gaps are ignored, which over-reserves; upstream does the same.
+  * An unknown head contributes nothing and raises NO warning. Upstream's
+    reason is in a comment: stencil-expression.cc's registry is what validates
+    heads, and a complaint here would be a second, worse copy of that check.
+  * A malformed path warns and keeps the commands it had already grouped,
+    rather than throwing.
+
+  DIVERGENCE 1 -- the glyph outline comes from the charstrings, not FreeType
+
+  Upstream traces a named glyph with FT_Outline_Decompose and recovers the
+  design-units-to-output-units factor by DIVIDING two boxes: FreeType's glyph
+  metrics and FreeType's outline bounding box, which round differently. The
+  port has one source for both -- the Type 2 charstring interpreter, which
+  EPG13 built and validated against the shipped SVG fonts -- so that ratio is
+  the scale factor itself: the font's drawing size over its units per em. It is
+  the same number SvgBackend scales the same outline by, and the traced result
+  agrees with the LILC-declared extents of noteheads.s2 to within 0.002 staff
+  space (StencilIntegralTests).
+
+  A charstring leaves the contour-closing segment implicit where FreeType's
+  decomposer emits it, so OutlineWalker emits it itself when a contour ends.
+
+  Contours are traced COUNTER-CLOCKWISE, the PostScript/CFF convention. A
+  TrueType face would need the other one; getting it backwards produces a
+  plausible skyline that is inside out, with no error.
+
+  DIVERGENCE 2 -- TEXT STENCILS still take the extent box
+
+  Upstream's utf-8-string expression carries, as its fourth element, the
+  glyph-string stencil Pango shaped -- and the walk recurses into it. The port
+  has no Pango: TextFontMetric.TextStencil measures the run through the D23
+  font chain and leaves that fourth element EMPTY, so there is nothing to
+  recurse into.
+
+  Walking such a stencil anyway would be the dangerous answer. A stencil that
+  COMBINES text with drawing would yield a skyline covering the drawing alone,
+  silently omitting the text -- and a skyline that omits ink is the one error
+  direction that causes collisions. So SkylinesFromStencil checks for a text
+  node anywhere in the expression and falls back to the whole stencil's extent
+  box when it finds one. That is exactly the pre-walk behaviour, preserved for
+  this one case: conservative, never a collision.
+
+  glyph-string itself is NOT handled, because the port never emits it.
+
+  WHEN TO CLOSE IT: text does not reach a swept page yet -- in-score text needs
+  Text_engraver (EPG14) and the tagline needs page layout (EPG16). EPG14 is the
+  session where per-glyph text outlines become measurable and worth writing;
+  the machinery to do it is already here (TextFontChain plus CffFont's
+  AddOutlineToSkyline, which is face-agnostic).
+
+  PURE VARIANTS are unchanged: they still answer the ordinary extents, pending
+  unpure-pure-container.cc in EPG15.

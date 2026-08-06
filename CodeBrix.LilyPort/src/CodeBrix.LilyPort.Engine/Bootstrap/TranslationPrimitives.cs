@@ -7,9 +7,11 @@
 
 using System;
 using System.Collections.Generic;
+using CodeBrix.LilyPort.Engine.Layout;
 using CodeBrix.LilyPort.Engine.Music;
 using CodeBrix.LilyPort.Engine.Objects;
 using CodeBrix.LilyPort.Engine.Translation;
+using CodeBrix.LilyPort.Flower;
 using CodeBrix.LilyScheme;
 using CodeBrix.LilyScheme.Primitives;
 using CodeBrix.LilyScheme.Values;
@@ -30,6 +32,7 @@ namespace CodeBrix.LilyPort.Engine.Bootstrap;
 public static class TranslationPrimitives
 {
     private static readonly Symbol LengthSymbol = Symbol.Intern("length");
+    private static readonly Symbol GlobalSymbol = Symbol.Intern("Global");
 
     /// <summary>Installs the primitives, replacing the corresponding stubs.</summary>
     /// <param name="interpreter">The interpreter to extend.</param>
@@ -43,6 +46,131 @@ public static class TranslationPrimitives
         InstallStreamEvents(interpreter);
         InstallContexts(interpreter);
         InstallContextMods(interpreter);
+        InstallEngravers(interpreter);
+        InstallGlobalContexts(interpreter);
+    }
+
+    /// <summary>
+    /// <c>engraver-scheme.cc</c> and <c>translator-scheme.cc</c> — how a Scheme engraver
+    /// makes a grob.
+    /// <para>
+    /// These are the bindings without which a <see cref="SchemeEngraver"/> is inert: all
+    /// 36 of LilyPond's Scheme-implemented translators create their grobs through
+    /// <c>ly:engraver-make-grob</c> and its two class-forcing variants, and a stub there
+    /// costs every one of them its whole output while the engraver itself still runs.
+    /// </para>
+    /// </summary>
+    /// <param name="interpreter">The interpreter to extend.</param>
+    private static void InstallEngravers(Interpreter interpreter)
+    {
+        interpreter.DefinePrimitive("ly:translator-context", 1, 1, a =>
+            (object)AsTranslator(a[0], "ly:translator-context").Context ?? false);
+
+        interpreter.DefinePrimitive("ly:engraver-make-grob", 3, 3, a =>
+            (object)AsEngraver(a[0], "ly:engraver-make-grob")
+                .MakeGrob(AsSymbol(a[1], "ly:engraver-make-grob"), a[2]) ?? false);
+
+        interpreter.DefinePrimitive("ly:engraver-make-item", 3, 3, a =>
+            (object)AsEngraver(a[0], "ly:engraver-make-item")
+                .MakeItem(AsSymbol(a[1], "ly:engraver-make-item").Name, a[2]) ?? false);
+
+        interpreter.DefinePrimitive("ly:engraver-make-spanner", 3, 3, a =>
+            (object)AsEngraver(a[0], "ly:engraver-make-spanner")
+                .MakeSpanner(AsSymbol(a[1], "ly:engraver-make-spanner").Name, a[2]) ?? false);
+
+        interpreter.DefinePrimitive("ly:engraver-make-sticky", 4, 4, a =>
+        {
+            Engraver engraver = AsEngraver(a[0], "ly:engraver-make-sticky");
+            Symbol grobName = AsSymbol(a[1], "ly:engraver-make-sticky");
+            Grob host = a[2] as Grob
+                ?? throw SchemeErrors.WrongType("ly:engraver-make-sticky", "grob", a[2]);
+
+            return (object)engraver.MakeSticky(grobName, host, a[3]) ?? false;
+        });
+
+        interpreter.DefinePrimitive("ly:engraver-announce-end-grob", 3, 3, a =>
+        {
+            Engraver engraver = AsEngraver(a[0], "ly:engraver-announce-end-grob");
+            Grob grob = a[1] as Grob
+                ?? throw SchemeErrors.WrongType("ly:engraver-announce-end-grob", "grob", a[1]);
+
+            if (engraver.Context?.Parent == null)
+            {
+                Warn.ProgrammingError("context for engraver has been detached");
+            }
+            else
+            {
+                engraver.AnnounceEndGrob(grob, a[2]);
+            }
+
+            return Unspecified.Instance;
+        });
+    }
+
+    /// <summary>
+    /// <c>global-context-scheme.cc</c> — standing up an interpretation context and
+    /// running music through it from Scheme.
+    /// <para>
+    /// <c>ly:run-translator</c> is the entry point <c>scm/lily.scm</c>'s score handler
+    /// uses, so this is the route by which a parsed <c>\score</c> becomes a context tree
+    /// at all.
+    /// </para>
+    /// </summary>
+    /// <param name="interpreter">The interpreter to extend.</param>
+    private static void InstallGlobalContexts(Interpreter interpreter)
+    {
+        interpreter.DefinePrimitive("ly:make-global-context", 1, 1, a =>
+        {
+            OutputDef odef = a[0] as OutputDef
+                ?? throw SchemeErrors.WrongType("ly:make-global-context", "output definition", a[0]);
+
+            ContextDef definition = ContextDef.FindContextDef(odef, GlobalSymbol);
+            if (definition == null)
+            {
+                Warn.ProgrammingError("definition for Global context not found");
+                return false;
+            }
+
+            return new GlobalContext(odef, definition);
+        });
+
+        interpreter.DefinePrimitive("ly:make-global-translator", 1, 1, a =>
+            AsGlobalContext(a[0], "ly:make-global-translator").MakeGlobalTranslator());
+
+        interpreter.DefinePrimitive("ly:interpret-music-expression", 2, 2, a =>
+        {
+            MusicObject music = a[0] as MusicObject
+                ?? throw SchemeErrors.WrongType("ly:interpret-music-expression", "music", a[0]);
+            GlobalContext global = AsGlobalContext(a[1], "ly:interpret-music-expression");
+            global.Iterate(music, true);
+            return global;
+        });
+
+        interpreter.DefinePrimitive("ly:run-translator", 2, 2, a =>
+        {
+            MusicObject music = a[0] as MusicObject
+                ?? throw SchemeErrors.WrongType("ly:run-translator", "music", a[0]);
+            OutputDef odef = a[1] as OutputDef
+                ?? throw SchemeErrors.WrongType("ly:run-translator", "output definition", a[1]);
+
+            ContextDef definition = ContextDef.FindContextDef(odef, GlobalSymbol);
+            if (definition == null)
+            {
+                Warn.ProgrammingError("failed to create global context");
+                return false;
+            }
+
+            GlobalContext global = new GlobalContext(odef, definition);
+            global.MakeGlobalTranslator();
+            Warn.Message("Interpreting music...");
+            if (!global.Iterate(music))
+            {
+                Warn.Warning("skipping zero-duration score");
+                Warn.Warning("to suppress this, consider adding a spacer rest");
+            }
+
+            return global;
+        });
     }
 
     /// <summary>
@@ -172,20 +300,73 @@ public static class TranslationPrimitives
         interpreter.DefinePrimitive("ly:context-alias?", 2, 2, a =>
             AsContext(a[0], "ly:context-alias?").IsAlias(AsSymbol(a[1], "ly:context-alias?")));
 
+        // find_context_above, not find (): this searches THIS context and then its
+        // ancestors, and never descends. The difference is visible — a Score-level
+        // ly:context-find for "Voice" must answer #f rather than reaching into whichever
+        // voice happens to exist.
         interpreter.DefinePrimitive("ly:context-find", 2, 2, a =>
         {
             Context found = AsContext(a[0], "ly:context-find")
-                .FindContext(AsSymbol(a[1], "ly:context-find"));
+                .FindContextAbove(AsSymbol(a[1], "ly:context-find"));
             return (object)found ?? false;
         });
 
-        // Rest argument: upstream's third argument is a DEFAULT, supplied as a rest so
-        // that "no default" and "default #f" stay distinguishable.
+        interpreter.DefinePrimitive("ly:context-matched-pop-property", 3, 3, a =>
+        {
+            Context context = AsContext(a[0], "ly:context-matched-pop-property");
+            Symbol grobName = AsSymbol(a[1], "ly:context-matched-pop-property");
+            new GrobPropertyInfo(context, grobName).MatchedPop(a[2]);
+            return Unspecified.Instance;
+        });
+
+        // Rest argument, and it carries three different things. The first REST value, if
+        // it is not a keyword, is the value to answer when the property is '(); after
+        // that come the keyword options #:default and #:search-ancestors?. They are not
+        // interchangeable — #:default answers when the property is UNSET, which is a
+        // different state from set-to-nothing, and conflating them silently substitutes
+        // one for the other at every call site that supplies both.
         interpreter.DefinePrimitive("ly:context-property", 2, -1, a =>
         {
             Context context = AsContext(a[0], "ly:context-property");
-            object value = context.GetProperty(AsSymbol(a[1], "ly:context-property"));
-            return value is Nil && HasDefault(a, 2) ? a[2] : value;
+            Symbol name = AsSymbol(a[1], "ly:context-property");
+
+            object nullAlternative = Nil.Instance;
+            int index = 2;
+            if (HasDefault(a, index) && !(a[index] is Keyword))
+            {
+                nullAlternative = a[index];
+                index++;
+            }
+
+            object defaultValue = nullAlternative;
+            bool searchAncestors = true;
+            while (index + 1 < a.Length && a[index] is Keyword keyword)
+            {
+                if (string.Equals(keyword.Name.Name, "default", StringComparison.Ordinal))
+                {
+                    defaultValue = a[index + 1];
+                }
+                else if (string.Equals(keyword.Name.Name, "search-ancestors?", StringComparison.Ordinal))
+                {
+                    searchAncestors = SchemeUtilities.IsSchemeTrue(a[index + 1]);
+                }
+
+                index += 2;
+            }
+
+            Context found = WhereDefinedWithDeprecationCheck(context, name, out object result);
+            if (!searchAncestors && !ReferenceEquals(found, context))
+            {
+                found = null;
+                result = Nil.Instance;
+            }
+
+            if (found != null)
+            {
+                return result is Nil ? nullAlternative : result;
+            }
+
+            return defaultValue;
         });
 
         interpreter.DefinePrimitive("ly:context-set-property!", 3, 3, a =>
@@ -204,9 +385,17 @@ public static class TranslationPrimitives
 
         interpreter.DefinePrimitive("ly:context-property-where-defined", 2, 3, a =>
         {
-            Context where = AsContext(a[0], "ly:context-property-where-defined")
-                .WhereDefined(AsSymbol(a[1], "ly:context-property-where-defined"), out object _);
-            return (object)where ?? false;
+            Context where = WhereDefinedWithDeprecationCheck(
+                AsContext(a[0], "ly:context-property-where-defined"),
+                AsSymbol(a[1], "ly:context-property-where-defined"),
+                out object _);
+
+            if (where != null)
+            {
+                return where;
+            }
+
+            return HasDefault(a, 2) ? a[2] : Nil.Instance;
         });
 
         interpreter.DefinePrimitive("ly:context-grob-definition", 2, 2, a =>
@@ -245,6 +434,47 @@ public static class TranslationPrimitives
         });
     }
 
+    /// <summary>
+    /// Looks a context property up, and on a miss asks whether the name was deprecated.
+    /// <para>
+    /// When it was, the description names the replacement AND a function converting the
+    /// new value back to the old shape — a rename is not always only a rename, and
+    /// returning the new value unconverted would be silently wrong rather than loudly
+    /// missing.
+    /// </para>
+    /// </summary>
+    private static Context WhereDefinedWithDeprecationCheck(
+        Context context,
+        Symbol name,
+        out object value)
+    {
+        Context found = context.WhereDefined(name, out value);
+        if (found != null)
+        {
+            return found;
+        }
+
+        object description = DeprecatedProperty.GetterDescription(name);
+        if (!(description is Pair pair) || !(pair.Car is Symbol newName))
+        {
+            value = Nil.Instance;
+            return null;
+        }
+
+        found = context.WhereDefined(newName, out value);
+        if (found != null && pair.Cdr is Pair rest)
+        {
+            value = SchemeUtilities.CallCallback(rest.Car, value);
+        }
+
+        if (found == null)
+        {
+            value = Nil.Instance;
+        }
+
+        return found;
+    }
+
     private static bool HasDefault(object[] arguments, int index)
         => arguments.Length > index && !(arguments[index] is DefaultArgument);
 
@@ -260,4 +490,14 @@ public static class TranslationPrimitives
     private static ContextMod AsContextMod(object value, string procedureName)
         => value as ContextMod
             ?? throw SchemeErrors.WrongType(procedureName, "context modification", value);
+
+    private static Translator AsTranslator(object value, string procedureName)
+        => value as Translator ?? throw SchemeErrors.WrongType(procedureName, "translator", value);
+
+    private static Engraver AsEngraver(object value, string procedureName)
+        => value as Engraver ?? throw SchemeErrors.WrongType(procedureName, "engraver", value);
+
+    private static GlobalContext AsGlobalContext(object value, string procedureName)
+        => value as GlobalContext
+            ?? throw SchemeErrors.WrongType(procedureName, "global context", value);
 }

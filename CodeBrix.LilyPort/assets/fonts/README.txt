@@ -17,12 +17,20 @@ with. They are BUILD OUTPUTS, committed deliberately.
 THESE ARE OUR OWN BUILDS, NOT LILYPOND'S BINARIES
 --------------------------------------------------------------------------------
 
-CodeBrix.LilyPort does not redistribute LilyPond's prebuilt fonts. It vendors
-the Metafont sources and builds them itself, so provenance is verifiable end
-to end from Metafont source to shipped binary.
+CodeBrix.LilyPort does not redistribute LilyPond's prebuilt MUSIC fonts. It
+vendors the Metafont sources and builds them itself, so provenance is
+verifiable end to end from Metafont source to shipped binary.
 
 Do not replace these with files copied out of a LilyPond release. If they need
 regenerating, run the build -- see tools/font-build/README.txt.
+
+The TEXT fonts under text/ are the opposite case, deliberately: 24 prebuilt
+faces (URW C059/Nimbus Sans/Nimbus Mono PS + TeX Gyre Schola/Heros/Cursor)
+vendored byte-for-byte from the official LilyPond 2.27.2 binary distribution
+by decision D13 (2026-08-05), because text parity needs metrics byte-identical
+to the oracle that produced the regression references. Their provenance,
+sha256 manifest, and licenses (AGPL-3 + embedding exception; GUST Font
+License) live in text/README.txt and text/licenses/.
 
 --------------------------------------------------------------------------------
 CONTENTS

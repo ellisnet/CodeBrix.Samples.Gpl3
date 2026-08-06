@@ -20,6 +20,8 @@
 using System;
 using System.Collections.Generic;
 using CodeBrix.LilyPort.Engine.Bootstrap;
+using CodeBrix.LilyPort.Engine.Objects;
+using CodeBrix.LilyPort.Flower;
 using CodeBrix.LilyScheme.Runtime;
 using CodeBrix.LilyScheme.Values;
 
@@ -61,6 +63,8 @@ namespace CodeBrix.LilyPort.Engine.Layout; //was previously: lily/output-def.cc,
 /// </summary>
 public class OutputDef
 {
+    private static readonly Symbol ScaleLayoutSymbol = Symbol.Intern("scale-layout");
+
     private readonly SchemeModule _scope;
 
     /// <summary>Initializes an empty output definition.</summary>
@@ -148,6 +152,40 @@ public class OutputDef
     public virtual OutputDef Clone() => new OutputDef(this);
 
     /// <summary>
+    /// Returns a clone with every DIMENSION variable divided by a factor — upstream's
+    /// <c>scale_output_def</c>, which hands the work to <c>scm/paper.scm</c>'s
+    /// <c>scale-layout</c>.
+    /// <para>
+    /// This is what puts engraving into output units. The factor is the paper's
+    /// <c>output-scale</c>, one staff space in millimetres, and both the book's paper
+    /// and each score's layout go through it before a single grob is made — so a
+    /// coordinate that reaches a stencil is already in the units the backend writes.
+    /// Skipping it does not fail: everything is laid out in millimetres instead and
+    /// the whole page comes out scaled by about 1.76 with no diagnostic anywhere.
+    /// </para>
+    /// <para>
+    /// The list of what counts as a dimension is the definition's own
+    /// <c>dimension-variables</c>, and it deliberately excludes <c>output-scale</c> and
+    /// <c>staff-height</c>: the first has to survive so the framework can convert back
+    /// to millimetres for the page, and the second is read in POINTS to size fonts.
+    /// </para>
+    /// </summary>
+    /// <param name="amount">The factor to divide dimensions by.</param>
+    /// <returns>The scaled clone, or this definition when the Scheme layer is absent.</returns>
+    public OutputDef ScaledClone(double amount)
+    {
+        object procedure = Bootstrap.LilyPondScheme.LookupProcedure(ScaleLayoutSymbol);
+        CodeBrix.LilyScheme.Interpreter interpreter = Bootstrap.LilyPondScheme.Current;
+        if (procedure == null || interpreter == null)
+        {
+            return this;
+        }
+
+        return interpreter.Evaluator.Apply(procedure, new object[] { this, amount })
+            as OutputDef ?? this;
+    }
+
+    /// <summary>
     /// Reads a variable, walking up the parent chain.
     /// </summary>
     /// <param name="symbol">The variable name.</param>
@@ -214,6 +252,128 @@ public class OutputDef
     /// <param name="name">The variable name.</param>
     /// <returns>The dimension.</returns>
     public double GetDimension(string name) => GetDimension(Symbol.Intern(name));
+
+    /// <summary>
+    /// Resolves the horizontal page geometry: works out whichever of
+    /// <c>line-width</c>, <c>left-margin</c> and <c>right-margin</c> was not stated, and
+    /// writes all three back.
+    /// <para>
+    /// This is where <c>line-width</c> COMES FROM. <c>scm/paper.scm</c>'s
+    /// <c>set-paper-dimensions</c> deliberately REMOVES it — a stale one from
+    /// lilypond-book would be worse than none — so between paper setup and this call
+    /// there is genuinely no line width anywhere, and every spacing solve would fall
+    /// back to a guess.
+    /// </para>
+    /// <para>
+    /// The two unstated-margin cases are not symmetric, and the asymmetry is deliberate:
+    /// with only a line width given, the systems are CENTRED; with a line width and one
+    /// margin, the other margin absorbs the remainder.
+    /// </para>
+    /// </summary>
+    public void Normalize()
+    {
+        object scmPaperWidth = CVariable("paper-width");
+
+        bool twosided = SchemeUtilities.ToBool(CVariable("two-sided"));
+
+        // We don't distinguish between outer-margin / left-margin and so on
+        // until page-stencil positioning in page.scm
+        object scmLeftMarginDefault = twosided
+            ? CVariable("outer-margin-default-scaled")
+            : CVariable("left-margin-default-scaled");
+        object scmLeftMargin = twosided ? CVariable("outer-margin") : CVariable("left-margin");
+
+        object scmRightMarginDefault = twosided
+            ? CVariable("inner-margin-default-scaled")
+            : CVariable("right-margin-default-scaled");
+        object scmRightMargin = twosided ? CVariable("inner-margin") : CVariable("right-margin");
+
+        if (!SchemeConvert.IsNumber(scmPaperWidth)
+            || !SchemeConvert.IsNumber(scmLeftMarginDefault)
+            || !SchemeConvert.IsNumber(scmRightMarginDefault))
+        {
+            Warn.ProgrammingError("called normalize () on paper with missing settings");
+            return;
+        }
+
+        double paperWidth = SchemeConvert.ToDouble(scmPaperWidth, "paper-width");
+        double leftMarginDefault = SchemeConvert.ToDouble(scmLeftMarginDefault, "left-margin");
+        double rightMarginDefault = SchemeConvert.ToDouble(scmRightMarginDefault, "right-margin");
+
+        double lineWidth;
+        double leftMargin;
+        double rightMargin;
+        double lineWidthDefault = paperWidth - leftMarginDefault - rightMarginDefault;
+        object scmLineWidth = CVariable("line-width");
+
+        double bindingOffset = 0;
+        if (twosided && SchemeConvert.IsNumber(CVariable("binding-offset")))
+        {
+            bindingOffset = SchemeConvert.ToDouble(CVariable("binding-offset"), "binding-offset");
+        }
+
+        if (!SchemeConvert.IsNumber(scmLineWidth))
+        {
+            leftMargin = SchemeConvert.IsNumber(scmLeftMargin)
+                ? SchemeConvert.ToDouble(scmLeftMargin, "left-margin")
+                : leftMarginDefault;
+            rightMargin = (SchemeConvert.IsNumber(scmRightMargin)
+                ? SchemeConvert.ToDouble(scmRightMargin, "right-margin")
+                : rightMarginDefault) + bindingOffset;
+            lineWidth = paperWidth - leftMargin - rightMargin;
+        }
+        else
+        {
+            lineWidth = SchemeConvert.ToDouble(scmLineWidth, "line-width");
+            if (!SchemeConvert.IsNumber(scmLeftMargin))
+            {
+                // Vertically center systems if only line-width is given
+                if (!SchemeConvert.IsNumber(scmRightMargin))
+                {
+                    leftMargin = (paperWidth - lineWidth) / 2;
+                    rightMargin = leftMargin;
+                }
+                else
+                {
+                    rightMargin = SchemeConvert.ToDouble(scmRightMargin, "right-margin")
+                        + bindingOffset;
+                    leftMargin = paperWidth - lineWidth - rightMargin;
+                }
+            }
+            else
+            {
+                leftMargin = SchemeConvert.ToDouble(scmLeftMargin, "left-margin");
+                rightMargin = (SchemeConvert.IsNumber(scmRightMargin)
+                    ? SchemeConvert.ToDouble(scmRightMargin, "right-margin")
+                    : paperWidth - lineWidth - leftMargin) + bindingOffset;
+            }
+        }
+
+        if (SchemeUtilities.ToBool(CVariable("check-consistency")))
+        {
+            // Consistency checks. If values don't match, set defaults.
+            if (Math.Abs(paperWidth - lineWidth - leftMargin - rightMargin) > 1e-6)
+            {
+                lineWidth = lineWidthDefault;
+                leftMargin = leftMarginDefault;
+                rightMargin = rightMarginDefault;
+                Warn.Warning("margins do not fit with line-width, setting default values");
+            }
+            else if (leftMargin < 0 || rightMargin < 0)
+            {
+                lineWidth = lineWidthDefault;
+                leftMargin = leftMarginDefault;
+                rightMargin = rightMarginDefault;
+                Warn.Warning(
+                    "systems run off the page due to improper paper settings, "
+                    + "setting default values");
+            }
+        }
+
+        SetVariable("left-margin", leftMargin);
+        SetVariable("right-margin", rightMargin);
+        SetVariable("line-width", lineWidth);
+    }
 
     /// <summary>Returns the external representation.</summary>
     /// <returns>The definition's class name.</returns>

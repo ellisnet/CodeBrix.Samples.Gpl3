@@ -108,6 +108,193 @@ public sealed class SfntReader
         return new CffCharsetReader(cff).ReadGlyphNames();
     }
 
+    /// <summary>
+    /// Returns the character-to-glyph map, from the <c>cmap</c> table.
+    /// <para>
+    /// Formats 4 and 12 are read, which between them cover every vendored text face:
+    /// format 4 is the sixteen-bit Unicode map every OpenType font must carry, and
+    /// format 12 is the one that reaches beyond the basic plane. A subtable in any
+    /// other format is skipped rather than guessed at.
+    /// </para>
+    /// </summary>
+    /// <returns>Code point to glyph index; empty when the font has no usable subtable.</returns>
+    public Dictionary<int, int> ReadCmap()
+    {
+        Dictionary<int, int> map = new Dictionary<int, int>();
+        if (!_tables.TryGetValue("cmap", out (uint Offset, uint Length) cmap))
+        {
+            return map;
+        }
+
+        int baseOffset = (int)cmap.Offset;
+        int tableCount = ReadUInt16(baseOffset + 2);
+
+        int best = -1;
+        int bestScore = -1;
+        for (int i = 0; i < tableCount; i++)
+        {
+            int record = baseOffset + 4 + (i * 8);
+            int platform = ReadUInt16(record);
+            int encoding = ReadUInt16(record + 2);
+            int subtable = baseOffset + (int)ReadUInt32(record + 4);
+
+            // Prefer a full-repertoire Unicode map, then any Unicode map, then the
+            // Windows symbol map several of the URW faces carry.
+            int score = platform == 3 && encoding == 10 ? 4
+                : platform == 0 && encoding >= 4 ? 4
+                : platform == 3 && encoding == 1 ? 3
+                : platform == 0 ? 3
+                : platform == 3 && encoding == 0 ? 1
+                : 0;
+
+            if (score > bestScore)
+            {
+                bestScore = score;
+                best = subtable;
+            }
+        }
+
+        if (best < 0)
+        {
+            return map;
+        }
+
+        int format = ReadUInt16(best);
+        if (format == 4)
+        {
+            ReadCmapFormat4(best, map);
+        }
+        else if (format == 12)
+        {
+            ReadCmapFormat12(best, map);
+        }
+
+        return map;
+    }
+
+    private void ReadCmapFormat4(int offset, Dictionary<int, int> map)
+    {
+        int segCountX2 = ReadUInt16(offset + 6);
+        int segCount = segCountX2 / 2;
+
+        int endCodes = offset + 14;
+        int startCodes = endCodes + segCountX2 + 2;
+        int idDeltas = startCodes + segCountX2;
+        int idRangeOffsets = idDeltas + segCountX2;
+
+        for (int segment = 0; segment < segCount; segment++)
+        {
+            int end = ReadUInt16(endCodes + (segment * 2));
+            int start = ReadUInt16(startCodes + (segment * 2));
+            int delta = (short)ReadUInt16(idDeltas + (segment * 2));
+            int rangeOffsetAt = idRangeOffsets + (segment * 2);
+            int rangeOffset = ReadUInt16(rangeOffsetAt);
+
+            if (start > end)
+            {
+                continue;
+            }
+
+            for (int code = start; code <= end && code != 0xFFFF; code++)
+            {
+                int glyph;
+                if (rangeOffset == 0)
+                {
+                    glyph = (code + delta) & 0xFFFF;
+                }
+                else
+                {
+                    // The offset is measured from the idRangeOffset SLOT itself, not
+                    // from the table. That indirection is the one thing every hand
+                    // written format 4 reader gets wrong.
+                    int at = rangeOffsetAt + rangeOffset + ((code - start) * 2);
+                    if (at + 1 >= _data.Length)
+                    {
+                        continue;
+                    }
+
+                    glyph = ReadUInt16(at);
+                    if (glyph != 0)
+                    {
+                        glyph = (glyph + delta) & 0xFFFF;
+                    }
+                }
+
+                if (glyph != 0)
+                {
+                    map[code] = glyph;
+                }
+            }
+        }
+    }
+
+    private void ReadCmapFormat12(int offset, Dictionary<int, int> map)
+    {
+        uint groups = ReadUInt32(offset + 12);
+        for (uint i = 0; i < groups; i++)
+        {
+            int record = offset + 16 + ((int)i * 12);
+            if (record + 12 > _data.Length)
+            {
+                break;
+            }
+
+            uint start = ReadUInt32(record);
+            uint end = ReadUInt32(record + 4);
+            uint startGlyph = ReadUInt32(record + 8);
+
+            for (uint code = start; code <= end && code - start < 0x10000; code++)
+            {
+                map[(int)code] = (int)(startGlyph + (code - start));
+            }
+        }
+    }
+
+    /// <summary>
+    /// Returns the horizontal advance of every glyph, in design units, from
+    /// <c>hhea</c> and <c>hmtx</c>.
+    /// <para>
+    /// The last entry in <c>hmtx</c>'s metrics array applies to every glyph after it —
+    /// that is how a monospaced font stores one advance for a thousand glyphs — so the
+    /// array is filled forward rather than read one-to-one.
+    /// </para>
+    /// </summary>
+    /// <returns>The advances, indexed by glyph.</returns>
+    public double[] ReadAdvances()
+    {
+        if (!_tables.TryGetValue("hhea", out (uint Offset, uint Length) hhea)
+            || !_tables.TryGetValue("hmtx", out (uint Offset, uint Length) hmtx)
+            || !_tables.TryGetValue("maxp", out (uint Offset, uint Length) maxp))
+        {
+            return Array.Empty<double>();
+        }
+
+        int glyphCount = ReadUInt16((int)maxp.Offset + 4);
+        int metricCount = ReadUInt16((int)hhea.Offset + 34);
+        if (metricCount == 0 || glyphCount == 0)
+        {
+            return Array.Empty<double>();
+        }
+
+        double[] advances = new double[glyphCount];
+        double last = 0;
+        for (int i = 0; i < glyphCount; i++)
+        {
+            if (i < metricCount)
+            {
+                int at = (int)hmtx.Offset + (i * 4);
+                if (at + 1 < _data.Length)
+                {
+                    last = ReadUInt16(at);
+                }
+            }
+
+            advances[i] = last;
+        }
+
+        return advances;
+    }
+
     private void ReadTableDirectory()
     {
         if (_data.Length < 12)

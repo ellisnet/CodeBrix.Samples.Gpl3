@@ -105,6 +105,28 @@ public class Spanner : Grob
     public DrulArray<Item> GetBounds() => _spannedDrul;
 
     /// <summary>
+    /// Returns the system this spanner lies on: the one BOTH its bounds are on.
+    /// <para>
+    /// A spanner whose ends landed on different lines has no single system — that is
+    /// the state a spanner is in until it has been broken into its pieces — and the
+    /// answer is <see langword="null"/> rather than either end's.
+    /// </para>
+    /// </summary>
+    /// <returns>The system, or <see langword="null"/>.</returns>
+    public override SystemGrob GetSystem()
+    {
+        Item left = GetBound(Direction.Negative);
+        Item right = GetBound(Direction.Positive);
+        if (left == null || right == null)
+        {
+            return null;
+        }
+
+        SystemGrob system = left.GetSystem();
+        return system != null && ReferenceEquals(system, right.GetSystem()) ? system : null;
+    }
+
+    /// <summary>
     /// Attaches one end of the spanner to an item, and normally makes the LEFT bound
     /// the spanner's horizontal reference point.
     /// <para>

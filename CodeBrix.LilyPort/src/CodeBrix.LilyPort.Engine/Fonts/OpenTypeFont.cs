@@ -71,6 +71,12 @@ public sealed class OpenTypeFont
     private readonly List<string> _glyphNames;
     private readonly Dictionary<int, Box> _indexToBox = new Dictionary<int, Box>();
 
+    private SvgFontOutlines _outlines;
+    private bool _outlinesLoaded;
+
+    private CffFont _cff;
+    private bool _cffLoaded;
+
     /// <summary>
     /// Initializes a font from its file, evaluating its metadata tables with the
     /// ambient interpreter.
@@ -78,7 +84,10 @@ public sealed class OpenTypeFont
     /// <param name="fileName">The path to the OTF.</param>
     /// <returns>The font.</returns>
     public static OpenTypeFont Load(string fileName)
-        => new OpenTypeFont(fileName, LilyPondScheme.Current);
+        => new OpenTypeFont(
+            File.ReadAllBytes(fileName),
+            Path.GetFileNameWithoutExtension(fileName),
+            LilyPondScheme.Current);
 
     /// <summary>Initializes a font from its file, evaluating its metadata tables.</summary>
     /// <param name="fileName">The path to the OTF.</param>
@@ -90,10 +99,35 @@ public sealed class OpenTypeFont
     /// one. Use <see cref="Load"/> when the ambient interpreter is what you want.
     /// </param>
     public OpenTypeFont(string fileName, Interpreter interpreter)
+        : this(
+            File.ReadAllBytes(fileName ?? throw new ArgumentNullException(nameof(fileName))),
+            Path.GetFileNameWithoutExtension(fileName),
+            interpreter)
     {
-        FileName = fileName ?? throw new ArgumentNullException(nameof(fileName));
+        FileName = fileName;
+    }
 
-        Reader = SfntReader.FromFile(fileName);
+    /// <summary>Initializes a font from its bytes, evaluating its metadata tables.</summary>
+    /// <param name="bytes">The whole font file.</param>
+    /// <param name="name">
+    /// The font's name without a suffix, such as <c>emmentaler-20</c>. It is what the
+    /// matching SVG font carrying the glyph OUTLINES is looked up by.
+    /// </param>
+    /// <param name="interpreter">
+    /// The interpreter to evaluate the metadata tables with, or <see langword="null"/>
+    /// for none.
+    /// </param>
+    public OpenTypeFont(byte[] bytes, string name, Interpreter interpreter)
+    {
+        if (bytes == null)
+        {
+            throw new ArgumentNullException(nameof(bytes));
+        }
+
+        Name = name ?? string.Empty;
+        FileName = Name;
+
+        Reader = new SfntReader(bytes);
         UnitsPerEm = Reader.UnitsPerEm;
 
         _glyphNames = Reader.ReadCffGlyphNames();
@@ -106,8 +140,54 @@ public sealed class OpenTypeFont
         LoadSchemeTable("LILY", interpreter, _globalTable);
     }
 
-    /// <summary>Gets the path the font was read from.</summary>
+    /// <summary>Gets the font's name without a suffix, such as <c>emmentaler-20</c>.</summary>
+    public string Name { get; } = string.Empty;
+
+    /// <summary>Gets the path the font was read from, or its name when it was embedded.</summary>
     public string FileName { get; }
+
+    /// <summary>
+    /// Gets the glyph outlines, read from the SVG font shipped beside this one, or
+    /// <see langword="null"/> when there is none. Loaded on first ask.
+    /// </summary>
+    public SvgFontOutlines Outlines
+    {
+        get
+        {
+            if (!_outlinesLoaded)
+            {
+                _outlinesLoaded = true;
+                string document = FontAssets.OutlineFont(Name);
+                _outlines = document == null ? null : new SvgFontOutlines(document);
+            }
+
+            return _outlines;
+        }
+    }
+
+    /// <summary>
+    /// Gets the font's glyph programs, or <see langword="null"/> when it carries no
+    /// <c>CFF </c> table. Loaded on first ask.
+    /// <para>
+    /// Rendering does not go through here — a music glyph is drawn from the outline the
+    /// shipped SVG font already holds. This is for SKYLINES, which need the outline as
+    /// segments rather than as a string, and for which upstream asks FreeType.
+    /// </para>
+    /// </summary>
+    public CffFont Cff
+    {
+        get
+        {
+            if (!_cffLoaded)
+            {
+                _cffLoaded = true;
+                byte[] table = Reader.GetTable("CFF ");
+                _cff = table == null ? null : new CffFont(table);
+            }
+
+            return _cff;
+        }
+    }
 
     /// <summary>Gets the underlying container reader.</summary>
     public SfntReader Reader { get; }

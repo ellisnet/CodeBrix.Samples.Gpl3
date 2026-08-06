@@ -8,6 +8,7 @@
 using System;
 using System.Collections.Generic;
 using CodeBrix.LilyPort.Engine.Bootstrap;
+using CodeBrix.LilyPort.Engine.Layout;
 using CodeBrix.LilyPort.Engine.Music;
 using CodeBrix.LilyPort.Engine.Objects;
 using CodeBrix.LilyPort.Engine.Translation;
@@ -42,11 +43,12 @@ namespace CodeBrix.LilyPort.Engine.Tests;
 public class MusicIterationTests : IDisposable
 {
     /// <summary>
-    /// Clears the context factory after every test. It is process-global — the engine's
-    /// state is, throughout — so leaving one installed would let this class's fixture
-    /// leak into any other test that creates contexts.
+    /// Removes the fixture's own translator from the engine registry after every test.
+    /// The registry is process-global — the engine's state is, throughout — so leaving
+    /// <c>Listening_engraver</c> in it would let this class's fixture leak into any
+    /// other test that resolves a <c>\consists</c> list.
     /// </summary>
-    public void Dispose() => Context.ContextFactory = null;
+    public void Dispose() => LilyPondScheme.Registries?.Translators.Remove(Sym(ListeningEngraverName));
 
     private static readonly object LoadGate = new object();
 
@@ -122,8 +124,9 @@ public class MusicIterationTests : IDisposable
     }
 
     /// <summary>
-    /// Builds the context tree the way the real pipeline does: a Global context and a
-    /// FACTORY, with everything below created on demand as the iterators descend.
+    /// Builds the context tree the way the real pipeline does: a Global context built
+    /// from a <c>Context_def</c>, with everything below created on demand from further
+    /// definitions as the iterators descend.
     /// <para>
     /// Pre-building Score/Staff/Voice by hand does not work, and the reason is worth
     /// keeping. <c>get_default_interpreter</c> is CREATE_ONLY — it goes straight to
@@ -133,74 +136,137 @@ public class MusicIterationTests : IDisposable
     /// attached to the first one hears nothing at all, with no error anywhere.
     /// </para>
     /// <para>
-    /// The factory also stands in for <c>Context_def</c>, which is what upstream reads
-    /// a context type's acceptance list and translator list from. Those definitions
-    /// live in <c>ly/engraver-init.ly</c> and arrive with the parser (Track P).
+    /// The definitions here are the same SHAPE as <c>ly/engraver-init.ly</c>'s and a
+    /// great deal smaller: four contexts and one engraver, so that what this class
+    /// tests stays the iterator/event path rather than the init layer. They go through
+    /// the real <c>Context_def</c>, the real acceptance sets and the real
+    /// <c>\consists</c> resolution.
     /// </para>
     /// </summary>
     private sealed class Tree
     {
-        public GlobalContext Global { get; init; }
+        public GlobalContext Global { get; set; }
 
         public List<ListeningEngraver> Engravers { get; } = new List<ListeningEngraver>();
-
-        public List<Context> Created { get; } = new List<Context>();
 
         public ListeningEngraver Engraver
             => Engravers.Count > 0 ? Engravers[Engravers.Count - 1] : null;
 
-        public Context Voice
+        public Context Voice => FindByName(Global, "Voice");
+
+        /// <summary>The context names created below Global, top down.</summary>
+        public List<string> CreatedNames
         {
             get
             {
-                foreach (Context context in Created)
-                {
-                    if (context.ContextName == "Voice")
-                    {
-                        return context;
-                    }
-                }
-
-                return null;
+                List<string> names = new List<string>();
+                Collect(Global, names);
+                return names;
             }
         }
+
+        private static void Collect(Context context, List<string> names)
+        {
+            if (context == null)
+            {
+                return;
+            }
+
+            foreach (Context child in context.Children)
+            {
+                names.Add(child.ContextName);
+                Collect(child, names);
+            }
+        }
+
+        private static Context FindByName(Context context, string name)
+        {
+            if (context == null)
+            {
+                return null;
+            }
+
+            if (context.ContextName == name)
+            {
+                return context;
+            }
+
+            foreach (Context child in context.Children)
+            {
+                Context found = FindByName(child, name);
+                if (found != null)
+                {
+                    return found;
+                }
+            }
+
+            return null;
+        }
+    }
+
+    private const string ListeningEngraverName = "Listening_engraver";
+
+    /// <summary>Builds a context definition out of <c>(tag argument)</c> mods.</summary>
+    private static ContextDef Def(string name, params (string Tag, object Argument)[] mods)
+    {
+        ContextDef definition = new ContextDef();
+        definition.AddContextMod(Pair.List(Sym("context-name"), Sym(name)));
+        foreach ((string Tag, object Argument) mod in mods)
+        {
+            definition.AddContextMod(Pair.List(Sym(mod.Tag), mod.Argument));
+        }
+
+        return definition;
     }
 
     private static Tree BuildTree()
     {
-        GlobalContext global = new GlobalContext();
-        global.AcceptedContexts.Add(Sym("Score"));
+        Loaded();
 
-        Tree tree = new Tree { Global = global };
+        Tree tree = new Tree();
 
-        Dictionary<string, string> accepts = new Dictionary<string, string>
+        // The fixture's engraver announces itself the same way every C# engraver does,
+        // so a \consists naming it resolves through the ordinary registry.
+        LilyPondScheme.Registries.Translators[Sym(ListeningEngraverName)] =
+            new TranslatorCreator(
+                Sym(ListeningEngraverName),
+                context =>
+                {
+                    ListeningEngraver engraver = new ListeningEngraver(context);
+                    tree.Engravers.Add(engraver);
+                    return engraver;
+                });
+
+        ContextDef globalDef = Def(
+            "Global", ("accepts", Sym("Score")), ("default-child", Sym("Score")));
+        ContextDef scoreDef = Def(
+            "Score",
+            ("translator-type", Sym("Engraver_group")),
+            ("accepts", Sym("Staff")),
+            ("default-child", Sym("Staff")));
+        ContextDef staffDef = Def(
+            "Staff",
+            ("translator-type", Sym("Engraver_group")),
+            ("accepts", Sym("Voice")),
+            ("default-child", Sym("Voice")));
+        ContextDef voiceDef = Def(
+            "Voice",
+            ("translator-type", Sym("Engraver_group")),
+            ("consists", Sym(ListeningEngraverName)));
+
+        OutputDef layout = new OutputDef();
+        foreach (ContextDef definition in new[] { globalDef, scoreDef, staffDef, voiceDef })
         {
-            ["Score"] = "Staff",
-            ["Staff"] = "Voice",
-        };
+            layout.SetVariable((Symbol)definition.ContextName, definition);
+        }
 
-        Context.ContextFactory = (type, id) =>
-        {
-            Context context = new Context(type, id);
-            if (accepts.TryGetValue(type.Name, out string child))
-            {
-                context.AcceptedContexts.Add(Sym(child));
-            }
-            else
-            {
-                // A bottom context: this is where the engravers live.
-                EngraverGroup group = new EngraverGroup();
-                ListeningEngraver engraver = new ListeningEngraver(context);
-                group.AddTranslator(engraver);
-                context.Implementation = group;
-                group.ConnectToContext(context);
-                tree.Engravers.Add(engraver);
-            }
+        GlobalContext global = new GlobalContext(layout, globalDef);
 
-            tree.Created.Add(context);
-            return context;
-        };
+        // Without this the tree still builds and nothing engraves: the group's
+        // AnnounceNewContext listener is what makes a child's translators.
+        global.MakeGlobalTranslator();
 
+        tree.Global = global;
         return tree;
     }
 
@@ -373,7 +439,7 @@ public class MusicIterationTests : IDisposable
         //Assert
         // Nothing ran at all: no timestep, and therefore not even a Score context.
         found.Should().BeFalse();
-        tree.Created.Should().BeEmpty();
+        tree.CreatedNames.Should().BeEmpty();
         tree.Engraver.Should().BeNull();
     }
 
@@ -394,13 +460,7 @@ public class MusicIterationTests : IDisposable
         //Assert
         // The whole chain gets built from Global downward, and the note is heard in the
         // Voice at the bottom of it.
-        List<string> names = new List<string>();
-        foreach (Context context in tree.Created)
-        {
-            names.Add(context.ContextName);
-        }
-
-        names.Should().Equal("Score", "Staff", "Voice");
+        tree.CreatedNames.Should().Equal("Score", "Staff", "Voice");
         tree.Voice.Should().NotBeNull();
         tree.Engraver.Heard.Should().ContainSingle();
         tree.Engraver.Heard[0].IsInEventClass("note-event").Should().BeTrue();

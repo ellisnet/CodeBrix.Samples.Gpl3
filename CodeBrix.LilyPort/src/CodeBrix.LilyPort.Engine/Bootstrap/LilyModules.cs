@@ -24,21 +24,16 @@ namespace CodeBrix.LilyPort.Engine.Bootstrap;
 /// than plumbing, is reproduced here so every scope in the port is built the same way.
 /// </para>
 /// <para>
-/// DIVERGENCE, and it is load-bearing: upstream's scope modules are ANONYMOUS, and
-/// these are NAMED and REGISTERED. The expander resolves an imported MACRO only in a
-/// module it can name — in an anonymous one, <c>define-music-function</c> reads as an
-/// ordinary variable and its argument list is evaluated. The same divergence, for the
-/// same reason, as the parser's own scopes; the underlying expander limitation is
-/// recorded in <c>Parsing/PORT-COVERAGE.txt</c> under LS-FIX, and closing it there lets
-/// this go back to matching upstream.
+/// The scopes are ANONYMOUS, matching upstream, since LS-FIX (2026-08-05). They
+/// spent EPG1–EPG3 named and registered instead, because the expander resolved an
+/// imported MACRO only in a module it could name; LilyScheme now gives an anonymous
+/// module a lazy name on the first <c>module-name</c> ask — Guile's own boot-9
+/// behaviour — so the divergence is retired. Both halves are recorded in
+/// <c>Parsing/PORT-COVERAGE.txt</c>.
 /// </para>
 /// </summary>
 public static class LilyModules
 {
-    private static readonly object Gate = new object();
-
-    private static long _serial;
-
     /// <summary>
     /// Makes a scope module on the ambient interpreter.
     /// <para>Equivalent to <c>ly_make_module ()</c>. The interpreter is the process-global
@@ -47,8 +42,9 @@ public static class LilyModules
     /// without imports, so an <see cref="Engine.Layout.OutputDef"/> constructed in
     /// isolation still has a real scope to read and write.</para>
     /// </summary>
-    /// <param name="kind">A word naming what the scope belongs to, used in the module's
-    /// registered name.</param>
+    /// <param name="kind">A word naming what the scope belongs to. Kept for the call
+    /// sites' self-description; since the scopes went back to being ANONYMOUS
+    /// (LS-FIX, 2026-08-05) it no longer reaches the module.</param>
     /// <returns>The new module.</returns>
     public static SchemeModule Make(string kind) => Make(LilyPondScheme.Current, kind);
 
@@ -59,14 +55,13 @@ public static class LilyModules
     /// <returns>The new module.</returns>
     public static SchemeModule Make(Interpreter interpreter, string kind)
     {
-        long serial;
-        lock (Gate)
-        {
-            serial = ++_serial;
-        }
-
-        SchemeModule module = new SchemeModule(
-            Pair.List(Symbol.Intern("lily"), Symbol.Intern(kind ?? "scope"), serial));
+        // ANONYMOUS, matching upstream's ly_make_module at last. The scopes were
+        // named-and-registered from EPG1 until 2026-08-05 as a workaround for the
+        // expander not resolving imported macros in anonymous modules; LilyScheme
+        // now names an anonymous module lazily on the first module-name ask,
+        // exactly as Guile's boot-9 does, so the workaround is retired (LS-FIX —
+        // see Parsing/PORT-COVERAGE.txt, which records both halves).
+        SchemeModule module = new SchemeModule(null);
 
         if (interpreter == null)
         {
@@ -75,7 +70,6 @@ public static class LilyModules
 
         module.AddUse(interpreter.Modules.RootModule);
         module.AddUse(interpreter.Modules.Resolve(Pair.List(Symbol.Intern("lily"))));
-        interpreter.Modules.Register(module);
         return module;
     }
 

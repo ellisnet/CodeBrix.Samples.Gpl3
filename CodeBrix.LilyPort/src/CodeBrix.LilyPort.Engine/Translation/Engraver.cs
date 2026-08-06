@@ -84,6 +84,8 @@ public abstract class Engraver : Translator
     private static readonly Symbol SpannerSymbol = Symbol.Intern("Spanner");
     private static readonly Symbol PaperColumnSymbol = Symbol.Intern("Paper_column");
     private static readonly Symbol AllGrobDescriptionsSymbol = Symbol.Intern("all-grob-descriptions");
+    private static readonly Symbol StickyHostSymbol = Symbol.Intern("sticky-host");
+    private static readonly Symbol StickyGrobInterfaceSymbol = Symbol.Intern("sticky-grob-interface");
 
     /// <summary>Initializes an engraver in a context.</summary>
     /// <param name="context">The context this engraver belongs to.</param>
@@ -169,6 +171,50 @@ public abstract class Engraver : Translator
 
         AnnounceGrob(grob, cause);
         return grob;
+    }
+
+    /// <summary>
+    /// Makes a grob that STICKS to another one: same class as the host, parented to it
+    /// on both axes, and carrying the host as its <c>sticky-host</c>.
+    /// <para>
+    /// The class is taken from the host rather than from the grob definition, which is
+    /// the whole point — the same definition sticks to an item as an item and to a
+    /// spanner as a spanner. A sticky spanner takes its bounds from its host implicitly,
+    /// and ending it is the <c>Spanner_tracking_engraver</c>'s job.
+    /// </para>
+    /// </summary>
+    /// <param name="grobName">The grob type name.</param>
+    /// <param name="host">The grob to stick to.</param>
+    /// <param name="cause">What caused it.</param>
+    /// <returns>The sticky grob, or <see langword="null"/> when it could not be made.</returns>
+    public Grob MakeSticky(Symbol grobName, Grob host, object cause)
+    {
+        if (host == null)
+        {
+            Warn.ProgrammingError("sticky grob created with no host");
+            return null;
+        }
+
+        Grob sticky = host is Spanner
+            ? (Grob)MakeSpanner(grobName.Name, cause)
+            : MakeItem(grobName.Name, cause);
+
+        if (sticky == null)
+        {
+            return null;
+        }
+
+        if (!sticky.HasInterface(StickyGrobInterfaceSymbol))
+        {
+            Warn.ProgrammingError(
+                "sticky grob " + sticky.Name
+                + " created with a type that does not have the sticky-grob-interface");
+        }
+
+        sticky.SetObject(StickyHostSymbol, host);
+        sticky.XParent = host;
+        sticky.YParent = host;
+        return sticky;
     }
 
     /// <summary>
@@ -339,11 +385,131 @@ public abstract class Engraver : Translator
 /// </summary>
 public class EngraverGroup : TranslatorGroup
 {
+    private static readonly Symbol OverrideSymbol = Symbol.Intern("Override");
+    private static readonly Symbol RevertSymbol = Symbol.Intern("Revert");
+    private static readonly Symbol SymbolSymbol = Symbol.Intern("symbol");
+    private static readonly Symbol PropertyPathSymbol = Symbol.Intern("property-path");
+    private static readonly Symbol ValueSymbol = Symbol.Intern("value");
+    private static readonly Symbol OnceSymbol = Symbol.Intern("once");
+    private static readonly Symbol MatchedPopSymbol
+        = Symbol.Intern("ly:context-matched-pop-property");
+
     private readonly List<(GrobInfo Info, Direction StartEnd)> _announceInfos
         = new List<(GrobInfo, Direction)>();
 
+    private Listener _overrideListener;
+    private Listener _revertListener;
+
     /// <summary>Gets the C++ class name this group corresponds to.</summary>
     public override string ClassName => "Engraver_group";
+
+    /// <summary>
+    /// Attaches to a context and starts listening for <c>\override</c> and
+    /// <c>\revert</c>.
+    /// <para>
+    /// These live on the GROUP rather than on any engraver because an override is aimed
+    /// at a context, not at whoever happens to draw the grob — which is what lets
+    /// <c>\override Staff.NoteHead.color</c> reach note heads made in a Voice below.
+    /// </para>
+    /// </summary>
+    /// <param name="context">The context to attach to.</param>
+    public override void ConnectToContext(Context context)
+    {
+        base.ConnectToContext(context);
+
+        if (context == null)
+        {
+            return;
+        }
+
+        _overrideListener = context.EventSource.AddListener(this, Override, OverrideSymbol);
+        _revertListener = context.EventSource.AddListener(this, Revert, RevertSymbol);
+    }
+
+    /// <summary>Detaches from the context and stops listening.</summary>
+    public override void DisconnectFromContext()
+    {
+        if (Context != null)
+        {
+            if (_overrideListener != null)
+            {
+                Context.EventSource.RemoveListener(_overrideListener, OverrideSymbol);
+            }
+
+            if (_revertListener != null)
+            {
+                Context.EventSource.RemoveListener(_revertListener, RevertSymbol);
+            }
+        }
+
+        _overrideListener = null;
+        _revertListener = null;
+
+        base.DisconnectFromContext();
+    }
+
+    /// <summary>Applies an <c>\override</c>, temporarily when it was written <c>\once</c>.</summary>
+    /// <param name="streamEvent">The <c>Override</c> event.</param>
+    public void Override(StreamEvent streamEvent)
+    {
+        if (!(streamEvent.GetProperty(SymbolSymbol) is Symbol symbol) || Context == null)
+        {
+            return;
+        }
+
+        GrobPropertyInfo info = new GrobPropertyInfo(Context, symbol);
+
+        if (SchemeUtilities.ToBool(streamEvent.GetProperty(OnceSymbol)))
+        {
+            object token = info.TemporaryOverride(
+                streamEvent.GetProperty(PropertyPathSymbol),
+                streamEvent.GetProperty(ValueSymbol));
+            AddMatchedPopFinalization(symbol, token);
+        }
+        else
+        {
+            info.Push(
+                streamEvent.GetProperty(PropertyPathSymbol),
+                streamEvent.GetProperty(ValueSymbol));
+        }
+    }
+
+    /// <summary>Applies a <c>\revert</c>, temporarily when it was written <c>\once</c>.</summary>
+    /// <param name="streamEvent">The <c>Revert</c> event.</param>
+    public void Revert(StreamEvent streamEvent)
+    {
+        if (!(streamEvent.GetProperty(SymbolSymbol) is Symbol symbol) || Context == null)
+        {
+            return;
+        }
+
+        GrobPropertyInfo info = new GrobPropertyInfo(Context, symbol);
+
+        if (SchemeUtilities.ToBool(streamEvent.GetProperty(OnceSymbol)))
+        {
+            object token = info.TemporaryRevert(streamEvent.GetProperty(PropertyPathSymbol));
+            AddMatchedPopFinalization(symbol, token);
+        }
+        else
+        {
+            info.Pop(streamEvent.GetProperty(PropertyPathSymbol));
+        }
+    }
+
+    private void AddMatchedPopFinalization(Symbol symbol, object token)
+    {
+        if (!(token is Pair))
+        {
+            return;
+        }
+
+        GlobalContext global = Context?.GlobalContext;
+        global?.AddFinalization(Pair.List(
+            Bootstrap.LilyPondScheme.LookupProcedure(MatchedPopSymbol),
+            Context,
+            symbol,
+            token));
+    }
 
     /// <summary>Gets the announcements queued this timestep.</summary>
     public IReadOnlyList<(GrobInfo Info, Direction StartEnd)> AnnounceInfos => _announceInfos;

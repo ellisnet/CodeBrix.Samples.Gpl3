@@ -289,6 +289,17 @@ public static class TranslatorManifest
     /// <summary>Gets the Scheme-implemented translators.</summary>
     public static IReadOnlyList<TranslatorEntry> Scheme => Of(TranslatorKind.Scheme);
 
+    /// <summary>
+    /// Gets the names of every INSTANTIABLE translator — the concrete C++ ones and the
+    /// Scheme ones, but not the four groups, which a <c>\consists</c> never names.
+    /// </summary>
+    /// <returns>The names, in the manifest's order.</returns>
+    public static IReadOnlyList<string> DeclaredNames()
+        => EntryCache
+            .Where(entry => entry.Kind != TranslatorKind.Group)
+            .Select(entry => entry.Name)
+            .ToList();
+
     private static IReadOnlyList<TranslatorEntry> Of(TranslatorKind kind)
         => EntryCache.Where(entry => entry.Kind == kind).ToList();
 

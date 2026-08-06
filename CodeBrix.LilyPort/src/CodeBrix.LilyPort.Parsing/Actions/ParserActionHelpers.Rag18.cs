@@ -48,7 +48,7 @@ internal static partial class ParserActionHelpers
     internal static void PrepareMarkupScore(IParserHost host, object score, SourceSpan location)
     {
         Score sc = (Score)score;
-        sc.SetSpot(location);
+        host.SetMusicSpot(sc, location);
         if (sc.Defs.Count == 0)
         {
             OutputDef od = GetLayout(host);

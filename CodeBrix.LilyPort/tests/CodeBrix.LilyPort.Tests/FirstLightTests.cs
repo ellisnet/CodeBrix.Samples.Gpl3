@@ -207,13 +207,21 @@ public class FirstLightTests
         Interpreter.RunWithLargeStack(() => svg = LilyPortEngraver.EngraveToSvg(music));
 
         //Assert
-        // The end of the pipeline. The <use> references are what the regression
-        // comparator counts as the glyph inventory, so their presence is exactly the
-        // signal that makes the harness usable against the port.
+        // The end of the pipeline. EPG13 replaced a stand-in here: the backend used to
+        // write <use xlink:href="#noteheads.s2"/>, which named the glyph and drew
+        // nothing. LilyPond emits no <use> elements at all — each glyph is its own
+        // outline, scaled by the drawing size over the units per em — so that is what
+        // the comparator counts as the glyph inventory and what has to appear.
         svg.Should().StartWith("<?xml version=\"1.0\"");
         svg.Should().Contain("<svg");
-        svg.Should().Contain("xlink:href=\"#noteheads.s2\"");
-        svg.Should().Contain("xlink:href=\"#clefs.G\"");
+        svg.Should().NotContain("xlink:href=");
+
+        // The note head and the treble clef, by their own outlines. Taken from the
+        // shipped SVG font, which is where upstream's SVG backend takes them from.
+        svg.Should().Contain(
+            "d=\"M0 -46c0 91 116 182 217 182c63 0 109 -35 109 -90"
+            + "c0 -87 -110 -182 -220 -182c-67 0 -106 39 -106 90z\"");
+        svg.Should().Contain("<path transform=\"scale(");
 
         // Staff lines are DRAWN rather than referenced: Lookup::horizontal_line emits a
         // draw-line, which the SVG backend writes as a <line>. So the five staff lines
@@ -222,15 +230,33 @@ public class FirstLightTests
     }
 
     [Fact]
-    public void the_stand_in_context_tree_names_what_it_is_missing()
+    public void the_real_context_tree_names_the_translators_it_cannot_make()
     {
-        //Arrange / Act / Assert
-        // The factory in LilyPortEngraver stands in for ly/engraver-init.ly. Naming the
-        // absent translators rather than merely omitting them is what lets a comparison
-        // against real LilyPond tell a missing feature from a wrong one.
-        EngraveResult.MissingTranslators.Should().Contain("Spacing_engraver");
-        EngraveResult.MissingTranslators.Should().Contain("Bar_engraver");
-        EngraveResult.MissingTranslators.Should().Contain("Stem_engraver");
+        //Arrange
+        // The tree is built from ly/engraver-init.ly's own definitions now, so the
+        // \consists lists name every translator upstream has and the port answers for
+        // the ones it has ported. Naming the rest rather than merely omitting them is
+        // what lets a comparison against real LilyPond tell a missing feature from a
+        // wrong one, and it is gate G4's measurement.
+        EngraveQuarterNote();
+
+        //Act
+        IReadOnlyList<string> missing = EngraveResult.MissingTranslators();
+
+        //Assert
+        missing.Should().Contain("Bar_engraver");
+        missing.Should().Contain("Stem_engraver");
+
+        // ...and the ported ones are NOT in it, which is the half that can rot silently.
+        missing.Should().NotContain("Clef_engraver");
+        missing.Should().NotContain("Note_heads_engraver");
+        missing.Should().NotContain("Staff_symbol_engraver");
+
+        // EPG4's three. Spacing_engraver was on the missing side of this fence until
+        // 2026-08-05, which is exactly what the fence is for.
+        missing.Should().NotContain("Spacing_engraver");
+        missing.Should().NotContain("Note_spacing_engraver");
+        missing.Should().NotContain("Separating_line_group_engraver");
     }
 
     private static Grob FindGrob(EngraveResult result, string name)

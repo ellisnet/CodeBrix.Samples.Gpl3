@@ -7,6 +7,7 @@
 
 using System.Collections.Generic;
 using CodeBrix.LilyPort.Engine.Layout;
+using CodeBrix.LilyPort.Engine.Music;
 using CodeBrix.LilyPort.Engine.Objects;
 using CodeBrix.LilyPort.Flower;
 using CodeBrix.LilyScheme.Values;
@@ -155,5 +156,97 @@ internal static class SpacingFixtures
                 }
             }
         }
+    }
+
+    /// <summary>Builds a bare grob to hang spacing properties off.</summary>
+    internal static Grob NewSpacingGrob(params (string Key, object Value)[] properties)
+        => new Item(GrobBasics(properties));
+
+    /// <summary>
+    /// Builds two columns, each holding one item, with the system parenting the real
+    /// pipeline gives them — which is what <see cref="Rod.AddToColumns"/> walks.
+    /// </summary>
+    internal static (PaperColumn Left, PaperColumn Right, Item LeftItem, Item RightItem)
+        TwoColumnsWithItems()
+    {
+        SystemGrob system = NewSystem();
+        PaperColumn left = NewColumn(system);
+        PaperColumn right = NewColumn(system);
+        return (left, right, AddItemTo(left), AddItemTo(right));
+    }
+
+    /// <summary>Adds an item to a column, parented the way the pipeline parents it.</summary>
+    internal static Item AddItemTo(PaperColumn column)
+    {
+        Item item = new Item(GrobBasics());
+        item.XParent = column;
+        SeparationItem.AddItem(column, item);
+        return item;
+    }
+
+    /// <summary>Builds two breakable columns a measure apart.</summary>
+    internal static (PaperColumn Left, PaperColumn Right) TwoBreakableColumns(Moment measureLength)
+    {
+        SystemGrob system = NewSystem();
+        PaperColumn left = NewColumn(system, ("line-break-permission", Sym("allow")));
+        PaperColumn right = NewColumn(system, ("line-break-permission", Sym("allow")));
+        left.SetProperty(Sym("measure-length"), measureLength);
+        return (left, right);
+    }
+
+    /// <summary>Builds two non-breakable columns stamped with the given moments.</summary>
+    internal static (PaperColumn Left, PaperColumn Right) TwoColumnsAtMoments(
+        Moment leftWhen, Moment rightWhen)
+    {
+        SystemGrob system = NewSystem();
+        PaperColumn left = NewColumn(system);
+        PaperColumn right = NewColumn(system);
+        left.SetProperty(Sym("when"), leftWhen);
+        right.SetProperty(Sym("when"), rightWhen);
+        return (left, right);
+    }
+
+    /// <summary>
+    /// Builds two musical columns: the left one carries the duration that RULES the
+    /// spacing between them, which is the shortest note still sounding rather than the
+    /// shortest note starting there.
+    /// </summary>
+    internal static (PaperColumn Left, PaperColumn Right) TwoMusicalColumns(
+        Rational ruling, Moment leftWhen, Moment rightWhen)
+    {
+        SystemGrob system = NewSystem();
+        PaperColumn left = NewColumn(system);
+        PaperColumn right = NewColumn(system);
+        left.SetProperty(Sym("shortest-playing-duration"),
+            Bootstrap.SchemeConvert.FromRational(ruling));
+        left.SetProperty(Sym("when"), leftWhen);
+        right.SetProperty(Sym("when"), rightWhen);
+        return (left, right);
+    }
+
+    /// <summary>Returns the rod distance one column records to another, or NaN.</summary>
+    internal static double RodDistance(PaperColumn left, PaperColumn right)
+    {
+        object cursor = SpaceableGrob.GetMinimumDistances(left);
+        while (cursor is Pair pair)
+        {
+            if (pair.Car is Pair entry && ReferenceEquals(entry.Car, right))
+            {
+                return entry.Cdr is double value ? value : double.NaN;
+            }
+
+            cursor = pair.Cdr;
+        }
+
+        return double.NaN;
+    }
+
+    private static PaperColumn NewColumn(
+        SystemGrob system, params (string Key, object Value)[] extra)
+    {
+        PaperColumn column = new PaperColumn(GrobBasics(extra));
+        system.TypesetGrob(column);
+        system.AddColumn(column);
+        return column;
     }
 }

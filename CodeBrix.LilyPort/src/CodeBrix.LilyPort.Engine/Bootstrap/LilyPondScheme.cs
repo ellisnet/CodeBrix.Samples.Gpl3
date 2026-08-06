@@ -76,6 +76,30 @@ public static class LilyPondScheme
     internal static void RestoreAmbient(Interpreter interpreter) => Current = interpreter;
 
     /// <summary>
+    /// Looks a name up in the ambient interpreter's current module.
+    /// <para>
+    /// Upstream reaches the same values through <c>lily-imports.hh</c>, which resolves
+    /// each one lazily out of the <c>(lily)</c> module and caches it. The port resolves
+    /// per call rather than caching, because the ambient interpreter is REPLACED between
+    /// tests and a cached procedure would then belong to a dead one — a class of defect
+    /// that is silent, because the stale procedure still runs.
+    /// </para>
+    /// </summary>
+    /// <param name="name">The name to look up.</param>
+    /// <returns>The value, or <see langword="null"/> when nothing is bound to it.</returns>
+    public static object LookupProcedure(Symbol name)
+    {
+        Interpreter interpreter = Current;
+        if (interpreter == null || name == null)
+        {
+            return null;
+        }
+
+        Variable variable = interpreter.CurrentModule?.Lookup(name);
+        return variable != null && variable.IsBound ? variable.GetValue() : null;
+    }
+
+    /// <summary>
     /// Gets LilyPond's own load order, from <c>scm/lily.scm</c>, filtered to the files
     /// that actually exist.
     /// <para>
@@ -284,8 +308,17 @@ public static class LilyPondScheme
         ProbPrimitives.Install(interpreter);
         IteratorPrimitives.Install(interpreter);
         Registries = RegistryPrimitives.Install(interpreter);
+
+        // The C#-side translators go in BEFORE the Scheme layer loads, exactly as
+        // upstream's ADD_TRANSLATOR static initialisers run before Guile starts: a
+        // context definition's \consists list must resolve the same way whether the
+        // translator was written in C# or in Scheme.
+        Translation.TranslatorRegistry.RegisterBuiltIn(Registries);
         GrobPrimitives.Install(interpreter);
         TranslationPrimitives.Install(interpreter);
+        OutputPrimitives.Install(interpreter);
+        TransformPrimitives.Install(interpreter);
+        FontPrimitives.Install(interpreter);
         GrobCallbacks.Install(interpreter);
         OriginPrimitives.Install(interpreter);
         ParserPrimitives.Install(interpreter);
@@ -381,6 +414,25 @@ public static class LilyPondScheme
         {
             report.Failed["lily"] = Describe(ex);
         }
+
+        // The port HAS one backend, and it is SVG (decision D15: no PostScript, no
+        // Cairo). Upstream's option defaults to `ps` because upstream ships all three,
+        // and scm/lily.scm's own
+        //
+        //     (if (memq (ly:get-option 'backend) music-string-to-path-backends)
+        //         (ly:set-option 'music-strings-to-paths #t))
+        //
+        // has already run by now with that default, so both have to be set here.
+        //
+        // This is not cosmetic. ly/paper-defaults-init.ly branches on the same option
+        // to choose the text font family names, and under `ps` it picks the FontConfig
+        // aliases -- "LilyPond Serif", "LilyPond Sans Serif", "LilyPond Monospace" --
+        // where the SVG backend wants the generic CSS families "serif", "sans" and
+        // "monospace". Those names are written verbatim into every text element, so
+        // getting the option wrong makes every piece of text in the suite differ from
+        // the reference while looking entirely reasonable on its own.
+        Options.Set("backend", Symbol.Intern("svg"));
+        Options.Set("music-strings-to-paths", true);
 
         // Suite mode arms HERE and not a line earlier. Loading is the one phase that
         // legitimately calls unported primitives -- LilyPond's Scheme builds its tables

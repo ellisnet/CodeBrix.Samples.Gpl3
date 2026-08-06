@@ -29,6 +29,28 @@
     <EmbeddedResource Include="lily-cc-ledger.tsv" />
   </ItemGroup>
 
+  <!--
+    The fonts ship INSIDE the assembly, exactly as the Scheme layer does.
+
+    They used to be found by probing directories beside the running assembly, and
+    that silently failed for every consumer whose output directory was not the
+    repository: the regression BatchDriver sits six levels below the repo root, one
+    past where the probe stopped, so the whole suite engraved with NO music glyphs
+    at all and nothing said so louder than a warning. Embedding removes the failure
+    mode rather than lengthening the probe.
+
+    Byte-for-byte copies (D13/D23 say these are ASSETS FOREVER — never subset,
+    convert or edit), so `LogicalName` keeps the on-disk file name intact.
+  -->
+  <ItemGroup>
+    <EmbeddedResource Include="..\..\assets\fonts\otf\*.otf"
+                      LogicalName="CodeBrix.LilyPort.Engine.Fonts.otf.%(Filename)%(Extension)" />
+    <EmbeddedResource Include="..\..\assets\fonts\svg\*.svg"
+                      LogicalName="CodeBrix.LilyPort.Engine.Fonts.svg.%(Filename)%(Extension)" />
+    <EmbeddedResource Include="..\..\assets\fonts\text\*.otf"
+                      LogicalName="CodeBrix.LilyPort.Engine.Fonts.text.%(Filename)%(Extension)" />
+  </ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\CodeBrix.LilyPort.Flower\CodeBrix.LilyPort.Flower.csproj" />
     <!--

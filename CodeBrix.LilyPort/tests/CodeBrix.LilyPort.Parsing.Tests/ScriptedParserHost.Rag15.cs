@@ -6,7 +6,9 @@
 // (at your option) any later version.
 
 using System.Collections.Generic;
+using CodeBrix.LilyPort.Engine.Layout;
 using CodeBrix.LilyPort.Engine.Music;
+using CodeBrix.LilyPort.Engine.Objects;
 using CodeBrix.LilyPort.Parsing.Driver;
 using CodeBrix.LilyScheme.Values;
 
@@ -82,10 +84,24 @@ internal sealed partial class ScriptedParserHost
     /// <inheritdoc/>
     public void SetMusicSpot(object music, SourceSpan location)
     {
+        // The REAL session converts the span to an Input before stamping; this
+        // scripted double has no Sources to build one from, so the raw span stands
+        // in — the rule-action tests assert that a spot was SET, not its type.
         MusicSpots.Add((music, location));
-        if (music is MusicObject real)
+        switch (music)
         {
-            real.SetSpot(location);
+            case MusicObject real:
+                real.SetSpot(location);
+                break;
+            case Score score:
+                score.SetSpot(location);
+                break;
+            case Book book:
+                book.SetSpot(location);
+                break;
+            case OutputDef definition:
+                definition.SetSpot(location);
+                break;
         }
     }
 

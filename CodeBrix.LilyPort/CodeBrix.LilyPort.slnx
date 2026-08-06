@@ -12,6 +12,9 @@
     <Project Path="tests/CodeBrix.LilyPort.Backends.Tests/CodeBrix.LilyPort.Backends.Tests.csproj" />
     <Project Path="tests/CodeBrix.LilyPort.Parsing.Tests/CodeBrix.LilyPort.Parsing.Tests.csproj" />
   </Folder>
+  <Folder Name="/Tools/">
+    <Project Path="tools/regression-harness/BatchDriver/CodeBrix.LilyPort.BatchDriver.csproj" />
+  </Folder>
   <Project Path="src/CodeBrix.LilyPort/CodeBrix.LilyPort.csproj" />
   <Project Path="src/CodeBrix.LilyPort.Flower/CodeBrix.LilyPort.Flower.csproj" />
   <Project Path="src/CodeBrix.LilyPort.Engine/CodeBrix.LilyPort.Engine.csproj" />

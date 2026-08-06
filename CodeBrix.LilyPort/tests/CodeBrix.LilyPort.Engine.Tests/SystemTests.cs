@@ -524,12 +524,14 @@ public class SystemTests
         PaperColumn left = MakeColumn();
         PaperColumn right = MakeColumn();
 
+        // The property holds a CONS of two skylines, which is what ly:skyline-pair?
+        // means -- there is no skyline-pair object in Scheme.
         left.SetProperty(
             "horizontal-skylines",
-            new SkylinePair(new Box(new Interval(0, 2), new Interval(0, 1)), Axis.Y));
+            new SkylinePair(new Box(new Interval(0, 2), new Interval(0, 1)), Axis.Y).ToScheme());
         right.SetProperty(
             "horizontal-skylines",
-            new SkylinePair(new Box(new Interval(-1, 0), new Interval(0, 1)), Axis.Y));
+            new SkylinePair(new Box(new Interval(-1, 0), new Interval(0, 1)), Axis.Y).ToScheme());
 
         //Act
         double distance = PaperColumn.MinimumDistance(left, right);

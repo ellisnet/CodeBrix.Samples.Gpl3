@@ -179,9 +179,43 @@ public class LedgerTests
         // forward out of EPG2, because the init layer demanded it: ly:make-context-mod
         // being a stub is what made every \omit and \grobdescriptions in a \context
         // block read as "not a context mod".
-        ported.Should().Be(90);
+        //
+        // EPG2 moved ten (the whole group: context-handle, context-scheme,
+        // deprecated-property, engraver-scheme, global-context-scheme, scheme-engraver,
+        // translator-ctors, translator-group-ctors, translator-dispatch-list,
+        // translator-scheme), and EPG3's first slice moved eight more (music-output,
+        // paper-system, paper-system-scheme, page-marker, page-marker-scheme,
+        // point-and-click, score-scheme, paper-score-scheme). book-scheme.cc and
+        // output-def-scheme.cc deliberately stayed GROUPED with PARTIAL notes: both
+        // still owe bindings that go through Paper_book, which is page layout.
+        // glib-regex-scheme.cc came with them: closing ly:regex-replace's rest-list
+        // replacements is what unblocked hyphenate-internal-words.scm, and finishing
+        // the file's other two bindings was a line each once that was understood.
+        //
+        // EPG3's finish moved seven more the same day: paper-outputter.cc(+scheme),
+        // function-documentation.cc (mechanism; docstring content is EPG24's),
+        // lily-version.cc, general-scheme.cc — whose ly:spawn / ly:shutdown-gs /
+        // ly:gs-api are N/A per D25 (category ps-backend, loud throwing bindings,
+        // rows in entry-point-na-candidates.tsv) — and then, once the batch runner
+        // existed and the first full sweep named its demands, output-def-scheme.cc
+        // (ly:paper-get-font / ly:paper-fonts last) and lily-parser-scheme.cc
+        // (ly:parse-file / ly:parse-init ride the runner's session lifecycle).
+        //
+        // EPG4 moved twelve -- the whole group: spacing-options, rod,
+        // spacing-interface, note-spacing, staff-spacing, spacing-basic,
+        // spacing-spanner, spacing-determine-loose-columns, spacing-loose-columns,
+        // spacing-engraver, note-spacing-engraver and
+        // separating-line-group-engraver. separation-item.cc was already counted as
+        // ported and stays so; EPG4 completed the skyline half it had been carrying
+        // as a partial, which is why the total moves by exactly twelve.
+        // EPG13 moved nine on 2026-08-05: text-interface, transform, transform-scheme,
+        // stencil-expression (the stencil-head registry had already landed with the
+        // registries -- this row just stopped claiming otherwise), stencil-integral,
+        // and the four font *-scheme files. pango-font.cc and pango-select.cc stay
+        // no-port: they are REPLACED by the port's own font layer rather than ported.
+        ported.Should().Be(137);
         noPort.Should().Be(29);
-        PortLedger.NotYetPorted.Should().HaveCount(329);
+        PortLedger.NotYetPorted.Should().HaveCount(282);
     }
 
     [Fact]

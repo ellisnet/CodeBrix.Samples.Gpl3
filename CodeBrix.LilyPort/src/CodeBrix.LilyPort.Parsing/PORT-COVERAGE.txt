@@ -946,19 +946,42 @@ THE REAL HOST (Session/LilyParserSession.cs) -- added with PHASE 3
     the toplevel book handler, the version check -- which the caller owns here.
     The declarations are the part that makes a session able to read music.
 
-  MakeModule names and REGISTERS its module; upstream's is anonymous
+  MakeModule is ANONYMOUS again — the named-scope workaround is RETIRED
+  (LS-FIX, 2026-08-05)
 
-    THE SHARPEST FINDING OF THE SESSION, and it is an expander limitation
-    rather than a parser one. LilyScheme's expander resolves an imported MACRO
-    only in a module it can name: in an anonymous module that merely USES
-    (lily), `define-music-function` reads as an ordinary variable, so its
-    argument list is EVALUATED and every music function in
+    THE SHARPEST FINDING OF THE EPG1 SESSION, and it was an expander limitation
+    rather than a parser one. LilyScheme's expander resolved an imported MACRO
+    only in a module it could name: in an anonymous module that merely USES
+    (lily), `define-music-function` read as an ordinary variable, so its
+    argument list was EVALUATED and every music function in
     ly/music-functions-init.ly failed with an unbound variable named after its
     first parameter. Isolated to a two-line reproduction -- the same form
-    expands in a named module and fails in an anonymous one. The port names its
-    parser scopes (lily parser-scope N) to get correct expansion. IF LILYSCHEME
-    LEARNS TO RESOLVE MACROS IN ANONYMOUS MODULES, THIS SHOULD GO BACK TO
-    MATCHING UPSTREAM.
+    expands in a named module and fails in an anonymous one. The port named its
+    parser scopes (lily parser-scope N) from EPG1 until 2026-08-05 to get
+    correct expansion.
+
+    THE REAL MECHANISM, found when the fix landed in LilyScheme: psyntax
+    round-trips module identity BY NAME (hygiene wraps carry the module name
+    and resolve it back through the registry), and Guile squares that with
+    anonymous modules by having module-name INVENT a name on first ask and
+    register the module under it -- boot-9's own behaviour. LilyScheme's
+    module-name now does exactly that (SchemeModule.EnsureName, fenced by
+    AnonymousModuleMacroTests), so parser scopes, \header blocks and output
+    definition scopes are all anonymous again, matching upstream's
+    ly_make_module. The workaround's registration half is gone from
+    Engine/Bootstrap/LilyModules.cs the same day.
+
+  set_spot takes an INPUT, never a raw span (fixed 2026-08-05)
+
+    The session's SetSpot paths (MakeMusic, SetMusicSpot, LocOnCopy, and
+    Rag18's markup-score helper) stamped the parser's SourceSpan struct
+    straight into 'origin. Upstream's set_spot takes an Input, and nothing
+    failed until the batch runner's first sweep ran an ly:input-location?
+    type check over a music 'origin and answered #f on every note the parser
+    had built -- the silent-defect shape exactly: two representations that
+    print alike, told apart only by the first real consumer. All spot paths
+    now convert through SchemeLocation; the scripted test host stamps the raw
+    span (it has no Sources to build an Input from) and says so.
 
   Embedded Scheme is evaluated THROUGH THE EXPANDER
 

@@ -235,6 +235,15 @@ public static class MusicPrimitives
         interpreter.DefinePrimitive("ly:duration-scale", 1, 1, a =>
             SchemeConvert.FromRational(AsDuration(a[0], "ly:duration-scale").Factor));
 
+        // Pulled forward out of EPG23 by the demand loop (2026-08-05): the sweep named
+        // it in about fifty files, all of them tuplets and time-scaled music, and
+        // scm/music-functions.scm reaches it before anything else in those files can
+        // run. Duration::compressed itself is one line — the factor is a Rational and
+        // compressing MULTIPLIES it, leaving the log and the dots alone.
+        interpreter.DefinePrimitive("ly:duration-compress", 2, 2, a =>
+            AsDuration(a[0], "ly:duration-compress")
+                .Compressed(SchemeConvert.ToRational(a[1], "ly:duration-compress")));
+
         interpreter.DefinePrimitive("ly:duration<?", 2, 2, a =>
             AsDuration(a[0], "ly:duration<?") < AsDuration(a[1], "ly:duration<?"));
 

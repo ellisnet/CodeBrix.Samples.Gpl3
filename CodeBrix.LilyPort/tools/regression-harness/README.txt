@@ -283,3 +283,28 @@ TWO THINGS TO KNOW:
 ================================================================================
 END
 ================================================================================
+
+--------------------------------------------------------------------------------
+COMPARATOR SELF-CHECK  (added 2026-08-05, EPG13)
+--------------------------------------------------------------------------------
+
+The comparator now grades at GLYPH and POSITION level, and it identifies a glyph
+by its OUTLINE -- upstream's SVG backend writes each glyph's own path inline
+rather than referencing a shared definition, so the `d` attribute IS the glyph's
+identity. Position comes from accumulating the translate() of the enclosing <g>
+elements.
+
+Because that machinery only runs once two pages agree on their glyph inventory,
+and no port output does yet, it is fenced by comparing the reference directory
+AGAINST ITSELF:
+
+    python3 compare-output.py reference/svg reference/svg
+
+Expected: 2316 of 2316 MATCH. Anything less means the comparator cannot see
+something it should -- which is exactly the failure the previous version had and
+nothing caught: it looked for <use xlink:href="#glyph"> elements that LilyPond
+never emits, so it read ZERO glyphs and ZERO placements out of every reference
+page and graded the whole suite on a coarse path-shape histogram. It could not
+have reported a position difference even in principle.
+
+Run this self-check after any change to parse_svg.

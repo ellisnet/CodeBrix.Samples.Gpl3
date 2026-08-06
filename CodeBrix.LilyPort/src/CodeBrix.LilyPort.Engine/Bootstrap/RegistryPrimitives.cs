@@ -30,6 +30,9 @@ namespace CodeBrix.LilyPort.Engine.Bootstrap;
 /// </summary>
 public static class RegistryPrimitives
 {
+    private static readonly Symbol RegexMatchClassSymbol = Symbol.Intern("<regex-match>");
+    private static readonly Symbol MakeSymbol = Symbol.Intern("make");
+
     /// <summary>Installs the registry primitives, replacing the corresponding stubs.</summary>
     /// <param name="interpreter">The interpreter to extend.</param>
     /// <returns>The registries the interpreter will populate.</returns>
@@ -228,11 +231,18 @@ public static class RegistryPrimitives
 
         interpreter.DefinePrimitive("ly:regex?", 1, 1, a => a[0] is Regex);
 
+        // A match is a GOOPS <regex-match>, not the underlying match object, and that is
+        // not decoration: scm/lily-library.scm defines ly:regex-match-positions,
+        // ly:regex-match-substring, ly:regex-match-prefix and ly:regex-match-suffix in
+        // SCHEME, over the two slots this fills in — and those definitions replace the
+        // port's own primitives of the same names when lily-library.scm loads. Handing
+        // back anything else makes every one of them slot-ref a non-object, which is
+        // what stopped hyphenate-internal-words.scm loading.
         interpreter.DefinePrimitive("ly:regex-exec", 2, 3, a =>
         {
-            Match match = AsRegex(a[0], "ly:regex-exec")
-                .Match(StringPrimitives.Text(a[1], "ly:regex-exec"));
-            return match.Success ? (object)match : false;
+            string subject = StringPrimitives.Text(a[1], "ly:regex-exec");
+            Match match = AsRegex(a[0], "ly:regex-exec").Match(subject);
+            return match.Success ? MakeRegexMatch(subject, match) : false;
         });
 
         interpreter.DefinePrimitive("ly:regex-match?", 1, 1, a => a[0] is Match match && match.Success);
@@ -252,10 +262,57 @@ public static class RegistryPrimitives
                 : false;
         });
 
-        interpreter.DefinePrimitive("ly:regex-replace", 3, -1, a =>
-            new MutableString(AsRegex(a[0], "ly:regex-replace").Replace(
-                StringPrimitives.Text(a[1], "ly:regex-replace"),
-                StringPrimitives.Text(a[2], "ly:regex-replace"))));
+        // The REPLACEMENTS are a rest list, and each element is one of three things: a
+        // string emitted as-is, a non-negative integer naming a capture group, or a
+        // PROCEDURE called on the match object. An earlier pass read the third argument
+        // as a single .NET replacement pattern, which is wrong twice over — it made a
+        // procedure a type error (that is what stopped hyphenate-internal-words.scm
+        // loading) and it let `$1' in an ordinary replacement string expand, where
+        // upstream emits it literally.
+        interpreter.DefinePrimitive("ly:regex-replace", 2, -1, a =>
+        {
+            Regex regex = AsRegex(a[0], "ly:regex-replace");
+            string subject = StringPrimitives.Text(a[1], "ly:regex-replace");
+
+            List<object> replacements = new List<object>();
+            for (int i = 2; i < a.Length; i++)
+            {
+                if (a[i] is DefaultArgument)
+                {
+                    continue;
+                }
+
+                if (!(a[i] is MutableString || a[i] is string
+                      || SchemeConvert.IsNumber(a[i])
+                      || SchemeUtilities.IsProcedure(a[i])))
+                {
+                    throw SchemeErrors.WrongType(
+                        "ly:regex-replace",
+                        "string, non-negative integer or procedure",
+                        a[i]);
+                }
+
+                replacements.Add(a[i]);
+            }
+
+            return new MutableString(regex.Replace(
+                subject, match => BuildReplacement(subject, match, replacements)));
+        });
+
+        interpreter.DefinePrimitive("ly:regex-quote", 1, 1, a =>
+            new MutableString(Regex.Escape(StringPrimitives.Text(a[0], "ly:regex-quote"))));
+
+        interpreter.DefinePrimitive("ly:regex-exec->list", 2, 2, a =>
+        {
+            string subject = StringPrimitives.Text(a[1], "ly:regex-exec->list");
+            List<object> matches = new List<object>();
+            foreach (Match match in AsRegex(a[0], "ly:regex-exec->list").Matches(subject))
+            {
+                matches.Add(MakeRegexMatch(subject, match));
+            }
+
+            return Pair.ListFrom(matches);
+        });
 
         interpreter.DefinePrimitive("ly:regex-split", 2, 2, a =>
         {
@@ -286,6 +343,88 @@ public static class RegistryPrimitives
         return new Interval(
             SchemeConvert.ToDouble(pair.Car, procedureName),
             SchemeConvert.ToDouble(pair.Cdr, procedureName));
+    }
+
+    /// <summary>Builds one match's replacement text from the replacement list.</summary>
+    /// <param name="subject">The string being replaced in.</param>
+    /// <param name="match">The match being replaced.</param>
+    /// <param name="replacements">The replacement specifiers, in order.</param>
+    /// <returns>The text to substitute.</returns>
+    private static string BuildReplacement(
+        string subject,
+        Match match,
+        List<object> replacements)
+    {
+        System.Text.StringBuilder result = new System.Text.StringBuilder();
+        foreach (object replacement in replacements)
+        {
+            if (replacement is MutableString || replacement is string)
+            {
+                result.Append(replacement.ToString());
+            }
+            else if (SchemeConvert.IsNumber(replacement))
+            {
+                int group = SchemeConvert.ToInt(replacement, "ly:regex-replace");
+                if (group >= 0 && group < match.Groups.Count && match.Groups[group].Success)
+                {
+                    result.Append(match.Groups[group].Value);
+                }
+            }
+            else
+            {
+                object produced = SchemeUtilities.CallCallback(
+                    replacement, MakeRegexMatch(subject, match));
+                if (produced is MutableString || produced is string)
+                {
+                    result.Append(produced.ToString());
+                }
+            }
+        }
+
+        return result.ToString();
+    }
+
+    /// <summary>
+    /// Wraps a match in the GOOPS <c>&lt;regex-match&gt;</c> object the Scheme accessors
+    /// read, carrying the original string and a vector of
+    /// <c>(start . end)</c> character positions — one per capturing group, plus group
+    /// zero for the whole match, and <see langword="false"/> for a group the match did
+    /// not use.
+    /// <para>
+    /// Upstream converts those positions from BYTES to characters because GLib counts in
+    /// bytes; .NET already counts in characters, so the conversion has no analogue here.
+    /// </para>
+    /// </summary>
+    /// <param name="subject">The string that was matched against.</param>
+    /// <param name="match">The match.</param>
+    /// <returns>The match object, or the raw match when GOOPS is not yet loaded.</returns>
+    private static object MakeRegexMatch(string subject, Match match)
+    {
+        object regexMatchClass = LilyPondScheme.LookupProcedure(RegexMatchClassSymbol);
+        object make = LilyPondScheme.LookupProcedure(MakeSymbol);
+        if (regexMatchClass == null || !SchemeUtilities.IsProcedure(make))
+        {
+            // lily-library.scm has not been loaded yet, so nothing can read the slots
+            // anyway. Answering the raw match keeps the port's own primitives usable.
+            return match;
+        }
+
+        object[] positions = new object[match.Groups.Count];
+        for (int i = 0; i < match.Groups.Count; i++)
+        {
+            Group group = match.Groups[i];
+            positions[i] = group.Success
+                ? new Pair((long)group.Index, (long)(group.Index + group.Length))
+                : (object)false;
+        }
+
+        return SchemeUtilities.CallCallback(
+            make,
+            regexMatchClass,
+            Keyword.Get("original-string"),
+            new MutableString(subject),
+            Keyword.Get("substring-positions"),
+            positions);
     }
 
     private static Regex AsRegex(object value, string procedureName)

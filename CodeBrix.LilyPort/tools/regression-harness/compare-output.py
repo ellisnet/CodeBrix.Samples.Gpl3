@@ -20,19 +20,38 @@
 # So this compares graduated, engraving-meaningful features, from coarse to fine:
 #
 #   1. Did we produce output at all?
-#   2. Page count.
-#   3. Glyph inventory: WHICH music glyphs appear, and how many of each. This
-#      catches "wrong notehead", "missing clef", "extra accidental" -- errors of
-#      musical content rather than of position.
-#   4. Glyph placement: the coordinates of each glyph, compared with a tolerance.
-#      This is where spacing and layout errors show up.
+#   2. Glyph inventory: WHICH marks appear, and how many of each. This catches
+#      "wrong notehead", "missing clef", "extra accidental" -- errors of musical
+#      content rather than of position.
+#   3. Glyph placement: where each mark sits, compared with a tolerance. This is
+#      where spacing and layout errors show up.
 #
-# A port passes stage 3 long before stage 4, and that ordering is deliberate: it
+# A port passes stage 2 long before stage 3, and that ordering is deliberate: it
 # lets progress be measured continuously instead of as a single distant pass/fail.
+#
+# HOW A GLYPH IS IDENTIFIED (rewritten 2026-08-05, EPG13)
+#
+# This file used to look for <use xlink:href="#name"> elements and count <path>
+# elements by how many "M" commands they held. That was a guess about LilyPond's
+# SVG backend, and it was wrong: LilyPond emits NO <use> elements at all. It
+# writes each music glyph as its own outline --
+#
+#     <path transform="scale(0.0040, -0.0040)" d="M217 136c56 0 ..." fill="currentColor"/>
+#
+# -- lifted verbatim out of the shipped .svg font. So the old comparator saw zero
+# glyphs and zero placements in EVERY reference file, graded every page on a
+# coarse path-shape histogram, and could not report a position difference even in
+# principle. That is what pinned the whole suite at a GLYPHS-DIFFER floor.
+#
+# A glyph is now identified BY ITS OUTLINE. The `d` attribute is the shape, so two
+# glyphs are the same glyph exactly when their path data agrees -- no font, no
+# name table and no id numbering involved. Position comes from the accumulated
+# translate() of the enclosing <g> elements, which is where LilyPond puts it.
 # ----------------------------------------------------------------------------
 
 import argparse
 import collections
+import hashlib
 import os
 import re
 import sys
@@ -41,47 +60,118 @@ import xml.etree.ElementTree as ElementTree
 SVG_NS = "{http://www.w3.org/2000/svg}"
 XLINK_NS = "{http://www.w3.org/1999/xlink}"
 
+# A glyph outline is drawn by a transform that ONLY scales, with the Y factor
+# negated -- that is dump-path's "scale(s, -s)" and nothing else emits it.
+GLYPH_TRANSFORM = re.compile(r"^\s*scale\(\s*([-0-9.eE]+)\s*,\s*([-0-9.eE]+)\s*\)\s*$")
+
+TRANSLATE = re.compile(r"translate\(\s*([-0-9.eE]+)\s*,\s*([-0-9.eE]+)\s*\)")
+SCALE = re.compile(r"scale\(\s*([-0-9.eE]+)\s*(?:,\s*([-0-9.eE]+)\s*)?\)")
+
+WHITESPACE = re.compile(r"\s+")
+
+
+def _outline_key(data):
+    """Identify a glyph by its outline, compactly and whitespace-insensitively."""
+    normalized = WHITESPACE.sub(" ", (data or "").strip())
+    digest = hashlib.sha1(normalized.encode("utf-8")).hexdigest()[:12]
+    return "glyph:" + digest
+
+
+def _path_signature(data):
+    """A coarse shape signature for a DRAWN path -- a slur, a tie, a beam.
+
+    These are computed by the engraver rather than copied from a font, so their
+    control points are the last thing a port gets right and comparing them exactly
+    would drown out everything else. The command mix is enough to tell a slur from
+    a stem.
+    """
+    letters = [character for character in (data or "") if character.isalpha()]
+    return "path:" + "".join(sorted(collections.Counter(letters).elements()))
+
 
 def parse_svg(path):
-    """Extract the engraving-relevant features from one SVG page.
+    """Extract the engraving-relevant marks from one SVG page.
 
-    Returns a dict with the glyph inventory and their placements. LilyPond's SVG
-    backend emits music glyphs as <use> elements referencing glyph ids, and text
-    as <tspan>, so those are what we look at.
+    Returns a dict with the mark inventory and each mark's placement in page
+    coordinates.
     """
     try:
         tree = ElementTree.parse(path)
     except ElementTree.ParseError as error:
         return {"error": "unparseable: %s" % error}
 
-    root = tree.getroot()
     glyphs = collections.Counter()
     placements = []
 
-    for element in root.iter():
-        tag = element.tag
-        if tag == SVG_NS + "use":
-            href = element.get(XLINK_NS + "href") or element.get("href") or ""
-            name = href.lstrip("#")
-            glyphs[name] += 1
-            placements.append((name, _number(element.get("x")), _number(element.get("y"))))
-        elif tag == SVG_NS + "path":
-            # Stems, beams, slurs and staff lines are paths. Their shape is in the
-            # 'd' attribute; we record only a coarse signature, because exact
-            # control points are the last thing a port gets right.
-            data = element.get("d") or ""
-            glyphs["<path:%d>" % data.count("M")] += 1
-        elif tag == SVG_NS + "tspan" and (element.text or "").strip():
-            glyphs["<text>"] += 1
+    def visit(element, offset_x, offset_y):
+        transform = element.get("transform") or ""
 
+        # A pure scale() on a <path> is the glyph transform, not a placement, and
+        # must not move the accumulated origin.
+        is_glyph = element.tag == SVG_NS + "path" and GLYPH_TRANSFORM.match(transform)
+
+        if not is_glyph and transform:
+            for match in TRANSLATE.finditer(transform):
+                offset_x += float(match.group(1))
+                offset_y += float(match.group(2))
+
+        tag = element.tag
+        if tag == SVG_NS + "path":
+            data = element.get("d") or ""
+            if is_glyph:
+                name = _outline_key(data)
+            else:
+                name = _path_signature(data)
+            glyphs[name] += 1
+            placements.append((name, offset_x, offset_y))
+        elif tag == SVG_NS + "use":
+            # Not emitted by LilyPond, but a port might; keep it gradeable.
+            href = element.get(XLINK_NS + "href") or element.get("href") or ""
+            name = "use:" + href.lstrip("#")
+            glyphs[name] += 1
+            placements.append((name, offset_x + _number(element.get("x")),
+                               offset_y + _number(element.get("y"))))
+        elif tag == SVG_NS + "line":
+            name = "line:%s" % _round(_number(element.get("stroke-width")))
+            glyphs[name] += 1
+            placements.append((name,
+                               offset_x + _number(element.get("x1")),
+                               offset_y + _number(element.get("y1"))))
+        elif tag in (SVG_NS + "rect", SVG_NS + "polygon", SVG_NS + "circle",
+                     SVG_NS + "ellipse"):
+            name = tag[len(SVG_NS):]
+            glyphs[name] += 1
+            placements.append((name,
+                               offset_x + _number(element.get("x")),
+                               offset_y + _number(element.get("y"))))
+        elif tag == SVG_NS + "text":
+            # The content lives in child <tspan>s; the family and size are what
+            # decide how it will actually look.
+            content = "".join(
+                (child.text or "") for child in element.iter() if child.tag == SVG_NS + "tspan")
+            name = "text:%s:%s:%s" % (
+                element.get("font-family") or "",
+                element.get("font-size") or "",
+                WHITESPACE.sub(" ", content.strip()))
+            glyphs[name] += 1
+            placements.append((name, offset_x, offset_y))
+
+        for child in element:
+            visit(child, offset_x, offset_y)
+
+    visit(tree.getroot(), 0.0, 0.0)
     return {"glyphs": glyphs, "placements": placements}
+
+
+def _round(value):
+    return "%.4f" % value
 
 
 def _number(text):
     if not text:
         return 0.0
-    match = re.match(r"-?[0-9.]+", text)
-    return float(match.group(0)) if match else 0.0
+    match = re.match(r"\s*(-?[0-9.]+(?:[eE][-+]?[0-9]+)?)", text)
+    return float(match.group(1)) if match else 0.0
 
 
 def compare_one(reference_path, candidate_path, tolerance):

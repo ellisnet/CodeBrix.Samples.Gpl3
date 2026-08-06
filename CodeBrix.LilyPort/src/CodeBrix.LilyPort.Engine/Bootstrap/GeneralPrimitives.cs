@@ -47,7 +47,7 @@ public static class GeneralPrimitives
         InstallDimensions(interpreter);
         InstallDiagnostics(interpreter, options);
         InstallOptions(interpreter, options);
-        InstallGeneral(interpreter);
+        InstallGeneral(interpreter, options);
         return options;
     }
 
@@ -143,15 +143,13 @@ public static class GeneralPrimitives
         interpreter.DefinePrimitive("ly:all-options", 0, 0, a => options.ToAlist());
     }
 
-    private static void InstallGeneral(Interpreter interpreter)
+    private static void InstallGeneral(Interpreter interpreter, ProgramOptions options)
     {
-        // Upstream returns the hash table of LY_DEFINE docstrings, built by the
-        // LY_DEFINE machinery at registration time. The port's primitives carry no
-        // docstrings, so the honest translation is an EMPTY hash table — the shape
-        // document-functions hash-maps over, with nothing to document (recorded in
-        // PORT-COVERAGE under DIVERGENCES).
+        // function-documentation.cc's table, now real: the port's bindings still carry
+        // no docstrings (EPG24 owes the content), so the table is honestly sparse —
+        // but it is THE table, and every Add lands in what this returns.
         interpreter.DefinePrimitive("ly:get-all-function-documentation", 0, 0, a =>
-            new SchemeHashTable(null));
+            FunctionDocumentation.Table);
 
         // lily/ly-module.cc: dump a module's bindings as ((name . value) ...),
         // skipping unbound variables the way upstream does.
@@ -236,6 +234,13 @@ public static class GeneralPrimitives
 
         interpreter.DefinePrimitive("ly:string-substitute", 3, 3, a =>
             new MutableString(TextOf(a[2]).Replace(TextOf(a[0]), TextOf(a[1]))));
+
+        // Percent-encodes for a URL. The SVG backend's textedit:// anchors go through
+        // this, so a stub costs point-and-click every file whose path has a space in it
+        // — and only those, which is the kind of gap that shows up on someone else's
+        // machine and not on the author's.
+        interpreter.DefinePrimitive("ly:string-percent-encode", 1, 1, a =>
+            new MutableString(Origins.PointAndClick.PercentEncode(TextOf(a[0]))));
 
         interpreter.DefinePrimitive("ly:dir?", 1, 1, a =>
         {
@@ -326,6 +331,234 @@ public static class GeneralPrimitives
         interpreter.DefinePrimitive("ly:wide-char->utf-8", 1, 1, a =>
             new MutableString(char.ConvertFromUtf32(
                 a[0] is SchemeChar character ? character.CodePoint : 0)));
+
+        // LilyPond's own formatter — NOT Guile's format. It knows ~a, ~s, ~f with an
+        // optional single-digit precision, ~$ (precision 2) and ~~, nothing else, and
+        // the SVG backend leans on it for every coordinate it prints.
+        interpreter.DefinePrimitive("ly:format", 1, -1, a =>
+        {
+            string format = TextOf(a[0]);
+            System.Text.StringBuilder result = new System.Text.StringBuilder();
+            int next = 1;
+
+            int i = 0;
+            while (i < format.Length)
+            {
+                int tilde = format.IndexOf('~', i);
+                if (tilde < 0)
+                {
+                    result.Append(format, i, format.Length - i);
+                    break;
+                }
+
+                result.Append(format, i, tilde - i);
+                tilde++;
+
+                char spec = format[tilde++];
+                if (spec == '~')
+                {
+                    result.Append('~');
+                }
+                else
+                {
+                    if (next >= a.Length)
+                    {
+                        Warn.ProgrammingError("ly:format: not enough arguments for format.");
+                        return new MutableString(string.Empty);
+                    }
+
+                    object argument = a[next++];
+                    int precision = 8;
+
+                    if (spec == '$')
+                    {
+                        precision = 2;
+                    }
+                    else if (char.IsDigit(spec))
+                    {
+                        precision = spec - '0';
+                        spec = format[tilde++];
+                    }
+
+                    if (spec == 'a' || spec == 'A' || spec == 'f' || spec == '$')
+                    {
+                        result.Append(FormatSingleArgument(argument, precision, false, options));
+                    }
+                    else if (spec == 's' || spec == 'S')
+                    {
+                        result.Append(FormatSingleArgument(argument, precision, true, options));
+                    }
+                }
+
+                i = tilde;
+            }
+
+            if (next < a.Length)
+            {
+                Warn.ProgrammingError("ly:format: too many arguments");
+            }
+
+            return new MutableString(result.ToString());
+        });
+
+        // In contrast to Guile's rename-file, this replaces the destination when it
+        // already exists.
+        interpreter.DefinePrimitive("ly:rename-file", 2, 2, a =>
+        {
+            string oldName = TextOf(a[0]);
+            string newName = TextOf(a[1]);
+            try
+            {
+                File.Move(oldName, newName, true);
+            }
+            catch (Exception exception) when (exception is IOException
+                || exception is UnauthorizedAccessException
+                || exception is ArgumentException)
+            {
+                throw new SchemeThrow(
+                    Symbol.Intern("lilypond-error"),
+                    Pair.List(
+                        new MutableString("ly:rename-file"),
+                        new MutableString(
+                            "cannot rename `" + oldName + "' to `" + newName + "'"),
+                        Nil.Instance,
+                        false));
+            }
+
+            return Unspecified.Instance;
+        });
+
+        // The FILE form redirects everything the port writes as a diagnostic. The FD
+        // form is dup2 on file descriptor 2, which has no in-process equivalent here;
+        // it answers loudly rather than pretending (PORT-COVERAGE, DIVERGENCES).
+        interpreter.DefinePrimitive("ly:stderr-redirect", 1, 2, a =>
+        {
+            if (a[0] is long || a[0] is int)
+            {
+                throw new SchemeThrow(
+                    Symbol.Intern("lilypond-error"),
+                    Pair.List(
+                        new MutableString("ly:stderr-redirect"),
+                        new MutableString(
+                            "not applicable: file-descriptor redirection has no "
+                            + "in-process equivalent; pass a file name"),
+                        Nil.Instance,
+                        false));
+            }
+
+            string fileName = TextOf(a[0]);
+            string mode = a.Length > 1 && !(a[1] is DefaultArgument) ? TextOf(a[1]) : "w";
+            StreamWriter writer = new StreamWriter(
+                File.Open(
+                    fileName,
+                    mode.StartsWith("a", StringComparison.Ordinal)
+                        ? FileMode.Append
+                        : FileMode.Create))
+            {
+                AutoFlush = true,
+            };
+
+            Warn.Output.Flush();
+            Warn.Output = writer;
+            Console.SetError(writer);
+            return Unspecified.Instance;
+        });
+
+        interpreter.DefinePrimitive("ly:base64-encode", 1, 1, a =>
+        {
+            if (!(a[0] is byte[] bytes))
+            {
+                throw SchemeErrors.WrongType("ly:base64-encode", "bytevector", a[0]);
+            }
+
+            return new MutableString(Convert.ToBase64String(bytes));
+        });
+
+        // The Ghostscript trio — process spawning and the gs API — exists to drive
+        // the PostScript pipeline, which D15 rules out of the port. N/A per D25,
+        // category ps-backend, rows in entry-point-na-candidates.tsv; the bindings
+        // stay LOUD so a file that somehow reaches one fails with its reason.
+        InstallNotApplicable(interpreter, "ly:spawn", 1,
+            "the PostScript/Ghostscript pipeline is not ported (D15)");
+        InstallNotApplicable(interpreter, "ly:shutdown-gs", 0,
+            "the PostScript/Ghostscript pipeline is not ported (D15)");
+        InstallNotApplicable(interpreter, "ly:gs-api", 2,
+            "the PostScript/Ghostscript pipeline is not ported (D15)");
+    }
+
+    private static void InstallNotApplicable(
+        Interpreter interpreter,
+        string name,
+        int required,
+        string reason)
+        => interpreter.DefinePrimitive(name, required, -1, a =>
+            throw new SchemeThrow(
+                Symbol.Intern("lilypond-error"),
+                Pair.List(
+                    new MutableString(name),
+                    new MutableString(
+                        "not applicable: " + reason + " -- N/A per D25, category ps-backend"),
+                    Nil.Instance,
+                    false)));
+
+    /// <summary>
+    /// Upstream's <c>format_single_argument</c>: exact integers print as integers,
+    /// other numbers at fixed precision, strings as-is (or escaped and quoted for
+    /// <c>~s</c>), symbols by name; anything else draws a progress message.
+    /// </summary>
+    private static string FormatSingleArgument(
+        object argument,
+        int precision,
+        bool escape,
+        ProgramOptions options)
+    {
+        if (argument is long exact)
+        {
+            return exact.ToString(CultureInfo.InvariantCulture);
+        }
+
+        if (argument is System.Numerics.BigInteger big)
+        {
+            return big.ToString(CultureInfo.InvariantCulture);
+        }
+
+        if (SchemeConvert.IsNumber(argument))
+        {
+            double value = SchemeConvert.ToDouble(argument, "ly:format");
+            if (double.IsNaN(value) || double.IsInfinity(value))
+            {
+                options.Report(
+                    MessageSeverity.Warning,
+                    "Found infinity or nan in output.  Substituting 0.0");
+                return "0.0";
+            }
+
+            return value.ToString("F" + precision, CultureInfo.InvariantCulture);
+        }
+
+        if (argument is MutableString || argument is string)
+        {
+            string text = StringPrimitives.Text(argument, "ly:format");
+            if (escape)
+            {
+                // Escape backslashes and double quotes, wrap in double quotes. Percents
+                // deliberately stay: upstream leaves them for the png backend's %d.
+                text = text.Replace("\\", "\\\\").Replace("\"", "\\\"").Replace("$", "\\$");
+                text = "\"" + text + "\"";
+            }
+
+            return text;
+        }
+
+        if (argument is Symbol symbol)
+        {
+            return symbol.Name;
+        }
+
+        options.Report(
+            MessageSeverity.Progress,
+            "\nUnsupported SCM value for format: " + Printer.Display(argument));
+        return string.Empty;
     }
 
     private static string CamelCaseToLispIdentifier(string name)

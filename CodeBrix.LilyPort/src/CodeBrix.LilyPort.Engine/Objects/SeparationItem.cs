@@ -17,11 +17,16 @@
   along with LilyPond.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+using System;
+using System.Collections.Generic;
+using CodeBrix.LilyPort.Engine.Bootstrap;
+using CodeBrix.LilyPort.Engine.Layout;
+using CodeBrix.LilyPort.Flower;
 using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Objects; //was previously: lily/separation-item.cc, lily/include/separation-item.hh;
 
-// Modified by Jeremy Ellis on 2026-08-03 as part of the CodeBrix port.
+// Modified by Jeremy Ellis on 2026-08-05 as part of the CodeBrix port.
 
 /// <summary>
 /// Collects the items a paper column has to keep clear of its neighbours.
@@ -31,15 +36,25 @@ namespace CodeBrix.LilyPort.Engine.Objects; //was previously: lily/separation-it
 /// width — the column then looks empty to the spacing pipeline.
 /// </para>
 /// <para>
-/// PARTIAL PORT, recorded in PORT-COVERAGE. <see cref="AddItem"/> is complete.
-/// <c>calc_skylines</c> and <c>add_conditional_item</c> are NOT ported: the skyline
-/// half needs the conditional-item merge that <c>Paper_column::minimum_distance</c>
-/// also omits, and the two belong together.
+/// The skylines are the whole point: two columns may come as close as their FACING
+/// skylines touch, which is far closer than their bounding boxes would allow. A flat
+/// sign under a note head and a dot above one nest together precisely because the
+/// distance is measured profile-to-profile.
 /// </para>
 /// </summary>
 public static class SeparationItem
 {
     private static readonly Symbol ElementsSymbol = Symbol.Intern("elements");
+    private static readonly Symbol ConditionalElements = Symbol.Intern("conditional-elements");
+    private static readonly Symbol HorizontalSkylines = Symbol.Intern("horizontal-skylines");
+    private static readonly Symbol SkylineVerticalPadding
+        = Symbol.Intern("skyline-vertical-padding");
+
+    private static readonly Symbol ExtraSpacingWidth = Symbol.Intern("extra-spacing-width");
+    private static readonly Symbol ExtraSpacingHeight = Symbol.Intern("extra-spacing-height");
+    private static readonly Symbol AxisGroupInterfaceSymbol = Symbol.Intern("axis-group-interface");
+    private static readonly Symbol AccidentalPlacementInterface
+        = Symbol.Intern("accidental-placement-interface");
 
     /// <summary>Records an item as something the column must make room for.</summary>
     /// <param name="column">The column.</param>
@@ -53,4 +68,255 @@ public static class SeparationItem
 
         PointerGroupInterface.AddGrob(column, ElementsSymbol, item);
     }
+
+    /// <summary>
+    /// Records an item whose contribution to the column's width DEPENDS on what sits to
+    /// the left of it — an accidental that may or may not be printed, or an arpeggio.
+    /// </summary>
+    /// <param name="me">The column.</param>
+    /// <param name="element">The conditional item.</param>
+    public static void AddConditionalItem(Grob me, Grob element)
+    {
+        if (me == null || element == null)
+        {
+            return;
+        }
+
+        PointerGroupInterface.AddGrob(me, ConditionalElements, element);
+    }
+
+    /// <summary>
+    /// Records the rod that keeps two items apart, and returns the distance it stated.
+    /// <para>
+    /// The right item's skyline is merged with its CONDITIONAL skyline as seen from the
+    /// left item, because whether its accidentals count towards the distance depends on
+    /// what is over there.
+    /// </para>
+    /// </summary>
+    /// <param name="l">The left item.</param>
+    /// <param name="r">The right item.</param>
+    /// <param name="padding">The padding to insist on beyond touching.</param>
+    /// <returns>The distance, never negative.</returns>
+    public static double SetDistance(Item l, Item r, double padding)
+    {
+        SkylinePair leftLines = SkylinesOf(l);
+        SkylinePair rightLines = SkylinesOf(r);
+
+        Skyline right = ConditionalSkyline(r, l);
+        right.Merge(rightLines[Direction.Negative]);
+
+        double dist = padding + leftLines[Direction.Positive].Distance(right);
+        if (dist > 0)
+        {
+            Rod rod = new Rod(l, r) { Distance = dist };
+            rod.AddToColumns();
+        }
+
+        return Math.Max(dist, 0.0);
+    }
+
+    /// <summary>Determines whether a separation item occupies no width at all.</summary>
+    /// <param name="me">The separation item.</param>
+    /// <returns><see langword="true"/> when its skylines are empty.</returns>
+    public static bool IsEmpty(Grob me) => SkylinesOf(me).IsEmpty;
+
+    /// <summary>
+    /// Returns the width of a separation item as seen from something on its left — the
+    /// skyline built from its CONDITIONAL elements only.
+    /// </summary>
+    /// <param name="me">The separation item.</param>
+    /// <param name="left">The grob on the left.</param>
+    /// <returns>The conditional skyline.</returns>
+    public static Skyline ConditionalSkyline(Grob me, Grob left)
+    {
+        List<Box> bs = Boxes(me, left);
+        return new Skyline(bs, Axis.Y, Direction.Negative);
+    }
+
+    /// <summary>
+    /// Computes a separation item's pair of horizontal skylines: the profile it shows to
+    /// the left and the one it shows to the right.
+    /// <para>
+    /// Registered as <c>ly:separation-item::calc-skylines</c>, which is what every paper
+    /// column's <c>horizontal-skylines</c> resolves to.
+    /// </para>
+    /// </summary>
+    /// <param name="me">The separation item.</param>
+    /// <returns>The skyline pair, in its Scheme cons form.</returns>
+    public static object CalcSkylines(Grob me)
+    {
+        if (me == null)
+        {
+            throw new ArgumentNullException(nameof(me));
+        }
+
+        List<Box> bs = Boxes(me, null);
+        SkylinePair sp = new SkylinePair(bs, Axis.Y);
+
+        /*
+          TODO: We need to decide if padding is 'intrinsic'
+          to a skyline or if it is something that is only added on in
+          distance calculations.  Here, we make it intrinsic, which copies
+          the behavior from the old code but no longer corresponds to how
+          vertical skylines are handled (where padding is not built into
+          the skyline).
+        */
+        double vp = RobustDouble(me.GetProperty(SkylineVerticalPadding), 0.0);
+        return new SkylinePair(
+            sp[Direction.Negative].Padded(vp),
+            sp[Direction.Positive].Padded(vp)).ToScheme();
+    }
+
+    /// <summary>
+    /// Returns one box per contained grob, which is what the skylines are built from.
+    /// <para>
+    /// A box PER GROB, never one box around them all: a single bounding box would fill
+    /// in every gap the profile is supposed to expose, and the nesting that makes
+    /// horizontal skylines worth computing would be lost. That is why axis groups are
+    /// skipped — their members are already in the list on their own account.
+    /// </para>
+    /// <para>
+    /// DIVERGENCE, recorded in PORT-COVERAGE: with a non-null
+    /// <paramref name="left"/> upstream filters the accidentals through
+    /// <c>Accidental_placement::get_relevant_accidentals</c>. Accidental placement is
+    /// EPG9; until it lands no grob carries <c>accidental-placement-interface</c>, so
+    /// the split below sends everything down the unfiltered branch — the same answer
+    /// upstream gives when no accidentals are present, which is the port's current
+    /// state.
+    /// </para>
+    /// </summary>
+    /// <param name="me">The separation item.</param>
+    /// <param name="left">The grob on the left, or <see langword="null"/> for the
+    /// unconditional elements.</param>
+    /// <returns>The boxes.</returns>
+    public static List<Box> Boxes(Grob me, Grob left)
+    {
+        List<Box> output = new List<Box>();
+        if (!(me is Item item))
+        {
+            return output;
+        }
+
+        PaperColumn pc = item.GetColumn();
+        if (pc == null)
+        {
+            return output;
+        }
+
+        IReadOnlyList<Grob> readOnlyElements = PointerGroupInterface.ExtractGrobSet(
+            me, left != null ? ConditionalElements : ElementsSymbol);
+
+        List<Grob> elements;
+        if (left != null)
+        {
+            List<Grob> accidentalElements = new List<Grob>();
+            List<Grob> otherElements = new List<Grob>(); // for now only arpeggios
+            foreach (Grob element in readOnlyElements)
+            {
+                if (element.HasInterface(AccidentalPlacementInterface))
+                {
+                    accidentalElements.Add(element);
+                }
+                else
+                {
+                    otherElements.Add(element);
+                }
+            }
+
+            elements = RelevantAccidentals(accidentalElements, left);
+            elements.AddRange(otherElements);
+        }
+        else
+        {
+            elements = new List<Grob>(readOnlyElements);
+        }
+
+        Grob ycommon = AxisGroupInterface.CommonRefpointOfArray(elements, me, Axis.Y);
+
+        foreach (Grob element in elements)
+        {
+            if (!(element is Item il) || !ReferenceEquals(pc, il.GetColumn()))
+            {
+                continue;
+            }
+
+            // Exclude groups of grobs, so as to insert a box for each contained grob
+            // into the skyline instead of a single box that bounds all of them.
+            if (il.HasInterface(AxisGroupInterfaceSymbol))
+            {
+                continue;
+            }
+
+            Interval y = il.Extent(ycommon, Axis.Y);
+            Interval x = il.Extent(pc, Axis.X);
+
+            Interval extraWidth = Grob.TryNumberPair(element.GetProperty(ExtraSpacingWidth), out Interval ew)
+                ? ew
+                : new Interval(-0.1, 0.1);
+            Interval extraHeight = Grob.TryNumberPair(element.GetProperty(ExtraSpacingHeight), out Interval eh)
+                ? eh
+                : new Interval(0.0, 0.0);
+
+            // The conventional empty extent is (+inf.0 . -inf.0)
+            //  but (-inf.0 . +inf.0) is used as extra-spacing-height
+            //  on items that must not overlap other note-columns.
+            // If these two uses of inf combine, leave the empty extent.
+            if (!double.IsInfinity(x.Left))
+            {
+                x.Left += extraWidth.Left;
+            }
+
+            if (!double.IsInfinity(x.Right))
+            {
+                x.Right += extraWidth.Right;
+            }
+
+            if (!double.IsInfinity(y.Left))
+            {
+                y.Left += extraHeight.Left;
+            }
+
+            if (!double.IsInfinity(y.Right))
+            {
+                y.Right += extraHeight.Right;
+            }
+
+            if (!x.IsEmpty && !y.IsEmpty)
+            {
+                output.Add(new Box(x, y));
+            }
+        }
+
+        return output;
+    }
+
+    /// <summary>
+    /// Reads a grob's horizontal skylines, answering an empty pair when it carries none.
+    /// </summary>
+    /// <param name="grob">The grob.</param>
+    /// <returns>The skyline pair.</returns>
+    private static SkylinePair SkylinesOf(Grob grob)
+        => SkylinePair.FromScheme(grob?.GetProperty(HorizontalSkylines)) ?? new SkylinePair();
+
+    /// <summary>
+    /// The seam for <c>Accidental_placement::get_relevant_accidentals</c>, which is
+    /// EPG9's. Nothing carries the interface yet, so this is only ever reached with an
+    /// empty list; when EPG9 lands, the filter goes HERE.
+    /// </summary>
+    private static List<Grob> RelevantAccidentals(List<Grob> accidentals, Grob left)
+    {
+        if (accidentals.Count > 0)
+        {
+            Warn.ProgrammingError(
+                "accidental placement is not ported (EPG9): conditional accidentals are"
+                + " being counted unfiltered against " + left.Name);
+        }
+
+        return accidentals;
+    }
+
+    private static double RobustDouble(object value, double fallback)
+        => SchemeConvert.IsNumber(value)
+            ? SchemeConvert.ToDouble(value, "separation item")
+            : fallback;
 }

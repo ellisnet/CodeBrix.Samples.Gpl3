@@ -71,7 +71,34 @@ public class GlobalContext : Context
         : base(GlobalSymbol)
     {
         Layout = layout;
+        RegisterContextListeners();
         InitializeGrobProperties();
+    }
+
+    /// <summary>
+    /// Initializes the root context from the <c>Global</c> definition in an output
+    /// definition — the real route, and what <c>ly:make-global-context</c> takes.
+    /// <para>
+    /// The definition is where <c>\accepts Score</c> and
+    /// <c>\grobdescriptions #all-grob-descriptions</c> come from, so a Global built this
+    /// way needs neither an acceptance list assembled by hand nor the grob-description
+    /// shortcut <see cref="InitializeGrobProperties"/> exists for.
+    /// </para>
+    /// </summary>
+    /// <param name="layout">The output definition the score is laid out under.</param>
+    /// <param name="definition">The <c>Global</c> context definition.</param>
+    public GlobalContext(Layout.OutputDef layout, ContextDef definition)
+        : base(definition, Nil.Instance)
+    {
+        Layout = layout;
+        RegisterContextListeners();
+
+        // Upstream reaches the same values through the definition's own property
+        // operations, which \grobdescriptions #all-grob-descriptions turns into one
+        // `grob-descriptions' entry per grob. Applying them here is what
+        // create_context_from_event does for every other context.
+        definition.ApplyDefaultPropertyOperations(this);
+        InstallGrobDescriptions(definition.GrobDescriptions);
     }
 
     /// <summary>
@@ -111,11 +138,21 @@ public class GlobalContext : Context
     /// </summary>
     public void InitializeGrobProperties()
     {
-        object defaults = Layout?.LookupVariable(PropertyDefaultsSymbol) ?? Nil.Instance;
-
         Variable variable = Bootstrap.LilyPondScheme.Current
             ?.CurrentModule?.Lookup(AllGrobDescriptionsSymbol);
         object descriptions = variable != null && variable.IsBound ? variable.GetValue() : null;
+
+        InstallGrobDescriptions(descriptions);
+    }
+
+    /// <summary>
+    /// Installs one <c>Grob_properties</c> context property per grob type from a
+    /// grob-description alist, with the layout's <c>property-defaults</c> appended.
+    /// </summary>
+    /// <param name="descriptions">The grob descriptions, keyed by grob name.</param>
+    public void InstallGrobDescriptions(object descriptions)
+    {
+        object defaults = Layout?.LookupVariable(PropertyDefaultsSymbol) ?? Nil.Instance;
 
         object cursor = descriptions;
         while (cursor is Pair pair)
@@ -129,6 +166,26 @@ public class GlobalContext : Context
 
             cursor = pair.Cdr;
         }
+    }
+
+    /// <summary>
+    /// Creates the root's translator group and connects it.
+    /// <para>
+    /// The group is EMPTY and still load bearing: connecting it is what registers
+    /// <see cref="TranslatorGroup.CreateChildTranslator"/> on Global's event source, and
+    /// that listener is what gives the Score its engravers when the Score is announced.
+    /// Skip it and the whole tree below builds with no translators at all — contexts
+    /// exist, nothing engraves, and nothing reports a problem.
+    /// </para>
+    /// <para>Upstream: <c>ly:make-global-translator</c>.</para>
+    /// </summary>
+    /// <returns>The group.</returns>
+    public TranslatorGroup MakeGlobalTranslator()
+    {
+        TranslatorGroup group = new TranslatorGroup();
+        group.ConnectToContext(this);
+        Implementation = group;
+        return group;
     }
 
     /// <summary>Gets the moment the previous timestep was at.</summary>

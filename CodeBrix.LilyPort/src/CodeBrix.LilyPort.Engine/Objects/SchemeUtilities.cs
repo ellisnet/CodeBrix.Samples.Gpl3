@@ -112,6 +112,15 @@ public static class SchemeUtilities
     }
 
     /// <summary>
+    /// Determines whether a value can be called, which is <c>ly_is_procedure</c>.
+    /// <para>An applicable smob answers <c>procedure?</c> in Guile too, so both a
+    /// <see cref="Procedure"/> and an <see cref="IApplicable"/> count.</para>
+    /// </summary>
+    /// <param name="value">The value to test.</param>
+    /// <returns><see langword="true"/> when the value can be applied.</returns>
+    public static bool IsProcedure(object value) => value is Procedure || value is IApplicable;
+
+    /// <summary>
     /// Calls a Scheme procedure through the ambient interpreter.
     /// <para>
     /// Answers the empty list when there is no interpreter or the value is not a
@@ -381,6 +390,27 @@ public static class SchemeUtilities
         return false;
     }
 
+    /// <summary>Writes a Guile object property into the interpreter's table.</summary>
+    /// <param name="interpreter">The interpreter holding the table.</param>
+    /// <param name="subject">The object the property hangs off, usually a symbol.</param>
+    /// <param name="key">The property name.</param>
+    /// <param name="value">The value to store.</param>
+    public static void SetObjectProperty(
+        Interpreter interpreter,
+        object subject,
+        Symbol key,
+        object value)
+    {
+        if (interpreter == null || key == null)
+        {
+            return;
+        }
+
+        interpreter.ObjectProperties.TryGetValue(key, out object table);
+        interpreter.ObjectProperties[key] =
+            new Pair(new Pair(subject, value), table ?? Nil.Instance);
+    }
+
     /// <summary>
     /// Compares two property alists the way <c>Prob::equal_p</c> does: entry by entry,
     /// in order, skipping <c>origin</c> entries on both sides.
@@ -437,5 +467,7 @@ public static class SchemeUtilities
     }
 
     private static string Describe(object value)
-        => value == null ? "#<null>" : value.ToString();
+        => value == null
+            ? "#<null>"
+            : value.ToString() + " [" + value.GetType().Name + "]";
 }

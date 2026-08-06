@@ -9,6 +9,8 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
+using System.Text.RegularExpressions;
+using CodeBrix.LilyPort.Engine.Fonts;
 using CodeBrix.LilyPort.Engine.Layout;
 using CodeBrix.LilyPort.Flower;
 using CodeBrix.LilyScheme.Values;
@@ -56,10 +58,34 @@ public sealed class SvgBackend : IStencilSink
     private static readonly Symbol GlyphString = Symbol.Intern("glyph-string");
     private static readonly Symbol Utf8String = Symbol.Intern("utf-8-string");
 
+    // output-svg.scm's pango-description-regexp-comma / -nocomma. A Pango description
+    // ends in its size, optionally preceded by style words; everything before the match
+    // is the family list.
+    private static readonly Regex PangoDescriptionComma = new Regex(
+        ",(?<bold> Bold)?(?<italic> Italic)?(?<smallcaps> Small-Caps)?[ -](?<size>[0-9.]+)$",
+        RegexOptions.Compiled);
+
+    private static readonly Regex PangoDescriptionNoComma = new Regex(
+        "(?<bold> Bold)?(?<italic> Italic)?(?<smallcaps> Small-Caps)?[ -](?<size>[0-9.]+)$",
+        RegexOptions.Compiled);
+
     private readonly StringBuilder _body = new StringBuilder();
 
     /// <summary>Gets or sets the number of decimal places written for coordinates.</summary>
     public int Precision { get; set; } = 4;
+
+    /// <summary>
+    /// Gets or sets the length of one output unit, in millimetres — the layout's
+    /// <c>output-scale</c>, which is one staff space.
+    /// <para>
+    /// This is <c>output-svg.scm</c>'s <c>lily-unit-length</c>, which
+    /// <c>framework-svg.scm</c> sets through <c>set-unit-length</c> before anything is
+    /// drawn. Everything the document contains is measured in these units, and the one
+    /// place the value is USED is converting a font size in points into them. The
+    /// default matches a 20-point staff.
+    /// </para>
+    /// </summary>
+    public double UnitLength { get; set; } = 1.7573;
 
     /// <summary>
     /// Gets the grobs that produced geometry, in draw order, each with the point it
@@ -362,26 +388,150 @@ public sealed class SvgBackend : IStencilSink
 
         if (ReferenceEquals(head, NamedGlyph))
         {
-            // The glyph outline itself is the font layer's job. Emitting a `use`
-            // reference keeps the document structurally correct and keeps the glyph
-            // NAME visible, which is what the comparator needs to see.
-            _body.Append(string.Format(
-                CultureInfo.InvariantCulture,
-                "<use xlink:href=\"#{0}\"/>\n",
-                Escape(Text(args.Count > 1 ? args[1] : Nil.Instance))));
-            return true;
+            return EmitNamedGlyph(
+                args.Count > 0 ? args[0] : null,
+                Text(args.Count > 1 ? args[1] : Nil.Instance));
         }
 
-        if (ReferenceEquals(head, GlyphString) || ReferenceEquals(head, Utf8String))
+        if (ReferenceEquals(head, Utf8String))
+        {
+            // (utf-8-string PANGO-DESCRIPTION STRING ORIGINAL-EXPRESSION). The third
+            // element is the glyph-by-glyph drawing the encapsulation replaces; the SVG
+            // backend deliberately does NOT use it, because upstream's SVG output sets
+            // real text and lets the viewer's own font engine draw it.
+            return EmitText(
+                Text(args.Count > 0 ? args[0] : Nil.Instance),
+                Text(args.Count > 1 ? args[1] : Nil.Instance));
+        }
+
+        if (ReferenceEquals(head, GlyphString))
         {
             // Not handled here. Returning false lets the interpreter fall back to the
-            // stencil a utf-8-string carries as its own fourth element.
+            // stencil the expression carries alongside it.
             UnhandledCommands.Add(head.Name);
             return false;
         }
 
         UnhandledCommands.Add(head.Name);
         return false;
+    }
+
+    /// <summary>
+    /// Emits one music glyph as its outline, which is what
+    /// <c>output-svg.scm</c>'s <c>named-glyph</c> does by way of
+    /// <c>font-smob-to-text</c> and <c>dump-path</c>.
+    /// <para>
+    /// The path data is the font's own <c>d</c> attribute, copied verbatim in FONT
+    /// units, and the whole outline is scaled down by the drawing size over the units
+    /// per em — with the Y factor negated, which is where a glyph gets flipped into
+    /// SVG's downward axis. That is why glyph coordinates do NOT go through
+    /// <see cref="FormatY"/>: the flip is in the transform, and applying it twice would
+    /// turn every note head upside down.
+    /// </para>
+    /// </summary>
+    /// <param name="font">The font the stencil named.</param>
+    /// <param name="glyphName">The glyph name.</param>
+    /// <returns><see langword="true"/> when a glyph was emitted or deliberately skipped.</returns>
+    private bool EmitNamedGlyph(object font, string glyphName)
+    {
+        if (!(font is FontMetric metric))
+        {
+            UnhandledCommands.Add(NamedGlyph.Name);
+            return false;
+        }
+
+        string outline = metric.GlyphOutline(glyphName);
+        if (string.IsNullOrEmpty(outline))
+        {
+            // A glyph the font has no outline for is a space, and a name the font does
+            // not know produced an empty stencil upstream of here. Neither draws.
+            return true;
+        }
+
+        // TODO: not urgent, but do not hard-code this value. Carried over from
+        // output-svg.scm's extract-glyph, which hardcodes 1000 with that same remark;
+        // every shipped music font is drawn on a 1000-unit em, so the two agree.
+        const double UnitsPerEm = 1000.0;
+
+        string scale = Format(metric.FontScaling / UnitsPerEm);
+
+        _body.Append(string.Format(
+            CultureInfo.InvariantCulture,
+            "<path transform=\"scale({0}, -{0})\" d=\"{1}\" fill=\"currentColor\"/>\n",
+            scale,
+            outline));
+        return true;
+    }
+
+    /// <summary>
+    /// Emits a run of text as an SVG <c>text</c> element, which is what
+    /// <c>output-svg.scm</c>'s <c>utf-8-string</c> and
+    /// <c>pango-description-to-text</c> do.
+    /// <para>
+    /// Text is NOT converted to outlines. The engine has already decided where the run
+    /// sits and how much room it takes; the document names the family, style and size
+    /// and lets the viewer draw it. That is upstream's SVG behaviour, and matching it
+    /// is what makes the two documents comparable at all.
+    /// </para>
+    /// </summary>
+    /// <param name="description">The Pango description string, such as <c>serif Bold 8</c>.</param>
+    /// <param name="text">The text to set.</param>
+    /// <returns><see langword="true"/> when the run was emitted.</returns>
+    private bool EmitText(string description, string text)
+    {
+        Match match = PangoDescriptionComma.Match(description ?? string.Empty);
+        if (!match.Success)
+        {
+            match = PangoDescriptionNoComma.Match(description ?? string.Empty);
+        }
+
+        if (!match.Success)
+        {
+            // Upstream warns and emits an element with no attributes at all rather
+            // than dropping the text.
+            UnhandledCommands.Add("utf-8-string: cannot decypher Pango description: "
+                + description);
+            _body.Append("<text>\n<tspan>");
+            _body.Append(EscapeText(text));
+            _body.Append("</tspan>\n</text>\n");
+            return true;
+        }
+
+        _body.Append("<text font-family=\"");
+        _body.Append(Escape(description.Substring(0, match.Index)));
+        _body.Append('"');
+
+        if (match.Groups["bold"].Success)
+        {
+            _body.Append(" font-weight=\"bold\"");
+        }
+
+        if (match.Groups["italic"].Success)
+        {
+            _body.Append(" font-style=\"italic\"");
+        }
+
+        if (match.Groups["smallcaps"].Success)
+        {
+            _body.Append(" font-variant=\"small-caps\"");
+        }
+
+        double size = double.TryParse(
+            match.Groups["size"].Value,
+            System.Globalization.NumberStyles.Float,
+            CultureInfo.InvariantCulture,
+            out double parsed)
+            ? parsed
+            : 0.0;
+
+        _body.Append(string.Format(
+            CultureInfo.InvariantCulture,
+            " font-size=\"{0}\" text-anchor=\"start\" fill=\"currentColor\">\n<tspan>",
+            Format(size / UnitLength)));
+
+        _body.Append(EscapeText(text));
+        _body.Append("</tspan>\n</text>\n");
+        return true;
     }
 
     private void EmitLine(double thickness, double x1, double y1, double x2, double y2, string extra)
@@ -527,6 +677,19 @@ public sealed class SvgBackend : IStencilSink
             .Replace("<", "&lt;", StringComparison.Ordinal)
             .Replace(">", "&gt;", StringComparison.Ordinal)
             .Replace("\"", "&quot;", StringComparison.Ordinal);
+
+    /// <summary>
+    /// Escapes the CONTENT of a text run, replacing exactly what upstream's
+    /// <c>utf-8-string</c> replaces: <c>&amp;</c> first and then <c>&lt;</c>, and
+    /// nothing else. A bare <c>&gt;</c> is legal character data and upstream leaves it
+    /// alone, so escaping it here would be a gratuitous byte-level divergence.
+    /// </summary>
+    /// <param name="text">The text to set.</param>
+    /// <returns>The escaped text.</returns>
+    private static string EscapeText(string text)
+        => (text ?? string.Empty)
+            .Replace("&", "&amp;", StringComparison.Ordinal)
+            .Replace("<", "&lt;", StringComparison.Ordinal);
 
     private static double ToDouble(object value)
     {

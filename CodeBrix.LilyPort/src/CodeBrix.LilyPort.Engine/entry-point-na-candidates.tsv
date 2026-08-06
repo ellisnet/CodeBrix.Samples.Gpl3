@@ -1,0 +1,37 @@
+# CodeBrix.LilyPort -- entry-point N/A candidates (decision D25, 2026-08-05).
+#
+# G3 requires all 737 entry points implemented-or-N/A. This file is the ROLLING
+# candidates list for the N/A half: any session that meets an entry point it
+# would otherwise stub around appends a row RIGHT THEN, while it still has the
+# context to explain why -- never end-loaded onto EPG23.
+#
+# Jeremy rules on CATEGORIES, not items. Once a category is ratified (listed
+# below), filing an entry point under it is mechanical; only oddballs need a
+# ruling, batch-reviewed at GOs. Ratified categories so far:
+#   ps-backend      PS/Cairo backend only (D15)
+#   python-tools    Python tool support (D16)
+#   i18n            gettext/locale plumbing (D17)
+#   guile-internals GC/smob/Guile-init plumbing (rationale of the original
+#                   ~29 no-port rows)
+#   font-plumbing   fontconfig/Pango/FreeType discovery, replaced by the
+#                   port's font layer (D13/D23)
+# NEVER N/A: doc-introspection entry points -- they are EPG24's IMPLEMENTED
+# surface (D21/G8).
+#
+# Rules (D25): an accepted N/A binding still EXISTS and THROWS
+# "not applicable: <reason>" -- it never silently answers #f. The G3 fence
+# computes 737 = implemented + categorized-N/A and fails on any uncategorized
+# stub. N/A is reversible by demand: if the ratchet or Phase 4 reaches an N/A
+# binding, the row flips back to owed, with the demanding file recorded.
+#
+# Columns: entry-point <TAB> upstream-file <TAB> reason <TAB> proposed-category <TAB> status
+# status: candidate | accepted <category> | rejected->owed (<demanding file>)
+ly:spawn	general-scheme.cc	process spawning exists to drive the Ghostscript/PS pipeline (backend-library.scm, ps-to-png.scm); the SVG-only port never calls it (D15)	ps-backend	accepted ps-backend
+ly:shutdown-gs	general-scheme.cc	Ghostscript API instance teardown; PS pipeline only (D15)	ps-backend	accepted ps-backend
+ly:gs-api	general-scheme.cc	Ghostscript API invocation; PS pipeline only (D15)	ps-backend	accepted ps-backend
+ly:otf->cff	otf-scheme.cc	the CFF table is extracted to embed a font in a PostScript stream; the SVG backend embeds no font data at all (measured under D13), so nothing ever asks	ps-backend	candidate
+ly:get-cff-offset	open-type-font-scheme.cc	CFF table offset, needed only to embed a subsetted font in PostScript (D15)	ps-backend	candidate
+ly:has-glyph-names?	open-type-font-scheme.cc	asked before writing a PostScript font resource, to choose between name-keyed and CID-keyed embedding (D15)	ps-backend	candidate
+ly:get-font-format	open-type-font-scheme.cc	the font format decides which PostScript embedding path to take (D15)	ps-backend	candidate
+ly:extract-subfont-from-collection	open-type-font-scheme.cc	writes one face out of an OpenType collection to a FILE for PostScript embedding; the port's 24 text faces are vendored individually and no collection is shipped (D15)	ps-backend	candidate
+ly:system-font-load	all-font-metrics-scheme.cc	loads a font by name from the host's font configuration; D23 forbids system-font fallback outright, so there is no host lookup to make and answering #f would silently re-open the door	font-plumbing	candidate

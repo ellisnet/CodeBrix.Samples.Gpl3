@@ -69,6 +69,8 @@ public enum TranslatorPrecomputeIndex
 /// </summary>
 public abstract class Translator
 {
+    private static readonly Symbol LengthSymbol = Symbol.Intern("length");
+
     private readonly List<(Symbol EventClass, Listener Listener)> _listeners
         = new List<(Symbol, Listener)>();
 
@@ -113,6 +115,32 @@ public abstract class Translator
     /// <param name="name">The property name.</param>
     /// <returns>The value.</returns>
     public object GetProperty(string name) => GetProperty(Symbol.Intern(name));
+
+    /// <summary>Returns how long an event lasts.</summary>
+    /// <param name="e">The event.</param>
+    /// <returns>The length, or zero when the event declares none.</returns>
+    public static Moment GetEventLength(StreamEvent e)
+        => e?.GetProperty(LengthSymbol) is Moment length ? length : Moment.Zero;
+
+    /// <summary>
+    /// Returns how long an event lasts, as measured at a given moment: inside grace
+    /// time the whole length moves into the GRACE part, because grace notes take no
+    /// main-part time at all.
+    /// </summary>
+    /// <param name="e">The event.</param>
+    /// <param name="now">The moment being translated.</param>
+    /// <returns>The length.</returns>
+    public static Moment GetEventLength(StreamEvent e, Moment now)
+    {
+        Moment len = GetEventLength(e);
+
+        if (now.GracePart.IsNonZero)
+        {
+            return new Moment(Rational.Zero, len.MainPart);
+        }
+
+        return len;
+    }
 
     /// <summary>Called once when the translator is attached to its context.</summary>
     public virtual void ConnectToContext()
@@ -176,6 +204,17 @@ public abstract class Translator
     /// same set of listeners reached by a route C# can express without macros. The
     /// divergence is recorded in PORT-COVERAGE.
     /// </para>
+    /// <para>
+    /// THE DISPATCHER IS <see cref="Context.EventsBelow"/>, not
+    /// <see cref="Context.EventSource"/>, and that is upstream's choice rather than a
+    /// convenience: <c>Translator_group::connect_to_context</c> takes
+    /// <c>c-&gt;events_below ()</c> and registers every translator's listeners there. It
+    /// is what lets a Staff-level engraver hear an event that happened in a Voice below
+    /// it — a Staff engraver registered on the context's own event source hears only
+    /// what was addressed AT the Staff, which is silently less. Events sent to this
+    /// context still arrive exactly once, because <c>SendStreamEvent</c> broadcasts on
+    /// both dispatchers.
+    /// </para>
     /// </summary>
     /// <param name="eventClass">The event class to listen for.</param>
     /// <param name="handler">The handler.</param>
@@ -193,7 +232,7 @@ public abstract class Translator
             return;
         }
 
-        Listener listener = Context.EventSource.AddListener(this, handler, eventClass);
+        Listener listener = Context.EventsBelow.AddListener(this, handler, eventClass);
         _listeners.Add((eventClass, listener));
     }
 
@@ -207,7 +246,7 @@ public abstract class Translator
 
         foreach ((Symbol EventClass, Listener Listener) entry in _listeners)
         {
-            Context.EventSource.RemoveListener(entry.Listener, entry.EventClass);
+            Context.EventsBelow.RemoveListener(entry.Listener, entry.EventClass);
         }
 
         _listeners.Clear();

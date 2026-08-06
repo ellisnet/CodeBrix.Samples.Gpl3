@@ -480,6 +480,36 @@ public abstract class Grob
         return result;
     }
 
+    /// <summary>
+    /// Returns the system this grob ended up on. A plain grob belongs to none; items
+    /// and spanners answer through their columns and bounds respectively, which is why
+    /// the answer is <see langword="null"/> until line breaking has assigned them.
+    /// </summary>
+    /// <returns>The system, or <see langword="null"/>.</returns>
+    public virtual SystemGrob GetSystem() => null;
+
+    /// <summary>
+    /// Returns the system a grob is typeset into, by walking horizontal parents to the
+    /// root.
+    /// <para>
+    /// More reliable than <see cref="GetSystem()"/> BEFORE line breaking, when no grob
+    /// has been assigned to a line yet and the only thing connecting a grob to its
+    /// system is the parent chain.
+    /// </para>
+    /// </summary>
+    /// <param name="me">The grob to start from.</param>
+    /// <returns>The system, or <see langword="null"/> when the chain does not end at one.</returns>
+    public static SystemGrob SystemOf(Grob me)
+    {
+        if (me == null)
+        {
+            return null;
+        }
+
+        Grob parent = me.GetParent(Axis.X);
+        return parent != null ? SystemOf(parent) : me as SystemGrob;
+    }
+
     /// <summary>Returns this grob's parent's offset relative to a reference point.</summary>
     /// <param name="reference">The reference grob.</param>
     /// <param name="axis">The axis to measure on.</param>
@@ -853,7 +883,14 @@ public abstract class Grob
         }
     }
 
-    private static bool TryNumberPair(object value, out Interval interval)
+    /// <summary>
+    /// Reads a Scheme number pair as an interval, which is how every extent-shaped
+    /// property is stored.
+    /// </summary>
+    /// <param name="value">The value to read.</param>
+    /// <param name="interval">The interval read, or the empty interval.</param>
+    /// <returns><see langword="true"/> when the value was a pair of real numbers.</returns>
+    public static bool TryNumberPair(object value, out Interval interval)
     {
         interval = Interval.Empty;
         if (!(value is Pair pair))

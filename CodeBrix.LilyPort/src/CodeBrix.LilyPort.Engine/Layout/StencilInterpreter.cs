@@ -21,9 +21,12 @@ using System.Collections.Generic;
 using CodeBrix.LilyPort.Flower;
 using CodeBrix.LilyScheme.Values;
 
-namespace CodeBrix.LilyPort.Backends; //was previously: lily/stencil-interpret.cc, lily/include/stencil-interpret.hh;
+namespace CodeBrix.LilyPort.Engine.Layout; //was previously: lily/stencil-interpret.cc, lily/include/stencil-interpret.hh;
 
 // Modified by Jeremy Ellis on 2026-08-03 as part of the CodeBrix port.
+// Moved from CodeBrix.LilyPort.Backends on 2026-08-05: the interpreter is engine
+// machinery (upstream lily/), and EPG3's PaperOutputter needs it below the
+// backends in the project graph.
 
 /// <summary>
 /// Receives the flattened drawing commands a stencil expression unfolds into.

@@ -65,7 +65,6 @@ public static class TypePredicates
         "ly:lily-parser?",
 
         // Not yet demanded by anything.
-        "ly:transform?",
         "ly:tuplet-description?",
     };
 
@@ -111,6 +110,7 @@ public static class TypePredicates
         "ly:skyline?",
         "ly:spring?",
         "ly:stencil?",
+        "ly:transform?",
         "ly:translator?",
         "ly:translator-group?",
     };
@@ -154,6 +154,8 @@ public static class TypePredicates
         interpreter.DefinePrimitive("ly:skyline?", 1, 1, a => a[0] is Skyline);
         interpreter.DefinePrimitive("ly:spring?", 1, 1, a => a[0] is Spring);
         interpreter.DefinePrimitive("ly:stencil?", 1, 1, a => a[0] is Stencil);
+
+        interpreter.DefinePrimitive("ly:transform?", 1, 1, a => a[0] is Transform);
 
         // Translator_group is NOT a Translator upstream -- they are separate classes,
         // and a group is not a translator. Testing them the other way round would make

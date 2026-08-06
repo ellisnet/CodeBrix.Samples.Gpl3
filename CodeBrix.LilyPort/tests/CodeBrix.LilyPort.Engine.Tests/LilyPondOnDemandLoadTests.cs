@@ -66,8 +66,13 @@ public class LilyPondOnDemandLoadTests
         new Dictionary<string, string>(StringComparer.Ordinal)
         {
             // $defaultlayout comes from the .ly initialisation layer, which the parser
-            // builds. Track P, and genuinely not milestone-3 work.
-            ["hyphenate-internal-words"] = "parser environment: $defaultlayout (Track P)",
+            // builds. This test project cannot reach the parser, so the file is blocked
+            // HERE by project structure rather than by anything unported: EPG2 added
+            // Parsing.Tests' SchemeLayerClosureTests, which loads the init layer first
+            // and shows the file loading clean. The two fences together account for the
+            // whole layer.
+            ["hyphenate-internal-words"] = "parser environment: $defaultlayout "
+                + "(loads in Parsing.Tests' SchemeLayerClosureTests, which has the parser)",
 
             // The terminal doc-pipeline file. It ly:loads the whole pipeline including
             // hyphenate-internal-words, so it carries that file's parser gate as well as

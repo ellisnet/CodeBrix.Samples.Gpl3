@@ -19,8 +19,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Reflection;
 using CodeBrix.LilyPort.Flower;
 
 namespace CodeBrix.LilyPort.Engine.Fonts; //was previously: lily/all-font-metrics.cc, lily/include/all-font-metrics.hh;
@@ -39,10 +37,9 @@ namespace CodeBrix.LilyPort.Engine.Fonts; //was previously: lily/all-font-metric
 /// <para>
 /// DIVERGENCE, recorded in PORT-COVERAGE: upstream finds font files through
 /// FontConfig, seeded with LilyPond's installed data directory. The port has no
-/// FontConfig dependency and ships its own fonts, so it searches
-/// <see cref="SearchPaths"/> instead — seeded by probing beside the running assembly.
-/// Only the MUSIC fonts are covered; text fonts are the CodeBrix.Platform TextLayout
-/// add-in's job (master plan section 11).
+/// FontConfig dependency and carries its fonts inside the assembly, so it asks
+/// <see cref="FontAssets"/> — which a consuming application may put a directory in
+/// front of, and which nothing else can make fail.
 /// </para>
 /// </summary>
 public static class AllFontMetrics
@@ -52,28 +49,17 @@ public static class AllFontMetrics
     private static readonly Dictionary<string, OpenTypeFontMetric> Cache
         = new Dictionary<string, OpenTypeFontMetric>(StringComparer.Ordinal);
 
-    private static List<string> _searchPaths;
-
     /// <summary>
-    /// Gets the directories searched for <c>.otf</c> files, in order. Seeded by probing
-    /// beside the running assembly; add to it to point the engine at another font set.
+    /// Gets the directories consulted before the assembly's own embedded fonts.
+    /// Empty by default.
     /// </summary>
-    public static IList<string> SearchPaths
-    {
-        get
-        {
-            lock (Gate)
-            {
-                return _searchPaths ??= ProbeDefaultPaths();
-            }
-        }
-    }
+    public static IList<string> SearchPaths => FontAssets.SearchPaths;
 
     /// <summary>
     /// Loads a music font by name, or returns the instance already loaded.
     /// </summary>
     /// <param name="name">The font name without a suffix, such as <c>emmentaler-20</c>.</param>
-    /// <returns>The font, or <see langword="null"/> when no file was found.</returns>
+    /// <returns>The font, or <see langword="null"/> when there is no such font.</returns>
     public static OpenTypeFontMetric FindOtfFont(string name)
     {
         if (name == null)
@@ -88,14 +74,15 @@ public static class AllFontMetrics
                 return cached;
             }
 
-            string path = Locate(name);
-            if (path == null)
+            byte[] bytes = FontAssets.MusicFont(name);
+            if (bytes == null)
             {
                 Warn.Warning("cannot find font: `" + name + "'");
                 return null;
             }
 
-            OpenTypeFontMetric metric = new OpenTypeFontMetric(OpenTypeFont.Load(path), name);
+            OpenTypeFontMetric metric = new OpenTypeFontMetric(
+                new OpenTypeFont(bytes, name, Bootstrap.LilyPondScheme.Current), name);
             Cache[name] = metric;
             return metric;
         }
@@ -111,50 +98,5 @@ public static class AllFontMetrics
         {
             Cache.Clear();
         }
-    }
-
-    private static string Locate(string name)
-    {
-        foreach (string directory in SearchPaths)
-        {
-            if (string.IsNullOrEmpty(directory))
-            {
-                continue;
-            }
-
-            string candidate = Path.Combine(directory, name + ".otf");
-            if (File.Exists(candidate))
-            {
-                return candidate;
-            }
-        }
-
-        return null;
-    }
-
-    private static List<string> ProbeDefaultPaths()
-    {
-        List<string> paths = new List<string>();
-
-        string assemblyDirectory = Path.GetDirectoryName(
-            Assembly.GetExecutingAssembly().Location);
-        if (!string.IsNullOrEmpty(assemblyDirectory))
-        {
-            // Where a test project copies its font fixtures, and where a published
-            // application would carry them.
-            paths.Add(Path.Combine(assemblyDirectory, "TestFonts"));
-            paths.Add(Path.Combine(assemblyDirectory, "fonts", "otf"));
-
-            // Walking up to the repository's own assets/fonts/otf: bin/Release/net10.0
-            // is three levels below a project, and a project is two below the repo root.
-            string directory = assemblyDirectory;
-            for (int level = 0; level < 6 && directory != null; level++)
-            {
-                paths.Add(Path.Combine(directory, "assets", "fonts", "otf"));
-                directory = Path.GetDirectoryName(directory);
-            }
-        }
-
-        return paths;
     }
 }

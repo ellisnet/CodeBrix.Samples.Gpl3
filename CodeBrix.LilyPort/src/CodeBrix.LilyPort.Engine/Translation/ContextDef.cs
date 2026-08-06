@@ -395,12 +395,213 @@ public class ContextDef
         return SchemeUtilities.Memq(sym, _contextAliases);
     }
 
+    /// <summary>
+    /// Looks a context definition up in an output definition by name.
+    /// <para>Upstream: the free function <c>find_context_def</c> in
+    /// <c>lily/output-def.cc</c>, hosted here because <see cref="ContextDef"/> is the
+    /// only thing it can answer with. Returns <see langword="null"/> where upstream
+    /// returns <c>SCM_EOL</c>; every caller tests the same way.</para>
+    /// </summary>
+    /// <param name="definition">The output definition to search.</param>
+    /// <param name="name">The context name.</param>
+    /// <returns>The definition, or <see langword="null"/> when there is none.</returns>
+    public static ContextDef FindContextDef(Layout.OutputDef definition, object name)
+    {
+        if (definition == null || !(name is Symbol symbol))
+        {
+            return null;
+        }
+
+        return definition.LookupVariable(symbol) as ContextDef;
+    }
+
+    /// <summary>
+    /// Given a name of a context that we want to create, finds a list of context
+    /// definitions such that:
+    /// <list type="bullet">
+    /// <item><description>the first element in the list defines a context that is a
+    /// valid child of the context defined by this <see cref="ContextDef"/>;</description></item>
+    /// <item><description>each subsequent element in the list defines a context that is
+    /// a valid child of the context defined by the preceding element;</description></item>
+    /// <item><description>the last element in the list defines a context with the given
+    /// name.</description></item>
+    /// </list>
+    /// </summary>
+    /// <param name="typeSym">The context type wanted.</param>
+    /// <param name="odef">The output definition the definitions live in.</param>
+    /// <param name="accepted">
+    /// The list of contexts the caller accepts. The caller is a <see cref="Context"/>
+    /// instantiated from this definition, but its acceptance list may have been modified
+    /// from the defined default.
+    /// </param>
+    /// <returns>The path, empty when there is none.</returns>
+    public List<ContextDef> PathToAcceptableContext(
+        object typeSym,
+        Layout.OutputDef odef,
+        object accepted)
+    {
+        HashSet<ContextDef> seen = new HashSet<ContextDef>(ReferenceComparer.Instance);
+        ContextDef t = FindContextDef(odef, typeSym);
+        return InternalPathToAcceptableContext(typeSym, t != null, odef, accepted, seen);
+    }
+
+    /// <summary>
+    /// Returns the chain of definitions from this one down to a context that accepts no
+    /// default child — how <c>Bottom</c> is resolved.
+    /// </summary>
+    /// <param name="odef">The output definition the definitions live in.</param>
+    /// <param name="firstChildTypeSym">
+    /// The type to descend into first, normally the caller's default child. A non-symbol
+    /// means the caller IS the bottom, and the empty path is the right answer.
+    /// </param>
+    /// <returns>The path, empty when the descent failed.</returns>
+    public static List<ContextDef> PathToBottomContext(
+        Layout.OutputDef odef,
+        object firstChildTypeSym)
+    {
+        List<ContextDef> path = new List<ContextDef>();
+        if (!InternalPathToBottomContext(odef, path, firstChildTypeSym))
+        {
+            path.Clear();
+        }
+
+        return path;
+    }
+
+    /// <summary>
+    /// Applies this definition's own property operations to a freshly built context.
+    /// <para>The list is stored newest-first, so it is REVERSED before being applied —
+    /// a definition that sets a property twice must end on the later value.</para>
+    /// </summary>
+    /// <param name="target">The context to apply them to.</param>
+    public void ApplyDefaultPropertyOperations(Context target)
+        => GrobPropertyInfo.ApplyPropertyOperations(target, Reverse(_propertyOps));
+
     /// <summary>Returns the external representation, in upstream's debug wording.</summary>
     /// <returns>The name and, when one was recorded, the origin.</returns>
     public override string ToString()
         => _origin is Nil
             ? "#<Context_def " + _contextName + ">"
             : "#<Context_def " + _contextName + " " + _origin + ">";
+
+    /// <summary>
+    /// The recursive half of <see cref="PathToAcceptableContext"/>.
+    /// <para>
+    /// The <paramref name="seen"/> set keeps track of visited contexts, allowing
+    /// contexts of the same type to be nested.
+    /// </para>
+    /// <para>
+    /// When the leaf is instantiable (the usual), we ignore aliases and thereby use the
+    /// requested context or nothing. Example: if the caller requests a Staff, we do not
+    /// substitute a RhythmicStaff.
+    /// </para>
+    /// <para>
+    /// When the leaf is not instantiable, since there would otherwise be nothing worth
+    /// doing, we allow substituting an instantiable context that aliases the requested
+    /// context. Example: the caller requests a Timing and the current context would
+    /// accept a Score, for which Timing is an alias, so substitute a Score.
+    /// </para>
+    /// </summary>
+    private List<ContextDef> InternalPathToAcceptableContext(
+        object typeSym,
+        bool instantiable,
+        Layout.OutputDef odef,
+        object accepted,
+        HashSet<ContextDef> seen)
+    {
+        List<ContextDef> accepteds = new List<ContextDef>();
+        for (object s = accepted; s is Pair pair; s = pair.Cdr)
+        {
+            ContextDef t = FindContextDef(odef, pair.Car);
+            if (t != null)
+            {
+                accepteds.Add(t);
+            }
+        }
+
+        List<ContextDef> bestResult = new List<ContextDef>();
+        foreach (ContextDef candidate in accepteds)
+        {
+            bool valid = instantiable
+                ? SchemeUtilities.IsEqual(candidate.ContextName, typeSym)
+                : candidate.IsAlias(typeSym);
+            if (valid)
+            {
+                bestResult.Add(candidate);
+                return bestResult;
+            }
+        }
+
+        seen.Add(this);
+        int bestDepth = int.MaxValue;
+        for (int i = 0; bestDepth > 1 && i < accepteds.Count; i++)
+        {
+            ContextDef g = accepteds[i];
+
+            if (!seen.Contains(g))
+            {
+                object acc = g._acceptance.GetList();
+                List<ContextDef> result = g.InternalPathToAcceptableContext(
+                    typeSym, instantiable, odef, acc, seen);
+                if (result.Count > 0 && result.Count < bestDepth)
+                {
+                    bestDepth = result.Count;
+                    result.Insert(0, g);
+                    bestResult = result;
+                }
+            }
+        }
+
+        seen.Remove(this);
+
+        return bestResult;
+    }
+
+    private static bool InternalPathToBottomContext(
+        Layout.OutputDef odef,
+        List<ContextDef> path,
+        object nextTypeSym)
+    {
+        if (!(nextTypeSym is Symbol))
+        {
+            // the caller is the bottom
+            return true;
+        }
+
+        ContextDef t = FindContextDef(odef, nextTypeSym);
+        if (t == null)
+        {
+            Warn.Warning(
+                "cannot create default child context: "
+                + Context.DiagnosticId((Symbol)nextTypeSym, string.Empty));
+            return false;
+        }
+
+        if (path.Contains(t))
+        {
+            Warn.Warning(
+                "default child context begins a cycle: "
+                + Context.DiagnosticId((Symbol)nextTypeSym, string.Empty));
+            return false;
+        }
+
+        path.Add(t);
+        return InternalPathToBottomContext(odef, path, t._acceptance.GetDefault());
+    }
+
+    /// <summary>Returns a list reversed, which is <c>scm_reverse</c>.</summary>
+    /// <param name="list">The list to reverse; it is not modified.</param>
+    /// <returns>The reversed list.</returns>
+    private static object Reverse(object list)
+    {
+        object result = Nil.Instance;
+        for (object p = list; p is Pair pair; p = pair.Cdr)
+        {
+            result = new Pair(pair.Car, result);
+        }
+
+        return result;
+    }
 
     /// <summary>Returns a list's second element, which is <c>scm_cadr</c>.</summary>
     /// <param name="list">The list.</param>

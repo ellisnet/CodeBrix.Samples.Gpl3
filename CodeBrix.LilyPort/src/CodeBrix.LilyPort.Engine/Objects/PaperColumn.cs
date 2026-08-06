@@ -18,6 +18,7 @@
 */
 
 using System;
+using System.Collections.Generic;
 using CodeBrix.LilyPort.Engine.Layout;
 using CodeBrix.LilyPort.Engine.Music;
 using CodeBrix.LilyPort.Flower;
@@ -52,6 +53,7 @@ public class PaperColumn : Item
     private static readonly Symbol LabelsSymbol = Symbol.Intern("labels");
     private static readonly Symbol HorizontalSkylines = Symbol.Intern("horizontal-skylines");
     private static readonly Symbol BreakAlignmentSymbol = Symbol.Intern("break-alignment");
+    private static readonly Symbol RhythmicHeadInterface = Symbol.Intern("rhythmic-head-interface");
 
     /* after line breaking, `System` indicates in which line this column is */
     private SystemGrob _system;
@@ -99,7 +101,20 @@ public class PaperColumn : Item
 
     /// <summary>Gets this column. A column is its own column.</summary>
     /// <returns>This column.</returns>
-    public PaperColumn GetColumn() => this;
+    public override PaperColumn GetColumn() => this;
+
+    /// <summary>
+    /// Gets the system this column ended up on, which is <see langword="null"/> until
+    /// line breaking assigns one.
+    /// <para>
+    /// This is where the recursion in the item/spanner chain STOPS: a column answers
+    /// from its own field rather than from its parent, which is the system. Without
+    /// that, asking a system for its system would ask its bounding column, which would
+    /// ask the system again.
+    /// </para>
+    /// </summary>
+    /// <returns>The system, or <see langword="null"/>.</returns>
+    public override SystemGrob GetSystem() => _system;
 
     /// <summary>Returns the prebroken piece for one side.</summary>
     /// <param name="direction">The side to select.</param>
@@ -173,6 +188,42 @@ public class PaperColumn : Item
         }
 
         return grob.GetProperty(LabelsSymbol) is Pair;
+    }
+
+    /// <summary>
+    /// Determines whether a musical column is one a ligature engraver left behind: it
+    /// thinks it holds note heads, but every one of them was claimed by another column.
+    /// <para>
+    /// Such a column reports a width it does not really occupy, which is why packed
+    /// spacing has to leave it out of the packing.
+    /// </para>
+    /// </summary>
+    /// <param name="grob">The column.</param>
+    /// <returns><see langword="true"/> when the column is extraneous.</returns>
+    public static bool IsExtraneousColumnFromLigature(Grob grob)
+    {
+        if (!IsMusical(grob))
+        {
+            return false;
+        }
+
+        // If all the note-heads that I think are my children actually belong
+        // to another column, then I am extraneous.
+        IReadOnlyList<Grob> elts = PointerGroupInterface.ExtractGrobSet(grob, ElementsSymbol);
+        bool hasNotehead = false;
+        for (int i = 0; i < elts.Count; i++)
+        {
+            if (elts[i].HasInterface(RhythmicHeadInterface))
+            {
+                hasNotehead = true;
+                if (ReferenceEquals((elts[i] as Item)?.GetColumn(), grob))
+                {
+                    return false;
+                }
+            }
+        }
+
+        return hasNotehead;
     }
 
     /// <summary>
@@ -261,30 +312,32 @@ public class PaperColumn : Item
 
     private static Skyline SkylineFacing(Grob column, Direction facing)
     {
-        if (column?.GetProperty(HorizontalSkylines) is SkylinePair pair)
-        {
-            return pair[facing];
-        }
-
-        return new Skyline(facing);
+        SkylinePair pair = SkylinePair.FromScheme(column?.GetProperty(HorizontalSkylines));
+        return pair != null ? pair[facing] : new Skyline(facing);
     }
 
+    /// <summary>
+    /// Reads a duration-shaped property as a rational, with upstream's zero fallback for
+    /// anything that is not a number.
+    /// <para>
+    /// The INEXACT cases matter and are easy to miss: a duration of
+    /// <c>Rational::infinity</c> reaches Scheme as <c>+inf.0</c>, a real — which is what
+    /// the spacing engraver writes for a column where no note starts — and reading that
+    /// back as zero would quietly reclassify a musical column as non-musical.
+    /// </para>
+    /// </summary>
     private static Rational ToRational(object value)
     {
         switch (value)
         {
             case Rational rational:
                 return rational;
-            case long integer:
-                return new Rational(integer);
-            case int integer:
-                return new Rational(integer);
-            case CodeBrix.LilyScheme.Numeric.Ratio ratio:
-                return new Rational((long)ratio.Numerator, (long)ratio.Denominator);
             case Moment moment:
                 return moment.MainPart;
             default:
-                return Rational.Zero;
+                return Bootstrap.SchemeConvert.IsNumber(value)
+                    ? Bootstrap.SchemeConvert.ToRational(value, "duration")
+                    : Rational.Zero;
         }
     }
 }

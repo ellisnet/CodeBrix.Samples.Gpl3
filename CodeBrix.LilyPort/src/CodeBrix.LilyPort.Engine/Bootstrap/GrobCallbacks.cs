@@ -45,6 +45,48 @@ public static class GrobCallbacks
         InstallNoteHead(interpreter);
         InstallFonts(interpreter);
         InstallOutputDef(interpreter);
+        InstallSpacing(interpreter);
+    }
+
+    /// <summary>
+    /// Installs the horizontal-spacing callbacks.
+    /// <para>
+    /// <c>ly:spacing-spanner::set-springs</c> is the load-bearing one, and it is never
+    /// called by name from C#: <c>System::pre_processing</c> READS every grob's
+    /// <c>springs-and-rods</c> property, and on a <c>SpacingSpanner</c> that property
+    /// resolves here. Leave this unregistered and the whole score still engraves — with
+    /// every column at x = 0.
+    /// </para>
+    /// </summary>
+    /// <param name="interpreter">The interpreter to extend.</param>
+    private static void InstallSpacing(Interpreter interpreter)
+    {
+        interpreter.DefinePrimitive("ly:spacing-spanner::set-springs", 1, 1, a =>
+        {
+            Grob grob = AsGrob(a[0], "ly:spacing-spanner::set-springs");
+            if (grob is Spanner spanner)
+            {
+                SpacingSpanner.SetSprings(spanner);
+            }
+            else
+            {
+                Warn.ProgrammingError("ly:spacing-spanner::set-springs: not a spanner");
+            }
+
+            return Unspecified.Instance;
+        });
+
+        interpreter.DefinePrimitive(
+            "ly:spacing-spanner::calc-common-shortest-duration", 1, 1, a =>
+            {
+                Grob grob = AsGrob(a[0], "ly:spacing-spanner::calc-common-shortest-duration");
+                return grob is Spanner spanner
+                    ? (object)SpacingSpanner.CalcCommonShortestDuration(spanner)
+                    : false;
+            });
+
+        interpreter.DefinePrimitive("ly:separation-item::calc-skylines", 1, 1, a =>
+            SeparationItem.CalcSkylines(AsGrob(a[0], "ly:separation-item::calc-skylines")));
     }
 
     private static void InstallGrobExtents(Interpreter interpreter)
@@ -175,6 +217,114 @@ public static class GrobCallbacks
             FontInterface.ResetScaledFonts();
             return Unspecified.Instance;
         });
+
+        interpreter.DefinePrimitive("ly:font-design-size", 1, 1, a =>
+            a[0] is FontMetric font ? (object)font.DesignSize : false);
+
+        interpreter.DefinePrimitive("ly:font-magnification", 1, 1, a =>
+            a[0] is FontMetric font ? (object)font.Magnification : false);
+
+        InstallText(interpreter);
+        InstallSkylines(interpreter);
+    }
+
+    /// <summary>
+    /// The ten skyline callbacks <c>scm/define-grobs.scm</c> names as the default value
+    /// of <c>vertical-skylines</c> and <c>horizontal-skylines</c>.
+    /// <para>
+    /// The PURE variants take a begin and end column and answer what the grob will look
+    /// like over that range before line breaking has happened. The port has no
+    /// pure-property machinery yet — that is <c>unpure-pure-container.cc</c>, EPG15 —
+    /// so they answer the ordinary extents, which is what a grob that declares no pure
+    /// callback would give anyway.
+    /// </para>
+    /// </summary>
+    /// <param name="interpreter">The interpreter to install into.</param>
+    private static void InstallSkylines(Interpreter interpreter)
+    {
+        interpreter.DefinePrimitive(
+            "ly:grob::simple-vertical-skylines-from-extents", 1, 1, a =>
+                StencilIntegral.SimpleVerticalFromExtents(
+                    AsGrob(a[0], "ly:grob::simple-vertical-skylines-from-extents")));
+
+        interpreter.DefinePrimitive(
+            "ly:grob::pure-simple-vertical-skylines-from-extents", 3, 3, a =>
+                StencilIntegral.PureSimpleVerticalFromExtents(
+                    AsGrob(a[0], "ly:grob::pure-simple-vertical-skylines-from-extents")));
+
+        interpreter.DefinePrimitive(
+            "ly:grob::simple-horizontal-skylines-from-extents", 1, 1, a =>
+                StencilIntegral.SimpleHorizontalFromExtents(
+                    AsGrob(a[0], "ly:grob::simple-horizontal-skylines-from-extents")));
+
+        interpreter.DefinePrimitive(
+            "ly:grob::pure-simple-horizontal-skylines-from-extents", 3, 3, a =>
+                StencilIntegral.PureSimpleHorizontalFromExtents(
+                    AsGrob(a[0], "ly:grob::pure-simple-horizontal-skylines-from-extents")));
+
+        interpreter.DefinePrimitive(
+            "ly:grob::vertical-skylines-from-stencil", 1, 1, a =>
+                StencilIntegral.SkylinesFromStencil(
+                    AsGrob(a[0], "ly:grob::vertical-skylines-from-stencil"), Axis.X));
+
+        interpreter.DefinePrimitive(
+            "ly:grob::horizontal-skylines-from-stencil", 1, 1, a =>
+                StencilIntegral.SkylinesFromStencil(
+                    AsGrob(a[0], "ly:grob::horizontal-skylines-from-stencil"), Axis.Y));
+
+        interpreter.DefinePrimitive(
+            "ly:grob::vertical-skylines-from-element-stencils", 1, 1, a =>
+                StencilIntegral.SkylinesFromElementStencils(
+                    AsGrob(a[0], "ly:grob::vertical-skylines-from-element-stencils"), Axis.X));
+
+        interpreter.DefinePrimitive(
+            "ly:grob::horizontal-skylines-from-element-stencils", 1, 1, a =>
+                StencilIntegral.SkylinesFromElementStencils(
+                    AsGrob(a[0], "ly:grob::horizontal-skylines-from-element-stencils"), Axis.Y));
+
+        interpreter.DefinePrimitive(
+            "ly:grob::pure-vertical-skylines-from-element-stencils", 3, 3, a =>
+                StencilIntegral.SkylinesFromElementStencils(
+                    AsGrob(a[0], "ly:grob::pure-vertical-skylines-from-element-stencils"),
+                    Axis.X));
+
+        interpreter.DefinePrimitive(
+            "ly:grob::pure-horizontal-skylines-from-element-stencils", 3, 3, a =>
+                StencilIntegral.SkylinesFromElementStencils(
+                    AsGrob(a[0], "ly:grob::pure-horizontal-skylines-from-element-stencils"),
+                    Axis.Y));
+    }
+
+    /// <summary>
+    /// The text interface's Scheme surface. Every markup in the score arrives through
+    /// <c>ly:text-interface::interpret-markup</c>, which
+    /// <c>scm/define-markup-commands.scm</c> calls recursively for nested markup.
+    /// </summary>
+    /// <param name="interpreter">The interpreter to install into.</param>
+    private static void InstallText(Interpreter interpreter)
+    {
+        interpreter.DefinePrimitive("ly:text-interface::interpret-markup", 3, 3, a =>
+        {
+            if (!(a[0] is OutputDef layout))
+            {
+                throw SchemeErrors.WrongType(
+                    "ly:text-interface::interpret-markup", "output definition", a[0]);
+            }
+
+            return TextInterface.InterpretMarkup(layout, a[1], a[2]);
+        });
+
+        interpreter.DefinePrimitive("ly:text-interface::print", 1, 1, a =>
+            TextInterface.Print(AsGrob(a[0], "ly:text-interface::print")));
+
+        interpreter.DefinePrimitive("ly:text-interface::grob-interpret-markup", 2, 2, a =>
+            TextInterface.GrobInterpretMarkup(
+                AsGrob(a[0], "ly:text-interface::grob-interpret-markup"), a[1]));
+
+        // text-interface.cc's own string transformer, and the default value of the
+        // string-transformers property, so it has to exist before any markup runs.
+        interpreter.DefinePrimitive("ly:perform-text-replacements", 3, 3, a =>
+            TextInterface.PerformReplacements(a[1], a[2]));
     }
 
     private static void InstallOutputDef(Interpreter interpreter)

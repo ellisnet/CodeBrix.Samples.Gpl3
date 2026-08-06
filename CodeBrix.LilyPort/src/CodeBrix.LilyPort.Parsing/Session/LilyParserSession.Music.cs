@@ -49,7 +49,7 @@ public sealed partial class LilyParserSession
         object music = Call(LilyImport("make-music"), Symbol.Intern(name));
         if (music is MusicObject made)
         {
-            made.SetSpot(location);
+            made.SetSpot(SchemeLocation(location));
         }
 
         return music;
@@ -77,9 +77,25 @@ public sealed partial class LilyParserSession
     /// <inheritdoc/>
     public void SetMusicSpot(object music, SourceSpan location)
     {
-        if (music is MusicObject m)
+        // Upstream's set_spot takes an INPUT, never a raw span. Stamping the span
+        // itself looked identical until the first ly:input-location? type check ran
+        // against an 'origin property and answered #f on every note the parser had
+        // built — the silent-defect shape exactly: nothing failed until the real
+        // consumer arrived (found by the batch runner's first sweep, 2026-08-05).
+        switch (music)
         {
-            m.SetSpot(location);
+            case MusicObject m:
+                m.SetSpot(SchemeLocation(location));
+                break;
+            case Score score:
+                score.SetSpot(SchemeLocation(location));
+                break;
+            case Book book:
+                book.SetSpot(SchemeLocation(location));
+                break;
+            case OutputDef definition:
+                definition.SetSpot(SchemeLocation(location));
+                break;
         }
     }
 
@@ -93,22 +109,22 @@ public sealed partial class LilyParserSession
         {
             case MusicObject music:
                 MusicObject musicCopy = music.Clone();
-                musicCopy.SetSpot(location);
+                musicCopy.SetSpot(SchemeLocation(location));
                 return musicCopy;
 
             case Score score:
                 Score scoreCopy = CloneScore(score);
-                scoreCopy.SetSpot(location);
+                scoreCopy.SetSpot(SchemeLocation(location));
                 return scoreCopy;
 
             case Book book:
                 Book bookCopy = CloneBook(book);
-                bookCopy.SetSpot(location);
+                bookCopy.SetSpot(SchemeLocation(location));
                 return bookCopy;
 
             case OutputDef definition:
                 OutputDef definitionCopy = definition.Clone();
-                definitionCopy.SetSpot(location);
+                definitionCopy.SetSpot(SchemeLocation(location));
                 return definitionCopy;
 
             case ContextDef contextDef:

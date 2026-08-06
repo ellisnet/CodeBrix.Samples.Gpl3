@@ -78,6 +78,12 @@ STATUS
     grob-interfaces.tsv,           scm/*.scm. Section 1.5.
     lily-cc-ledger.tsv,
     translators.tsv
+    assets/fonts/text/             24 prebuilt TEXT font faces (URW + TeX
+                                   Gyre) vendored byte-for-byte from the
+                                   official LilyPond 2.27.2 binary
+                                   distribution, plus their license texts.
+                                   Added 2026-08-05 (decision D13).
+                                   Section 10.
 
   NOT YET INCORPORATED: most of the C++ engine (lily/). The parser and lexer ARE
   incorporated as of 2026-08-03 -- parser.yy and lexer.ll are mirrored under
@@ -347,6 +353,13 @@ Copyright: Copyright (C) 1996--2026 Han-Wen Nienhuys <hanwen@xs4all.nl>
     src/CodeBrix.LilyPort.Engine/Layout/SkylinePair.cs
         <- lily/skyline-pair.cc, lily/include/skyline-pair.hh
            Copyright (C) 2008--2026 Han-Wen Nienhuys
+    src/CodeBrix.LilyPort.Engine/Layout/LazySkylinePair.cs
+        <- lily/include/lazy-skyline-pair.hh
+           Copyright (C) 2020--2026 Han-Wen Nienhuys
+    src/CodeBrix.LilyPort.Engine/Fonts/GlyphOutlineSkyline.cs
+        <- lily/freetype.cc  (Path_interpreter and
+           ly_FT_add_outline_to_skyline only -- FreeType itself is not ported)
+           Copyright (C) 2004--2026 Han-Wen Nienhuys
     src/CodeBrix.LilyPort.Engine/Layout/Spring.cs
         <- lily/spring.cc, lily/include/spring.hh
            Copyright (C) 2007--2026 Joe Neeman
@@ -407,6 +420,54 @@ Copyright: Copyright (C) 1996--2026 Han-Wen Nienhuys <hanwen@xs4all.nl>
     src/CodeBrix.LilyPort.Engine/Layout/LineSpacing.cs
         <- lily/simple-spacer.cc  (get_line_forces, get_line_configuration)
            Copyright (C) 1999--2026 Han-Wen Nienhuys
+
+    EPG4 -- HORIZONTAL SPACING (2026-08-05)
+
+    src/CodeBrix.LilyPort.Engine/Layout/SpacingOptions.cs
+        <- lily/spacing-options.cc, lily/include/spacing-options.hh
+           Copyright (C) 2006--2026 Han-Wen Nienhuys
+    src/CodeBrix.LilyPort.Engine/Layout/Rod.cs
+        <- lily/rod.cc, lily/include/rod.hh
+           Copyright (C) 1998--2026 Han-Wen Nienhuys
+    src/CodeBrix.LilyPort.Engine/Layout/LooseColumns.cs
+        <- lily/spacing-loose-columns.cc
+           Copyright (C) 2005--2026 Han-Wen Nienhuys
+           Also carries robust_relative_extent from lily/misc.cc, which
+           set_loose_columns is its only port-side caller of so far.
+    src/CodeBrix.LilyPort.Engine/Objects/SpacingInterface.cs
+        <- lily/spacing-interface.cc, lily/include/spacing-interface.hh
+           Copyright (C) 2007--2026 Joe Neeman
+    src/CodeBrix.LilyPort.Engine/Objects/NoteSpacing.cs
+        <- lily/note-spacing.cc, lily/include/note-spacing.hh
+           Copyright (C) 2001--2026 Han-Wen Nienhuys
+           stem_dir_correction is structurally complete; the branch that
+           measures a note column's stem takes upstream's own
+           undeterminable-stem exit until EPG5/EPG6 land note columns and
+           stems.
+    src/CodeBrix.LilyPort.Engine/Objects/StaffSpacing.cs
+        <- lily/staff-spacing.cc, lily/include/staff-spacing.hh
+           Copyright (C) 2001--2026 Han-Wen Nienhuys
+           optical_correction answers 0 -- upstream's own answer for a note
+           column without a stem -- until EPG6.
+    src/CodeBrix.LilyPort.Engine/Objects/SpacingSpanner.cs
+        <- lily/spacing-spanner.cc, lily/include/spacing-spanner.hh
+           Copyright (C) 1999--2026 Han-Wen Nienhuys
+    src/CodeBrix.LilyPort.Engine/Objects/SpacingBasic.cs
+        <- lily/spacing-basic.cc
+           Copyright (C) 2005--2026 Han-Wen Nienhuys
+           A partial class of SpacingSpanner, as upstream splits the class
+           across translation units.
+    src/CodeBrix.LilyPort.Engine/Objects/SpacingDetermineLooseColumns.cs
+        <- lily/spacing-determine-loose-columns.cc
+           Copyright (C) 2005--2026 Han-Wen Nienhuys
+           A partial class of SpacingSpanner, as above.
+    src/CodeBrix.LilyPort.Engine/Translation/SpacingEngravers.cs
+        <- lily/spacing-engraver.cc
+           Copyright (C) 1999--2026 Han-Wen Nienhuys
+        <- lily/note-spacing-engraver.cc
+           Copyright (C) 2006--2026 Han-Wen Nienhuys
+        <- lily/separating-line-group-engraver.cc
+           Copyright (C) 1998--2026 Han-Wen Nienhuys
 
     src/CodeBrix.LilyPort.Engine/Music/MusicObject.cs
         <- lily/music.cc, lily/include/music.hh, lily/music-sequence.cc
@@ -474,8 +535,9 @@ Copyright: Copyright (C) 1996--2026 Han-Wen Nienhuys <hanwen@xs4all.nl>
     src/CodeBrix.LilyPort.Engine/Layout/OutputDef.cs
         <- lily/output-def.cc, lily/include/output-def.hh
            Copyright (C) 1997--2026 Han-Wen Nienhuys
-           The variable table and its parent chain. normalize () -- the page
-           margin arithmetic -- is not ported; it belongs with page layout.
+           The variable table and its parent chain, and normalize () -- the
+           horizontal page-geometry arithmetic, ported by EPG4 (2026-08-05)
+           because it is the only thing that computes line-width.
     src/CodeBrix.LilyPort.Engine/Objects/StaffSymbol.cs
         <- lily/staff-symbol.cc, lily/include/staff-symbol.hh
            Copyright (C) 1997--2026 Han-Wen Nienhuys
@@ -492,7 +554,10 @@ Copyright: Copyright (C) 1996--2026 Han-Wen Nienhuys <hanwen@xs4all.nl>
     src/CodeBrix.LilyPort.Engine/Objects/SeparationItem.cs
         <- lily/separation-item.cc, lily/include/separation-item.hh
            Copyright (C) 1998--2026 Han-Wen Nienhuys
-           add_item only; calc_skylines and add_conditional_item are not ported.
+           COMPLETED by EPG4 (2026-08-05): add_item, add_conditional_item,
+           set_distance, is_empty, conditional_skyline, calc_skylines and
+           boxes. The conditional-accidental filter inside boxes waits on
+           Accidental_placement (EPG9).
     src/CodeBrix.LilyPort.Engine/Objects/Book.cs
         <- lily/book.cc, lily/include/book.hh
            Copyright (C) 1997--2026 Han-Wen Nienhuys
@@ -510,11 +575,43 @@ Copyright: Copyright (C) 1996--2026 Han-Wen Nienhuys <hanwen@xs4all.nl>
         <- lily/acceptance-set.cc, lily/include/acceptance-set.hh
            (the AcceptanceSet type, hosted in the same file)
            Copyright (C) 2018--2026 Daniel Eble
-           The definition data and pure queries only; the output-def
-           integration halves are not ported -- see the Engine PORT-COVERAGE.
+           EPG2 (2026-08-05) completed the file: path_to_acceptable_context,
+           path_to_bottom_context, apply_default_property_operations and
+           find_context_def now read definitions back out of an Output_def.
     src/CodeBrix.LilyPort.Engine/Translation/ContextMod.cs
         <- lily/context-mod.cc, lily/include/context-mod.hh
            Copyright (C) 2010--2026 Reinhold Kainhofer
+    src/CodeBrix.LilyPort.Engine/Translation/ContextHandle.cs
+        <- lily/context-handle.cc, lily/include/context-handle.hh
+           Copyright (C) 1999--2026 Han-Wen Nienhuys
+    src/CodeBrix.LilyPort.Engine/Translation/SchemeEngraver.cs
+        <- lily/scheme-engraver.cc, lily/include/scheme-engraver.hh
+           Copyright (c) 2009--2026 Han-Wen Nienhuys
+        <- lily/translator-dispatch-list.cc
+           (the interface-keyed acknowledger lookup; see PORT-COVERAGE for
+           why it is per-engraver here rather than per-group)
+           Copyright (C) 2005--2026 Han-Wen Nienhuys
+    src/CodeBrix.LilyPort.Engine/Translation/TranslatorCreator.cs
+        <- lily/translator-ctors.cc, lily/translator-group-ctors.cc,
+           lily/include/translator.hh (Translator_creator)
+           Copyright (C) 1997--2026, 2005--2026 Han-Wen Nienhuys
+    src/CodeBrix.LilyPort.Engine/Translation/DeprecatedProperty.cs
+        <- lily/deprecated-property.cc, lily/include/deprecated-property.hh
+           Copyright (C) 2024 Daniel Eble
+    src/CodeBrix.LilyPort.Engine/Layout/MusicOutput.cs
+        <- lily/music-output.cc, lily/include/music-output.hh
+           Copyright (C) 2005--2026 Han-Wen Nienhuys
+    src/CodeBrix.LilyPort.Engine/Layout/PaperSystem.cs
+        <- lily/paper-system.cc, lily/include/paper-system.hh
+           Copyright (C) 2004--2026 Jan Nieuwenhuizen
+    src/CodeBrix.LilyPort.Engine/Layout/PageMarker.cs
+        <- lily/page-marker.cc, lily/include/page-marker.hh
+           Copyright (C) 2007--2026 Nicolas Sceaux
+    src/CodeBrix.LilyPort.Engine/Origins/PointAndClick.cs
+        <- lily/point-and-click.cc, lily/include/point-and-click.hh
+           Copyright (C) 2019--2026 Han-Wen Nienhuys
+           The percent-encoding helper reproduces the behaviour of
+           String_convert::percent_encode rather than its text.
     src/CodeBrix.LilyPort.Engine/Fonts/FontMetric.cs
         <- lily/font-metric.cc, lily/include/font-metric.hh,
            lily/modified-font-metric.cc, lily/include/modified-font-metric.hh
@@ -538,9 +635,32 @@ Copyright: Copyright (C) 1996--2026 Han-Wen Nienhuys <hanwen@xs4all.nl>
            stem attachment points and ledger shortening ranges. Outlines are
            not read.
 
-    src/CodeBrix.LilyPort.Backends/StencilInterpreter.cs
+    src/CodeBrix.LilyPort.Engine/Layout/StencilInterpreter.cs
         <- lily/stencil-interpret.cc, lily/include/stencil-interpret.hh
            Copyright (C) 2005--2026 Han-Wen Nienhuys
+           Moved from CodeBrix.LilyPort.Backends on 2026-08-05; the interpreter
+           is engine machinery and PaperOutputter sits below the backends.
+
+    src/CodeBrix.LilyPort.Engine/Layout/PaperOutputter.cs
+        <- lily/paper-outputter.cc, lily/include/paper-outputter.hh
+           Copyright (C) 1997--2026 Han-Wen Nienhuys, Jan Nieuwenhuizen
+    src/CodeBrix.LilyPort.Engine/Bootstrap/FunctionDocumentation.cs
+        <- lily/function-documentation.cc
+           Copyright (C) 2004--2026 Han-Wen Nienhuys
+           The table mechanism and the init_func_doc predicate descriptions;
+           docstring content arrives with EPG24.
+    src/CodeBrix.LilyPort.Engine/Bootstrap/LilyVersion.cs
+        <- lily/lily-version.cc, lily/include/lily-version.hh
+           Copyright (C) 1999--2026 Jan Nieuwenhuizen
+
+    src/CodeBrix.LilyPort/BatchRunner.cs
+        New-in-family C# (no upstream header), Copyright (c) 2026 Jeremy Ellis
+        and contributors -- BUT its prologue and epilogue string constants are
+        VERBATIM extracts of ly/init.ly lines 27-35 and 54-91 (GPL-3.0-or-later,
+        Copyright (C) 1996--2026 Han-Wen Nienhuys, Jan Nieuwenhuizen), carried
+        so that the session lifecycle around each batch file is upstream's own
+        code run through the real parser. Recorded here because the derivation
+        is inside string literals where a header would not travel.
 
     src/CodeBrix.LilyPort.Parsing/Actions/LilyPondRuleActions.Rag1.cs
     src/CodeBrix.LilyPort.Parsing/Actions/LilyPondRuleActions.Rag2.cs
@@ -679,7 +799,11 @@ Copyright: Copyright (C) 1996--2026 Han-Wen Nienhuys <hanwen@xs4all.nl>
   lily/output-def-scheme.cc, lily/staff-symbol-referencer-scheme.cc,
   lily/all-font-metrics-scheme.cc, lily/input-scheme.cc,
   lily/music-function-scheme.cc, lily/lily-parser-scheme.cc, lily/sources.cc,
-  lily/context-mod-scheme.cc,
+  lily/context-mod-scheme.cc, lily/engraver-scheme.cc,
+  lily/translator-scheme.cc, lily/global-context-scheme.cc,
+  lily/score-scheme.cc, lily/book-scheme.cc, lily/paper-score-scheme.cc,
+  lily/page-marker-scheme.cc, lily/paper-system-scheme.cc,
+  lily/item-scheme.cc (ly:item-break-dir only, pulled forward by EPG4),
   and the IMPLEMENT_CTOR_CALLBACK
   declarations across the lily/*-iterator.cc family. They carry no upstream
   copyright header because they are not literal translations, but the
@@ -733,7 +857,7 @@ Copyright: Copyright (C) 1996--2026 Han-Wen Nienhuys <hanwen@xs4all.nl>
            This is DATA DERIVED FROM LILYPOND and therefore GPL-3.0-or-later,
            which is precisely why it lives here and not in CodeBrix.LilyScheme:
            putting it there would pull GPL-3 material into an LGPL-3 library and
-           breach the separation recorded in section 11.
+           breach the separation recorded in section 12.
 
            It is vendored rather than regenerated at build time because a CodeBrix
            build must never read a non-CodeBrix checkout.
@@ -1022,7 +1146,9 @@ WHY THE FONT IS A SEPARATE ENGINEERING PROBLEM, NOT JUST A SEPARATE LICENSE
 
 DECIDED 2026-08-02: BUILD OUR OWN FONTS FROM THE METAFONT SOURCES
 
-  CodeBrix.LilyPort does NOT redistribute LilyPond's prebuilt font binaries.
+  CodeBrix.LilyPort does NOT redistribute LilyPond's prebuilt MUSIC font
+  binaries. (The prebuilt TEXT fonts ARE redistributed, by the separate
+  decision D13 -- see section 10.)
   It vendors the Metafont sources and builds the fonts itself, so that
   provenance is verifiable end to end from Metafont source to shipped
   binary. The build is a one-time operation whose OUTPUTS are committed; the
@@ -1078,8 +1204,9 @@ Font binaries produced from those sources (in this repository):
                             emmentaler-13   emmentaler-20   emmentaler-26
                             emmentaler-14   emmentaler-16   emmentaler-brace
 
-                          These are OUR OWN BUILDS. LilyPond's prebuilt font
-                          binaries are NOT redistributed by this project.
+                          These are OUR OWN BUILDS. LilyPond's prebuilt MUSIC
+                          font binaries are NOT redistributed by this project
+                          (its prebuilt TEXT fonts are -- section 10).
                           MD5 manifests and provenance: assets/fonts/README.txt
 
                           The build is BYTE-REPRODUCIBLE (verified across two
@@ -1371,11 +1498,206 @@ missed by a mirror of mf/ alone.
 
 ================================================================================
 
-10. GPL-3.0 COMPLIANCE OBLIGATIONS OBSERVED BY THIS PROJECT
+10. TEXT FONTS -- URW BASE35 AND TEX GYRE (PREBUILT, REDISTRIBUTED)
+================================================================================
+
+Vendored 2026-08-05 under decision D13 (Jeremy): assets/fonts/text/ carries
+the 24 text faces LilyPond 2.27.2 ships -- copied BYTE-FOR-BYTE from the
+official GNU LilyPond 2.27.2 binary distribution (the same installation that
+generated the committed regression reference SVGs), together with the license
+texts that distribution ships for them. Text extents drive grob positions and
+line breaks, so glyph-level parity requires metrics byte-identical to the
+oracle's: the same files, not same-ish builds. sha256 manifest:
+assets/fonts/text/README.txt.
+
+These are the ONLY prebuilt font binaries this project redistributes; the
+music fonts remain our own builds (section 3).
+
+10.1  THE URW FACES -- AGPL-3.0 WITH FONT-EMBEDDING EXCEPTION
+--------------------------------------------------------------------------------
+
+Project:   urw-base35-fonts (the (URW)++ base-35 collection)
+Source:    https://github.com/ArtifexSoftware/urw-base35-fonts
+Version:   snapshot 20200910, as shipped in LilyPond 2.27.2
+License:   AGPL-3.0 WITH a font-embedding exception
+Copyright: (URW)++ Design & Development GmbH
+
+Files (12): C059-{Roman,Bold,Italic,BdIta}.otf  (Century Schoolbook clone --
+                                                 LilyPond's default serif)
+            NimbusSans-{Regular,Bold,Italic,BoldItalic}.otf    (default sans)
+            NimbusMonoPS-{Regular,Bold,Italic,BoldItalic}.otf  (default
+                                                                typewriter)
+
+  --- Verbatim, the whole of urw-base35-fonts-20200910.LICENSE: ---
+
+    The font and related files in this directory are distributed under the
+    GNU AFFERO GENERAL PUBLIC LICENSE Version 3 (see the file COPYING), with
+    the following exemption:
+
+    As a special exception, permission is granted to include these font
+    programs in a Postscript or PDF file that consists of a document that
+    contains text to be displayed or printed using this font, regardless
+    of the conditions or license applying to the document itself.
+
+  Both files travel with the fonts, verbatim as upstream ships them:
+    assets/fonts/text/licenses/urw-base35-fonts-20200910.LICENSE
+    assets/fonts/text/licenses/urw-base35-fonts-20200910.COPYING (AGPL-3)
+
+  Compliance analysis:
+
+    * These are separately-licensed works AGGREGATED alongside the GPL-3
+      program -- GPL-3 section 5, final paragraph. Neither license
+      contaminates the other. The controlling precedent is upstream
+      LilyPond itself, which ships these exact files with its GPL-3
+      program under these exact license texts.
+    * The files are UNMODIFIED (sha256-verified against the distribution
+      they came from), so the AGPL's source obligation is met by the files
+      themselves plus this provenance record, and the section 13 network
+      clause (which binds modified versions) is not in play.
+    * MEASURED 2026-08-05: LilyPond's SVG backend embeds NO font data --
+      text is emitted as <text font-family=...> elements. The port's
+      parity output (SVG, decision D15) therefore never embeds these
+      fonts. The PS/PDF embedding exception above becomes relevant -- and
+      grants exactly what is needed -- if a future backend (Milestone 7,
+      Skia) embeds text fonts into exported PDF documents.
+
+10.2  THE TEX GYRE FACES -- GUST FONT LICENSE
+--------------------------------------------------------------------------------
+
+Project:   TeX Gyre collection, GUST e-foundry (the Polish TeX Users Group)
+Source:    https://www.gust.org.pl/projects/e-foundry/tex-gyre
+Version:   release 2.501 (OTF), as shipped in LilyPond 2.27.2
+License:   GUST Font License v1.0 (2009) = LaTeX Project Public License
+           1.3c or later, plus a rename REQUEST for derived works that is
+           explicitly "requested, but not legally required"
+Copyright: GUST e-foundry; derived from the URW faces above
+
+Files (12): texgyreschola-{regular,bold,italic,bolditalic}.otf   (serif
+                                             fallback in the alias chains)
+            texgyreheros-{regular,bold,italic,bolditalic}.otf    (sans
+                                                                  fallback)
+            texgyrecursor-{regular,bold,italic,bolditalic}.otf   (typewriter
+                                                                  fallback)
+
+  License text, verbatim as upstream ships it:
+    assets/fonts/text/licenses/tg2_501otf.GUST-FONT-LICENSE.txt
+
+  Compliance analysis:
+
+    * Unmodified redistribution under LPPL-1.3c: permitted; the obligation
+      is to keep the files intact and carry the license text, both done.
+    * The GFL rename clause binds DERIVED fonts only, and even there is a
+      request, not a requirement. These files are byte-identical to
+      upstream's, so it never triggers.
+    * LPPL is FSF-free but GPL-INCOMPATIBLE for merging into one program.
+      Font data files aggregated beside the program are not merged into
+      it -- the same GPL-3 section 5 analysis and the same LilyPond
+      precedent as 10.1.
+
+10.3  THE STANDING RULE FOR THESE 24 FILES: ASSETS FOREVER, NEVER EDIT
+--------------------------------------------------------------------------------
+
+  Subsetting, converting, or editing any of these files creates a DERIVED
+  font: the GUST rename request wakes up, and AGPL source obligations
+  attach to the modified version. If a face must ever change, it gets a
+  new name and a new recorded decision. (This mirrors the Reserved Font
+  Name rule for the music fonts in section 3.)
+
+  The alias-chain tails (DejaVu, Noto CJK) that upstream's fontconfig
+  falls through to are NOT bundled by upstream and are NOT vendored here.
+  The port's fallback face is Roboto, consumed as the OFL-licensed
+  CodeBrix.Platform.Fonts.Roboto NuGet package, pinned at version
+  1.0.209.315 (decision D23, 2026-08-05; a version change is a deliberate
+  re-baseline event)
+  -- a package dependency, so nothing font-related beyond the 24 files
+  above is vendored into this repository, and no further entry in this
+  document is required for it. There is deliberately NO fallback to
+  system fonts; scripts the chain does not cover render as missing-glyph
+  .notdef output by design.
+
+--------------------------------------------------------------------------------
+10.4  HOW THE FONT FILES ARE SHIPPED  (added 2026-08-05, EPG13)
+--------------------------------------------------------------------------------
+
+  All of the font binaries this project vendors -- the nine Emmentaler
+  music fonts and their nine SVG companions covered by section 3, and the
+  24 text faces covered by this section -- are compiled into the
+  CodeBrix.LilyPort.Engine assembly as EMBEDDED RESOURCES, and therefore
+  travel inside the published NuGet package rather than beside it.
+
+  Nothing about the files themselves changes. They are embedded byte for
+  byte, the sha256 manifests in assets/fonts/README.txt and
+  assets/fonts/text/README.txt still describe exactly what ships, and the
+  "assets forever, never edit" rule in section 10.3 is unaffected --
+  embedding is not subsetting, converting or editing.
+
+  What this means for the licenses:
+
+    - The URW faces are AGPL-3.0 WITH the font-embedding exception, and
+      the exception is written for precisely this: embedding the font, or
+      unaltered portions of it, into another work does not place that work
+      under the AGPL. Section 10.1 has the exception text.
+
+    - The Emmentaler fonts carry the same style of exception under the
+      GPL; see section 3.
+
+    - Because the font files travel inside a binary rather than as loose
+      files, the corresponding-source obligation in section 11 covers them
+      too: the unmodified font binaries are in this repository under
+      assets/fonts/, and that is where a recipient obtains them.
+
+  Measured, and worth recording because it decides whether the font
+  licenses reach the OUTPUT at all: the SVG backend embeds no font data in
+  what it produces. Music glyphs are written as their own outline paths and
+  text is written as text with a family name, so a document this project
+  renders contains no copy of any font file.
+
+--------------------------------------------------------------------------------
+10.5  THE TYPE 2 CHARSTRING INTERPRETER -- WRITTEN FROM THE SPECIFICATION
+--------------------------------------------------------------------------------
+
+  src/CodeBrix.LilyPort.Engine/Fonts/CffFont.cs
+  src/CodeBrix.LilyPort.Engine/Fonts/CharstringRun.cs
+
+  These two files read the Compact Font Format table of an OpenType font
+  and execute its glyph programs, in order to measure the ink extent of a
+  glyph -- a figure no font table records.
+
+  They are NEW-IN-FAMILY code, written from the published format
+  specifications (Adobe's "The Compact Font Format Specification" and "The
+  Type 2 Charstring Format"). They are not a translation of, and carry no
+  code from, FreeType, Pango, LilyPond, or any other implementation. A
+  format specification is a description of a data layout, not a work these
+  files derive from, so no third-party license attaches to them; they are
+  covered by this project's own license like the rest of the new-in-family
+  code.
+
+  For the same reason they carry no upstream copyright header, per the
+  provenance rule recorded in the plan's standing rules: new-in-family
+  binding and support code states its derivation HERE rather than in a file
+  header.
+
+  The interpreter is validated against the SVG fonts vendored alongside the
+  OTFs -- both were produced from one source by the font build -- so the
+  answer key it is tested against is also material this document already
+  covers, under section 3.
+
+  BOUNDARY, recorded 2026-08-05 because it moved: CharstringRun.cs gained an
+  IGlyphPathSink interface so a caller can receive the outline as drawing
+  commands rather than as a string. That interface and its call sites are
+  new-in-family like the rest of these two files. The CONSUMER that turns those
+  commands into skyline segments is a translation of LilyPond's freetype.cc and
+  therefore lives in its own file with upstream's copyright header --
+  Fonts/GlyphOutlineSkyline.cs, listed in section 1.5. The split is deliberate:
+  one file, one provenance.
+
+================================================================================
+
+11. GPL-3.0 COMPLIANCE OBLIGATIONS OBSERVED BY THIS PROJECT
 ================================================================================
 
 --------------------------------------------------------------------------------
-10.1  PER-FILE MODIFICATION NOTICES
+11.1  PER-FILE MODIFICATION NOTICES
 --------------------------------------------------------------------------------
 
   Obligation: GPL-3.0 section 5(a) -- "The work must carry prominent
@@ -1387,7 +1709,7 @@ missed by a mirror of mf/ alone.
   therefore carries the modification notice shown in section 1.3.
 
 --------------------------------------------------------------------------------
-10.2  SOURCE AVAILABILITY
+11.2  SOURCE AVAILABILITY
 --------------------------------------------------------------------------------
 
   Complete corresponding source is published at
@@ -1399,7 +1721,7 @@ missed by a mirror of mf/ alone.
   2d621459bd44cb1758f822a69757242eab843060.
 
 --------------------------------------------------------------------------------
-10.3  LICENSE TEXT SHIPS WITH THE PACKAGE
+11.3  LICENSE TEXT SHIPS WITH THE PACKAGE
 --------------------------------------------------------------------------------
 
   The full GPL-3.0 text is in LICENSE at the root of this repository and is
@@ -1408,7 +1730,7 @@ missed by a mirror of mf/ alone.
   and the warranty disclaimer.
 
 --------------------------------------------------------------------------------
-10.4  COPYRIGHT LINE HYGIENE
+11.4  COPYRIGHT LINE HYGIENE
 --------------------------------------------------------------------------------
 
   This project's own copyright line --
@@ -1419,7 +1741,7 @@ missed by a mirror of mf/ alone.
   upstream copyright line. Upstream headers are preserved verbatim.
 
 --------------------------------------------------------------------------------
-10.5  TRADEMARK AND NAMING
+11.5  TRADEMARK AND NAMING
 --------------------------------------------------------------------------------
 
   Copyleft licenses grant no trademark rights. "LilyPond" does not appear
@@ -1429,13 +1751,13 @@ missed by a mirror of mf/ alone.
   Names under the OFL -- see section 3.
 
 --------------------------------------------------------------------------------
-10.6  CHANGES MADE TO VENDORED SCHEME AND FIXTURES
+11.6  CHANGES MADE TO VENDORED SCHEME AND FIXTURES
 --------------------------------------------------------------------------------
 
   Minimising changes to LilyPond's Scheme is an explicit project goal.
   Files vendored verbatim need no modification notice; any file edited away
   from verbatim upstream gains a row here AND a per-file modification
-  notice per section 10.1.
+  notice per section 11.1.
 
   Vendored files edited away from verbatim upstream:
 
@@ -1443,7 +1765,7 @@ missed by a mirror of mf/ alone.
 
 ================================================================================
 
-11. RELATED REPOSITORIES AND THE SEPARATION OF MATERIAL
+12. RELATED REPOSITORIES AND THE SEPARATION OF MATERIAL
 ================================================================================
 
 CodeBrix.LilyPort depends on CodeBrix.LilyScheme, a separate

@@ -83,8 +83,23 @@ public class EntryPointClosureTests
         // but a session that moved it DOWN has broken a registration, and that must fail.
         //
         // EPG0 baseline, 2026-08-04: 234 implemented of 737, so 503 still answer from a
-        // stub. That is gate G3's starting position, measured on the day.
-        closure.Implemented.Count.Should().BeGreaterThanOrEqualTo(234);
+        // stub. That is gate G3's starting position, measured on the day. EPG1 left it
+        // at 267; EPG2 plus EPG3's first slice took it to 308 on 2026-08-05, which is
+        // the whole of engraver-scheme, translator-scheme, global-context-scheme,
+        // score-scheme, page-marker-scheme, paper-system-scheme and most of book-scheme
+        // and output-def-scheme. EPG3's finish took it to 323 the same day: the six
+        // ly:outputter-* bindings, ly:format, ly:rename-file, ly:stderr-redirect,
+        // ly:base64-encode, ly:get-all-function-documentation gone real, and the
+        // Ghostscript trio answering as LOUD N/A per D25 rather than as stubs.
+        // EPG4 took it to 329: ly:spacing-spanner::set-springs,
+        // ly:spacing-spanner::calc-common-shortest-duration,
+        // ly:separation-item::calc-skylines and ly:item-break-dir -- the last pulled
+        // forward out of EPG23 by the demand loop.
+        // EPG13 (2026-08-05) took this from 329 to 364: the text interface and its
+        // grob callbacks, the transform constructors, the ten skyline callbacks, the
+        // font introspection surface, and ly:duration-compress pulled forward out of
+        // EPG23 by the demand loop.
+        closure.Implemented.Count.Should().BeGreaterThanOrEqualTo(364);
     }
 
     [Fact]

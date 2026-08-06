@@ -74,6 +74,29 @@ public abstract class FontMetric
     /// <returns>The range.</returns>
     public abstract Interval LedgerShorteningRange(string glyphName);
 
+    /// <summary>Gets the factor every metric of the underlying font is scaled by.</summary>
+    public virtual double Magnification => 1.0;
+
+    /// <summary>
+    /// Gets the size the backend draws this font's outlines at, which is
+    /// <c>lily-library.scm</c>'s <c>modified-font-metric-font-scaling</c>: the design
+    /// size times the magnification.
+    /// </summary>
+    public double FontScaling => DesignSize * Magnification;
+
+    /// <summary>
+    /// Returns a glyph's outline path data in FONT units, or <see langword="null"/>
+    /// when this font has no outline for it.
+    /// <para>
+    /// Outlines are a rendering concern rather than an engraving one — the engine
+    /// itself never looks at one — but they belong to the font, and the backend has
+    /// only the font object to ask.
+    /// </para>
+    /// </summary>
+    /// <param name="glyphName">The glyph name.</param>
+    /// <returns>The path data.</returns>
+    public virtual string GlyphOutline(string glyphName) => null;
+
     /// <summary>
     /// Returns a glyph's stencil, looked up by name.
     /// <para>
@@ -186,6 +209,12 @@ public sealed class OpenTypeFontMetric : FontMetric
     public override Interval LedgerShorteningRange(string glyphName)
         => _font.LedgerShorteningRange(glyphName);
 
+    /// <summary>Returns a glyph's outline path data, from the matching SVG font.</summary>
+    /// <param name="glyphName">The glyph name.</param>
+    /// <returns>The path data, or <see langword="null"/> when there is none.</returns>
+    public override string GlyphOutline(string glyphName)
+        => _font.Outlines?.Outline(glyphName);
+
     private static double ToDouble(object value)
     {
         switch (value)
@@ -230,7 +259,7 @@ public sealed class ModifiedFontMetric : FontMetric
     }
 
     /// <summary>Gets the factor every metric is scaled by.</summary>
-    public double Magnification { get; }
+    public override double Magnification { get; }
 
     /// <summary>Gets the font this one scales.</summary>
     public FontMetric OriginalFont => _original;
@@ -272,4 +301,13 @@ public sealed class ModifiedFontMetric : FontMetric
     /// <returns>The range.</returns>
     public override Interval LedgerShorteningRange(string glyphName)
         => _original.LedgerShorteningRange(glyphName) * Magnification;
+
+    /// <summary>
+    /// Returns a glyph's outline path data, which is the original's — outlines are in
+    /// font units and the magnification reaches them through the drawing scale, not
+    /// through the path.
+    /// </summary>
+    /// <param name="glyphName">The glyph name.</param>
+    /// <returns>The path data, or <see langword="null"/> when there is none.</returns>
+    public override string GlyphOutline(string glyphName) => _original.GlyphOutline(glyphName);
 }

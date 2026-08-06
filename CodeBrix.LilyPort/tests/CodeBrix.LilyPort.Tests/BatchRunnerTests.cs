@@ -1,0 +1,127 @@
+// Copyright (c) 2026 Jeremy Ellis and contributors
+//
+// CodeBrix.LilyPort is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+
+using System;
+using System.IO;
+using System.Linq;
+using SilverAssertions;
+using Xunit;
+
+namespace CodeBrix.LilyPort.Tests;
+
+/// <summary>
+/// The internal batch runner, end to end: LilyPond TEXT in — not a music tree —
+/// and an SVG document out, through the real toplevel handlers.
+/// <para>
+/// This is EPG3's exit criterion made a fence. The prologue defines
+/// <c>init.ly</c>'s session variables, the parse collects scores through
+/// <c>toplevel-score-handler</c>, the epilogue builds the book with upstream's own
+/// code, and D20's <c>default-toplevel-book-handler</c> hands it back for the
+/// score → SVG shortcut. If any link along that path regresses, these fail.
+/// </para>
+/// </summary>
+[Collection("engine-global-state")]
+public class BatchRunnerTests
+{
+    private static string ScratchDirectory()
+    {
+        string path = Path.Combine(
+            Path.GetTempPath(), "lilyport-batch-" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(path);
+        return path;
+    }
+
+    [Fact]
+    public void a_score_reaches_svg_through_the_toplevel_handlers()
+    {
+        //Arrange
+        string output = ScratchDirectory();
+
+        //Act
+        BatchRunResult result = BatchRunner.RunText(
+            "\\version \"2.27.2\"\n\\score { { c'4 } }\n",
+            "batch-first-light",
+            null,
+            output);
+
+        //Assert
+        string.Join(" || ", result.Diagnostics).Should().Be(string.Empty);
+        result.BookCount.Should().Be(1);
+        result.SystemCount.Should().Be(1);
+        result.SvgPath.Should().NotBeNull();
+        File.Exists(result.SvgPath).Should().BeTrue();
+        File.ReadAllText(result.SvgPath).Should().Contain("<svg");
+    }
+
+    [Fact]
+    public void a_toplevel_music_expression_becomes_a_score_the_same_way()
+    {
+        //Arrange
+        string output = ScratchDirectory();
+
+        //Act
+        // No \score block: toplevel music goes through toplevel-music-handler →
+        // collect-music-for-book → scores, which is a longer stretch of
+        // scm/lily-library.scm than the explicit form exercises.
+        BatchRunResult result = BatchRunner.RunText(
+            "\\version \"2.27.2\"\n{ c'4 d'4 }\n",
+            "batch-toplevel-music",
+            null,
+            output);
+
+        //Assert
+        result.BookCount.Should().Be(1);
+        result.SystemCount.Should().Be(1);
+        result.SvgPath.Should().NotBeNull();
+    }
+
+    [Fact]
+    public void two_files_run_in_sequence_without_state_bleeding_between_them()
+    {
+        //Arrange
+        string output = ScratchDirectory();
+
+        //Act
+        BatchRunResult first = BatchRunner.RunText(
+            "\\version \"2.27.2\"\n\\score { { e'4 } }\n", "batch-a", null, output);
+        BatchRunResult second = BatchRunner.RunText(
+            "\\version \"2.27.2\"\n\\score { { g'4 } }\n", "batch-b", null, output);
+
+        //Assert
+        // The prologue re-defines the collection state per run; a leak here would
+        // show as the second book carrying the first file's score too.
+        first.BookCount.Should().Be(1);
+        second.BookCount.Should().Be(1);
+        second.SystemCount.Should().Be(1);
+    }
+
+    [Fact]
+    public void a_real_regression_file_runs_from_disk()
+    {
+        //Arrange
+        string suite = Path.Combine(
+            AppContext.BaseDirectory, RelativeSuitePath());
+        string file = Path.Combine(suite, "accidental.ly");
+        if (!File.Exists(file))
+        {
+            Assert.Skip("regression suite not present beside the build");
+        }
+
+        string output = ScratchDirectory();
+
+        //Act
+        BatchRunResult result = BatchRunner.RunFile(file, output);
+
+        //Assert
+        result.ErrorCount.Should().Be(0);
+        result.BookCount.Should().Be(1);
+        result.SvgPath.Should().NotBeNull();
+    }
+
+    private static string RelativeSuitePath()
+        => Path.Combine("..", "..", "..", "..", "..", "tests", "regression");
+}

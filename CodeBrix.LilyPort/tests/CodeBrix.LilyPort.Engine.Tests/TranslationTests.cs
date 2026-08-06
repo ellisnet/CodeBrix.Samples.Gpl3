@@ -302,7 +302,7 @@ public class TranslationTests
         // child is testing the wrong thing.
         Context staff = new Context(Sym("Staff"));
         Context voice = new Context(Sym("Voice"));
-        staff.AcceptedContexts.Add(Sym("Voice"));
+        staff.Acceptance.AcceptDefault(Sym("Voice"));
         staff.AddContext(voice);
 
         //Act
