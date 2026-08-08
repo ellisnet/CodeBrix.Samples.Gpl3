@@ -276,6 +276,68 @@ public abstract class Engraver : Translator
     }
 
     /// <summary>
+    /// Announces a grob in ANOTHER context — <c>Engraver::announce_grob (inf, ctx)</c>.
+    /// An auto-beam announces into the context its beam started in, which may no
+    /// longer be this engraver's.
+    /// </summary>
+    /// <param name="info">The announcement record.</param>
+    /// <param name="startEnd">Positive to announce a start, negative an end.</param>
+    /// <param name="context">The context to announce in.</param>
+    public void AnnounceGrob(GrobInfo info, Direction startEnd, Context context)
+    {
+        if (context?.Implementation is EngraverGroup group)
+        {
+            group.AddGrobToAnnounce(info, startEnd);
+            return;
+        }
+
+        Warn.ProgrammingError("announcing grob in invalid context");
+    }
+
+    /// <summary>Announces a grob in another context.</summary>
+    /// <param name="info">The announcement record.</param>
+    /// <param name="context">The context to announce in.</param>
+    public void AnnounceGrob(GrobInfo info, Context context)
+        => AnnounceGrob(info, Direction.Positive, context);
+
+    /// <summary>Announces the END of a grob in another context.</summary>
+    /// <param name="info">The announcement record.</param>
+    /// <param name="context">The context to announce in.</param>
+    public void AnnounceEndGrob(GrobInfo info, Context context)
+        => AnnounceGrob(info, Direction.Negative, context);
+
+    /// <summary>
+    /// Announces a grob in THIS context only, without letting it travel up —
+    /// <c>Engraver::announce_grob_locally_only</c>.
+    /// </summary>
+    /// <param name="info">The announcement record.</param>
+    public void AnnounceGrobLocallyOnly(GrobInfo info)
+    {
+        EngraverGroup group = EngraverGroup;
+        if (group == null)
+        {
+            Warn.ProgrammingError("announcing grob in invalid context");
+            return;
+        }
+
+        group.AddGrobToAnnounceLocallyOnly(info, Direction.Positive);
+    }
+
+    /// <summary>Announces the END of a grob in this context only.</summary>
+    /// <param name="info">The announcement record.</param>
+    public void AnnounceEndGrobLocallyOnly(GrobInfo info)
+    {
+        EngraverGroup group = EngraverGroup;
+        if (group == null)
+        {
+            Warn.ProgrammingError("announcing grob in invalid context");
+            return;
+        }
+
+        group.AddGrobToAnnounceLocallyOnly(info, Direction.Negative);
+    }
+
+    /// <summary>
     /// Called for every grob any engraver announces in this context or below it.
     /// <para>
     /// Default: ignore the info.

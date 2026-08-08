@@ -126,7 +126,17 @@ public class EntryPointClosureTests
         // other binding, ly:bezier-extract, was already implemented in
         // GeneralPrimitives.cs with its ledger row still claiming EPG23 -- THIS TEST is
         // what caught that, by arithmetic, which is the reason it asserts a number at all.
-        closure.Implemented.Count.Should().BeGreaterThanOrEqualTo(535);
+        // EPG10 (2026-08-07) took it to 548: the thirteen ly:beam::* names
+        // scm/define-grobs.scm puts on a Beam, and nothing else. The group needed no
+        // binding from any other group -- the four free functions it turned out to be
+        // missing (grob.cc's pure_relative_y_coordinate, spanned_column_rank_interval
+        // and Grob::less, and grob-property.cc's call_pure_function) are C++ statics
+        // with no Scheme surface at all, so they move the LEDGER's notes and not this
+        // number. Two of the thirteen take optional arguments, matching upstream's
+        // MAKE_SCHEME_CALLBACK_WITH_OPTARGS: the rest-collision pair is CHAINED onto a
+        // rest's Y-offset, so the previous value in the chain arrives as a trailing
+        // argument that is absent on the first link.
+        closure.Implemented.Count.Should().BeGreaterThanOrEqualTo(548);
     }
 
     [Fact]

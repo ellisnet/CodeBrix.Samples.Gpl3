@@ -96,6 +96,8 @@ public abstract class Grob : IDiagnostics
     private static readonly Symbol MinimumYExtentSymbol = Symbol.Intern("minimum-Y-extent");
     private static readonly Symbol XOffsetSymbol = Symbol.Intern("X-offset");
     private static readonly Symbol YOffsetSymbol = Symbol.Intern("Y-offset");
+    private static readonly Symbol PureYOffsetInProgressSymbol
+        = Symbol.Intern("pure-Y-offset-in-progress");
     private static readonly Symbol StencilSymbol = Symbol.Intern("stencil");
     private static readonly Symbol TransparentSymbol = Symbol.Intern("transparent");
     private static readonly Symbol RotationSymbol = Symbol.Intern("rotation");
@@ -106,6 +108,22 @@ public abstract class Grob : IDiagnostics
     private static readonly Symbol NameSymbol = Symbol.Intern("name");
     private static readonly Symbol BackendTypeSymbol = Symbol.Intern("backend-type?");
     private static readonly Symbol CalculationInProgress = Symbol.Intern("calculation-in-progress");
+    private static readonly Symbol VerticalSkylinesSymbol = Symbol.Intern("vertical-skylines");
+    private static readonly Symbol HorizontalSkylinesSymbol
+        = Symbol.Intern("horizontal-skylines");
+    private static readonly Symbol StencilWidthSymbol = Symbol.Intern("ly:grob::stencil-width");
+    private static readonly Symbol StencilHeightSymbol
+        = Symbol.Intern("ly:grob::stencil-height");
+    private static readonly Symbol PureStencilHeightSymbol
+        = Symbol.Intern("ly:grob::pure-stencil-height");
+    private static readonly Symbol SimpleVerticalSkylinesSymbol
+        = Symbol.Intern("ly:grob::simple-vertical-skylines-from-extents");
+    private static readonly Symbol PureSimpleVerticalSkylinesSymbol
+        = Symbol.Intern("ly:grob::pure-simple-vertical-skylines-from-extents");
+    private static readonly Symbol SimpleHorizontalSkylinesSymbol
+        = Symbol.Intern("ly:grob::simple-horizontal-skylines-from-extents");
+    private static readonly Symbol PureSimpleHorizontalSkylinesSymbol
+        = Symbol.Intern("ly:grob::pure-simple-horizontal-skylines-from-extents");
 
     private readonly DimensionCache[] _dimensionCache =
     {
@@ -155,6 +173,61 @@ public abstract class Grob : IDiagnostics
 
                     cursor = pair.Cdr;
                 }
+            }
+        }
+
+        /*
+          EPG11/EPG12 (2026-08-08) carried these four. grob.cc's ledger row has said
+          `ported' since EPG0, but the constructor stopped after the meta block and never
+          installed upstream's DEFAULT extent and skyline callbacks. The primitives
+          themselves were all registered — only the defaulting was missing.
+
+          It was silent because most grobs name X-extent and Y-extent explicitly in
+          scm/define-grobs.scm. NoteHead does NOT name X-extent, so every note head in
+          every score has been answering an EMPTY horizontal extent, and nothing asked
+          until Tie_formatting_problem did: it feeds head extents straight into a Skyline,
+          where an empty interval becomes a NaN roof height.
+        */
+        if (GetPropertyData(XExtentSymbol) is Nil)
+        {
+            object stencilWidth = LilyPondScheme.LookupProcedure(StencilWidthSymbol);
+            if (stencilWidth != null)
+            {
+                SetProperty(XExtentSymbol, stencilWidth);
+            }
+        }
+
+        if (GetPropertyData(YExtentSymbol) is Nil)
+        {
+            object height = LilyPondScheme.LookupProcedure(StencilHeightSymbol);
+            object pureHeight = LilyPondScheme.LookupProcedure(PureStencilHeightSymbol);
+            if (height != null && pureHeight != null)
+            {
+                SetProperty(YExtentSymbol, new UnpurePureContainer(height, pureHeight));
+            }
+        }
+
+        if (GetPropertyData(VerticalSkylinesSymbol) is Nil)
+        {
+            object skylines = LilyPondScheme.LookupProcedure(SimpleVerticalSkylinesSymbol);
+            object pureSkylines
+                = LilyPondScheme.LookupProcedure(PureSimpleVerticalSkylinesSymbol);
+            if (skylines != null && pureSkylines != null)
+            {
+                SetProperty(
+                    VerticalSkylinesSymbol, new UnpurePureContainer(skylines, pureSkylines));
+            }
+        }
+
+        if (GetPropertyData(HorizontalSkylinesSymbol) is Nil)
+        {
+            object skylines = LilyPondScheme.LookupProcedure(SimpleHorizontalSkylinesSymbol);
+            object pureSkylines
+                = LilyPondScheme.LookupProcedure(PureSimpleHorizontalSkylinesSymbol);
+            if (skylines != null && pureSkylines != null)
+            {
+                SetProperty(
+                    HorizontalSkylinesSymbol, new UnpurePureContainer(skylines, pureSkylines));
             }
         }
     }
@@ -217,6 +290,28 @@ public abstract class Grob : IDiagnostics
     /// committed suicide keeps its identity but loses every property.
     /// </summary>
     public bool IsLive => _immutablePropertyAlist is Pair;
+
+    /// <summary>
+    /// The range of paper-column ranks this grob spans —
+    /// <c>Grob::spanned_column_rank_interval</c>.
+    /// <para>
+    /// Upstream declares this pure virtual, so only <see cref="Item"/> and
+    /// <see cref="Spanner"/> answer meaningfully; a bare grob spans nothing.
+    /// </para>
+    /// </summary>
+    /// <returns>The rank range.</returns>
+    public virtual Slice SpannedColumnRankInterval() => Slice.Empty;
+
+    /// <summary>
+    /// Orders two grobs by where they START — <c>Grob::less</c>. Used to walk grobs
+    /// and beams in parallel in horizontal order.
+    /// </summary>
+    /// <param name="g1">The first grob.</param>
+    /// <param name="g2">The second grob.</param>
+    /// <returns><see langword="true"/> when the first starts before the second.</returns>
+    public static bool Less(Grob g1, Grob g2)
+        => g1.SpannedColumnRankInterval()[Direction.Negative]
+           < g2.SpannedColumnRankInterval()[Direction.Negative];
 
     /// <summary>Gets the grob's type name, from its <c>name</c> meta property.</summary>
     public string Name
@@ -530,6 +625,180 @@ public abstract class Grob : IDiagnostics
     {
         Grob parent = GetParent(axis);
         return parent != null ? parent.RelativeCoordinate(reference, axis) : 0.0;
+    }
+
+    /// <summary>
+    /// Calls a property value as a PURE function — upstream's free function
+    /// <c>call_pure_function</c> from <c>lily/grob-property.cc</c>.
+    /// <para>
+    /// An unpure-pure container whose pure half is omitted answers through its unpure
+    /// half; otherwise the pure half is called with <c>(grob, start, end, rest…)</c>.
+    /// A value that is not a procedure answers itself, and a BARE procedure — one with
+    /// no pure half declared — answers <see langword="false"/> rather than being
+    /// called, because calling it would not be pure.
+    /// </para>
+    /// </summary>
+    /// <param name="value">The property value to call.</param>
+    /// <param name="args">The arguments, the first of which is the grob.</param>
+    /// <param name="start">The starting column rank.</param>
+    /// <param name="end">The ending column rank.</param>
+    /// <returns>The pure value.</returns>
+    public static object CallPureFunction(object value, IReadOnlyList<object> args, int start, int end)
+    {
+        if (value is UnpurePureContainer upc)
+        {
+            if (upc.IsPureOmitted)
+            {
+                // Don't bother forming an Unpure_pure_call here.
+                object unpure = upc.Unpure;
+
+                return SchemeUtilities.IsProcedure(unpure)
+                    ? SchemeUtilities.CallCallback(unpure, ToArray(args))
+                    : unpure;
+            }
+
+            object pure = upc.Pure;
+            if (SchemeUtilities.IsProcedure(pure))
+            {
+                object[] pureArgs = new object[args.Count + 2];
+                pureArgs[0] = args.Count > 0 ? args[0] : null;
+                pureArgs[1] = (long)start;
+                pureArgs[2] = (long)end;
+                for (int i = 1; i < args.Count; i++)
+                {
+                    pureArgs[i + 2] = args[i];
+                }
+
+                return SchemeUtilities.CallCallback(pure, pureArgs);
+            }
+
+            return pure;
+        }
+
+        if (!SchemeUtilities.IsProcedure(value))
+        {
+            return value;
+        }
+
+        return false;
+    }
+
+    private static object[] ToArray(IReadOnlyList<object> args)
+    {
+        object[] result = new object[args.Count];
+        for (int i = 0; i < args.Count; i++)
+        {
+            result[i] = args[i];
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// Returns this grob's PURE vertical offset relative to a reference point —
+    /// <c>Grob::pure_relative_y_coordinate</c>.
+    /// <para>
+    /// Positioning-done is simulated when this grob is the child of a vertical
+    /// alignment, but only when there is no cached offset: a cached offset means the
+    /// alignment was fixed and the translation has already been folded in.
+    /// </para>
+    /// </summary>
+    /// <param name="refp">The reference grob.</param>
+    /// <param name="start">The starting column rank.</param>
+    /// <param name="end">The ending column rank.</param>
+    /// <returns>The pure offset.</returns>
+    public double PureRelativeYCoordinate(Grob refp, int start, int end)
+    {
+        if (ReferenceEquals(refp, this))
+        {
+            return 0.0;
+        }
+
+        double off;
+        DimensionCache cache = _dimensionCache[(int)Axis.Y];
+        bool hadCachedOffset = cache.Offset.HasValue;
+
+        if (hadCachedOffset)
+        {
+            if (SchemeUtilities.ToBool(GetProperty(PureYOffsetInProgressSymbol)))
+            {
+                Warn.ProgrammingError("cyclic chain in pure-Y-offset callbacks");
+            }
+
+            off = cache.Offset.Value;
+        }
+        else
+        {
+            object proc = GetPropertyData(YOffsetSymbol);
+
+            cache.Offset = 0.0;
+            SetProperty(PureYOffsetInProgressSymbol, true);
+            off = ToDoubleOrZero(CallPureFunction(proc, new object[] { this }, start, end));
+            DeleteProperty(PureYOffsetInProgressSymbol);
+            cache.Offset = null;
+        }
+
+        /* we simulate positioning-done if we are the child of a VerticalAlignment,
+           but only if we don't have a cached offset. If we do have a cached offset,
+           it probably means that the Alignment was fixed and it has already been
+           calculated.
+        */
+        Grob p = GetParent(Axis.Y);
+        if (p != null)
+        {
+            double trans = 0.0;
+            if (p.HasInterface(AlignInterfaceSymbol) && !hadCachedOffset)
+            {
+                trans = AlignInterface.GetPureChildYTranslation(p, this, start, end);
+            }
+
+            return off + trans + p.PureRelativeYCoordinate(refp, start, end);
+        }
+
+        return off;
+    }
+
+    /// <summary>
+    /// Returns this grob's PURE vertical extent relative to a reference point — the
+    /// extent it would have if the line broke where the caller says.
+    /// </summary>
+    /// <remarks>
+    /// EPG12 (2026-08-08) carried this: <c>grob.cc</c>'s ledger row has said
+    /// <c>ported</c> since EPG0, but this function had never come across, because
+    /// <c>Slur::pure_height</c> and <c>Slur::pure_outside_slur_callback</c> are the
+    /// port's first callers. It reads <c>Y-extent</c> through
+    /// <see cref="CallPureFunction"/>, which is the SAME minimal stand-in the rest of
+    /// the port's pure machinery uses — the full <c>unpure-pure-container.cc</c>
+    /// treatment is EPG15's, and until it lands a grob with no pure callback simply
+    /// answers its ordinary extent. Recorded in PORT-COVERAGE.
+    /// </remarks>
+    /// <param name="refp">The reference grob.</param>
+    /// <param name="start">The starting column rank.</param>
+    /// <param name="end">The ending column rank.</param>
+    /// <returns>The pure extent.</returns>
+    public Interval PureYExtent(Grob refp, int start, int end)
+    {
+        object ivScm = CallPureFunction(
+            GetPropertyData(YExtentSymbol), new object[] { this }, start, end);
+        Interval iv = TryNumberPair(ivScm, out Interval read) ? read : Interval.Empty;
+        double offset = PureRelativeYCoordinate(refp, start, end);
+
+        object minExt = GetProperty(MinimumYExtentSymbol);
+
+        /* we don't add minimum-Y-extent if the extent is empty. This solves
+           a problem with Hara-kiri spanners. They would request_suicide and
+           return empty extents, but we would force them here to be large. */
+        if (!iv.IsEmpty && TryNumberPair(minExt, out Interval minInterval))
+        {
+            iv.Unite(minInterval);
+        }
+
+        if (!iv.IsEmpty)
+        {
+            iv.Translate(offset);
+        }
+
+        return iv;
     }
 
     /// <summary>

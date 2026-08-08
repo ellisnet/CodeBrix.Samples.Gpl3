@@ -197,6 +197,46 @@ public class Spanner : Grob
     }
 
     /// <summary>
+    /// The range of paper-column ranks this spanner covers —
+    /// <c>Spanner::spanned_column_rank_interval</c>.
+    /// </summary>
+    /// <returns>The rank range.</returns>
+    public override Slice SpannedColumnRankInterval()
+    {
+        Slice iv = new Slice(0, 0);
+        foreach (Direction d in BothDirections)
+        {
+            Item b = GetBound(d);
+            if (b != null)
+            {
+                PaperColumn col = b.GetColumn();
+                if (col != null)
+                {
+                    iv[d] = col.Rank;
+                }
+            }
+        }
+
+        return iv;
+    }
+
+    /// <summary>
+    /// Adds the spacing rods a spanner's <c>minimum-length</c> implies —
+    /// <c>ly:spanner::set-spacing-rods</c>.
+    /// <para>
+    /// NOT YET PORTED. Upstream's version walks the root system's broken column range
+    /// and asks each column for its pre-broken piece, which is line-breaking machinery
+    /// EPG15 owns (<c>constrained-breaking.cc</c>, <c>System::break_into_pieces</c>).
+    /// It exists as a named seam so callers — <c>Beam::tremolo_springs_and_rods</c> is
+    /// the first — read as the faithful translation they are, rather than silently
+    /// omitting the call. Recorded in PORT-COVERAGE under SPANNER SPACING RODS.
+    /// </para>
+    /// </summary>
+    /// <param name="me">The spanner.</param>
+    /// <returns>Unspecified.</returns>
+    public static object SetSpacingRods(Spanner me) => Unspecified.Instance;
+
+    /// <summary>
     /// Returns the spanner's horizontal length: the distance between its two bounds.
     /// </summary>
     /// <returns>The length.</returns>

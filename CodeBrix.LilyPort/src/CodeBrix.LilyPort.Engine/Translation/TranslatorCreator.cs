@@ -151,6 +151,14 @@ public static class TranslatorRegistry
         Add(registries, "Note_name_engraver", c => new NoteNameEngraver(c));
         Add(registries, "Cue_clef_engraver", c => new CueClefEngraver(c));
 
+        // EPG10 — beams.
+        Add(registries, "Beam_engraver", c => new BeamEngraver(c));
+        Add(registries, "Grace_beam_engraver", c => new GraceBeamEngraver(c));
+        Add(registries, "Auto_beam_engraver", c => new AutoBeamEngraver(c));
+        Add(registries, "Grace_auto_beam_engraver", c => new GraceAutoBeamEngraver(c));
+        Add(registries, "Beam_collision_engraver", c => new BeamCollisionEngraver(c));
+        Add(registries, "Chord_tremolo_engraver", c => new ChordTremoloEngraver(c));
+
         // EPG22 — iterators and music plumbing.
         Add(registries, "Part_combine_engraver", c => new PartCombineEngraver(c));
 
@@ -175,6 +183,15 @@ public static class TranslatorRegistry
         Add(registries, "Extender_engraver", c => new ExtenderEngraver(c));
         Add(registries, "Hyphen_engraver", c => new HyphenEngraver(c));
         Add(registries, "Melody_engraver", c => new MelodyEngraver(c));
+
+        // EPG11 (2026-08-08): ties.
+        Add(registries, "Tie_engraver", c => new TieEngraver(c));
+        Add(registries, "Laissez_vibrer_engraver", c => new LaissezVibrerEngraver(c));
+        Add(registries, "Repeat_tie_engraver", c => new RepeatTieEngraver(c));
+
+        // EPG12 (2026-08-08): slurs.
+        Add(registries, "Slur_engraver", c => new SlurEngraver(c));
+        Add(registries, "Phrasing_slur_engraver", c => new PhrasingSlurEngraver(c));
     }
 
     /// <summary>

@@ -148,6 +148,25 @@ public class Item : Grob
         => GetParent(Axis.X) is Item parent ? parent.GetColumn() : null;
 
     /// <summary>
+    /// The single paper-column rank this item sits at —
+    /// <c>Item::spanned_column_rank_interval</c>.
+    /// </summary>
+    /// <returns>The rank range, empty when the item has no column.</returns>
+    public override Slice SpannedColumnRankInterval()
+    {
+        // An Item "always" has a column, but it is possible for a grob to be killed
+        // before its parents are set, so we have to be careful.
+        PaperColumn col = GetColumn();
+        if (col != null)
+        {
+            int c = col.Rank;
+            return new Slice(c, c);
+        }
+
+        return Slice.Empty;
+    }
+
+    /// <summary>
     /// Returns the system this item ended up on, which is the answer its column gives
     /// and is therefore <see langword="null"/> until line breaking has run.
     /// </summary>

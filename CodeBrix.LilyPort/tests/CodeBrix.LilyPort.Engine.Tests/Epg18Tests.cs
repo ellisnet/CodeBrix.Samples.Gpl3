@@ -336,7 +336,15 @@ public class Epg18Tests
         // remainder, 535 now. Asserted exactly rather than as a
         // ratchet, because this is the number the plan document quotes and a drifting
         // figure there is worse than a failing test here.
-        closure.Implemented.Count.Should().Be(535);
+        //
+        // EPG10 then added the thirteen ly:beam::* callbacks, taking it to 548. This
+        // assertion is EPG18's own and is re-stated rather than loosened, for the same
+        // reason it was exact in the first place.
+        // EPG11 and EPG12 then added SEVENTEEN on 2026-08-08 -- the eight tie-family
+        // callbacks and the nine ly:slur::* names -- taking it to 565. Three of the nine
+        // are never named from Scheme: the outside-slur trio is chained onto a dodging
+        // grob from C++, BY NAME, so an unregistered name would chain a stub.
+        closure.Implemented.Count.Should().Be(565);
     }
 
     [Fact]

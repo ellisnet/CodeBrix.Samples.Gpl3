@@ -716,13 +716,17 @@ Copyright: Copyright (C) 1996--2026 Han-Wen Nienhuys <hanwen@xs4all.nl>
            the file declares no Scheme callbacks at all, so EPG14 keeps its own
            bracket grobs and loses nothing.
     src/CodeBrix.LilyPort.Engine/Layout/BezierBow.cs
-        <- lily/bezier-bow.cc (the closed-form SHAPE half only:
-           slur_shape, get_slur_indent_height, slur_height, F0_1)
+        <- lily/bezier-bow.cc
            Copyright (C) 1998--2026 Jan Nieuwenhuizen
-           PULLED FORWARD FROM EPG12 IN PART, for \tupletSlur. Bezier_bow
-           itself -- the curve fitting, which is the decades-tuned code the
-           faithfulness rule is about -- is NOT here and stays EPG12's, so the
-           ledger row stays grouped.
+           PULLED FORWARD FROM EPG12, for \tupletSlur. Recorded here in 2026-08
+           as "the closed-form SHAPE half only", on the understanding that EPG12
+           still owed Bezier_bow -- the curve fitting. CORRECTED 2026-08-08 by
+           EPG12: THERE IS NO SUCH CLASS in the pinned 2.27.2. There is no
+           bezier-bow.hh, no definition anywhere in lily/, and no reference from
+           scm/ or ly/. The file is slur_shape, get_slur_indent_height,
+           slur_height and F0_1 and nothing else, so what landed with EPG17 was
+           the WHOLE file, and the ledger row that stayed grouped had been
+           overstating the remaining work ever since.
     src/CodeBrix.LilyPort.Engine/Bootstrap/Epg17Callbacks.cs
         New-in-family C# (no upstream header), Copyright (c) 2026 Jeremy Ellis
         and contributors -- the binding surface of the EPG17 grobs, plus all
@@ -803,6 +807,165 @@ Copyright: Copyright (C) 1996--2026 Han-Wen Nienhuys <hanwen@xs4all.nl>
     find_context_below ride Translation/Context.cs, and lily/item.cc's
     spanned_time_interval rides Objects/Item.cs. Their ledger rows stay
     `ported' -- the files were ported and these statics were the gap.
+
+    -- EPG10, beams (added 2026-08-07) --
+
+    src/CodeBrix.LilyPort.Engine/Objects/Beam.cs
+        <- lily/beam.cc, lily/include/beam.hh
+           Copyright (C) 1997--2026 Han-Wen Nienhuys, Jan Nieuwenhuizen
+    src/CodeBrix.LilyPort.Engine/Objects/BeamQuanting.cs
+        <- lily/beam-quanting.cc, lily/include/beam-scoring-problem.hh
+           Copyright (C) 1997--2026 Han-Wen Nienhuys, Jan Nieuwenhuizen
+           A SCORER: translated literally under standing rule 2, including
+           upstream's unused intermediates. Its configuration queue reproduces
+           libstdc++'s push_heap/pop_heap so that equal-demerit ties -- which
+           are the normal case in symmetric music, and which decide the beam's
+           final position -- break exactly as they do upstream.
+    src/CodeBrix.LilyPort.Engine/Translation/BeamingPattern.cs
+        <- lily/beaming-pattern.cc, lily/include/beaming-pattern.hh
+           Copyright (C) 1999--2026 Han-Wen Nienhuys
+    src/CodeBrix.LilyPort.Engine/Layout/LeastSquares.cs
+        <- lily/least-squares.cc, lily/include/least-squares.hh
+           Copyright (C) 1996--2026 Han-Wen Nienhuys
+    src/CodeBrix.LilyPort.Engine/Layout/IntervalMinefield.cs
+        <- lily/interval-minefield.cc, lily/include/interval-minefield.hh
+           Copyright (C) 2011--2026 Mike Solomon, Jan Nieuwenhuizen
+    src/CodeBrix.LilyPort.Engine/Translation/BeamEngravers.cs
+        <- lily/template-engraver-for-beams.cc,
+           lily/include/template-engraver-for-beams.hh, lily/beam-engraver.cc
+           Copyright (C) 1998--2026 Han-Wen Nienhuys
+           Holds Template_engraver_for_beams, Beam_engraver and
+           Grace_beam_engraver.
+        <- lily/chord-tremolo-engraver.cc
+           Copyright (C) 2000--2026 Han-Wen Nienhuys
+    src/CodeBrix.LilyPort.Engine/Translation/AutoBeamEngraver.cs
+        <- lily/auto-beam-engraver.cc
+           Copyright (C) 1999--2026 Han-Wen Nienhuys
+           Holds Auto_beam_engraver and Grace_auto_beam_engraver.
+    src/CodeBrix.LilyPort.Engine/Translation/BeamCollisionEngraver.cs
+        <- lily/beam-collision-engraver.cc
+           Copyright (C) 2011--2026 Mike Solomon
+    src/CodeBrix.LilyPort.Engine/Bootstrap/Epg10Callbacks.cs
+        New-in-family C# (no upstream header), Copyright (c) 2026 Jeremy Ellis
+        and contributors -- the binding surface of the Beam grob: every
+        ly:beam::* name scm/define-grobs.scm puts on a Beam. Filed under the
+        same rule as the other binding files: the derivation is the
+        MAKE_SCHEME_CALLBACK contract, not copied code.
+
+    Four free functions of already-ported upstream files landed with EPG10
+    because it was the first group to NEED them, and are recorded on their
+    existing hosts: lily/grob.cc's pure_relative_y_coordinate and
+    spanned_column_rank_interval and Grob::less, and lily/grob-property.cc's
+    call_pure_function, ride Objects/Grob.cs; item.cc's and spanner.cc's
+    spanned_column_rank_interval overrides ride Objects/Item.cs and
+    Objects/Spanner.cs; and lily/engraver.cc's four announce_grob variants ride
+    Translation/Engraver.cs. Their ledger rows stay `ported' -- the files were
+    ported and these functions were the gap.
+
+    -- EPG11, ties, and EPG12, slurs (added 2026-08-08) --
+
+    src/CodeBrix.LilyPort.Engine/Objects/Tie.cs
+        <- lily/tie.cc, lily/include/tie.hh
+           Copyright (C) 1997--2026 Han-Wen Nienhuys
+           Tie::set_head and Tie::head came home here from Objects/Epg5Seams.cs.
+    src/CodeBrix.LilyPort.Engine/Objects/TieColumn.cs
+        <- lily/tie-column.cc, lily/include/tie-column.hh
+           Copyright (C) 2000--2026 Han-Wen Nienhuys
+           Tie_column::add_tie came home here from Objects/Epg5Seams.cs.
+    src/CodeBrix.LilyPort.Engine/Objects/TieConfiguration.cs
+        <- lily/tie-configuration.cc, lily/include/tie-configuration.hh
+           Copyright (C) 2005--2026 Han-Wen Nienhuys
+    src/CodeBrix.LilyPort.Engine/Objects/TieDetails.cs
+        <- lily/tie-details.cc, lily/include/tie-details.hh
+           Copyright (C) 2005--2026 Han-Wen Nienhuys
+    src/CodeBrix.LilyPort.Engine/Objects/TieSpecification.cs
+        <- lily/tie-specification.cc, lily/include/tie-specification.hh
+           Copyright (C) 2007--2026 Han-Wen Nienhuys
+    src/CodeBrix.LilyPort.Engine/Objects/TieFormattingProblem.cs
+        <- lily/tie-formatting-problem.cc,
+           lily/include/tie-formatting-problem.hh
+           Copyright (C) 2005--2026 Han-Wen Nienhuys
+           A SCORER: translated literally under standing rule 2, including one
+           branch that is unreachable upstream and is reproduced unreachable.
+    src/CodeBrix.LilyPort.Engine/Objects/SemiTie.cs
+        <- lily/semi-tie.cc, lily/include/semi-tie.hh
+           Copyright (C) 2005--2026 Han-Wen Nienhuys
+    src/CodeBrix.LilyPort.Engine/Objects/SemiTieColumn.cs
+        <- lily/semi-tie-column.cc, lily/include/semi-tie-column.hh
+           Copyright (C) 2005--2026 Han-Wen Nienhuys
+    src/CodeBrix.LilyPort.Engine/Translation/TieEngraver.cs
+        <- lily/tie-engraver.cc
+           Copyright (C) 1998--2026 Han-Wen Nienhuys
+    src/CodeBrix.LilyPort.Engine/Translation/LaissezVibrerEngravers.cs
+        <- lily/laissez-vibrer-engraver.cc,
+           lily/include/laissez-vibrer-engraver.hh
+           Copyright (C) 2005--2026 Han-Wen Nienhuys
+        <- lily/repeat-tie-engraver.cc
+           Copyright (C) 2005--2026 Han-Wen Nienhuys,
+           Copyright (C) 2017--2026 David Kastrup
+           Holds Laissez_vibrer_engraver and Repeat_tie_engraver, which upstream
+           splits across two files only because the second is a three-method
+           subclass of the first.
+    src/CodeBrix.LilyPort.Engine/Objects/Slur.cs
+        <- lily/slur.cc, lily/include/slur.hh
+           Copyright (C) 1996--2026 Han-Wen Nienhuys, Jan Nieuwenhuizen
+    src/CodeBrix.LilyPort.Engine/Objects/SlurScoring.cs
+        <- lily/slur-scoring.cc, lily/include/slur-scoring.hh
+           Copyright (C) 1996--2026 Han-Wen Nienhuys, Jan Nieuwenhuizen
+           A SCORER: translated literally under standing rule 2. Also carries
+           Slur::calc_control_points, which upstream defines here rather than in
+           slur.cc, so the port makes Slur a partial class instead of moving it.
+    src/CodeBrix.LilyPort.Engine/Objects/SlurConfiguration.cs
+        <- lily/slur-configuration.cc, lily/include/slur-configuration.hh
+           Copyright (C) 2004--2026 Han-Wen Nienhuys
+           A SCORER: translated literally under standing rule 2, including
+           score_slopes charging the max-slope term twice.
+    src/CodeBrix.LilyPort.Engine/Objects/SlurScoreParameters.cs
+        <- lily/slur-score-parameters.cc,
+           lily/include/slur-score-parameters.hh
+           Copyright (C) 1996--2026 Han-Wen Nienhuys, Jan Nieuwenhuizen
+    src/CodeBrix.LilyPort.Engine/Translation/SlurEngravers.cs
+        <- lily/slur-engraver.cc, lily/include/slur-engraver.hh
+           Copyright (C) 1997--2026 Han-Wen Nienhuys
+        <- lily/phrasing-slur-engraver.cc
+           Copyright (C) 1996--2026 Han-Wen Nienhuys, Jan Nieuwenhuizen
+           Holds Slur_engraver and Phrasing_slur_engraver, for the same reason
+           the laissez-vibrer pair share a file.
+    src/CodeBrix.LilyPort.Flower/LibcExtension.cs
+        <- flower/libc-extension.cc, flower/include/libc-extension.hh
+           Copyright (C) 1997--2026 Han-Wen Nienhuys
+           round_halfway_up only. EPG10 had written it privately inside
+           BeamQuanting.cs; ties and slurs add three more callers, so it moved
+           to the file upstream declares it in.
+    src/CodeBrix.LilyPort.Engine/Bootstrap/Epg11Callbacks.cs
+    src/CodeBrix.LilyPort.Engine/Bootstrap/Epg12Callbacks.cs
+    src/CodeBrix.LilyPort.Engine/Objects/ConfigurationHeap.cs
+        New-in-family C# (no upstream header), Copyright (c) 2026 Jeremy Ellis
+        and contributors. The two callback files are binding surfaces, filed
+        under the same rule as the others: the derivation is the
+        MAKE_SCHEME_CALLBACK contract, not copied code. ConfigurationHeap is a
+        replica of libstdc++'s heap ALGORITHM, which is a documented interface
+        rather than copied source; it was EPG10's private class and is now
+        shared, because the slur scorer runs the same queue.
+
+    FIVE groups of already-ported upstream code landed with EPG11/EPG12 and are
+    recorded on their existing hosts. Their ledger rows stay `ported' -- the
+    files were ported and these were the gap.
+
+    The largest is lily/grob.cc's CONSTRUCTOR, which installs default X-extent,
+    Y-extent, vertical-skylines and horizontal-skylines callbacks on any grob
+    whose description does not name them. The port's constructor had never done
+    so, which left every NoteHead -- the one common grob that does not name
+    X-extent -- answering an empty horizontal extent. It rides Objects/Grob.cs.
+
+    The other four are ordinary: ties and slurs are the first, and in every case
+    the ONLY, callers anywhere in the engine. lily/misc.cc's peak_around and
+    convex_amplifier plus misc.hh's inline linear_interpolate and normalize ride
+    Objects/Misc.cs; lily/axis-group-interface.cc's staff_extent rides
+    Objects/AxisGroupInterface.cs; lily/grob.cc's pure_y_extent also rides
+    Objects/Grob.cs; and lily/pitch.cc's five alteration constants ride
+    Music/Pitch.cs.
+
     src/CodeBrix.LilyPort.Engine/Layout/MusicOutput.cs
         <- lily/music-output.cc, lily/include/music-output.hh
            Copyright (C) 2005--2026 Han-Wen Nienhuys

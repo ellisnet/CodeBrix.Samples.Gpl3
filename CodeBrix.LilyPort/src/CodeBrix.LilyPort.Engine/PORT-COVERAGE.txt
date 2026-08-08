@@ -3352,3 +3352,466 @@ EPG18 -- LYRICS & MELODY (2026-08-07)
   dropping the imaginary part -- which is the failure mode a half-built numeric
   tower would otherwise have. complex? accepts one; number? and real? do not,
   because number? is what the arithmetic layer tests.
+
+
+================================================================================
+EPG10 -- BEAMS (2026-08-07)
+================================================================================
+
+  All ten of the group's files. The eleventh, grob-pq-engraver.cc, had already
+  landed with EPG18, so the group was one file lighter than its work order says.
+
+  The rows land in seven C# files:
+
+    least-squares.cc               Layout/LeastSquares.cs
+    interval-minefield.cc          Layout/IntervalMinefield.cs
+    beaming-pattern.cc             Translation/BeamingPattern.cs
+    beam.cc                        Objects/Beam.cs
+    beam-quanting.cc               Objects/BeamQuanting.cs
+    template-engraver-for-beams.cc Translation/BeamEngravers.cs
+    beam-engraver.cc               Translation/BeamEngravers.cs
+    chord-tremolo-engraver.cc      Translation/BeamEngravers.cs
+    auto-beam-engraver.cc          Translation/AutoBeamEngraver.cs
+    beam-collision-engraver.cc     Translation/BeamCollisionEngraver.cs
+
+  THE SCORER, AND THE ONE PLACE FAITHFULNESS NEEDED EXTRA WORK
+
+  beam-quanting.cc is a scorer, so standing rule 2 applies: it is translated
+  literally, including the several places where upstream computes a value it
+  never uses (beam_width in init_instance_variables is the clearest). One point
+  needed more than literal translation to STAY faithful, and it is worth
+  understanding before touching this file.
+
+  Upstream picks the winning configuration out of a std::priority_queue whose
+  comparator inverts, so the top is the SMALLEST demerits. Beam quanting
+  routinely produces configurations with EQUAL demerits -- symmetric music is
+  the normal case, not the exotic one -- and which of those equal configurations
+  comes off the queue IS the beam's final position on the page. std::priority_
+  queue is not stable, and neither is System.Collections.Generic.PriorityQueue,
+  but two unstable heaps do not have to break a tie the same way. Only the same
+  heap does. ConfigurationHeap is therefore a direct replica of libstdc++'s
+  push_heap / pop_heap / adjust_heap over a List, with upstream's comparator, so
+  the sequence of pops is identical. Do not replace it with a library queue.
+
+  A second, smaller trap in the same file: round_halfway_up is
+  floor (x - 0.5) + 1.0, NOT floor (x + 0.5). Upstream says so in
+  flower/libc-extension.cc and the two differ on exact .5 boundaries, which is
+  precisely where a quant sits.
+
+  BEAMING PATTERN COUNTS ARE UNSIGNED
+
+  Beam counts in Translation/BeamingPattern.cs are uint, not int, and that is
+  deliberate. beamify's third loop subtracts from a beam count:
+
+    infos_[i].beam_count_drul_[opposite] -= max (count(i) - count(neighbor), 1u)
+
+  guarded by count(i) >= count(neighbor). A stem with count 0 can still reach
+  this, because the flag-direction CORRECTION loop assigns a non-CENTER
+  direction to stems the first loop skipped. When it does, upstream computes
+  0 - 1 in unsigned arithmetic and WRAPS, and every later comparison reads the
+  wrapped value. Using int would quietly turn that into -1 and change which
+  branch subdivide_beams takes. The port wraps where upstream wraps.
+
+  BEAM PRINT EXTREME INDEX
+
+  Beam::print computes
+
+    vsize extreme = (segments[0].vertical_count_ == 0
+                       ? segments[0].vertical_count_
+                       : segments.back ().vertical_count_);
+
+  and then INDEXES segments with it. vertical_count_ is a signed beam rank, and
+  storing a negative one in a vsize is undefined behaviour upstream. In practice
+  it evaluates to 0, because the segments are ordered by ascending vertical
+  count so either the first is 0 or the last is. The port clamps the index into
+  range rather than letting C# throw where C++ reads garbage: a faithful
+  translation must not turn silent undefined behaviour into an exception.
+
+  BEAM BOUNDS BEFORE LINE BREAKING
+
+  Beam::print and Beam::calc_beam_segments both refine their common horizontal
+  reference point with me->get_bound (d)->common_refpoint (...), with no null
+  check. Upstream does not need one: Spanner::do_break_processing walks away
+  from a spanner missing either bound, so such a spanner is never assigned to a
+  system and never typeset. That guarantee lives in line breaking, which is
+  EPG15/EPG16's, and the port reaches print for an unbounded beam -- it is what
+  made tablature-slurs-with-beams and ten other files stop producing a page,
+  and it is the regression the ratchet caught on this session's first sweep.
+  Both walks go through Beam.CommonWithBound, which skips a missing bound. A
+  beam with no bounds has no stems either, so it yields no segments and draws
+  nothing, which is the same page upstream produces after calc_direction removes
+  it. REVISIT WHEN EPG15/EPG16 LAND: the guard should become unnecessary.
+
+  THE EPG6 BEAM SEAM IS RETIRED
+
+  Objects/Stem.cs carried a private BeamHelpers class holding faithful copies of
+  six beam.cc statics, pulled forward because their callers landed in EPG6 while
+  beams were EPG10's. Beam.cs now owns all six under their upstream names, the
+  Stem and StemTremolo call sites point at Beam, and BeamHelpers is deleted.
+
+  THREE FREE FUNCTIONS THAT WERE NEVER CARRIED
+
+  All three live in files whose ledger rows say `ported', and all three were
+  found by porting a caller. Their rows stay `ported' -- the file was ported and
+  the function was the gap. This is the fourth session running to find some of
+  these; budget for it.
+
+    Grob::pure_relative_y_coordinate (grob.cc) and the free function
+    call_pure_function (grob-property.cc) that it needs. Beam::consider_auto_knees
+    is the caller. call_pure_function has semantics worth reading: an unpure-pure
+    container whose pure half is OMITTED answers through its unpure half, but a
+    BARE procedure answers #f rather than being called, because calling it would
+    not be pure.
+
+    Grob::spanned_column_rank_interval (grob.cc, item.cc, spanner.cc) and
+    Grob::less (grob.cc). Beam_collision_engraver::finalize walks beams and
+    covered grobs in parallel in horizontal order and needs both.
+
+    Engraver::announce_grob (inf, ctx), announce_end_grob (inf, ctx),
+    announce_grob_locally_only and announce_end_grob_locally_only
+    (engraver.cc). Auto_beam_engraver announces its beam LOCALLY and then again
+    in the context the beam started in, which may no longer be its own by the
+    time the beam ends.
+
+  TWO LilyScheme GAPS, BOTH MEASURED
+
+  Neither is a beam bug; both are Guile-compatibility gaps that no earlier group
+  had reached. Fenced by NaryEqualityTests in the LilyScheme repo.
+
+    eq?, eqv? and equal? are declared SCM_DEFINE (..., 0, 2, 1) in
+    libguile/eq.c -- ZERO required arguments, two optional and a rest -- so they
+    are N-ARY: fewer than two arguments answer #t, and longer lists compare
+    ADJACENT pairs. LilyScheme fixed them at exactly two. ly:beam::calc-knee
+    decides whether a beam is kneed with (apply eqv? <one stem direction per
+    stem>), so EVERY beam died on wrong-number-of-args, including the four
+    eighth notes of { c'8 c'8 c'8 c'8 }.
+
+    member and assoc take an OPTIONAL equality predicate, called in the caller's
+    own argument order as (predicate key element). LilyPond's
+    default-auto-beam-check finds a beat setting with (assoc type sorted-alist
+    <=). Guile's C assoc is two-argument; the three-argument form comes from
+    SRFI-1, which the port resolves through the core binding, so the core one
+    now accepts it. Scope stays WIDER than Guile's here, never narrower, which
+    is the same posture LS-FIX3 recorded for #:select.
+
+  WHAT BEAMS STILL DO NOT DO, AND WHY IT IS NOT THIS GROUP'S
+
+  Beams draw with correct thickness and correct beam counts, and the polygon
+  count matches the oracle file for file. They are close to ZERO LENGTH in most
+  swept files, because a beam segment runs from one stem's x to another's and
+  the port's columns are still at x = 0 in most files -- EPG4 measured 108 of
+  915 files placing at real x, and that has not moved. When EPG15/EPG16 land the
+  real line-breaking and spacing pipeline, beam length follows without further
+  work here. Nothing in this group papers over it.
+
+  SINGLE-STEM CHORD TREMOLO BEAMS
+
+  Chord_tremolo_engraver gives a stem its `beaming' only when a PREVIOUS stem
+  exists, so the first stem of a tremolo group is beamless until the second
+  arrives. In five places in the sweep the port ends up with a tremolo Beam
+  holding exactly ONE stem, and that stem's beaming is '(). Upstream's
+  Beam::calc_beam_segments then reads scm_car of the empty list; upstream's own
+  Beam::calc_beaming, one function earlier, guards the identical data with
+  `if (scm_is_pair (this_beaming))', so the port applies that same guard at the
+  sibling site and the stem contributes no segments -- which is correct, since
+  beaming is exactly what says where a stem's segments are.
+
+  That is the SYMPTOM, and it is fixed. The CAUSE -- why the port produces a
+  one-stem tremolo beam where upstream evidently produces a two-stem one -- was
+  measured but not chased down: it shows up only in the full sweep and not when
+  the file is run alone (whole-note-tremolo-direction.ly is the one that caught
+  it, and it is the last regression the ratchet reported this session). The
+  suspects are the tremolo engraver's span-stop handling and the sweep's known
+  cross-file state leak; distinguishing them wants a session that owns tremolo
+  work. Left for EPG20 or Phase 4, recorded here rather than in a comment so it
+  is findable.
+
+================================================================================
+EPG11 -- TIES, AND EPG12 -- SLURS (2026-08-08)
+================================================================================
+
+Ported together, as the condensed plan proposed. They pair because they are the
+same problem twice: both are SCORERS, both draw through Lookup::slur, both go
+through bezier-bow.cc's closed-form shape, and slurs have to be shaped around
+ties, so the second group cannot be tested properly without the first.
+
+Eighteen ledger rows, both buckets emptied. No pull-forward from any group.
+
+STANDING RULE 2 GOVERNS FOUR OF THESE FILES.  tie-formatting-problem.cc,
+slur-scoring.cc, slur-configuration.cc and the demerit arithmetic in
+tie-configuration.cc are decades-tuned heuristics. Nothing is tidied, reordered
+or simplified, including the places where upstream computes a value it does not
+use and the places where it does the same thing twice.
+
+--------------------------------------------------------------------------------
+WHAT THE ALREADY-PORTED FILES HAD NEVER CARRIED
+--------------------------------------------------------------------------------
+
+FIVE gaps in files whose ledger rows have said `ported' since EPG0. All five are
+the same shape, and it is the shape standing rule 4 describes: something upstream
+declares was half-reproduced, and NOTHING FAILED.
+
+THE HEADLINE ONE IS NOT A TIE OR A SLUR DEFECT AT ALL, AND IT AFFECTED EVERY
+GROB IN EVERY SCORE.
+
+  0. lily/grob.cc's CONSTRUCTOR installs four DEFAULT callbacks on any grob whose
+     description does not name them:
+
+         if (scm_is_null (get_property_data (this, "X-extent")))
+           set_property (this, "X-extent", Grob::stencil_width_proc);
+         if (scm_is_null (get_property_data (this, "Y-extent")))         ...
+         if (scm_is_null (get_property_data (this, "vertical-skylines"))) ...
+         if (scm_is_null (get_property_data (this, "horizontal-skylines"))) ...
+
+     The port's constructor stopped after the meta/interfaces/object-callbacks
+     block and installed none of them. Every one of the four procedures was
+     REGISTERED and working; only the defaulting was missing, which is why no
+     unbound-name warning ever appeared.
+
+     What it cost: most grobs name X-extent and Y-extent explicitly in
+     scm/define-grobs.scm, so most were unaffected. NoteHead does not name
+     X-extent. So every note head in every score the port has ever engraved has
+     been answering an EMPTY horizontal extent, and the empty answer was CACHED
+     the first time anything asked.
+
+     Nothing asked, for eleven groups. Horizontal spacing goes through
+     NoteColumn's own extent callbacks; beams measure stems; lyrics measure
+     syllables. Tie_formatting_problem is the first code in the engine to ask a
+     NOTE HEAD for its width -- and it feeds the answer straight into a Skyline,
+     where an empty interval turns into a NaN roof height and the whole page
+     dies. That is how a defect this size stayed invisible: it needed a caller
+     that both wanted the value AND could not survive a wrong one.
+
+     Found by the ratchet, not by reading: EPG11's first sweep reported 23
+     regressions, all of them semi-tie files, all with the same
+     "Skyline building slope is not finite".
+
+The other four are the ordinary kind -- ties and slurs are simply the only
+callers anywhere in the engine, and neither existed until now.
+
+  1. lily/misc.cc's peak_around and convex_amplifier, and misc.hh's inline
+     linear_interpolate and normalize. These are the two penalty CURVES the tie
+     and slur scorers charge every demerit through, plus the two interpolators.
+     Now in Objects/Misc.cs.
+
+     A fifth thing came out of the same look: Layout/StencilIntegral.cs had its
+     own PRIVATE copy of linear_interpolate, associated as
+     ((x2-x) y1 + (x-x1) y2) / (x2-x1) where upstream's misc.hh writes
+     (x2-x)/(x2-x1) y1 + (x-x1)/(x2-x1) y2. Algebraically identical, not
+     bit-for-bit identical, and upstream's stencil-integral.cc calls that very
+     inline -- so the copy was the divergence. Re-pointed.
+
+  2. lily/axis-group-interface.cc's staff_extent. One caller in the whole engine:
+     Tie_formatting_problem::set_column_chord_outline, for a tie whose bound is a
+     broken column. Now in Objects/AxisGroupInterface.cs.
+
+  3. lily/grob.cc's pure_y_extent. Slur::pure_height and
+     Slur::pure_outside_slur_callback are the port's first callers. Now in
+     Objects/Grob.cs, reading Y-extent through the SAME minimal pure stand-in the
+     rest of the port uses -- the full unpure-pure-container.cc treatment is
+     EPG15's, and until it lands a grob with no pure callback answers its ordinary
+     extent. Recorded as a divergence below.
+
+  4. lily/pitch.cc's five alteration constants (NATURAL, FLAT, DOUBLE_FLAT,
+     SHARP, DOUBLE_SHARP). Slur_score_state::get_extra_encompass_infos shifts an
+     accidental's collision box by a different amount for each and tells them
+     apart by comparing to these. Now on Music/Pitch.cs.
+
+--------------------------------------------------------------------------------
+A ROW THAT NEEDED NO CODE: bezier-bow.cc WAS ALREADY WHOLE
+--------------------------------------------------------------------------------
+
+EPG17 pulled bezier-bow.cc's "shape half" forward for \tupletSlur and recorded
+that EPG12 still owed `Bezier_bow itself -- the class that fits a curve around
+encompassing points', described as the decades-tuned code the faithfulness rule
+is about. That is what the file looked like in older LilyPond.
+
+THERE IS NO SUCH CLASS IN THE PINNED 2.27.2. There is no lily/include/
+bezier-bow.hh, no definition anywhere under lily/, and no reference from scm/ or
+ly/. bezier-bow.cc is 132 lines and holds exactly four functions: F0_1,
+slur_height, get_slur_indent_height and slur_shape -- all four of which landed
+with EPG17. The file was already complete; only the ledger row and the notes
+were wrong, and they had been overstating the remaining work since 2026-08-07.
+
+Corrected in the ledger, in THIRD-PARTY-NOTICES.txt and in Layout/BezierBow.cs.
+The lesson generalises: a note that says "half of file X is still owed" is a
+claim about upstream that can be checked, and is worth checking before budgeting
+a session around it.
+
+--------------------------------------------------------------------------------
+TWO PIECES OF DEAD CODE, REPRODUCED DEAD
+--------------------------------------------------------------------------------
+
+Both are cases where the faithful port is the one that does nothing, and where
+"fixing" it would add behaviour upstream does not have. Recorded because a later
+reader will otherwise find them and file a bug.
+
+  * Tie_column::before_line_breaking. Its whole body is a loop over
+    `get_property (me, "ties")'. But `ties' is written by
+    Pointer_group_interface::add_grob, which goes through set_object -- a
+    DIFFERENT alist on the grob from the one get_property reads. The property
+    read therefore answers the empty list, the loop never executes, and the
+    callback is a no-op that upstream nonetheless registers on TieColumn.
+
+    Making it read the OBJECT would start moving the column's bounds. Upstream
+    never does that, so the port does not either.
+
+  * Tie_formatting_problem::generate_collision_variations' last branch, guarded
+    by `i == ties.size ()' inside a loop bounded by `i < ties.size ()'. It cannot
+    hold. Reproduced unreachable; making it live would add a candidate variation
+    that upstream never scores.
+
+  * A third, milder one, in Slur_engraver: upstream registers an acknowledger for
+    `fingering-interface', and nothing in scm/ or lily/ declares that interface.
+    The acknowledger is dead upstream and dead here. Kept rather than dropped, so
+    that if EPG14 gives Fingering that interface it starts working with no change
+    to this file.
+
+--------------------------------------------------------------------------------
+DELIBERATE DIVERGENCES
+--------------------------------------------------------------------------------
+
+  * VALUE SEMANTICS WRITTEN OUT. Upstream's Tie_configuration lives inside a
+    std::vector, so `Ties_configuration variant (base)' deep-copies, and every
+    push_back and every assignment from the possibilities_ cache copies too. The
+    port makes it a class, which shares. Every one of those copies is an explicit
+    Copy() here, and nothing from the cache is ever aliased into a
+    Ties_configuration -- because if one ever were, one variant's demerits would
+    leak into another and the 1-opt search would compare candidates to a moving
+    target. Two tests fence it directly (Epg11Tests).
+
+    One place upstream deliberately mutates the CACHED configuration before
+    copying it -- generate_ties_configuration's manual delta_y -- and the port
+    reproduces that too, mutation and all.
+
+  * BEZIER COPIES. avoid_staff_line and fit_factor take Bezier BY VALUE upstream
+    and then translate, rotate and scale it. The port's Bezier is a class, so both
+    Copy() first. Without that, fit_factor would deform the caller's curve, which
+    is the curve generate_curve keeps and Slur::print draws. Fenced by
+    Epg12Tests.fit_factor_does_not_deform_the_curve_it_measures.
+
+  * EMPTY BOXES. Upstream's Box default constructor leaves both intervals EMPTY;
+    C#'s default(Box) is a point at the origin. Every std::map entry upstream
+    default-inserts on first touch (stem_extents_, head_extents_) is therefore
+    created explicitly empty in the port. Getting this wrong would silently unite
+    a real extent with a phantom point at zero, which is the kind of error that
+    moves a tie by a fraction of a staff space and never throws.
+
+  * THE CONFIGURATION HEAP IS SHARED, NOT RE-DERIVED. EPG10 wrote a replica of
+    libstdc++'s push_heap/pop_heap privately inside BeamQuanting.cs.
+    Slur_score_state::get_best_curve runs the identical pattern with the identical
+    inverting comparator, so the replica moved to Objects/ConfigurationHeap.cs and
+    both scorers use it. The algorithm is unchanged; beams break equal-demerit
+    ties exactly as they did before. The reason it is a replica at all is
+    unchanged too: a heap is not a sort, equal scores are the NORMAL case in
+    symmetric music, and which of two equal candidates ends up on top is where the
+    beam or slur ends up.
+
+  * round_halfway_up MOVED to Flower's LibcExtension, which is the file upstream
+    declares it in, once ties and slurs added three more callers to beams' one.
+    Arithmetic unchanged: floor (x - 0.5) + 1.0.
+
+  * THE SLUR'S SEARCH RANGE IS GUARDED AGAINST A COLLAPSED HORIZONTAL SPAN, and
+    this is the same divergence EPG17 recorded for Bracket::make_bracket.
+    Slur_score_state::fill widens the range of endpoint heights it will explore by
+    interpolating ALONG the slur, which divides by (right base attachment X - left
+    base attachment X). Upstream may do that unguarded because horizontal spacing
+    has always run by the time a slur is scored, so a slur's two ends are staff
+    spaces apart. This port scores slurs while spacing is incomplete and most
+    columns still sit at x = 0.
+
+    On phrasing-slur-tuplet the two ends came out 0.037 apart. The division did not
+    produce an infinity -- it produced a search range of +-5455 staff spaces where
+    upstream's is +-4. enumerate_attachments then stepped half a staff space at a
+    time across that range, twice nested: about 119 MILLION configurations, each
+    allocated and each about to be scored. It reads as a hang, and it hung the
+    sweep for as long as it was left running.
+
+    Guarded at upstream's OWN threshold for a slur too short to treat as one --
+    `minimum-length', which enumerate_attachments already uses to decide that a
+    candidate should re-attach to the note head centres instead. Below that span
+    there is no "along the slur" to interpolate and an encompassed object
+    contributes nothing to the range. A second, narrower guard rejects a
+    non-finite contribution outright. Whenever the span is real, the expression is
+    upstream's, unchanged. REVISIT WHEN EPG15/EPG16 LAND.
+
+    Worth stating plainly for whoever picks this up: the underlying condition is
+    NOT a slur bug. It is EPG4's recorded state -- columns leave x = 0 in only
+    some files -- meeting the first code in the engine that divides by a
+    horizontal distance between two note heads.
+
+  * PURE HEIGHTS ARE APPROXIMATE UNTIL EPG15. Grob::pure_y_extent is ported, but
+    it reads Y-extent through the port's minimal pure stand-in rather than through
+    unpure-pure-container.cc's call_pure_function, which is EPG15's. A grob with a
+    genuine pure callback is therefore measured by its ordinary extent. This
+    matters only during line breaking, which is EPG15's too, so the approximation
+    and the code that would expose it land in the same session. REVISIT AT EPG15.
+
+  * SORT STABILITY. Tie_column and Semi_tie_column sort their ties with
+    std::sort on Tie::less / Semi_tie::less, which is unstable; List<T>.Sort is
+    also unstable but not identically so, so two ties at the SAME staff position
+    could order differently from upstream. In a tie column the ties attach to
+    distinct note heads of one chord, so equal positions do not arise in practice.
+    Recorded rather than solved: replicating libstdc++'s introsort is a far larger
+    undertaking than replicating its heap, and unlike the heap there is no known
+    case where it bites.
+
+  * SCORE CARDS ROUND DIFFERENTLY. The debug annotation strings format demerits
+    with "F2", which rounds halves away from zero where C's %.2f rounds to even.
+    Debug-only: the cards are written to a grob's `annotation' property solely
+    when debug-tie-scoring / debug-slur-scoring is on, and never reach a parity
+    page.
+
+--------------------------------------------------------------------------------
+ORDINARY TIES DO NOT DRAW, AND THE REASON IS IN THE PARSER
+--------------------------------------------------------------------------------
+
+Measured against the oracle's own references on 2026-08-08, counting the curves
+each page carries:
+
+    repeat-tie            port 5    oracle 5     EXACT MATCH
+    laissez-vibrer-ties   port 22   oracle 22    EXACT MATCH
+    slur-broken-trend     port 20   oracle 30    draws; broken curves await EPG15
+    tie-accidental        port 0    oracle 1     ORDINARY TIES DO NOT DRAW
+
+The two semi-tie families are not merely working, they AGREE WITH THE ORACLE
+EXACTLY -- and a laissez-vibrer tie goes through the same Tie_formatting_problem,
+the same scorer, the same Tie::get_control_points and the same Tie::print as an
+ordinary tie. Everything EPG11 owns downstream of the event is therefore verified.
+
+The gap is upstream of the engraver. Instrumented: Tie_engraver IS instantiated,
+IS acknowledging every note head, its listener NEVER fires, and the note event's
+`articulations' list arrives EMPTY.
+
+`~' is not a grammar token. There is no `~' rule in upstream's parser.yy or
+lexer.ll; upstream binds it in ly/declarations-init.ly as a STRING-NAMED
+identifier:
+
+    "~" = #(make-music 'TieEvent)
+
+and the port's parser does not resolve string-named identifiers, so no tie-event
+is ever created and nothing hears one.
+
+THAT IS A TRACK P GAP, not an EPG11 one, and Track P is marked COMPLETE. Recorded
+here rather than fixed because the parser is a different track. Four end-to-end
+tests in TiesAndSlursEndToEndTests are skipped with this reason in their skip
+message -- the CONTROL included, because a control that would pass for the wrong
+reason is worse than one that does not run. Unskip all four together when the
+parser resolves "~".
+
+--------------------------------------------------------------------------------
+NAMING
+--------------------------------------------------------------------------------
+
+  Slur is a PARTIAL static class across Objects/Slur.cs and Objects/SlurScoring.cs,
+  because upstream defines Slur::calc_control_points in slur-scoring.cc rather
+  than in slur.cc. The split is upstream's; keeping it means each file's
+  `was previously:' line stays true.
+
+  Slur_engraver::finalize is FinalizeTranslation here -- `Finalize' in C# is
+  object's destructor, and overriding it would hand the engraver to the GC
+  finalizer queue. Same rename the Translator base already carries.
+
+  slur.hh DECLARES Slur::vertical_skylines and nothing anywhere DEFINES it. It is
+  a dangling declaration upstream, referenced from no .cc, no .scm and no .ly, so
+  it is NOT an entry point and the port creates no binding for it.

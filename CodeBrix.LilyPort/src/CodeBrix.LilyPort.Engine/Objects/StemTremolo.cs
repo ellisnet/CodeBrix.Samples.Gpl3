@@ -82,8 +82,8 @@ public static class StemTremolo
                 dy = -positions.Left + positions.Right;
             }
 
-            Grob s2 = BeamHelpers.LastNormalStem(beam);
-            Grob s1 = BeamHelpers.FirstNormalStem(beam);
+            Grob s2 = Beam.LastNormalStem(beam);
+            Grob s1 = Beam.FirstNormalStem(beam);
 
             Grob common = s1.CommonRefpoint(s2, Axis.X);
             double dx = s2.RelativeCoordinate(common, Axis.X)
@@ -151,7 +151,7 @@ public static class StemTremolo
         Spanner beam = Stem.GetBeam(stem);
 
         return beam != null && beam.IsLive
-            ? BeamHelpers.GetBeamTranslation(beam)
+            ? Beam.GetBeamTranslation(beam)
             : StaffSymbolReferencer.StaffSpace(me)
               * Stem.ToDouble(me.GetProperty(LengthFractionSymbol), 1.0)
               * 0.81;

@@ -55,7 +55,7 @@ audio-element-info.cc	group	EPG19
 audio-element.cc	group	EPG19	
 audio-item.cc	group	EPG19	
 audio-staff.cc	group	EPG19	
-auto-beam-engraver.cc	group	EPG10	
+auto-beam-engraver.cc	ported	src/CodeBrix.LilyPort.Engine/Translation/AutoBeamEngraver.cs	
 axis-group-engraver.cc	ported	src/CodeBrix.LilyPort.Engine/Translation/FirstEngravers.cs	
 axis-group-interface-scheme.cc	ported	src/CodeBrix.LilyPort.Engine/Bootstrap/Epg7Callbacks.cs	
 axis-group-interface.cc	ported	src/CodeBrix.LilyPort.Engine/Objects/AxisGroupInterface.cs	
@@ -63,13 +63,13 @@ balloon-engraver.cc	group	EPG14
 balloon.cc	group	EPG14	
 bar-engraver.cc	ported	src/CodeBrix.LilyPort.Engine/Translation/BarEngravers.cs	
 bar-number-engraver.cc	ported	src/CodeBrix.LilyPort.Engine/Translation/BarEngravers.cs	
-beam-collision-engraver.cc	group	EPG10	
-beam-engraver.cc	group	EPG10	
+beam-collision-engraver.cc	ported	src/CodeBrix.LilyPort.Engine/Translation/BeamCollisionEngraver.cs	the contexts_ set and derived_mark are dropped; the managed collector keeps the Contexts alive
+beam-engraver.cc	ported	src/CodeBrix.LilyPort.Engine/Translation/BeamEngravers.cs	Beam_engraver and Grace_beam_engraver
 beam-performer.cc	group	EPG19	one of the 14 concrete performers
-beam-quanting.cc	group	EPG10	
-beam.cc	group	EPG10	
-beaming-pattern.cc	group	EPG10	
-bezier-bow.cc	group	EPG12	
+beam-quanting.cc	ported	src/CodeBrix.LilyPort.Engine/Objects/BeamQuanting.cs	SCORER - translated literally; the configuration queue replicates libstdc++ push_heap/pop_heap so equal-demerit ties break as upstream breaks them
+beam.cc	ported	src/CodeBrix.LilyPort.Engine/Objects/Beam.cs	print's extreme index is clamped (upstream indexes a vsize with a signed beam rank); the bound walk is null-guarded until EPG15/16 line breaking guarantees bounds
+beaming-pattern.cc	ported	src/CodeBrix.LilyPort.Engine/Translation/BeamingPattern.cs	beam counts stay unsigned so beamify's beamlet chipping wraps as upstream wraps
+bezier-bow.cc	ported	src/CodeBrix.LilyPort.Engine/Layout/BezierBow.cs	WHOLE, not half: EPG17 believed it owed Bezier_bow, but no such class exists in the pinned 2.27.2 - there is no bezier-bow.hh and no reference anywhere, so the file is only slur_shape and its three helpers, all of which landed with EPG17
 bezier-scheme.cc	ported	src/CodeBrix.LilyPort.Engine/Bootstrap/Epg18Callbacks.cs	pulled forward from EPG23 by EPG18 under the bindings rule (Flower's Bezier was already ported)
 bezier.cc	ported	src/CodeBrix.LilyPort.Flower/Bezier.cs	
 book-scheme.cc	group	EPG16	PARTIAL: 9 of 11 bindings live in OutputPrimitives.cs; ly:book-process and ly:book-process-to-systems still stubbed -- both go through Book::process into Paper_book, moved to EPG16 by D20 (2026-08-05): the EPG3 batch runner goes Paper_score -> SVG directly; EPG16 lands Paper_book and switches the runner onto the real ly:book-process path
@@ -85,7 +85,7 @@ cairo.cc	no-port	D15 — SVG is the parity yardstick; no Cairo backend
 calculated-sequential-music.cc	ported	src/CodeBrix.LilyPort.Engine/Translation/SequentialIterator.cs	
 change-iterator.cc	ported	src/CodeBrix.LilyPort.Engine/Translation/ContextIterators.cs	
 chord-name.cc	group	EPG20	
-chord-tremolo-engraver.cc	group	EPG10	
+chord-tremolo-engraver.cc	ported	src/CodeBrix.LilyPort.Engine/Translation/BeamEngravers.cs	
 clef-engraver.cc	ported	src/CodeBrix.LilyPort.Engine/Translation/FirstEngravers.cs	
 clef-modifier.cc	ported	src/CodeBrix.LilyPort.Engine/Objects/ClefModifier.cs	
 clef.cc	ported	src/CodeBrix.LilyPort.Engine/Objects/Clef.cs	
@@ -193,7 +193,7 @@ input-smob.cc	no-port	smob/GC plumbing — the .NET GC replaces it
 input.cc	ported	src/CodeBrix.LilyPort.Engine/Origins/Input.cs	
 instrument-name-engraver.cc	group	EPG14	
 instrument-switch-engraver.cc	group	EPG14	
-interval-minefield.cc	group	EPG10	
+interval-minefield.cc	ported	src/CodeBrix.LilyPort.Engine/Layout/IntervalMinefield.cs	
 item-scheme.cc	group	EPG23	leaf binding file -- EPG23 sweeps what its type did not land; ly:item-break-dir PULLED FORWARD to EPG4 (Bootstrap/GrobPrimitives.cs), the rest still owed
 item.cc	ported	src/CodeBrix.LilyPort.Engine/Objects/Item.cs	
 jump-engraver.cc	ported	src/CodeBrix.LilyPort.Engine/Translation/MarkEngravers.cs	
@@ -203,8 +203,8 @@ key-performer.cc	group	EPG19	one of the 14 concrete performers
 key-signature-interface.cc	ported	src/CodeBrix.LilyPort.Engine/Objects/KeySignatureInterface.cs	
 kievan-ligature-engraver.cc	group	EPG21	
 kievan-ligature.cc	group	EPG21	
-laissez-vibrer-engraver.cc	group	EPG11	
-least-squares.cc	group	EPG10	
+laissez-vibrer-engraver.cc	ported	src/CodeBrix.LilyPort.Engine/Translation/LaissezVibrerEngravers.cs	
+least-squares.cc	ported	src/CodeBrix.LilyPort.Engine/Layout/LeastSquares.cs	
 ledger-line-engraver.cc	group	EPG14	
 ledger-line-spanner.cc	group	EPG14	
 ligature-bracket-engraver.cc	group	EPG21	
@@ -326,7 +326,7 @@ performance-scheme.cc	group	EPG19
 performance.cc	group	EPG19	
 performer-group.cc	group	EPG19	
 performer.cc	group	EPG19	
-phrasing-slur-engraver.cc	group	EPG12	
+phrasing-slur-engraver.cc	ported	src/CodeBrix.LilyPort.Engine/Translation/SlurEngravers.cs	a five-method subclass of Slur_engraver; shares its file
 piano-pedal-align-engraver.cc	group	EPG14	
 piano-pedal-bracket.cc	group	EPG14	
 piano-pedal-engraver.cc	group	EPG14	
@@ -356,7 +356,7 @@ relative-octave-music.cc	ported	src/CodeBrix.LilyPort.Engine/Music/RelativeOctav
 relocate.cc	no-port	install-tree relocation — N/A to a NuGet library	
 repeat-acknowledge-engraver.cc	ported	src/CodeBrix.LilyPort.Engine/Translation/PercentRepeatEngravers.cs	EPG17 (2026-08-07)
 repeat-styler.cc	ported	src/CodeBrix.LilyPort.Engine/Translation/RepeatStyler.cs	EPG17 (2026-08-07): abstract base + null/segno/volta, the group unblocker
-repeat-tie-engraver.cc	group	EPG11	
+repeat-tie-engraver.cc	ported	src/CodeBrix.LilyPort.Engine/Translation/LaissezVibrerEngravers.cs	a three-method subclass of Laissez_vibrer_engraver; shares its file rather than sitting in a 30-line one beside its base
 rest-collision-engraver.cc	ported	src/CodeBrix.LilyPort.Engine/Translation/RestEngravers.cs	busyGrobs is written by Grob_pq_engraver (EPG10); until then the queue answers empty and no RestCollision is made, upstream's own empty-queue path
 rest-collision.cc	ported	src/CodeBrix.LilyPort.Engine/Objects/RestCollision.cs	EPG5 (2026-08-07): the Y-offset chain goes through the vendored grob::compose-function with ly:unpure-call/ly:pure-call pulled forward from unpure-pure-container.cc (EPG15)
 rest-engraver.cc	ported	src/CodeBrix.LilyPort.Engine/Translation/RestEngravers.cs	upstream's dot_ member is dead code and not carried
@@ -378,8 +378,8 @@ script-engraver.cc	group	EPG14
 script-interface.cc	group	EPG14	
 script-row-engraver.cc	group	EPG14	
 self-alignment-interface.cc	ported	src/CodeBrix.LilyPort.Engine/Objects/SelfAlignmentInterface.cs	carries Paper_column::get_interface_extent beside its only caller
-semi-tie-column.cc	group	EPG11	
-semi-tie.cc	group	EPG11	
+semi-tie-column.cc	ported	src/CodeBrix.LilyPort.Engine/Objects/SemiTieColumn.cs	
+semi-tie.cc	ported	src/CodeBrix.LilyPort.Engine/Objects/SemiTie.cs	
 separating-line-group-engraver.cc	ported	src/CodeBrix.LilyPort.Engine/Translation/SpacingEngravers.cs	
 separation-item.cc	ported	src/CodeBrix.LilyPort.Engine/Objects/SeparationItem.cs	COMPLETED by EPG4: calc_skylines, boxes, set_distance, is_empty, conditional_skyline and add_conditional_item all landed; the conditional-accidental filter waits on EPG9
 sequential-iterator.cc	ported	src/CodeBrix.LilyPort.Engine/Translation/SequentialIterator.cs	
@@ -392,12 +392,12 @@ skyline-pair.cc	ported	src/CodeBrix.LilyPort.Engine/Layout/SkylinePair.cs
 skyline-scheme.cc	group	EPG23	leaf binding file — EPG23 sweeps what its type's group did not land
 skyline.cc	ported	src/CodeBrix.LilyPort.Engine/Layout/Skyline.cs	
 slash-repeat-engraver.cc	ported	src/CodeBrix.LilyPort.Engine/Translation/PercentRepeatEngravers.cs	EPG17 (2026-08-07)
-slur-configuration.cc	group	EPG12	
-slur-engraver.cc	group	EPG12	
+slur-configuration.cc	ported	src/CodeBrix.LilyPort.Engine/Objects/SlurConfiguration.cs	SCORER - translated literally; avoid_staff_line and fit_factor take Bezier BY VALUE upstream and Copy() it here; score_slopes adds the max-slope term twice, as upstream does
+slur-engraver.cc	ported	src/CodeBrix.LilyPort.Engine/Translation/SlurEngravers.cs	the fingering acknowledger is registered because upstream registers it; NOTHING declares fingering-interface, so it is dead upstream and dead here
 slur-performer.cc	group	EPG19	one of the 14 concrete performers
-slur-score-parameters.cc	group	EPG12	
-slur-scoring.cc	group	EPG12	
-slur.cc	group	EPG12	
+slur-score-parameters.cc	ported	src/CodeBrix.LilyPort.Engine/Objects/SlurScoreParameters.cs	a missing detail defaults to ZERO here, not to a per-name value - upstream get_detail is a bare from_scm<double> (.., 0.0)
+slur-scoring.cc	ported	src/CodeBrix.LilyPort.Engine/Objects/SlurScoring.cs	SCORER - translated literally; carries Slur::calc_control_points, as upstream does
+slur.cc	ported	src/CodeBrix.LilyPort.Engine/Objects/Slur.cs	Slur is a PARTIAL static class - calc_control_points is defined in slur-scoring.cc upstream and in SlurScoring.cs here; slur.hh DECLARES vertical_skylines and nothing anywhere defines it, so it is not an entry point
 smobs.cc	no-port	smob/GC plumbing — the .NET GC replaces it	
 source-file.cc	ported	src/CodeBrix.LilyPort.Engine/Origins/SourceFile.cs	
 sources.cc	ported	src/CodeBrix.LilyPort.Engine/Origins/Sources.cs	
@@ -441,20 +441,20 @@ system-start-delimiter.cc	ported	src/CodeBrix.LilyPort.Engine/Objects/SystemStar
 system.cc	ported	src/CodeBrix.LilyPort.Engine/Objects/SystemGrob.cs	
 tab-note-heads-engraver.cc	group	EPG20	
 tab-staff-symbol-engraver.cc	group	EPG20	
-template-engraver-for-beams.cc	group	EPG10	
+template-engraver-for-beams.cc	ported	src/CodeBrix.LilyPort.Engine/Translation/BeamEngravers.cs	
 template5.cc	no-port	C++ explicit template instantiation unit — no analogue	
 tempo-performer.cc	group	EPG19	one of the 14 concrete performers
 text-engraver.cc	group	EPG14	
 text-interface.cc	ported	src/CodeBrix.LilyPort.Engine/Objects/TextInterface.cs	EPG13 (2026-08-05): interpret-markup/interpret-string, the string-transformer chain and ly:perform-text-replacements; bindings in Bootstrap/GrobCallbacks.cs
 text-spanner-engraver.cc	group	EPG14	
-tie-column.cc	group	EPG11	
-tie-configuration.cc	group	EPG11	
-tie-details.cc	group	EPG11	
-tie-engraver.cc	group	EPG11	
-tie-formatting-problem.cc	group	EPG11	
+tie-column.cc	ported	src/CodeBrix.LilyPort.Engine/Objects/TieColumn.cs	add_tie came home from Objects/Epg5Seams.cs; before_line_breaking is reproduced DEAD - upstream reads `ties` with get_property where Pointer_group_interface stores it with set_object, so its loop body never runs
+tie-configuration.cc	ported	src/CodeBrix.LilyPort.Engine/Objects/TieConfiguration.cs	Tie_configuration is a VALUE upstream; every push_back/variant copy/cache read is an explicit Copy() here
+tie-details.cc	ported	src/CodeBrix.LilyPort.Engine/Objects/TieDetails.cs	
+tie-engraver.cc	ported	src/CodeBrix.LilyPort.Engine/Translation/TieEngraver.cs	
+tie-formatting-problem.cc	ported	src/CodeBrix.LilyPort.Engine/Objects/TieFormattingProblem.cs	SCORER - translated literally; upstream Box default-constructs EMPTY where C# default(Box) is a point at the origin, so every map entry is created explicitly empty; generate_collision_variations `i == ties.size ()` branch is DEAD upstream and reproduced dead
 tie-performer.cc	group	EPG19	one of the 14 concrete performers
-tie-specification.cc	group	EPG11	
-tie.cc	group	EPG11	
+tie-specification.cc	ported	src/CodeBrix.LilyPort.Engine/Objects/TieSpecification.cs	has_manual_delta_y keys off upstream is_scm<Rational> - real AND (exact OR infinite) - so the exact/inexact distinction on staff-position is preserved
+tie.cc	ported	src/CodeBrix.LilyPort.Engine/Objects/Tie.cs	set_head/head came home from Objects/Epg5Seams.cs, which EPG5 had carried them in since 2026-08-07
 time-signature-engraver.cc	ported	src/CodeBrix.LilyPort.Engine/Translation/TimeSignatureEngraver.cs	
 time-signature-performer.cc	group	EPG19	one of the 14 concrete performers
 time-tracer-scheme.cc	no-port	build/timing tracer — not on the parity path	

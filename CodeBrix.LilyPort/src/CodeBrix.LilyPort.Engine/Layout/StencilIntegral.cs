@@ -981,9 +981,17 @@ public static class StencilIntegral
     /// <param name="y1">The start of the target range.</param>
     /// <param name="y2">The end of the target range.</param>
     /// <returns>The mapped value.</returns>
+    /// <remarks>
+    /// EPG11/EPG12 (2026-08-08): this used to hold its own copy, associated as
+    /// <c>((x2-x)*y1 + (x-x1)*y2) / (x2-x1)</c> where upstream's <c>misc.hh</c> writes
+    /// <c>(x2-x)/(x2-x1)*y1 + (x-x1)/(x2-x1)*y2</c> — algebraically the same, not
+    /// bit-for-bit the same. Upstream's <c>stencil-integral.cc</c> calls that same
+    /// inline, so the copy was the divergence; it now forwards to
+    /// <see cref="Objects.Misc.LinearInterpolate"/>.
+    /// </remarks>
     private static double LinearInterpolate(
         double x, double x1, double x2, double y1, double y2)
-        => ((x2 - x) * y1 + (x - x1) * y2) / (x2 - x1);
+        => Objects.Misc.LinearInterpolate(x, x1, x2, y1, y2);
 
     /// <summary>
     /// Reads a number, answering zero for anything that is not one — which is what

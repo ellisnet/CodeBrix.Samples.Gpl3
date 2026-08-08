@@ -267,8 +267,8 @@ public static class Stem
         {
             if (stemlet && beam != null)
             {
-                double beamTranslation = BeamHelpers.GetBeamTranslation(beam);
-                double beamThickness = BeamHelpers.GetBeamThickness(beam);
+                double beamTranslation = Beam.GetBeamTranslation(beam);
+                double beamThickness = Beam.GetBeamThickness(beam);
                 int beamCount = BeamMultiplicity(me).Length + 1;
 
                 height[-d]
@@ -1064,7 +1064,7 @@ public static class Stem
                 dir = Direction.Positive;
             }
 
-            return dir.Value * BeamHelpers.GetBeamThickness(beam) * 0.5;
+            return dir.Value * Beam.GetBeamThickness(beam) * 0.5;
         }
 
         return 0.0;
@@ -1415,9 +1415,9 @@ public static class Stem
             _ = beam.GetProperty(BeamingSymbol);
         }
 
-        double beamTranslation = BeamHelpers.GetBeamTranslation(beam);
-        double beamThickness = BeamHelpers.GetBeamThickness(beam);
-        int beamCount = BeamHelpers.GetDirectionBeamCount(beam, myDir);
+        double beamTranslation = Beam.GetBeamTranslation(beam);
+        double beamThickness = Beam.GetBeamThickness(beam);
+        int beamCount = Beam.GetDirectionBeamCount(beam, myDir);
         double lengthFraction = ToDouble(me.GetProperty(LengthFractionSymbol), 1.0);
 
         /* Simple standard stem length */
@@ -1544,7 +1544,7 @@ public static class Stem
     public static bool IsCrossStaff(Grob stem)
     {
         Grob beam = stem.GetObject(BeamSymbol) as Grob;
-        return beam != null && BeamHelpers.IsCrossStaff(beam);
+        return beam != null && Beam.IsCrossStaff(beam);
     }
 
     /// <summary>Returns the flag attached to this stem, if any.</summary>
@@ -1760,131 +1760,4 @@ public static class Stem
     /// <returns>The extent.</returns>
     internal static Interval PureYExtent(Grob me)
         => me.Extent(me, Axis.Y);
-}
-
-/// <summary>
-/// Faithful ports of the small <c>beam.cc</c> statics the stem and tremolo code calls:
-/// pulled forward because their callers land here in EPG6 while beams themselves are
-/// EPG10's. Every one of them is a pure read over a live Beam grob, so none is
-/// reachable until a <c>Beam_engraver</c> exists to make one.
-/// <para>
-/// EPG10 owns <c>beam.cc</c>: when it lands the canonical <c>Beam</c> class, these
-/// move there and this class goes away. Recorded in this group's report so the
-/// duplication cannot drift silently.
-/// </para>
-/// </summary>
-internal static class BeamHelpers
-{
-    private static readonly Symbol BeamThicknessSymbol = Symbol.Intern("beam-thickness");
-    private static readonly Symbol LengthFractionSymbol = Symbol.Intern("length-fraction");
-    private static readonly Symbol StemsSymbol = Symbol.Intern("stems");
-    private static readonly Symbol NormalStemsSymbol = Symbol.Intern("normal-stems");
-
-    /// <summary>The beam's thickness, in staff spaces — <c>Beam::get_beam_thickness</c>.</summary>
-    /// <param name="me">The beam.</param>
-    /// <returns>The thickness.</returns>
-    internal static double GetBeamThickness(Grob me)
-        => Stem.ToDouble(me.GetProperty(BeamThicknessSymbol), 0)
-           * StaffSymbolReferencer.StaffSpace(me);
-
-    /* Return the translation between 2 adjoining beams. */
-
-    /// <summary>The distance between two adjoining beams — <c>Beam::get_beam_translation</c>.</summary>
-    /// <param name="me">The beam.</param>
-    /// <returns>The translation.</returns>
-    internal static double GetBeamTranslation(Grob me)
-    {
-        int beamCount = GetBeamCount(me);
-        double staffSpace = StaffSymbolReferencer.StaffSpace(me);
-        double line = StaffSymbolReferencer.LineThickness(me);
-        double beamThickness = GetBeamThickness(me);
-        double fract = Stem.ToDouble(me.GetProperty(LengthFractionSymbol), 1.0);
-
-        /*
-          if fract != 1.0, as is the case for grace notes, we want the gap
-          to decrease too. To achieve this, we divide the thickness by
-          fract
-        */
-        return beamCount < 4
-            ? (2 * staffSpace * fract + line * fract - beamThickness) / 2.0
-            : (3 * staffSpace * fract + line * fract - beamThickness) / 3.0;
-    }
-
-    /* Maximum beam_count. */
-
-    /// <summary>The maximum beam count over the beam's stems — <c>Beam::get_beam_count</c>.</summary>
-    /// <param name="me">The beam.</param>
-    /// <returns>The count.</returns>
-    internal static int GetBeamCount(Grob me)
-    {
-        int m = 0;
-
-        foreach (Grob stem in PointerGroupInterface.ExtractGrobSet(me, StemsSymbol))
-        {
-            m = Math.Max(m, Stem.BeamMultiplicity(stem).Length + 1);
-        }
-
-        return m;
-    }
-
-    /// <summary>
-    /// The maximum beam count among stems pointing one way —
-    /// <c>Beam::get_direction_beam_count</c>.
-    /// </summary>
-    /// <param name="me">The beam.</param>
-    /// <param name="d">The direction to count for.</param>
-    /// <returns>The count.</returns>
-    internal static int GetDirectionBeamCount(Grob me, Direction d)
-    {
-        IReadOnlyList<Grob> stems = PointerGroupInterface.ExtractGrobSet(me, StemsSymbol);
-        int bc = 0;
-
-        for (int i = stems.Count; i-- > 0;)
-        {
-            /*
-              Should we take invisible stems into account?
-            */
-            if (Stem.GetGrobDirection(stems[i]) == d)
-            {
-                bc = Math.Max(bc, Stem.BeamMultiplicity(stems[i]).Length + 1);
-            }
-        }
-
-        return bc;
-    }
-
-    /// <summary>Whether any stem sits on another staff — <c>Beam::is_cross_staff</c>.</summary>
-    /// <param name="me">The beam.</param>
-    /// <returns><see langword="true"/> when the beam crosses staves.</returns>
-    internal static bool IsCrossStaff(Grob me)
-    {
-        Grob staffSymbol = StaffSymbolReferencer.GetStaffSymbol(me);
-        foreach (Grob s in PointerGroupInterface.ExtractGrobSet(me, StemsSymbol))
-        {
-            if (!ReferenceEquals(StaffSymbolReferencer.GetStaffSymbol(s), staffSymbol))
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    /// <summary>The first stem that is not invisible — <c>Beam::first_normal_stem</c>.</summary>
-    /// <param name="me">The beam.</param>
-    /// <returns>The stem, or <see langword="null"/>.</returns>
-    internal static Grob FirstNormalStem(Grob me)
-    {
-        IReadOnlyList<Grob> stems = PointerGroupInterface.ExtractGrobSet(me, NormalStemsSymbol);
-        return stems.Count != 0 ? stems[0] : null;
-    }
-
-    /// <summary>The last stem that is not invisible — <c>Beam::last_normal_stem</c>.</summary>
-    /// <param name="me">The beam.</param>
-    /// <returns>The stem, or <see langword="null"/>.</returns>
-    internal static Grob LastNormalStem(Grob me)
-    {
-        IReadOnlyList<Grob> stems = PointerGroupInterface.ExtractGrobSet(me, NormalStemsSymbol);
-        return stems.Count != 0 ? stems[stems.Count - 1] : null;
-    }
 }

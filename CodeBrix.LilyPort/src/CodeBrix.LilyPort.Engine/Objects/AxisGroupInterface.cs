@@ -189,6 +189,38 @@ public static class AxisGroupInterface
         return r;
     }
 
+    /// <summary>
+    /// Returns the extent of just the part of a group that belongs to one staff.
+    /// </summary>
+    /// <remarks>
+    /// EPG11 (2026-08-08) carried this: <c>axis-group-interface.cc</c>'s ledger row has
+    /// said <c>ported</c> since EPG0, but this function had never come across, because
+    /// <c>Tie_formatting_problem::set_column_chord_outline</c> is its only caller in the
+    /// whole engine and no tie had ever been formatted.
+    /// </remarks>
+    /// <param name="me">The group.</param>
+    /// <param name="refp">The reference grob to measure against.</param>
+    /// <param name="extAxis">The axis to measure.</param>
+    /// <param name="staff">The staff whose elements to keep.</param>
+    /// <param name="parentAxis">The axis whose parent chain decides staff membership.</param>
+    /// <returns>The extent of the elements that descend from the staff.</returns>
+    public static Interval StaffExtent(
+        Grob me, Grob refp, Axis extAxis, Grob staff, Axis parentAxis)
+    {
+        IReadOnlyList<Grob> elts = Elements(me);
+        List<Grob> newElts = new List<Grob>();
+
+        for (int i = 0; i < elts.Count; i++)
+        {
+            if (elts[i].HasInAncestry(staff, parentAxis))
+            {
+                newElts.Add(elts[i]);
+            }
+        }
+
+        return RelativeGroupExtentOf(newElts, refp, extAxis);
+    }
+
     private static List<Axis> ReadAxes(Grob group)
     {
         List<Axis> axes = new List<Axis>();

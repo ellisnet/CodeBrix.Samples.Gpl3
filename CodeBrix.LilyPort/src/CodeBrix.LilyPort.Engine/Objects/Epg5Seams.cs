@@ -26,13 +26,18 @@ using CodeBrix.LilyPort.Engine.Translation;
 using CodeBrix.LilyPort.Flower;
 using CodeBrix.LilyScheme.Values;
 
-namespace CodeBrix.LilyPort.Engine.Objects; //was previously: lily/script-engraver.cc (make_script_from_event only), lily/tie.cc (set_head/head only), lily/tie-column.cc (add_tie only);
+namespace CodeBrix.LilyPort.Engine.Objects; //was previously: lily/script-engraver.cc (make_script_from_event only);
 
 // Modified by Jeremy Ellis on 2026-08-07 as part of the CodeBrix port.
+// Modified by Jeremy Ellis on 2026-08-08 as part of the CodeBrix port:
+//   - EPG11 LANDED, so the tie pair is gone: Tie::set_head/Tie::head are in Objects/Tie.cs
+//     and Tie_column::add_tie is in Objects/TieColumn.cs, both in their own upstream
+//     file, and Completion_heads_engraver now calls them there. Only EPG14's
+//     script-engraver.cc entry is left; when EPG14 lands, this file goes.
 
 /// <summary>
-/// EPG5's SEAM, now reduced to the statics whose OWNING upstream file is still unported:
-/// <c>script-engraver.cc</c> (EPG14) and the tie pair (EPG11).
+/// EPG5's SEAM, now reduced to the ONE static whose OWNING upstream file is still
+/// unported: <c>script-engraver.cc</c> (EPG14).
 /// <para>
 /// EPG22 retired the rest on 2026-08-07. Everything this class used to carry for
 /// <c>stem.cc</c>, <c>directional-element-interface.cc</c>,
@@ -44,58 +49,16 @@ namespace CodeBrix.LilyPort.Engine.Objects; //was previously: lily/script-engrav
 /// <see cref="SchemeUtilities"/>) rather than copied again.
 /// </para>
 /// <para>
-/// Every method here remains a line-for-line translation of the named upstream
-/// function. When EPG11 and EPG14 land, their integrator re-points these last callers
-/// and deletes the file.
+/// EPG11 retired its half on 2026-08-08. The one method left remains a line-for-line
+/// translation of the named upstream function; when EPG14 lands, its integrator
+/// re-points the last caller and deletes the file.
 /// </para>
 /// </summary>
 internal static class Epg5Seams
 {
-    private static readonly Symbol TiesSymbol = Symbol.Intern("ties");
-    private static readonly Symbol NoteHeadInterface = Symbol.Intern("note-head-interface");
-    private static readonly Symbol TieColumnInterface = Symbol.Intern("tie-column-interface");
     private static readonly Symbol ScriptDefinitionsSymbol = Symbol.Intern("scriptDefinitions");
     private static readonly Symbol ScriptPrioritySymbol = Symbol.Intern("script-priority");
     private static readonly Symbol BackendTypePredicateSymbol = Symbol.Intern("backend-type?");
-
-    // ----- lily/tie.cc + lily/tie-column.cc (EPG11's files) -----
-
-    /// <summary><c>Tie::set_head</c>.</summary>
-    internal static void TieSetHead(Spanner me, Direction d, Grob h)
-        => me.SetBound(d, h);
-
-    /// <summary><c>Tie::head</c>.</summary>
-    internal static Item TieHead(Spanner me, Direction d)
-    {
-        Item it = me.GetBound(d);
-        return it != null && it.HasInterface(NoteHeadInterface) ? it : null;
-    }
-
-    /// <summary><c>Tie_column::add_tie</c>.</summary>
-    internal static void TieColumnAddTie(Spanner me, Spanner tie)
-    {
-        if (tie.YParent != null && tie.YParent.HasInterface(TieColumnInterface))
-        {
-            return;
-        }
-
-        if (me.GetBound(Direction.Negative) == null
-            || (RankOfBound(me, Direction.Negative)
-                > RankOfBound(tie, Direction.Negative)))
-        {
-            me.SetBound(Direction.Negative, TieHead(tie, Direction.Negative));
-            me.SetBound(Direction.Positive, TieHead(tie, Direction.Positive));
-        }
-
-        tie.YParent = me;
-        PointerGroupInterface.AddGrob(me, TiesSymbol, tie);
-    }
-
-    private static int RankOfBound(Spanner spanner, Direction d)
-    {
-        PaperColumn column = spanner.GetBound(d)?.GetColumn();
-        return column != null ? column.Rank : PaperColumn.InvalidRank;
-    }
 
     // ----- lily/script-engraver.cc (make_script_from_event; EPG14's file) -----
 

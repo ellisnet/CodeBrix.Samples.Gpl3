@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using CodeBrix.LilyPort.Engine.Bootstrap;
 using CodeBrix.LilyPort.Engine.Music;
 using CodeBrix.LilyPort.Engine.Objects;
+using CodeBrix.LilyPort.Flower;
 using CodeBrix.LilyScheme;
 using CodeBrix.LilyScheme.Reader;
 using CodeBrix.LilyScheme.Values;
@@ -244,8 +245,13 @@ public class FirstLightTests
         IReadOnlyList<string> missing = EngraveResult.MissingTranslators();
 
         //Assert
-        missing.Should().Contain("Beam_engraver");
-        missing.Should().Contain("Tie_engraver");
+        // Beam_engraver was the example here until EPG10 ported it, then Tie_engraver
+        // until EPG11 did. Font_size_engraver is EPG14's and stands in their place --
+        // it is also what now leads the sweep's unported-translator demand list. When
+        // EPG14 lands, pick another.
+        missing.Should().Contain("Font_size_engraver");
+        missing.Should().NotContain("Beam_engraver");
+        missing.Should().NotContain("Tie_engraver");
 
         // ...and the ported ones are NOT in it, which is the half that can rot silently.
         missing.Should().NotContain("Clef_engraver");
@@ -267,6 +273,43 @@ public class FirstLightTests
         missing.Should().NotContain("Timing_translator");
         missing.Should().NotContain("Staff_collecting_engraver");
         missing.Should().NotContain("Accidental_engraver");
+
+        // EPG11 and EPG12 moved these across on 2026-08-08.
+        missing.Should().NotContain("Laissez_vibrer_engraver");
+        missing.Should().NotContain("Repeat_tie_engraver");
+        missing.Should().NotContain("Slur_engraver");
+        missing.Should().NotContain("Phrasing_slur_engraver");
+    }
+
+    [Fact]
+    public void a_note_head_has_a_real_horizontal_extent()
+    {
+        //Arrange
+        // EPG11/EPG12's headline finding, fenced. lily/grob.cc's constructor installs a
+        // DEFAULT X-extent callback on any grob whose description does not name one, and
+        // the port's constructor had never done so. NoteHead is the one common grob that
+        // does not name X-extent -- so until 2026-08-08 every note head in every score
+        // answered an EMPTY width, and the empty answer was cached the first time
+        // anything asked.
+        //
+        // Nothing asked for eleven groups: spacing measures note COLUMNS, beams measure
+        // stems. Tie_formatting_problem is the first code in the engine to ask a note
+        // head for its width, and it feeds the answer into a Skyline, where an empty
+        // interval becomes a NaN roof height and the page dies. Asserted here rather than
+        // among the tie tests because it is not a tie fact.
+        EngraveResult result = EngraveQuarterNote();
+
+        //Act
+        Grob head = FindGrob(result, "NoteHead");
+
+        //Assert
+        head.Should().NotBeNull();
+        head.Extent(head, Axis.X).IsEmpty.Should().BeFalse();
+        head.Extent(head, Axis.X).Length.Should().BeGreaterThan(0.0);
+
+        // ...and the Y half, which was already working because NoteHead names Y-extent
+        // explicitly, so this is the control that says the X assertion means something.
+        head.Extent(head, Axis.Y).IsEmpty.Should().BeFalse();
     }
 
     private static Grob FindGrob(EngraveResult result, string name)

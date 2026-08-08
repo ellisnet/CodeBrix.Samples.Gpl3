@@ -269,9 +269,44 @@ public class LedgerTests
         // milestone and both LY_DEFINEs are one-line wrappers over methods it already
         // has, so that surface was owed all along -- it simply had no caller until the
         // context-handle fix let tie files reach their own drawing code.
-        ported.Should().Be(255);
+        //
+        // EPG10 moved TEN on 2026-08-07 and emptied its own bucket. The group is one
+        // file lighter than its work order says, because grob-pq-engraver.cc had
+        // already gone across with EPG18. Its ten rows land in seven C# files: the two
+        // pure-math helpers under Layout/, the Beam grob and the scorer under Objects/,
+        // and four engraver files under Translation/ -- Template_engraver_for_beams,
+        // Beam_engraver, Grace_beam_engraver and Chord_tremolo_engraver share one.
+        //
+        // No pull-forward from any other group. What EPG10 needed from ELSEWHERE was
+        // again free functions of already-ported files, four of them: grob.cc's
+        // pure_relative_y_coordinate, spanned_column_rank_interval and Grob::less, and
+        // grob-property.cc's call_pure_function, plus item.cc's and spanner.cc's
+        // spanned_column_rank_interval overrides and engraver.cc's four announce_grob
+        // variants. Those rows stay `ported' for the same reason EPG18's did.
+        //
+        // EPG11 and EPG12 moved EIGHTEEN together on 2026-08-08 -- eleven tie rows and
+        // seven slur rows -- and emptied both buckets. NO pull-forward from any group:
+        // what the pair needed from elsewhere was, once again, code belonging to files
+        // whose rows already said `ported'. FIVE groups of it, each silently absent
+        // since EPG0. The largest is not a tie or slur gap at all: grob.cc's
+        // CONSTRUCTOR installs default X-extent / Y-extent / skyline callbacks on any
+        // grob that does not name them, and the port's constructor never did -- so
+        // every NoteHead, the one common grob with no explicit X-extent, has been
+        // answering an EMPTY width since EPG0. The other four are the ordinary kind,
+        // where ties and slurs are simply the only callers in the engine: misc.cc's
+        // peak_around and convex_amplifier (plus misc.hh's inline linear_interpolate
+        // and normalize), axis-group-interface.cc's staff_extent, grob.cc's
+        // pure_y_extent, and pitch.cc's five alteration constants. Those rows stay
+        // `ported' for the same reason EPG10's and EPG18's did.
+        //
+        // bezier-bow.cc is among the eighteen and is the one row that needed no new
+        // code at all. EPG17 pulled its "shape half" forward and recorded that EPG12
+        // still owed `Bezier_bow itself'. There is no such class in the pinned 2.27.2 --
+        // no bezier-bow.hh, no definition, no reference -- so the file was already
+        // WHOLE and the row had been overstating the remaining work ever since.
+        ported.Should().Be(283);
         noPort.Should().Be(29);
-        PortLedger.NotYetPorted.Should().HaveCount(164);
+        PortLedger.NotYetPorted.Should().HaveCount(136);
     }
 
     [Fact]

@@ -333,6 +333,17 @@ public static class LilyPondScheme
         Epg17Callbacks.Install(interpreter);
         Epg18Callbacks.Install(interpreter);
 
+        // EPG10 (2026-08-07): the beam callbacks. Order-independent of the above —
+        // every ly:beam::* name is its own, and Beam reads Stem through C#, not Scheme.
+        Epg10Callbacks.Install(interpreter);
+
+        // EPG11/EPG12 (2026-08-08): the tie and slur callbacks. Order-independent of each
+        // other and of everything above — no name is shared — but both must be installed,
+        // because the slur's outside-slur trio is looked up BY NAME from C# when a dodging
+        // grob is chained onto the slur, and an unregistered name would chain a stub.
+        Epg11Callbacks.Install(interpreter);
+        Epg12Callbacks.Install(interpreter);
+
         // EPG22 (2026-08-07): dispatcher-scheme.cc, pulled forward from EPG23 because
         // \addQuote cannot run without it. It must go in AFTER Epg8Callbacks, which is
         // where ly:broadcast used to live.

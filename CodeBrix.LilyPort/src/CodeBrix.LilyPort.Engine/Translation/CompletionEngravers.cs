@@ -298,7 +298,7 @@ public class CompletionHeadsEngraver : Engraver
         {
             for (int i = _ties.Count; i-- > 0;)
             {
-                Epg5Seams.TieColumnAddTie(_tieColumn, _ties[i]);
+                TieColumn.AddTie(_tieColumn, _ties[i]);
             }
         }
 
@@ -321,8 +321,8 @@ public class CompletionHeadsEngraver : Engraver
     private void MakeTie(Grob left, Grob right)
     {
         Spanner p = MakeSpanner("Tie", Nil.Instance);
-        Epg5Seams.TieSetHead(p, Direction.Negative, left);
-        Epg5Seams.TieSetHead(p, Direction.Positive, right);
+        Tie.SetHead(p, Direction.Negative, left);
+        Tie.SetHead(p, Direction.Positive, right);
         AnnounceEndGrob(p, Nil.Instance);
         _ties.Add(p);
     }

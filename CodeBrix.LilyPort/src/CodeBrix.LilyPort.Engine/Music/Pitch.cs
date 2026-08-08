@@ -111,6 +111,26 @@ public sealed class Pitch : IEquatable<Pitch>, IComparable<Pitch>
     /// <summary>Gets the alteration, in 200-cent tones.</summary>
     public Rational Alteration => _alteration;
 
+    // EPG12 (2026-08-08) carried these: pitch.cc defines them as file-scope globals and
+    // pitch.hh externs them, but nothing in the port had asked for one until
+    // Slur_score_state::get_extra_encompass_infos, which shifts an accidental's collision
+    // box by a different amount for each. Their absence was silent, not diagnosed.
+
+    /// <summary>The alteration of a natural: none.</summary>
+    public static Rational NaturalAlteration => new Rational(0);
+
+    /// <summary>The alteration of a flat: down a semitone.</summary>
+    public static Rational FlatAlteration => new Rational(-1, 2);
+
+    /// <summary>The alteration of a double flat: down a whole tone.</summary>
+    public static Rational DoubleFlatAlteration => new Rational(-1);
+
+    /// <summary>The alteration of a sharp: up a semitone.</summary>
+    public static Rational SharpAlteration => new Rational(1, 2);
+
+    /// <summary>The alteration of a double sharp: up a whole tone.</summary>
+    public static Rational DoubleSharpAlteration => new Rational(1);
+
     /// <summary>Gets the scale this pitch is interpreted against.</summary>
     public Scale PitchScale { get; }
 
