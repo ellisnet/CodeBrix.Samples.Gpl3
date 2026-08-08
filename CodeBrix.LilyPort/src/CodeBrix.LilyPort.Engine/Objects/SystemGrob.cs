@@ -308,10 +308,17 @@ public class SystemGrob : Spanner
     /// appends the clones to the same list, and the clones must not themselves be broken.
     /// </para>
     /// <para>
-    /// DIVERGENCE, recorded in PORT-COVERAGE: upstream also runs
-    /// <c>handle_prebroken_dependencies</c> and <c>fixup_refpoint</c> between the two
-    /// halves. Both re-point grobs at the prebroken pieces they belong with, which only
-    /// matters once lines are actually broken — EPG15's subsystem.
+    /// <c>handle_prebroken_dependencies</c> runs between the two halves, as upstream
+    /// does. EPG22 landed it (2026-08-07) after the earlier note here — that it "only
+    /// matters once lines are actually broken" — was DISPROVEN by measurement: a clone
+    /// starts with an empty object alist, and <c>ly:span-bar::before-line-breaking</c>
+    /// reads a SpanBar's <c>elements</c> with no default, so 87 files died in this very
+    /// method. Its substitution half is <see cref="BreakSubstitution"/>.
+    /// </para>
+    /// <para>
+    /// DIVERGENCE, recorded in PORT-COVERAGE: upstream also runs a <c>fixup_refpoint</c>
+    /// pass here, which re-points parents at the prebroken pieces they belong with. That
+    /// one does only matter once lines are actually broken — EPG15's subsystem.
     /// </para>
     /// </summary>
     public void PreProcessing()
@@ -324,19 +331,24 @@ public class SystemGrob : Spanner
             BreakBreakableItem(all[i]);
         }
 
-        // Order is significant: the broken pieces were appended above and are asked
-        // BEFORE the originals they came from, which upstream relies on because an
-        // original may kill itself while answering.
-        GetProperty(BeforeLineBreakingSymbol);
+        // Order is significant: the broken pieces were appended above and are handled
+        // BEFORE the originals they came from, because an original may kill itself while
+        // answering. This BACKWARD walk is upstream's, and it belongs to this pass only.
         for (int i = all.Count; i-- > 0;)
         {
-            all[i].GetProperty(BeforeLineBreakingSymbol);
+            all[i].HandlePrebrokenDependencies();
+        }
+
+        GetProperty(BeforeLineBreakingSymbol);
+        foreach (Grob grob in all)
+        {
+            grob.GetProperty(BeforeLineBreakingSymbol);
         }
 
         GetProperty(SpringsAndRodsSymbol);
-        for (int i = all.Count; i-- > 0;)
+        foreach (Grob grob in all)
         {
-            all[i].GetProperty(SpringsAndRodsSymbol);
+            grob.GetProperty(SpringsAndRodsSymbol);
         }
     }
 

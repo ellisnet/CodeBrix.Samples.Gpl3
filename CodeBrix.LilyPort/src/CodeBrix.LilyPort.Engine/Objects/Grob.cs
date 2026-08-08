@@ -22,6 +22,7 @@ using System.Collections.Generic;
 using CodeBrix.LilyPort.Engine.Bootstrap;
 using CodeBrix.LilyPort.Engine.Layout;
 using CodeBrix.LilyPort.Engine.Music;
+using CodeBrix.LilyPort.Engine.Origins;
 using CodeBrix.LilyPort.Flower;
 using CodeBrix.LilyScheme;
 using CodeBrix.LilyScheme.Values;
@@ -83,8 +84,9 @@ public sealed class DimensionCache
 /// dependency gets reported instead of overflowing the stack.
 /// </para>
 /// </summary>
-public abstract class Grob
+public abstract class Grob : IDiagnostics
 {
+    private static readonly Symbol AlignInterfaceSymbol = Symbol.Intern("align-interface");
     private static readonly Symbol MetaSymbol = Symbol.Intern("meta");
     private static readonly Symbol InterfacesSymbol = Symbol.Intern("interfaces");
     private static readonly Symbol ObjectCallbacksSymbol = Symbol.Intern("object-callbacks");
@@ -323,6 +325,16 @@ public abstract class Grob
             && !ReferenceEquals(value, CalculationInProgress))
         {
             SchemeUtilities.TypeCheckAssignment(symbol, value, BackendTypeSymbol);
+        }
+
+        // grob-interface.cc's check, ported by EPG22. Upstream runs it beside the type
+        // check under do_internal_type_checking_global; the port keeps its own gate on
+        // check-internal-types, because the check walks every interface of every grob on
+        // every assignment. (That the TYPE check above is ungated where upstream gates
+        // it is a separate, older divergence — see PORT-COVERAGE.)
+        if (GrobInterface.IsCheckingEnabled())
+        {
+            GrobInterface.CheckInterfacesForProperty(this, symbol);
         }
 
         _mutablePropertyAlist = SchemeUtilities.AssqSet(_mutablePropertyAlist, symbol, value);
@@ -617,6 +629,32 @@ public abstract class Grob
     }
 
     /// <summary>
+    /// Determines whether this grob spans staves, by looking for a vertical alignment
+    /// between it and a common reference point. An <c>align-interface</c> grob on that
+    /// chain is what separates one staff from another, so meeting one means the two ends
+    /// live on different staves.
+    /// </summary>
+    /// <param name="commony">The common vertical reference point.</param>
+    /// <returns><see langword="true"/> when the grob is cross-staff.</returns>
+    public bool CheckCrossStaff(Grob commony)
+    {
+        if (commony != null && commony.HasInterface(AlignInterfaceSymbol))
+        {
+            return true;
+        }
+
+        for (Grob g = this; g != null && !ReferenceEquals(g, commony); g = g.GetParent(Axis.Y))
+        {
+            if (g.HasInterface(AlignInterfaceSymbol))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
     /// Returns the nearest grob that is an ancestor of both this one and another, on
     /// one axis.
     /// </summary>
@@ -796,6 +834,83 @@ public abstract class Grob
         }
 
         return cause as StreamEvent;
+    }
+
+    /// <summary>
+    /// Gives a prebroken piece the object links that belong with its side of the break.
+    /// <para>
+    /// Upstream keeps this on <see cref="Grob"/> rather than in the derived class
+    /// deliberately — its own comment says so — because it is the one place that reaches
+    /// into another grob's object alist.
+    /// </para>
+    /// </summary>
+    public virtual void HandlePrebrokenDependencies()
+    {
+        /* Don't do this in the derived method, since we want to keep access to
+           object_alist_ centralized.  */
+        if (Original is Grob original && this is Item item)
+        {
+            _objectAlist = BreakSubstitution.SubstituteObjectAlist(
+                item.BreakStatusDirection(), original._objectAlist);
+        }
+    }
+
+    /// <summary>
+    /// Gets where in the source this grob ultimately came from — <c>Grob::origin</c>,
+    /// the hook upstream's <c>Diagnostics</c> base class reports every grob diagnostic
+    /// at.
+    /// </summary>
+    public Input Origin => UltimateEventCause()?.Origin as Input;
+
+    /// <summary>
+    /// Reports a warning at this grob's origin — upstream's
+    /// <c>Diagnostics::warning</c> over <c>Grob::origin</c>.
+    /// <para>
+    /// The location is the point: a bare warning about a grob names no bar and no file,
+    /// and upstream's grob diagnostics all carry one.
+    /// </para>
+    /// </summary>
+    /// <param name="message">The message.</param>
+    public void Warning(string message)
+    {
+        Input origin = Origin;
+        if (origin != null)
+        {
+            origin.Warning(message);
+        }
+        else
+        {
+            Warn.Warning(message);
+        }
+    }
+
+    /// <summary>
+    /// Gets where this grob came from, for <see cref="IDiagnostics"/>.
+    /// <para>
+    /// Upstream declares <c>class Grob : public Smob&lt;Grob&gt;, public Diagnostics</c>,
+    /// so a grob IS one of these. The port grew Warning/ProgrammingError/Origin as
+    /// members without ever declaring the interface, which meant a caller holding a Grob
+    /// could not reach the diagnostic surface generically — and, worse, an
+    /// <c>(IDiagnostics)</c> cast on a grob COMPILED and threw at run time. EPG18 met
+    /// exactly that; the fix is to declare what upstream declares.
+    /// </para>
+    /// </summary>
+    /// <returns>The origin, or <see langword="null"/>.</returns>
+    Input IDiagnostics.Origin() => Origin;
+
+    /// <summary>Reports an internal error at this grob's origin.</summary>
+    /// <param name="message">The message.</param>
+    public void ProgrammingError(string message)
+    {
+        Input origin = Origin;
+        if (origin != null)
+        {
+            origin.ProgrammingError(message);
+        }
+        else
+        {
+            Warn.ProgrammingError(message);
+        }
     }
 
     /// <summary>Returns the external representation.</summary>

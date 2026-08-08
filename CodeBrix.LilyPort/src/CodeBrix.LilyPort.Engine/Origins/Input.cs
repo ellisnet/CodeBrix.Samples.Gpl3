@@ -20,6 +20,8 @@
 using System;
 using System.Globalization;
 using CodeBrix.LilyPort.Flower;
+using CodeBrix.LilyScheme;
+using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Origins; //was previously: lily/input.cc, lily/include/input.hh;
 
@@ -43,6 +45,8 @@ namespace CodeBrix.LilyPort.Engine.Origins; //was previously: lily/input.cc, lil
 /// </summary>
 public sealed class Input
 {
+    private static readonly Symbol LocationFluidName = Symbol.Intern("%location");
+
     /// <summary>Initializes an origin with no location, which reports "position unknown".</summary>
     public Input()
     {
@@ -284,4 +288,63 @@ public sealed class Input
     /// <summary>Returns the external representation.</summary>
     /// <returns>A description naming the location.</returns>
     public override string ToString() => "#<location " + LocationString() + ">";
+
+    /// <summary>
+    /// Runs an action with <c>(*location*)</c> bound to an origin, restoring whatever
+    /// was bound before.
+    /// <para>
+    /// Upstream: <c>with_location_n</c>, which binds <c>Lily::f_location</c> — the
+    /// <c>%location</c> fluid <c>scm/lily.scm</c> defines — around a call. A value that
+    /// is not a real <see cref="Input"/> binds <see langword="false"/>, exactly as
+    /// upstream's <c>unsmob&lt;Input&gt; (loc) ? loc : SCM_BOOL_F</c> does.
+    /// </para>
+    /// <para>
+    /// The Parsing assembly has its own copy over its <c>SourceSpan</c>; this is the
+    /// engine-side one, for call sites that already hold an origin — <c>\applyContext</c>
+    /// and <c>\applyOutput</c> are the ones that reach it.
+    /// </para>
+    /// </summary>
+    /// <param name="origin">The origin to bind.</param>
+    /// <param name="action">What to run under it.</param>
+    /// <returns>What the action returned.</returns>
+    public static object WithLocation(object origin, Func<object> action)
+    {
+        if (action == null)
+        {
+            throw new ArgumentNullException(nameof(action));
+        }
+
+        Fluid fluid = LocationFluid();
+        if (fluid == null)
+        {
+            return action();
+        }
+
+        object saved = fluid.Value;
+        fluid.Value = origin is Input ? origin : false;
+        try
+        {
+            return action();
+        }
+        finally
+        {
+            fluid.Value = saved;
+        }
+    }
+
+    private static Fluid LocationFluid()
+    {
+        Interpreter interpreter = Bootstrap.LilyPondScheme.Current;
+        if (interpreter == null)
+        {
+            return null;
+        }
+
+        // %location lives in (lily) and is not exported, so it has to be looked up
+        // there rather than in the root module.
+        Variable variable = interpreter.Modules
+            .Resolve(Pair.List(Symbol.Intern("lily")))
+            .Lookup(LocationFluidName);
+        return variable != null && variable.IsBound ? variable.GetValue() as Fluid : null;
+    }
 }

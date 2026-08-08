@@ -213,9 +213,65 @@ public class LedgerTests
         // registries -- this row just stopped claiming otherwise), stencil-integral,
         // and the four font *-scheme files. pango-font.cc and pango-select.cc stay
         // no-port: they are REPLACED by the port's own font layer rather than ported.
-        ported.Should().Be(137);
+        //
+        // Wave A moved SIXTY-FOUR on 2026-08-07 in one parallel session: EPG5's
+        // nineteen (columns/rests/dots/collisions), EPG6's four (stems/flags),
+        // EPG7's ten (vertical organization), EPG8's nineteen (bars/meter/keys/
+        // marks, Timing_translator included) and EPG9's twelve (accidentals/pitch).
+        //
+        // EPG22 moved SIXTEEN on 2026-08-07 and EMPTIED its own bucket: its fifteen
+        // (music-wrapper, the four context/change/apply iterators, property-iterator,
+        // quote-iterator, the part-combine pair, articulations, grob-interface, and the
+        // four sibling-provenance rows that closed against files already carrying them),
+        // plus dispatcher-scheme.cc pulled forward out of EPG23 because \addQuote cannot
+        // run without ly:add-listener. break-substitution.cc is NOT among them: EPG22
+        // landed only its Direction half, so the row stays grouped with a note.
+        //
+        // EPG17's FIRST SLICE moved FIVE on 2026-08-07: fine-iterator,
+        // premeasure-iterator, measure-remainder-iterator, grace-iterator and
+        // grace-music. The group's other nineteen stayed grouped -- three of the
+        // remaining iterators are built on repeat-styler.cc and two more read state off
+        // Alternative_sequence_iterator, so they land together with the styler rather
+        // than one at a time behind stand-ins.
+        //
+        // EPG17's REMAINDER moved TWENTY-ONE the same day and EMPTIED the group's
+        // bucket: its own nineteen, plus two pull-forwards the demand loop forced.
+        // bracket.cc comes from EPG14 because Volta_bracket_interface::print and
+        // Tuplet_bracket::print both draw through Bracket::make_bracket, and it declares
+        // no Scheme callbacks, so EPG14 loses nothing. spanner-scheme.cc comes from
+        // EPG23 under standing rule 3: a *-scheme.cc file is never a work item of its
+        // own, and ly:spanner-bound is reached the instant EPG17's grobs exist -- before
+        // it landed, `\times 2/3 { c8 d e }' died on #<unported ly:spanner-bound>.
+        //
+        // bezier-bow.cc is deliberately NOT among them: only its closed-form shape half
+        // was pulled forward (Layout/BezierBow.cs, for \tupletSlur), and Bezier_bow
+        // itself -- the curve-fitting the faithfulness rule is about -- stays EPG12's,
+        // so the row stays grouped.
+        //
+        // EPG18 moved TEN on 2026-08-07 and emptied its own bucket with no pull-forwards
+        // at all -- the first group on this board to need nothing from a neighbour. Its
+        // three engravers share one C# file, and lyric-combine-music.cc is a single
+        // length callback, so the ten rows land in six files. What it needed from
+        // ELSEWHERE was not files but three free functions its own callers demanded and
+        // that already-ported files had never carried: melisma_busy and
+        // find_context_below out of context.cc, and spanned_time_interval out of item.cc.
+        // Those are recorded in PORT-COVERAGE against their owning rows, which stay
+        // `ported', because the file was ported -- the statics were the gap.
+        //
+        // ONE PULL-FORWARD came with EPG18 and it was forced rather than chosen:
+        // grob-pq-engraver.cc, from EPG10. busyGrobs has exactly one writer in the whole
+        // engine and that is it, so lyric extenders could not find the note heads they
+        // cover -- and it was separately the second-most-demanded unported translator in
+        // the sweep. The file holds no beam code; it sat in EPG10 only because
+        // Beam_engraver is its most conspicuous consumer.
+        // A SECOND pull-forward followed from the first: bezier-scheme.cc, from EPG23,
+        // under the bindings rule. Flower's Bezier has been ported since the Flower
+        // milestone and both LY_DEFINEs are one-line wrappers over methods it already
+        // has, so that surface was owed all along -- it simply had no caller until the
+        // context-handle fix let tie files reach their own drawing code.
+        ported.Should().Be(255);
         noPort.Should().Be(29);
-        PortLedger.NotYetPorted.Should().HaveCount(282);
+        PortLedger.NotYetPorted.Should().HaveCount(164);
     }
 
     [Fact]

@@ -21,8 +21,15 @@ namespace CodeBrix.LilyPort.Engine.Tests;
 /// error message and finds it points at the wrong character.
 /// </para>
 /// </summary>
+[Collection(EngineGlobalStateCollection.Name)]
 public class OriginTests
 {
+    // In the collection since 2026-08-07: the Warn-recording tests here read the
+    // process-global Warn.Messages, and running in parallel with the engine
+    // collection's interpreter bootstraps made them flake — proven pre-existing by
+    // a pristine-control run during Wave A. Serializing with the collection is the
+    // real fix; the two recording tests below also filter for their own messages.
+
     private const string Sample = "one\ntwo\nthree\n";
 
     [Fact]
@@ -200,10 +207,19 @@ public class OriginTests
             origin.Warning("something is off");
 
             //Assert
-            IReadOnlyList<string> messages = Warn.Messages;
-            messages.Should().NotBeEmpty();
-            messages[0].Should().Contain("sample.ly:2:2");
-            messages[0].Should().Contain("something is off");
+            // Warn's recording is process-global and other test collections run in
+            // parallel, so find THIS test's message rather than trusting index 0.
+            string message = null;
+            foreach (string candidate in Warn.Messages)
+            {
+                if (candidate.Contains("something is off"))
+                {
+                    message = candidate;
+                }
+            }
+
+            message.Should().NotBeNull();
+            message.Should().Contain("sample.ly:2:2");
         }
         finally
         {
@@ -232,7 +248,19 @@ public class OriginTests
             first.Should().BeTrue();
             second.Should().BeFalse();
             other.Should().BeTrue();
-            Warn.Messages.Should().HaveCount(2);
+
+            // Warn's recording is process-global and other test collections run in
+            // parallel, so count only THIS test's messages.
+            int recorded = 0;
+            foreach (string candidate in Warn.Messages)
+            {
+                if (candidate.Contains("old thing") || candidate.Contains("different thing"))
+                {
+                    recorded++;
+                }
+            }
+
+            recorded.Should().Be(2);
         }
         finally
         {

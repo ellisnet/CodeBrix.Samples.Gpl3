@@ -39,13 +39,27 @@ namespace CodeBrix.LilyPort.Engine.Objects; //was previously: lily/staff-symbol-
 public static class StaffSymbolReferencer
 {
     private static readonly Symbol StaffSymbolSymbol = Symbol.Intern("staff-symbol");
+    private static readonly Symbol StaffSymbolInterfaceSymbol
+        = Symbol.Intern("staff-symbol-interface");
     private static readonly Symbol StaffPositionSymbol = Symbol.Intern("staff-position");
     private static readonly Symbol LineThicknessSymbol = Symbol.Intern("line-thickness");
 
     /// <summary>Returns the staff symbol a grob is measured against.</summary>
     /// <param name="grob">The grob.</param>
     /// <returns>The staff symbol, or <see langword="null"/> when it has none.</returns>
-    public static Grob GetStaffSymbol(Grob grob) => grob?.GetObject(StaffSymbolSymbol) as Grob;
+    public static Grob GetStaffSymbol(Grob grob)
+    {
+        // Upstream's identity branch: a staff symbol asked for its own staff symbol
+        // answers ITSELF (has_interface<Staff_symbol> (me) -> me). Missing, this
+        // made a staff symbol read the 1.0 staff-space fallback instead of its own
+        // property. Found by EPG7, fixed centrally 2026-08-07.
+        if (grob != null && grob.HasInterface(StaffSymbolInterfaceSymbol))
+        {
+            return grob;
+        }
+
+        return grob?.GetObject(StaffSymbolSymbol) as Grob;
+    }
 
     /// <summary>Determines whether a staff position falls on a staff or ledger line.</summary>
     /// <param name="grob">The grob.</param>
@@ -165,5 +179,79 @@ public static class StaffSymbolReferencer
         }
 
         return offset;
+    }
+
+    /// <summary>
+    /// <c>pure_get_position</c>. The port has no pure-property machinery yet
+    /// (<c>unpure-pure-container.cc</c>, EPG15), so this answers the ORDINARY position —
+    /// the same standing divergence every pure variant takes today.
+    /// </summary>
+    /// <param name="grob">The grob.</param>
+    /// <returns>The staff position.</returns>
+    public static double PureGetPosition(Grob grob) => GetPosition(grob);
+
+    /// <summary><c>pure_get_rounded_position</c>.</summary>
+    /// <param name="grob">The grob.</param>
+    /// <returns>The rounded staff position.</returns>
+    public static int PureGetRoundedPosition(Grob grob)
+        => (int)Math.Round(PureGetPosition(grob), MidpointRounding.ToEven);
+
+    /// <summary><c>set_position</c>.</summary>
+    /// <param name="grob">The grob.</param>
+    /// <param name="p">The staff position to move it to.</param>
+    public static void SetPosition(Grob grob, double p) => InternalSetPosition(grob, p, false);
+
+    /// <summary><c>pure_set_position</c>.</summary>
+    /// <param name="grob">The grob.</param>
+    /// <param name="p">The staff position to move it to.</param>
+    public static void PureSetPosition(Grob grob, double p) => InternalSetPosition(grob, p, true);
+
+    /// <summary><c>staff_span</c>: the staff symbol's line span, empty when there is none.</summary>
+    /// <param name="grob">The grob.</param>
+    /// <returns>The span.</returns>
+    public static Interval StaffSpan(Grob grob)
+    {
+        Interval result = Interval.Empty;
+        if (grob != null)
+        {
+            Grob symbol = GetStaffSymbol(grob);
+            if (symbol != null)
+            {
+                result = StaffSymbol.LineSpan(symbol);
+            }
+        }
+
+        return result;
+    }
+
+    /// <summary><c>pure_position_less</c>: orders grobs by pure staff position.</summary>
+    /// <param name="a">The first grob.</param>
+    /// <param name="b">The second grob.</param>
+    /// <returns><see langword="true"/> when <paramref name="a"/> sits lower.</returns>
+    public static bool PurePositionLess(Grob a, Grob b)
+        => PureGetPosition(a) < PureGetPosition(b);
+
+    /*  This sets the position relative to the center of the staff symbol.
+
+    The function is hairy, because it can be called in two situations:
+
+    1. There is no staff yet; we must set staff-position
+
+    2. There is a staff, and perhaps someone even applied a
+    translate_axis (). Then we must compensate for the translation
+
+    In either case, we set a callback to be sure that our new position
+    will be extracted from staff-position */
+    private static void InternalSetPosition(Grob grob, double p, bool pure)
+    {
+        Grob st = GetStaffSymbol(grob);
+        double oldpos = 0.0;
+        if (st != null && grob.CommonRefpoint(st, Axis.Y) != null)
+        {
+            oldpos = pure ? PureGetPosition(grob) : GetPosition(grob);
+        }
+
+        double ss = StaffSpace(grob);
+        grob.TranslateAxis((p - oldpos) * ss * 0.5, Axis.Y);
     }
 }

@@ -238,6 +238,12 @@ public static class GrobCallbacks
     /// so they answer the ordinary extents, which is what a grob that declares no pure
     /// callback would give anyway.
     /// </para>
+    /// <para>
+    /// Each answer goes back as the Scheme CONS a skyline-pair property value IS
+    /// (the EPG4 rule: a skyline pair is a cons, not an object). Returning the CLR
+    /// SkylinePair here failed the property's own ly:skyline-pair? type check on
+    /// every broad read — found by EPG7, fixed centrally 2026-08-07.
+    /// </para>
     /// </summary>
     /// <param name="interpreter">The interpreter to install into.</param>
     private static void InstallSkylines(Interpreter interpreter)
@@ -245,54 +251,54 @@ public static class GrobCallbacks
         interpreter.DefinePrimitive(
             "ly:grob::simple-vertical-skylines-from-extents", 1, 1, a =>
                 StencilIntegral.SimpleVerticalFromExtents(
-                    AsGrob(a[0], "ly:grob::simple-vertical-skylines-from-extents")));
+                    AsGrob(a[0], "ly:grob::simple-vertical-skylines-from-extents")).ToScheme());
 
         interpreter.DefinePrimitive(
             "ly:grob::pure-simple-vertical-skylines-from-extents", 3, 3, a =>
                 StencilIntegral.PureSimpleVerticalFromExtents(
-                    AsGrob(a[0], "ly:grob::pure-simple-vertical-skylines-from-extents")));
+                    AsGrob(a[0], "ly:grob::pure-simple-vertical-skylines-from-extents")).ToScheme());
 
         interpreter.DefinePrimitive(
             "ly:grob::simple-horizontal-skylines-from-extents", 1, 1, a =>
                 StencilIntegral.SimpleHorizontalFromExtents(
-                    AsGrob(a[0], "ly:grob::simple-horizontal-skylines-from-extents")));
+                    AsGrob(a[0], "ly:grob::simple-horizontal-skylines-from-extents")).ToScheme());
 
         interpreter.DefinePrimitive(
             "ly:grob::pure-simple-horizontal-skylines-from-extents", 3, 3, a =>
                 StencilIntegral.PureSimpleHorizontalFromExtents(
-                    AsGrob(a[0], "ly:grob::pure-simple-horizontal-skylines-from-extents")));
+                    AsGrob(a[0], "ly:grob::pure-simple-horizontal-skylines-from-extents")).ToScheme());
 
         interpreter.DefinePrimitive(
             "ly:grob::vertical-skylines-from-stencil", 1, 1, a =>
                 StencilIntegral.SkylinesFromStencil(
-                    AsGrob(a[0], "ly:grob::vertical-skylines-from-stencil"), Axis.X));
+                    AsGrob(a[0], "ly:grob::vertical-skylines-from-stencil"), Axis.X).ToScheme());
 
         interpreter.DefinePrimitive(
             "ly:grob::horizontal-skylines-from-stencil", 1, 1, a =>
                 StencilIntegral.SkylinesFromStencil(
-                    AsGrob(a[0], "ly:grob::horizontal-skylines-from-stencil"), Axis.Y));
+                    AsGrob(a[0], "ly:grob::horizontal-skylines-from-stencil"), Axis.Y).ToScheme());
 
         interpreter.DefinePrimitive(
             "ly:grob::vertical-skylines-from-element-stencils", 1, 1, a =>
                 StencilIntegral.SkylinesFromElementStencils(
-                    AsGrob(a[0], "ly:grob::vertical-skylines-from-element-stencils"), Axis.X));
+                    AsGrob(a[0], "ly:grob::vertical-skylines-from-element-stencils"), Axis.X).ToScheme());
 
         interpreter.DefinePrimitive(
             "ly:grob::horizontal-skylines-from-element-stencils", 1, 1, a =>
                 StencilIntegral.SkylinesFromElementStencils(
-                    AsGrob(a[0], "ly:grob::horizontal-skylines-from-element-stencils"), Axis.Y));
+                    AsGrob(a[0], "ly:grob::horizontal-skylines-from-element-stencils"), Axis.Y).ToScheme());
 
         interpreter.DefinePrimitive(
             "ly:grob::pure-vertical-skylines-from-element-stencils", 3, 3, a =>
                 StencilIntegral.SkylinesFromElementStencils(
                     AsGrob(a[0], "ly:grob::pure-vertical-skylines-from-element-stencils"),
-                    Axis.X));
+                    Axis.X).ToScheme());
 
         interpreter.DefinePrimitive(
             "ly:grob::pure-horizontal-skylines-from-element-stencils", 3, 3, a =>
                 StencilIntegral.SkylinesFromElementStencils(
                     AsGrob(a[0], "ly:grob::pure-horizontal-skylines-from-element-stencils"),
-                    Axis.Y));
+                    Axis.Y).ToScheme());
     }
 
     /// <summary>

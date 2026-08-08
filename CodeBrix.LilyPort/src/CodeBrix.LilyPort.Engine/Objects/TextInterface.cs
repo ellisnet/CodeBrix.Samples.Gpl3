@@ -273,8 +273,12 @@ public static class TextInterface
             return false;
         }
 
-        return SchemeUtilities.ToBool(CallLily(MarkupCommandSignatureSymbol, pair.Car))
-               && !SchemeUtilities.ToBool(CallLily(MarkupListFunctionSymbol, pair.Car));
+        // Scheme truth, not the C# boolean: a command's markup-command-signature is
+        // a LIST, and filtering it through ToBool read every non-string markup as
+        // "not a markup" — MetronomeMark and RehearsalMark texts never drew. Found
+        // by EPG8, fixed centrally 2026-08-07.
+        return SchemeUtilities.IsSchemeTrue(CallLily(MarkupCommandSignatureSymbol, pair.Car))
+               && !SchemeUtilities.IsSchemeTrue(CallLily(MarkupListFunctionSymbol, pair.Car));
     }
 
     /// <summary>Determines whether a value is a markup list.</summary>

@@ -269,14 +269,20 @@ public static class GrobPrimitives
             return array;
         });
 
+        // The argument order is (PREDICATE, ARRAY), like Scheme's own `filter' and unlike
+        // every other ly:grob-array-* binding, which take the array first. This port had
+        // them the other way round until EPG17 (2026-08-07): VoltaBracketSpanner is the
+        // first grob whose define-grobs.scm callback calls it, and it died on
+        // `wrong-type-arg ("ly:grob-array-filter" ... #<procedure grob::is-live?>)'.
+        // Nothing had reached it before, so nothing had failed.
         interpreter.DefinePrimitive("ly:grob-array-filter", 2, 2, a =>
         {
-            GrobArray source = AsGrobArray(a[0], "ly:grob-array-filter");
+            GrobArray source = AsGrobArray(a[1], "ly:grob-array-filter");
             GrobArray result = new GrobArray { IsOrdered = source.IsOrdered };
 
             foreach (Grob grob in source)
             {
-                if (SchemeUtilities.IsSchemeTrue(SchemeUtilities.CallCallback(a[1], grob)))
+                if (SchemeUtilities.IsSchemeTrue(SchemeUtilities.CallCallback(a[0], grob)))
                 {
                     result.Add(grob);
                 }

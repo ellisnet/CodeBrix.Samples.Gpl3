@@ -53,41 +53,53 @@ public static class IteratorPrimitives
             ["ly:music-wrapper-iterator::constructor"] = () => new MusicWrapperIterator(),
             ["ly:sequential-iterator::constructor"] = () => new SequentialIterator(),
             ["ly:simultaneous-music-iterator::constructor"] = () => new SimultaneousMusicIterator(),
+
+            // EPG22 (2026-08-07).
+            ["ly:context-specced-music-iterator::constructor"] = () => new ContextSpeccedMusicIterator(),
+            ["ly:initial-context-music-iterator::constructor"] = () => new InitialContextMusicIterator(),
+            ["ly:change-iterator::constructor"] = () => new ChangeIterator(),
+            ["ly:apply-context-iterator::constructor"] = () => new ApplyContextIterator(),
+            ["ly:property-iterator::constructor"] = () => new PropertyIterator(),
+            ["ly:property-unset-iterator::constructor"] = () => new PropertyUnsetIterator(),
+            ["ly:push-property-iterator::constructor"] = () => new PushPropertyIterator(),
+            ["ly:pop-property-iterator::constructor"] = () => new PopPropertyIterator(),
+            ["ly:quote-iterator::constructor"] = () => new QuoteIterator(),
+            ["ly:part-combine-iterator::constructor"] = () => new PartCombineIterator(),
+
+            // EPG17 (2026-08-07), first slice: the four whose behaviour is entirely their
+            // own.
+            ["ly:fine-iterator::constructor"] = () => new FineIterator(),
+            ["ly:grace-iterator::constructor"] = () => new GraceIterator(),
+            ["ly:measure-remainder-iterator::constructor"] = () => new MeasureRemainderIterator(),
+            ["ly:premeasure-iterator::constructor"] = () => new PremeasureIterator(),
+
+            // EPG17 (2026-08-07), remainder: the five built on Repeat_styler and on each
+            // other. Volta_repeat owns the styler, Alternative_sequence borrows it, and
+            // Volta_specced reads its bracket state off Alternative_sequence — which is
+            // why they had to land together rather than one at a time.
+            ["ly:alternative-sequence-iterator::constructor"] = () => new AlternativeSequenceIterator(),
+            ["ly:percent-repeat-iterator::constructor"] = () => new PercentRepeatIterator(),
+            ["ly:tuplet-iterator::constructor"] = () => new TupletIterator(),
+            ["ly:volta-repeat-iterator::constructor"] = () => new VoltaRepeatIterator(),
+            ["ly:volta-specced-music-iterator::constructor"] = () => new VoltaSpeccedMusicIterator(),
+
+            // EPG18 (2026-08-07). The last one: with this entry the table holds all 28
+            // constructors upstream declares, and NotYetPorted below is empty.
+            ["ly:lyric-combine-music-iterator::constructor"] = () => new LyricCombineMusicIterator(),
         };
 
     /// <summary>
     /// The iterator constructors upstream declares that this port has NOT reached yet.
     /// <para>
-    /// Each corresponds to a music type whose behaviour needs machinery beyond the
-    /// iterator itself — repeats and volta brackets, property push/pop, part
-    /// combining, lyric alignment, context changes. Their stubs stay in place, so a
-    /// music type that needs one is REPORTED as new demand rather than silently
-    /// iterated by a default that would drop its meaning.
+    /// EMPTY as of EPG18 (2026-08-07), and it is meant to stay that way: all 28
+    /// constructors upstream declares are registered above, which is gate G5. The list is
+    /// kept rather than deleted because it is the honest shape of this mechanism — a music
+    /// type whose iterator is not ported has NO constructor registered and falls through
+    /// to a default that would silently drop its meaning, so anything that ever has to
+    /// come out of <see cref="Constructors"/> belongs here, named, instead of vanishing.
     /// </para>
     /// </summary>
-    public static IReadOnlyList<string> NotYetPorted { get; } = new[]
-    {
-        "ly:alternative-sequence-iterator::constructor",
-        "ly:apply-context-iterator::constructor",
-        "ly:change-iterator::constructor",
-        "ly:context-specced-music-iterator::constructor",
-        "ly:fine-iterator::constructor",
-        "ly:grace-iterator::constructor",
-        "ly:initial-context-music-iterator::constructor",
-        "ly:lyric-combine-music-iterator::constructor",
-        "ly:measure-remainder-iterator::constructor",
-        "ly:part-combine-iterator::constructor",
-        "ly:percent-repeat-iterator::constructor",
-        "ly:pop-property-iterator::constructor",
-        "ly:premeasure-iterator::constructor",
-        "ly:property-iterator::constructor",
-        "ly:property-unset-iterator::constructor",
-        "ly:push-property-iterator::constructor",
-        "ly:quote-iterator::constructor",
-        "ly:tuplet-iterator::constructor",
-        "ly:volta-repeat-iterator::constructor",
-        "ly:volta-specced-music-iterator::constructor",
-    };
+    public static IReadOnlyList<string> NotYetPorted { get; } = new string[0];
 
     /// <summary>Gets the constructor entry points this port implements.</summary>
     public static IReadOnlyCollection<string> Ported => Constructors.Keys;

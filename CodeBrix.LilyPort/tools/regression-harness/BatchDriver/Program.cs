@@ -18,24 +18,40 @@ namespace CodeBrix.LilyPort.BatchDriver;
 /// The harness's way of running the PORT over the regression suite in one process
 /// — the batch half of decision D14, on decision D20's score → SVG path.
 /// <para>
-/// Usage: <c>BatchDriver SUITE_DIR OUT_DIR [--limit N] [--files a.ly,b.ly]</c>.
+/// Usage:
+/// <c>BatchDriver SUITE_DIR OUT_DIR [--limit N] [--files a.ly,b.ly] [--keep-existing]</c>.
 /// One SVG per input lands in <c>OUT_DIR</c>; per-file status goes to standard
 /// output as a tab-separated line the harness scripts can read. The process exits
-/// zero as long as the SWEEP ran; individual files failing to engrave is the
-/// expected state the comparator grades, not a driver error.
+/// zero as long as the SWEEP ran AND the output directory holds exactly what the
+/// sweep says it wrote; individual files failing to engrave is the expected state
+/// the comparator grades, not a driver error.
+/// </para>
+/// <para>
+/// THE OUTPUT DIRECTORY IS EMPTIED OF <c>.svg</c> FILES BEFORE THE SWEEP RUNS, and
+/// that is load-bearing rather than tidiness. It was not, until 2026-08-07, and the
+/// consequence was that a sweep's output sat on top of every earlier run's: a file
+/// that STOPPED producing a page kept the stale one, `compare-output.py` graded the
+/// stale page, and the ratchet reported no regression for precisely the failure mode
+/// it exists to catch. It had accumulated 1,568 pages for a run that produced 1,470,
+/// and inflated the committed floor by 97 rows over at least three sessions. The
+/// self-check at the end of the sweep is the second half of the same fix: it asserts
+/// the directory contents equal the set of pages this run reported writing, so the
+/// mistake cannot come back silently by another route.
 /// </para>
 /// </summary>
 public static class Program
 {
     /// <summary>Runs the sweep.</summary>
     /// <param name="args">Command line: suite directory, output directory, options.</param>
-    /// <returns>0 when the sweep ran; 2 on usage errors.</returns>
+    /// <returns>0 when the sweep ran and its self-check passed; 2 on usage errors;
+    /// 3 when the output directory does not hold exactly what the sweep wrote.</returns>
     public static int Main(string[] args)
     {
         if (args.Length < 2)
         {
             Console.Error.WriteLine(
-                "usage: BatchDriver SUITE_DIR OUT_DIR [--limit N] [--files a.ly,b.ly]");
+                "usage: BatchDriver SUITE_DIR OUT_DIR [--limit N] [--files a.ly,b.ly]"
+                + " [--keep-existing]");
             return 2;
         }
 
@@ -43,6 +59,7 @@ public static class Program
         string outputDirectory = args[1];
         int limit = int.MaxValue;
         HashSet<string> only = null;
+        bool keepExisting = false;
 
         for (int i = 2; i < args.Length; i++)
         {
@@ -53,6 +70,13 @@ public static class Program
             else if (args[i] == "--files" && i + 1 < args.Length)
             {
                 only = new HashSet<string>(args[++i].Split(','), StringComparer.Ordinal);
+            }
+            else if (args[i] == "--keep-existing")
+            {
+                // For the rare partial run (--files / --limit) that is deliberately
+                // ADDING pages to a directory a full sweep filled. It suppresses the
+                // clean AND the self-check, because neither means anything then.
+                keepExisting = true;
             }
         }
 
@@ -70,9 +94,20 @@ public static class Program
 
         Directory.CreateDirectory(outputDirectory);
 
+        if (keepExisting)
+        {
+            Console.WriteLine("# --keep-existing: output directory NOT cleaned,"
+                + " and the self-check is off. This run's verdicts are not evidence.");
+        }
+        else
+        {
+            ClearStalePages(outputDirectory);
+        }
+
         int produced = 0;
         int errored = 0;
         int empty = 0;
+        HashSet<string> written = new HashSet<string>(StringComparer.Ordinal);
         Stopwatch clock = Stopwatch.StartNew();
 
         foreach (string file in files)
@@ -84,6 +119,7 @@ public static class Program
                 if (result.SvgPath != null)
                 {
                     produced++;
+                    written.Add(Path.GetFullPath(result.SvgPath));
                     Console.WriteLine(name + "\tSVG\t" + result.SystemCount
                         + " system(s), " + result.ErrorCount + " parse error(s)");
                 }
@@ -109,8 +145,116 @@ public static class Program
             empty,
             errored,
             clock.Elapsed.TotalSeconds));
-        return 0;
+
+        return keepExisting ? 0 : SelfCheck(outputDirectory, written);
     }
+
+    /// <summary>
+    /// Removes every <c>.svg</c> already in the output directory, so the sweep grades
+    /// against ITS OWN output and nothing else.
+    /// <para>
+    /// Only top-level <c>.svg</c> files go: anything else in there was not written by
+    /// this driver, so it is left alone and NAMED, because unexpected contents usually
+    /// mean the caller pointed at the wrong directory.
+    /// </para>
+    /// </summary>
+    /// <param name="outputDirectory">The directory the sweep writes into.</param>
+    private static void ClearStalePages(string outputDirectory)
+    {
+        List<string> stale = PagesIn(outputDirectory);
+        foreach (string page in stale)
+        {
+            File.Delete(page);
+        }
+
+        int foreign = Directory.GetFileSystemEntries(outputDirectory).Length;
+        Console.WriteLine(string.Format(
+            System.Globalization.CultureInfo.InvariantCulture,
+            "# cleaned {0} stale page(s) from {1}",
+            stale.Count,
+            outputDirectory));
+
+        if (foreign > 0)
+        {
+            Console.WriteLine(string.Format(
+                System.Globalization.CultureInfo.InvariantCulture,
+                "# NOTE: {0} non-.svg entr(ies) remain in the output directory and were"
+                + " left alone — is this the directory you meant?",
+                foreign));
+        }
+    }
+
+    /// <summary>
+    /// Asserts the output directory holds exactly the pages this run reported writing.
+    /// <para>
+    /// This is the cheap invariant that would have caught the stale-output defect the
+    /// moment it appeared, in the spirit of the comparator's reference-against-itself
+    /// self-check. A count alone would do for today's one-page-per-input driver; the
+    /// SET is compared instead, so it keeps holding if a file ever emits several pages.
+    /// </para>
+    /// </summary>
+    /// <param name="outputDirectory">The directory the sweep wrote into.</param>
+    /// <param name="written">Full paths of the pages the sweep reported writing.</param>
+    /// <returns>0 when the directory matches; 3 when it does not.</returns>
+    private static int SelfCheck(string outputDirectory, HashSet<string> written)
+    {
+        HashSet<string> onDisk = new HashSet<string>(
+            PagesIn(outputDirectory).Select(Path.GetFullPath),
+            StringComparer.Ordinal);
+
+        List<string> unexpected = onDisk.Except(written).OrderBy(p => p, StringComparer.Ordinal).ToList();
+        List<string> absent = written.Except(onDisk).OrderBy(p => p, StringComparer.Ordinal).ToList();
+
+        if (unexpected.Count == 0 && absent.Count == 0)
+        {
+            Console.WriteLine(string.Format(
+                System.Globalization.CultureInfo.InvariantCulture,
+                "# self-check: {0} page(s) on disk == {0} page(s) written",
+                onDisk.Count));
+            return 0;
+        }
+
+        Console.Error.WriteLine(string.Format(
+            System.Globalization.CultureInfo.InvariantCulture,
+            "*** SELF-CHECK FAILED: {0} page(s) on disk, {1} written by this run"
+            + " ({2} unexpected, {3} missing). The comparator would grade output this"
+            + " sweep did not produce; its verdicts are NOT evidence. ***",
+            onDisk.Count,
+            written.Count,
+            unexpected.Count,
+            absent.Count));
+
+        foreach (string page in unexpected.Take(20))
+        {
+            Console.Error.WriteLine("  UNEXPECTED  " + Path.GetFileName(page));
+        }
+
+        foreach (string page in absent.Take(20))
+        {
+            Console.Error.WriteLine("  MISSING     " + Path.GetFileName(page));
+        }
+
+        return 3;
+    }
+
+    /// <summary>
+    /// The pages in a directory — the ONE definition of what this driver considers
+    /// its own output, shared by the clean and the self-check so they can never
+    /// disagree about what a page is.
+    /// <para>
+    /// The extension is matched exactly rather than by a <c>"*.svg"</c> search
+    /// pattern: that pattern also matches longer extensions by documented design
+    /// (the rule that makes <c>"*.xls"</c> return <c>book.xlsx</c>), and one side of
+    /// this pair DELETES what it is given.
+    /// </para>
+    /// </summary>
+    /// <param name="directory">The directory to look in.</param>
+    /// <returns>Full paths of its <c>.svg</c> files, top level only.</returns>
+    private static List<string> PagesIn(string directory)
+        => Directory.GetFiles(directory)
+            .Where(path => string.Equals(
+                Path.GetExtension(path), ".svg", StringComparison.OrdinalIgnoreCase))
+            .ToList();
 
     private static string Summarise(BatchRunResult result)
     {

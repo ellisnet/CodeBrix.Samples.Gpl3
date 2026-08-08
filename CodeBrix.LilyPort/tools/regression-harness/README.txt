@@ -308,3 +308,80 @@ page and graded the whole suite on a coarse path-shape histogram. It could not
 have reported a position difference even in principle.
 
 Run this self-check after any change to parse_svg.
+
+===============================================================================
+THE CANDIDATE DIRECTORY WAS NOT CLEANED, AND THE RATCHET COULD NOT SEE IT
+(found 2026-08-07 by EPG17's first slice; FIXED the same day by HARNESS-FIX)
+===============================================================================
+
+THE DEFECT, kept in full because the shape of it is worth recognising again.
+
+BatchDriver WROTE INTO candidate/svg and never removed what was already there.
+So after a sweep the directory held this run's output PLUS every page any
+earlier run produced and this one did not. When it was found, candidate/svg had
+1,568 files for a sweep that produced 1,470, with some dating from 2026-08-05.
+
+WHY THAT MATTERED. compare-output.py grades whatever is in the directory. A file
+that STOPS producing a page therefore kept its stale page from a previous run
+and graded exactly as it did before -- so the ratchet reported no regression for
+precisely the failure mode it exists to catch.
+
+MEASURED, not theorised. EPG17's first slice registered the grace iterator
+constructor, and `measure-counter-grace` went SVG -> NOOUT (it now reaches an
+unported ly:spanner-broken-into). Its manifest row was GLYPHS-DIFFER, so that is
+a real regression. `ratchet.py check` reported 0 regressions, because it graded
+the stale SVG from the sweep before it.
+
+Nor was it one row. Against the first CLEAN measurement the committed floor was
+overstated by 97, accumulated across at least three sessions.
+
+WHAT THE FIX IS. Two things in BatchDriver, because removing the cause and
+detecting its return are different jobs:
+
+  * The output directory is EMPTIED of .svg files at startup, every run. Only
+    top-level .svg files go; anything else is left alone and named, since
+    unexpected contents usually mean the wrong directory was passed.
+  * A SELF-CHECK at the end asserts the directory holds exactly the set of pages
+    the sweep reported writing, and EXITS 3 if it does not. That is the cheap
+    invariant that would have caught this the moment it appeared -- the same
+    idea as comparing the reference directory against itself. It is a real gate:
+    it was proven to fail by dropping a foreign page into the directory mid-run.
+
+  `--keep-existing` opts out of both, for the rare partial run (--files/--limit)
+  that is deliberately adding to a full sweep's output. It says so on stdout,
+  and a run made that way is not evidence.
+
+So the sweep is now just:
+
+    dotnet run --project tools/regression-harness/BatchDriver -c Release -- \
+        tests/regression tools/regression-harness/candidate/svg > /tmp/sweep.log
+
+No `rm -rf` step to remember. A step you have to remember is a step that will
+eventually be skipped by whoever is in a hurry, and that is what happened here.
+
+SCOPE OF THE DOUBT this casts backwards. The IMPROVEMENTS recorded by earlier
+sessions are not affected -- an improvement is MISSING -> something, i.e. a file
+that had no candidate page and now has one, which stale files cannot fake. What
+is NOT trustworthy in the record is any earlier "0 regressions" claim. Every
+floor that could not be met against a clean directory has since been lowered,
+with its reason, in pass-manifest-decisions.tsv.
+
+-------------------------------------------------------------------------------
+LOWERING A FLOOR: pass-manifest-decisions.tsv
+-------------------------------------------------------------------------------
+
+`ratchet.py update` cannot lower a row -- it takes the better of manifest and
+run. When a floor genuinely has to come down, `ratchet.py rebaseline` is the only
+way, it requires a written --reason, and it appends every change to
+pass-manifest-decisions.tsv (committed, append-only):
+
+    ./ratchet.py rebaseline /tmp/run.tsv --reason "why" [--only a.svg,b.svg]
+
+--only exists so rows that come down for DIFFERENT reasons are recorded
+separately rather than under one averaged excuse.
+
+The manifest records what the floor IS; the decisions file records what happened
+to it. Before this existed, nothing in the repository could tell an earned floor
+from an unearned one, which is why 97 unearned rows stood for three sessions.
+
+The first 97 entries are that re-baseline, 1,541 -> 1,444, on 2026-08-07.

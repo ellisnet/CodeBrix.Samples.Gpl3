@@ -598,6 +598,211 @@ Copyright: Copyright (C) 1996--2026 Han-Wen Nienhuys <hanwen@xs4all.nl>
     src/CodeBrix.LilyPort.Engine/Translation/DeprecatedProperty.cs
         <- lily/deprecated-property.cc, lily/include/deprecated-property.hh
            Copyright (C) 2024 Daniel Eble
+
+    -- EPG22, the iterator layer and its plumbing (added 2026-08-07) --
+
+    src/CodeBrix.LilyPort.Engine/Music/MusicWrapper.cs
+        <- lily/music-wrapper.cc, lily/include/music-wrapper.hh
+           Copyright (C) 1998--2026 Han-Wen Nienhuys
+    src/CodeBrix.LilyPort.Engine/Translation/ContextIterators.cs
+        <- lily/context-specced-music-iterator.cc, lily/change-iterator.cc,
+           lily/apply-context-iterator.cc
+           Copyright (C) 1997--2026, 2002--2026, 2004--2026 Han-Wen Nienhuys
+        <- lily/initial-context-music-iterator.cc
+           Copyright (C) 2023 Daniel Eble
+    src/CodeBrix.LilyPort.Engine/Translation/PropertyIterators.cs
+        <- lily/property-iterator.cc, lily/include/property-iterator.hh
+           Copyright (C) 1997--2026 Han-Wen Nienhuys
+    src/CodeBrix.LilyPort.Engine/Translation/QuoteIterator.cs
+        <- lily/quote-iterator.cc
+           Copyright (C) 2004--2026 Han-Wen Nienhuys
+    src/CodeBrix.LilyPort.Engine/Translation/PartCombine.cs
+        <- lily/part-combine-iterator.cc
+           Copyright (C) 2004--2026 Han-Wen Nienhuys
+        <- lily/part-combine-engraver.cc
+           Copyright (C) 2000--2026 Jan Nieuwenhuizen, Han-Wen Nienhuys
+    src/CodeBrix.LilyPort.Engine/Translation/Articulations.cs
+        <- lily/articulations.cc, lily/include/articulations.hh
+           Copyright (C) 2010--2026 Carl Sorensen
+    src/CodeBrix.LilyPort.Engine/Objects/GrobInterface.cs
+        <- lily/grob-interface.cc, lily/include/grob-interface.hh
+           Copyright (C) 2002--2026 Han-Wen Nienhuys
+           The NAME DERIVATION and check_interfaces_for_property only.
+           add_interface's registration half has no analogue: the port has no
+           static initialisers, so C++-side interface declarations are vendored
+           into GrobInterfaceTable and registered through ly:add-interface.
+    src/CodeBrix.LilyPort.Engine/Objects/BreakSubstitution.cs
+        <- lily/break-substitution.cc (the Direction criterion only)
+           Copyright (C) 1998--2026 Han-Wen Nienhuys
+           EPG22 pulled the PREBREAK half forward from EPG15 because
+           Grob::handle_prebroken_dependencies is not optional before line
+           breaking. The System criterion -- line breaking proper -- is not
+           ported and stays with EPG15.
+    src/CodeBrix.LilyPort.Engine/Bootstrap/DispatcherPrimitives.cs
+        New-in-family C# (no upstream header), Copyright (c) 2026 Jeremy Ellis
+        and contributors -- the binding surface of lily/dispatcher-scheme.cc
+        (Copyright (C) 2006--2026 Erik Sandberg), whose BEHAVIOUR each
+        DefinePrimitive follows, over the already-ported Dispatcher type. Filed
+        here under the same rule as the other *-scheme.cc binding files: the
+        derivation is the LY_DEFINE contract, not copied code.
+
+    Four EPG22 ledger rows closed against files that already carried them, so
+    they add no new derived file and are recorded on their host instead:
+    lily/simple-music-iterator.cc and lily/event-iterator.cc ride
+    Translation/MusicIterator.cs, lily/listener.cc rides
+    Translation/Dispatcher.cs, and lily/includable-lexer.cc rides
+    Parsing/Lexing/ModalScanner.cs.
+
+    -- EPG17, repeats / voltas / percent / tuplets / grace (added 2026-08-07) --
+
+    src/CodeBrix.LilyPort.Engine/Translation/RepeatStyler.cs
+        <- lily/repeat-styler.cc, lily/include/repeat-styler.hh
+           Copyright (C) 2021--2026 Daniel Eble
+    src/CodeBrix.LilyPort.Engine/Translation/RepeatIterators.cs
+        <- lily/volta-repeat-iterator.cc, lily/include/volta-repeat-iterator.hh
+           Copyright (C) 2002--2026 Han-Wen Nienhuys
+        <- lily/alternative-sequence-iterator.cc,
+           lily/include/alternative-sequence-iterator.hh
+           Copyright (C) 2021--2026 Daniel Eble
+        <- lily/volta-specced-music-iterator.cc
+           Copyright (C) 2020--2026 Daniel Eble
+    src/CodeBrix.LilyPort.Engine/Translation/TupletIterator.cs
+        <- lily/tuplet-iterator.cc
+           Copyright (C) 1998--2026 Han-Wen Nienhuys, Erik Sandberg
+    src/CodeBrix.LilyPort.Engine/Translation/PercentRepeatIterator.cs
+        <- lily/percent-repeat-iterator.cc
+           Copyright (C) 2001--2026 Han-Wen Nienhuys, Erik Sandberg
+    src/CodeBrix.LilyPort.Engine/Objects/TupletBracket.cs
+        <- lily/tuplet-bracket.cc, lily/include/tuplet-bracket.hh
+           Copyright (C) 1997--2026 Jan Nieuwenhuizen, Han-Wen Nienhuys
+    src/CodeBrix.LilyPort.Engine/Objects/TupletNumber.cs
+        <- lily/tuplet-number.cc, lily/include/tuplet-number.hh
+           Copyright (C) 2005--2026 Han-Wen Nienhuys
+    src/CodeBrix.LilyPort.Engine/Objects/TupletDescription.cs
+        <- lily/tuplet-description.cc, lily/include/tuplet-description.hh
+           Copyright (C) 2002--2026 Juergen Reuter
+    src/CodeBrix.LilyPort.Engine/Objects/VoltaBracket.cs
+        <- lily/volta-bracket.cc, lily/include/volta-bracket.hh
+           Copyright (C) 1997--2026 Jan Nieuwenhuizen
+    src/CodeBrix.LilyPort.Engine/Objects/PercentRepeatInterface.cs
+        <- lily/percent-repeat-interface.cc
+           Copyright (C) 2001--2026 Han-Wen Nienhuys
+    src/CodeBrix.LilyPort.Engine/Translation/VoltaEngraver.cs
+        <- lily/volta-engraver.cc
+           Copyright (C) 2000--2026 Han-Wen Nienhuys
+    src/CodeBrix.LilyPort.Engine/Translation/TupletEngraver.cs
+        <- lily/tuplet-engraver.cc
+           Copyright (C) 1998--2026 Han-Wen Nienhuys
+    src/CodeBrix.LilyPort.Engine/Translation/PercentRepeatEngravers.cs
+        <- lily/percent-repeat-engraver.cc, lily/slash-repeat-engraver.cc
+           Copyright (C) 2000--2026 Han-Wen Nienhuys, Erik Sandberg
+        <- lily/double-percent-repeat-engraver.cc
+           Copyright (C) 2011--2026 Neil Puttock
+        <- lily/repeat-acknowledge-engraver.cc
+           Copyright (C) 2000--2026 Han-Wen Nienhuys
+    src/CodeBrix.LilyPort.Engine/Translation/GraceEngravers.cs
+        <- lily/grace-engraver.cc
+           Copyright (C) 2004--2026 Han-Wen Nienhuys
+        <- lily/grace-spacing-engraver.cc
+           Copyright (C) 2006--2026 Han-Wen
+
+    Three EPG17 pull-forwards, each recorded with the group it was taken from:
+
+    src/CodeBrix.LilyPort.Engine/Objects/Bracket.cs
+        <- lily/bracket.cc, lily/include/bracket.hh
+           Copyright (C) 1997--2026 Jan Nieuwenhuizen, Han-Wen Nienhuys
+           PULLED FORWARD FROM EPG14 WHOLE. Volta_bracket_interface::print and
+           Tuplet_bracket::print both draw through Bracket::make_bracket, and
+           the file declares no Scheme callbacks at all, so EPG14 keeps its own
+           bracket grobs and loses nothing.
+    src/CodeBrix.LilyPort.Engine/Layout/BezierBow.cs
+        <- lily/bezier-bow.cc (the closed-form SHAPE half only:
+           slur_shape, get_slur_indent_height, slur_height, F0_1)
+           Copyright (C) 1998--2026 Jan Nieuwenhuizen
+           PULLED FORWARD FROM EPG12 IN PART, for \tupletSlur. Bezier_bow
+           itself -- the curve fitting, which is the decades-tuned code the
+           faithfulness rule is about -- is NOT here and stays EPG12's, so the
+           ledger row stays grouped.
+    src/CodeBrix.LilyPort.Engine/Bootstrap/Epg17Callbacks.cs
+        New-in-family C# (no upstream header), Copyright (c) 2026 Jeremy Ellis
+        and contributors -- the binding surface of the EPG17 grobs, plus all
+        five LY_DEFINEs of lily/spanner-scheme.cc (Copyright (C) 2005--2026
+        Han-Wen Nienhuys), PULLED FORWARD FROM EPG23 under the bindings rule.
+        Filed here under the same rule as the other *-scheme.cc binding files:
+        the derivation is the LY_DEFINE contract, not copied code.
+
+    src/CodeBrix.LilyPort.Engine/Music/MomentInterval.cs
+        <- flower/include/interval.hh (the Interval_t<Moment> instantiation)
+           Copyright (C) 1996--2026 Han-Wen Nienhuys
+           The third concrete instantiation of the C++ template, after Flower's
+           Interval (over Real) and Slice (over int). It lives in the Engine
+           rather than in Flower because Moment is an Engine type.
+
+    Two pieces of already-ported upstream files landed with EPG17 because it
+    was the first group to reach them, and are recorded on their existing
+    hosts: lily/line-interface.cc's property-driven half (line, arrows,
+    make_arrow, make_zigzag_line, make_trill_line) rides Layout/LineInterface.cs
+    and CLOSES that file's recorded divergence, and lily/grob.cc's
+    Grob::check_cross_staff rides Objects/Grob.cs.
+
+    -- EPG18, lyrics and melody (added 2026-08-07) --
+
+    src/CodeBrix.LilyPort.Engine/Translation/LyricCombineIterator.cs
+        <- lily/lyric-combine-music-iterator.cc
+           Copyright (C) 2004--2026 Han-Wen Nienhuys
+    src/CodeBrix.LilyPort.Engine/Translation/LyricEngravers.cs
+        <- lily/lyric-engraver.cc
+           Copyright (C) 1997--2026 Han-Wen Nienhuys, Jan Nieuwenhuizen
+        <- lily/extender-engraver.cc, lily/hyphen-engraver.cc
+           Copyright (C) 1999--2026 Glen Prideaux, Han-Wen Nienhuys,
+           Jan Nieuwenhuizen
+           lyric-engraver.cc also DEFINES two free functions that context.hh
+           declares -- get_voice_to_lyrics and get_current_note_head -- so they
+           are EPG18's to port and live here, on their upstream file, as
+           statics on LyricEngraver.
+    src/CodeBrix.LilyPort.Engine/Translation/MelodyEngraver.cs
+        <- lily/melody-engraver.cc
+           Copyright (C) 1997--2026 Han-Wen Nienhuys
+    src/CodeBrix.LilyPort.Engine/Objects/LyricExtender.cs
+        <- lily/lyric-extender.cc, lily/include/lyric-extender.hh
+           Copyright (C) 1998--2026 Jan Nieuwenhuizen, Han-Wen Nienhuys
+    src/CodeBrix.LilyPort.Engine/Objects/LyricHyphen.cs
+        <- lily/lyric-hyphen.cc, lily/include/lyric-hyphen.hh
+           Copyright (C) 2003--2026 Han-Wen Nienhuys
+    src/CodeBrix.LilyPort.Engine/Objects/VowelTransition.cs
+        <- lily/vowel-transition.cc, lily/include/vowel-transition.hh
+           Copyright (C) 2020--2026 David Stephen Grant
+    src/CodeBrix.LilyPort.Engine/Objects/MelodySpanner.cs
+        <- lily/melody-spanner.cc, lily/include/melody-spanner.hh
+           Copyright (C) 2005--2026 Han-Wen Nienhuys
+    src/CodeBrix.LilyPort.Engine/Translation/GrobPqEngraver.cs
+        <- lily/grob-pq-engraver.cc
+           Copyright (C) 2001--2026 Han-Wen Nienhuys
+           PULLED FORWARD FROM EPG10. It is the only writer of busyGrobs, which
+           lyric extenders read to find the note heads they cover, and it was
+           also the second-most-demanded unported translator in the sweep. The
+           file contains no beam code; it was grouped with EPG10 only because
+           Beam_engraver is its most conspicuous consumer.
+    src/CodeBrix.LilyPort.Engine/Bootstrap/Epg18Callbacks.cs
+        New-in-family C# (no upstream header), Copyright (c) 2026 Jeremy Ellis
+        and contributors -- the binding surface of the EPG18 grobs, plus the
+        whole of lily/lyric-combine-music.cc (Copyright (C) 1999--2026 Han-Wen
+        Nienhuys), which is one length callback and nothing else, and
+        lily/grob-pq-engraver.cc's single LY_DEFINE (ly:grob-pq<?), which comes
+        with the engraver above under the bindings rule, and the whole of
+        lily/bezier-scheme.cc -- ly:bezier-extent and ly:bezier-extract
+        (Copyright (C) 2005--2026 Han-Wen Nienhuys), PULLED FORWARD FROM EPG23
+        under that same rule, since Flower's Bezier was ported long ago and both
+        are one-line wrappers over methods it already has. Filed here under the
+        same rule as the other binding files: the derivation is the LY_DEFINE /
+        MAKE_SCHEME_CALLBACK contract, not copied code.
+
+    Three free functions of already-ported upstream files landed with EPG18
+    because it was the first group to NEED them, and are recorded on their
+    existing hosts: lily/context.cc's melisma_busy and lily/context.hh's
+    find_context_below ride Translation/Context.cs, and lily/item.cc's
+    spanned_time_interval rides Objects/Item.cs. Their ledger rows stay
+    `ported' -- the files were ported and these statics were the gap.
     src/CodeBrix.LilyPort.Engine/Layout/MusicOutput.cs
         <- lily/music-output.cc, lily/include/music-output.hh
            Copyright (C) 2005--2026 Han-Wen Nienhuys

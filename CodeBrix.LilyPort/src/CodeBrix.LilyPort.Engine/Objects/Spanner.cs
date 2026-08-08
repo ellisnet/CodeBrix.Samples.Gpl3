@@ -54,6 +54,10 @@ namespace CodeBrix.LilyPort.Engine.Objects; //was previously: lily/spanner.cc, l
 public class Spanner : Grob
 {
     private static readonly Symbol SpannerInterface = Symbol.Intern("spanner-interface");
+    private static readonly Symbol XPositionsSymbol = Symbol.Intern("X-positions");
+    private static readonly Symbol LeftBoundInfoSymbol = Symbol.Intern("left-bound-info");
+    private static readonly Symbol RightBoundInfoSymbol = Symbol.Intern("right-bound-info");
+    private static readonly Symbol XSymbol = Symbol.Intern("X");
 
     private DrulArray<Item> _spannedDrul;
 
@@ -198,22 +202,83 @@ public class Spanner : Grob
     /// <returns>The length.</returns>
     public double SpannerLength()
     {
-        Interval bounds = Interval.Empty;
-        foreach (Direction d in new[] { Direction.Negative, Direction.Positive })
+        // THREE tiers, in upstream's order, and the order is the point: a spanner that
+        // has been through line breaking carries its answer in X-positions, one that has
+        // only had its bounds resolved carries it in the bound-info alists, and only a
+        // spanner with neither falls back on the bounds' own coordinates.
+        //
+        // The port had ONLY a variant of the third tier until EPG17 (2026-08-07), and
+        // that variant referenced each bound to ITS OWN X parent rather than absolutely,
+        // so two bounds under different parents produced a meaningless difference and two
+        // bounds at the same in-parent offset produced ZERO. VoltaBracket is the first
+        // grob to call this in anger; volta-multi-staff-inner-staff.ly died on
+        // "Skyline building slope is not finite" because Bracket::make_bracket divides by
+        // the length it is handed.
+        Interval lr = ReadInterval(GetProperty(XPositionsSymbol), new Interval(1, -1));
+
+        if (lr.IsEmpty)
         {
-            Item bound = GetBound(d);
-            if (bound != null)
+            DrulArray<object> bounds = new DrulArray<object>(
+                GetProperty(LeftBoundInfoSymbol), GetProperty(RightBoundInfoSymbol));
+
+            foreach (Direction d in BothDirections)
             {
-                bounds[d] = bound.RelativeCoordinate(bound.GetParent(Axis.X), Axis.X);
+                Pair entry = SchemeUtilities.Assq(XSymbol, bounds[d]);
+                lr[d] = entry != null && Bootstrap.SchemeConvert.IsNumber(entry.Cdr)
+                    ? Bootstrap.SchemeConvert.ToDouble(entry.Cdr, "spanner-length")
+                    : -(int)d;
             }
         }
 
-        if (bounds.IsEmpty)
+        if (lr.IsEmpty)
         {
-            Warn.ProgrammingError("spanner with no bounds");
-            return 0.0;
+            foreach (Direction d in BothDirections)
+            {
+                Item bound = GetBound(d);
+                lr[d] = bound != null ? bound.RelativeCoordinate(null, Axis.X) : -(int)d;
+            }
         }
 
-        return bounds.Length;
+        if (lr.IsEmpty)
+        {
+            ProgrammingError("spanner with negative length");
+        }
+
+        return lr.Length;
+    }
+
+    private static Interval ReadInterval(object value, Interval fallback)
+    {
+        if (value is Pair pair
+            && Bootstrap.SchemeConvert.IsNumber(pair.Car)
+            && Bootstrap.SchemeConvert.IsNumber(pair.Cdr))
+        {
+            return new Interval(
+                Bootstrap.SchemeConvert.ToDouble(pair.Car, "spanner-length"),
+                Bootstrap.SchemeConvert.ToDouble(pair.Cdr, "spanner-length"));
+        }
+
+        return fallback;
+    }
+
+    private static Direction[] BothDirections { get; }
+        = { Direction.Negative, Direction.Positive };
+
+    /// <summary>
+    /// The free function <c>add_bound_item</c>: the first call sets the left bound,
+    /// every later one the right.
+    /// </summary>
+    /// <param name="sp">The spanner.</param>
+    /// <param name="it">The item to bound it with.</param>
+    public static void AddBoundItem(Spanner sp, Grob it)
+    {
+        if (sp.GetBound(Direction.Negative) == null)
+        {
+            sp.SetBound(Direction.Negative, it);
+        }
+        else
+        {
+            sp.SetBound(Direction.Positive, it);
+        }
     }
 }

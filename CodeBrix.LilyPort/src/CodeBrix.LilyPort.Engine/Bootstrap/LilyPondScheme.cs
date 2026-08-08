@@ -320,6 +320,23 @@ public static class LilyPondScheme
         TransformPrimitives.Install(interpreter);
         FontPrimitives.Install(interpreter);
         GrobCallbacks.Install(interpreter);
+
+        // The Wave A group installers (2026-08-07). Epg8Callbacks carries a few
+        // demand-pulled bindings for files outside its group; the overlapping
+        // EPG7 stand-ins it shipped were removed at integration, so the order of
+        // these five is not load-bearing.
+        Epg5Callbacks.Install(interpreter);
+        Epg6Callbacks.Install(interpreter);
+        Epg7Callbacks.Install(interpreter);
+        Epg8Callbacks.Install(interpreter);
+        Epg9Callbacks.Install(interpreter);
+        Epg17Callbacks.Install(interpreter);
+        Epg18Callbacks.Install(interpreter);
+
+        // EPG22 (2026-08-07): dispatcher-scheme.cc, pulled forward from EPG23 because
+        // \addQuote cannot run without it. It must go in AFTER Epg8Callbacks, which is
+        // where ly:broadcast used to live.
+        DispatcherPrimitives.Install(interpreter);
         OriginPrimitives.Install(interpreter);
         ParserPrimitives.Install(interpreter);
         EngineSupport.Install(interpreter);

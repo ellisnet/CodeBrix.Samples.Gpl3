@@ -105,6 +105,76 @@ public static class TranslatorRegistry
         Add(registries, "Note_spacing_engraver", c => new NoteSpacingEngraver(c));
         Add(registries, "Separating_line_group_engraver",
             c => new SeparatingLineGroupEngraver(c));
+
+        // EPG5 — columns, rests, dots, collisions.
+        Add(registries, "Rest_engraver", c => new RestEngraver(c));
+        Add(registries, "Rest_collision_engraver", c => new RestCollisionEngraver(c));
+        Add(registries, "Rhythmic_column_engraver", c => new RhythmicColumnEngraver(c));
+        Add(registries, "Collision_engraver", c => new CollisionEngraver(c));
+        Add(registries, "Dot_column_engraver", c => new DotColumnEngraver(c));
+        Add(registries, "Dots_engraver", c => new DotsEngraver(c));
+        Add(registries, "Completion_heads_engraver", c => new CompletionHeadsEngraver(c));
+        Add(registries, "Completion_rest_engraver", c => new CompletionRestEngraver(c));
+        Add(registries, "Multi_measure_rest_engraver",
+            c => new MultiMeasureRestEngraver(c));
+
+        // EPG6 — stems and flags.
+        Add(registries, "Stem_engraver", c => new StemEngraver(c));
+
+        // EPG7 — vertical organization.
+        Add(registries, "Vertical_align_engraver", c => new VerticalAlignEngraver(c));
+        Add(registries, "System_start_delimiter_engraver",
+            c => new SystemStartDelimiterEngraver(c));
+        Add(registries, "Staff_collecting_engraver", c => new StaffCollectingEngraver(c));
+
+        // EPG8 — bars, meter, keys, marks.
+        Add(registries, "Bar_engraver", c => new BarEngraver(c));
+        Add(registries, "Span_bar_engraver", c => new SpanBarEngraver(c));
+        Add(registries, "Span_bar_stub_engraver", c => new SpanBarStubEngraver(c));
+        Add(registries, "Bar_number_engraver", c => new BarNumberEngraver(c));
+        Add(registries, "Key_engraver", c => new KeyEngraver(c));
+        Add(registries, "Time_signature_engraver", c => new TimeSignatureEngraver(c));
+        Add(registries, "Timing_translator", c => new TimingTranslator(c));
+        Add(registries, "Metronome_mark_engraver", c => new MetronomeMarkEngraver(c));
+        Add(registries, "Mark_engraver", c => new MarkEngraver(c));
+        Add(registries, "Mark_tracking_translator", c => new MarkTrackingTranslator(c));
+        Add(registries, "Jump_engraver", c => new JumpEngraver(c));
+        Add(registries, "Caesura_engraver", c => new CaesuraEngraver(c));
+        Add(registries, "Grid_line_span_engraver", c => new GridLineSpanEngraver(c));
+        Add(registries, "Grid_point_engraver", c => new GridPointEngraver(c));
+
+        // EPG9 — accidentals and pitch machinery.
+        Add(registries, "Accidental_engraver", c => new AccidentalEngraver(c));
+        Add(registries, "Ambitus_engraver", c => new AmbitusEngraver(c));
+        Add(registries, "Pitched_trill_engraver", c => new PitchedTrillEngraver(c));
+        Add(registries, "Pitch_squash_engraver", c => new PitchSquashEngraver(c));
+        Add(registries, "Note_name_engraver", c => new NoteNameEngraver(c));
+        Add(registries, "Cue_clef_engraver", c => new CueClefEngraver(c));
+
+        // EPG22 — iterators and music plumbing.
+        Add(registries, "Part_combine_engraver", c => new PartCombineEngraver(c));
+
+        // EPG17 — repeats, voltas, percent, tuplets, grace.
+        Add(registries, "Volta_engraver", c => new VoltaEngraver(c));
+        Add(registries, "Repeat_acknowledge_engraver",
+            c => new RepeatAcknowledgeEngraver(c));
+        Add(registries, "Tuplet_engraver", c => new TupletEngraver(c));
+        Add(registries, "Percent_repeat_engraver", c => new PercentRepeatEngraver(c));
+        Add(registries, "Double_percent_repeat_engraver",
+            c => new DoublePercentRepeatEngraver(c));
+        Add(registries, "Slash_repeat_engraver", c => new SlashRepeatEngraver(c));
+        Add(registries, "Grace_engraver", c => new GraceEngraver(c));
+        Add(registries, "Grace_spacing_engraver", c => new GraceSpacingEngraver(c));
+
+        // EPG10's grob-pq-engraver.cc, PULLED FORWARD by EPG18: busyGrobs has no other
+        // writer, and lyric extenders cannot find their note heads without it.
+        Add(registries, "Grob_pq_engraver", c => new GrobPqEngraver(c));
+
+        // EPG18 — lyrics and melody.
+        Add(registries, "Lyric_engraver", c => new LyricEngraver(c));
+        Add(registries, "Extender_engraver", c => new ExtenderEngraver(c));
+        Add(registries, "Hyphen_engraver", c => new HyphenEngraver(c));
+        Add(registries, "Melody_engraver", c => new MelodyEngraver(c));
     }
 
     /// <summary>

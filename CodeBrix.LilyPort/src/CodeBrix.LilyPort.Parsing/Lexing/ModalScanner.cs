@@ -12,7 +12,7 @@ using System.Text.RegularExpressions;
 using CodeBrix.LilyPort.Parsing.Driver;
 using CodeBrix.LilyScheme.Values;
 
-namespace CodeBrix.LilyPort.Parsing.Lexing;
+namespace CodeBrix.LilyPort.Parsing.Lexing; //was previously: lily/lexer.ll (the scanner), lily/includable-lexer.cc (the include stack);
 
 /// <summary>
 /// The lexer's start conditions, all thirteen of them exclusive.

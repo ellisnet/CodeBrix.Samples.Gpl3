@@ -299,21 +299,11 @@ public static class SeparationItem
         => SkylinePair.FromScheme(grob?.GetProperty(HorizontalSkylines)) ?? new SkylinePair();
 
     /// <summary>
-    /// The seam for <c>Accidental_placement::get_relevant_accidentals</c>, which is
-    /// EPG9's. Nothing carries the interface yet, so this is only ever reached with an
-    /// empty list; when EPG9 lands, the filter goes HERE.
+    /// <c>Accidental_placement::get_relevant_accidentals</c> — the seam closed when
+    /// EPG9 landed (Wave A integration, 2026-08-07).
     /// </summary>
     private static List<Grob> RelevantAccidentals(List<Grob> accidentals, Grob left)
-    {
-        if (accidentals.Count > 0)
-        {
-            Warn.ProgrammingError(
-                "accidental placement is not ported (EPG9): conditional accidentals are"
-                + " being counted unfiltered against " + left.Name);
-        }
-
-        return accidentals;
-    }
+        => AccidentalPlacement.GetRelevantAccidentals(accidentals, left);
 
     private static double RobustDouble(object value, double fallback)
         => SchemeConvert.IsNumber(value)

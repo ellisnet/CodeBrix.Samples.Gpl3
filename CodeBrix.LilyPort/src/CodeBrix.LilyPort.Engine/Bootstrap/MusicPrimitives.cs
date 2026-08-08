@@ -250,6 +250,14 @@ public static class MusicPrimitives
         interpreter.DefinePrimitive("ly:number->duration", 1, 1, a =>
             Duration.FromWholeNotes(SchemeConvert.ToRational(a[0], "ly:number->duration"), true));
 
+        // Pulled forward out of EPG23 by the demand loop (2026-08-07): the error bucket
+        // named it in 29 files. lily-library.scm's duration-length, auto-beam.scm's
+        // beat-position walk and ly-syntax-constructors.scm's \tempo handling all reach
+        // it before anything can engrave. Upstream is Rational (*a) -- the duration's
+        // length in whole notes with the compression factor applied, exact.
+        interpreter.DefinePrimitive("ly:duration->number", 1, 1, a =>
+            SchemeConvert.FromRational(AsDuration(a[0], "ly:duration->number").ToWholeNotes()));
+
         interpreter.DefinePrimitive("ly:intlog2", 1, 1, a =>
         {
             long value = SchemeConvert.ToLong(a[0], "ly:intlog2");
@@ -413,6 +421,22 @@ public static class MusicPrimitives
                     .GetProperty(Symbol.Intern("elements")),
                 AsPitch(a[1], "ly:music-sequence::event-chord-relative-callback"),
                 true));
+
+        // music-wrapper.cc. Every wrapper music type in scm/define-music-types.scm names
+        // these two, so their absence made \relative, \fixed, \transpose, \context and
+        // the rest report zero length -- and an expression of zero length engraves
+        // nothing at all.
+        interpreter.DefinePrimitive("ly:music-wrapper::length-callback", 1, 1, a =>
+            MusicWrapper.LengthCallback(AsMusic(a[0], "ly:music-wrapper::length-callback")));
+
+        interpreter.DefinePrimitive("ly:music-wrapper::start-callback", 1, 1, a =>
+            MusicWrapper.StartCallback(AsMusic(a[0], "ly:music-wrapper::start-callback")));
+
+        // grace-music.cc (EPG17). Grace music starts BEFORE the moment it is written at,
+        // by its own whole length — which is why the answer is a moment with a negative
+        // GRACE part and a zero main part.
+        interpreter.DefinePrimitive("ly:grace-music::start-callback", 1, 1, a =>
+            GraceMusic.StartCallback(AsMusic(a[0], "ly:grace-music::start-callback")));
 
         interpreter.DefinePrimitive("ly:calculated-sequential-music::length", 1, 1, a =>
             CalculatedSequentialMusic.Length(

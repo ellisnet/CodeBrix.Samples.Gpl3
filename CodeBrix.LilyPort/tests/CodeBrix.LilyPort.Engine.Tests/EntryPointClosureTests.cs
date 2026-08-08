@@ -99,7 +99,34 @@ public class EntryPointClosureTests
         // grob callbacks, the transform constructors, the ten skyline callbacks, the
         // font introspection surface, and ly:duration-compress pulled forward out of
         // EPG23 by the demand loop.
-        closure.Implemented.Count.Should().BeGreaterThanOrEqualTo(364);
+        // The Wave A session (2026-08-07) opened at 365: ly:duration->number pulled
+        // forward out of EPG23 by the error-bucket census (29 files).
+        // Wave A itself (EPG5-EPG9 in parallel, integrated the same day) took it to
+        // 476: the five groups' owed surfaces plus the demand pull-forwards
+        // (grob.cc's parent-positioning pair, ly:unpure-call/ly:pure-call,
+        // system.cc's vertical callbacks, hara-kiri's non-suicide calc-skylines,
+        // ly:broadcast, four stencil-scheme leaves, the two pure-height
+        // ordinary-extent stand-ins, and finite?/euclidean-remainder).
+        // EPG22 (2026-08-07) took it to 494: ten iterator constructors, the two
+        // ly:music-wrapper callbacks, and the six dispatcher-scheme.cc bindings pulled
+        // forward out of EPG23 (ly:broadcast was already implemented, so that file
+        // contributes six rather than seven).
+        // EPG17's REMAINDER (2026-08-07) took it to 526: five iterator constructors,
+        // twelve grob callbacks (volta-bracket print, tuplet-bracket's five,
+        // tuplet-number's three, the three percent-repeat stencils),
+        // ly:tuplet-description?, and two whole binding files pulled forward out of
+        // EPG23 by the demand loop -- spanner-scheme.cc's five and the four
+        // stencil-scheme.cc leaves the closing sweep asked for.
+        // EPG18 (2026-08-07) took it to 535: its own seven -- the lyric-combine iterator
+        // constructor and length callback, the lyric extender and hyphen stencils, the
+        // two spacing-rod callbacks, and the melody-spanner direction interpolator --
+        // plus ly:grob-pq<? from grob-pq-engraver.cc (pulled forward out of EPG10) and
+        // ly:bezier-extent from bezier-scheme.cc (out of EPG23). Both pull-forwards were
+        // forced by the demand loop rather than chosen. NINE, not ten: bezier-scheme.cc's
+        // other binding, ly:bezier-extract, was already implemented in
+        // GeneralPrimitives.cs with its ledger row still claiming EPG23 -- THIS TEST is
+        // what caught that, by arithmetic, which is the reason it asserts a number at all.
+        closure.Implemented.Count.Should().BeGreaterThanOrEqualTo(535);
     }
 
     [Fact]

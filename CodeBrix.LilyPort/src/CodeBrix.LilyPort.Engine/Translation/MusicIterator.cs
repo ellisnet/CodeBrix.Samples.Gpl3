@@ -24,7 +24,7 @@ using CodeBrix.LilyPort.Engine.Objects;
 using CodeBrix.LilyPort.Flower;
 using CodeBrix.LilyScheme.Values;
 
-namespace CodeBrix.LilyPort.Engine.Translation; //was previously: lily/music-iterator.cc, lily/include/music-iterator.hh;
+namespace CodeBrix.LilyPort.Engine.Translation; //was previously: lily/music-iterator.cc, lily/include/music-iterator.hh, lily/simple-music-iterator.cc, lily/event-iterator.cc;
 
 // Modified by Jeremy Ellis on 2026-08-03 as part of the CodeBrix port.
 
@@ -59,7 +59,15 @@ public class MusicIterator
     private static readonly Symbol EventSymbol = Symbol.Intern("event");
     private static readonly Symbol TagsSymbol = Symbol.Intern("tags");
 
-    private Context _context;
+    // Upstream's Music_iterator holds its own context through a Context_handle
+    // (`Context_handle handle_;', with get_own_context/set_own_context going through it),
+    // and that is LOAD-BEARING rather than bookkeeping: the handle's client count is what
+    // makes Context::is_removable answer false for a context an iterator is still
+    // reporting to. The port kept a plain field here until EPG18, so EVERY context read as
+    // removable the moment it had no children, and any code asking is_removable about a
+    // live context got the wrong answer -- which is how a whole \lyricsto branch was being
+    // dropped at create_contexts time.
+    private readonly ContextHandle _handle = new ContextHandle();
 
     /// <summary>Gets the C++ class name this iterator corresponds to.</summary>
     public virtual string ClassName => "Music_iterator";
@@ -72,6 +80,14 @@ public class MusicIterator
 
     /// <summary>Gets the length of the music this iterator walks.</summary>
     public Moment MusicLength { get; private set; }
+
+    /// <summary>
+    /// Gets where in the source this iterator's music came from, for a diagnostic or an
+    /// event's <c>origin</c>.
+    /// <para>Upstream: <c>Music_iterator::origin ()</c>, which is
+    /// <c>get_music ()-&gt;origin ()</c>.</para>
+    /// </summary>
+    public object Origin => Music?.Origin;
 
     /// <summary>
     /// Gets when this music starts, relative to where the iterator sits in the stream.
@@ -99,8 +115,8 @@ public class MusicIterator
     /// </summary>
     public Context OwnContext
     {
-        get => _context;
-        set => _context = value;
+        get => _handle.Context;
+        set => _handle.Set(value);
     }
 
     /// <summary>

@@ -247,10 +247,18 @@ public sealed class SvgBackend : IStencilSink
         if (ReferenceEquals(head, StartGroupNode))
         {
             _body.Append("<g");
+
+            // Due to the way nested grob properties work, we may see duplicate keys --
+            // upstream's own comment, and upstream's own answer is (uniqued-alist
+            // attributes hashq assq), which keeps the FIRST entry for each key. A later
+            // \override goes on the FRONT of the alist, so first-wins is last-override-
+            // wins. Emitting both produces a duplicate XML attribute and an unparseable
+            // document, which is precisely what svg-duplicate-attribute.ly tests.
+            HashSet<object> seen = new HashSet<object>(ReferenceEqualityComparer.Instance);
             object cursor = args.Count > 0 ? args[0] : Nil.Instance;
             while (cursor is Pair listPair)
             {
-                if (listPair.Car is Pair entry)
+                if (listPair.Car is Pair entry && seen.Add(entry.Car))
                 {
                     _body.Append(' ');
                     _body.Append(Text(entry.Car));

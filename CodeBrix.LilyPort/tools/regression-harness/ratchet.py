@@ -31,18 +31,40 @@ USAGE
 
     ./ratchet.py self-test                    # prove the gate logic itself
 
+    # a row that must come DOWN -- a decision, never a fix (see below)
+    ./ratchet.py rebaseline /tmp/run.tsv --reason "why" [--only a.svg,b.svg]
+
+LOWERING A ROW
+
+A floor only means something if lowering it is harder than raising it. `update`
+therefore cannot lower anything: it takes the better of manifest and run, row by
+row. When a row genuinely has to come down -- the port deliberately gave up a
+page, or the floor was recorded from evidence that turned out not to be evidence
+-- `rebaseline` is the only way, it demands a written reason, and it appends
+every change to pass-manifest-decisions.tsv so the manifest can always be read
+back against why it says what it says.
+
+That file exists because of 2026-08-07: BatchDriver never cleaned its output
+directory, so files that had STOPPED producing pages kept their stale ones,
+the comparator graded those, and 97 rows stood on evidence from as far back as
+two days earlier. Nothing in the repository recorded that a floor could be
+unearned, so nothing questioned it for three sessions.
+
 EXIT CODES
 
-    0  no file regressed (check), or the manifest was advanced (update)
+    0  no file regressed (check), or the manifest was advanced (update/rebaseline)
     1  at least one file regressed
     2  usage or I/O error
 """
 
 import argparse
+import datetime
 import os
 import sys
 
 MANIFEST = os.path.join(os.path.dirname(os.path.abspath(__file__)), "pass-manifest.tsv")
+DECISIONS = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                         "pass-manifest-decisions.tsv")
 
 # Worst to best. The ratchet compares by INDEX in this list, so adding a rung means
 # deciding where it sits on the ladder -- which is the right thing to be forced to
@@ -127,6 +149,42 @@ def compare(manifest, run):
     return regressions, improvements, unseen
 
 
+def rows_to_lower(manifest, run, only):
+    """Return the (name, from, to) triples a rebaseline would write.
+
+    Only rows that CURRENTLY regress are eligible: rebaseline exists to record a
+    floor that cannot be met, never to lower a row that is being met. `only`
+    restricts it further to a named set, so one decision's rows can be recorded
+    with one reason and another's with another.
+    """
+    lowered = []
+    for name, recorded in sorted(manifest.items()):
+        if only is not None and name not in only:
+            continue
+        if name not in run:
+            continue
+        if rank_of(run[name]) < rank_of(recorded):
+            lowered.append((name, recorded, run[name]))
+    return lowered
+
+
+def append_decisions(path, lowered, reason, today):
+    """Append the audit trail. The manifest says WHAT; this says WHY, forever."""
+    fresh = not os.path.exists(path)
+    with open(path, "a") as handle:
+        if fresh:
+            handle.write(
+                "# CodeBrix.LilyPort ratchet -- every time a floor came DOWN, and why.\n"
+                "# Append-only, written by `ratchet.py rebaseline`. The manifest records\n"
+                "# what the floor IS; this records what happened to it, so a row that\n"
+                "# reads lower than a plan document claims can always be accounted for.\n"
+                "#\n"
+                "# date\tname\tfrom\tto\treason\n")
+        for name, was, now in lowered:
+            handle.write("%s\t%s\t%s\t%s\t%s\n"
+                         % (today, name, was, now, reason.replace("\t", " ")))
+
+
 def command_check(arguments):
     manifest = read_verdicts(arguments.manifest) if os.path.exists(arguments.manifest) else {}
     run = read_verdicts(arguments.run)
@@ -183,6 +241,46 @@ def command_update(arguments):
     return 0
 
 
+def command_rebaseline(arguments):
+    manifest = read_verdicts(arguments.manifest) if os.path.exists(arguments.manifest) else {}
+    run = read_verdicts(arguments.run)
+
+    reason = arguments.reason.strip()
+    if not reason:
+        print("rebaseline: --reason must say WHY the floor is coming down",
+              file=sys.stderr)
+        return 2
+
+    only = None
+    if arguments.only:
+        only = set(arguments.only.split(","))
+        unknown = sorted(only - set(manifest))
+        if unknown:
+            print("rebaseline: not in the manifest: %s" % ", ".join(unknown), file=sys.stderr)
+            return 2
+
+    lowered = rows_to_lower(manifest, run, only)
+    if not lowered:
+        print("rebaseline: nothing to lower — no selected row regresses. Manifest untouched.")
+        return 0
+
+    today = datetime.date.today().isoformat()
+    for name, _was, now in lowered:
+        manifest[name] = now
+
+    write_manifest(arguments.manifest, manifest)
+    append_decisions(arguments.decisions, lowered, reason, today)
+
+    print("rebaselined %d row(s); reason recorded in %s"
+          % (len(lowered), arguments.decisions))
+    for name, was, now in lowered[:20]:
+        print("  LOWERED    %-46s %s -> %s" % (name, was, now))
+    if len(lowered) > 20:
+        print("  ... and %d more (all of them are in the decisions file)"
+              % (len(lowered) - 20))
+    return 0
+
+
 def command_self_test(_arguments):
     """Prove the gate logic. A ratchet that cannot fail is not a gate."""
     failures = []
@@ -231,6 +329,28 @@ def command_self_test(_arguments):
     check("MATCH is the top rung", LADDER[-1] == "MATCH")
     check("MISSING is the bottom rung", LADDER[0] == "MISSING")
 
+    # Lowering a floor is a separate, deliberate act, so its selection logic is
+    # proven here too -- an unexercised decision path is not one to trust with 97
+    # rows.
+    down = dict(manifest, **{"a.svg": "GLYPHS-DIFFER", "b.svg": "MATCH"})
+    lowered = rows_to_lower(manifest, down, None)
+    check("rebaseline lowers only the regressed row",
+          lowered == [("a.svg", "MATCH", "GLYPHS-DIFFER")])
+
+    check("rebaseline leaves an improved row alone",
+          all(name != "b.svg" for name, _, _ in lowered))
+
+    check("rebaseline honours --only",
+          rows_to_lower(manifest, down, {"b.svg"}) == [])
+
+    check("rebaseline lowers nothing when the run meets the floor",
+          rows_to_lower(manifest, dict(manifest), None) == [])
+
+    # A file absent from the run is a `check` failure, never a silent rebaseline:
+    # the row must not come down on the strength of evidence nobody produced.
+    check("rebaseline skips a file the run has no verdict for",
+          rows_to_lower(manifest, {"a.svg": "MATCH", "b.svg": "GLYPHS-DIFFER"}, None) == [])
+
     for failure in failures:
         print("FAIL: %s" % failure)
     if failures:
@@ -245,6 +365,8 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     parser.add_argument("--manifest", default=MANIFEST,
                         help="the committed per-file floor (default: %(default)s)")
+    parser.add_argument("--decisions", default=DECISIONS,
+                        help="append-only log of floors that came DOWN (default: %(default)s)")
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     check_parser = subparsers.add_parser("check", help="fail if any file regressed")
@@ -256,6 +378,18 @@ def main():
     update_parser.add_argument("--force", action="store_true",
                                help="advance even though something regressed (explain it)")
     update_parser.set_defaults(handler=command_update)
+
+    rebaseline_parser = subparsers.add_parser(
+        "rebaseline", help="lower floors that cannot be met, with a recorded reason")
+    rebaseline_parser.add_argument("run", help="per-file verdicts from compare-output.py --tsv")
+    rebaseline_parser.add_argument("--reason", required=True,
+                                   help="why these floors are coming down; goes in the "
+                                        "decisions file beside every row it lowers")
+    rebaseline_parser.add_argument("--only",
+                                   help="comma-separated page names to lower, so rows that "
+                                        "come down for DIFFERENT reasons are recorded "
+                                        "separately (default: every regressed row)")
+    rebaseline_parser.set_defaults(handler=command_rebaseline)
 
     self_test_parser = subparsers.add_parser("self-test", help="prove the gate logic")
     self_test_parser.set_defaults(handler=command_self_test)

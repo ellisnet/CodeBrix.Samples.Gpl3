@@ -47,7 +47,6 @@ public static class NoteHead
     private static readonly Symbol StaffPositionSymbol = Symbol.Intern("staff-position");
     private static readonly Symbol StemSymbol = Symbol.Intern("stem");
     private static readonly Symbol StemAttachmentSymbol = Symbol.Intern("stem-attachment");
-    private static readonly Symbol DirectionSymbol = Symbol.Intern("direction");
     private static readonly Symbol PositioningDoneSymbol = Symbol.Intern("positioning-done");
     private static readonly Symbol SelectHeadGlyphSymbol = Symbol.Intern("select-head-glyph");
     private static readonly Symbol KievanSymbol = Symbol.Intern("kievan");
@@ -303,31 +302,16 @@ public static class NoteHead
         return SchemeUtilities.CallCallback(variable.GetValue(), style, (long)log);
     }
 
+    // These predate the ported directional-element-interface.cc and now delegate to
+    // it: the private strict copy warned with its own text and did NOT store the
+    // direction, where upstream's get_strict_grob_direction warns "direction of
+    // grob %s must be UP or DOWN; using UP" and SETS the property. Found
+    // independently by EPG5 and EPG6, reconciled at Wave A integration 2026-08-07.
     private static Direction GrobDirection(Grob grob)
-    {
-        object value = grob?.GetProperty(DirectionSymbol);
-        if (!SchemeConvert.IsNumber(value))
-        {
-            return Direction.Center;
-        }
-
-        long direction = SchemeConvert.ToLong(value, "direction");
-        return direction > 0
-            ? Direction.Positive
-            : direction < 0 ? Direction.Negative : Direction.Center;
-    }
+        => grob == null ? Direction.Center : DirectionalElementInterface.GetGrobDirection(grob);
 
     private static Direction StrictGrobDirection(Grob grob)
-    {
-        Direction direction = GrobDirection(grob);
-        if (!direction.IsNonZero)
-        {
-            Warn.ProgrammingError("direction is unset for " + grob.Name + "; using UP");
-            direction = Direction.Positive;
-        }
-
-        return direction;
-    }
+        => DirectionalElementInterface.GetStrictGrobDirection(grob);
 
     private static double ToDouble(object value)
         => SchemeConvert.IsNumber(value) ? SchemeConvert.ToDouble(value, "stem-attachment") : 0.0;

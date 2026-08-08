@@ -328,9 +328,40 @@ public static class GeneralPrimitives
             return new Pair(result.X, result.Y);
         });
 
+        // Upstream is scm_c_make_string (1, scm_integer_to_char (wc)): the argument is an
+        // INTEGER CODEPOINT, and every caller passes one — #x200a for the hair spaces in
+        // boxed rehearsal marks, #x0132/#x0133 for the IJ ligatures, and the whole chord-
+        // modifier set (degree sign, slashed o, triangles).
+        //
+        // This port read the argument as a SchemeChar and fell back to codepoint ZERO for
+        // anything else, so it answered a NUL character to every real call. Nothing failed:
+        // a NUL is a perfectly good string as far as the engine is concerned, and it only
+        // became visible when EPG17 (2026-08-07) made enough marks reach the page for the
+        // SVG to stop being well-formed XML — NUL is not a legal XML character. Integers
+        // are the contract; a character is tolerated rather than turned back into a NUL.
         interpreter.DefinePrimitive("ly:wide-char->utf-8", 1, 1, a =>
-            new MutableString(char.ConvertFromUtf32(
-                a[0] is SchemeChar character ? character.CodePoint : 0)));
+        {
+            int codePoint;
+            switch (a[0])
+            {
+                case SchemeChar character:
+                    codePoint = character.CodePoint;
+                    break;
+                case long value:
+                    codePoint = (int)value;
+                    break;
+                case int value:
+                    codePoint = value;
+                    break;
+                case System.Numerics.BigInteger big:
+                    codePoint = (int)big;
+                    break;
+                default:
+                    throw SchemeErrors.WrongType("ly:wide-char->utf-8", "integer", a[0]);
+            }
+
+            return new MutableString(char.ConvertFromUtf32(codePoint));
+        });
 
         // LilyPond's own formatter — NOT Guile's format. It knows ~a, ~s, ~f with an
         // optional single-digit precision, ~$ (precision 2) and ~~, nothing else, and

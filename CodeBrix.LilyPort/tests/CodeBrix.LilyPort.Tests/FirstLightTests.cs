@@ -244,8 +244,8 @@ public class FirstLightTests
         IReadOnlyList<string> missing = EngraveResult.MissingTranslators();
 
         //Assert
-        missing.Should().Contain("Bar_engraver");
-        missing.Should().Contain("Stem_engraver");
+        missing.Should().Contain("Beam_engraver");
+        missing.Should().Contain("Tie_engraver");
 
         // ...and the ported ones are NOT in it, which is the half that can rot silently.
         missing.Should().NotContain("Clef_engraver");
@@ -257,6 +257,16 @@ public class FirstLightTests
         missing.Should().NotContain("Spacing_engraver");
         missing.Should().NotContain("Note_spacing_engraver");
         missing.Should().NotContain("Separating_line_group_engraver");
+
+        // Wave A moved these across on 2026-08-07 (both were on the Contain side,
+        // which is exactly what the fence is for; Beam and Tie stand in as the
+        // still-missing sentinels above until EPG10/EPG11).
+        missing.Should().NotContain("Stem_engraver");
+        missing.Should().NotContain("Bar_engraver");
+        missing.Should().NotContain("Rest_engraver");
+        missing.Should().NotContain("Timing_translator");
+        missing.Should().NotContain("Staff_collecting_engraver");
+        missing.Should().NotContain("Accidental_engraver");
     }
 
     private static Grob FindGrob(EngraveResult result, string name)

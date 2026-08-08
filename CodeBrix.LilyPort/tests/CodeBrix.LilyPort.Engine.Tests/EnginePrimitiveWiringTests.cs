@@ -16,6 +16,7 @@ namespace CodeBrix.LilyPort.Engine.Tests;
 /// <summary>
 /// The 2026-08-03 §7b unblock wirings: the Prob Scheme bindings, the interface
 /// registry answering as a hash table, and the (empty) function-documentation table.
+/// Later demand-loop binding pull-forwards fence themselves here too.
 /// </summary>
 [Collection(EngineGlobalStateCollection.Name)]
 public class EnginePrimitiveWiringTests
@@ -109,5 +110,22 @@ public class EnginePrimitiveWiringTests
 
         //Assert
         result.Should().Be("(#t ())");
+    }
+
+    [Fact]
+    public void a_duration_converts_to_its_exact_whole_note_count()
+    {
+        //Arrange
+        // ly:duration->number is upstream's Rational (*a): the length in whole notes
+        // with the compression factor applied, as an EXACT rational -- a dotted
+        // quarter is 3/8, and a triplet quarter (factor 2/3) is 1/6, never a float.
+        //Act
+        string result = Eval(
+            "(list (ly:duration->number (ly:make-duration 2 1))"
+            + "     (ly:duration->number (ly:make-duration 2 0 2/3))"
+            + "     (ly:duration->number (ly:make-duration 0)))");
+
+        //Assert
+        result.Should().Be("(3/8 1/6 1)");
     }
 }

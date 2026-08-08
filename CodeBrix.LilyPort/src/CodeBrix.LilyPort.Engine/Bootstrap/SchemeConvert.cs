@@ -137,6 +137,42 @@ public static class SchemeConvert
         => value is long || value is int || value is BigInteger
            || value is double || value is Ratio;
 
+    /// <summary>
+    /// Reads a pair of reals into a <see cref="DrulArray{T}"/>, the way
+    /// <c>from_scm (value, Drul_array&lt;Real&gt; {...})</c> does — LEFT from the car,
+    /// RIGHT from the cdr.
+    /// </summary>
+    /// <param name="value">The Scheme value, expected to be a pair of numbers.</param>
+    /// <param name="fallback">The answer when the value is not such a pair.</param>
+    /// <returns>The pair, or the fallback.</returns>
+    public static DrulArray<double> ToDrulDouble(object value, DrulArray<double> fallback)
+    {
+        if (value is Pair pair && IsNumber(pair.Car) && IsNumber(pair.Cdr))
+        {
+            return new DrulArray<double>(
+                ToDouble(pair.Car, "from-scm-drul"), ToDouble(pair.Cdr, "from-scm-drul"));
+        }
+
+        return fallback;
+    }
+
+    /// <summary>
+    /// Reads a pair of booleans into a <see cref="DrulArray{T}"/>. As everywhere in the
+    /// engine, only <c>#t</c> counts as true.
+    /// </summary>
+    /// <param name="value">The Scheme value, expected to be a pair.</param>
+    /// <returns>The pair; both sides are <see langword="false"/> when it is not a pair.</returns>
+    public static DrulArray<bool> ToDrulBool(object value)
+    {
+        if (value is Pair pair)
+        {
+            return new DrulArray<bool>(
+                pair.Car is bool left && left, pair.Cdr is bool right && right);
+        }
+
+        return new DrulArray<bool>(false, false);
+    }
+
     // A double reaching a Rational is always a whole-note count that came through
     // Scheme arithmetic; approximate it over a fixed denominator rather than trying to
     // recover an exact value that was already lost.

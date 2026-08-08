@@ -19,6 +19,7 @@
 
 using System.Collections.Generic;
 using System.Globalization;
+using CodeBrix.LilyPort.Flower;
 using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Objects; //was previously: lily/misc.cc, lily/include/misc.hh;
@@ -88,4 +89,27 @@ public static class Misc
     /// <returns>The formatted number.</returns>
     public static string FormatReal(double value, int precision = 4)
         => value.ToString("F" + precision.ToString(CultureInfo.InvariantCulture), CultureInfo.InvariantCulture);
+
+    /// <summary>
+    /// Returns the 2-log of a positive integer, rounded down — upstream's
+    /// <c>intlog2</c> from <c>lily/include/misc.hh</c>.
+    /// </summary>
+    /// <param name="d">The value, which must be positive.</param>
+    /// <returns>The 2-log.</returns>
+    public static int IntLog2(int d)
+    {
+        if (d <= 0)
+        {
+            Warn.Error("intlog2 with negative argument: " + d);
+        }
+
+        int i = 0;
+        while (d != 1)
+        {
+            d /= 2;
+            i++;
+        }
+
+        return i;
+    }
 }

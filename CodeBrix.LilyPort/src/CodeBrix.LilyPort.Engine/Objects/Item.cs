@@ -17,12 +17,16 @@
   along with LilyPond.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+using CodeBrix.LilyPort.Engine.Music;
 using CodeBrix.LilyPort.Flower;
 using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Objects; //was previously: lily/item.cc, lily/include/item.hh;
 
 // Modified by Jeremy Ellis on 2026-08-03 as part of the CodeBrix port.
+// Modified by Jeremy Ellis on 2026-08-07 as part of the CodeBrix port:
+//   - spanned_time_interval added; it is upstream's own free function in this file and
+//     had never been carried.
 
 /**
    A horizontally fixed size element of the score.
@@ -45,6 +49,8 @@ public class Item : Grob
 {
     private static readonly Symbol ItemInterface = Symbol.Intern("item-interface");
     private static readonly Symbol NonMusicalSymbol = Symbol.Intern("non-musical");
+    private static readonly Symbol BreakVisibilitySymbol = Symbol.Intern("break-visibility");
+    private static readonly Symbol WhenSymbol = Symbol.Intern("when");
 
     private DrulArray<Item> _brokenToDrul;
 
@@ -89,6 +95,35 @@ public class Item : Grob
     /// <summary>Returns an independent copy of this item.</summary>
     /// <returns>The clone.</returns>
     public override Grob Clone() => new Item(this);
+
+    /// <summary>
+    /// Takes the object links belonging to this side of the break, then kills this piece
+    /// when <c>break-visibility</c> says it should not be seen on this side.
+    /// </summary>
+    public override void HandlePrebrokenDependencies()
+    {
+        base.HandlePrebrokenDependencies();
+        if (!BreakVisible())
+        {
+            Suicide();
+        }
+    }
+
+    /// <summary>
+    /// Determines whether this item is visible on its side of the break, from the
+    /// <c>break-visibility</c> vector.
+    /// </summary>
+    /// <returns><see langword="true"/> when visible, and when nothing said otherwise.</returns>
+    public bool BreakVisible()
+    {
+        if (GetProperty(BreakVisibilitySymbol) is object[] vis)
+        {
+            int index = BreakStatusDirection().ToIndex;
+            return index >= 0 && index < vis.Length && SchemeUtilities.ToBool(vis[index]);
+        }
+
+        return true;
+    }
 
     /// <summary>
     /// Returns the prebroken copy for one side, or this item itself for the centre.
@@ -162,5 +197,53 @@ public class Item : Grob
         }
 
         return SchemeUtilities.ToBool(grob.GetProperty(NonMusicalSymbol));
+    }
+
+    /// <summary>
+    /// Returns the span of musical time between two items, read off the <c>when</c> of
+    /// each one's paper column.
+    /// <para>
+    /// An end with no item, or an item with no column, collapses onto the other end
+    /// rather than leaving the interval empty — so the answer is always a real span, and
+    /// a zero-length one means the two ends sit at the same moment.
+    /// </para>
+    /// <para>Upstream: the free function <c>spanned_time_interval</c> in
+    /// <c>lily/item.cc</c>. It was never carried when that file was ported; EPG18's
+    /// <c>Vowel_transition</c> is its first caller.</para>
+    /// </summary>
+    /// <param name="left">The earlier item, which may be null.</param>
+    /// <param name="right">The later item, which may be null.</param>
+    /// <returns>The spanned time.</returns>
+    public static MomentInterval SpannedTimeInterval(Item left, Item right)
+    {
+        // A default-constructed interval reads back as [+infinity, -infinity], which is
+        // the sentinel each end below falls back to when there is no `when' to read.
+        MomentInterval iv = new MomentInterval();
+
+        if (left != null && left.GetColumn() != null)
+        {
+            iv.Left = left.GetColumn().GetProperty(WhenSymbol) is Moment when ? when : iv.Left;
+        }
+
+        if (right != null && right.GetColumn() != null)
+        {
+            iv.Right = right.GetColumn().GetProperty(WhenSymbol) is Moment when ? when : iv.Right;
+        }
+
+        // An end that contributed nothing collapses onto the other one. Upstream runs
+        // this as a second LEFT-then-RIGHT loop over the interval it is updating, so when
+        // BOTH ends are missing the right end collapses onto the already-collapsed left
+        // one; the two statements below are in that same order and do the same thing.
+        if (left == null || left.GetColumn() == null)
+        {
+            iv.Left = iv.Right;
+        }
+
+        if (right == null || right.GetColumn() == null)
+        {
+            iv.Right = iv.Left;
+        }
+
+        return iv;
     }
 }

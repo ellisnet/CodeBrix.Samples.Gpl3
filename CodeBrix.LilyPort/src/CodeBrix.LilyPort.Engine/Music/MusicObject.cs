@@ -21,6 +21,7 @@ using System;
 using System.Collections.Generic;
 using CodeBrix.LilyPort.Engine.Bootstrap;
 using CodeBrix.LilyPort.Engine.Objects;
+using CodeBrix.LilyPort.Engine.Origins;
 using CodeBrix.LilyPort.Flower;
 using CodeBrix.LilyScheme;
 using CodeBrix.LilyScheme.Runtime;
@@ -48,7 +49,7 @@ namespace CodeBrix.LilyPort.Engine.Music; //was previously: lily/music.cc, lily/
 /// PORT-COVERAGE.
 /// </para>
 /// </summary>
-public class MusicObject : Prob
+public class MusicObject : Prob, IDiagnostics
 {
     private static readonly Symbol MusicSymbol = Symbol.Intern("Music");
     private static readonly Symbol MusicTypeSymbol = Symbol.Intern("music-type?");
@@ -255,6 +256,14 @@ public class MusicObject : Prob
 
     /// <summary>Gets where in the source this music came from.</summary>
     public object Origin => GetProperty(OriginSymbol);
+
+    // Upstream declares `class Music : Preinit_Music, public Prob, public Diagnostics',
+    // so every music expression can warn AT ITS OWN SOURCE LOCATION. The port declared
+    // IDiagnostics up front and this is its first implementor: Alternative_sequence_iterator
+    // needs `alt->warning (...)' to point at the offending alternative rather than at
+    // nothing. Explicit implementation, because the interface's accessor and the property
+    // above are both called Origin and only one of the two can carry that name unqualified.
+    Input IDiagnostics.Origin() => GetProperty(OriginSymbol) as Input;
 
     /// <summary>
     /// Turns this music into the stream event the translation layer actually sees.

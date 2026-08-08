@@ -57,6 +57,12 @@ public class Context
     private static readonly Symbol BottomSymbol = Symbol.Intern("Bottom");
     private static readonly Symbol TranslationTypeSymbol = Symbol.Intern("translation-type?");
     private static readonly Symbol ForbidBreakSymbol = Symbol.Intern("forbidBreak");
+    private static readonly Symbol MelismaBusyPropertiesSymbol
+        = Symbol.Intern("melismaBusyProperties");
+
+    private static readonly Symbol RepeatCountVisibilitySymbol
+        = Symbol.Intern("repeatCountVisibility");
+
     private static readonly Symbol ForceBreakSymbol = Symbol.Intern("forceBreak");
     private static readonly Symbol ContextNameModSymbol = Symbol.Intern("context-name");
     private static readonly Symbol AcceptsSymbol = Symbol.Intern("accepts");
@@ -619,7 +625,110 @@ public class Context
     /// <param name="ops">The instantiation site's operations, or the empty list.</param>
     /// <returns>The new context, or <see langword="null"/> when none could be created.</returns>
     public Context CreateUniqueContext(Symbol name, string id = "", object ops = null)
-        => Find(FindMode.CreateOnly, name, id ?? string.Empty, Direction.Center, ops ?? Nil.Instance);
+        => CreateUniqueContext(Direction.Center, name, id, ops);
+
+    /// <summary>
+    /// Creates a context of a named type in a given direction, without reusing an
+    /// existing one.
+    /// <para>Upstream: <c>create_unique_context (dir, name, id, ops)</c>, which
+    /// <c>\new</c> reaches with the music's <c>search-direction</c>.</para>
+    /// </summary>
+    /// <param name="direction">
+    /// Negative creates downward only, positive upward only, centre both ways.
+    /// </param>
+    /// <param name="name">The context type to create, or <c>Bottom</c>.</param>
+    /// <param name="id">The identifier to give it.</param>
+    /// <param name="ops">The instantiation site's operations, or the empty list.</param>
+    /// <returns>The new context, or <see langword="null"/> when none could be created.</returns>
+    public Context CreateUniqueContext(Direction direction, Symbol name, string id, object ops)
+        => Find(FindMode.CreateOnly, name, id ?? string.Empty, direction, ops ?? Nil.Instance);
+
+    /// <summary>
+    /// Finds an existing context of a named type in a given direction, creating nothing.
+    /// <para>Upstream: <c>find_context (dir, name, id)</c>. The direction-free
+    /// <see cref="FindContext(Symbol, string)"/> is this with
+    /// <see cref="Direction.Center"/>.</para>
+    /// </summary>
+    /// <param name="direction">
+    /// Negative searches downward only, positive upward only, centre both ways.
+    /// </param>
+    /// <param name="name">The context name or alias to find.</param>
+    /// <param name="id">The identifier to match, or empty to match any.</param>
+    /// <returns>The context, or <see langword="null"/> when not found.</returns>
+    public Context FindContext(Direction direction, Symbol name, string id)
+        => Find(FindMode.FindOnly, name, id ?? string.Empty, direction, Nil.Instance);
+
+    /// <summary>
+    /// Finds an existing context of a named type nearest a possibly-null context.
+    /// <para>Upstream: the free function <c>find_context_near</c>.</para>
+    /// </summary>
+    /// <param name="where">The context to search from, which may be null.</param>
+    /// <param name="name">The context name or alias to find.</param>
+    /// <param name="id">The identifier to match, or empty to match any.</param>
+    /// <returns>The context, or <see langword="null"/>.</returns>
+    public static Context FindContextNear(Context where, Symbol name, string id)
+        => where?.FindContext(Direction.Center, name, id);
+
+    /// <summary>
+    /// Finds an existing context of a named type at or below a possibly-null context.
+    /// <para>Upstream: the free function <c>find_context_below</c>.</para>
+    /// </summary>
+    /// <param name="where">The context to search from, which may be null.</param>
+    /// <param name="name">The context name or alias to find.</param>
+    /// <param name="id">The identifier to match, or empty to match any.</param>
+    /// <returns>The context, or <see langword="null"/>.</returns>
+    public static Context FindContextBelow(Context where, Symbol name, string id)
+        => where?.FindContext(Direction.Negative, name, id);
+
+    /// <summary>
+    /// Determines whether a context is inside a melisma — the state that tells lyrics to
+    /// hold the current syllable rather than start a new one.
+    /// <para>
+    /// Two rules, both upstream's. When a context HAS children they are the authority and
+    /// EVERY one of them must be busy, because a melisma in one voice of a divided staff
+    /// does not hold the whole staff. When it has none, any property named in
+    /// <c>melismaBusyProperties</c> that reads true makes it busy.
+    /// </para>
+    /// <para>Upstream: the free function <c>melisma_busy</c> in <c>lily/context.cc</c>.
+    /// It was never carried when that file was ported; EPG18 is its first caller.</para>
+    /// </summary>
+    /// <param name="context">The context to test, which may be null.</param>
+    /// <returns><see langword="true"/> when the context is in a melisma.</returns>
+    public static bool MelismaBusy(Context context)
+    {
+        if (context == null)
+        {
+            return false;
+        }
+
+        // When there are subcontexts, they are responsible for maintaining melismata.
+        IReadOnlyList<Context> children = context.Children;
+        if (children.Count > 0)
+        {
+            // all contexts need to have a busy melisma for this to evaluate to true.
+            foreach (Context child in children)
+            {
+                if (!MelismaBusy(child))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        for (object properties = context.GetProperty(MelismaBusyPropertiesSymbol);
+             properties is Pair pair;
+             properties = pair.Cdr)
+        {
+            if (pair.Car is Symbol name && SchemeUtilities.ToBool(context.GetProperty(name)))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
 
     /// <summary>
     /// Finds a context of a named type, creating one when there is none.
@@ -707,6 +816,35 @@ public class Context
         }
 
         return infant;
+    }
+
+    /// <summary>
+    /// Determines whether a repeat count should be printed, by asking the context's
+    /// <c>repeatCountVisibility</c> procedure.
+    /// <para>
+    /// The percent-repeat engravers ask this before making their counter grobs, which is
+    /// what makes <c>\set repeatCountVisibility = #(every-nth-repeat-slash-visible 3)</c>
+    /// work.
+    /// </para>
+    /// </summary>
+    /// <param name="context">The context to ask.</param>
+    /// <param name="count">The repeat count in question.</param>
+    /// <returns><see langword="true"/> when the count should be printed.</returns>
+    public static bool CheckRepeatCountVisibility(Context context, object count)
+    {
+        if (context == null)
+        {
+            return false;
+        }
+
+        object procedure = context.GetProperty(RepeatCountVisibilitySymbol);
+        if (!Objects.SchemeUtilities.IsProcedure(procedure))
+        {
+            return false;
+        }
+
+        object answer = Objects.SchemeUtilities.CallCallback(procedure, count, context);
+        return answer is bool flag && flag;
     }
 
     /// <summary>
@@ -834,6 +972,30 @@ public class Context
     /// <returns>The event.</returns>
     internal static StreamEvent MakeEvent(Symbol className)
         => new StreamEvent(StreamEvent.MakeEventClass(className), Nil.Instance);
+
+    /// <summary>
+    /// Makes an event of a class, carrying a source location.
+    /// <para>
+    /// Upstream's <c>send_stream_event</c> macro is one
+    /// <c>Stream_event (ly_make_event_class (type), origin)</c> followed by a
+    /// <c>set_property</c> per named argument and a broadcast. The port unrolls it: this
+    /// makes the event, the caller sets its properties, and
+    /// <see cref="SendStreamEvent(StreamEvent)"/> broadcasts it.
+    /// </para>
+    /// </summary>
+    /// <param name="className">The event class.</param>
+    /// <param name="origin">The source location, or null for none.</param>
+    /// <returns>The event.</returns>
+    internal static StreamEvent MakeEvent(Symbol className, object origin)
+    {
+        StreamEvent result = MakeEvent(className);
+        if (origin != null && !(origin is Nil))
+        {
+            result.SetSpot(origin);
+        }
+
+        return result;
+    }
 
     /// <summary>How far <see cref="Find"/> may go: search only, create only, or both.</summary>
     private enum FindMode

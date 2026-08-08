@@ -327,6 +327,18 @@ public static class SchemeUtilities
             return false;
         }
 
+        // Upstream's value_type_check opens with "'(), #f and *unspecified* always
+        // succeed" — unsetting through a set IS the idiom (Timing does it to
+        // whichBar and measureStartNow at every timestep). The port refused all
+        // three for four sessions, which is where the long-standing
+        // pop-first/instrumentName/stencil "Type check failed" noise came from,
+        // and — worse — a refused context write left the STALE value behind.
+        // Found by EPG8, fixed centrally 2026-08-07.
+        if (value is Nil || value is bool b && !b || value is Unspecified)
+        {
+            return true;
+        }
+
         Interpreter interpreter = LilyPondScheme.Current;
         if (interpreter == null)
         {
@@ -465,6 +477,16 @@ public static class SchemeUtilities
             bprop = bPair.Cdr;
         }
     }
+
+    /// <summary>
+    /// Reads a value as a symbol's name, falling back when it is not a symbol —
+    /// upstream's <c>robust_symbol2string</c>.
+    /// </summary>
+    /// <param name="value">The value to read.</param>
+    /// <param name="fallback">What to answer when the value is not a symbol.</param>
+    /// <returns>The symbol's name, or the fallback.</returns>
+    public static string RobustSymbolToString(object value, string fallback)
+        => value is Symbol symbol ? symbol.Name : fallback;
 
     private static string Describe(object value)
         => value == null

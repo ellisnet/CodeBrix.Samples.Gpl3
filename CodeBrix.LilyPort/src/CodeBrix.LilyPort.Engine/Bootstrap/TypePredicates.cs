@@ -64,8 +64,6 @@ public static class TypePredicates
         "ly:lily-lexer?",
         "ly:lily-parser?",
 
-        // Not yet demanded by anything.
-        "ly:tuplet-description?",
     };
 
     /// <summary>Gets the predicates implemented over a really-ported type.</summary>
@@ -83,6 +81,9 @@ public static class TypePredicates
         "ly:music-output?",
         "ly:output-def?",
         "ly:score?",
+
+        // EPG17: the engraver's record of one tuplet it is inside.
+        "ly:tuplet-description?",
 
         // These four are registered by the class that owns them rather than here --
         // ProbPrimitives, RegistryPrimitives and IteratorPrimitives -- but they are
@@ -143,6 +144,8 @@ public static class TypePredicates
         interpreter.DefinePrimitive("ly:grob-array?", 1, 1, a => a[0] is GrobArray);
         interpreter.DefinePrimitive("ly:listener?", 1, 1, a => a[0] is Listener);
         interpreter.DefinePrimitive("ly:moment?", 1, 1, a => a[0] is Moment);
+        interpreter.DefinePrimitive(
+            "ly:tuplet-description?", 1, 1, a => a[0] is TupletDescription);
 
         // Music_output is Paper_score's base class upstream; Paper_score is the only
         // subclass the port has, so the predicate is exact rather than approximate.
