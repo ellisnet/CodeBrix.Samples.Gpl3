@@ -21,6 +21,7 @@ using System;
 using System.Globalization;
 using System.Numerics;
 using CodeBrix.LilyPort.Flower;
+using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Music; //was previously: lily/duration.cc, lily/include/duration.hh;
 
@@ -30,7 +31,7 @@ namespace CodeBrix.LilyPort.Engine.Music; //was previously: lily/duration.cc, li
 /// A musical duration: a base duration expressed as a power of two, a number of
 /// augmentation dots, and a scale factor.
 /// </summary>
-public readonly struct Duration : IEquatable<Duration>, IComparable<Duration>
+public readonly struct Duration : IEquatable<Duration>, IComparable<Duration>, ISchemeEqual
 {
     private readonly int _durationLog;
     private readonly int _dotCount;
@@ -270,4 +271,15 @@ public readonly struct Duration : IEquatable<Duration>, IComparable<Duration>
 
     private static BigInteger ShiftLeft(BigInteger value, int amount)
         => amount >= 0 ? value << amount : value >> -amount;
+
+    /// <summary>
+    /// Compares by VALUE for Scheme's <c>equal?</c>.
+    /// <para>Upstream: <c>Duration::equal_p</c>, the smob equality handler
+    /// <c>scm_equal_p</c> dispatches to. Without it two distinct objects holding the
+    /// same value answer <c>#f</c>, which is identity, not equality.</para>
+    /// </summary>
+    /// <param name="other">The value to compare against.</param>
+    /// <returns><see langword="true"/> when the two are equal by value.</returns>
+    public bool SchemeEquals(object other) => Equals(other);
+
 }

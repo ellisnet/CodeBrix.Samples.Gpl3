@@ -35,6 +35,7 @@ internal static class Epg8TestHarness
 
     internal const string RecorderName = "Epg8_recorder_engraver";
     internal const string MakerName = "Epg8_maker_engraver";
+    internal const string CaptureName = "Epg8_capture_engraver";
 
     internal static Symbol Sym(string name) => Symbol.Intern(name);
 
@@ -89,6 +90,20 @@ internal static class Epg8TestHarness
 
         internal List<GrobRecorder> Recorders { get; } = new List<GrobRecorder>();
 
+        /// <summary>
+        /// Every context announced under Global, kept because the LIVE TREE IS EMPTY
+        /// once interpretation finishes.
+        /// <para>
+        /// Context::check_removal runs at the end of each timestep and again after the
+        /// iterator quits, and it removes any context with no children and no clients —
+        /// which, after the iterators have gone, is all of them. Upstream behaves the
+        /// same way; a test cannot reach into the tree afterwards and expect to find a
+        /// Voice. These tests want the context THAT RAN, so the harness holds on to it
+        /// rather than pretending removal does not happen.
+        /// </para>
+        /// </summary>
+        internal List<Context> Announced { get; } = new List<Context>();
+
         internal List<Grob> AcknowledgedGrobs
         {
             get
@@ -107,7 +122,9 @@ internal static class Epg8TestHarness
             => AcknowledgedGrobs.FindAll(
                 grob => string.Equals(grob.Name, name, StringComparison.Ordinal));
 
-        internal Context FindContext(string name) => Find(Global, name);
+        internal Context FindContext(string name)
+            => Find(Global, name) ?? Announced.Find(
+                context => string.Equals(context.ContextName, name, StringComparison.Ordinal));
 
         private static Context Find(Context context, string name)
         {
@@ -147,6 +164,32 @@ internal static class Epg8TestHarness
         internal List<Grob> Acknowledged { get; } = new List<Grob>();
 
         public override void AcknowledgeGrob(GrobInfo info) => Acknowledged.Add(info.Grob);
+    }
+
+    /// <summary>
+    /// Runs a callback from <c>finalize</c>, which is the LAST MOMENT ITS CONTEXT IS
+    /// STILL IN THE TREE.
+    /// <para>
+    /// Context::check_removal finalizes a removable context's translators and only then
+    /// sends RemoveContext, and it recurses depth-first — so a Voice is finalized while
+    /// it is still among its Staff's children, and removed immediately afterwards. Any
+    /// assertion about a LIVE parent/child relationship has to be made here; asking
+    /// after Iterate returns finds an empty tree, in this port and in upstream alike.
+    /// </para>
+    /// </summary>
+    internal sealed class TreeCapture : Engraver
+    {
+        private readonly Action<Context> _inspect;
+
+        internal TreeCapture(Context context, Action<Context> inspect)
+            : base(context)
+        {
+            _inspect = inspect;
+        }
+
+        public override string ClassName => CaptureName;
+
+        public override void FinalizeTranslation() => _inspect(Context);
     }
 
     /// <summary>
@@ -289,12 +332,47 @@ internal static class Epg8TestHarness
         global.MakeGlobalTranslator();
 
         tree.Global = global;
+
+        // Recorded as they are announced, so FindContext still answers after the tree
+        // has been torn down. See Tree.Announced.
+        global.EventsBelow.AddListener(
+            tree,
+            streamEvent =>
+            {
+                if (streamEvent.GetProperty(Sym("context")) is Context announced)
+                {
+                    tree.Announced.Add(announced);
+                }
+            },
+            Sym("AnnounceNewContext"));
+
         return tree;
     }
 
     /// <summary>Runs the main translation loop over a music expression.</summary>
     internal static void Iterate(Tree tree, Music.MusicObject music)
         => Interpreter.RunWithLargeStack(() => tree.Global.Iterate(music));
+
+    /// <summary>
+    /// Builds a tree whose Voice runs <paramref name="inspect"/> at finalize, iterates
+    /// it, and lets anything the callback throws come straight back out.
+    /// <para>
+    /// For the facts that need a LIVE parent/child link. See <see cref="TreeCapture"/>
+    /// for why they cannot be asserted after <see cref="Iterate"/> returns.
+    /// </para>
+    /// </summary>
+    /// <param name="music">The music to interpret.</param>
+    /// <param name="inspect">Given the Voice, while it is still in the tree.</param>
+    internal static void InspectLiveVoice(Music.MusicObject music, Action<Context> inspect)
+    {
+        Loaded();
+        LilyPondScheme.Registries.Translators[Sym(CaptureName)] =
+            new TranslatorCreator(
+                Sym(CaptureName), context => new TreeCapture(context, inspect));
+
+        Tree tree = BuildTree(null, null, null, new[] { CaptureName });
+        Iterate(tree, music);
+    }
 
     /// <summary>Builds sequential music of quarter-note c' events, plus extras.</summary>
     /// <param name="count">How many quarter notes.</param>

@@ -62,6 +62,16 @@ namespace CodeBrix.LilyPort.Engine.Fonts; //was previously: lily/pango-font.cc, 
 public sealed class TextFontMetric : FontMetric
 {
     private static readonly Symbol Utf8StringSymbol = Symbol.Intern("utf-8-string");
+    private static readonly Symbol CombineSymbol = Symbol.Intern("combine-stencil");
+    private static readonly Symbol TranslateSymbol = Symbol.Intern("translate-stencil");
+
+    // NEW-IN-FAMILY head, and it never leaves the utf-8-string node the backend ignores.
+    // Upstream's fourth element is Pango's shaped glyph string, which the walk recurses
+    // into; the port has no Pango, so it emits the run it resolved ITSELF, one node per
+    // glyph, carrying the face, the glyph index and the design-units-to-output-units
+    // scale — which is everything CffFont.AddOutlineToSkyline needs. Recorded in
+    // PORT-COVERAGE under THE STENCIL EXPRESSION WALK.
+    private static readonly Symbol GlyphOutlineSymbol = Symbol.Intern("glyph-outline");
 
     private readonly IReadOnlyList<TextFace> _chain;
 
@@ -204,6 +214,12 @@ public sealed class TextFontMetric : FontMetric
         double bottom = 0.0;
         double top = 0.0;
 
+        // The shaped run, in the same slot upstream puts Pango's glyph string in. The SVG
+        // backend deliberately ignores this element — it sets real text and lets the
+        // viewer's font engine draw it — but the skyline walk recurses into it, which is
+        // what lets a text stencil contribute its REAL outlines instead of its box.
+        List<object> run = new List<object>();
+
         for (int i = 0; i < text.Length;)
         {
             int codePoint = char.ConvertToUtf32(text, i);
@@ -220,6 +236,14 @@ public sealed class TextFontMetric : FontMetric
             // measured like any other glyph rather than skipped.
             int glyph = face.GlyphIndex(codePoint);
             double scale = Scale(face);
+
+            if (face.Cff != null)
+            {
+                run.Add(Pair.List(
+                    TranslateSymbol,
+                    new Pair(advance, 0.0),
+                    Pair.List(GlyphOutlineSymbol, face, (long)glyph, scale)));
+            }
 
             advance += face.Advance(glyph) * scale;
 
@@ -238,11 +262,17 @@ public sealed class TextFontMetric : FontMetric
             new Interval(0.0, advance),
             haveInk ? new Interval(bottom, top) : new Interval(0.0, 0.0));
 
+        object inner = Nil.Instance;
+        for (int i = run.Count - 1; i >= 0; i--)
+        {
+            inner = Pair.List(CombineSymbol, run[i], inner);
+        }
+
         object expression = Pair.List(
             Utf8StringSymbol,
             new MutableString(DescriptionString),
             new MutableString(text),
-            Nil.Instance);
+            inner);
 
         return new Stencil(box, expression);
     }

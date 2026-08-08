@@ -45,6 +45,8 @@ public static class LilyPondInit
     private static LilyParserSession _session;
     private static IReadOnlyList<string> _diagnostics = Array.Empty<string>();
 
+    private static object _noteNamesSnapshot;
+
     private static Dictionary<Symbol, object> _layoutSnapshot;
     private static Dictionary<Symbol, object> _paperSnapshot;
 
@@ -106,6 +108,18 @@ public static class LilyPondInit
                 if (_defaultLayout != null)
                 {
                     _session.SetIdentifier(DefaultLayoutSymbol, _defaultLayout);
+                }
+
+                // THE THIRD LEAK, and it is the same shape as the other two: \language
+                // rebinds (lily)'s `pitchnames' through ly:parser-set-note-names, and
+                // nothing put it back. One regression file includes arabic.ly, which
+                // opens with \language "italiano" -- so every file swept after it was
+                // parsed with ITALIAN note names, and the whole \partCombine family
+                // read as "not a note name: g". Upstream never needs this: it engraves
+                // one file per process.
+                if (_noteNamesSnapshot != null)
+                {
+                    _session.SetNoteNames(_noteNamesSnapshot);
                 }
             }
         }
@@ -273,6 +287,11 @@ public static class LilyPondInit
         // the first file would have seen rather than a half-built one.
         _layoutSnapshot = Snapshot(_defaultLayout);
         _paperSnapshot = Snapshot(_defaultPaper);
+
+        // The note-name table the init layer settled on, so a file that says
+        // \language (or includes one that does) cannot rename the notes for the rest
+        // of the suite. See RestoreDefaults.
+        _noteNamesSnapshot = _session.NoteNames();
 
         // ly:parse-file and ly:parse-init were EPG1 bindings deferred "to EPG3's
         // batch runner by decision"; the runner exists, so every real session gets

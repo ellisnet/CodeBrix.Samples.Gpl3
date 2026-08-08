@@ -200,6 +200,32 @@ public static class NestedProperty
     }
 
     /// <summary>
+    /// Writes a value into a grob property at a nested path — <c>set_nested_property</c>.
+    /// </summary>
+    /// <param name="me">The grob.</param>
+    /// <param name="bigToSmall">
+    /// The path, outermost property first: its head names the grob property to rewrite and
+    /// its tail is the path within that property's alist.
+    /// </param>
+    /// <param name="value">The value to write.</param>
+    /// <remarks>
+    /// Added 2026-08-08 by EPG14 for <c>Tweak_engraver</c>. The body was already present,
+    /// written out inline inside <c>ly:grob-set-nested-property!</c>; that binding now
+    /// calls this, so there is one implementation rather than two.
+    /// </remarks>
+    public static void SetNestedProperty(Grob me, object bigToSmall, object value)
+    {
+        if (!(bigToSmall is Pair path) || !(path.Car is Symbol head))
+        {
+            return;
+        }
+
+        object alist = me.GetProperty(head);
+        alist = NestedPropertyAlist(alist, path.Cdr, value);
+        me.SetProperty(head, alist);
+    }
+
+    /// <summary>
     /// Replaces a nested property in an alist, returning the new alist. The path is
     /// ordered outermost key first.
     /// <para>

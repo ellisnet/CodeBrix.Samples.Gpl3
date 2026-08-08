@@ -30,10 +30,12 @@ namespace CodeBrix.LilyPort.Engine.Objects; //was previously: lily/measure-spann
 /// <summary>
 /// A bracket aligned to a measure or measures.
 /// <para>
-/// PARTIAL: the text half of the print callback is complete, but the bracket itself
-/// needs <c>Bracket::make_axis_constrained_bracket</c> from lily/bracket.cc, which
-/// belongs to EPG14. Until that lands, printing a measure spanner whose
-/// <c>bracket-visibility</c> asks for a bracket throws, loudly, naming the owner.
+/// COMPLETE. The bracket half stood as a loud throw naming
+/// <c>Bracket::make_axis_constrained_bracket</c> as owed by EPG14; EPG17 landed
+/// lily/bracket.cc WHOLE — including that function — while pulling it forward for its
+/// own two bracket grobs, and the throw was never taken back down. Nothing demanded it
+/// in between, because a toplevel <c>\layout</c> block's <c>\consists</c> was being
+/// discarded and <c>Measure_spanner_engraver</c> therefore never ran.
 /// </para>
 /// </summary>
 public static class MeasureSpanner
@@ -96,12 +98,12 @@ public static class MeasureSpanner
 
         if (SchemeUtilities.IsSchemeTrue(visible))
         {
-            // Bracket::make_axis_constrained_bracket is lily/bracket.cc, EPG8's list
-            // does not include it and the ledger assigns it to EPG14.
-            throw new NotSupportedException(
-                "ly:measure-spanner::print: the bracket needs "
-                + "Bracket::make_axis_constrained_bracket (lily/bracket.cc), which is "
-                + "owed by EPG14; only the text half of this callback is ported");
+            brack = Bracket.MakeAxisConstrainedBracket(
+                grob,
+                rightPoint - leftPoint,
+                Axis.X,
+                DirectionalElementInterface.GetGrobDirection(grob),
+                gapInterval);
         }
 
         if (!bracketText.IsEmpty)

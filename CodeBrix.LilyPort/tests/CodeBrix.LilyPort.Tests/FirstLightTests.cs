@@ -246,12 +246,21 @@ public class FirstLightTests
 
         //Assert
         // Beam_engraver was the example here until EPG10 ported it, then Tie_engraver
-        // until EPG11 did. Font_size_engraver is EPG14's and stands in their place --
-        // it is also what now leads the sweep's unported-translator demand list. When
-        // EPG14 lands, pick another.
-        missing.Should().Contain("Font_size_engraver");
+        // until EPG11 did, then Font_size_engraver until EPG14 did.
+        // Spanner_break_forbid_engraver stands in their place -- it is EPG15's, and it
+        // is what now leads the sweep's unported-translator demand list at 3,143 misses.
+        // When EPG15 lands, pick another.
+        missing.Should().Contain("Spanner_break_forbid_engraver");
         missing.Should().NotContain("Beam_engraver");
         missing.Should().NotContain("Tie_engraver");
+
+        // EPG14's, all fifteen of them, on the ported side of the fence now.
+        missing.Should().NotContain("Font_size_engraver");
+        missing.Should().NotContain("Script_engraver");
+        missing.Should().NotContain("Dynamic_engraver");
+        missing.Should().NotContain("Text_engraver");
+        missing.Should().NotContain("Instrument_name_engraver");
+        missing.Should().NotContain("Ledger_line_engraver");
 
         // ...and the ported ones are NOT in it, which is the half that can rot silently.
         missing.Should().NotContain("Clef_engraver");

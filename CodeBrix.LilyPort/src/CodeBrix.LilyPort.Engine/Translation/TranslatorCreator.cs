@@ -192,6 +192,36 @@ public static class TranslatorRegistry
         // EPG12 (2026-08-08): slurs.
         Add(registries, "Slur_engraver", c => new SlurEngraver(c));
         Add(registries, "Phrasing_slur_engraver", c => new PhrasingSlurEngraver(c));
+
+        // EPG14 (2026-08-08): scripts, dynamics, brackets, pedals, fingering.
+        Add(registries, "Script_engraver", c => new ScriptEngraver(c));
+        Add(registries, "Script_column_engraver", c => new ScriptColumnEngraver(c));
+        Add(registries, "Script_row_engraver", c => new ScriptRowEngraver(c));
+        Add(registries, "Non_musical_script_column_engraver",
+            c => new NonMusicalScriptColumnEngraver(c));
+        Add(registries, "Text_engraver", c => new TextEngraver(c));
+        Add(registries, "Text_spanner_engraver", c => new TextSpannerEngraver(c));
+        Add(registries, "Ottava_spanner_engraver", c => new OttavaSpannerEngraver(c));
+        Add(registries, "Dynamic_engraver", c => new DynamicEngraver(c));
+        Add(registries, "Dynamic_align_engraver", c => new DynamicAlignEngraver(c));
+        Add(registries, "Concurrent_hairpin_engraver",
+            c => new ConcurrentHairpinEngraver(c));
+        Add(registries, "Piano_pedal_engraver", c => new PianoPedalEngraver(c));
+        Add(registries, "Piano_pedal_align_engraver",
+            c => new PianoPedalAlignEngraver(c));
+        Add(registries, "Fingering_engraver", c => new FingeringEngraver(c));
+        Add(registries, "New_fingering_engraver", c => new NewFingeringEngraver(c));
+        Add(registries, "Fingering_column_engraver", c => new FingeringColumnEngraver(c));
+        Add(registries, "Font_size_engraver", c => new FontSizeEngraver(c));
+        Add(registries, "Tweak_engraver", c => new TweakEngraver(c));
+        Add(registries, "Balloon_engraver", c => new BalloonEngraver(c));
+        Add(registries, "Parenthesis_engraver", c => new ParenthesisEngraver(c));
+        Add(registries, "Instrument_name_engraver", c => new InstrumentNameEngraver(c));
+        Add(registries, "Instrument_switch_engraver",
+            c => new InstrumentSwitchEngraver(c));
+        Add(registries, "Horizontal_bracket_engraver",
+            c => new HorizontalBracketEngraver(c));
+        Add(registries, "Ledger_line_engraver", c => new LedgerLineEngraver(c));
     }
 
     /// <summary>

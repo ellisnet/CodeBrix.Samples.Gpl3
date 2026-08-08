@@ -344,6 +344,14 @@ public static class LilyPondScheme
         Epg11Callbacks.Install(interpreter);
         Epg12Callbacks.Install(interpreter);
 
+        // EPG14 (2026-08-08): scripts, dynamics, brackets, pedals, fingering, ledger
+        // lines and the line spanner. Order-independent of everything above — every name
+        // is its own — and it must be installed for the same reason EPG12's trio must:
+        // ly:script-column::row-before-line-breaking compares a grob's Y-offset AGAINST
+        // ly:side-position-interface::y-aligned-side by identity, so both have to be the
+        // registered procedure and not a stub.
+        Epg14Callbacks.Install(interpreter);
+
         // EPG22 (2026-08-07): dispatcher-scheme.cc, pulled forward from EPG23 because
         // \addQuote cannot run without it. It must go in AFTER Epg8Callbacks, which is
         // where ly:broadcast used to live.

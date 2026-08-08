@@ -56,6 +56,12 @@ public static class BatchRunner
     /// loop defines it before init.ly runs, and the epilogue's version check reads
     /// it when present.
     /// </summary>
+    /// <summary>
+    /// The identifier <c>print-book-with</c> reads the layout out of at book-processing
+    /// time. Looked up by NAME because a toplevel <c>\layout</c> block rebinds it.
+    /// </summary>
+    private const string DefaultLayoutName = "$defaultlayout";
+
     private const string ProloguelLy = @"
 #(define toplevel-scores (list))
 #(define toplevel-bookparts (list))
@@ -312,6 +318,33 @@ public static class BatchRunner
         List<Stencil> systems = new List<Stencil>();
         int skipped = 0;
         double unitLength = 0.0;
+        // THE PARSER STAYS CURRENT ACROSS ENGRAVING (2026-08-08, EPG14).
+        //
+        // Upstream never leaves the parser's dynamic extent to engrave: book processing
+        // is reached from `default-toplevel-book-handler', which the PARSER calls, so
+        // ly:parser-lookup and ly:parser-clone answer normally all the way down. D20's
+        // score-level short-circuit moved the port's engraving OUT of that extent, and
+        // HARNESS-FIX measured what it cost: 18 files died on "there is no current
+        // parser", because \markup \note asks for $defaultpaper while BUILDING ITS
+        // STENCIL. Restoring the extent here is the cheap half of what EPG16 will do
+        // properly when the runner moves onto the real ly:book-process path.
+        // THE LAYOUT IS RESOLVED BY NAME HERE, NOT CAPTURED BEFORE THE PARSE.
+        //
+        // `print-book-with' (scm/lily-library.scm) does (ly:parser-lookup '$defaultlayout)
+        // at BOOK-PROCESSING time and hands the answer to ly:book-process, so a toplevel
+        // \layout block is in place by then: parser.yy's toplevel_expression REBINDS the
+        // $defaultlayout IDENTIFIER to the new definition rather than mutating the old
+        // one. Reading the cached init-layer object instead — which is what this did
+        // until 2026-08-08 — silently discarded every toplevel \layout in the suite:
+        // \consists still worked, because a translator list is read off the definition
+        // the layout block built, but no property operation from it ever ran, so
+        // `\layout { \context { \Score scriptDefinitions = ... } }' set nothing at all.
+        // Same shape as EPG13's $defaultpaper finding, one identifier over.
+        OutputDef parsedLayout
+            = session.LookupIdentifier(DefaultLayoutName) as OutputDef ?? defaultLayout;
+
+        session.AsCurrentParser(() =>
+        {
         foreach (Book book in books)
         {
             // Paper_book's CONSTRUCTOR scales the paper, and Book::process normalizes
@@ -352,7 +385,7 @@ public static class BatchRunner
 
                 try
                 {
-                    OutputDef layout = ScoreLayout(score, paper, defaultLayout);
+                    OutputDef layout = ScoreLayout(score, paper, parsedLayout);
                     EngraveResult engraved = LilyPortEngraver.Engrave(
                         score.GetMusic() as MusicObject, layout);
                     systems.Add(engraved.Stencil);
@@ -363,6 +396,9 @@ public static class BatchRunner
                 }
             }
         }
+
+            return Unspecified.Instance;
+        });
 
         string svgPath = null;
         if (systems.Count > 0)

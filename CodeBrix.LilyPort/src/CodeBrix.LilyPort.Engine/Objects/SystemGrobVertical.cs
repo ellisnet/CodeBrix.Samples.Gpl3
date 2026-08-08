@@ -119,4 +119,60 @@ public static class SystemGrobVertical
         grobs.SetArray(verticalSkylineGrobs);
         return grobs;
     }
+
+    /// <summary>
+    /// Finds the staff next to a given one in a direction, among the staves alive over a
+    /// span of columns — <c>System::get_neighboring_staff</c>.
+    /// </summary>
+    /// <param name="me">The system.</param>
+    /// <param name="dir">Which way to look.</param>
+    /// <param name="verticalAxisGroup">The staff to look out from.</param>
+    /// <param name="bounds">The column-rank span the neighbour must overlap.</param>
+    /// <returns>The neighbouring staff, or <see langword="null"/>.</returns>
+    /// <remarks>
+    /// <para>
+    /// Added 2026-08-08 by EPG14 for <c>Hairpin::broken_bound_padding</c>. Like
+    /// <see cref="GetVerticalAlignment"/> it lives here rather than in
+    /// <c>Objects/SystemGrob.cs</c>, which stays closed.
+    /// </para>
+    /// <para>
+    /// DELIBERATE OMISSION, same as <c>staff-grouper-interface.cc</c>'s: upstream calls
+    /// <c>Hara_kiri_group_spanner::consider_suicide</c> on each candidate, which is
+    /// EPG15's file and unported. Skipping it can only leave a staff ALIVE that upstream
+    /// would have killed, so the answer is never a staff upstream would not have
+    /// considered — it can only be one upstream would have skipped. Revisit at EPG15.
+    /// </para>
+    /// </remarks>
+    public static Grob GetNeighboringStaff(
+        Grob me, Direction dir, Grob verticalAxisGroup, Slice bounds)
+    {
+        Grob align = me.GetObject(VerticalAlignmentSymbol) as Grob;
+        if (align == null)
+        {
+            return null;
+        }
+
+        IReadOnlyList<Grob> elts = PointerGroupInterface.ExtractGrobSet(align, ElementsSymbol);
+        int start = dir == Direction.Positive ? 0 : elts.Count - 1;
+        int step = (int)dir;
+
+        Grob outGrob = null;
+
+        for (int i = start; i >= 0 && i < elts.Count; i += step)
+        {
+            if (ReferenceEquals(elts[i], verticalAxisGroup))
+            {
+                return outGrob;
+            }
+
+            // upstream considers hara-kiri suicide here — see the remarks.
+            bounds.Intersect(elts[i].SpannedColumnRankInterval());
+            if (elts[i].IsLive && !bounds.IsEmpty)
+            {
+                outGrob = elts[i];
+            }
+        }
+
+        return null;
+    }
 }

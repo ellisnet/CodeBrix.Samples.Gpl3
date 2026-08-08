@@ -19,6 +19,7 @@
 
 using System;
 using CodeBrix.LilyPort.Flower;
+using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Music; //was previously: lily/moment.cc, lily/include/moment.hh;
 
@@ -33,7 +34,7 @@ namespace CodeBrix.LilyPort.Engine.Music; //was previously: lily/moment.cc, lily
 /// single rational.
 /// </para>
 /// </summary>
-public readonly struct Moment : IEquatable<Moment>, IComparable<Moment>
+public readonly struct Moment : IEquatable<Moment>, IComparable<Moment>, ISchemeEqual
 {
     /// <summary>Initializes a moment from a main and a grace part.</summary>
     /// <param name="mainPart">The main timing.</param>
@@ -177,4 +178,15 @@ public readonly struct Moment : IEquatable<Moment>, IComparable<Moment>
         => GracePart.IsNonZero
             ? MainPart.ToString() + "G" + GracePart
             : MainPart.ToString();
+
+    /// <summary>
+    /// Compares by VALUE for Scheme's <c>equal?</c>.
+    /// <para>Upstream: <c>Moment::equal_p</c>, the smob equality handler
+    /// <c>scm_equal_p</c> dispatches to. Without it two distinct objects holding the
+    /// same value answer <c>#f</c>, which is identity, not equality.</para>
+    /// </summary>
+    /// <param name="other">The value to compare against.</param>
+    /// <returns><see langword="true"/> when the two are equal by value.</returns>
+    public bool SchemeEquals(object other) => Equals(other);
+
 }

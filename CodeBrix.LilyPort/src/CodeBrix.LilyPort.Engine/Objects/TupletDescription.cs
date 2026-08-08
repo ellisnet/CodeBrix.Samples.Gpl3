@@ -38,7 +38,7 @@ namespace CodeBrix.LilyPort.Engine.Objects; //was previously: lily/tuplet-descri
 /// Tuplets nest, so a description keeps a <see cref="Parent"/> and the engraver holds a
 /// stack of these rather than a single current tuplet.
 /// </remarks>
-public sealed class TupletDescription : IEquatable<TupletDescription>
+public sealed class TupletDescription : IEquatable<TupletDescription>, ISchemeEqual
 {
     private static readonly Symbol DenominatorSymbol = Symbol.Intern("denominator");
     private static readonly Symbol LengthSymbol = Symbol.Intern("length");
@@ -152,4 +152,15 @@ public sealed class TupletDescription : IEquatable<TupletDescription>
         => SchemeConvert.IsNumber(value)
             ? (uint)SchemeConvert.ToLong(value, "tuplet-description")
             : 0u;
+
+    /// <summary>
+    /// Compares by VALUE for Scheme's <c>equal?</c>.
+    /// <para>Upstream: <c>Tuplet_description::equal_p</c>, the smob equality handler
+    /// <c>scm_equal_p</c> dispatches to. Without it two distinct objects holding the
+    /// same value answer <c>#f</c>, which is identity, not equality.</para>
+    /// </summary>
+    /// <param name="other">The value to compare against.</param>
+    /// <returns><see langword="true"/> when the two are equal by value.</returns>
+    public bool SchemeEquals(object other) => Equals(other);
+
 }

@@ -313,9 +313,22 @@ public class GlobalContext : Context
 
             SendStreamEvent(OneTimeStepSymbol);
             ApplyFinalizations();
+
+            // Upstream ends every timestep here, and again after the iterator quits.
+            // Context::check_removal is what SENDS RemoveContext, so a port that never
+            // calls it has the event wired up and never fires it. Nothing failed loudly
+            // because almost nothing listens: recording-group-emulate
+            // (scm/part-combiner.scm) is the port's first listener, and its handler is
+            // the one that appends the END MOMENT to the recorded event list — the
+            // entry \autoChange then reads as its final rest-mom. Without it
+            // make-autochange-music reached (skip-of-moment-span prev-change-mom #f)
+            // and died in ly:moment-sub. Measured against the oracle: 10 recorded
+            // entries there, 9 here, and the missing one is the end moment.
+            CheckRemoval();
         }
 
         iterator.Quit();
+        CheckRemoval();
         SendStreamEvent(FinishSymbol);
         return true;
     }

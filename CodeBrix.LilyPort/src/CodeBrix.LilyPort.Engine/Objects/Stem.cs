@@ -1616,11 +1616,10 @@ public static class Stem
     /// <param name="alist">The alist.</param>
     /// <param name="fallback">What a missing key answers.</param>
     /// <returns>The value.</returns>
+    // ly_assoc_get's canonical home is lily-guile.cc — Objects/SchemeUtilities.cs. This
+    // stayed as a name Stem's own code already reads through (EPG14, 2026-08-08).
     internal static object LyAssocGet(Symbol key, object alist, object fallback)
-    {
-        Pair entry = SchemeUtilities.Assq(key, alist);
-        return entry != null ? entry.Cdr : fallback;
-    }
+        => SchemeUtilities.LyAssocGet(key, alist, fallback);
 
     /* Return I-th element, or last elt L. If I < 0, then we take the first
        element.

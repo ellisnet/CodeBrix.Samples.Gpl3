@@ -153,7 +153,7 @@ public class MultiMeasureRestEngraver : Engraver
             {
                 StreamEvent e = _articulationEvents[i];
                 Spanner sp = MakeSpanner("MultiMeasureRestScript", e);
-                Epg5Seams.MakeScriptFromEvent(
+                ScriptEngraver.MakeScriptFromEvent(
                     sp, Context, e.GetProperty(ArticulationTypeSymbol), i);
                 object dir = e.GetProperty(DirectionSymbol);
                 if (DirectionalElementInterface.IsDirection(dir))

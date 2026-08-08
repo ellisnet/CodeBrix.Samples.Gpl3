@@ -3815,3 +3815,397 @@ NAMING
   slur.hh DECLARES Slur::vertical_skylines and nothing anywhere DEFINES it. It is
   a dangling declaration upstream, referenced from no .cc, no .scm and no .ly, so
   it is NOT an entry point and the port creates no binding for it.
+
+================================================================================
+EPG14 -- SCRIPTS, DYNAMICS, BRACKETS, PEDALS, FINGERING (2026-08-08)
+================================================================================
+
+  All 35 ledger rows ported; the group's bucket is EMPTY. It is the largest
+  group on the board and it landed in one session.
+
+  SEAM RETIREMENT: Objects/Epg5Seams.cs is DELETED. make_script_from_event was
+  its last method and has gone home to Translation/ScriptEngravers.cs, which is
+  script-engraver.cc's own file; Multi_measure_rest_engraver calls it there.
+
+
+  DELIBERATE DIVERGENCES
+
+  Instrument_switch_engraver's stop_translation_time_step -- REPRODUCED DEAD
+
+    Upstream declares and defines `stop_translation_time_step', with an extra
+    underscore, where all 91 other engravers spell it
+    `stop_translation_timestep'. That is not the name the translator framework
+    dispatches, so upstream never calls it and text_ is never cleared. The port
+    keeps the method equally unreachable rather than silently fixing it. It
+    cannot matter either way: the field is only ever written, never read.
+
+  Script_column::row_before_line_breaking's head map -- INSERTION ORDER
+
+    Upstream's Grob_scripts_map is std::unordered_map, whose iteration order is
+    unspecified. The port keeps a Dictionary keyed by reference identity and
+    walks it in INSERTION order. This cannot change output: each bucket is
+    ordered independently of every other, so the order the buckets are visited
+    in is not observable.
+
+  Three stable sorts where upstream uses std::sort -- DELIBERATE
+
+    std::sort is not stable. Script_column::order_grobs, Fingering_column's
+    offset sort and New_fingering_engraver's Finger_tuple sort all feed
+    decisions where the tie-break is visible: which fingering goes up and which
+    goes down when a chord is split, and which of two flush fingerings moves.
+    An unstable tie there is a coin flip a second implementation cannot
+    reproduce, so the port sorts stably. (scm_stable_sort_x, which
+    Script_column::order_grobs actually calls, is stable upstream too.)
+
+  System::get_neighboring_staff skips hara-kiri suicide -- SAME AS EPG7's
+
+    Upstream calls Hara_kiri_group_spanner::consider_suicide on each candidate.
+    That file is EPG15's and unported, exactly as staff-grouper-interface.cc
+    already records. Skipping it can only leave a staff ALIVE that upstream
+    would have killed, so the answer is never a staff upstream would not have
+    considered. REVISIT AT EPG15.
+
+  Spanner::find_broken_piece guards a null first-piece system
+
+    Upstream reads broken_intos_.front ()->get_system ()->get_rank () with no
+    check, which is safe there because line breaking has always run. The port is
+    asked before EPG15/EPG16 land, so the guard answers null instead of
+    dereferencing. Same treatment as EPG12's slur guard: REMOVE AND RE-MEASURE
+    once line breaking runs.
+
+  Line_spanner::calc_bound_info's assert
+
+    Upstream asserts extreme_bound_groups_there[dir] is non-null. An assert is
+    compiled out of a release build, so upstream does not check it either; the
+    port raises nothing and takes the same branch.
+
+
+  DEFECTS FOUND IN ALREADY-PORTED CODE
+
+  1. lily-guile.cc's ly_assoc -- assq COMPARED BOXED NUMBERS BY REFERENCE
+
+     THE BIGGEST OF THEM, and it was silent. Guile fixnums, booleans and
+     characters are IMMEDIATES, not heap objects, so (eq? 1 1) is true and
+     (assq 1 '((1 . a))) finds its entry. SchemeUtilities.Assq compared with
+     ReferenceEquals, under which two boxed longs of the same value are NEVER
+     equal -- so every numerically-keyed alist lookup in the engine silently
+     missed. It now compares with LilyScheme's own ReferenceComparer, which
+     already had the right semantics.
+
+     Found through Ottava_spanner_engraver: ottavationMarkups is keyed by octave
+     count, so every \ottava warned "Could not find ottavation markup" and set
+     the bracket's text to the empty string. Fenced by Epg14Tests.
+
+  2. lily-guile.cc's value_type_check -- A PROCEDURE IS ALWAYS A VALID GROB
+     PROPERTY
+
+     The same function, a second gap. For `backend-type?' alone, upstream
+     answers true for ANY procedure, because a grob property holding a callback
+     is not the value the property will have -- it is the function that computes
+     it, and it can only be checked once it has run. An unpure-pure container is
+     checked by recursing into both halves. The port implemented neither, so
+     `\override Hairpin.stencil = #flared-hairpin' -- ordinary LilyPond -- was
+     REFUSED and the override never reached the grob.
+
+     EPG8 had already fixed this function's FIRST short-circuit ('(), #f and
+     *unspecified* always succeed). This is the next one down.
+
+  3. grob.hh's find_broken_piece -- DECLARED, DEFINED THREE TIMES, NEVER CARRIED
+
+     Declared virtual in grob.hh and defined in grob.cc, item.cc and spanner.cc,
+     all three of which the ledger has called `ported' since EPG0. Nothing asked
+     until Line_spanner::calc_bound_info needed to follow a cross-staff
+     glissando's bound onto another system.
+
+  4. pitch.cc's set_middle_C -- never carried. \ottava shifts middle C by an
+     octave through it.
+
+  5. system.cc's get_neighboring_staff -- never carried.
+     Hairpin::broken_bound_padding is its only caller.
+
+  6. grob.cc's robust_relative_pure_y_extent -- never carried, though its
+     sibling robust_relative_extent was. Balloon_interface::pure_height is its
+     only caller.
+
+  7. nested-property.cc's set_nested_property -- the BODY existed, written out
+     inline inside ly:grob-set-nested-property!. Tweak_engraver needs the
+     function, so the binding now calls it and there is one implementation.
+
+  Two general helpers also came home to lily-guile.cc's file
+  (Objects/SchemeUtilities.cs): ly_assoc_get, which Stem had a private copy of,
+  and ly_append, which Stencil and GlobalContext each had one of.
+
+
+  BINDINGS PULLED FORWARD FROM EPG23 -- FORCED, NOT CHOSEN
+
+  EPG14's FIRST sweep regressed 46 files, and the cause was EPG14 making
+  progress: with ly:line-spanner::print ported, every trill spanner, text
+  spanner and glissando produced a real stencil for the first time, so the
+  skyline machinery ran on it -- and ly:skylines-for-stencil, which
+  scm/define-grobs.scm names on those grobs, was still a stub. This is EPG22's
+  pattern exactly: files stop producing EMPTY pages and reach real engraving,
+  where they hit gaps that were always there.
+
+  Taken: lily/skyline-scheme.cc WHOLE (11 bindings),
+  lily/line-interface-scheme.cc WHOLE (1 binding, ly:line-interface::line, which
+  scm/output-lib.scm's flared-hairpin calls directly), and five leaves of
+  lily/stencil-scheme.cc -- ly:stencil-outline, ly:round-polygon, ly:bracket,
+  ly:stencil-rotate-absolute, ly:length -- plus item-scheme.cc's
+  ly:item-get-column.
+
+  skyline-scheme.cc was taken WHOLE deliberately: implementing
+  ly:skylines-for-stencil alone moved the failure straight on to
+  ly:skyline-max-height, which the same scm/ code path calls one line later.
+  Its ledger row and line-interface-scheme.cc's therefore change disposition to
+  `ported' -- a *-scheme.cc file IS its binding surface, which
+  EntryPointClosureTests fences. stencil-scheme.cc does NOT: five leaves landed
+  and the rest did not.
+
+  STILL OWED and now visible: ly:paper-column::print is demanded 124 times per
+  sweep and is NOT killing any file (it is the debug column-number stencil). It
+  is paper-column.cc's own MAKE_SCHEME_CALLBACK, so it belongs to whoever
+  finishes that file's binding surface. Left for EPG23.
+
+
+  THE STENCIL EXPRESSION WALK -- EPG13's TEXT CARRY-FORWARD IS CLOSED
+
+  EPG13 left text stencils taking their extent BOX rather than their real ink,
+  because the port's utf-8-string node carried nothing to walk: upstream's
+  fourth element is the glyph string Pango shaped, and the port has no Pango.
+  Walking such a node anyway would have silently OMITTED the text, and a skyline
+  that omits ink is the one error direction that causes collisions -- so the box
+  was taken, conservatively, and EPG14 was named as the session to close it.
+
+  Closed. TextFontMetric.TextStencil already resolves every code point through
+  the D23 fallback chain to a FACE, a GLYPH INDEX and a SCALE while it measures
+  the run; it now also emits that run into the fourth element as
+  (combine-stencil (translate-stencil (ADVANCE . 0) (glyph-outline FACE INDEX
+  SCALE)) ...), and StencilIntegral traces each glyph's charstrings through the
+  same CffFont.AddOutlineToSkyline the music glyphs use.
+
+  `glyph-outline' is NEW-IN-FAMILY and never leaves the utf-8-string node, which
+  the SVG backend explicitly ignores -- upstream's SVG output sets real text and
+  lets the viewer's font engine draw it -- so output parity is untouched and
+  only skylines change. It exists because a music glyph is addressed by NAME
+  through a font metric while a text glyph is addressed by INDEX through the
+  face the chain resolved, and carries its own scale because the chain can
+  change face mid-run.
+
+  PURE VARIANTS are still unchanged: they answer the ordinary extents, pending
+  unpure-pure-container.cc in EPG15.
+
+
+-------------------------------------------------------------------------------
+RATCHET-FIX 2026-08-08 -- THE THREE ROWS EPG14 LEFT OPEN
+-------------------------------------------------------------------------------
+
+  EPG14 closed with the ratchet gate RED on three rows and left them for a
+  ruling rather than re-baselining them. All three were diagnosed to root this
+  session; two were defects and are FIXED, and the third is a dependency on
+  work EPG15/EPG16 owns and is recorded here rather than papered over.
+
+
+  THE TOPLEVEL \layout BLOCK NEVER REACHED ANY CONTEXT (script-custom-definition)
+
+  This is the largest of the three and it was NOT what the file's error message
+  said. The reported failure was (zero? '()) inside
+  horizontal-script::calc-staff-position, reading an unset `side-axis'. That is
+  a SYMPTOM two layers down: side-axis is not a Script grob default -- 
+  scm/define-grobs.scm says "'padding, 'side-axis set in script definitions" --
+  so it can only arrive from the scriptDefinitions alist, and the file's alist
+  was never reaching the engraver at all. The warning that gave it away was
+  "do not know how to interpret articulation: segno-coda", six times.
+
+  THE DEFECT, and it is a whole mechanism rather than one property: NO property
+  operation written in a toplevel \layout block had ANY effect, for the entire
+  life of the batch runner. Neither an \override nor a plain assignment.
+
+  It survived this long because it splits exactly in half, and the visible half
+  works. A \layout { \context { ... } } block's TRANSLATOR list was applied
+  correctly -- \consists really does add an engraver -- because a translator
+  list is read off the ContextDef the block built. Property operations are not:
+  they are applied by Context_def::apply_default_property_operations against
+  whatever definition find_context_def answers with, and that lookup goes
+  through the OUTPUT DEF. Any probe written with \consists reports the block
+  working.
+
+  Root cause: parser.yy's toplevel_expression REBINDS the $defaultlayout
+  IDENTIFIER to the definition a toplevel \layout builds; it does not mutate
+  the one already there. Upstream therefore resolves the layout BY NAME, late --
+  print-book-with (scm/lily-library.scm) does (ly:parser-lookup '$defaultlayout)
+  at book-processing time and hands the answer to ly:book-process. BatchRunner
+  captured LilyPondInit.DefaultLayout(), the cached init-layer OBJECT, before
+  the parse, so it always engraved under the pristine layout and every toplevel
+  \layout in the suite was silently discarded.
+
+  Fixed by resolving the identifier where upstream resolves it: inside the book
+  handler, after the parse, falling back to the cached object when the
+  identifier names nothing. ScoreLayout's own preference is unchanged -- a
+  score's own \layout block still wins -- and needs no change, because
+  get_layout (lily-parser.cc) opens every \layout head by CLONING whatever
+  $defaultlayout names at that moment, so a score block already inherits the
+  toplevel one and can then override it.
+
+  This is EPG13's $defaultpaper finding one identifier over, and it is the same
+  lesson twice: these definitions are reached BY NAME and rebound wholesale, so
+  a cached reference to the object is not a reference to the current value.
+  Fenced by ToplevelLayoutEndToEndTests, whose every case is paired against the
+  same operation written in the music -- a path that never went through
+  $defaultlayout and so always worked.
+
+
+  slashed-beam -- NOT FIXED, AND THE REASON IS EPG15/EPG16
+
+  Reported as "(min) called with zero arguments". Traced to
+  beam::calc-right-extreme-vertical-count in scm/output-lib.scm, which filters
+  a kneed beam's beam-segments down to those touching the right end of the beam
+  and then does (apply min <their vertical counts>). The filter comes back
+  EMPTY, so min is applied to '().
+
+  Measured on the file's own kneed beams: the stems of the failing beams sit at
+  only TWO distinct x-coordinates -- 1.2392 and 0.065 -- and they run BACKWARDS,
+  later stems at smaller x. Four notes, two positions, wrong order. That makes
+  the segments' horizontal intervals INVERTED, e.g. (1.1742 . 0.13), and an
+  inverted interval is is_empty() by Interval's own definition, so
+  Beam::calc_x_positions falls into its own "beams without segments" fallback
+  and sets both ends to the same coordinate. X-positions comes out
+  (1.2392 . 1.2392) and nothing can match it.
+
+  The port's Beam::calc_x_positions is upstream's, line for line, INCLUDING
+  that fallback -- upstream fed the same segments would answer the same thing.
+  The divergence is upstream of all of it: the columns have not been placed, so
+  the stem coordinates are not yet meaningful. That is EPG15/EPG16.
+
+  This is the FOURTH instance of one recorded pattern and it is worth naming as
+  such: EPG10 (beams draw with correct count but near-zero length), EPG12 (the
+  slur search range explodes when the horizontal span collapses -- "upstream may
+  do that unguarded because spacing has ALWAYS run by then"), EPG17
+  (Bracket::make_bracket divides by the bracket length), and now this. The
+  earlier three were in C++ and could be guarded at upstream's own threshold.
+  This one CANNOT be: the arithmetic is in scm/output-lib.scm, which is vendored
+  byte-identical, and editing vendored upstream Scheme to survive a condition
+  upstream never meets would be a parity bug wearing a fix's clothes.
+
+  Why the file regressed at EPG14 rather than earlier: EPG14 fixed
+  value_type_check refusing a procedure for a grob property, which is what had
+  been silently throwing away \override Beam.stencil = #beam::slashed-stencil.
+  Verified directly -- the same music with the stencil override removed still
+  produces a page. Before EPG14 the default beam stencil drew and the file
+  passed; EPG14 made the override real, and the code it now reaches needs
+  spacing to have run.
+
+
+  THREE MORE DEFECTS THE \layout FIX UNCOVERED
+
+  Turning toplevel \layout blocks on ran machinery that had never executed, and the
+  ratchet caught the consequences twice. All three were pre-existing; none is a cost
+  of the fix.
+
+  (1) equal? NEVER REACHED A HOST OBJECT'S EQUALITY HANDLER (LilyScheme).
+
+  scm_equal_p ends by dispatching to a smob's equal_p; LilyScheme's SchemeEqual handled
+  pairs, strings and vectors and then answered #f. LilyPond's moment<=? is
+  (or (equal? a b) (ly:moment<? a b)), so "is this moment at or before that one"
+  answered NO at the one moment they are the SAME. Measured directly: measurePosition
+  printed as 0 while (moment<=? measurePosition ZERO-MOMENT) was #f.
+
+  Measure_spanner_engraver therefore never cleared its finished spanner at
+  stop-translation-timestep and fell through to its finalize branch -- which is
+  scm/scheme-engravers.scm:306, (set! (ly:spanner-bound finished RIGHT) ...), an
+  UPSTREAM bug: ly:spanner-bound is a plain LY_DEFINE with no setter half. Upstream
+  never reaches it. This is EPG14's assq-compares-boxed-numbers-by-reference finding
+  one level up.
+
+  Fixed with ISchemeEqual, the managed analogue of declaring an equal_p, on the model
+  of IApplicable. The roster was READ OUT of the pinned source rather than guessed:
+  exactly eight types declare a handler -- Duration, Moment, Listener, Input, Pitch,
+  Tuplet_description, Prob and Spring. Spring's is literally scm_is_eq, so identity is
+  already correct for it. Six are implemented, each delegating to an Equals override
+  that was verified field-for-field against upstream's equal_p. PROB IS NOT: its
+  handler is a real algorithm (it skips `origin' fields, compares class names, and
+  walks both property alists), nothing measured demands it, and a half-right comparison
+  would be worse than a recorded absence. OWED.
+
+  The hook is opt-in on BOTH sides, matching Guile: a smob with no handler falls back
+  to eq?, so implementing ISchemeEqual on a type whose upstream counterpart has none
+  would answer #t where upstream answers #f.
+
+  (2) A STALE UNIMPLEMENTED-THROW IN Measure_spanner::print.
+
+  The bracket half threw, loudly and by name, saying it needed
+  Bracket::make_axis_constrained_bracket "owed by EPG14". EPG17 landed lily/bracket.cc
+  WHOLE -- that function included -- while pulling it forward for its own two bracket
+  grobs, and the throw was never taken back down. Nothing demanded it in between
+  because the \layout block that turns Measure_spanner_engraver on was being discarded.
+  Wired to the existing Bracket.MakeAxisConstrainedBracket; measure-spanner.cc's ledger
+  row now reads WHOLE. Worth generalising: a named absence stops being true the moment
+  its owner lands, and nothing re-checks it.
+
+  (3) \language LEAKS ACROSS FILES IN THE BATCH RUNNER -- THE THIRD PER-FILE LEAK.
+
+  ly:parser-set-note-names rebinds (lily)'s `pitchnames', which is SESSION state, and
+  RestoreDefaults did not put it back. One regression file, midi-key-signature.ly,
+  includes arabic.ly, whose first line is \language "italiano" -- so every file swept
+  after it parsed with ITALIAN note names.
+
+  This one had been costing real rows since well before the \layout work, and the
+  sweep logs prove it rather than the directory: at EPG14 part-combine.ly and
+  part-combine-relative.ly were already NOOUT on "not a note name: g", while
+  part-combine-a2.ly and part-combine-inside-scale-durations.ly still PRODUCED PAGES --
+  with 12 and 26 parse errors respectively. A file whose notes fail to parse still
+  yields a page, just an emptier one, which is exactly how a leak this large stayed
+  invisible. All four now produce pages with ZERO parse errors.
+
+  It is the same shape as the other two per-file leaks and belongs beside them:
+  \paper mutates in place, set-global-staff-size rebinds $defaultpaper, a toplevel
+  \layout rebinds $defaultlayout, and \language rebinds pitchnames. Upstream needs
+  none of it -- one file per process. Fenced by BatchRunnerTests.
+
+  THE EPG4 TRAP IS STILL LIVE, and it cost a bisect here: part-combine-a2.ly PASSES
+  WHEN RUN ALONE and fails only inside the sweep. Bisecting the ordinal file list
+  against the single victim found the culprit in nine runs; that is the technique to
+  reach for, rather than a one-file probe, whenever a failure will not reproduce alone.
+
+
+  (4) Context::check_removal WAS NEVER CALLED -- the deepest of the four.
+
+  The port's Context.CheckRemoval is a faithful translation of upstream's
+  check_removal, and NOTHING INVOKED IT. Upstream drives it from
+  Global_context::run_iterator_on_me twice -- at the end of every timestep, right after
+  apply_finalizations, and again after the iterator quits -- and both calls were absent
+  from the port's loop.
+
+  check_removal is what SENDS RemoveContext. So the port had the event defined, its
+  listener registration wired, and the event never once fired. This is EPG18's
+  Context_handle finding's sibling: same subsystem, same shape -- something declared
+  upstream, half-reproduced, and silent because the one caller that depends on it had
+  not been reached yet.
+
+  The caller that finally reached it: recording-group-emulate in scm/part-combiner.scm
+  registers a listener on RemoveContext whose whole job, per its own docstring, is to
+  "add a final entry to record the end moment". \autoChange reads that entry as the
+  final rest-mom of make-autochange-music's recursion; without it the recursion ends
+  with rest-mom still #f and calls (skip-of-moment-span prev-change-mom #f), which dies
+  in ly:moment-sub.
+
+  MEASURED AGAINST THE ORACLE, not reasoned about -- and that mattered, because reading
+  scm/autochange.scm alone suggests upstream should hit the same #f. Instrumenting
+  recording-group-emulate under the pinned 2.27.2 binary for the same music reports TEN
+  recorded entries ending at moment 2; the port reported NINE. The missing one is the
+  end moment. ContextRemovalEndToEndTests fences the count at the oracle's ten, which is
+  why it is a real fence and not a characterization of the port's own output.
+
+  Fixed by adding both calls where upstream has them. auto-change, autochange-clefs and
+  part-combine all produce pages with zero parse errors afterwards.
+
+
+  WHAT THIS SESSION LEFT OPEN -- TWO ROWS, BOTH OWNED BY LATER GROUPS
+
+  slashed-beam   EPG15/EPG16. Unplaced columns; full account above. Cannot be guarded,
+                 because the arithmetic is in vendored upstream Scheme.
+  nullvoice-change  EPG16. Its toplevel expression is a \markup \score-lines block, not
+                 a score, and D20's score-level short-circuit skips toplevel non-score
+                 entries -- the runner says so by name ("skipped toplevel non-score
+                 entry"). It produced a page at EPG14 only because the \language leak
+                 kept the markup from parsing; parsing it correctly is what exposes the
+                 known limit. Closes when EPG16 moves the runner onto ly:book-process.

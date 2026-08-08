@@ -202,12 +202,20 @@ public class StencilIntegralTests
     }
 
     [Fact]
-    public void a_stencil_containing_text_takes_its_extent_box()
+    public void a_text_node_with_no_shaped_run_contributes_nothing_but_does_not_stop_the_walk()
     {
         //Arrange
-        // The port's text expression carries no inner drawing to walk, so walking would
-        // silently omit the text. Taking the box instead over-reserves, which is the
-        // only safe direction. See TEXT STENCILS in Engine/PORT-COVERAGE.txt.
+        // EPG14 CLOSED the divergence this test used to fence. Until then the walk
+        // refused to descend into ANY stencil containing text and took the whole extent
+        // box instead -- over-reserving, which was the only safe direction while the
+        // port's utf-8-string carried no inner drawing. It carries the shaped run now
+        // (see THE STENCIL EXPRESSION WALK in Engine/PORT-COVERAGE.txt), so text is
+        // graded like any other ink.
+        //
+        // This hand-built node has an EMPTY fourth element, which is what a run of
+        // characters no face in the chain covers would produce. The walk must descend,
+        // find nothing to trace, and report only what was really drawn -- the line's own
+        // half-thickness of 0.05 -- rather than inventing the 3.0 box.
         object text = Pair.List(
             Utf8String, new MutableString("serif 12"), new MutableString("Allegro"), Nil.Instance);
         object drawn = Pair.List(DrawLine, 0.1, 0.0, 0.0, 10.0, 0.0);
@@ -221,8 +229,32 @@ public class StencilIntegralTests
         SkylinePair pair = Trace(stencil, Axis.X);
 
         //Assert
-        // A walk that dropped the text would report the line's own height near zero.
-        pair.Up.Height(5.0).Should().BeApproximately(3.0, 1e-9);
+        // Half the 0.1 line thickness, above the y = 0 the line is drawn along.
+        pair.Up.Height(5.0).Should().BeApproximately(0.05, 1e-9);
+    }
+
+    [Fact]
+    public void a_real_text_stencil_traces_the_ink_of_its_glyphs()
+    {
+        //Arrange
+        // The other half, and the one that proves the close is worth anything: a stencil
+        // built by TextFontMetric itself, whose fourth element holds the run it resolved.
+        // "Allegro" has ascenders and a descender, so its traced ink must have real
+        // height in BOTH directions -- and must stay INSIDE the advance-and-ink box the
+        // metric measured, because tracing outlines can only ever report less than the
+        // box that was computed to contain them.
+        TextFontMetric metric = new TextFontMetric("serif", false, false, false, 12.0, 1.0);
+        Stencil stencil = metric.TextStencil("Allegro");
+        stencil.IsEmpty.Should().BeFalse();
+
+        //Act
+        SkylinePair pair = Trace(stencil, Axis.X);
+
+        //Assert
+        Interval box = stencil.YExtent;
+        pair.Up.MaxHeight().Should().BeGreaterThan(0.0);
+        pair.Up.MaxHeight().Should().BeLessThanOrEqualTo(box.Right + 1e-6);
+        pair.Down.MaxHeight().Should().BeGreaterThanOrEqualTo(box.Left - 1e-6);
     }
 
     [Fact]

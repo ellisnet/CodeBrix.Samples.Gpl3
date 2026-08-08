@@ -948,6 +948,103 @@ Copyright: Copyright (C) 1996--2026 Han-Wen Nienhuys <hanwen@xs4all.nl>
         rather than copied source; it was EPG10's private class and is now
         shared, because the slur scorer runs the same queue.
 
+    -- EPG14, scripts, dynamics, brackets, pedals, fingering (added 2026-08-08) --
+
+    src/CodeBrix.LilyPort.Engine/Objects/ScriptInterface.cs
+        <- lily/script-interface.cc, lily/include/script-interface.hh,
+           lily/script-column.cc, lily/include/script-column.hh
+           Copyright (C) 1999--2026 Han-Wen Nienhuys
+           Holds Script_interface and Script_column: the column exists only to
+           order scripts and reaches into Script_interface to do it.
+    src/CodeBrix.LilyPort.Engine/Objects/LineSpanner.cs
+        <- lily/line-spanner.cc
+           Copyright (C) 2000--2026 Han-Wen Nienhuys
+           Holds Line_spanner and Horizontal_line_spanner, as upstream does.
+    src/CodeBrix.LilyPort.Engine/Objects/OttavaBracket.cs
+        <- lily/ottava-bracket.cc
+           Copyright (C) 2000--2026 Han-Wen Nienhuys
+    src/CodeBrix.LilyPort.Engine/Objects/Hairpin.cs
+        <- lily/hairpin.cc, lily/include/hairpin.hh
+           Copyright (C) 2000--2026 Han-Wen Nienhuys
+    src/CodeBrix.LilyPort.Engine/Objects/PianoPedal.cs
+        <- lily/piano-pedal-bracket.cc, lily/sustain-pedal.cc
+           Copyright (C) 1998--2026 Han-Wen Nienhuys
+    src/CodeBrix.LilyPort.Engine/Objects/FingeringColumn.cs
+        <- lily/fingering-column.cc, lily/include/fingering-column.hh
+           Copyright (C) 2011--2026 Mike Solomon
+    src/CodeBrix.LilyPort.Engine/Objects/Brackets.cs
+        <- lily/horizontal-bracket.cc, lily/include/horizontal-bracket.hh,
+           lily/enclosing-bracket.cc
+           Copyright (C) 2002--2026 Han-Wen Nienhuys
+    src/CodeBrix.LilyPort.Engine/Objects/BalloonInterface.cs
+        <- lily/balloon.cc
+           Copyright (C) 2004--2026 Han-Wen Nienhuys
+    src/CodeBrix.LilyPort.Engine/Objects/LedgerLineSpanner.cs
+        <- lily/ledger-line-spanner.cc
+           Copyright (C) 1997--2026 Han-Wen Nienhuys
+    src/CodeBrix.LilyPort.Engine/Translation/ScriptEngravers.cs
+        <- lily/script-engraver.cc, lily/script-column-engraver.cc,
+           lily/script-row-engraver.cc,
+           lily/non-musical-script-column-engraver.cc
+           Copyright (C) 1997--2026 Han-Wen Nienhuys
+           make_script_from_event came home here from Objects/Epg5Seams.cs,
+           which was EPG5's seam for it and is now DELETED -- this was its last
+           method.
+    src/CodeBrix.LilyPort.Engine/Translation/TextEngravers.cs
+        <- lily/text-engraver.cc, lily/text-spanner-engraver.cc,
+           lily/ottava-engraver.cc
+           Copyright (C) 1998--2026 Han-Wen Nienhuys,
+           Copyright (C) 2000--2026 Jan Nieuwenhuizen
+    src/CodeBrix.LilyPort.Engine/Translation/DynamicEngravers.cs
+        <- lily/dynamic-engraver.cc, lily/dynamic-align-engraver.cc,
+           lily/concurrent-hairpin-engraver.cc
+           Copyright (C) 2000--2026 Han-Wen Nienhuys
+    src/CodeBrix.LilyPort.Engine/Translation/PianoPedalEngravers.cs
+        <- lily/piano-pedal-engraver.cc, lily/piano-pedal-align-engraver.cc,
+           lily/include/piano-pedal.hh
+           Copyright (C) 2000--2026 Han-Wen Nienhuys
+    src/CodeBrix.LilyPort.Engine/Translation/FingeringEngravers.cs
+        <- lily/fingering-engraver.cc, lily/new-fingering-engraver.cc,
+           lily/fingering-column-engraver.cc
+           Copyright (C) 1998--2026 Han-Wen Nienhuys
+    src/CodeBrix.LilyPort.Engine/Translation/AnnotationEngravers.cs
+        <- lily/font-size-engraver.cc, lily/tweak-engraver.cc,
+           lily/balloon-engraver.cc, lily/parenthesis-engraver.cc,
+           lily/instrument-name-engraver.cc,
+           lily/instrument-switch-engraver.cc,
+           lily/horizontal-bracket-engraver.cc, lily/ledger-line-engraver.cc
+           Copyright (C) 1997--2026 Han-Wen Nienhuys
+           Eight small engravers that annotate what other engravers made.
+    src/CodeBrix.LilyPort.Engine/Translation/SpanEventListener.cs
+        <- lily/include/span-event-listener.hh
+           Copyright (C) 2022--2026 Daniel Eble
+           A HEADER-ONLY upstream file, so it has no ledger row and rides with
+           the first group that needs it.
+    src/CodeBrix.LilyPort.Engine/Bootstrap/Epg14Callbacks.cs
+        New-in-family C# (no upstream header), Copyright (c) 2026 Jeremy Ellis
+        and contributors, filed under the same rule as the other callback
+        surfaces: the derivation is the MAKE_SCHEME_CALLBACK and LY_DEFINE
+        contract, not copied code. Besides EPG14's own twenty-eight names it
+        carries bindings PULLED FORWARD from EPG23 by the demand loop -- ALL of
+        lily/skyline-scheme.cc, lily/line-interface-scheme.cc's one binding, and
+        five leaves of lily/stencil-scheme.cc.
+
+    SIX groups of already-ported upstream code landed with EPG14 and are
+    recorded on their existing hosts. Their ledger rows stay `ported' -- the
+    files were ported and these were the gap.
+
+    lily/grob.cc, lily/item.cc and lily/spanner.cc's find_broken_piece -- all
+    three definitions of a method declared in grob.hh, none of which had ever
+    come across -- ride Objects/Grob.cs, Objects/Item.cs and Objects/Spanner.cs.
+    lily/grob.cc's robust_relative_pure_y_extent rides Objects/Grob.cs.
+    lily/pitch.cc's set_middle_C rides Music/Pitch.cs. lily/system.cc's
+    get_neighboring_staff rides Objects/SystemGrobVertical.cs.
+    lily/nested-property.cc's set_nested_property rides
+    Objects/NestedProperty.cs, where the body already existed written out inline
+    inside a binding. And lily/lily-guile.cc's ly_assoc_get and ly_append ride
+    Objects/SchemeUtilities.cs, along with two CORRECTIONS to that same file
+    described in Engine/PORT-COVERAGE.txt.
+
     FIVE groups of already-ported upstream code landed with EPG11/EPG12 and are
     recorded on their existing hosts. Their ledger rows stay `ported' -- the
     files were ported and these were the gap.

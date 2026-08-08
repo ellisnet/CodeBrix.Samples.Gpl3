@@ -152,7 +152,17 @@ public class Epg9EngraverTests : IDisposable
 
         public CollectorEngraver Collector { get; set; }
 
-        public Context Find(string name) => FindByName(Global, name);
+        /// <summary>
+        /// Every context announced under Global, kept because the LIVE TREE IS EMPTY
+        /// once interpretation finishes: Context::check_removal removes any context with
+        /// no children and no clients, which after the iterators quit is all of them.
+        /// Upstream does the same, so this is not a port quirk to work around.
+        /// </summary>
+        public List<Context> Announced { get; } = new List<Context>();
+
+        public Context Find(string name)
+            => FindByName(Global, name) ?? Announced.Find(
+                context => string.Equals(context.ContextName, name, StringComparison.Ordinal));
 
         private static Context FindByName(Context context, string name)
         {
@@ -263,6 +273,20 @@ public class Epg9EngraverTests : IDisposable
         global.InitializeGrobProperties();
 
         tree.Global = global;
+
+        // Recorded as they are announced, so Find still answers after the tree has been
+        // torn down. See Tree.Announced.
+        global.EventsBelow.AddListener(
+            tree,
+            streamEvent =>
+            {
+                if (streamEvent.GetProperty(Sym("context")) is Context announced)
+                {
+                    tree.Announced.Add(announced);
+                }
+            },
+            Sym("AnnounceNewContext"));
+
         return tree;
     }
 

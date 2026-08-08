@@ -152,32 +152,27 @@ public class MusicIterationTests : IDisposable
         public ListeningEngraver Engraver
             => Engravers.Count > 0 ? Engravers[Engravers.Count - 1] : null;
 
-        public Context Voice => FindByName(Global, "Voice");
+        /// <summary>
+        /// Every context announced below Global, in announcement order — which is
+        /// top down, because a parent is announced before the child it creates.
+        /// <para>
+        /// Recorded rather than read off the live tree, because the live tree is EMPTY
+        /// once interpretation finishes: Context::check_removal removes anything with no
+        /// children and no clients, which after the iterators quit is everything.
+        /// Upstream does the same. Reading the tree afterwards would make
+        /// <see cref="CreatedNames"/> answer empty for a run that built the whole chain,
+        /// so the negative test below would pass vacuously instead of proving anything.
+        /// </para>
+        /// </summary>
+        public List<Context> Announced { get; } = new List<Context>();
+
+        public Context Voice
+            => FindByName(Global, "Voice")
+               ?? Announced.Find(context => context.ContextName == "Voice");
 
         /// <summary>The context names created below Global, top down.</summary>
         public List<string> CreatedNames
-        {
-            get
-            {
-                List<string> names = new List<string>();
-                Collect(Global, names);
-                return names;
-            }
-        }
-
-        private static void Collect(Context context, List<string> names)
-        {
-            if (context == null)
-            {
-                return;
-            }
-
-            foreach (Context child in context.Children)
-            {
-                names.Add(child.ContextName);
-                Collect(child, names);
-            }
-        }
+            => Announced.ConvertAll(context => context.ContextName);
 
         private static Context FindByName(Context context, string name)
         {
@@ -267,6 +262,20 @@ public class MusicIterationTests : IDisposable
         global.MakeGlobalTranslator();
 
         tree.Global = global;
+
+        // Recorded as they are announced; see Tree.Announced for why the live tree
+        // cannot be read after the run.
+        global.EventsBelow.AddListener(
+            tree,
+            streamEvent =>
+            {
+                if (streamEvent.GetProperty(Sym("context")) is Context announced)
+                {
+                    tree.Announced.Add(announced);
+                }
+            },
+            Sym("AnnounceNewContext"));
+
         return tree;
     }
 

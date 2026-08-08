@@ -59,8 +59,8 @@ auto-beam-engraver.cc	ported	src/CodeBrix.LilyPort.Engine/Translation/AutoBeamEn
 axis-group-engraver.cc	ported	src/CodeBrix.LilyPort.Engine/Translation/FirstEngravers.cs	
 axis-group-interface-scheme.cc	ported	src/CodeBrix.LilyPort.Engine/Bootstrap/Epg7Callbacks.cs	
 axis-group-interface.cc	ported	src/CodeBrix.LilyPort.Engine/Objects/AxisGroupInterface.cs	
-balloon-engraver.cc	group	EPG14	
-balloon.cc	group	EPG14	
+balloon-engraver.cc	ported	src/CodeBrix.LilyPort.Engine/Translation/AnnotationEngravers.cs	
+balloon.cc	ported	src/CodeBrix.LilyPort.Engine/Objects/BalloonInterface.cs	
 bar-engraver.cc	ported	src/CodeBrix.LilyPort.Engine/Translation/BarEngravers.cs	
 bar-number-engraver.cc	ported	src/CodeBrix.LilyPort.Engine/Translation/BarEngravers.cs	
 beam-collision-engraver.cc	ported	src/CodeBrix.LilyPort.Engine/Translation/BeamCollisionEngraver.cs	the contexts_ set and derived_mark are dropped; the managed collector keeps the Contexts alive
@@ -94,9 +94,9 @@ cluster.cc	group	EPG20
 coherent-ligature-engraver.cc	group	EPG21	
 collision-engraver.cc	ported	src/CodeBrix.LilyPort.Engine/Translation/ColumnEngravers.cs	
 column-x-positions.cc	ported	src/CodeBrix.LilyPort.Engine/Layout/SimpleSpacer.cs	
-completion-note-heads-engraver.cc	ported	src/CodeBrix.LilyPort.Engine/Translation/CompletionEngravers.cs	EPG5 (2026-08-07): Tie::set_head and Tie_column::add_tie go through Objects/Epg5Seams.cs until EPG11 lands
+completion-note-heads-engraver.cc	ported	src/CodeBrix.LilyPort.Engine/Translation/CompletionEngravers.cs	EPG5 carried Tie::set_head and Tie_column::add_tie through Objects/Epg5Seams.cs; EPG11 landed both in their own files and EPG14 DELETED that seam file
 completion-rest-engraver.cc	ported	src/CodeBrix.LilyPort.Engine/Translation/CompletionEngravers.cs	
-concurrent-hairpin-engraver.cc	group	EPG14	
+concurrent-hairpin-engraver.cc	ported	src/CodeBrix.LilyPort.Engine/Translation/DynamicEngravers.cs	
 constrained-breaking.cc	group	EPG15	
 context-def.cc	ported	src/CodeBrix.LilyPort.Engine/Translation/ContextDef.cs	
 context-handle.cc	ported	src/CodeBrix.LilyPort.Engine/Translation/ContextHandle.cs	
@@ -115,7 +115,7 @@ directional-element-interface.cc	ported	src/CodeBrix.LilyPort.Engine/Objects/Dir
 dispatcher-scheme.cc	ported	src/CodeBrix.LilyPort.Engine/Bootstrap/DispatcherPrimitives.cs	pulled forward from EPG23 by EPG22 -- \addQuote cannot run without ly:add-listener
 dispatcher.cc	ported	src/CodeBrix.LilyPort.Engine/Translation/Dispatcher.cs	
 dot-column-engraver.cc	ported	src/CodeBrix.LilyPort.Engine/Translation/DotEngravers.cs	
-dot-column.cc	ported	src/CodeBrix.LilyPort.Engine/Objects/DotColumn.cs	EPG5 (2026-08-07): Stem/side-position/pure-position reads go through Objects/Epg5Seams.cs until EPG6/EPG7/EPG15 land; header's compare and side_position declarations are dead upstream and not carried
+dot-column.cc	ported	src/CodeBrix.LilyPort.Engine/Objects/DotColumn.cs	EPG5 carried the Stem/side-position/pure-position reads through Objects/Epg5Seams.cs; Wave A and EPG22 re-pointed them at the canonical classes and EPG14 DELETED that seam file. The header's compare and side_position declarations are dead upstream and not carried
 dot-configuration.cc	ported	src/CodeBrix.LilyPort.Engine/Objects/DotConfiguration.cs	
 dot-formatting-problem.cc	ported	src/CodeBrix.LilyPort.Engine/Objects/DotConfiguration.cs	
 dots-engraver.cc	ported	src/CodeBrix.LilyPort.Engine/Translation/DotEngravers.cs	
@@ -124,10 +124,10 @@ drum-note-engraver.cc	group	EPG20
 drum-note-performer.cc	group	EPG19	one of the 14 concrete performers
 duration-scheme.cc	group	EPG23	leaf binding file — EPG23 sweeps what its type's group did not land
 duration.cc	ported	src/CodeBrix.LilyPort.Engine/Music/Duration.cs	
-dynamic-align-engraver.cc	group	EPG14	
-dynamic-engraver.cc	group	EPG14	
+dynamic-align-engraver.cc	ported	src/CodeBrix.LilyPort.Engine/Translation/DynamicEngravers.cs	
+dynamic-engraver.cc	ported	src/CodeBrix.LilyPort.Engine/Translation/DynamicEngravers.cs	
 dynamic-performer.cc	group	EPG19	one of the 14 concrete performers
-enclosing-bracket.cc	group	EPG14	
+enclosing-bracket.cc	ported	src/CodeBrix.LilyPort.Engine/Objects/Brackets.cs	
 engraver-group.cc	ported	src/CodeBrix.LilyPort.Engine/Translation/Engraver.cs	
 engraver-scheme.cc	ported	src/CodeBrix.LilyPort.Engine/Bootstrap/TranslationPrimitives.cs	
 engraver.cc	ported	src/CodeBrix.LilyPort.Engine/Translation/Engraver.cs	
@@ -139,9 +139,9 @@ figured-bass-continuation.cc	group	EPG20	D24 (2026-08-05): EPG0's PLAN GAP close
 figured-bass-engraver.cc	group	EPG20	D24 (2026-08-05): EPG0's PLAN GAP closed -- stays in EPG20
 figured-bass-position-engraver.cc	group	EPG20	D24 (2026-08-05): EPG0's PLAN GAP closed -- stays in EPG20	
 fine-iterator.cc	ported	src/CodeBrix.LilyPort.Engine/Translation/Epg17Iterators.cs	
-fingering-column-engraver.cc	group	EPG14	
-fingering-column.cc	group	EPG14	
-fingering-engraver.cc	group	EPG14	
+fingering-column-engraver.cc	ported	src/CodeBrix.LilyPort.Engine/Translation/FingeringEngravers.cs	
+fingering-column.cc	ported	src/CodeBrix.LilyPort.Engine/Objects/FingeringColumn.cs	
+fingering-engraver.cc	ported	src/CodeBrix.LilyPort.Engine/Translation/FingeringEngravers.cs	
 flag.cc	ported	src/CodeBrix.LilyPort.Engine/Objects/Flag.cs	
 font-config-scheme.cc	no-port	fontconfig bindings — replaced by the port font layer	
 font-config.cc	no-port	fontconfig discovery — replaced by the port font layer	
@@ -149,7 +149,7 @@ font-interface.cc	ported	src/CodeBrix.LilyPort.Engine/Fonts/FontInterface.cs
 font-metric-scheme.cc	ported	src/CodeBrix.LilyPort.Engine/Bootstrap/FontPrimitives.cs	EPG13 (2026-08-05): the engraving half (get-glyph, name, file-name, design-size, magnification) is in Bootstrap/GrobCallbacks.cs; glyph-name-to-index and index-to-charcode here
 font-metric.cc	ported	src/CodeBrix.LilyPort.Engine/Fonts/FontMetric.cs	
 font-select.cc	ported	src/CodeBrix.LilyPort.Engine/Fonts/FontInterface.cs	
-font-size-engraver.cc	group	EPG14	
+font-size-engraver.cc	ported	src/CodeBrix.LilyPort.Engine/Translation/AnnotationEngravers.cs	
 footnote-engraver.cc	group	EPG16	
 forbid-break-engraver.cc	group	EPG15	
 freetype-error.cc	no-port	FreeType error table — replaced by the port font layer	
@@ -181,18 +181,18 @@ grob-scheme.cc	group	EPG23	leaf binding file — EPG23 sweeps what its type's gr
 grob-smob.cc	no-port	smob/GC plumbing — the .NET GC replaces it	
 grob.cc	ported	src/CodeBrix.LilyPort.Engine/Objects/Grob.cs	
 guile-init.cc	no-port	Guile bootstrap — CodeBrix.LilyScheme replaces it	
-hairpin.cc	group	EPG14	
+hairpin.cc	ported	src/CodeBrix.LilyPort.Engine/Objects/Hairpin.cs	
 hara-kiri-group-spanner.cc	group	EPG15	
-horizontal-bracket-engraver.cc	group	EPG14	
-horizontal-bracket.cc	group	EPG14	
+horizontal-bracket-engraver.cc	ported	src/CodeBrix.LilyPort.Engine/Translation/AnnotationEngravers.cs	
+horizontal-bracket.cc	ported	src/CodeBrix.LilyPort.Engine/Objects/Brackets.cs	
 hyphen-engraver.cc	ported	src/CodeBrix.LilyPort.Engine/Translation/LyricEngravers.cs	
 includable-lexer.cc	ported	src/CodeBrix.LilyPort.Parsing/Lexing/ModalScanner.cs	the lexer's include stack; ModalScanner owns it (Parsing PORT-COVERAGE)
 initial-context-music-iterator.cc	ported	src/CodeBrix.LilyPort.Engine/Translation/ContextIterators.cs	
 input-scheme.cc	ported	src/CodeBrix.LilyPort.Engine/Bootstrap/OriginPrimitives.cs	
 input-smob.cc	no-port	smob/GC plumbing — the .NET GC replaces it	
 input.cc	ported	src/CodeBrix.LilyPort.Engine/Origins/Input.cs	
-instrument-name-engraver.cc	group	EPG14	
-instrument-switch-engraver.cc	group	EPG14	
+instrument-name-engraver.cc	ported	src/CodeBrix.LilyPort.Engine/Translation/AnnotationEngravers.cs	
+instrument-switch-engraver.cc	ported	src/CodeBrix.LilyPort.Engine/Translation/AnnotationEngravers.cs	upstream's stop_translation_time_step is misspelled and never dispatched; reproduced dead
 interval-minefield.cc	ported	src/CodeBrix.LilyPort.Engine/Layout/IntervalMinefield.cs	
 item-scheme.cc	group	EPG23	leaf binding file -- EPG23 sweeps what its type did not land; ly:item-break-dir PULLED FORWARD to EPG4 (Bootstrap/GrobPrimitives.cs), the rest still owed
 item.cc	ported	src/CodeBrix.LilyPort.Engine/Objects/Item.cs	
@@ -205,8 +205,8 @@ kievan-ligature-engraver.cc	group	EPG21
 kievan-ligature.cc	group	EPG21	
 laissez-vibrer-engraver.cc	ported	src/CodeBrix.LilyPort.Engine/Translation/LaissezVibrerEngravers.cs	
 least-squares.cc	ported	src/CodeBrix.LilyPort.Engine/Layout/LeastSquares.cs	
-ledger-line-engraver.cc	group	EPG14	
-ledger-line-spanner.cc	group	EPG14	
+ledger-line-engraver.cc	ported	src/CodeBrix.LilyPort.Engine/Translation/AnnotationEngravers.cs	
+ledger-line-spanner.cc	ported	src/CodeBrix.LilyPort.Engine/Objects/LedgerLineSpanner.cs	
 ligature-bracket-engraver.cc	group	EPG21	
 ligature-engraver.cc	group	EPG21	
 lily-guile-test.cc	no-port	upstream's own C++ test harness — the port has xUnit suites	
@@ -218,9 +218,9 @@ lily-parser-scheme.cc	ported	src/CodeBrix.LilyPort.Engine/Bootstrap/ParserPrimit
 lily-parser.cc	ported	src/CodeBrix.LilyPort.Parsing/Actions/ParserActionHelpers.Rag3.cs;src/CodeBrix.LilyPort.Parsing/Actions/ParserActionHelpers.Rag4.cs;src/CodeBrix.LilyPort.Parsing/Actions/ParserActionHelpers.cs;src/CodeBrix.LilyPort.Parsing/Session/LilyParserSession.Music.cs;src/CodeBrix.LilyPort.Parsing/Session/LilyParserSession.Parsing.cs;src/CodeBrix.LilyPort.Parsing/Session/LilyParserSession.cs	
 lily-random.cc	group	EPG23	
 lily-version.cc	ported	src/CodeBrix.LilyPort.Engine/Bootstrap/LilyVersion.cs	
-line-interface-scheme.cc	group	EPG23	leaf binding file — EPG23 sweeps what its type's group did not land
+line-interface-scheme.cc	ported	src/CodeBrix.LilyPort.Engine/Bootstrap/Epg14Callbacks.cs	its ONE binding (ly:line-interface::line) PULLED FORWARD from EPG23 by EPG14's demand loop; the file is its LY_DEFINE surface, so it is now whole
 line-interface.cc	ported	src/CodeBrix.LilyPort.Engine/Layout/LineInterface.cs	
-line-spanner.cc	group	EPG14	
+line-spanner.cc	ported	src/CodeBrix.LilyPort.Engine/Objects/LineSpanner.cs	
 listener.cc	ported	src/CodeBrix.LilyPort.Engine/Translation/Dispatcher.cs	the type predicate only; Listener itself rides dispatcher.cc's port
 lookup.cc	ported	src/CodeBrix.LilyPort.Engine/Layout/Lookup.cs	
 ly-module.cc	no-port	Guile module plumbing — LilyScheme modules replace it	
@@ -236,7 +236,7 @@ mark-performer.cc	group	EPG19	one of the 14 concrete performers
 mark-tracking-translator.cc	ported	src/CodeBrix.LilyPort.Engine/Translation/MarkEngravers.cs	
 measure-grouping-spanner.cc	ported	src/CodeBrix.LilyPort.Engine/Objects/MeasureGrouping.cs	
 measure-remainder-iterator.cc	ported	src/CodeBrix.LilyPort.Engine/Translation/Epg17Iterators.cs	
-measure-spanner.cc	ported	src/CodeBrix.LilyPort.Engine/Objects/MeasureSpanner.cs	print's bracket half throws until EPG14 lands Bracket::make_axis_constrained_bracket (bracket.cc); text half complete
+measure-spanner.cc	ported	src/CodeBrix.LilyPort.Engine/Objects/MeasureSpanner.cs	WHOLE (2026-08-08): print's bracket half wired to Bracket::MakeAxisConstrainedBracket, which EPG17 had already landed with bracket.cc
 melody-engraver.cc	ported	src/CodeBrix.LilyPort.Engine/Translation/MelodyEngraver.cs	
 melody-spanner.cc	ported	src/CodeBrix.LilyPort.Engine/Objects/MelodySpanner.cs	
 mensural-ligature-engraver.cc	group	EPG21	
@@ -254,7 +254,7 @@ modified-font-metric.cc	ported	src/CodeBrix.LilyPort.Engine/Fonts/FontMetric.cs
 module-scheme.cc	group	EPG23	leaf binding file — EPG23 sweeps what its type's group did not land
 moment-scheme.cc	ported	src/CodeBrix.LilyPort.Engine/Bootstrap/MusicPrimitives.cs	
 moment.cc	ported	src/CodeBrix.LilyPort.Engine/Music/Moment.cs	
-multi-measure-rest-engraver.cc	ported	src/CodeBrix.LilyPort.Engine/Translation/MultiMeasureRestEngraver.cs	EPG5 (2026-08-07): make_script_from_event carried in Objects/Epg5Seams.cs until EPG14 lands script-engraver.cc
+multi-measure-rest-engraver.cc	ported	src/CodeBrix.LilyPort.Engine/Translation/MultiMeasureRestEngraver.cs	EPG5 carried make_script_from_event through Objects/Epg5Seams.cs; EPG14 landed script-engraver.cc, so it calls ScriptEngraver.MakeScriptFromEvent and that seam file is DELETED
 multi-measure-rest.cc	ported	src/CodeBrix.LilyPort.Engine/Objects/MultiMeasureRest.cs	
 music-function-scheme.cc	ported	src/CodeBrix.LilyPort.Engine/Bootstrap/OriginPrimitives.cs	
 music-function.cc	ported	src/CodeBrix.LilyPort.Engine/Music/MusicFunction.cs	
@@ -266,13 +266,13 @@ music-wrapper-iterator.cc	ported	src/CodeBrix.LilyPort.Engine/Translation/Sequen
 music-wrapper.cc	ported	src/CodeBrix.LilyPort.Engine/Music/MusicWrapper.cs	
 music.cc	ported	src/CodeBrix.LilyPort.Engine/Music/MusicObject.cs;src/CodeBrix.LilyPort.Parsing/Session/LilyParserSession.Music.cs	
 nested-property.cc	ported	src/CodeBrix.LilyPort.Engine/Bootstrap/GrobPrimitives.cs;src/CodeBrix.LilyPort.Engine/Objects/NestedProperty.cs	
-new-fingering-engraver.cc	group	EPG14	
-non-musical-script-column-engraver.cc	group	EPG14	
-note-collision.cc	ported	src/CodeBrix.LilyPort.Engine/Objects/NoteCollision.cs	EPG5 (2026-08-07): Stem::note_head_positions/duration_log/is_valid_stem and Side_position_interface::add_support go through Objects/Epg5Seams.cs until EPG6/EPG7 land
+new-fingering-engraver.cc	ported	src/CodeBrix.LilyPort.Engine/Translation/FingeringEngravers.cs	
+non-musical-script-column-engraver.cc	ported	src/CodeBrix.LilyPort.Engine/Translation/ScriptEngravers.cs	
+note-collision.cc	ported	src/CodeBrix.LilyPort.Engine/Objects/NoteCollision.cs	EPG5 carried the Stem statics and Side_position_interface::add_support through Objects/Epg5Seams.cs; Wave A re-pointed them at the canonical classes and EPG14 DELETED that seam file
 note-column-scheme.cc	ported	src/CodeBrix.LilyPort.Engine/Bootstrap/Epg5Callbacks.cs	
-note-column.cc	ported	src/CodeBrix.LilyPort.Engine/Objects/NoteColumn.cs	EPG5 (2026-08-07): the Stem statics it calls go through Objects/Epg5Seams.cs until EPG6 lands; dot_column renamed GetDotColumn (NAMING)
+note-column.cc	ported	src/CodeBrix.LilyPort.Engine/Objects/NoteColumn.cs	EPG5 carried the Stem statics through Objects/Epg5Seams.cs; Wave A re-pointed them and EPG14 DELETED that seam file. dot_column renamed GetDotColumn (NAMING)
 note-head-line-engraver.cc	group	EPG20	
-note-head-scheme.cc	group	EPG23	leaf binding file — EPG23 sweeps what its type's group did not land
+note-head-scheme.cc	ported	src/CodeBrix.LilyPort.Engine/Bootstrap/Epg14Callbacks.cs	its ONE binding (ly:note-head::stem-attachment) PULLED FORWARD from EPG23 by EPG14: \markup \note reaches it while building its stencil
 note-head.cc	ported	src/CodeBrix.LilyPort.Engine/Objects/NoteHead.cs	
 note-heads-engraver.cc	ported	src/CodeBrix.LilyPort.Engine/Translation/FirstEngravers.cs	
 note-name-engraver.cc	ported	src/CodeBrix.LilyPort.Engine/Translation/NoteNameEngraver.cs	
@@ -286,8 +286,8 @@ open-type-font-scheme.cc	ported	src/CodeBrix.LilyPort.Engine/Bootstrap/FontPrimi
 open-type-font.cc	ported	src/CodeBrix.LilyPort.Engine/Fonts/OpenTypeFont.cs	
 optimal-page-breaking.cc	group	EPG16	
 otf-scheme.cc	ported	src/CodeBrix.LilyPort.Engine/Bootstrap/FontPrimitives.cs	EPG13 (2026-08-05): ly:otf->cff filed as a D25 candidate (ps-backend) — the SVG backend embeds no font data
-ottava-bracket.cc	group	EPG14	
-ottava-engraver.cc	group	EPG14	
+ottava-bracket.cc	ported	src/CodeBrix.LilyPort.Engine/Objects/OttavaBracket.cs	
+ottava-engraver.cc	ported	src/CodeBrix.LilyPort.Engine/Translation/TextEngravers.cs	
 output-def-scheme.cc	ported	src/CodeBrix.LilyPort.Engine/Bootstrap/OutputPrimitives.cs	Completed 2026-08-05: ly:paper-get-font and ly:paper-fonts landed last (music branches real; text branches answer #f with a warning until EPG13's TextLayout bridge)
 output-def.cc	ported	src/CodeBrix.LilyPort.Engine/Layout/OutputDef.cs;src/CodeBrix.LilyPort.Parsing/Actions/ParserActionHelpers.Rag4.cs	normalize() added by EPG4 (2026-08-05); it is the only source of line-width
 overlay-string-port.cc	no-port	Guile string-port overlay — LilyScheme ports replace it	
@@ -315,7 +315,7 @@ paper-score-scheme.cc	ported	src/CodeBrix.LilyPort.Engine/Bootstrap/OutputPrimit
 paper-score.cc	ported	src/CodeBrix.LilyPort.Engine/Layout/PaperScore.cs	
 paper-system-scheme.cc	ported	src/CodeBrix.LilyPort.Engine/Bootstrap/OutputPrimitives.cs	
 paper-system.cc	ported	src/CodeBrix.LilyPort.Engine/Layout/PaperSystem.cs	
-parenthesis-engraver.cc	group	EPG14	
+parenthesis-engraver.cc	ported	src/CodeBrix.LilyPort.Engine/Translation/AnnotationEngravers.cs	
 parse-scm.cc	ported	src/CodeBrix.LilyPort.Parsing/Session/LilyParserSession.Lexing.cs;src/CodeBrix.LilyPort.Parsing/Session/LilyParserSession.cs	completed 2026-08-04: reader, both scm_c_catch handlers, the #@/$@ multiple-values prefix, the closures lookup and eval_scm's extra-token protocol. Two deliberate divergences in Parsing/PORT-COVERAGE: no -dcompile-scheme-code path (LilyScheme has no byte-compiler, and upstream's own default is eval) and no scm_display_backtrace
 part-combine-engraver.cc	ported	src/CodeBrix.LilyPort.Engine/Translation/PartCombine.cs	
 part-combine-iterator.cc	ported	src/CodeBrix.LilyPort.Engine/Translation/PartCombine.cs	
@@ -327,9 +327,9 @@ performance.cc	group	EPG19
 performer-group.cc	group	EPG19	
 performer.cc	group	EPG19	
 phrasing-slur-engraver.cc	ported	src/CodeBrix.LilyPort.Engine/Translation/SlurEngravers.cs	a five-method subclass of Slur_engraver; shares its file
-piano-pedal-align-engraver.cc	group	EPG14	
-piano-pedal-bracket.cc	group	EPG14	
-piano-pedal-engraver.cc	group	EPG14	
+piano-pedal-align-engraver.cc	ported	src/CodeBrix.LilyPort.Engine/Translation/PianoPedalEngravers.cs	
+piano-pedal-bracket.cc	ported	src/CodeBrix.LilyPort.Engine/Objects/PianoPedal.cs	
+piano-pedal-engraver.cc	ported	src/CodeBrix.LilyPort.Engine/Translation/PianoPedalEngravers.cs	
 piano-pedal-performer.cc	group	EPG19	one of the 14 concrete performers
 pitch-interval.cc	ported	src/CodeBrix.LilyPort.Engine/Music/PitchInterval.cs	
 pitch-scheme.cc	group	EPG23	leaf binding file — EPG23 sweeps what its type's group did not land
@@ -372,11 +372,11 @@ score-engraver.cc	ported	src/CodeBrix.LilyPort.Engine/Translation/ScoreEngraver.
 score-performer.cc	group	EPG19	
 score-scheme.cc	ported	src/CodeBrix.LilyPort.Engine/Bootstrap/OutputPrimitives.cs	
 score.cc	ported	src/CodeBrix.LilyPort.Engine/Objects/Score.cs	
-script-column-engraver.cc	group	EPG14	
-script-column.cc	group	EPG14	
-script-engraver.cc	group	EPG14	
-script-interface.cc	group	EPG14	
-script-row-engraver.cc	group	EPG14	
+script-column-engraver.cc	ported	src/CodeBrix.LilyPort.Engine/Translation/ScriptEngravers.cs	
+script-column.cc	ported	src/CodeBrix.LilyPort.Engine/Objects/ScriptInterface.cs	shares script-interface.cc's file, as upstream's Script_column reaches into Script_interface
+script-engraver.cc	ported	src/CodeBrix.LilyPort.Engine/Translation/ScriptEngravers.cs	
+script-interface.cc	ported	src/CodeBrix.LilyPort.Engine/Objects/ScriptInterface.cs	
+script-row-engraver.cc	ported	src/CodeBrix.LilyPort.Engine/Translation/ScriptEngravers.cs	
 self-alignment-interface.cc	ported	src/CodeBrix.LilyPort.Engine/Objects/SelfAlignmentInterface.cs	carries Paper_column::get_interface_extent beside its only caller
 semi-tie-column.cc	ported	src/CodeBrix.LilyPort.Engine/Objects/SemiTieColumn.cs	
 semi-tie.cc	ported	src/CodeBrix.LilyPort.Engine/Objects/SemiTie.cs	
@@ -389,7 +389,7 @@ simple-spacer-scheme.cc	group	EPG23	leaf binding file — EPG23 sweeps what its 
 simple-spacer.cc	ported	src/CodeBrix.LilyPort.Engine/Layout/LineSpacing.cs;src/CodeBrix.LilyPort.Engine/Layout/SimpleSpacer.cs	
 simultaneous-music-iterator.cc	ported	src/CodeBrix.LilyPort.Engine/Translation/SequentialIterator.cs	
 skyline-pair.cc	ported	src/CodeBrix.LilyPort.Engine/Layout/SkylinePair.cs	
-skyline-scheme.cc	group	EPG23	leaf binding file — EPG23 sweeps what its type's group did not land
+skyline-scheme.cc	ported	src/CodeBrix.LilyPort.Engine/Bootstrap/Epg14Callbacks.cs	all 11 bindings PULLED FORWARD from EPG23 by EPG14's demand loop -- taken whole because fixing one moved the failure to the next
 skyline.cc	ported	src/CodeBrix.LilyPort.Engine/Layout/Skyline.cs	
 slash-repeat-engraver.cc	ported	src/CodeBrix.LilyPort.Engine/Translation/PercentRepeatEngravers.cs	EPG17 (2026-08-07)
 slur-configuration.cc	ported	src/CodeBrix.LilyPort.Engine/Objects/SlurConfiguration.cs	SCORER - translated literally; avoid_staff_line and fit_factor take Bezier BY VALUE upstream and Copy() it here; score_slopes adds the max-slope term twice, as upstream does
@@ -435,7 +435,7 @@ stencil-scheme.cc	group	EPG23	leaf binding file — EPG23 sweeps what its type's
 stencil.cc	ported	src/CodeBrix.LilyPort.Engine/Layout/Stencil.cs	
 stream-event-scheme.cc	ported	src/CodeBrix.LilyPort.Engine/Bootstrap/TranslationPrimitives.cs	
 stream-event.cc	ported	src/CodeBrix.LilyPort.Engine/Music/StreamEvent.cs	
-sustain-pedal.cc	group	EPG14	
+sustain-pedal.cc	ported	src/CodeBrix.LilyPort.Engine/Objects/PianoPedal.cs	
 system-start-delimiter-engraver.cc	ported	src/CodeBrix.LilyPort.Engine/Translation/VerticalOrganizationEngravers.cs	
 system-start-delimiter.cc	ported	src/CodeBrix.LilyPort.Engine/Objects/SystemStartDelimiter.cs	
 system.cc	ported	src/CodeBrix.LilyPort.Engine/Objects/SystemGrob.cs	
@@ -444,9 +444,9 @@ tab-staff-symbol-engraver.cc	group	EPG20
 template-engraver-for-beams.cc	ported	src/CodeBrix.LilyPort.Engine/Translation/BeamEngravers.cs	
 template5.cc	no-port	C++ explicit template instantiation unit — no analogue	
 tempo-performer.cc	group	EPG19	one of the 14 concrete performers
-text-engraver.cc	group	EPG14	
+text-engraver.cc	ported	src/CodeBrix.LilyPort.Engine/Translation/TextEngravers.cs	
 text-interface.cc	ported	src/CodeBrix.LilyPort.Engine/Objects/TextInterface.cs	EPG13 (2026-08-05): interpret-markup/interpret-string, the string-transformer chain and ly:perform-text-replacements; bindings in Bootstrap/GrobCallbacks.cs
-text-spanner-engraver.cc	group	EPG14	
+text-spanner-engraver.cc	ported	src/CodeBrix.LilyPort.Engine/Translation/TextEngravers.cs	
 tie-column.cc	ported	src/CodeBrix.LilyPort.Engine/Objects/TieColumn.cs	add_tie came home from Objects/Epg5Seams.cs; before_line_breaking is reproduced DEAD - upstream reads `ties` with get_property where Pointer_group_interface stores it with set_object, so its loop body never runs
 tie-configuration.cc	ported	src/CodeBrix.LilyPort.Engine/Objects/TieConfiguration.cs	Tie_configuration is a VALUE upstream; every push_back/variant copy/cache read is an explicit Copy() here
 tie-details.cc	ported	src/CodeBrix.LilyPort.Engine/Objects/TieDetails.cs	
@@ -473,7 +473,7 @@ tuplet-description.cc	ported	src/CodeBrix.LilyPort.Engine/Objects/TupletDescript
 tuplet-engraver.cc	ported	src/CodeBrix.LilyPort.Engine/Translation/TupletEngraver.cs	EPG17 (2026-08-07)
 tuplet-iterator.cc	ported	src/CodeBrix.LilyPort.Engine/Translation/TupletIterator.cs	EPG17 (2026-08-07)
 tuplet-number.cc	ported	src/CodeBrix.LilyPort.Engine/Objects/TupletNumber.cs	EPG17 (2026-08-07): 3 callbacks incl. the knee-against-beam placement
-tweak-engraver.cc	group	EPG14	
+tweak-engraver.cc	ported	src/CodeBrix.LilyPort.Engine/Translation/AnnotationEngravers.cs	
 undead.cc	no-port	GC-resurrection test scaffolding — the .NET GC replaces it	
 unpure-pure-container.cc	group	EPG15	
 vaticana-ligature-engraver.cc	group	EPG21	

@@ -82,6 +82,7 @@ public static class StencilIntegral
     private static readonly Symbol ColorSymbol = Symbol.Intern("color");
     private static readonly Symbol OutputAttributesSymbol = Symbol.Intern("output-attributes");
     private static readonly Symbol Utf8StringSymbol = Symbol.Intern("utf-8-string");
+    private static readonly Symbol GlyphOutlineSymbol = Symbol.Intern("glyph-outline");
     private static readonly Symbol WithOutlineSymbol = Symbol.Intern("with-outline");
     private static readonly Symbol DrawLineSymbol = Symbol.Intern("draw-line");
     private static readonly Symbol DashedLineSymbol = Symbol.Intern("dashed-line");
@@ -230,16 +231,14 @@ public static class StencilIntegral
             }
         }
 
-        // A stencil that mixes text with drawing is the one case the walk cannot grade,
-        // and it takes the whole stencil's box rather than the drawn part alone. See
-        // TEXT STENCILS in Engine/PORT-COVERAGE.txt: the port's text expression carries
-        // no inner drawing to walk, so walking would silently omit the text — and a
-        // skyline that omits ink is the one error direction that causes collisions.
-        // EPG14 is when this becomes measurable and worth closing properly.
-        if (!ContainsText(drawing.Expression))
-        {
-            InterpretForSkyline(lazy, Transform.Identity, drawing.Expression);
-        }
+        // CLOSED 2026-08-08 (EPG14). Text used to be excluded here: the port's
+        // utf-8-string carried no inner drawing to walk, so walking one would have
+        // silently omitted the text, and a skyline that omits ink is the one error
+        // direction that causes collisions — so the whole stencil's BOX was taken
+        // instead. TextFontMetric.TextStencil now fills that fourth element with the
+        // glyph run it resolved, exactly where upstream puts Pango's, and the walk
+        // traces each glyph's charstrings. Text is graded like any other ink.
+        InterpretForSkyline(lazy, Transform.Identity, drawing.Expression);
 
         if (lazy.IsEmpty && !drawing.IsEmptyOn(Axis.X) && !drawing.IsEmptyOn(Axis.Y))
         {
@@ -369,9 +368,14 @@ public static class StencilIntegral
         }
         else if (ReferenceEquals(head, Utf8StringSymbol))
         {
-            // The drawing the encapsulation replaces, which upstream fills with the
-            // glyph run Pango shaped. See the note in SkylinesFromStencil.
+            // The drawing the encapsulation replaces, which upstream fills with the glyph
+            // run Pango shaped and TextFontMetric.TextStencil fills with the run it
+            // resolved itself. See THE STENCIL EXPRESSION WALK in PORT-COVERAGE.
             InterpretForSkyline(skyline, transform, Fourth(expression));
+        }
+        else if (ReferenceEquals(head, GlyphOutlineSymbol))
+        {
+            AddGlyphOutlineSegments(skyline, transform, rest);
         }
         else if (ReferenceEquals(head, WithOutlineSymbol))
         {
@@ -874,31 +878,33 @@ public static class StencilIntegral
     }
 
     /// <summary>
-    /// Determines whether an expression sets any text.
+    /// Traces one TEXT glyph's real outline into the skyline —
+    /// <c>(glyph-outline FACE INDEX SCALE)</c>.
     /// </summary>
-    /// <param name="expression">The expression.</param>
-    /// <returns><see langword="true"/> when a text node appears anywhere in it.</returns>
-    private static bool ContainsText(object expression)
+    /// <param name="skyline">The collector.</param>
+    /// <param name="transform">The transform.</param>
+    /// <param name="arguments">The argument list.</param>
+    /// <remarks>
+    /// The text counterpart of <see cref="AddNamedGlyphSegments"/>, and the same
+    /// charstring interpreter underneath. A music glyph is addressed by NAME through a
+    /// font metric; a text glyph is addressed by INDEX through the face the D23 chain
+    /// resolved, and carries its own scale because the chain can change face mid-run.
+    /// </remarks>
+    private static void AddGlyphOutlineSegments(
+        LazySkylinePair skyline, Transform transform, object arguments)
     {
-        if (!(expression is Pair pair))
+        if (!(Car(arguments) is Fonts.TextFace face) || face.Cff == null)
         {
-            return false;
+            return;
         }
 
-        if (ReferenceEquals(pair.Car, Utf8StringSymbol))
-        {
-            return true;
-        }
+        int index = (int)Bootstrap.SchemeConvert.ToLong(Nth(arguments, 1), "glyph-outline");
+        double scale = Real(Nth(arguments, 2));
 
-        for (object s = expression; s is Pair item; s = item.Cdr)
-        {
-            if (ContainsText(item.Car))
-            {
-                return true;
-            }
-        }
+        Transform local = transform;
+        local.Scale(scale, scale);
 
-        return false;
+        face.Cff.AddOutlineToSkyline(skyline, local, index);
     }
 
     /// <summary>

@@ -304,9 +304,21 @@ public class LedgerTests
         // still owed `Bezier_bow itself'. There is no such class in the pinned 2.27.2 --
         // no bezier-bow.hh, no definition, no reference -- so the file was already
         // WHOLE and the row had been overstating the remaining work ever since.
-        ported.Should().Be(283);
+        //
+        // EPG14 moved THIRTY-FIVE on 2026-08-08 -- the largest single group on the board
+        // -- and emptied its own bucket with no pull-forward of any other GROUP's rows.
+        // What it did pull forward is bindings, not files: ly:line-interface::line from
+        // line-interface-scheme.cc and the whole of skyline-scheme.cc plus five
+        // stencil-scheme.cc leaves, all owed to EPG23 and all FORCED by the demand loop
+        // rather than chosen. THREE of those binding files came across WHOLE and so
+        // change disposition with them -- line-interface-scheme.cc and
+        // note-head-scheme.cc (one binding each) and skyline-scheme.cc (all eleven) --
+        // which is why the total moves by 38 and not 35. stencil-scheme.cc does NOT: five
+        // of its leaves landed and the rest did not, so a binding there is still not the
+        // file, and EntryPointClosureTests is what keeps that distinction honest.
+        ported.Should().Be(321);
         noPort.Should().Be(29);
-        PortLedger.NotYetPorted.Should().HaveCount(136);
+        PortLedger.NotYetPorted.Should().HaveCount(98);
     }
 
     [Fact]

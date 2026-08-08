@@ -79,6 +79,13 @@ public sealed class TextFace
     /// <param name="glyph">The glyph index.</param>
     /// <returns>The box.</returns>
     public Box GlyphBox(int glyph) => _cff == null ? default : _cff.GlyphBox(glyph);
+
+    /// <summary>Gets the face's charstring interpreter, or <see langword="null"/>.</summary>
+    /// <remarks>
+    /// EPG14 needs it to trace a text run's real outlines into a skyline, which is what
+    /// closed EPG13's carried-forward text divergence.
+    /// </remarks>
+    public CffFont Cff => _cff;
 }
 
 /// <summary>

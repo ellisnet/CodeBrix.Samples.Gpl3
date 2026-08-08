@@ -73,15 +73,13 @@ public static class GrobPrimitives
         {
             //was previously: lily/nested-property.cc (set_nested_property);
             Grob grob = AsGrob(a[0], "ly:grob-set-nested-property!");
-            if (!(a[1] is Pair path) || !(path.Car is Symbol head))
+            if (!(a[1] is Pair path) || !(path.Car is Symbol))
             {
                 throw SchemeErrors.WrongType(
                     "ly:grob-set-nested-property!", "non-empty symbol list", a[1]);
             }
 
-            object alist = grob.GetProperty(head);
-            alist = NestedProperty.NestedPropertyAlist(alist, path.Cdr, a[2]);
-            grob.SetProperty(head, alist);
+            NestedProperty.SetNestedProperty(grob, path, a[2]);
             return Unspecified.Instance;
         });
 

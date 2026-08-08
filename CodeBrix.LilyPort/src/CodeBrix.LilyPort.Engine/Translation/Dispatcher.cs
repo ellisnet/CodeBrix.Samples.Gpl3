@@ -47,7 +47,7 @@ namespace CodeBrix.LilyPort.Engine.Translation; //was previously: lily/dispatche
 /// <see cref="Dispatcher.RemoveListener"/> depends on.
 /// </para>
 /// </summary>
-public sealed class Listener : IEquatable<Listener>
+public sealed class Listener : IEquatable<Listener>, ISchemeEqual
 {
     /// <summary>Initializes a listener.</summary>
     /// <param name="target">The object the handler belongs to.</param>
@@ -80,6 +80,16 @@ public sealed class Listener : IEquatable<Listener>
     /// <param name="obj">The object to compare with.</param>
     /// <returns><see langword="true"/> when the object is an equal listener.</returns>
     public override bool Equals(object obj) => Equals(obj as Listener);
+
+    /// <summary>
+    /// Compares by VALUE for Scheme's <c>equal?</c>.
+    /// <para>Upstream: <c>Listener::equal_p</c>, the smob equality handler
+    /// <c>scm_equal_p</c> dispatches to. Without it two distinct objects holding the
+    /// same value answer <c>#f</c>, which is identity, not equality.</para>
+    /// </summary>
+    /// <param name="other">The value to compare against.</param>
+    /// <returns><see langword="true"/> when the two are equal by value.</returns>
+    public bool SchemeEquals(object other) => Equals(other);
 
     /// <summary>Returns a hash code.</summary>
     /// <returns>The hash code.</returns>
@@ -421,4 +431,5 @@ public sealed class Dispatcher
 
         internal PriorityEntry Take() => _entries[_index++];
     }
+
 }

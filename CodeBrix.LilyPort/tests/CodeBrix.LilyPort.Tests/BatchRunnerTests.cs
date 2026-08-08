@@ -36,6 +36,43 @@ public class BatchRunnerTests
     }
 
     [Fact]
+    public void a_language_change_does_not_leak_into_the_next_file()
+    {
+        //Arrange
+        // THE THIRD per-file leak the runner has had to close, after \paper and
+        // set-global-staff-size (EPG13) and the toplevel \layout block. \language
+        // rebinds (lily)'s `pitchnames' through ly:parser-set-note-names, which is
+        // session state, not file state — upstream never notices because it engraves
+        // one file per process.
+        //
+        // Measured cost before the fix: one regression file includes arabic.ly, whose
+        // first line is \language "italiano", and every file swept after it parsed with
+        // ITALIAN note names. The whole \partCombine family died on "not a note name: g",
+        // and two of those files still produced a page — built from music that had
+        // silently lost 12 and 26 tokens to parse errors.
+        string output = ScratchDirectory();
+
+        //Act
+        BatchRunner.RunText(
+            "\\version \"2.27.2\"\n\\language \"italiano\"\n\\score { { do'4 } }\n",
+            "batch-language-italiano",
+            null,
+            output);
+        BatchRunResult after = BatchRunner.RunText(
+            "\\version \"2.27.2\"\n\\score { { c'4 d'4 e'4 g'4 } }\n",
+            "batch-language-after",
+            null,
+            output);
+
+        //Assert
+        // Dutch note names again, and NO parse errors — the count is what matters, since
+        // a file whose notes fail to parse still yields a page, just an emptier one.
+        string.Join(" || ", after.Diagnostics).Should().Be(string.Empty);
+        after.ErrorCount.Should().Be(0);
+        after.SvgPath.Should().NotBeNull();
+    }
+
+    [Fact]
     public void a_score_reaches_svg_through_the_toplevel_handlers()
     {
         //Arrange

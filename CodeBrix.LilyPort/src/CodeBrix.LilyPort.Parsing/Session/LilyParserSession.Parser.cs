@@ -78,6 +78,24 @@ public sealed partial class LilyParserSession : ILilyParser, IExtraSourceFiles
         ErrorLevel = 1;
     }
 
+    /// <summary>
+    /// Reads the note-name table currently in force — the counterpart of
+    /// <see cref="SetNoteNames"/>, and the only way to snapshot it.
+    /// <para>
+    /// It exists for the batch runner. Upstream engraves one file per process, so
+    /// <c>\language</c> and every <c>\include</c> that wraps it die with the file that
+    /// asked; a runner sharing one session across a suite has to put the table back
+    /// itself, or the first file that says <c>\language "italiano"</c> renames the notes
+    /// for every file that follows it.
+    /// </para>
+    /// </summary>
+    /// <returns>The note-name table, or <see langword="null"/> when none is bound.</returns>
+    public object NoteNames()
+    {
+        Variable variable = _lilyModule.Lookup(Symbol.Intern("pitchnames"));
+        return variable != null && variable.IsBound ? variable.GetValue() : null;
+    }
+
     /// <inheritdoc/>
     public void SetNoteNames(object names)
     {

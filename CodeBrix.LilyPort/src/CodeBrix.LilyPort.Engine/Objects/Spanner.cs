@@ -197,6 +197,36 @@ public class Spanner : Grob
     }
 
     /// <summary>
+    /// Finds the piece of this spanner that lives on a given system —
+    /// <c>Spanner::find_broken_piece</c>.
+    /// </summary>
+    /// <param name="system">The system to look on.</param>
+    /// <returns>The piece, or <see langword="null"/> when there is none.</returns>
+    /// <remarks>
+    /// The pieces are contiguous by system rank, so the system's rank minus the first
+    /// piece's indexes straight into the list. Added 2026-08-08 by EPG14 — see
+    /// <see cref="Grob"/>.
+    /// </remarks>
+    public override Grob FindBrokenPiece(SystemGrob system)
+    {
+        if (system == null || BrokenIntos.Count == 0)
+        {
+            return null;
+        }
+
+        int rank = system.Rank;
+        Spanner first = BrokenIntos[0];
+        SystemGrob firstSystem = first.GetSystem();
+        if (firstSystem == null)
+        {
+            return null;
+        }
+
+        int delta = rank - firstSystem.Rank;
+        return delta >= 0 && delta < BrokenIntos.Count ? BrokenIntos[delta] : null;
+    }
+
+    /// <summary>
     /// The range of paper-column ranks this spanner covers —
     /// <c>Spanner::spanned_column_rank_interval</c>.
     /// </summary>

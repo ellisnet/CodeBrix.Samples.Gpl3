@@ -41,17 +41,28 @@ namespace CodeBrix.LilyPort.Engine.Objects; //was previously: lily/lily-guile.cc
 public static class SchemeUtilities
 {
     private static readonly Symbol OriginSymbol = Symbol.Intern("origin");
+    private static readonly Symbol BackendTypeCheckSymbol = Symbol.Intern("backend-type?");
 
-    /// <summary>Looks a key up in an association list by identity.</summary>
+    /// <summary>Looks a key up in an association list by identity — <c>assq</c>.</summary>
     /// <param name="key">The key to find.</param>
     /// <param name="alist">The association list.</param>
     /// <returns>The matching pair, or <see langword="null"/> when absent.</returns>
+    /// <remarks>
+    /// Identity is Guile's <c>eq?</c>, NOT raw reference equality, which is what
+    /// <see cref="ReferenceComparer"/> implements: Guile fixnums, booleans and characters
+    /// are IMMEDIATES rather than heap objects, so <c>(eq? 1 1)</c> is true there and
+    /// <c>(assq 1 '((1 . a)))</c> finds its entry. Corrected 2026-08-08 by EPG14 — this
+    /// had compared with <c>ReferenceEquals</c>, under which a boxed number is never equal
+    /// to another boxed number of the same value, so EVERY numerically-keyed alist lookup
+    /// in the engine silently missed. <c>Ottava_spanner_engraver</c> reading
+    /// <c>ottavationMarkups</c>, which is keyed by octave count, is what exposed it.
+    /// </remarks>
     public static Pair Assq(object key, object alist)
     {
         object cursor = alist;
         while (cursor is Pair pair)
         {
-            if (pair.Car is Pair entry && ReferenceEquals(entry.Car, key))
+            if (pair.Car is Pair entry && ReferenceComparer.Instance.Equals(entry.Car, key))
             {
                 return entry;
             }
@@ -89,6 +100,57 @@ public static class SchemeUtilities
         }
 
         return fallback;
+    }
+
+    /// <summary>
+    /// Looks a key up in ONE association list, answering a fallback when it is absent —
+    /// <c>ly_assoc_get</c>.
+    /// </summary>
+    /// <param name="key">The key to find.</param>
+    /// <param name="alist">The association list.</param>
+    /// <param name="fallback">What to answer when the key is absent.</param>
+    /// <returns>The value, or the fallback.</returns>
+    /// <remarks>
+    /// <para>
+    /// Upstream's <c>ly_assoc</c> picks <c>assq</c> for a SYMBOL or IMMEDIATE key and
+    /// <c>assoc</c> — that is, <c>equal?</c> — for anything else, purely because
+    /// <c>equal?</c> is slow on symbols. <see cref="Assq"/> covers the first case exactly,
+    /// immediates included.
+    /// </para>
+    /// <para>
+    /// KNOWN NARROWING: for a key that is neither a symbol nor an immediate — a FLONUM,
+    /// a string, a list — upstream would compare by <c>equal?</c> and this does not. No
+    /// caller in the engine uses such a key today (bound-details is symbol-keyed,
+    /// ottavationMarkups is integer-keyed), and a miss is loud rather than silent, since
+    /// every caller has a visible fallback. Widen it here if one ever appears.
+    /// </para>
+    /// </remarks>
+    public static object LyAssocGet(object key, object alist, object fallback)
+    {
+        Pair entry = Assq(key, alist);
+        return entry != null ? entry.Cdr : fallback;
+    }
+
+    /// <summary>
+    /// Copies a list and puts a tail on the end — <c>ly_append</c>.
+    /// </summary>
+    /// <param name="list">The list whose elements are copied.</param>
+    /// <param name="tail">What the copy's last pair points at.</param>
+    /// <returns>The joined list.</returns>
+    /// <remarks>
+    /// The first list is copied and the second is SHARED, which is <c>scm_append</c>'s
+    /// own contract — callers that go on to mutate the tail would see it through both.
+    /// </remarks>
+    public static object LyAppend(object list, object tail)
+    {
+        List<object> items = Pair.ToList(list);
+        object result = tail;
+        for (int i = items.Count - 1; i >= 0; i--)
+        {
+            result = new Pair(items[i], result);
+        }
+
+        return result;
     }
 
     /// <summary>Determines whether a list contains a value, compared by identity.</summary>
@@ -337,6 +399,28 @@ public static class SchemeUtilities
         if (value is Nil || value is bool b && !b || value is Unspecified)
         {
             return true;
+        }
+
+        // The SAME function's next short-circuit, and the port had been missing it too:
+        // for `backend-type?` alone, upstream answers true for ANY procedure, because a
+        // grob property holding a callback is not the value the property will end up
+        // with — it is the function that computes it — and it can only be checked once it
+        // has run. An unpure-pure container is checked by recursing into BOTH halves, for
+        // the same reason. Found by EPG14, 2026-08-08: `\override Hairpin.stencil =
+        // #flared-hairpin` is ordinary LilyPond and was being refused, which left the
+        // override off the grob entirely.
+        if (ReferenceEquals(typeSymbol, BackendTypeCheckSymbol))
+        {
+            if (IsProcedure(value))
+            {
+                return true;
+            }
+
+            if (value is UnpurePureContainer upc)
+            {
+                return TypeCheckAssignment(symbol, upc.Unpure, typeSymbol)
+                       && TypeCheckAssignment(symbol, upc.Pure, typeSymbol);
+            }
         }
 
         Interpreter interpreter = LilyPondScheme.Current;

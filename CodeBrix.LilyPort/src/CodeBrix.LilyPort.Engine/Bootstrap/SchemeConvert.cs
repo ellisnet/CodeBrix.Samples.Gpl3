@@ -214,4 +214,22 @@ public static class SchemeErrors
                 new MutableString("Wrong type argument, expected " + expected + ": ~S"),
                 Pair.List(value),
                 false));
+
+    /// <summary>Builds the <c>misc-error</c> condition <c>scm_misc_error</c> raises.</summary>
+    /// <param name="procedureName">The procedure reporting the problem.</param>
+    /// <param name="message">The message, already formatted.</param>
+    /// <returns>The exception to throw.</returns>
+    /// <remarks>
+    /// Added 2026-08-08 by EPG14 for <c>skyline-scheme.cc</c>, which rejects a mismatched
+    /// skyline direction and an infinite non-horizontal building this way rather than as a
+    /// type error.
+    /// </remarks>
+    public static Exception MiscError(string procedureName, string message)
+        => new SchemeThrow(
+            Symbol.Intern("misc-error"),
+            Pair.List(
+                new MutableString(procedureName),
+                new MutableString(message),
+                Nil.Instance,
+                false));
 }

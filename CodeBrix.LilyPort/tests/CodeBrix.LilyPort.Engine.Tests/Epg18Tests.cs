@@ -249,19 +249,33 @@ public class Epg18Tests
         // down the tree — that is how \set Staff.something reaches a voice — so setting a
         // busy flag on the staff would ALSO make the child read it, and the test would
         // pass whether or not delegation existed.
-        Context voice = RealVoiceContext();
-        Context staff = voice.Parent;
-
-        voice.SetProperty(Sym("melismaBusyProperties"), Pair.List(Sym("slurMelismaBusy")));
+        //
+        // Asserted from INSIDE the run, at the Voice's finalize: check_removal empties
+        // the tree before Iterate returns, so a parent/child link cannot be inspected
+        // afterwards — see Epg8TestHarness.TreeCapture.
+        int ran = 0;
 
         //Act & Assert
-        // The staff has a child and no other, so its answer IS the voice's answer.
-        staff.Children.Should().Contain(voice);
-        Context.MelismaBusy(staff).Should().BeFalse();
+        Epg8TestHarness.InspectLiveVoice(
+            Epg8TestHarness.QuarterNotes(1),
+            voice =>
+            {
+                ran++;
+                Context staff = voice.Parent;
+                voice.SetProperty(
+                    Sym("melismaBusyProperties"), Pair.List(Sym("slurMelismaBusy")));
 
-        voice.SetProperty(Sym("slurMelismaBusy"), true);
-        Context.MelismaBusy(voice).Should().BeTrue();
-        Context.MelismaBusy(staff).Should().BeTrue();
+                // The staff has a child and no other, so its answer IS the voice's.
+                staff.Children.Should().Contain(voice);
+                Context.MelismaBusy(staff).Should().BeFalse();
+
+                voice.SetProperty(Sym("slurMelismaBusy"), true);
+                Context.MelismaBusy(voice).Should().BeTrue();
+                Context.MelismaBusy(staff).Should().BeTrue();
+            });
+
+        // A callback that never ran would make every assertion above vacuous.
+        ran.Should().Be(1);
     }
 
     // ----- item.cc's spanned_time_interval, never carried until now -----
@@ -344,7 +358,11 @@ public class Epg18Tests
         // callbacks and the nine ly:slur::* names -- taking it to 565. Three of the nine
         // are never named from Scheme: the outside-slur trio is chained onto a dodging
         // grob from C++, BY NAME, so an unregistered name would chain a stub.
-        closure.Implemented.Count.Should().Be(565);
+        // 565 until EPG14, which added FORTY-SEVEN: its own twenty-eight, plus nineteen
+        // the demand loop forced forward from EPG23 -- all eleven of skyline-scheme.cc,
+        // five stencil-scheme.cc leaves, and one each from line-interface-scheme.cc,
+        // item-scheme.cc and note-head-scheme.cc.
+        closure.Implemented.Count.Should().Be(612);
     }
 
     [Fact]

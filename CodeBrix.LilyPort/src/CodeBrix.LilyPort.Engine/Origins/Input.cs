@@ -43,7 +43,7 @@ namespace CodeBrix.LilyPort.Engine.Origins; //was previously: lily/input.cc, lil
 /// returns a copy explicitly, where upstream's copy is implicit in the return by value.
 /// </para>
 /// </summary>
-public sealed class Input
+public sealed class Input : ISchemeEqual
 {
     private static readonly Symbol LocationFluidName = Symbol.Intern("%location");
 
@@ -347,4 +347,15 @@ public sealed class Input
             .Lookup(LocationFluidName);
         return variable != null && variable.IsBound ? variable.GetValue() as Fluid : null;
     }
+
+    /// <summary>
+    /// Compares by VALUE for Scheme's <c>equal?</c>.
+    /// <para>Upstream: <c>Input::equal_p</c>, the smob equality handler
+    /// <c>scm_equal_p</c> dispatches to. Without it two distinct objects holding the
+    /// same value answer <c>#f</c>, which is identity, not equality.</para>
+    /// </summary>
+    /// <param name="other">The value to compare against.</param>
+    /// <returns><see langword="true"/> when the two are equal by value.</returns>
+    public bool SchemeEquals(object other) => Equals(other);
+
 }

@@ -303,6 +303,48 @@ public abstract class Grob : IDiagnostics
     public virtual Slice SpannedColumnRankInterval() => Slice.Empty;
 
     /// <summary>
+    /// Finds the piece of this grob that lives on a given system —
+    /// <c>Grob::find_broken_piece</c>.
+    /// </summary>
+    /// <param name="system">The system to look on.</param>
+    /// <returns>The piece, or <see langword="null"/> when there is none.</returns>
+    /// <remarks>
+    /// A bare grob has no pieces, so upstream's base answers null and only
+    /// <see cref="Item"/> and <see cref="Spanner"/> override it. Added 2026-08-08 by EPG14:
+    /// the method is declared in <c>grob.hh</c> and defined in all three files, every one of
+    /// which the ledger already called <c>ported</c>, but it had never been carried — nothing
+    /// asked until <c>Line_spanner::calc_bound_info</c> needed to follow a cross-staff
+    /// glissando's bound onto another system.
+    /// </remarks>
+    public virtual Grob FindBrokenPiece(SystemGrob system) => null;
+
+    /// <summary>
+    /// A grob's PURE vertical extent relative to a reference point, falling back to the
+    /// single point it sits at when it has none — <c>robust_relative_pure_y_extent</c>.
+    /// </summary>
+    /// <param name="me">The grob.</param>
+    /// <param name="refpoint">The reference point.</param>
+    /// <param name="start">The starting column rank.</param>
+    /// <param name="end">The ending column rank.</param>
+    /// <returns>The extent, never empty.</returns>
+    /// <remarks>
+    /// The pure counterpart of <c>robust_relative_extent</c>; a free function in
+    /// <c>lily/grob.cc</c> like its sibling. Added 2026-08-08 by EPG14 for
+    /// <c>Balloon_interface::pure_height</c>.
+    /// </remarks>
+    public static Interval RobustRelativePureYExtent(
+        Grob me, Grob refpoint, int start, int end)
+    {
+        Interval ext = me.PureYExtent(refpoint, start, end);
+        if (ext.IsEmpty)
+        {
+            ext.AddPoint(me.PureRelativeYCoordinate(refpoint, start, end));
+        }
+
+        return ext;
+    }
+
+    /// <summary>
     /// Orders two grobs by where they START — <c>Grob::less</c>. Used to walk grobs
     /// and beams in parallel in horizontal order.
     /// </summary>

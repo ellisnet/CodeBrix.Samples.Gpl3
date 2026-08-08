@@ -140,6 +140,35 @@ public class Item : Grob
         => _brokenToDrul[direction] = piece;
 
     /// <summary>
+    /// Finds the piece of this item that lives on a given system —
+    /// <c>Item::find_broken_piece</c>.
+    /// </summary>
+    /// <param name="system">The system to look on.</param>
+    /// <returns>The piece, or <see langword="null"/> when there is none.</returns>
+    /// <remarks>
+    /// An item has at most the two prebroken copies to offer, so the search is this item
+    /// and then its drul pair. Added 2026-08-08 by EPG14 — see <see cref="Grob"/>.
+    /// </remarks>
+    public override Grob FindBrokenPiece(SystemGrob system)
+    {
+        if (ReferenceEquals(GetSystem(), system))
+        {
+            return this;
+        }
+
+        foreach (Direction d in new[] { Direction.Negative, Direction.Positive })
+        {
+            Item s = _brokenToDrul[d];
+            if (s != null && ReferenceEquals(s.GetSystem(), system))
+            {
+                return s;
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>
     /// Returns the paper column this item hangs off, by walking the horizontal parent
     /// chain. A column answers itself.
     /// </summary>

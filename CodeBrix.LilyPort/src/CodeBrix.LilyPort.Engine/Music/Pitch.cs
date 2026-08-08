@@ -20,7 +20,10 @@
 using System;
 using System.Globalization;
 using System.Text;
+using CodeBrix.LilyPort.Engine.Bootstrap;
+using CodeBrix.LilyPort.Engine.Objects;
 using CodeBrix.LilyPort.Flower;
+using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Music; //was previously: lily/pitch.cc, lily/include/pitch.hh;
 
@@ -33,7 +36,7 @@ namespace CodeBrix.LilyPort.Engine.Music; //was previously: lily/pitch.cc, lily/
 /// Pitch is lexicographically ordered by octave, note name, alteration.
 /// </para>
 /// </summary>
-public sealed class Pitch : IEquatable<Pitch>, IComparable<Pitch>
+public sealed class Pitch : IEquatable<Pitch>, IComparable<Pitch>, ISchemeEqual
 {
     /// <summary>The alteration of a double flat, in quarter tones.</summary>
     public const int DoubleFlat = -4;
@@ -381,4 +384,60 @@ public sealed class Pitch : IEquatable<Pitch>, IComparable<Pitch>
             _alteration += PitchScale.StepSize(_noteName);
         }
     }
+
+    /* TODO: find a good place for this function */
+
+    /// <summary>
+    /// Recomputes a context's <c>middleCPosition</c> from its clef position and octave
+    /// offset — <c>set_middle_C</c>.
+    /// </summary>
+    /// <param name="c">The context to update.</param>
+    /// <remarks>
+    /// A free function in <c>lily/pitch.cc</c>, carried here as a static because that is
+    /// the file's class in this port. Added 2026-08-08 by EPG14: <c>pitch.cc</c> has read
+    /// <c>ported</c> since EPG0, but this function had never come across — nothing asked
+    /// until <c>Ottava_spanner_engraver</c> needed to shift middle C by an octave.
+    /// </remarks>
+    public static void SetMiddleC(Translation.Context c)
+    {
+        if (c == null)
+        {
+            return;
+        }
+
+        int clefPos = ToInt(c.GetProperty(MiddleCClefPositionSymbol), 0);
+        int offset = ToInt(c.GetProperty(MiddleCOffsetSymbol), 0);
+
+        /* middleCCuePosition overrides the clef! */
+        object cuePos = c.GetProperty(MiddleCCuePositionSymbol);
+        if (SchemeConvert.IsNumber(cuePos))
+        {
+            clefPos = ToInt(cuePos, 0);
+        }
+
+        c.SetProperty(MiddleCPositionSymbol, (long)(clefPos + offset));
+    }
+
+    private static readonly Symbol MiddleCClefPositionSymbol
+        = Symbol.Intern("middleCClefPosition");
+    private static readonly Symbol MiddleCOffsetSymbol = Symbol.Intern("middleCOffset");
+    private static readonly Symbol MiddleCCuePositionSymbol
+        = Symbol.Intern("middleCCuePosition");
+    private static readonly Symbol MiddleCPositionSymbol = Symbol.Intern("middleCPosition");
+
+    private static int ToInt(object value, int fallback)
+        => SchemeConvert.IsNumber(value)
+            ? (int)SchemeConvert.ToLong(value, "middle-C")
+            : fallback;
+
+    /// <summary>
+    /// Compares by VALUE for Scheme's <c>equal?</c>.
+    /// <para>Upstream: <c>Pitch::equal_p</c>, the smob equality handler
+    /// <c>scm_equal_p</c> dispatches to. Without it two distinct objects holding the
+    /// same value answer <c>#f</c>, which is identity, not equality.</para>
+    /// </summary>
+    /// <param name="other">The value to compare against.</param>
+    /// <returns><see langword="true"/> when the two are equal by value.</returns>
+    public bool SchemeEquals(object other) => Equals(other);
+
 }
