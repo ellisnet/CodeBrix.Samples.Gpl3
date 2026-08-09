@@ -50,6 +50,52 @@ public static class SchemeConvert
         }
     }
 
+    /// <summary>
+    /// Converts a Scheme number to a flower <see cref="Rational"/>, answering whether it
+    /// was a number at all instead of throwing.
+    /// </summary>
+    /// <param name="value">The Scheme value.</param>
+    /// <param name="result">The rational, when the value was numeric.</param>
+    /// <returns><see langword="true"/> when the value was a number.</returns>
+    /// <remarks>
+    /// ADDED 2026-08-08 (EPG19), AFTER A SILENT DEFECT THIS EXACT SHAPE. The MIDI
+    /// performers read numeric context properties whose upstream type is
+    /// <c>from_scm&lt;Rational&gt;</c>, and a C# <c>is Rational</c> test looks like it
+    /// says the same thing but does not: an exact Scheme ratio such as
+    /// <c>tempoWholesPerMinute = #60/4</c> arrives as a <see cref="Ratio"/> and an
+    /// integer as a <see cref="long"/>, so the test misses both and the fallback wins.
+    /// The symptom was a tempo span opening at MINUS INFINITY and every tempo in the
+    /// suite being computed over an infinite interval. Prefer this over a type test
+    /// anywhere upstream writes <c>from_scm&lt;Rational&gt;</c>.
+    /// </remarks>
+    public static bool TryToRational(object value, out Rational result)
+    {
+        switch (value)
+        {
+            case long integer:
+                result = new Rational(integer);
+                return true;
+            case int integer:
+                result = new Rational(integer);
+                return true;
+            case BigInteger integer:
+                result = new Rational((long)integer);
+                return true;
+            case Ratio ratio:
+                result = new Rational((long)ratio.Numerator, (long)ratio.Denominator);
+                return true;
+            case double real:
+                result = FromDouble(real);
+                return true;
+            case Rational already:
+                result = already;
+                return true;
+            default:
+                result = Rational.Zero;
+                return false;
+        }
+    }
+
     /// <summary>Converts a flower <see cref="Rational"/> to a Scheme number.</summary>
     /// <param name="value">The rational to convert.</param>
     /// <returns>An exact Scheme number, or an inexact one for the non-finite values.</returns>
@@ -151,6 +197,29 @@ public static class SchemeConvert
         {
             return new DrulArray<double>(
                 ToDouble(pair.Car, "from-scm-drul"), ToDouble(pair.Cdr, "from-scm-drul"));
+        }
+
+        return fallback;
+    }
+
+    /// <summary>
+    /// Reads a pair of reals into an <see cref="Interval"/>, the way
+    /// <c>from_scm (value, Interval ())</c> does — LEFT from the car, RIGHT from the cdr.
+    /// </summary>
+    /// <param name="value">The Scheme value, expected to be a pair of numbers.</param>
+    /// <param name="fallback">The answer when the value is not such a pair.</param>
+    /// <returns>The interval, or the fallback.</returns>
+    /// <remarks>
+    /// The fallback an upstream caller passes is almost always <c>Interval ()</c>, which
+    /// is the EMPTY interval rather than a zero-length one — several callers then branch
+    /// on <c>is_empty ()</c>, so answering <c>[0, 0]</c> would take the wrong arm.
+    /// </remarks>
+    public static Interval ToInterval(object value, Interval fallback)
+    {
+        if (value is Pair pair && IsNumber(pair.Car) && IsNumber(pair.Cdr))
+        {
+            return new Interval(
+                ToDouble(pair.Car, "from-scm-interval"), ToDouble(pair.Cdr, "from-scm-interval"));
         }
 
         return fallback;

@@ -23,6 +23,7 @@ using System.Collections.Generic;
 using CodeBrix.LilyPort.Engine.Bootstrap;
 using CodeBrix.LilyPort.Flower;
 using CodeBrix.LilyScheme;
+using CodeBrix.LilyScheme.Primitives;
 using CodeBrix.LilyScheme.Runtime;
 using CodeBrix.LilyScheme.Values;
 
@@ -111,24 +112,54 @@ public static class SchemeUtilities
     /// <param name="fallback">What to answer when the key is absent.</param>
     /// <returns>The value, or the fallback.</returns>
     /// <remarks>
-    /// <para>
-    /// Upstream's <c>ly_assoc</c> picks <c>assq</c> for a SYMBOL or IMMEDIATE key and
-    /// <c>assoc</c> — that is, <c>equal?</c> — for anything else, purely because
-    /// <c>equal?</c> is slow on symbols. <see cref="Assq"/> covers the first case exactly,
-    /// immediates included.
-    /// </para>
-    /// <para>
-    /// KNOWN NARROWING: for a key that is neither a symbol nor an immediate — a FLONUM,
-    /// a string, a list — upstream would compare by <c>equal?</c> and this does not. No
-    /// caller in the engine uses such a key today (bound-details is symbol-keyed,
-    /// ottavationMarkups is integer-keyed), and a miss is loud rather than silent, since
-    /// every caller has a visible fallback. Widen it here if one ever appears.
-    /// </para>
+    /// Goes through <see cref="LyAssoc"/>, exactly as upstream's <c>ly:assoc-get</c> does.
+    /// It formerly went straight to <see cref="Assq"/> and carried a recorded NARROWING for
+    /// keys that are neither symbols nor immediates; EPG20 closed it when
+    /// <c>Drum_notes_engraver</c> became the engine's first caller to look a key up with
+    /// upstream's own branch.
     /// </remarks>
     public static object LyAssocGet(object key, object alist, object fallback)
     {
-        Pair entry = Assq(key, alist);
+        Pair entry = LyAssoc(key, alist);
         return entry != null ? entry.Cdr : fallback;
+    }
+
+    /// <summary>
+    /// <c>ly_assoc</c>: looks a key up in an alist, comparing with <c>eq?</c> when the key
+    /// is a symbol or an immediate and with <c>equal?</c> otherwise.
+    /// </summary>
+    /// <param name="key">The key to find.</param>
+    /// <param name="alist">The association list.</param>
+    /// <returns>The matching entry, or <see langword="null"/> when there is none.</returns>
+    /// <remarks>
+    /// The branch is upstream's own (<c>lily-guile.hh</c>) and is not an optimisation:
+    /// <c>assq</c> on a string key would miss every time, and <c>assoc</c> on a symbol key
+    /// would go through the general comparator for no reason.
+    /// </remarks>
+    public static Pair LyAssoc(object key, object alist)
+    {
+        // SCM_IMP: the values Guile represents without a heap cell. The set is the same
+        // one ReferenceComparer already treats as eq?-by-value, plus '().
+        bool immediate = key is Symbol || key is long || key is bool
+                         || key is SchemeChar || key is Nil || key == null;
+
+        if (immediate)
+        {
+            return Assq(key, alist);
+        }
+
+        object cursor = alist;
+        while (cursor is Pair pair)
+        {
+            if (pair.Car is Pair entry && IsEqual(entry.Car, key))
+            {
+                return entry;
+            }
+
+            cursor = pair.Cdr;
+        }
+
+        return null;
     }
 
     /// <summary>
@@ -219,6 +250,34 @@ public static class SchemeUtilities
     public static object AssqSet(object alist, object key, object value)
     {
         Pair entry = Assq(key, alist);
+        if (entry != null)
+        {
+            entry.Cdr = value;
+            return alist;
+        }
+
+        return new Pair(new Pair(key, value), alist ?? Nil.Instance);
+    }
+
+    /// <summary>
+    /// Sets a key in an association list using <c>equal?</c> comparison —
+    /// <c>scm_assoc_set_x</c>.
+    /// <para>
+    /// The <c>equal?</c> comparison is not incidental. This is the SETTER half of
+    /// <see cref="LyAssoc"/>, and pairing an <c>equal?</c> lookup with an <c>eq?</c>
+    /// setter would insert a duplicate entry for any key that is not an immediate — the
+    /// same narrowing EPG20 found and closed in <c>LyAssocGet</c>. Added by EPG15
+    /// (2026-08-08) for <c>Break_align_engraver</c>, which is upstream's first caller in
+    /// this port.
+    /// </para>
+    /// </summary>
+    /// <param name="alist">The association list.</param>
+    /// <param name="key">The key to set.</param>
+    /// <param name="value">The value to store.</param>
+    /// <returns>The updated list.</returns>
+    public static object AssocSet(object alist, object key, object value)
+    {
+        Pair entry = LyAssoc(key, alist);
         if (entry != null)
         {
             entry.Cdr = value;
@@ -321,49 +380,40 @@ public static class SchemeUtilities
     public static bool IsSchemeTrue(object value) => !(value is bool flag) || flag;
 
     /// <summary>
-    /// Determines whether two Scheme values are <c>equal?</c>, walking pairs and
-    /// vectors structurally.
+    /// Determines whether two Scheme values are <c>equal?</c> — <c>ly_is_equal</c>, which
+    /// upstream spells <c>scm_equal_p</c>.
     /// </summary>
     /// <param name="a">The first value.</param>
     /// <param name="b">The second value.</param>
     /// <returns><see langword="true"/> when the two are structurally equal.</returns>
-    public static bool IsEqual(object a, object b)
-    {
-        if (ReferenceEquals(a, b))
-        {
-            return true;
-        }
-
-        if (a == null || b == null)
-        {
-            return false;
-        }
-
-        if (a is Pair pa && b is Pair pb)
-        {
-            return IsEqual(pa.Car, pb.Car) && IsEqual(pa.Cdr, pb.Cdr);
-        }
-
-        if (a is object[] va && b is object[] vb)
-        {
-            if (va.Length != vb.Length)
-            {
-                return false;
-            }
-
-            for (int i = 0; i < va.Length; i++)
-            {
-                if (!IsEqual(va[i], vb[i]))
-                {
-                    return false;
-                }
-            }
-
-            return true;
-        }
-
-        return a.Equals(b);
-    }
+    /// <remarks>
+    /// <para>
+    /// DELEGATES to the interpreter's own <c>equal?</c> rather than reimplementing it.
+    /// It used to be a second, independent copy that walked pairs and vectors and then
+    /// fell through to <c>object.Equals</c>, and that copy was missing TWO cases the
+    /// interpreter's has.
+    /// </para>
+    /// <para>
+    /// STRINGS: Guile compares them by CONTENT, and <c>MutableString</c> does not
+    /// override <c>Equals</c>, so two distinct strings holding the same characters
+    /// compared as unequal. <c>Clef_engraver</c> decides whether the clef changed by
+    /// comparing GLYPH NAMES, which are strings.
+    /// </para>
+    /// <para>
+    /// HOST OBJECTS: <c>scm_equal_p</c> ends by dispatching to a smob's own equality
+    /// handler, which is exactly what RATCHET-FIX added as <c>ISchemeEqual</c> on
+    /// 2026-08-08 — and this copy never reached it, so the fix applied to Scheme-level
+    /// <c>equal?</c> and not to the engine's. All eight types that declare a handler
+    /// (Duration, Moment, Listener, Input, Pitch, Tuplet_description, Prob, Spring)
+    /// compared by reference here. <c>Tie_engraver</c> compares PITCHES this way.
+    /// </para>
+    /// <para>
+    /// Found by EPG20 (2026-08-08) while porting <c>Drum_notes_engraver</c>, whose
+    /// <c>ly_assoc</c> lookup is the engine's first caller to need the <c>equal?</c>
+    /// branch at all.
+    /// </para>
+    /// </remarks>
+    public static bool IsEqual(object a, object b) => CorePrimitives.SchemeEqual(a, b);
 
     /// <summary>
     /// Type-checks a property assignment against the predicate recorded for the

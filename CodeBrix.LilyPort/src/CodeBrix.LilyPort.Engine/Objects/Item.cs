@@ -196,6 +196,77 @@ public class Item : Grob
     }
 
     /// <summary>
+    /// The range of SYSTEM ranks this item is alive on —
+    /// <c>Item::spanned_system_rank_interval</c>.
+    /// <para>
+    /// An item that has landed on a system answers that system's rank twice. One that has
+    /// not — which is every breakable item before line breaking, since the prebreak pass
+    /// runs first — answers the range its two PREBROKEN PIECES landed on, because those
+    /// are the copies that will actually appear.
+    /// </para>
+    /// </summary>
+    /// <returns>The system-rank range, empty when nothing has been placed.</returns>
+    public override Slice SpannedSystemRankInterval()
+    {
+        SystemGrob st = GetSystem();
+        if (st != null)
+        {
+            return new Slice(st.Rank, st.Rank);
+        }
+
+        Slice sr = Slice.Empty;
+        foreach (Direction d in new[] { Direction.Negative, Direction.Positive })
+        {
+            Item bi = FindPrebrokenPiece(d);
+            if (bi != null && bi.GetSystem() != null)
+            {
+                sr.AddPoint(bi.GetSystem().Rank);
+            }
+        }
+
+        return sr;
+    }
+
+    /// <summary>
+    /// Gets the piece of this item relevant to a line running from
+    /// <paramref name="start"/> to <paramref name="end"/> —
+    /// <c>Item::pure_find_visible_prebroken_piece</c>.
+    /// <para>
+    /// An item at the line's left edge answers its RIGHT prebroken piece and one at the
+    /// right edge its LEFT piece — the piece facing into the line, which is the copy that
+    /// would actually be drawn there. An item anywhere else answers itself. In every case
+    /// the answer is dropped if it is not break-visible.
+    /// </para>
+    /// </summary>
+    /// <param name="start">The starting column rank.</param>
+    /// <param name="end">The ending column rank.</param>
+    /// <returns>The relevant piece, or <see langword="null"/>.</returns>
+    public override Grob PureFindVisiblePrebrokenPiece(int start, int end)
+    {
+        Item it = this;
+
+        // An Item "always" has a column, but it is possible for a grob to be killed
+        // before its parents are set, so we have to be careful.
+        PaperColumn col = GetColumn();
+        if (col == null)
+        {
+            return null;
+        }
+
+        int rank = col.Rank;
+        if (rank == start)
+        {
+            it = FindPrebrokenPiece(Direction.Positive);
+        }
+        else if (rank == end)
+        {
+            it = FindPrebrokenPiece(Direction.Negative);
+        }
+
+        return it != null && it.BreakVisible() ? it : null;
+    }
+
+    /// <summary>
     /// Returns the system this item ended up on, which is the answer its column gives
     /// and is therefore <see langword="null"/> until line breaking has run.
     /// </summary>

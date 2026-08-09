@@ -207,3 +207,53 @@ ADDED 2026-08-02 -- BEZIER, AND Offset.Directed
   flower/include/axis.hh other_axis / NO_AXES  ->  Axes.Other / Axes.Count
 
     Placed in Offset.cs, which already claims axis.hh in its provenance line.
+
+
+================================================================================
+CORRECTED 2026-08-08 (EPG19) -- TWO TYPES THAT LOOKED PORTED AND WERE NOT
+================================================================================
+
+  Both were found by the MIDI subsystem's demand loop, and both had been wrong
+  since the Flower pass. Neither had a production caller until EPG19, which is
+  why nothing had noticed.
+
+  Rational.FromDouble
+        WAS the exact dyadic conversion, built with BigInteger. That is precisely
+        what flower/rational.cc's own comment forbids:
+
+            do not blindly substitute by libg++ code, since that uses
+            arbitrary-size integers.  The rationals would overflow too easily.
+
+        They do. A tempo ramp produced a double whose exact numerator does not fit
+        a ulong and the conversion THREW, truncating eleven MIDI files after their
+        header. Now upstream's algorithm: frexp, twenty bits of mantissa
+        (FACT = 1 << 20), normalize, shift by the exponent, normalize again.
+
+        ONE DELIBERATE DIVERGENCE: where the shift would exceed 63 bits upstream
+        shifts a uint64_t past its width, which is undefined behaviour in C++; the
+        port saturates to zero or the signed infinity instead.
+
+        Measured blast radius: the full 2,146-file sweep is unchanged and the
+        ratchet reports 0 regressions. Musical durations are dyadic and small, so
+        the lossy path is exact for all of them.
+
+  PriorityQueue (the port of include/pqueue.hh)
+        WAS a hand-written binary heap. Upstream's PQueue is built on
+        std::push_heap / std::pop_heap with a `greater' comparator, and WHICH OF
+        SEVERAL EQUAL ELEMENTS SURFACES FIRST is decided entirely by that
+        algorithm's internal element order -- two correct heaps need not agree.
+
+        Midi_walker's stop-note queue reaches exact ties routinely, because every
+        chord ends its notes on the same tick, and the order they come out in is
+        the order the note-off bytes are written to the file. The heap is now a
+        replica of libstdc++'s, the same one Objects/ConfigurationHeap.cs carries
+        for the beam and slur scorers and for the same reason.
+
+        The three existing tests still pass unchanged: they assert ordering
+        properties, which both heaps satisfy. That is worth noticing -- the tests
+        could not have caught this, and did not.
+
+  ADDED for the MIDI layer: BigEndianBytesU16/24/32 and HexToBytes, the
+  byte-returning siblings of the existing char-based helpers. std::string is a byte
+  container and System.String is not; the reasoning is in StringConvert.cs and in
+  the Engine's PORT-COVERAGE.

@@ -98,6 +98,28 @@ public abstract class FontMetric
     public virtual string GlyphOutline(string glyphName) => null;
 
     /// <summary>
+    /// Returns the glyph index a code point maps to through the font's character map,
+    /// for fonts that can set a STRING — the music font's fetaText digits, dynamic
+    /// letters and punctuation. The base metric maps nothing.
+    /// </summary>
+    /// <param name="codePoint">The Unicode code point.</param>
+    /// <returns>The index, or <see cref="GlyphIndexInvalid"/> when unmapped.</returns>
+    public virtual int CharToGlyphIndex(int codePoint) => GlyphIndexInvalid;
+
+    /// <summary>Returns a glyph's name from its index, or <see langword="null"/>.</summary>
+    /// <param name="index">The glyph index.</param>
+    /// <returns>The name.</returns>
+    public virtual string IndexToName(int index) => null;
+
+    /// <summary>
+    /// Returns a glyph's horizontal advance in this metric's stencil units — the same
+    /// scale <see cref="GetIndexedCharDimensions"/> reports boxes in.
+    /// </summary>
+    /// <param name="index">The glyph index.</param>
+    /// <returns>The advance, or zero.</returns>
+    public virtual double IndexedAdvance(int index) => 0.0;
+
+    /// <summary>
     /// Returns a glyph's stencil, looked up by name.
     /// <para>
     /// Note the substitution of <c>M</c> for <c>-</c>. Glyph names in the font use
@@ -215,6 +237,27 @@ public sealed class OpenTypeFontMetric : FontMetric
     public override string GlyphOutline(string glyphName)
         => _font.Outlines?.Outline(glyphName);
 
+    /// <summary>Returns the glyph index for a code point, through the font's <c>cmap</c>.</summary>
+    /// <param name="codePoint">The Unicode code point.</param>
+    /// <returns>The index, or <see cref="FontMetric.GlyphIndexInvalid"/>.</returns>
+    public override int CharToGlyphIndex(int codePoint) => _font.CharToGlyphIndex(codePoint);
+
+    /// <summary>Returns a glyph's name from its index.</summary>
+    /// <param name="index">The glyph index.</param>
+    /// <returns>The name, or <see langword="null"/> for an invalid index.</returns>
+    public override string IndexToName(int index)
+        => index >= 0 && index < _font.GlyphNames.Count ? _font.GlyphNames[index] : null;
+
+    /// <summary>
+    /// Returns a glyph's advance, scaled exactly the way the LILY character table's
+    /// boxes are — raw units times the point constant — so a composed run's pen
+    /// positions live in the same space as its glyph boxes.
+    /// </summary>
+    /// <param name="index">The glyph index.</param>
+    /// <returns>The advance.</returns>
+    public override double IndexedAdvance(int index)
+        => _font.RawAdvance(index) * Dimensions.Point;
+
     private static double ToDouble(object value)
     {
         switch (value)
@@ -310,4 +353,20 @@ public sealed class ModifiedFontMetric : FontMetric
     /// <param name="glyphName">The glyph name.</param>
     /// <returns>The path data, or <see langword="null"/> when there is none.</returns>
     public override string GlyphOutline(string glyphName) => _original.GlyphOutline(glyphName);
+
+    /// <summary>Returns the glyph index for a code point, which is the original's.</summary>
+    /// <param name="codePoint">The Unicode code point.</param>
+    /// <returns>The index, or <see cref="FontMetric.GlyphIndexInvalid"/>.</returns>
+    public override int CharToGlyphIndex(int codePoint) => _original.CharToGlyphIndex(codePoint);
+
+    /// <summary>Returns a glyph's name from its index, which is the original's.</summary>
+    /// <param name="index">The glyph index.</param>
+    /// <returns>The name, or <see langword="null"/>.</returns>
+    public override string IndexToName(int index) => _original.IndexToName(index);
+
+    /// <summary>Returns a glyph's advance, scaled.</summary>
+    /// <param name="index">The glyph index.</param>
+    /// <returns>The advance.</returns>
+    public override double IndexedAdvance(int index)
+        => _original.IndexedAdvance(index) * Magnification;
 }

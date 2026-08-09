@@ -362,7 +362,22 @@ public class Epg18Tests
         // the demand loop forced forward from EPG23 -- all eleven of skyline-scheme.cc,
         // five stencil-scheme.cc leaves, and one each from line-interface-scheme.cc,
         // item-scheme.cc and note-head-scheme.cc.
-        closure.Implemented.Count.Should().Be(612);
+        // 612 until EPG19 (2026-08-08), which added THREE and only three: performance-
+        // scheme.cc's two (ly:performance-headers, ly:performance-write) and one leaf
+        // pulled forward from music-scheme.cc, ly:transpose-key-alist, which Key_performer
+        // needs to emit a MIDI key signature. THIRTY .cc files landed with EPG19 and moved
+        // this number by three, which is the expected shape: performers and audio elements
+        // have no Scheme surface at all -- they are reached by ly/performer-init.ly naming
+        // them in a \consists list, which TranslatorRegistry answers, not by a binding.
+        // 615 until EPG20 (2026-08-08), which added FOURTEEN: arpeggio.cc's nine (five
+        // ly:arpeggio::*, two ly:chord-bracket::*, two ly:chord-slur::*), cluster.cc's
+        // three, ly:chord-name::after-line-breaking, and
+        // ly:figured-bass-continuation::center-on-figures. That last file contributes ONE
+        // name and not two: upstream DECLARES Figured_bass_continuation::print and never
+        // defines it anywhere, so it is not an entry point -- the stencil comes from
+        // Scheme's figured-bass-continuation::print, which carries no ly: prefix. Same
+        // shape as the Slur::vertical_skylines declaration EPG12 recorded.
+        closure.Implemented.Count.Should().Be(629);
     }
 
     [Fact]

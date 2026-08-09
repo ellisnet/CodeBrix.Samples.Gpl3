@@ -136,7 +136,7 @@ public class TieEngraver : Engraver
     public override void StartTranslationTimestep()
     {
         if (_headsToTie.Count > 0
-            && !SchemeUtilities.IsSchemeTrue(GetProperty(TieWaitForNoteSymbol)))
+            && !SchemeUtilities.ToBool(GetProperty(TieWaitForNoteSymbol)))
         {
             Moment now = NowMoment;
             for (int i = _headsToTie.Count; i-- > 0;)
@@ -155,7 +155,7 @@ public class TieEngraver : Engraver
     /// <summary>Typesets this timestep's ties and records the heads that want one next.</summary>
     public override void ProcessAcknowledged()
     {
-        bool wait = SchemeUtilities.IsSchemeTrue(GetProperty(TieWaitForNoteSymbol));
+        bool wait = SchemeUtilities.ToBool(GetProperty(TieWaitForNoteSymbol));
         if (_ties.Count > 0)
         {
             if (!wait)
@@ -265,7 +265,12 @@ public class TieEngraver : Engraver
 
     private void ListenTie(StreamEvent ev)
     {
-        if (!SchemeUtilities.IsSchemeTrue(GetProperty(SkipTypesettingSymbol)))
+        // Upstream tests skipTypesetting with from_scm<bool> — EXACTLY #t. This read
+        // used Scheme truthiness until 2026-08-08, under which the UNSET property
+        // ('()) counted as true — so every tie event was discarded on arrival, and
+        // `c4~ c4` engraved two untied notes with no diagnostic. EPG8's
+        // TypeCheckAssignment finding, in the opposite direction.
+        if (!SchemeUtilities.ToBool(GetProperty(SkipTypesettingSymbol)))
         {
             StreamEvent.AssignEventOnce(ref _event, ev);
         }
@@ -291,7 +296,7 @@ public class TieEngraver : Engraver
     */
     private static bool HasAutosplitEnd(StreamEvent streamEvent)
         => streamEvent != null
-           && SchemeUtilities.IsSchemeTrue(streamEvent.GetProperty(AutosplitEndSymbol));
+           && SchemeUtilities.ToBool(streamEvent.GetProperty(AutosplitEndSymbol));
 
     private bool TieNotehead(Grob h, bool enharmonic)
     {

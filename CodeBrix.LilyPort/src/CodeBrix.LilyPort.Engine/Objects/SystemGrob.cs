@@ -79,6 +79,15 @@ public class SystemGrob : Spanner
         = Symbol.Intern("before-line-breaking");
 
     private static readonly Symbol SpringsAndRodsSymbol = Symbol.Intern("springs-and-rods");
+    private static readonly Symbol AfterLineBreakingSymbol
+        = Symbol.Intern("after-line-breaking");
+    private static readonly Symbol PureYExtentSymbol = Symbol.Intern("pure-Y-extent");
+    private static readonly Symbol LabelsSymbol = Symbol.Intern("labels");
+    private static readonly Symbol VerticalAlignmentSymbol
+        = Symbol.Intern("vertical-alignment");
+    private static readonly Symbol ElementsSymbol = Symbol.Intern("elements");
+    private static readonly Symbol AxisGroupInterfaceSymbol
+        = Symbol.Intern("axis-group-interface");
 
     /// <summary>Initializes a system from its type's basic property alist.</summary>
     /// <param name="basicProperties">The immutable alist for this grob type.</param>
@@ -316,9 +325,13 @@ public class SystemGrob : Spanner
     /// method. Its substitution half is <see cref="BreakSubstitution"/>.
     /// </para>
     /// <para>
-    /// DIVERGENCE, recorded in PORT-COVERAGE: upstream also runs a <c>fixup_refpoint</c>
-    /// pass here, which re-points parents at the prebroken pieces they belong with. That
-    /// one does only matter once lines are actually broken — EPG15's subsystem.
+    /// The <c>fixup_refpoint</c> pass is the third step and is NOT optional, though a
+    /// recorded divergence used to say it "only matters once lines are actually broken".
+    /// That claim was wrong on its own terms and EPG15 removed it: the pass runs
+    /// immediately after the PREBREAK clones are made, and its second job — re-pointing
+    /// an item whose parent is an item with a different break direction — is entirely
+    /// about prebroken pieces, which exist well before any line is chosen. It is the
+    /// same shape of mistake `handle_prebroken_dependencies' had at EPG22.
     /// </para>
     /// </summary>
     public void PreProcessing()
@@ -339,6 +352,11 @@ public class SystemGrob : Spanner
             all[i].HandlePrebrokenDependencies();
         }
 
+        foreach (Grob grob in all)
+        {
+            grob.FixupRefpoint();
+        }
+
         GetProperty(BeforeLineBreakingSymbol);
         foreach (Grob grob in all)
         {
@@ -350,6 +368,438 @@ public class SystemGrob : Spanner
         {
             grob.GetProperty(SpringsAndRodsSymbol);
         }
+    }
+
+    /// <summary>
+    /// Clones this root system once per line the breaker chose, and moves each line's
+    /// columns to where that line's solution puts them —
+    /// <c>System::break_into_pieces</c>.
+    /// <para>
+    /// This is the moment the score stops being one long line. Each piece is bounded by
+    /// its first and last column, is given the PURE vertical extent computed for its
+    /// column range (page layout reads that before the real extents exist), collects the
+    /// <c>labels</c> of every column on it — including the LOOSE ones, which is where a
+    /// mid-line mark on an otherwise unused column would otherwise be lost — and gets
+    /// its loose columns draped back around the solved ones.
+    /// </para>
+    /// </summary>
+    /// <param name="breaking">One solved configuration per line.</param>
+    public void BreakIntoPieces(IReadOnlyList<CodeBrix.LilyPort.Engine.Layout.ColumnXPositions> breaking)
+    {
+        if (breaking == null)
+        {
+            throw new System.ArgumentNullException(nameof(breaking));
+        }
+
+        for (int i = 0; i < breaking.Count; i++)
+        {
+            SystemGrob system = (SystemGrob)Clone();
+
+            // set rank
+            system.Rank = BrokenIntos.Count;
+
+            List<PaperColumn> c = breaking[i].Columns;
+            if (c.Count == 0)
+            {
+                continue;
+            }
+
+            PaperScore.TypesetSystem(system);
+
+            int st = c[0].Rank;
+            int end = c[c.Count - 1].Rank;
+            Interval iv = PureYExtent(this, st, end);
+            system.SetProperty(PureYExtentSymbol, new Pair(iv.Left, iv.Right));
+
+            system.SetBound(Direction.Negative, c[0]);
+            system.SetBound(Direction.Positive, c[c.Count - 1]);
+
+            object systemLabels = Nil.Instance;
+            for (int j = 0; j < c.Count; j++)
+            {
+                if (j < breaking[i].Configuration.Count)
+                {
+                    c[j].TranslateAxis(breaking[i].Configuration[j], Axis.X);
+                }
+
+                c[j].System = system;
+
+                /* collect the column labels */
+                CollectLabels(c[j], ref systemLabels);
+            }
+
+            /*
+              Collect labels from any loose columns too: these will be set on
+              an empty bar line or a column which is otherwise unused mid-line
+            */
+            List<PaperColumn> loose = breaking[i].LooseColumns;
+            for (int j = 0; j < loose.Count; j++)
+            {
+                CollectLabels(loose[j], ref systemLabels);
+            }
+
+            system.SetProperty(LabelsSymbol, systemLabels);
+
+            CodeBrix.LilyPort.Engine.Layout.LooseColumns.SetLooseColumns(system, breaking[i]);
+            BrokenIntos.Add(system);
+        }
+    }
+
+    /// <summary>
+    /// Makes the broken systems independent of each other: every internal link is
+    /// re-pointed at the piece living on the same system, and every parent likewise —
+    /// <c>System::do_break_substitution_and_fixup_refpoints</c>.
+    /// <para>
+    /// The order is upstream's and each step depends on the one before. Grobs break
+    /// themselves into pieces first. Refpoints are fixed in the BROKEN systems before the
+    /// root, because that is where the new elements were put. Only then is break
+    /// substitution run, and the root system's own last.
+    /// </para>
+    /// <para>
+    /// The duplicate removal at the end is not tidying: <c>all-elements</c> holds items in
+    /// three versions (the original plus two prebroken pieces), so substitution leaves
+    /// duplicates behind, and a duplicate becomes a DUPLICATED SYMBOL in the output.
+    /// </para>
+    /// </summary>
+    public void DoBreakSubstitutionAndFixupRefpoints()
+    {
+        GrobArray allElts = AllElements;
+        List<Grob> snapshot = new List<Grob>();
+        foreach (Grob g in allElts)
+        {
+            snapshot.Add(g);
+        }
+
+        foreach (Grob g in snapshot)
+        {
+            g.DoBreakProcessing();
+        }
+
+        /*
+          fixups must be done in broken line_of_scores, because new elements
+          are put over there.
+        */
+        foreach (SystemGrob child in BrokenSystems())
+        {
+            GrobArray childElts = child.AllElements;
+            foreach (Grob g in ToList(childElts))
+            {
+                g.FixupRefpoint();
+            }
+        }
+
+        /*
+          needed for doing items.
+        */
+        foreach (Grob g in ToList(allElts))
+        {
+            g.FixupRefpoint();
+        }
+
+        foreach (Grob g in ToList(allElts))
+        {
+            g.HandleBrokenDependencies();
+        }
+
+        HandleBrokenDependencies();
+
+        /* Because the get_property (all-elements) contains items in 3
+           versions, HandleBrokenDependencies () will leave duplicated
+           items in all-elements. Strictly speaking this is harmless, but
+           it leads to duplicated symbols in the output. RemoveDuplicates makes
+           sure that no duplicates are in the list. */
+        foreach (SystemGrob child in BrokenSystems())
+        {
+            GrobArray childElts = child.AllElements;
+            childElts.RemoveDuplicates();
+            child.GetProperty(AfterLineBreakingSymbol);
+            foreach (Grob g in ToList(childElts))
+            {
+                g.GetProperty(AfterLineBreakingSymbol);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets the systems this one was broken into, one per line, typed as systems.
+    /// <para>
+    /// A VIEW over the inherited <see cref="Spanner.BrokenIntos"/>, NOT a second list.
+    /// Declaring a shadowing <c>new</c> list here is a defect with a very long fuse: the
+    /// breaker fills one list while every inherited Spanner method — <c>FindBrokenPiece</c>,
+    /// <c>IsBroken</c>, <c>SpannedSystemRankInterval</c>,
+    /// <c>SubstituteOneMutableProperty</c> — reads the other, empty one, so line breaking
+    /// appears to work and break substitution silently re-points nothing.
+    /// </para>
+    /// </summary>
+    /// <returns>The broken systems, in line order.</returns>
+    public List<SystemGrob> BrokenSystems()
+    {
+        List<SystemGrob> lines = new List<SystemGrob>(BrokenIntos.Count);
+        foreach (Spanner piece in BrokenIntos)
+        {
+            if (piece is SystemGrob line)
+            {
+                lines.Add(line);
+            }
+        }
+
+        return lines;
+    }
+
+    /// <summary>
+    /// Returns the broken systems as a Scheme list — <c>ly:system-print</c>'s and the
+    /// page breaker's way in.
+    /// </summary>
+    /// <returns>The broken systems, in line order.</returns>
+    public object GetBrokenSystemGrobs()
+    {
+        object ret = Nil.Instance;
+        for (int i = BrokenIntos.Count; i-- > 0;)
+        {
+            ret = new Pair(BrokenIntos[i], ret);
+        }
+
+        return ret;
+    }
+
+    /// <summary>
+    /// Returns one <c>paper-system</c> prob per broken line —
+    /// <c>System::get_paper_systems</c> (plural).
+    /// </summary>
+    /// <returns>The paper systems, in line order.</returns>
+    public List<Prob> GetPaperSystemsPerLine()
+    {
+        List<Prob> lines = new List<Prob>();
+        for (int i = 0; i < BrokenIntos.Count; i++)
+        {
+            lines.Add(BrokenSystems()[i].GetPaperSystem());
+        }
+
+        return lines;
+    }
+
+    /// <summary>
+    /// Appends a column's <c>labels</c> to a line's — <c>System::collect_labels</c>.
+    /// </summary>
+    /// <param name="col">The column to read.</param>
+    /// <param name="labels">The list being built.</param>
+    private static void CollectLabels(Grob col, ref object labels)
+    {
+        object colLabels = col.GetProperty(LabelsSymbol);
+        if (colLabels is Pair)
+        {
+            labels = SchemeUtilities.LyAppend(colLabels, labels);
+        }
+    }
+
+    /// <summary>
+    /// The vertical span between the first and last SPACEABLE staff of a line —
+    /// <c>System::pure_refpoint_extent</c>.
+    /// <para>
+    /// Page layout measures the distance between lines from these reference points rather
+    /// than from the outer edges, so that a line with a high note on top does not push the
+    /// staves apart.
+    /// </para>
+    /// </summary>
+    /// <param name="start">The starting column rank.</param>
+    /// <param name="end">The ending column rank.</param>
+    /// <returns>The refpoint extent.</returns>
+    public Interval PureRefpointExtent(int start, int end)
+    {
+        Interval ret = Interval.Empty;
+        Grob alignment = GetObject(VerticalAlignmentSymbol) as Grob;
+        if (alignment == null)
+        {
+            return Interval.Empty;
+        }
+
+        IReadOnlyList<Grob> staves = PointerGroupInterface.ExtractGrobSet(alignment, ElementsSymbol);
+        List<double> offsets = AlignInterface.GetPureMinimumTranslations(
+            alignment, staves, Axis.Y, start, end);
+
+        for (int i = 0; i < offsets.Count; ++i)
+        {
+            if (i < staves.Count && CodeBrix.LilyPort.Engine.Layout.PageLayoutSpacing.IsSpaceable(staves[i]))
+            {
+                ret.Right = offsets[i];
+                break;
+            }
+        }
+
+        for (int i = offsets.Count; i-- > 0;)
+        {
+            if (i < staves.Count && CodeBrix.LilyPort.Engine.Layout.PageLayoutSpacing.IsSpaceable(staves[i]))
+            {
+                ret.Left = offsets[i];
+                break;
+            }
+        }
+
+        return ret;
+    }
+
+    /// <summary>
+    /// The PURE vertical extent of one part of a line — the beginning of it, or the rest.
+    /// <para>
+    /// The split exists because the start of a line carries things nothing else does — a
+    /// clef, a key signature, an instrument name — so a line is taller at its left edge
+    /// than across its body, and the line breaker's <c>Line_shape</c> models exactly that
+    /// two-part silhouette.
+    /// </para>
+    /// </summary>
+    /// <param name="start">The starting column rank.</param>
+    /// <param name="end">The ending column rank.</param>
+    /// <param name="begin">Whether the beginning of the line is wanted.</param>
+    /// <returns>The extent.</returns>
+    public Interval PartOfLinePureHeight(int start, int end, bool begin)
+    {
+        Grob alignment = GetObject(VerticalAlignmentSymbol) as Grob;
+        if (alignment == null)
+        {
+            return Interval.Empty;
+        }
+
+        IReadOnlyList<Grob> staves = PointerGroupInterface.ExtractGrobSet(alignment, ElementsSymbol);
+        List<double> offsets = AlignInterface.GetPureMinimumTranslations(
+            alignment, staves, Axis.Y, start, end);
+
+        Interval ret = Interval.Empty;
+        for (int i = 0; i < staves.Count; ++i)
+        {
+            Interval iv = begin
+                ? AxisGroupInterfacePure.BeginOfLinePureHeight(staves[i], start)
+                : AxisGroupInterfacePure.RestOfLinePureHeight(staves[i], start, end);
+            if (i < offsets.Count)
+            {
+                iv.Translate(offsets[i]);
+            }
+
+            ret.Unite(iv);
+        }
+
+        Interval otherElements = begin
+            ? AxisGroupInterfacePure.BeginOfLinePureHeight(this, start)
+            : AxisGroupInterfacePure.RestOfLinePureHeight(this, start, end);
+
+        ret.Unite(otherElements);
+
+        return ret;
+    }
+
+    /// <summary>
+    /// The few elements of a system whose pure heights matter DIRECTLY —
+    /// <c>ly:system::calc-pure-relevant-grobs</c>.
+    /// <para>
+    /// This differs from the axis-group version and upstream says why: here we want only
+    /// the elements that are NOT descended from the VerticalAlignment — a RehearsalMark, a
+    /// BarLine — because everything under the alignment is measured through the staves
+    /// instead. Prebroken item clones are skipped for the same reason they are elsewhere:
+    /// the caller asks for the right clone when it needs one.
+    /// </para>
+    /// </summary>
+    /// <param name="me">The system.</param>
+    /// <returns>The relevant grobs.</returns>
+    public static object CalcPureRelevantGrobs(Grob me)
+    {
+        IReadOnlyList<Grob> elts = PointerGroupInterface.ExtractGrobSet(me, ElementsSymbol);
+        List<Grob> relevantGrobs = new List<Grob>();
+
+        for (int i = 0; i < elts.Count; ++i)
+        {
+            if (!elts[i].HasInterface(AxisGroupInterfaceSymbol))
+            {
+                if (elts[i] is Item it && it.Original != null)
+                {
+                    continue;
+                }
+
+                relevantGrobs.Add(elts[i]);
+            }
+        }
+
+        GrobArray grobs = new GrobArray();
+        grobs.SetArray(relevantGrobs);
+        return grobs;
+    }
+
+    /// <summary>The pure vertical extent of the START of a line.</summary>
+    /// <param name="start">The starting column rank.</param>
+    /// <param name="end">The ending column rank.</param>
+    /// <returns>The extent.</returns>
+    public Interval BeginOfLinePureHeight(int start, int end)
+        => PartOfLinePureHeight(start, end, true);
+
+    /// <summary>The pure vertical extent of the REST of a line.</summary>
+    /// <param name="start">The starting column rank.</param>
+    /// <param name="end">The ending column rank.</param>
+    /// <returns>The extent.</returns>
+    public Interval RestOfLinePureHeight(int start, int end)
+        => PartOfLinePureHeight(start, end, false);
+
+    /// <summary>
+    /// Returns the column that would bound a line at a given rank —
+    /// <c>System::get_pure_bound</c>.
+    /// <para>
+    /// It is a lookup rather than a computation: the paper score already knows every rank
+    /// a line may break at, so the answer is the break column at that exact rank, or none.
+    /// </para>
+    /// </summary>
+    /// <param name="d">Which end of the line.</param>
+    /// <param name="start">The starting column rank.</param>
+    /// <param name="end">The ending column rank.</param>
+    /// <returns>The bounding column, or <see langword="null"/>.</returns>
+    public PaperColumn GetPureBound(Direction d, int start, int end)
+    {
+        if (PaperScore == null)
+        {
+            return null;
+        }
+
+        IReadOnlyList<int> ranks = PaperScore.GetBreakRanks();
+        IReadOnlyList<int> indices = PaperScore.GetBreakIndices();
+        IReadOnlyList<PaperColumn> cols = PaperScore.GetColumns();
+
+        int targetRank = d == Direction.Negative ? start : end;
+
+        int lo = 0;
+        int hi = ranks.Count;
+        while (lo < hi)
+        {
+            int mid = lo + ((hi - lo) / 2);
+            if (ranks[mid] < targetRank)
+            {
+                lo = mid + 1;
+            }
+            else
+            {
+                hi = mid;
+            }
+        }
+
+        return lo < ranks.Count && ranks[lo] == targetRank ? cols[indices[lo]] : null;
+    }
+
+    /// <summary>
+    /// Returns the pure bound when a pure answer is wanted and the real one otherwise —
+    /// <c>System::get_maybe_pure_bound</c>.
+    /// </summary>
+    /// <param name="d">Which end of the line.</param>
+    /// <param name="pure">Whether a pure answer is wanted.</param>
+    /// <param name="start">The starting column rank.</param>
+    /// <param name="end">The ending column rank.</param>
+    /// <returns>The bounding column.</returns>
+    public PaperColumn GetMaybePureBound(Direction d, bool pure, int start, int end)
+        => pure ? GetPureBound(d, start, end) : GetBound(d);
+
+    private static List<Grob> ToList(GrobArray array)
+    {
+        List<Grob> result = new List<Grob>(array.Count);
+        foreach (Grob g in array)
+        {
+            result.Add(g);
+        }
+
+        return result;
     }
 
     /// <summary>

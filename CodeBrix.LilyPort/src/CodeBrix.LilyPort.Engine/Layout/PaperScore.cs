@@ -50,9 +50,11 @@ public class PaperScore : MusicOutput
     private static readonly CodeBrix.LilyScheme.Values.Symbol RaggedRightSymbol
         = CodeBrix.LilyScheme.Values.Symbol.Intern("ragged-right");
 
+    private static readonly CodeBrix.LilyScheme.Values.Symbol SystemCountSymbol
+        = CodeBrix.LilyScheme.Values.Symbol.Intern("system-count");
+
     private SystemGrob _system;
     private List<Prob> _paperSystems;
-    private bool _columnsPlaced;
 
     /// <summary>Initializes a paper score under an output definition.</summary>
     /// <param name="layout">The output definition to lay the score out under.</param>
@@ -147,79 +149,45 @@ public class PaperScore : MusicOutput
     }
 
     /// <summary>
-    /// Solves the spacing problem for the whole score as ONE line and moves every column
-    /// to where the solution puts it.
+    /// Chooses where the score's lines end — <c>Paper_score::calc_breaking</c>.
     /// <para>
-    /// STAND-IN, recorded in PORT-COVERAGE. Upstream runs <c>calc_breaking</c> and
-    /// <c>System::break_into_pieces</c>, which clone the root system once per line and
-    /// place each line's columns. Line breaking is EPG15 and page layout EPG16; until
-    /// they land the score is spaced as a single unbroken line, which is the right
-    /// answer for music that fits on one and a visibly wrong one — not a silently
-    /// plausible one — for anything longer.
-    /// </para>
-    /// <para>
-    /// The part that IS upstream's, verbatim in shape, is what happens per column:
-    /// translate by the solved configuration, record the system, then drape the loose
-    /// columns back around the solved ones.
+    /// When the layout names a <c>system-count</c>, that count is solved for exactly;
+    /// otherwise the breaker picks the count with the lowest total demerits.
     /// </para>
     /// </summary>
-    public void PlaceColumnsOnOneLine()
+    /// <returns>One solved configuration per line.</returns>
+    public List<ColumnXPositions> CalcBreaking()
     {
-        if (_system == null || _columnsPlaced)
+        ConstrainedBreaking algorithm = new ConstrainedBreaking(this);
+
+        Warn.Message("Calculating line breaks...");
+
+        object systemCountValue = LookupLayout(SystemCountSymbol);
+        int systemCount = Bootstrap.SchemeConvert.IsNumber(systemCountValue)
+            ? (int)Bootstrap.SchemeConvert.ToDouble(systemCountValue, "system-count")
+            : 0;
+
+        if (systemCount != 0)
         {
-            return;
+            return algorithm.Solve(0, ConstrainedBreaking.NoPosition, systemCount);
         }
 
-        _columnsPlaced = true;
-
-        List<PaperColumn> columns = _system.UsedColumns();
-        if (columns.Count < 2)
-        {
-            return;
-        }
-
-        double lineWidth = Dimension(LineWidthSymbol, 100.0);
-        double indent = Dimension(IndentSymbol, 0.0);
-        bool ragged = SchemeUtilities.ToBool(LookupLayout(RaggedRightSymbol));
-
-        ColumnXPositions positions = LineSpacing.GetLineConfiguration(
-            columns, lineWidth, indent, ragged);
-
-        for (int j = 0; j < positions.Columns.Count && j < positions.Configuration.Count; j++)
-        {
-            PaperColumn column = positions.Columns[j];
-            column.TranslateAxis(positions.Configuration[j], Axis.X);
-            column.System = _system;
-
-            // The solver's first and last entries are PREBROKEN PIECES — that is what
-            // begins and ends a line. Upstream can translate those alone because
-            // break_into_pieces builds a system bounded by them and break substitution
-            // then re-points every grob at the piece it belongs with. Neither exists
-            // yet (EPG15), so the grobs are still hanging off the ORIGINAL columns, and
-            // moving only the clone would leave the music where it was. The original
-            // moves with its piece until break substitution can do the real job.
-            // Recorded in PORT-COVERAGE with the rest of the single-line stand-in.
-            PaperColumn original = column.Original;
-            if (original != null && !positions.Columns.Contains(original))
-            {
-                original.TranslateAxis(positions.Configuration[j], Axis.X);
-                original.System = _system;
-            }
-        }
-
-        LooseColumns.SetLooseColumns(_system, positions);
+        return algorithm.BestSolution(0, ConstrainedBreaking.NoPosition);
     }
 
     /// <summary>
     /// Returns the laid-out lines as <c>paper-system</c> probs, computing them once.
     /// <para>
-    /// DIVERGENCE, recorded in PORT-COVERAGE, and a load-bearing one. Upstream runs
-    /// <c>calc_breaking</c> and <c>System::break_into_pieces</c> first, so the answer is
-    /// one paper system PER LINE. Line breaking is EPG15; until it lands the root system
-    /// is never broken, so this returns the single unbroken line. That is the right
-    /// answer for music that fits on one line and the wrong one for anything longer —
-    /// which is exactly what the regression ratchet will report, by file, rather than
-    /// something silently plausible.
+    /// The three steps are upstream's and the order is load-bearing: choose the breaks,
+    /// clone the root system into one piece per line and move each line's columns, then
+    /// make those pieces independent of one another by re-pointing every internal link and
+    /// every parent at the piece on the same line.
+    /// </para>
+    /// <para>
+    /// EPG15 replaced <c>PlaceColumnsOnOneLine</c> here on 2026-08-08. That stand-in
+    /// spaced the whole score as a single unbroken line — right for music that fits on
+    /// one, visibly wrong for anything longer — and its recorded divergence in
+    /// PORT-COVERAGE is retired with it.
     /// </para>
     /// </summary>
     /// <returns>The paper systems, in order.</returns>
@@ -233,9 +201,11 @@ public class PaperScore : MusicOutput
         List<Prob> systems = new List<Prob>();
         if (_system != null)
         {
-            PlaceColumnsOnOneLine();
+            List<ColumnXPositions> breaking = CalcBreaking();
+            _system.BreakIntoPieces(breaking);
             Warn.Message("Drawing systems...");
-            systems.Add(_system.GetPaperSystem());
+            _system.DoBreakSubstitutionAndFixupRefpoints();
+            systems.AddRange(_system.GetPaperSystemsPerLine());
         }
 
         _paperSystems = systems;

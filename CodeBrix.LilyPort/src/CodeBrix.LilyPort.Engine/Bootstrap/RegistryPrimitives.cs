@@ -493,7 +493,70 @@ public sealed class UnpurePureContainer
     /// </summary>
     public bool IsPureOmitted { get; }
 
+    /// <summary>
+    /// Returns the container's pure part as something CALLABLE, which is what
+    /// <c>ly:unpure-pure-container-pure-part</c> must answer.
+    /// <para>
+    /// When the pure part was omitted, upstream does not answer the unpure part directly —
+    /// it wraps it in an <c>Unpure_pure_call</c>, a procedure that DROPS the second and
+    /// third arguments and applies the unpure part to the rest. That wrapper is the whole
+    /// reason the type exists: a pure caller passes <c>(grob start end . rest)</c>, and an
+    /// unpure procedure invoked with those extra two arguments would be called with the
+    /// wrong arity. Answering the unpure part bare would put that error one call further
+    /// away from its cause.
+    /// </para>
+    /// <para>Added by EPG15 (2026-08-08) with the rest of unpure-pure-container.cc.</para>
+    /// </summary>
+    /// <returns>The pure part, or a call wrapper around the unpure one.</returns>
+    public object PurePart() => IsPureOmitted ? new UnpurePureCall(Unpure) : Pure;
+
     /// <summary>Returns the external representation.</summary>
     /// <returns>A description of the container.</returns>
     public override string ToString() => "#<unpure-pure-container>";
+}
+
+/// <summary>
+/// Applies an UNPURE procedure in a PURE context by dropping the two column arguments a
+/// pure call carries — upstream's <c>Unpure_pure_call</c>.
+/// </summary>
+/// <remarks>
+/// Upstream notes that a smob procedure can take at most three SCM arguments, which is why
+/// it checks the argument count itself rather than declaring a <c>3, 0, 1</c> signature.
+/// The port has no such limit, so the check is simply that a pure call carries its grob
+/// plus the start and end columns.
+/// </remarks>
+public sealed class UnpurePureCall : IApplicable
+{
+    private readonly object _unpure;
+
+    /// <summary>Initializes the wrapper around an unpure procedure.</summary>
+    /// <param name="unpure">The procedure to call.</param>
+    public UnpurePureCall(object unpure) => _unpure = unpure;
+
+    /// <summary>Drops the start and end columns and applies the unpure procedure.</summary>
+    /// <param name="arguments">The pure call's arguments.</param>
+    /// <returns>The unpure procedure's answer.</returns>
+    public object Apply(object[] arguments)
+    {
+        if (arguments == null || arguments.Length < 3)
+        {
+            throw SchemeErrors.MiscError(
+                "unpure-pure-call",
+                "a pure call needs a grob plus its start and end columns; got "
+                + (arguments?.Length ?? 0));
+        }
+
+        object[] forwarded = new object[arguments.Length - 2];
+        forwarded[0] = arguments[0];
+        for (int i = 3; i < arguments.Length; i++)
+        {
+            forwarded[i - 2] = arguments[i];
+        }
+
+        return Objects.SchemeUtilities.CallCallback(_unpure, forwarded);
+    }
+
+    /// <summary>Returns the external representation.</summary>
+    /// <returns>A description of the wrapper.</returns>
+    public override string ToString() => "#<unpure-pure-call>";
 }

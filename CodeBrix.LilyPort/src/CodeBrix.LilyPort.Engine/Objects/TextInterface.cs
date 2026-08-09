@@ -178,14 +178,67 @@ public static class TextInterface
 
         if (!(font is TextFontMetric textFont))
         {
-            // A music encoding reached the text interface. Upstream still goes through
-            // Pango for it, with fallback disabled; the port draws music by glyph NAME
-            // and has nothing to set here, so an empty stencil is the honest answer
-            // rather than a wrong drawing. Recorded in PORT-COVERAGE.
-            return Stencil.Empty;
+            // A music encoding reached the text interface: fetaText's digits, dynamic
+            // letters and figured-bass punctuation. Upstream sets these through Pango
+            // over the SAME font; the port composes the run itself from the font's own
+            // cmap and hmtx, which is all Pango's shaping amounts to for a font with
+            // no kerning in this range. Until 2026-08-08 this branch answered an EMPTY
+            // stencil (the divergence was recorded in PORT-COVERAGE) — which made
+            // \number, \dynamic and every figured-bass digit silently invisible.
+            return MusicFontTextStencil(font, cleaned);
         }
 
         return textFont.TextStencil(cleaned);
+    }
+
+    /// <summary>
+    /// Sets a string in the MUSIC font: each code point maps through the font's
+    /// character map to a named glyph, and the pen advances by the glyph's own
+    /// <c>hmtx</c> advance. A code point the font does not map draws nothing and the
+    /// run continues — the same silence the empty-stencil era produced, now confined
+    /// to genuinely unmapped characters.
+    /// </summary>
+    /// <param name="font">The music font metric, possibly scaled.</param>
+    /// <param name="text">The cleaned text.</param>
+    /// <returns>The composed stencil.</returns>
+    private static Stencil MusicFontTextStencil(FontMetric font, string text)
+    {
+        Stencil result = Stencil.Empty;
+        double x = 0;
+
+        for (int i = 0; i < text.Length; i++)
+        {
+            int codePoint = char.IsHighSurrogate(text[i]) && i + 1 < text.Length
+                ? char.ConvertToUtf32(text, i)
+                : text[i];
+            if (char.IsHighSurrogate(text[i]) && i + 1 < text.Length)
+            {
+                i++;
+            }
+
+            int index = font.CharToGlyphIndex(codePoint);
+            if (index == FontMetric.GlyphIndexInvalid)
+            {
+                continue;
+            }
+
+            string name = font.IndexToName(index);
+            if (name == null)
+            {
+                continue;
+            }
+
+            Stencil glyph = font.FindByName(name);
+            if (!Stencil.IsNullExpression(glyph.Expression))
+            {
+                glyph.Translate(new Offset(x, 0));
+                result.AddStencil(glyph);
+            }
+
+            x += font.IndexedAdvance(index);
+        }
+
+        return result;
     }
 
     /// <summary>

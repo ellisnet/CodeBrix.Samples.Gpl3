@@ -413,10 +413,13 @@ public class AxisGroupEngraver : Engraver
     private static readonly Symbol CurrentCommandColumnSymbol = Symbol.Intern("currentCommandColumn");
     private static readonly Symbol AxisGroupParentYSymbol = Symbol.Intern("axis-group-parent-Y");
     private static readonly Symbol ElementsSymbol = Symbol.Intern("elements");
+    private static readonly Symbol RemoveEmptySymbol = Symbol.Intern("remove-empty");
+    private static readonly Symbol KeepAliveInterfacesSymbol = Symbol.Intern("keepAliveInterfaces");
 
     private readonly List<Grob> _elements = new List<Grob>();
     private bool _active;
     private Spanner _staffLine;
+    private object _interesting = Nil.Instance;
 
     /// <summary>Initializes the engraver in a context.</summary>
     /// <param name="context">The context this engraver belongs to.</param>
@@ -455,15 +458,46 @@ public class AxisGroupEngraver : Engraver
                 _staffLine.SetBound(Direction.Negative, column);
             }
         }
+
+        _interesting = GetProperty(KeepAliveInterfacesSymbol);
     }
 
-    /// <summary>Records every announced grob for grouping.</summary>
+    /// <summary>
+    /// Records every announced grob for grouping — and, on a <c>remove-empty</c>
+    /// group, marks the ones whose interfaces are on <c>keepAliveInterfaces</c> as
+    /// <c>items-worth-living</c>.
+    /// </summary>
+    /// <remarks>
+    /// The keep-alive half was MISSING until 2026-08-08: nothing anywhere populated
+    /// <c>items-worth-living</c>, so the moment EPG15's
+    /// <see cref="HaraKiriGroupSpanner"/> landed, every <c>remove-empty</c> group in
+    /// every score read as EMPTY and suicided with all its children — which is how
+    /// EPG20's flagged no-BassFigure-reaches-the-page gap turned out to end: the
+    /// figures were drawn into a FiguredBass axis group whose staffline killed them.
+    /// </remarks>
     /// <param name="info">The announcement record.</param>
     public override void AcknowledgeGrob(GrobInfo info)
     {
-        if (_staffLine != null)
+        if (_staffLine == null)
         {
-            _elements.Add(info.Grob);
+            return;
+        }
+
+        _elements.Add(info.Grob);
+
+        if (SchemeUtilities.ToBool(_staffLine.GetProperty(RemoveEmptySymbol)))
+        {
+            object cursor = _interesting;
+            while (cursor is Pair pair)
+            {
+                if (pair.Car is Symbol interfaceName && info.Grob.HasInterface(interfaceName))
+                {
+                    HaraKiriGroupSpanner.AddInterestingItem(_staffLine, info.Grob);
+                    break;
+                }
+
+                cursor = pair.Cdr;
+            }
         }
     }
 

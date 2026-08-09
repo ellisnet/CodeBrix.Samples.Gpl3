@@ -41,6 +41,8 @@ public static class AxisGroupInterface
     private static readonly Symbol AxisGroupParentX = Symbol.Intern("axis-group-parent-X");
     private static readonly Symbol AxisGroupParentY = Symbol.Intern("axis-group-parent-Y");
     private static readonly Symbol CrossStaffSymbol = Symbol.Intern("cross-staff");
+    private static readonly Symbol AxisGroupInterfaceSymbol
+        = Symbol.Intern("axis-group-interface");
 
     /// <summary>Adds a grob to an axis group.</summary>
     /// <param name="group">The group.</param>
@@ -219,6 +221,38 @@ public static class AxisGroupInterface
         }
 
         return RelativeGroupExtentOf(newElts, refp, extAxis);
+    }
+
+    /// <summary>
+    /// Collects a grob and every grob beneath it in the axis-group tree —
+    /// <c>Axis_group_interface::get_children</c>.
+    /// <para>
+    /// The grob itself is the FIRST entry, not merely its descendants, which is what lets
+    /// <c>Hara_kiri_group_spanner::consider_suicide</c> kill a whole staff by walking the
+    /// answer. Recursion stops at any grob that is not itself an axis group.
+    /// </para>
+    /// <para>
+    /// Carried by EPG15 (2026-08-08): another member of this already-<c>ported</c> file
+    /// that had never come across, found because hara-kiri is its only caller.
+    /// </para>
+    /// </summary>
+    /// <param name="me">The grob to start from.</param>
+    /// <param name="found">Receives the grob and its descendants.</param>
+    public static void GetChildren(Grob me, List<Grob> found)
+    {
+        found.Add(me);
+
+        if (!me.HasInterface(AxisGroupInterfaceSymbol))
+        {
+            return;
+        }
+
+        IReadOnlyList<Grob> elements = Elements(me);
+        for (int i = 0; i < elements.Count; i++)
+        {
+            Grob e = elements[i];
+            GetChildren(e, found);
+        }
     }
 
     private static List<Axis> ReadAxes(Grob group)

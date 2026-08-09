@@ -92,6 +92,20 @@ public static class PaperSystem
     }
 
     /// <summary>
+    /// Reads a paper system's stencil back out.
+    /// <para>
+    /// It exists so a caller that has already built the paper systems can draw them
+    /// without asking the system grob for its stencil a SECOND time — that path runs
+    /// <c>PostProcessing</c>, which translates the system, so a second call moves the
+    /// music twice. Added by EPG15 (2026-08-08).
+    /// </para>
+    /// </summary>
+    /// <param name="prob">The paper system.</param>
+    /// <returns>The stencil, or the empty one when the property holds none.</returns>
+    public static Stencil GetStencil(Prob prob)
+        => prob?.GetProperty(StencilSymbol) is Stencil stencil ? stencil : Stencil.Empty;
+
+    /// <summary>
     /// Pulls every footnote out of a stencil expression, walking the same three
     /// combining heads a stencil is ever built from.
     /// </summary>

@@ -143,6 +143,21 @@ public sealed class LilyPortHost
     }
 
     /// <summary>
+    /// Runs a <c>.ly</c> file through the real batch pipeline — parse, engrave
+    /// to SVG, and MIDI whenever a score carries a <c>\midi</c> block — writing
+    /// into <paramref name="outputDirectory"/>. The file's own directory is its
+    /// include root, exactly as the regression driver treats it.
+    /// </summary>
+    /// <remarks>
+    /// Added 2026-08-08 for the standing keep-Lily.Shell-current expectation:
+    /// the engine has produced pages since EPG3 and <c>.midi</c> files since
+    /// EPG19, and <c>engrave</c> stopped at the parse step until now.
+    /// </remarks>
+    public Task<BatchRunResult> EngraveFileAsync(
+        string path, string outputDirectory, CancellationToken cancellationToken) =>
+        RunOnEngineAsync(_ => BatchRunner.RunFile(path, outputDirectory), cancellationToken);
+
+    /// <summary>
     /// Engraves the first-light demo (a Scheme-built quarter-note c'4) end to
     /// end and returns the SVG document.
     /// </summary>

@@ -67,16 +67,13 @@ public class TiesAndSlursEndToEndTests
         return count;
     }
 
-    [Fact(Skip = "The tilde never reaches the engraver: `~' is bound in "
-        + "ly/declarations-init.ly as the STRING-NAMED identifier \"~\" = #(make-music "
-        + "'TieEvent), and the port's parser does not resolve string-named identifiers, so "
-        + "no tie-event is ever created and Tie_engraver hears nothing. Measured 2026-08-08 "
-        + "by instrumenting the engraver: it is instantiated and acknowledges every note "
-        + "head, and the note event's `articulations' list comes through EMPTY. That is a "
-        + "Track P gap, not an EPG11 one -- every part of EPG11 downstream of the event is "
-        + "verified working by the laissez-vibrer and repeat-tie tests below, which go "
-        + "through the SAME formatting problem and match the oracle's curve count exactly. "
-        + "Unskip when the parser resolves \"~\".")]
+    // UNSKIPPED 2026-08-08, and the recorded diagnosis was measured to be STALE: the
+    // parser resolves "~" through ScanShorthand and attaches the TieEvent to the
+    // note's articulations, and by this session the whole event chain to the
+    // engraver's listener worked. The actual killer was ListenTie testing
+    // skipTypesetting with SCHEME truthiness where upstream's from_scm<bool> is
+    // exactly-#t — an UNSET property read as true and every tie event was discarded.
+    [Fact]
     public void a_tie_between_two_equal_pitches_is_drawn()
     {
         //Arrange
@@ -94,8 +91,7 @@ public class TiesAndSlursEndToEndTests
         CurveCount(svg).Should().BeGreaterThan(0);
     }
 
-    [Fact(Skip = "The control for the skipped tie tests; it would pass for the WRONG "
-        + "reason while the tilde is unparsed, which is worse than not running.")]
+    [Fact]
     public void two_notes_of_different_pitch_are_not_tied()
     {
         //Arrange
@@ -114,8 +110,7 @@ public class TiesAndSlursEndToEndTests
         CurveCount(svg).Should().Be(0);
     }
 
-    [Fact(Skip = "Same Track P gap as a_tie_between_two_equal_pitches_is_drawn: the "
-        + "tilde never becomes a tie-event, so no Tie or TieColumn is made. Unskip with it.")]
+    [Fact]
     public void every_note_of_a_tied_chord_gets_its_own_tie()
     {
         //Arrange
@@ -245,7 +240,7 @@ public class TiesAndSlursEndToEndTests
         CurveCount(svg).Should().BeGreaterThan(0);
     }
 
-    [Fact(Skip = "Needs the tilde, same Track P gap. Unskip with the two tie tests above.")]
+    [Fact]
     public void a_tie_and_a_slur_can_share_a_passage()
     {
         //Arrange

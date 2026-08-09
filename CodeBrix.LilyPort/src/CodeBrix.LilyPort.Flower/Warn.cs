@@ -254,9 +254,31 @@ public static class Warn
 }
 
 /// <summary>
-/// A binary-heap priority queue. Upstream builds its own rather than using the
-/// standard library's because the spacing code indexes into the heap directly.
+/// Upstream's <c>PQueue</c>: a priority queue over an in-situ heap, smallest first.
 /// </summary>
+/// <remarks>
+/// <para>
+/// THE HEAP ALGORITHM IS libstdc++'s, DELIBERATELY, AND IT IS NOT AN OPTIMISATION.
+/// Upstream builds this on <c>std::push_heap</c> and <c>std::pop_heap</c> with a
+/// <c>greater</c> comparator, and which of several EQUAL elements surfaces first is
+/// decided entirely by that algorithm's internal element order — two correct heaps need
+/// not agree. <c>Midi_walker</c>'s stop-note queue reaches exact ties routinely (every
+/// chord ends its notes at the same tick), and the order they come out in is the order
+/// the note-off bytes are written to the file. A merely-correct binary heap, which is
+/// what stood here until 2026-08-08, produces a different MIDI file for the same music.
+/// </para>
+/// <para>
+/// Upstream's comparator is <c>compare (a, b) &gt; 0</c>, and <c>push_heap</c> with a
+/// comparator maintains a MAX-heap with respect to it — so the top is the element
+/// nothing is greater than, i.e. the smallest. That is why <see cref="Front"/> answers
+/// the minimum.
+/// </para>
+/// <para>
+/// Indexing into the heap is upstream's own affordance, kept with its warning: changing
+/// an element's PRIORITY through the indexer breaks the invariant. Midi_walker uses it
+/// only to set a flag that is not part of the key.
+/// </para>
+/// </remarks>
 /// <typeparam name="T">The element type.</typeparam>
 public sealed class PriorityQueue<T>
 {
@@ -293,64 +315,76 @@ public sealed class PriorityQueue<T>
     public void Insert(T value)
     {
         _heap.Add(value);
-        SiftUp(_heap.Count - 1);
+        PushHeap(_heap.Count - 1, 0, value);
     }
 
     /// <summary>Removes and returns the smallest element.</summary>
     /// <returns>The former front element.</returns>
+    /// <remarks>
+    /// Upstream's <c>get()</c>: <c>pop_heap</c> moves the top to the END of the range,
+    /// and the value taken is the one now at the back.
+    /// </remarks>
     public T DeleteMinimum()
     {
-        T minimum = _heap[0];
-        _heap[0] = _heap[_heap.Count - 1];
+        PopHeap();
+        T minimum = _heap[_heap.Count - 1];
         _heap.RemoveAt(_heap.Count - 1);
-        if (_heap.Count != 0)
-        {
-            SiftDown(0);
-        }
-
         return minimum;
     }
 
-    private void SiftUp(int index)
-    {
-        while (index > 0)
-        {
-            int parent = (index - 1) / 2;
-            if (_comparer.Compare(_heap[index], _heap[parent]) >= 0)
-            {
-                break;
-            }
+    /// <summary>Removes the smallest element — upstream's <c>delmin</c>.</summary>
+    public void DeleteMinimumOnly() => DeleteMinimum();
 
-            (_heap[index], _heap[parent]) = (_heap[parent], _heap[index]);
-            index = parent;
+    /// <summary>libstdc++'s <c>greater</c>: upstream's <c>compare (a, b) &gt; 0</c>.</summary>
+    private bool Greater(T a, T b) => _comparer.Compare(a, b) > 0;
+
+    /// <summary>libstdc++'s <c>__push_heap</c>.</summary>
+    private void PushHeap(int holeIndex, int topIndex, T value)
+    {
+        int parent = (holeIndex - 1) / 2;
+        while (holeIndex > topIndex && Greater(_heap[parent], value))
+        {
+            _heap[holeIndex] = _heap[parent];
+            holeIndex = parent;
+            parent = (holeIndex - 1) / 2;
         }
+
+        _heap[holeIndex] = value;
     }
 
-    private void SiftDown(int index)
+    /// <summary>libstdc++'s <c>pop_heap</c>: swap the top out to the end and re-sift.</summary>
+    private void PopHeap()
     {
-        while (true)
+        int len = _heap.Count - 1;
+        T value = _heap[len];
+        _heap[len] = _heap[0];
+        AdjustHeap(0, len, value);
+    }
+
+    /// <summary>libstdc++'s <c>__adjust_heap</c>.</summary>
+    private void AdjustHeap(int holeIndex, int len, T value)
+    {
+        int topIndex = holeIndex;
+        int secondChild = holeIndex;
+        while (secondChild < (len - 1) / 2)
         {
-            int left = (2 * index) + 1;
-            int right = left + 1;
-            int smallest = index;
-
-            if (left < _heap.Count && _comparer.Compare(_heap[left], _heap[smallest]) < 0)
+            secondChild = 2 * (secondChild + 1);
+            if (Greater(_heap[secondChild], _heap[secondChild - 1]))
             {
-                smallest = left;
+                secondChild--;
             }
 
-            if (right < _heap.Count && _comparer.Compare(_heap[right], _heap[smallest]) < 0)
-            {
-                smallest = right;
-            }
-
-            if (smallest == index)
-            {
-                return;
-            }
-
-            (_heap[index], _heap[smallest]) = (_heap[smallest], _heap[index]);
-            index = smallest;
+            _heap[holeIndex] = _heap[secondChild];
+            holeIndex = secondChild;
         }
+
+        if ((len & 1) == 0 && secondChild == (len - 2) / 2)
+        {
+            secondChild = 2 * (secondChild + 1);
+            _heap[holeIndex] = _heap[secondChild - 1];
+            holeIndex = secondChild - 1;
+        }
+
+        PushHeap(holeIndex, topIndex, value);
     }
 }

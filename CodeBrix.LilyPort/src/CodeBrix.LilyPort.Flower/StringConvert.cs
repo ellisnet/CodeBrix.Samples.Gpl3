@@ -18,6 +18,7 @@
 */
 
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
 
@@ -139,6 +140,75 @@ public static class StringConvert
             (char)((value >> 8) & 0xFF),
             (char)(value & 0xFF),
         });
+
+    /*
+      THE BYTE-RETURNING SIBLINGS BELOW EXIST BECAUSE std::string IS A BYTE CONTAINER AND
+      System.String IS NOT (added 2026-08-08, EPG19).
+
+      Upstream's be_u16/be_u24/be_u32 answer a std::string that is then concatenated
+      straight into the MIDI file alongside track names and lyrics, which are already
+      UTF-8 bytes in the same std::string type. C# cannot follow that: a System.String is
+      UTF-16, so a MIDI payload built as a string would have to pick ONE encoding on the
+      way out, and no single choice is right for both a 0x80-0xFF status byte (Latin-1)
+      and a lyric (UTF-8). The MIDI layer therefore works in byte[] end to end and these
+      are what it calls. The char-based versions above are kept unchanged for their
+      existing callers and tests.
+    */
+
+    /// <summary>Encodes a 32-bit value big-endian, as MIDI requires.</summary>
+    /// <param name="value">The value to encode.</param>
+    /// <returns>Four bytes, most significant first.</returns>
+    public static byte[] BigEndianBytesU32(uint value)
+        => new[]
+        {
+            (byte)((value >> 24) & 0xFF),
+            (byte)((value >> 16) & 0xFF),
+            (byte)((value >> 8) & 0xFF),
+            (byte)(value & 0xFF),
+        };
+
+    /// <summary>Encodes a 24-bit value big-endian.</summary>
+    /// <param name="value">The value to encode; only the low 24 bits are used.</param>
+    /// <returns>Three bytes, most significant first.</returns>
+    public static byte[] BigEndianBytesU24(uint value)
+        => new[]
+        {
+            (byte)((value >> 16) & 0xFF),
+            (byte)((value >> 8) & 0xFF),
+            (byte)(value & 0xFF),
+        };
+
+    /// <summary>Encodes a 16-bit value big-endian.</summary>
+    /// <param name="value">The value to encode.</param>
+    /// <returns>Two bytes, most significant first.</returns>
+    public static byte[] BigEndianBytesU16(ushort value)
+        => new[]
+        {
+            (byte)((value >> 8) & 0xFF),
+            (byte)(value & 0xFF),
+        };
+
+    /// <summary>Converts a hexadecimal string to the bytes it denotes.</summary>
+    /// <param name="value">The hexadecimal text, which must have an even length.</param>
+    /// <returns>The decoded bytes, or an empty array when a digit is not hexadecimal.</returns>
+    public static byte[] HexToBytes(string value)
+    {
+        string text = value ?? string.Empty;
+        List<byte> bytes = new List<byte>(text.Length / 2);
+        for (int i = 0; i + 1 < text.Length; i += 2)
+        {
+            int high = HexToNibble(text[i]);
+            int low = HexToNibble(text[i + 1]);
+            if (high < 0 || low < 0)
+            {
+                return Array.Empty<byte>();
+            }
+
+            bytes.Add((byte)((high << 4) | low));
+        }
+
+        return bytes.ToArray();
+    }
 
     /// <summary>Pads a string on the right with spaces.</summary>
     /// <param name="value">The text to pad.</param>

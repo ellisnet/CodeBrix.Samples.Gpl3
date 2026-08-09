@@ -162,8 +162,20 @@ NOT YET PORTED, AND WHY
 
   Prob::transpose's pitch-alist branch
 
-    ly:transpose-key-alist lives in Scheme and no key alist exists until the
-    parser layer. Prob.TransposeKeyAlist is an identity copy for now.
+    CLOSED 2026-08-08 (carry-forward session). The identity stand-in this entry
+    recorded outlived its reason: the real algorithm landed with EPG19 as
+    MusicSequence.TransposeKeyAlist and nothing re-pointed this branch at it, so
+    every `\key PITCH \SCALE' carried the UNTRANSPOSED scale pattern — visible
+    only as wrong MIDI key signatures (d minor announced c minor's three
+    flats), because the layout comparator does not grade key signatures by
+    count. The branch now calls the real algorithm, whose output was ALSO
+    corrected to carry SCHEME numbers: upstream answers
+    to_scm (orig.get_alteration ()), and the Flower Rational the port stored
+    read identically from C# and threw wrong-type-arg the moment Scheme's
+    alterations-in-key multiplied it. CarryForwardFixTests fences both, with
+    the d-minor expectation hand-computed. The stale-stand-in lesson is
+    RATCHET-FIX's, again: a recorded absence stops being true the moment its
+    owner lands, and nothing re-checks it.
 
 
 -------------------------------------------------------------------------------
@@ -624,11 +636,23 @@ DELIBERATE DIVERGENCES IN THIS PASS
   * Font selection ports the fetaMusic/fetaBraces branch of
     lily/font-select.cc FAITHFULLY -- including best_rounded_design_size over
     the vendored feta-design-size-mapping, and find_scaled_font's
-    magnification/output-scale division. The latin1 and fetaText branches go
-    through Pango upstream; the port has no Pango dependency and text is the
-    CodeBrix.Platform TextLayout add-in's job (master plan section 11), so
-    asking for one WARNS and answers null rather than quietly substituting a
-    music font. A silently wrong font is a whole score laid out slightly wrong.
+    magnification/output-scale division. The latin1 branch is D23's text
+    chain (TextFontMetric).
+
+    fetaText STRINGS COMPOSE FOR REAL AS OF 2026-08-08 (carry-forward
+    session). Upstream sets a string in the music font through Pango; the
+    port composes the run itself from the font's own cmap and hmtx
+    (TextInterface.MusicFontTextStencil): each code point maps to a named
+    glyph, and the pen advances by the glyph's hmtx advance, scaled the same
+    way the LILY table's boxes are -- which is all Pango's shaping amounts to
+    for a font with no kerning in that range. Until then a string under a
+    music encoding answered an EMPTY stencil, which made \number, \dynamic
+    and every figured-bass digit silently invisible; the divergence was found
+    from EPG20's flagged no-BassFigure-reaches-the-page gap. A code point the
+    font does not map still draws nothing and the run continues.
+    CarryForwardFixTests fences the cmap and advances;
+    ChordsAndClustersEndToEndTests' unskipped figured-bass test is the
+    end-to-end fence.
 
   * All_font_metrics finds fonts through AllFontMetrics.SearchPaths (probed
     beside the running assembly) rather than through FontConfig. The port
@@ -4209,3 +4233,315 @@ RATCHET-FIX 2026-08-08 -- THE THREE ROWS EPG14 LEFT OPEN
                  entry"). It produced a page at EPG14 only because the \language leak
                  kept the markup from parsing; parsing it correctly is what exposes the
                  known limit. Closes when EPG16 moves the runner onto ly:book-process.
+
+
+================================================================================
+EPG19 -- MIDI: PERFORMERS, THE AUDIO LAYER, AND THE SMF WRITER (2026-08-08)
+================================================================================
+
+All 30 upstream files ported, with NO pull-forward of any other group's FILES. One
+LEAF came forward from music-scheme.cc, ly:transpose-key-alist, and that file keeps
+its EPG23 disposition -- the same distinction stencil-scheme.cc has carried since
+EPG14, and the reason LedgerTests counts FILES while EntryPointClosureTests counts
+BINDINGS.
+
+Scope is D27's: MIDI GENERATION plus the comparator and the oracle's references.
+MIDI PLAYBACK is out of scope for LilyPort entirely and nothing here plays anything.
+
+
+THE ONE STRUCTURAL DIVERGENCE, AND IT IS NOT OPTIONAL: byte[] REPLACES std::string
+
+  Upstream's Midi_item::to_string and every to_string below it answer a std::string
+  that is A BYTE CONTAINER. A 0x90 status byte and a UTF-8 lyric live in the same
+  type and are concatenated without conversion, and the result is written to a file
+  descriptor unchanged.
+
+  System.String cannot do that. It is UTF-16, so a MIDI payload assembled as a string
+  must choose an encoding on the way out, and no single choice is right for both a
+  status byte in 0x80-0xFF (which wants Latin-1) and a lyric (which wants UTF-8).
+  The whole MIDI layer is therefore byte[] end to end: MidiItem.ToBytes,
+  MidiChunk.ToBytes, MidiEvent.ToBytes, MidiStream.Write.
+
+  THIS IS THE ONE PLACE IN EPG19 WHERE FOLLOWING THE LETTER OF UPSTREAM WOULD HAVE
+  PRODUCED WRONG FILES RATHER THAN MERELY DIFFERENT CODE. Midi_text::to_string writes
+  a variable-length LENGTH PREFIX taken from text_string_.length (), which is a BYTE
+  count because a std::string already holds encoded bytes. A .NET string's Length is
+  UTF-16 units, so every non-ASCII lyric would have been given a short length and
+  silently truncated -- a file that still parses. Epg19Tests fences it with "é": one
+  char, two bytes, and the prefix must read two.
+
+  Flower gained BigEndianBytesU16/24/32 and HexToBytes for this. The existing
+  char-based BigEndianU16/24/32 are untouched and keep their tests.
+
+
+A DEFECT IN ALREADY-PORTED CODE, AND IT IS THE ONE TO REMEMBER:
+Rational.FromDouble WAS THE ALGORITHM UPSTREAM EXPLICITLY WARNS AGAINST
+
+  flower/rational.cc's Rational (double) is deliberately LOSSY: frexp, then twenty
+  bits of mantissa (FACT = 1 << 20), normalize, apply the exponent as a shift,
+  normalize again. Upstream comments on it directly:
+
+      do not blindly substitute by libg++ code, since that uses
+      arbitrary-size integers.  The rationals would overflow too easily.
+
+  The port's FromDouble built the EXACT dyadic rational with BigInteger -- precisely
+  the substitution that comment forbids -- and it overflowed exactly as predicted. A
+  tempo ramp in the MIDI subsuite produced a double whose exact numerator does not fit
+  a ulong; the conversion THREW; the exception escaped mid-write; and ELEVEN MIDI
+  FILES were left truncated after their header, which the comparator reported as a
+  verdict class of its own (UNPARSEABLE, the same class EPG17 met from ly:wide-char->utf-8).
+
+  Corrected to upstream's algorithm. ONE deliberate divergence remains: where the
+  exponent shift would exceed 63 bits upstream shifts a uint64_t past its width, which
+  is UNDEFINED BEHAVIOUR in C++; the port saturates to zero or the signed infinity --
+  the mathematical limit, and a defined answer where upstream has none.
+
+  BLAST RADIUS, MEASURED RATHER THAN ASSUMED: the closing sweep is byte-identical to
+  the opening one (1,856 SVG / 281 NOOUT / 9 ERROR) and the ratchet reports 0
+  regressions and 0 improvements. Musical durations are dyadic and small, so they
+  survive the lossy path exactly; that is why nothing on the layout side moved.
+
+
+THE FIFTH PER-FILE LEAK, AND IT IS THE OLDEST AND WIDEST FOUND SO FAR
+
+  Lily_parser::default_duration_ is what a note with NO written duration inherits.
+  Upstream makes ONE PARSER PER FILE, so every file starts at a quarter note. The port
+  runs one session across the whole sweep, and nothing put it back -- so file N's last
+  written duration became file N+1's default. A file that writes no durations at all
+  writes nothing to correct it, so the error persisted for as long as the run did.
+
+  It now sits beside its four siblings in LilyPondInit.RestoreDefaults:
+      \paper mutates in place
+      set-global-staff-size rebinds $defaultpaper
+      a toplevel \layout rebinds $defaultlayout
+      \language rebinds pitchnames
+      the parser remembers default_duration_ (and default_tremolo_type_)
+
+  FOUND THROUGH MIDI, WHICH IS WHY IT SURVIVED TRACK P, EPG3, EPG4, EPG13 AND EVERY
+  SWEEP SINCE. The layout comparator grades GLYPH INVENTORIES, and a page whose notes
+  are all half length holds the same glyphs in the same order -- it is graded
+  GLYPHS-DIFFER either way, for reasons that have nothing to do with duration. The MIDI
+  comparator grades TICKS, and a note-off at 192 where the oracle says 384 is not a
+  near miss. Measured both ways, and it is the EPG4 trap in reverse:
+  crescendo-return-crescendo.ly is CORRECT when run alone and halved inside the sweep.
+
+  Worth generalising: a comparator can only catch what it grades. The layout ratchet
+  has been blind to every timing error in the suite since it was seeded.
+
+
+DELIBERATE DIVERGENCES (EPG19)
+
+  - Midi_walker::operator++ becomes Advance(); finalize() becomes FinalizeTrack(),
+    for the reason Translator::finalize became FinalizeTranslation -- Finalize is the
+    C# destructor.
+  - Performer::announce<T> (Args&&...) constructs and announces in one call. C#
+    generics cannot express "construct T from these arbitrary arguments", so
+    Announce<T> takes an already-constructed element. Same order of operations.
+  - Midi_stream buffers and writes atomically on Dispose instead of writing to a
+    file descriptor and renaming in a destructor. The property that matters -- a
+    reader never sees a half-written file -- is kept. The ten-try O_EXCL loop has no
+    analogue and is not reproduced.
+  - Staff_performer's staff_map_ is a std::unordered_map upstream, whose iteration
+    order is unspecified; get_audio_staff's `staff_map_.begin ()->second' therefore
+    picks an ARBITRARY staff when more than one is present. The port uses insertion
+    order, which is at least reproducible.
+  - note-performer.cc and drum-note-performer.cc share their articulation walk
+    VERBATIM upstream (it is copied and pasted between the two files). The port
+    factors it into PerformerArticulations. This is the one duplication EPG19 does not
+    reproduce, and it is safe precisely because the two copies are identical line for
+    line, so a single implementation cannot drift from either.
+  - AudioTextType is a top-level enum, because upstream nests it as `Type' and that
+    name is on standing rule 6's banned list. ITS VALUES ARE UPSTREAM'S and must stay
+    so: they are written into the file as the meta-event type byte.
+  - PerformerGroupPlaceholder, the empty stand-in TranslatorCreator returned for both
+    Performer_group and Score_performer since EPG2, IS RETIRED.
+
+UPSTREAM CODE NOT CARRIED, AND WHY
+
+  - Audio_element::gc_mark and Performance::derived_mark have no analogue: upstream
+    marks each element's causing Stream_event so Guile's collector does not reclaim it,
+    and in this port the reference IS the reachability.
+  - Staff_performer::tempo_ IS DEAD UPSTREAM. It is declared and the only statement
+    anywhere that touches it is `tempo_ = nullptr;' in stop_translation_timestep --
+    nothing reads it and nothing assigns it a value. Reproducing it dead costs a
+    CS0414 warning for a field that cannot affect anything.
+  - Midi_control_change_announcer::announce_from_context_properties is DECLARED in the
+    upstream header and DEFINED NOWHERE in pinned 2.27.2, with no caller.
+
+A SILENT DEFECT THE PORT ALMOST SHIPPED, AND THE GENERAL LESSON
+
+  Upstream reads numeric context properties with from_scm<Rational>. The obvious C#
+  spelling is `GetProperty (...) is Rational', and it looks like it says the same
+  thing. It does not: an exact Scheme ratio such as performer-init.ly's
+  `tempoWholesPerMinute = #60/4' arrives as a LilyScheme Ratio, and an integer as a
+  long, so the test misses both and the fallback wins. The symptom was a tempo span
+  opening at MINUS INFINITY and every tempo in the subsuite computed over an infinite
+  interval.
+
+  SchemeConvert.TryToRational was added for this and every numeric property read in
+  EPG19 goes through it. Prefer it over a type test anywhere upstream writes
+  from_scm<Rational>. Note that the pre-existing SchemeConvert.IsNumber does NOT count
+  a flower Rational and is therefore not a substitute.
+
+STATE THAT CAN LEAK, AND THE GUARD ADDED FOR IT
+
+  Staff_performer keeps its instrument-to-channel map in STATIC members. Upstream's
+  own mechanism -- the last Staff_performer to finalize clears them -- is reproduced
+  faithfully, and StaffPerformer.ResetStaticChannelState was added for
+  LilyPondInit.RestoreDefaults to call, because a score that dies before finalize would
+  otherwise hand its channel assignments to the next file in the sweep. Upstream's own
+  comment says these members "would prefer to be members of the containing class
+  Performance"; this is that wish, minus the restructuring.
+
+WHERE MIDI OUTPUT COMES FROM, AND WHAT STILL WAITS ON EPG16
+
+  Upstream writes MIDI from Paper_book::output, which calls scm/midi.scm's
+  write-performances-midis -- and that is reached through ly:book-process, which the
+  port does not take (D20's score-level short-circuit). LilyPortPerformer is therefore
+  the MIDI twin of LilyPortEngraver and BatchRunner drives both, per score, writing
+  <base>.midi and <base>-<n>.midi exactly as write-performances-midis names them so the
+  comparator can pair candidate to reference by name alone. When EPG16 moves the runner
+  onto the real book path, both collapse into it.
+
+  The MIDI half is a SEPARATE try/catch from the engraving half, deliberately:
+  upstream produces a page and a .midi from the same score independently, so a score
+  whose layout fails must still be able to perform. Folding them together would make
+  every MIDI reference hostage to a layout gap that has nothing to do with it.
+
+WHAT THE COMPARATOR SAYS TODAY, MEASURED AND NOT ROUNDED UP
+
+  2026-08-08, after the carry-forward session closed EPG19's five families: 79 of the
+  90 references MATCH the oracle event for event, 1 differs (a satb template whose
+  layout side also fails, an EPG15-state finding), and 10 are missing -- every one an
+  explicit \book file that D20's score-level short-circuit skips, so the whole missing
+  set is EPG16's. The original 2026-08-08 EPG19 reading, kept for the record: 68
+  produced, 41 MATCH, 27 differ, 22 missing.
+
+THE SEVENTH AND EIGHTH PER-FILE LEAKS (2026-08-08, carry-forward session)
+
+  (7) A TOPLEVEL \midi BLOCK REBINDS $defaultmidi -- the same shape as $defaultpaper
+  (EPG13) and $defaultlayout (RATCHET-FIX). midi2ly-generated regression files set
+  midiChannelMapping = #'instrument in exactly such a block, so every file swept after
+  the first of them performed under 'instrument mapping instead of performer-init.ly's
+  'staff -- visible as every staff landing on MIDI channel 0. Run alone the same file
+  is correct: the EPG4 trap, MIDI edition. LilyPondInit now snapshots and restores
+  $defaultmidi beside its two siblings.
+
+  (8) define-session VARIABLES ARE A LEAK CLASS, NOT A VARIABLE. Upstream re-initializes
+  every `define-session' variable per file -- scm/lily.scm's session machinery exists
+  for multi-file invocations -- and the port does not yet drive that machinery; it
+  belongs to EPG16 with the real book path. The one variable MEASURED to leak,
+  `unique-counter' (names \addlyrics' generated voices uniqueContext0, 1, ...), is put
+  back to -1 by RestoreDefaults until then. Any other define-session variable is a
+  candidate for the same failure shape.
+
+
+================================================================================
+EPG20 -- CHORDS, FRETS, TAB, DRUMS, CLUSTERS, ARPEGGIO, FIGURED BASS (2026-08-08)
+================================================================================
+
+All 14 upstream files ported, with NO pull-forward of any other group's files and no
+binding forced forward either. The group's ledger bucket is EMPTY. The entry-point
+closure moves by FOURTEEN against fourteen files, which is the expected shape and not
+a shortfall: eleven of the fourteen files are TRANSLATORS, and a translator has no
+Scheme surface at all -- ly/engraver-init.ly names it in a \consists list and
+TranslatorRegistry answers, so a binding is not how it is found.
+
+D24 (2026-08-05) put the figured-bass trio here rather than in EPG14, and the session
+note it carried was followed: EPG14's landed side-position, column and alignment code
+was read first, because fingering columns and text-attached grobs are the trio's
+closest technical cousins.
+
+DELIBERATE DIVERGENCES
+
+  Figure_group is a CLASS, not a struct (figured-bass-engraver.cc)
+                 Upstream's is a value type held in a std::vector, and every use in
+                 the file mutates a group IN PLACE through a reference:
+                 `Figure_group &group = groups_[i];`. A C# struct in a List<T> hands
+                 back a COPY, so every one of those mutations -- the continuation
+                 line, the figure item, the six figure fields -- would be written to a
+                 temporary and silently dropped. This is the one translation error
+                 this file makes easy, and it would not have failed loudly: the page
+                 would simply have had no extenders.
+
+  derived_mark() is not carried (figured-bass-engraver.cc, fretboard-engraver.cc)
+                 Both exist only to keep SCM members alive across a Guile garbage
+                 collection. Managed fields need no such help, and the methods have no
+                 other effect.
+
+  the arrow glyph name uses the invariant culture (arpeggio.cc)
+                 Upstream builds "scripts.arpeggio.arrow." + std::to_string (dir).
+                 A culture whose negative sign is not U+002D would build a name the
+                 font does not contain, and a missing glyph is SILENT here -- the
+                 arpeggio would simply lose its arrowhead.
+
+  the string/fret/finger list is walked ONCE (tab-note-heads-engraver.cc)
+                 Upstream calls scm_list_ref inside the loop, which is quadratic in
+                 the number of strings. The port walks with a cursor. Visiting order
+                 and values are identical; only the cost differs, and the index i is
+                 still tracked because `index` is computed from it.
+
+  a zero-height squiggle cannot spin the arpeggio loop (arpeggio.cc)
+                 Arpeggio::print stacks squiggles until they cover the chord, and
+                 terminates because each adds its own height. A squiggle of ZERO
+                 height would never terminate, and the symptom would be a sweep that
+                 stops making progress with nothing in the log -- exactly the shape
+                 EPG12's slur search range had. Upstream is protected by the music
+                 font always carrying scripts.arpeggio; the port asks rather than
+                 assumes, and reports. When the glyph is real the guard cannot fire
+                 and the expression underneath it is upstream's, unchanged. This is
+                 NOT one of the guards EPG15 is meant to remove: it is about a missing
+                 glyph, not about spacing not having run.
+
+  Figured_bass_position_engraver's assert becomes a programming error
+                 Upstream asserts (!positioner_) on entry to start_spanner. The port
+                 reports and returns rather than aborting the process, which is the
+                 posture every other ported translator takes.
+
+WHAT UPSTREAM DECLARES AND NEVER DEFINES
+
+  Figured_bass_continuation::print is DECLARED in figured-bass-continuation.cc and
+  has NO definition anywhere in the pinned tree. It is therefore NOT an entry point
+  and no binding is made for it: define-grobs.scm names `figured-bass-continuation::
+  print', with no ly: prefix, which scm/output-lib.scm defines. That file contributes
+  exactly ONE binding, ly:figured-bass-continuation::center-on-figures. Same shape as
+  the Slur::vertical_skylines declaration EPG12 recorded -- and worth generalising: a
+  DECLARE_SCHEME_CALLBACK is not evidence that an entry point exists.
+
+A DEFECT IN ALREADY-PORTED CODE, FOUND BY PORTING A CALLER
+
+  ly_assoc had never been carried, and SchemeUtilities.LyAssocGet carried a RECORDED
+  NARROWING in its place: it went straight to Assq, so a key that is neither a symbol
+  nor an immediate was compared by IDENTITY where upstream compares by equal?. The
+  note said "no caller in the engine uses such a key today". Drum_notes_engraver is
+  the first that does -- it looks a percussion sign up in scriptDefinitions through
+  ly_assoc -- so ly_assoc is now implemented from lily-guile.hh's own branch
+  (symbol or SCM_IMP -> assq, otherwise assoc) and LyAssocGet goes through it. The
+  narrowing is closed. Fenced from both sides by Epg20Tests: a string key must be
+  found, and an absent key must still answer the fallback.
+
+  Generalise it the way RATCHET-FIX generalised its stale throw: a recorded narrowing
+  stops being harmless the moment a caller arrives, and nothing re-checks it.
+
+FIRST CALLER OF ARTICULATIONS.CC
+
+  articulation_list has been ported since Wave A with NO caller anywhere in the
+  engine. Fretboard_engraver and Tab_note_heads_engraver are its first two. It was
+  read against upstream before being relied on and is faithful, including the
+  awkwardness it exists for: a string number written INSIDE a chord arrives as an
+  articulation on the note event, one written OUTSIDE arrives as an event of its own,
+  and the two have to come out as one positionally-aligned list.
+
+AN UPSTREAM QUIRK REPRODUCED RATHER THAN TIDIED
+
+  Figure_group::assign_from_event takes `currevt' and reads the FIGURE off
+  `current_event_' instead -- every other field comes from currevt. The one call site
+  passes the same event for both, so the two are indistinguishable in practice.
+  Reproduced as written: tidying it would be a guess about which upstream meant.
+
+WHAT THE SWEEP SAYS
+
+  Arpeggio_engraver, Cluster_spanner_engraver and Note_head_line_engraver were tied
+  at the top of the unported-translator demand list at 4,132 misses per sweep each,
+  with Figured_bass_engraver at 3,429 and ly:chord-bracket::print at 96. All are now
+  registered and reached.

@@ -80,19 +80,45 @@ public static class LilyPortEngraver
         ScoreEngraver scoreEngraver = FindScoreEngraver(global);
         SystemGrob system = scoreEngraver?.System;
 
-        // Upstream's Paper_score::process, then the placement half of
-        // get_paper_systems. PROCESS is what states the horizontal spacing problem --
-        // it reads every grob's springs-and-rods, which is how the SpacingSpanner is
-        // reached -- and the placement is what moves the columns off x = 0. Skipping
-        // either one still produces a drawing, of every note stacked at the origin.
+        // Upstream's Paper_score::process, then get_paper_systems. PROCESS is what states
+        // the horizontal spacing problem -- it reads every grob's springs-and-rods, which
+        // is how the SpacingSpanner is reached -- and get_paper_systems is what chooses
+        // the line breaks, clones the root system into one piece per line, and makes those
+        // pieces independent. Skipping either one still produces a drawing, of every note
+        // stacked at the origin.
+        //
+        // EPG15 (2026-08-08) replaced PlaceColumnsOnOneLine here. THE REPORTED SYSTEM IS
+        // NOW THE FIRST BROKEN PIECE, NOT THE ROOT, and that is upstream's own shape
+        // rather than a convenience: break substitution ends by calling
+        // handle_broken_dependencies on the root, whose bounds by then belong to its
+        // pieces, so the root SUICIDES. It is not drawn upstream either. A run that
+        // produced no pieces at all -- degenerate music with nothing to break -- still
+        // reports the root, so a probe against empty input behaves as it did.
         PaperScore paperScore = scoreEngraver?.PaperScore;
+        Stencil stencil = Stencil.Empty;
+
         if (paperScore != null)
         {
             paperScore.Process();
-            paperScore.PlaceColumnsOnOneLine();
-        }
+            IReadOnlyList<Prob> paperSystems = paperScore.GetPaperSystems();
 
-        Stencil stencil = system == null ? Stencil.Empty : system.GetPaperSystemStencil();
+            if (system != null && system.BrokenIntos.Count > 0)
+            {
+                system = system.BrokenSystems()[0];
+            }
+
+            // The stencil comes OUT of the paper system rather than being asked for a
+            // second time: GetPaperSystemStencil runs PostProcessing, which TRANSLATES the
+            // system, so calling it twice would move the music twice.
+            if (paperSystems.Count > 0)
+            {
+                stencil = PaperSystem.GetStencil(paperSystems[0]);
+            }
+        }
+        else if (system != null)
+        {
+            stencil = system.GetPaperSystemStencil();
+        }
 
         return new EngraveResult(global, scoreEngraver, system, stencil);
     }

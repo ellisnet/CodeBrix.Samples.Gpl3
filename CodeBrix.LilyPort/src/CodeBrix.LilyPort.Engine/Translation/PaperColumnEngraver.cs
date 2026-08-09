@@ -58,6 +58,9 @@ public class PaperColumnEngraver : Engraver
     private static readonly Symbol RhythmicLocationSymbol = Symbol.Intern("rhythmic-location");
     private static readonly Symbol AxisGroupParentX = Symbol.Intern("axis-group-parent-X");
     private static readonly Symbol PaperColumnSymbol = Symbol.Intern("Paper_column");
+    private static readonly Symbol ForbidBreakSymbol = Symbol.Intern("forbidBreak");
+    private static readonly Symbol ForceBreakSymbol = Symbol.Intern("forceBreak");
+    private static readonly Symbol ScoreSymbol = Symbol.Intern("Score");
 
     private readonly List<Item> _items = new List<Item>();
 
@@ -185,10 +188,21 @@ public class PaperColumnEngraver : Engraver
 
         _items.Clear();
 
-        if (_commandColumn != null && PaperColumn.IsBreakable(_commandColumn))
+        if (!Translation.Context.BreakAllowed(Context)
+            && _breaks != 0) /* don't honour forbidBreak if it occurs on the first moment of a score */
+        {
+            _commandColumn?.SetProperty(PageTurnPermissionSymbol, Nil.Instance);
+            _commandColumn?.SetProperty(PageBreakPermissionSymbol, Nil.Instance);
+            _commandColumn?.SetProperty(LineBreakPermissionSymbol, Nil.Instance);
+        }
+        else if (_commandColumn != null && PaperColumn.IsBreakable(_commandColumn))
         {
             _breaks++;
         }
+
+        Context score = Context?.FindContextAbove(ScoreSymbol);
+        score?.UnsetProperty(ForbidBreakSymbol);
+        score?.UnsetProperty(ForceBreakSymbol);
     }
 
     /// <summary>

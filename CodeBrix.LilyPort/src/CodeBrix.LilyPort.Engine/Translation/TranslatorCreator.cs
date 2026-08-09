@@ -222,6 +222,51 @@ public static class TranslatorRegistry
         Add(registries, "Horizontal_bracket_engraver",
             c => new HorizontalBracketEngraver(c));
         Add(registries, "Ledger_line_engraver", c => new LedgerLineEngraver(c));
+
+        // EPG20 (2026-08-08): chords, frets, tab, drums, clusters, arpeggio, figured bass.
+        Add(registries, "Arpeggio_engraver", c => new ArpeggioEngraver(c));
+        Add(registries, "Span_arpeggio_engraver", c => new SpanArpeggioEngraver(c));
+        Add(registries, "Cluster_spanner_engraver", c => new ClusterSpannerEngraver(c));
+        Add(registries, "Note_head_line_engraver", c => new NoteHeadLineEngraver(c));
+        Add(registries, "Fretboard_engraver", c => new FretboardEngraver(c));
+        Add(registries, "Tab_note_heads_engraver", c => new TabNoteHeadsEngraver(c));
+        Add(registries, "Tab_staff_symbol_engraver", c => new TabStaffSymbolEngraver(c));
+        Add(registries, "Drum_notes_engraver", c => new DrumNotesEngraver(c));
+        Add(registries, "Figured_bass_engraver", c => new FiguredBassEngraver(c));
+        Add(registries, "Figured_bass_position_engraver",
+            c => new FiguredBassPositionEngraver(c));
+
+        // EPG15 (2026-08-08) -- line breaking and broken spanners. The first two were the
+        // two MOST demanded unported translators in the sweep, at 4,156 and 4,150 "unknown
+        // translator" warnings each.
+        Add(registries, "Break_align_engraver", c => new BreakAlignEngraver(c));
+        Add(registries, "Forbid_line_break_engraver", c => new ForbidLineBreakEngraver(c));
+        Add(registries, "Spanner_break_forbid_engraver",
+            c => new SpannerBreakForbidEngraver(c));
+        Add(registries, "Pure_from_neighbor_engraver", c => new PureFromNeighborEngraver(c));
+        Add(registries, "Keep_alive_together_engraver",
+            c => new KeepAliveTogetherEngraver(c));
+
+        // EPG19 (2026-08-08) -- the MIDI side. These are the fourteen concrete performers
+        // ly/performer-init.ly names; the two GROUPS (Performer_group, Score_performer)
+        // are made by GetTranslatorGroup below, not here, exactly as the engraver groups
+        // are.
+        Add(registries, "Note_performer", c => new NotePerformer(c));
+        Add(registries, "Drum_note_performer", c => new DrumNotePerformer(c));
+        Add(registries, "Staff_performer", c => new StaffPerformer(c));
+        Add(registries, "Key_performer", c => new KeyPerformer(c));
+        Add(registries, "Time_signature_performer", c => new TimeSignaturePerformer(c));
+        Add(registries, "Tempo_performer", c => new TempoPerformer(c));
+        Add(registries, "Dynamic_performer", c => new DynamicPerformer(c));
+        Add(registries, "Beam_performer", c => new BeamPerformer(c));
+        Add(registries, "Slur_performer", c => new SlurPerformer(c));
+        Add(registries, "Tie_performer", c => new TiePerformer(c));
+        Add(registries, "Lyric_performer", c => new LyricPerformer(c));
+        Add(registries, "Mark_performer", c => new MarkPerformer(c));
+        Add(registries, "Piano_pedal_performer", c => new PianoPedalPerformer(c));
+        Add(registries, "Midi_control_change_performer",
+            c => new MidiControlChangePerformer(c));
+        Add(registries, "Control_track_performer", c => new ControlTrackPerformer(c));
     }
 
     /// <summary>
@@ -296,7 +341,7 @@ public static class TranslatorRegistry
         }
         else if (ReferenceEquals(symbol, PerformerGroupSymbol))
         {
-            return new PerformerGroupPlaceholder();
+            return new PerformerGroup();
         }
         else if (ReferenceEquals(symbol, ScoreEngraverSymbol))
         {
@@ -304,7 +349,7 @@ public static class TranslatorRegistry
         }
         else if (ReferenceEquals(symbol, ScorePerformerSymbol))
         {
-            return new PerformerGroupPlaceholder();
+            return new ScorePerformer();
         }
 
         Warn.Error(
@@ -323,22 +368,4 @@ public static class TranslatorRegistry
         registries.Translators[symbol] = new TranslatorCreator(symbol, allocate);
         registries.TranslatorDescriptions[symbol] = Nil.Instance;
     }
-}
-
-/// <summary>
-/// The stand-in for <c>Performer_group</c> and <c>Score_performer</c> until EPG19 ports
-/// the MIDI subsystem.
-/// <para>
-/// It is a real, empty group rather than a null return, and the difference matters: a
-/// null group would make <c>\midi</c> blocks fail at context creation with a
-/// programming error, whereas an empty one builds the same context tree and simply
-/// produces no performance. That keeps the MIDI half of <c>ly/performer-init.ly</c>
-/// loadable and the LAYOUT half — the whole of EPG2's exit criterion — unaffected by
-/// work that has not been done yet. Recorded in PORT-COVERAGE.
-/// </para>
-/// </summary>
-public sealed class PerformerGroupPlaceholder : TranslatorGroup
-{
-    /// <summary>Gets the C++ class name this group corresponds to.</summary>
-    public override string ClassName => "Performer_group";
 }

@@ -271,7 +271,7 @@ public class TranslatorGroup
         {
             transList.RemoveAll(t => !t.IsLayout);
         }
-        else if (group is PerformerGroupPlaceholder)
+        else if (group is PerformerGroup)
         {
             transList.RemoveAll(t => !t.IsMidi);
         }

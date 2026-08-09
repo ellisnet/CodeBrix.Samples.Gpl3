@@ -352,6 +352,15 @@ public static class LilyPondScheme
         // registered procedure and not a stub.
         Epg14Callbacks.Install(interpreter);
 
+        // EPG20 (2026-08-08): the arpeggio/chord-bracket/chord-slur callbacks and the
+        // chord-name binding. Order-independent of everything above — every name is its
+        // own — but it must be installed, because ly/property-init.ly's \arpeggioBracket
+        // and \arpeggioParenthesis OVERRIDE Arpeggio.stencil with ly:chord-bracket::print
+        // and ly:chord-slur::print BY NAME, so an unregistered name would install a stub
+        // on a grob that is otherwise fully working.
+        Epg20Callbacks.Install(interpreter);
+        Epg15Callbacks.Install(interpreter);
+
         // EPG22 (2026-08-07): dispatcher-scheme.cc, pulled forward from EPG23 because
         // \addQuote cannot run without it. It must go in AFTER Epg8Callbacks, which is
         // where ly:broadcast used to live.

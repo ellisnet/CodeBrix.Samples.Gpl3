@@ -254,6 +254,15 @@ public class FirstLightTests
         missing.Should().NotContain("Beam_engraver");
         missing.Should().NotContain("Tie_engraver");
 
+        // EPG20's, on the ported side of the fence since 2026-08-08. The first three
+        // were tied at the TOP of the unported-translator demand list at 4,132 misses
+        // per sweep each, and Figured_bass_engraver was next at 3,429.
+        missing.Should().NotContain("Arpeggio_engraver");
+        missing.Should().NotContain("Cluster_spanner_engraver");
+        missing.Should().NotContain("Note_head_line_engraver");
+        missing.Should().NotContain("Figured_bass_engraver");
+        missing.Should().NotContain("Drum_notes_engraver");
+
         // EPG14's, all fifteen of them, on the ported side of the fence now.
         missing.Should().NotContain("Font_size_engraver");
         missing.Should().NotContain("Script_engraver");

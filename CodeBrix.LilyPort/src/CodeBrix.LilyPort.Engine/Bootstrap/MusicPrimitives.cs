@@ -258,6 +258,14 @@ public static class MusicPrimitives
         interpreter.DefinePrimitive("ly:duration->number", 1, 1, a =>
             SchemeConvert.FromRational(AsDuration(a[0], "ly:duration->number").ToWholeNotes()));
 
+        // Convert DUR to a moment with no grace part — upstream duration-scheme.cc.
+        //
+        // PULLED FORWARD FROM EPG23 by the 2026-08-08 carry-forward session's demand:
+        // scm/music-functions.scm's \tempo-swing machinery reaches it, and the whole
+        // swing-tripletfeel family of MIDI files died on the unported stub.
+        interpreter.DefinePrimitive("ly:duration->moment", 1, 1, a =>
+            new Moment(AsDuration(a[0], "ly:duration->moment").ToWholeNotes()));
+
         interpreter.DefinePrimitive("ly:intlog2", 1, 1, a =>
         {
             long value = SchemeConvert.ToLong(a[0], "ly:intlog2");
@@ -313,6 +321,35 @@ public static class MusicPrimitives
 
         interpreter.DefinePrimitive("ly:music-mutable-properties", 1, 1, a =>
             AsMusic(a[0], "ly:music-mutable-properties").GetPropertyAlist(true));
+
+        // Make a new key alist of L transposed by pitch PIT.
+        //
+        // PULLED FORWARD FROM EPG23 by EPG19's demand loop: music-scheme.cc is a leaf
+        // binding file EPG23 owns, but Key_performer cannot emit a MIDI key signature
+        // without this one name. The algorithm lives in MusicSequence, beside the rest of
+        // music-sequence.hh's declarations.
+        interpreter.DefinePrimitive("ly:transpose-key-alist", 2, 2, a =>
+            MusicSequence.TransposeKeyAlist(
+                a[0],
+                a[1] as Pitch
+                    ?? throw SchemeErrors.WrongType("ly:transpose-key-alist", "pitch", a[1])));
+
+        // Make MUSIC relative to PITCH, return the final pitch.
+        //
+        // PULLED FORWARD FROM EPG23 by the 2026-08-08 carry-forward session's demand:
+        // music-scheme.cc is a leaf binding file EPG23 owns, but the vendored `relative'
+        // music function calls this FOR ITS SIDE EFFECT, so as an unported stub it
+        // answered an UnportedValue that the caller politely ignored — and every
+        // `\relative' block in the suite was read ABSOLUTELY. That is the whole of the
+        // MIDI scoreboard's octave-out family: written `e' is MIDI 52 where the oracle's
+        // relative reading is 64. Nothing ever threw, which is why it survived EPG19.
+        interpreter.DefinePrimitive("ly:make-music-relative!", 2, 2, a =>
+        {
+            MusicObject music = AsMusic(a[0], "ly:make-music-relative!");
+            Pitch start = a[1] as Pitch
+                ?? throw SchemeErrors.WrongType("ly:make-music-relative!", "pitch", a[1]);
+            return music.ToRelativeOctave(start);
+        });
 
         interpreter.DefinePrimitive("ly:music-length", 1, 1, a =>
             AsMusic(a[0], "ly:music-length").GetLength());

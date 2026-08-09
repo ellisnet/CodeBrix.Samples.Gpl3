@@ -44,7 +44,7 @@ namespace CodeBrix.LilyPort.Engine.Objects; //was previously: lily/prob.cc, lily
 /// defaults while each carries only what it has actually overridden.
 /// </para>
 /// </summary>
-public class Prob
+public class Prob : ISchemeEqual
 {
     private static readonly Symbol NameSymbol = Symbol.Intern("name");
     private static readonly Symbol UntransposableSymbol = Symbol.Intern("untransposable");
@@ -204,7 +204,14 @@ public class Prob
                 }
                 else if (ReferenceEquals(property, PitchAlistSymbol) && value is Pair)
                 {
-                    newValue = TransposeKeyAlist(value, delta);
+                    // Upstream reaches ly_transpose_key_alist here. A private identity
+                    // stand-in sat in its place from before the real algorithm existed
+                    // — landed with EPG19 in MusicSequence — and it made every
+                    // `\key PITCH \SCALE' carry the UNTRANSPOSED scale pattern: d minor
+                    // announced c minor's three flats to the MIDI key signature. The
+                    // stale-stand-in pattern again: a recorded absence stops being true
+                    // the moment its owner lands, and nothing re-checks it.
+                    newValue = Music.MusicSequence.TransposeKeyAlist(value, delta);
                 }
 
                 if (!ReferenceEquals(value, newValue))
@@ -261,6 +268,20 @@ public class Prob
                && SchemeUtilities.PropertyAlistsEqual(a.MutablePropertyAlist, b.MutablePropertyAlist);
     }
 
+    /// <summary>
+    /// Compares this prob with another for <c>equal?</c> — upstream's
+    /// <c>Prob::equal_p</c>, reached through the <see cref="ISchemeEqual"/> dispatch.
+    /// <para>
+    /// The eighth and last handler on the roster RATCHET-FIX read out of the pinned
+    /// source (2026-08-08); it was left OWED then because nothing demanded it, and it
+    /// is closed by the same session that closed the EPG19 carry-forwards. The
+    /// algorithm itself was already here as <see cref="AreEqual"/>.
+    /// </para>
+    /// </summary>
+    /// <param name="other">The value to compare against.</param>
+    /// <returns><see langword="true"/> when the two are equal by value.</returns>
+    public bool SchemeEquals(object other) => other is Prob prob && AreEqual(this, prob);
+
     /// <summary>Copies the mutable property alist for a new instance.</summary>
     /// <returns>The copied alist.</returns>
     protected virtual object CopyMutableProperties() => SchemeUtilities.DeepCopy(MutablePropertyAlist);
@@ -292,40 +313,4 @@ public class Prob
         }
     }
 
-    private static object TransposeKeyAlist(object alist, Pitch delta)
-    {
-        // scm/music-functions.scm's ly:transpose-key-alist, which maps every
-        // (name . alteration) entry through the transposition.
-        object cursor = alist;
-        System.Collections.Generic.List<object> transposed = new System.Collections.Generic.List<object>();
-
-        while (cursor is Pair pair)
-        {
-            if (pair.Car is Pair entry && entry.Car is Pair)
-            {
-                transposed.Add(entry);
-            }
-            else if (pair.Car is Pair simple)
-            {
-                transposed.Add(new Pair(simple.Car, simple.Cdr));
-            }
-            else
-            {
-                transposed.Add(pair.Car);
-            }
-
-            cursor = pair.Cdr;
-        }
-
-        // The real transposition lives in Scheme and is reached through the key-alist
-        // helper; until the parser layer supplies keys this is an identity copy, which
-        // is recorded in PORT-COVERAGE.
-        object result = cursor ?? Nil.Instance;
-        for (int i = transposed.Count - 1; i >= 0; i--)
-        {
-            result = new Pair(transposed[i], result);
-        }
-
-        return result;
-    }
 }

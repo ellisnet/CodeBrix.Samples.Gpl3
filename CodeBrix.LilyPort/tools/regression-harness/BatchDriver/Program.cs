@@ -116,6 +116,26 @@ public static class Program
             try
             {
                 BatchRunResult result = BatchRunner.RunFile(file, outputDirectory);
+
+                // MIDI is reported on its own line and always (EPG19, 2026-08-08),
+                // because the sweep log IS this project's demand list: a performance that
+                // failed while the page succeeded would otherwise be invisible, which is
+                // exactly how the layout side's own silent gaps survived for sessions.
+                foreach (string diagnostic in result.Diagnostics)
+                {
+                    if (diagnostic.StartsWith("performing failed:", StringComparison.Ordinal)
+                        || diagnostic.StartsWith("MIDI output failed:", StringComparison.Ordinal))
+                    {
+                        Console.WriteLine(name + "\tMIDI-FAIL\t" + FirstLine(diagnostic));
+                    }
+                }
+
+                if (result.MidiPaths.Count > 0)
+                {
+                    Console.WriteLine(
+                        name + "\tMIDI\t" + result.MidiPaths.Count + " file(s)");
+                }
+
                 if (result.SvgPath != null)
                 {
                     produced++;

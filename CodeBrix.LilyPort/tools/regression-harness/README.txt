@@ -385,3 +385,73 @@ to it. Before this existed, nothing in the repository could tell an earned floor
 from an unearned one, which is why 97 unearned rows stood for three sessions.
 
 The first 97 entries are that re-baseline, 1,541 -> 1,444, on 2026-08-07.
+
+
+================================================================================
+THE MIDI SCOREBOARD (added 2026-08-08, EPG19)
+================================================================================
+
+The layout harness above grades PAGES. This one grades MIDI, and it is a separate
+oracle, a separate subsuite and a separate comparator because none of those three
+is shared.
+
+  tests/regression/midi          73 input files (upstream's input/regression/midi)
+  reference-midi/midi            90 .midi rendered by the pinned 2.27.2 binary
+  reference-midi/manifest.tsv    sha256 + size per file, committed
+  generate-midi-reference.sh     regenerates the above
+  compare-midi.py                grades a candidate directory against it
+
+  UNLIKE THE PAGES, THE .midi FILES ARE COMMITTED. The layout reference is 62 MB and
+  is gitignored with a manifest standing in for it; the MIDI reference is 364 KB, so
+  committing it is cheaper than the machinery for not committing it.
+
+RUNNING IT
+
+    dotnet run --project tools/regression-harness/BatchDriver -c Release -- \
+        tests/regression/midi <out-dir>
+    python3 compare-midi.py reference-midi/midi <out-dir>
+
+  BatchDriver writes .midi beside .svg. Its startup clean and end-of-run self-check
+  cover .svg only -- that is deliberate, because a score's page and its MIDI are
+  independent outputs and one may exist without the other.
+
+THE SELF-CHECK, AND WHY IT IS NOT OPTIONAL
+
+    python3 compare-midi.py reference-midi/midi reference-midi/midi
+
+  must report 90 of 90 MATCH. That is what would catch this script reading zero
+  events out of every file -- exactly the failure compare-output.py had, unnoticed,
+  for four sessions before EPG13 found it.
+
+WHAT IS NORMALISED, AND WHAT DELIBERATELY IS NOT
+
+  A byte comparison is tempting and wrong: two files can carry the identical
+  performance and differ in bytes. compare-midi.py parses both sides and compares
+  event streams, applying exactly four normalisations, each one a place where the
+  format admits more than one spelling of the same music:
+
+    1. delta times become absolute ticks
+    2. running status is expanded
+    3. the "LilyPond <version>" stamp is replaced by a marker (its presence and
+       position are still compared -- only the payload is elided)
+    4. end-of-track is dropped
+
+  EVERYTHING ELSE IS COMPARED EXACTLY, INCLUDING THE ORDER OF EVENTS SHARING A TICK.
+  That order is not incidental: lily/midi-chunk.cc's Midi_track::add exists solely to
+  force instrument changes ahead of the notes they apply to, so a comparator that
+  sorted within a tick would grade away the thing that code is for.
+
+VERDICTS -- the same vocabulary compare-output.py uses
+
+    MATCH           every track's event stream is identical
+    EVENTS-DIFFER   both parse, the streams differ
+    MISSING         the port produced no file
+    UNPARSEABLE     the port produced something that is not an SMF
+
+  UNPARSEABLE is worth watching for the same reason it is on the layout side: it
+  means the port is emitting BYTES that are wrong, not a layout that is wrong. EPG19
+  met it on eleven files from a Rational conversion that threw mid-write.
+
+THERE IS NO MIDI RATCHET YET. The layout floor is a per-file manifest with a gate;
+the MIDI side is currently a scoreboard read by hand. It should grow one once the
+figures stop moving in large steps.

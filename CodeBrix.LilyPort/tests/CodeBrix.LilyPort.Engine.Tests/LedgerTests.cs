@@ -316,9 +316,22 @@ public class LedgerTests
         // which is why the total moves by 38 and not 35. stencil-scheme.cc does NOT: five
         // of its leaves landed and the rest did not, so a binding there is still not the
         // file, and EntryPointClosureTests is what keeps that distinction honest.
-        ported.Should().Be(321);
+        //
+        // EPG19 moved THIRTY on 2026-08-08: its entire group, with NO pull-forward of any
+        // other group's FILES. One LEAF came forward from music-scheme.cc
+        // (ly:transpose-key-alist, which Key_performer cannot work without), and that file
+        // keeps its EPG23 disposition because the rest of its surface did not land -- the
+        // same distinction stencil-scheme.cc draws above, and the reason this test asserts
+        // a file count and EntryPointClosureTests asserts a binding count.
+        //
+        // EPG20 moved FOURTEEN on 2026-08-08: its entire group, with NO pull-forward of
+        // any other group's files and no binding forced forward either -- the group is
+        // almost entirely TRANSLATORS, which have no Scheme surface, so the entry-point
+        // count moves by fourteen against fourteen files rather than by some larger
+        // number. Its bucket is EMPTY.
+        ported.Should().Be(365);
         noPort.Should().Be(29);
-        PortLedger.NotYetPorted.Should().HaveCount(98);
+        PortLedger.NotYetPorted.Should().HaveCount(54);
     }
 
     [Fact]

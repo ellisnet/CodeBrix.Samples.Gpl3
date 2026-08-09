@@ -68,6 +68,9 @@ public sealed class OpenTypeFont
     private readonly Dictionary<Symbol, object> _characterTable = new Dictionary<Symbol, object>();
     private readonly Dictionary<Symbol, object> _globalTable = new Dictionary<Symbol, object>();
     private readonly Dictionary<string, int> _nameToIndex = new Dictionary<string, int>(StringComparer.Ordinal);
+
+    private Dictionary<int, int> _cmap;
+    private double[] _advances;
     private readonly List<string> _glyphNames;
     private readonly Dictionary<int, Box> _indexToBox = new Dictionary<int, Box>();
 
@@ -225,6 +228,35 @@ public sealed class OpenTypeFont
         => glyphName != null && _nameToIndex.TryGetValue(glyphName, out int index)
             ? index
             : GlyphIndexInvalid;
+
+    /// <summary>
+    /// Returns the glyph index a code point maps to through the font's <c>cmap</c>,
+    /// reading the table once on first ask.
+    /// <para>
+    /// This is what lets a STRING be set in the music font: fetaText maps the ASCII
+    /// digits, the dynamic letters and the figured-bass punctuation onto the same
+    /// glyphs upstream reaches through Pango.
+    /// </para>
+    /// </summary>
+    /// <param name="codePoint">The Unicode code point.</param>
+    /// <returns>The index, or <see cref="GlyphIndexInvalid"/> when unmapped.</returns>
+    public int CharToGlyphIndex(int codePoint)
+    {
+        _cmap ??= Reader?.ReadCmap() ?? new Dictionary<int, int>();
+        return _cmap.TryGetValue(codePoint, out int index) ? index : GlyphIndexInvalid;
+    }
+
+    /// <summary>
+    /// Returns a glyph's horizontal advance in raw font units, from <c>hmtx</c>,
+    /// reading the table once on first ask.
+    /// </summary>
+    /// <param name="glyphIndex">The glyph index.</param>
+    /// <returns>The advance, or zero for an invalid index.</returns>
+    public double RawAdvance(int glyphIndex)
+    {
+        _advances ??= Reader?.ReadAdvances() ?? Array.Empty<double>();
+        return glyphIndex >= 0 && glyphIndex < _advances.Length ? _advances[glyphIndex] : 0.0;
+    }
 
     /// <summary>Returns the metadata alist for a glyph.</summary>
     /// <param name="glyphName">The glyph name.</param>

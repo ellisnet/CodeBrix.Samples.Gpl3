@@ -14,12 +14,16 @@ using System.Threading.Tasks;
 namespace Lily.Shell.Commands;
 
 /// <summary>
-/// The `lilypond file.ly` counterpart. Today it runs what exists of the
-/// pipeline — the real parser over the live Scheme layer — and reports
-/// honestly where the pipeline currently ends (the .ly-to-music step lands
-/// with the EPG1-EPG3 engine groups). The 'demo' command shows the
-/// music-to-SVG half working end to end.
+/// The `lilypond file.ly` counterpart: runs a file through the real batch
+/// pipeline — parse, engrave, SVG, and <c>.midi</c> whenever a score carries a
+/// <c>\midi</c> block — and reports every artifact it wrote.
 /// </summary>
+/// <remarks>
+/// Until 2026-08-08 this command stopped at the parse step, with a note that
+/// the pipeline was under construction; the pipeline has produced pages since
+/// EPG3 and MIDI since EPG19, and the standing expectation is that Lily.Shell
+/// keeps up with user-visible engine capability.
+/// </remarks>
 public sealed class EngraveCommand : IShellCommand
 {
     private readonly LilyPortHost _host;
@@ -34,22 +38,22 @@ public sealed class EngraveCommand : IShellCommand
     public string Name => "engrave";
 
     /// <inheritdoc/>
-    public string Summary => "Engraves a .ly file (currently: parses; full pipeline under construction).";
+    public string Summary => "Engraves a .ly file to SVG (and .midi when the score has a \\midi block).";
 
     /// <inheritdoc/>
-    public string Usage => "engrave <file.ly> [-o <out.svg>]";
+    public string Usage => "engrave <file.ly> [-o <output-dir>]";
 
     /// <inheritdoc/>
     public async Task ExecuteAsync(ShellCommandContext context)
     {
         string path = null;
-        string outputPath = null;
+        string outputDirectory = null;
 
         for (var i = 0; i < context.Arguments.Count; i++)
         {
             if (context.Arguments[i] == "-o" && i + 1 < context.Arguments.Count)
             {
-                outputPath = context.Arguments[i + 1];
+                outputDirectory = context.Arguments[i + 1];
                 i++;
             }
             else if (path == null)
@@ -70,28 +74,32 @@ public sealed class EngraveCommand : IShellCommand
             return;
         }
 
-        var outcome = await _host.ParseFileAsync(path, context.CancellationToken)
+        outputDirectory ??= Path.GetDirectoryName(Path.GetFullPath(path));
+        Directory.CreateDirectory(outputDirectory);
+
+        var result = await _host.EngraveFileAsync(path, outputDirectory, context.CancellationToken)
             .ConfigureAwait(false);
 
-        foreach (var diagnostic in outcome.AllDiagnostics())
+        foreach (var diagnostic in result.Diagnostics)
         {
             context.IO.WriteLine("  " + diagnostic);
         }
 
-        if (!outcome.Success)
+        if (result.SvgPath != null)
         {
-            context.IO.WriteLine($"Parse FAILED ({outcome.ErrorCount} errors) - nothing to engrave.");
-            return;
+            context.IO.WriteLine("SVG:  " + result.SvgPath);
         }
 
-        context.IO.WriteLine("Parse OK.");
-        context.IO.WriteLine("The .ly-to-engraving connection is not built yet - music functions and");
-        context.IO.WriteLine("the init layer land with the next engine groups (EPG1-EPG3). Until then,");
-        context.IO.WriteLine("'demo' engraves the working end-to-end path and 'scheme' talks to the engine.");
-
-        if (outputPath != null)
+        foreach (var midiPath in result.MidiPaths)
         {
-            context.IO.WriteLine($"(-o {outputPath} noted - it will apply once the pipeline connects)");
+            context.IO.WriteLine("MIDI: " + midiPath);
+        }
+
+        if (result.SvgPath == null && result.MidiPaths.Count == 0)
+        {
+            context.IO.WriteLine(result.ErrorCount > 0
+                ? $"No output produced ({result.ErrorCount} error(s))."
+                : "No output produced (the file may hold no \\score, or engraving stopped early).");
         }
     }
 }

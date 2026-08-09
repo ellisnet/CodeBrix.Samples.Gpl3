@@ -1167,6 +1167,212 @@ public abstract class Grob : IDiagnostics
     }
 
     /// <summary>
+    /// The range of SYSTEM ranks this grob is alive on.
+    /// <para>
+    /// ABSTRACT, exactly as upstream declares it (<c>= 0</c> in <c>grob.hh</c>): an item
+    /// answers from its own system or from its prebroken pieces', a spanner from the
+    /// pieces it was broken into, and there is no meaningful answer for a bare grob.
+    /// <see cref="Grob"/> being abstract in this port is what lets that translate
+    /// literally rather than as a virtual with an invented default.
+    /// </para>
+    /// </summary>
+    /// <returns>The system-rank range.</returns>
+    public abstract Slice SpannedSystemRankInterval();
+
+    /// <summary>
+    /// Gets the piece of this grob that is relevant to a line running from
+    /// <paramref name="start"/> to <paramref name="end"/>, or <see langword="null"/> when
+    /// it would not be visible on such a line.
+    /// <para>
+    /// ABSTRACT, as upstream declares it. A spanner always answers itself; an ITEM sitting
+    /// exactly on either end of the line answers the prebroken piece facing INTO the line,
+    /// and then only if that piece is break-visible — which is how a clef that only prints
+    /// at the start of a line stops being measured in the middle of one.
+    /// </para>
+    /// </summary>
+    /// <param name="start">The starting column rank.</param>
+    /// <param name="end">The ending column rank.</param>
+    /// <returns>The relevant piece, or <see langword="null"/>.</returns>
+    public abstract Grob PureFindVisiblePrebrokenPiece(int start, int end);
+
+    /// <summary>
+    /// Breaks this grob into the pieces line breaking asks for.
+    /// <para>
+    /// Empty on <see cref="Grob"/>, exactly as upstream: an ITEM is broken before line
+    /// breaking by <c>System::break_breakable_item</c>, so only <see cref="Spanner"/>
+    /// overrides this.
+    /// </para>
+    /// </summary>
+    public virtual void DoBreakProcessing()
+    {
+    }
+
+    /// <summary>
+    /// Re-points this grob's parents at the pieces that live on its own system.
+    /// <para>
+    /// Two separate fixups, and both are needed. A parent on a DIFFERENT system is
+    /// replaced by its piece on this one; and an ITEM whose parent is an item with a
+    /// different break direction is replaced by that parent's prebroken piece for this
+    /// side of the break.
+    /// </para>
+    /// </summary>
+    public void FixupRefpoint()
+    {
+        foreach (Axis ax in new[] { Axis.X, Axis.Y })
+        {
+            Grob parent = GetParent(ax);
+
+            if (parent == null)
+            {
+                continue;
+            }
+
+            if (!ReferenceEquals(parent.GetSystem(), GetSystem()) && GetSystem() != null)
+            {
+                Grob newParent = parent.FindBrokenPiece(GetSystem());
+                SetParent(newParent, ax);
+            }
+
+            if (this is Item i)
+            {
+                if (parent is Item parenti)
+                {
+                    Direction myDir = i.BreakStatusDirection();
+                    if (myDir != parenti.BreakStatusDirection())
+                    {
+                        Item newParent = parenti.FindPrebrokenPiece(myDir);
+                        SetParent(newParent, ax);
+                    }
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Re-points this grob's object links at the pieces that live on its own system, and
+    /// kills the grob when it turns out not to belong to any.
+    /// <para>
+    /// Three cases, in upstream's order. A spanner missing a bound is suicided outright —
+    /// upstream's own comment says this is what keeps the corner case out of the
+    /// algorithm. A spanner that is itself a broken PIECE does nothing, because its
+    /// original does the work for it. And an original spanner substitutes each of its
+    /// mutable object properties into every piece, through
+    /// <see cref="Spanner.SubstituteOneMutableProperty"/> rather than the generic walk,
+    /// because those lists get enormous in orchestral scores.
+    /// </para>
+    /// <para>
+    /// What is left after that is this grob's OWN links, which are substituted for its
+    /// own system — and if it has no system, or does not share a reference point with
+    /// one on both axes, it has been removed from everything that referred to it and is
+    /// junked.
+    /// </para>
+    /// </summary>
+    public virtual void HandleBrokenDependencies()
+    {
+        Spanner sp = this as Spanner;
+
+        /* Skipping break substitution in case sp is lacking a bound
+           allows not to have to care about this corner case in the
+           algorithm.
+         */
+        if (sp != null
+            && !(sp.GetBound(Direction.Negative) != null && sp.GetBound(Direction.Positive) != null))
+        {
+            Suicide();
+            return;
+        }
+
+        if (Original != null && sp != null)
+        {
+            return;
+        }
+
+        if (sp != null)
+        {
+            /* THIS, SP is the original spanner. We use a special function
+               because some Spanners have enormously long lists in their
+               properties, and a special function fixes FOO */
+            for (object s = _objectAlist; s is Pair pair; s = pair.Cdr)
+            {
+                if (pair.Car is Pair entry)
+                {
+                    sp.SubstituteOneMutableProperty(entry.Car as Symbol, entry.Cdr);
+                }
+            }
+        }
+
+        SystemGrob system = GetSystem();
+
+        if (IsLive
+            && system != null
+            && CommonRefpoint(system, Axis.X) != null
+            && CommonRefpoint(system, Axis.Y) != null)
+        {
+            SubstituteObjectLinks(system, _objectAlist);
+        }
+        else
+        {
+            /* THIS element is `invalid'; it has been removed from all
+               dependencies, so let's junk the element itself. */
+            Suicide();
+        }
+    }
+
+    /// <summary>
+    /// Replaces this grob's object alist with one whose links point at the pieces living
+    /// on a given system — <c>Grob::substitute_object_links (System *, SCM)</c>.
+    /// </summary>
+    /// <param name="crit">The system to substitute for.</param>
+    /// <param name="orig">The alist to substitute through.</param>
+    internal void SubstituteObjectLinks(SystemGrob crit, object orig)
+        => _objectAlist = BreakSubstitution.SubstituteObjectAlist(crit, orig);
+
+    /// <summary>
+    /// Replaces this grob's object alist with one whose links point at the prebroken
+    /// pieces for a given break direction — <c>Grob::substitute_object_links (Direction,
+    /// SCM)</c>.
+    /// </summary>
+    /// <param name="crit">The break direction to substitute for.</param>
+    /// <param name="orig">The alist to substitute through.</param>
+    internal void SubstituteObjectLinks(Direction crit, object orig)
+        => _objectAlist = BreakSubstitution.SubstituteObjectAlist(crit, orig);
+
+    /// <summary>
+    /// Returns a coordinate that is PURE when asked for on the Y axis and ordinary
+    /// otherwise — <c>Grob::maybe_pure_coordinate</c>.
+    /// </summary>
+    /// <param name="refp">The reference grob.</param>
+    /// <param name="a">The axis.</param>
+    /// <param name="pure">Whether a pure answer is wanted.</param>
+    /// <param name="start">The starting column rank.</param>
+    /// <param name="end">The ending column rank.</param>
+    /// <returns>The coordinate.</returns>
+    public double MaybePureCoordinate(Grob refp, Axis a, bool pure, int start, int end)
+    {
+        if (pure && a != Axis.Y)
+        {
+            Warn.ProgrammingError("tried to get pure X-offset");
+        }
+
+        return pure && a == Axis.Y
+            ? PureRelativeYCoordinate(refp, start, end)
+            : RelativeCoordinate(refp, a);
+    }
+
+    /// <summary>
+    /// Returns an extent that is PURE when asked for on the Y axis and ordinary
+    /// otherwise — <c>Grob::maybe_pure_extent</c>.
+    /// </summary>
+    /// <param name="refp">The reference grob.</param>
+    /// <param name="a">The axis.</param>
+    /// <param name="pure">Whether a pure answer is wanted.</param>
+    /// <param name="start">The starting column rank.</param>
+    /// <param name="end">The ending column rank.</param>
+    /// <returns>The extent.</returns>
+    public Interval MaybePureExtent(Grob refp, Axis a, bool pure, int start, int end)
+        => pure && a == Axis.Y ? PureYExtent(refp, start, end) : Extent(refp, a);
+
+    /// <summary>
     /// Gets where in the source this grob ultimately came from — <c>Grob::origin</c>,
     /// the hook upstream's <c>Diagnostics</c> base class reports every grob diagnostic
     /// at.

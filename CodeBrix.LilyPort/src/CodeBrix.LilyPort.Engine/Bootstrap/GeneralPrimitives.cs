@@ -172,6 +172,39 @@ public static class GeneralPrimitives
             return result;
         });
 
+        // lily/module-scheme.cc: look SYM up across the list MODULES, answering the
+        // first module's bound value, then DEF when given, else #f.
+        //
+        // PULLED FORWARD FROM EPG23 by the 2026-08-08 carry-forward session's demand:
+        // performance naming goes through scm/midi.scm's performance-name-from-headers,
+        // whose (or (ly:modules-lookup headers 'midititle) ...) chain treated the
+        // polite unported stub's placeholder as a real value — so every performance
+        // would have been named after the placeholder rather than its title.
+        interpreter.DefinePrimitive("ly:modules-lookup", 2, 3, a =>
+        {
+            if (!(a[1] is Symbol symbol))
+            {
+                throw SchemeErrors.WrongType("ly:modules-lookup", "symbol", a[1]);
+            }
+
+            object cursor = a[0];
+            while (cursor is Pair pair)
+            {
+                if (pair.Car is SchemeModule module)
+                {
+                    Variable variable = module.Lookup(symbol);
+                    if (variable != null && variable.IsBound)
+                    {
+                        return variable.GetValue();
+                    }
+                }
+
+                cursor = pair.Cdr;
+            }
+
+            return a.Length > 2 && !(a[2] is DefaultArgument) ? a[2] : (object)false;
+        });
+
         interpreter.DefinePrimitive("ly:version", 0, 0, a =>
         {
             string[] parts = LilyPondVersion.Split('.');

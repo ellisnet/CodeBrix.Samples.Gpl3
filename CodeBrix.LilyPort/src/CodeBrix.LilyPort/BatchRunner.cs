@@ -15,6 +15,7 @@ using CodeBrix.LilyPort.Engine.Music;
 using CodeBrix.LilyPort.Engine.Objects;
 using CodeBrix.LilyPort.Parsing.Session;
 using CodeBrix.LilyScheme;
+using CodeBrix.LilyScheme.Runtime;
 using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort;
@@ -316,6 +317,7 @@ public static class BatchRunner
         // D20: straight from each score to the SVG backend — one document per input
         // file, systems stacked in file order. Page assembly is EPG16's.
         List<Stencil> systems = new List<Stencil>();
+        List<Performance> performances = new List<Performance>();
         int skipped = 0;
         double unitLength = 0.0;
         // THE PARSER STAYS CURRENT ACROSS ENGRAVING (2026-08-08, EPG14).
@@ -394,6 +396,42 @@ public static class BatchRunner
                 {
                     diagnostics.Add("engraving failed: " + exception.Message);
                 }
+
+                // EPG19 (2026-08-08): the MIDI half, and it is deliberately a SEPARATE
+                // try/catch from the engraving above. Upstream produces a `.midi' and a
+                // page from the same score independently -- Paper_book::output writes
+                // both -- so a score whose layout fails must still be able to perform,
+                // and vice versa. Folding them together would make every MIDI reference
+                // hostage to a layout gap that has nothing to do with it.
+                OutputDef scoreMidi = ScoreMidi(score);
+                if (scoreMidi != null)
+                {
+                    try
+                    {
+                        Performance performed = LilyPortPerformer.Perform(
+                            score.GetMusic() as MusicObject, scoreMidi);
+
+                        if (performed != null)
+                        {
+                            // Book::process_score pushes the book's two header layers
+                            // and then the SCORE's header onto every performance, so
+                            // the metadata is reachable when the performance is
+                            // written. This runner intercepts at score level (D20), so
+                            // the book layers are EPG16's; the score's own header is
+                            // what \score { \header { title = ... } } needs.
+                            if (score.GetHeader() is SchemeModule scoreHeader)
+                            {
+                                performed.PushHeader(scoreHeader);
+                            }
+
+                            performances.Add(performed);
+                        }
+                    }
+                    catch (Exception exception) when (!(exception is OutOfMemoryException))
+                    {
+                        diagnostics.Add("performing failed: " + exception.Message);
+                    }
+                }
             }
         }
 
@@ -418,13 +456,113 @@ public static class BatchRunner
             File.WriteAllText(svgPath, backend.RenderDocument(page));
         }
 
+        // scm/midi.scm's write-performances-midis names the files: the first performance
+        // in a file gets `<base>.midi', and any further ones get `<base>-<n>.midi'
+        // counting from 1. That naming is the ORACLE's, so the comparator can pair a
+        // candidate with a reference by name alone.
+        List<string> midiPaths = new List<string>();
+        if (performances.Count > 0)
+        {
+            Directory.CreateDirectory(outputDirectory);
+
+            for (int i = 0; i < performances.Count; i++)
+            {
+                // write-performances-midis counts from 0 and suffixes only when the
+                // count is POSITIVE — so the FIRST performance is always `<base>.midi',
+                // even in a file that goes on to produce more. The old `-1/-2' naming
+                // for multi-performance files paired every candidate with the WRONG
+                // reference: the port's first output was compared against the oracle's
+                // second, and the oracle's first was reported missing.
+                string midiPath = Path.Combine(
+                    outputDirectory,
+                    i > 0
+                        ? baseName + "-" + i + ".midi"
+                        : baseName + ".midi");
+
+                try
+                {
+                    performances[i].WriteOutput(midiPath, PerformanceName(performances[i]));
+                    midiPaths.Add(midiPath);
+                }
+                catch (Exception exception) when (!(exception is OutOfMemoryException))
+                {
+                    diagnostics.Add("MIDI output failed: " + exception.Message);
+                }
+            }
+        }
+
         return new BatchRunResult(
             svgPath,
             books.Count,
             systems.Count,
             skipped,
             errorCount,
-            diagnostics);
+            diagnostics,
+            midiPaths);
+    }
+
+    /// <summary>
+    /// Names a performance the way <c>scm/midi.scm</c>'s
+    /// <c>write-performances-midis</c> does: <c>markup-&gt;string</c> of the headers'
+    /// <c>midititle</c>, else <c>title</c>, else the empty string.
+    /// </summary>
+    /// <remarks>
+    /// <c>performance-name-from-headers</c> is module-private in <c>(lily)</c>, so its
+    /// two-lookup chain is reproduced through the same primitives rather than resolved
+    /// by name. Until 2026-08-08 the runner passed <see cref="string.Empty"/> here,
+    /// which was right for every headerless regression file and wrong for the one that
+    /// sets a title — the control track's name placeholder was erased instead of
+    /// filled.
+    /// </remarks>
+    /// <param name="performance">The performance being written.</param>
+    /// <returns>The name, possibly empty.</returns>
+    private static string PerformanceName(Engine.Layout.Performance performance)
+    {
+        object lookup = LilyPondScheme.LookupProcedure(Symbol.Intern("ly:modules-lookup"));
+        object markupToString = LilyPondScheme.LookupProcedure(Symbol.Intern("markup->string"));
+        if (lookup == null || markupToString == null)
+        {
+            return string.Empty;
+        }
+
+        object title = SchemeUtilities.CallCallback(
+            lookup, performance.Headers, Symbol.Intern("midititle"));
+        if (title is bool noMidiTitle && !noMidiTitle)
+        {
+            title = SchemeUtilities.CallCallback(
+                lookup, performance.Headers, Symbol.Intern("title"));
+        }
+
+        if (title is bool noTitle && !noTitle)
+        {
+            return string.Empty;
+        }
+
+        return SchemeUtilities.CallCallback(markupToString, title)?.ToString() ?? string.Empty;
+    }
+
+    /// <summary>
+    /// Returns a score's <c>\midi</c> output definition, or <see langword="null"/> when
+    /// the score asks for no MIDI.
+    /// </summary>
+    /// <remarks>
+    /// Unlike <see cref="ScoreLayout"/> there is no falling back to a default: a score
+    /// without a <c>\midi</c> block produces no MIDI at all, and inventing one would give
+    /// every one of the 2,146 regression files a MIDI file the oracle does not have.
+    /// </remarks>
+    private static OutputDef ScoreMidi(Score score)
+    {
+        Symbol midiSymbol = Symbol.Intern("midi");
+
+        foreach (OutputDef def in score.Defs)
+        {
+            if (ReferenceEquals(def.CVariable("output-def-kind"), midiSymbol))
+            {
+                return def;
+            }
+        }
+
+        return null;
     }
 
     /// <summary>
@@ -549,13 +687,15 @@ public sealed class BatchRunResult
     /// <param name="skippedEntries">Toplevel entries skipped as not-yet-portable.</param>
     /// <param name="errorCount">Parse and epilogue errors.</param>
     /// <param name="diagnostics">Everything reported along the way.</param>
+    /// <param name="midiPaths">The MIDI files written, in performance order.</param>
     public BatchRunResult(
         string svgPath,
         int bookCount,
         int systemCount,
         int skippedEntries,
         int errorCount,
-        IReadOnlyList<string> diagnostics)
+        IReadOnlyList<string> diagnostics,
+        IReadOnlyList<string> midiPaths = null)
     {
         SvgPath = svgPath;
         BookCount = bookCount;
@@ -563,6 +703,7 @@ public sealed class BatchRunResult
         SkippedEntries = skippedEntries;
         ErrorCount = errorCount;
         Diagnostics = diagnostics;
+        MidiPaths = midiPaths ?? System.Array.Empty<string>();
     }
 
     /// <summary>Gets the SVG file written, or <see langword="null"/> when nothing engraved.</summary>
@@ -582,4 +723,7 @@ public sealed class BatchRunResult
 
     /// <summary>Gets everything the run reported.</summary>
     public IReadOnlyList<string> Diagnostics { get; }
+
+    /// <summary>Gets the MIDI files this run wrote, in performance order.</summary>
+    public IReadOnlyList<string> MidiPaths { get; }
 }

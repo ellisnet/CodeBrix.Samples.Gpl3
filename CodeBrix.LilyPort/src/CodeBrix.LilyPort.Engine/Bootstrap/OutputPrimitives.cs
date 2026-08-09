@@ -256,7 +256,42 @@ public static class OutputPrimitives
         interpreter.DefinePrimitive("ly:music-output?", 1, 1, a => a[0] is MusicOutput);
         interpreter.DefinePrimitive("ly:score?", 1, 1, a => a[0] is Score);
         interpreter.DefinePrimitive("ly:paper-score?", 1, 1, a => a[0] is PaperScore);
+
+        InstallPerformances(interpreter);
     }
+
+    /// <summary>
+    /// <c>performance-scheme.cc</c>, whole — both of its bindings (EPG19, 2026-08-08).
+    /// </summary>
+    /// <param name="interpreter">The interpreter to extend.</param>
+    private static void InstallPerformances(Interpreter interpreter)
+    {
+        // Return the list of headers with the innermost first.
+        interpreter.DefinePrimitive("ly:performance-headers", 1, 1, a =>
+            AsPerformance(a[0], "ly:performance-headers").Headers);
+
+        // Write PERFORMANCE to FILENAME storing NAME as the name of the performance in
+        // the file metadata.
+        interpreter.DefinePrimitive("ly:performance-write", 3, 3, a =>
+        {
+            Performance performance = AsPerformance(a[0], "ly:performance-write");
+
+            string fileName = AsText(a[1])
+                ?? throw SchemeErrors.WrongType("ly:performance-write", "string", a[1]);
+            string name = AsText(a[2])
+                ?? throw SchemeErrors.WrongType("ly:performance-write", "string", a[2]);
+
+            performance.WriteOutput(fileName, name);
+            return Unspecified.Instance;
+        });
+    }
+
+    private static Performance AsPerformance(object value, string who)
+        => value as Performance
+            ?? throw SchemeErrors.WrongType(who, "performance", value);
+
+    private static string AsText(object value)
+        => value is MutableString mutable ? mutable.ToString() : value as string;
 
     /// <summary>
     /// <c>book-scheme.cc</c>, minus the two processing entry points.

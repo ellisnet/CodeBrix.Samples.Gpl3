@@ -505,9 +505,35 @@ public readonly struct Rational : IEquatable<Rational>, IComparable<Rational>
         return _sign * ((double)_numerator / _denominator);
     }
 
-    /// <summary>Builds a rational from a double, exactly.</summary>
+    /// <summary>Builds a rational from a double, the way upstream's <c>Rational (double)</c>
+    /// does.</summary>
     /// <param name="value">The value to convert.</param>
-    /// <returns>The exact rational equal to the double's binary value.</returns>
+    /// <returns>The rational.</returns>
+    /// <remarks>
+    /// <para>
+    /// CORRECTED 2026-08-08 (EPG19). This USED to build the EXACT dyadic rational equal to
+    /// the double's binary value, using BigInteger — which is precisely what upstream's own
+    /// comment warns against, in as many words: "do not blindly substitute by libg++ code,
+    /// since that uses arbitrary-size integers. The rationals would overflow too easily."
+    /// They do. A tempo ramp in the MIDI subsuite produced a double whose exact dyadic
+    /// numerator does not fit a <c>ulong</c>, and the conversion THREW, truncating eleven
+    /// MIDI files after their header.
+    /// </para>
+    /// <para>
+    /// Upstream's algorithm is deliberately LOSSY and is reproduced here: take the mantissa
+    /// to twenty bits (<c>FACT = 1 &lt;&lt; 20</c>), normalize, then apply the exponent as a
+    /// shift and normalize again. Two rationals built from the same double therefore agree
+    /// with upstream's rather than being "more accurate" than it — which for a port is the
+    /// only kind of accuracy that counts.
+    /// </para>
+    /// <para>
+    /// ONE DELIBERATE DIVERGENCE: when the exponent shift would exceed 63 bits, upstream
+    /// shifts a <c>uint64_t</c> by more than its width, which is UNDEFINED BEHAVIOUR in
+    /// C++. The port saturates to zero or to the signed infinity instead — the
+    /// mathematical limit of what the shift is approaching, and a defined answer where
+    /// upstream has none.
+    /// </para>
+    /// </remarks>
     public static Rational FromDouble(double value)
     {
         if (double.IsNaN(value))
@@ -526,17 +552,63 @@ public readonly struct Rational : IEquatable<Rational>, IComparable<Rational>
         }
 
         int sign = value < 0 ? -1 : 1;
-        double magnitude = Math.Abs(value);
+        double magnitude = value * sign;
 
-        // Doubles are dyadic rationals, so scaling by a power of two is exact.
-        BigInteger denominator = BigInteger.One;
-        while (Math.Floor(magnitude) != magnitude)
+        // frexp: magnitude == mantissa * 2^exponent, with mantissa in [0.5, 1).
+        int exponent = Math.ILogB(magnitude) + 1;
+        double mantissa = Math.ScaleB(magnitude, -exponent);
+
+        const ulong Fact = 1UL << 20;
+
+        BigInteger numerator = new BigInteger((ulong)(mantissa * Fact));
+        BigInteger denominator = new BigInteger(Fact);
+
+        // Upstream normalizes here, before the shift, and again after it. The first pass
+        // is what keeps the shifted value small enough to be worth having.
+        BigInteger divisor = BigInteger.GreatestCommonDivisor(numerator, denominator);
+        if (!divisor.IsZero)
         {
-            magnitude *= 2.0;
-            denominator *= 2;
+            numerator /= divisor;
+            denominator /= divisor;
         }
 
-        return NormalizeBig(sign, new BigInteger(magnitude), denominator);
+        if (exponent < 0)
+        {
+            int shift = -exponent;
+            if (shift >= 64 && numerator.IsZero)
+            {
+                return Zero;
+            }
+
+            denominator <<= shift;
+        }
+        else
+        {
+            numerator <<= exponent;
+        }
+
+        if (numerator > ulong.MaxValue || denominator > ulong.MaxValue)
+        {
+            // The saturation described above. Reduce first: the pair may still fit.
+            BigInteger reducer = BigInteger.GreatestCommonDivisor(numerator, denominator);
+            if (!reducer.IsZero)
+            {
+                numerator /= reducer;
+                denominator /= reducer;
+            }
+
+            if (numerator > ulong.MaxValue)
+            {
+                return sign < 0 ? -Infinity : Infinity;
+            }
+
+            if (denominator > ulong.MaxValue)
+            {
+                return Zero;
+            }
+        }
+
+        return NormalizeBig(sign, numerator, denominator);
     }
 
     /// <summary>Returns the external representation.</summary>

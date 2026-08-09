@@ -37,11 +37,13 @@ public static class LilyPondInit
     private static readonly object Gate = new object();
     private static readonly Symbol DefaultLayoutSymbol = Symbol.Intern("$defaultlayout");
     private static readonly Symbol DefaultPaperSymbol = Symbol.Intern("$defaultpaper");
+    private static readonly Symbol DefaultMidiSymbol = Symbol.Intern("$defaultmidi");
     private static readonly Symbol OutputScaleSymbol = Symbol.Intern("output-scale");
 
     private static Interpreter _loadedFor;
     private static OutputDef _defaultLayout;
     private static OutputDef _defaultPaper;
+    private static OutputDef _defaultMidi;
     private static LilyParserSession _session;
     private static IReadOnlyList<string> _diagnostics = Array.Empty<string>();
 
@@ -49,6 +51,7 @@ public static class LilyPondInit
 
     private static Dictionary<Symbol, object> _layoutSnapshot;
     private static Dictionary<Symbol, object> _paperSnapshot;
+    private static Dictionary<Symbol, object> _midiSnapshot;
 
     /// <summary>
     /// Gets the <c>$defaultpaper</c> the init layer builds, loading both layers on
@@ -97,6 +100,7 @@ public static class LilyPondInit
         {
             Restore(_defaultPaper, _paperSnapshot);
             Restore(_defaultLayout, _layoutSnapshot);
+            Restore(_defaultMidi, _midiSnapshot);
 
             if (_session != null)
             {
@@ -110,6 +114,20 @@ public static class LilyPondInit
                     _session.SetIdentifier(DefaultLayoutSymbol, _defaultLayout);
                 }
 
+                // THE SEVENTH LEAK, same shape as $defaultpaper and $defaultlayout
+                // (found 2026-08-08 through the MIDI comparator): a TOPLEVEL \midi
+                // block REBINDS the $defaultmidi identifier to its clone, and nothing
+                // put the original back. midi2ly-generated regression files set
+                // midiChannelMapping = #'instrument in exactly such a block, so every
+                // file swept after the first of them performed under 'instrument
+                // mapping instead of performer-init.ly's 'staff — visible as every
+                // staff landing on MIDI channel 0. Run alone, the same file is
+                // correct: the EPG4 trap, MIDI edition.
+                if (_defaultMidi != null)
+                {
+                    _session.SetIdentifier(DefaultMidiSymbol, _defaultMidi);
+                }
+
                 // THE THIRD LEAK, and it is the same shape as the other two: \language
                 // rebinds (lily)'s `pitchnames' through ly:parser-set-note-names, and
                 // nothing put it back. One regression file includes arabic.ly, which
@@ -121,6 +139,59 @@ public static class LilyPondInit
                 {
                     _session.SetNoteNames(_noteNamesSnapshot);
                 }
+            }
+
+            // THE FIFTH LEAK, AND IT IS THE OLDEST AND WIDEST OF THEM (found 2026-08-08,
+            // EPG19). Lily_parser::default_duration_ is what a note with NO written
+            // duration inherits, and upstream makes ONE PARSER PER FILE, so it starts
+            // every file at a quarter note. The port has one session for the whole sweep,
+            // so file N's last written duration became file N+1's default -- and since a
+            // file that writes no durations at all writes nothing to correct it, the
+            // error persisted for as long as the run did.
+            //
+            // FOUND THROUGH MIDI, WHICH IS WHY IT SURVIVED SO LONG: the layout comparator
+            // grades glyph inventories, and a page whose notes are all half length holds
+            // the SAME glyphs in the same order. The MIDI comparator grades TICKS, and a
+            // note-off at 192 where the oracle says 384 is not a near miss. Measured both
+            // ways: crescendo-return-crescendo.ly run ALONE is correct, and inside the
+            // sweep it is halved -- the EPG4 trap in reverse.
+            //
+            // DefaultTremoloType is restored beside it: same member class, same lifetime,
+            // and nothing had put it back either.
+            if (_session != null)
+            {
+                _session.DefaultDuration = new Engine.Music.Duration(2, 0);
+                _session.DefaultTremoloType = 8;
+            }
+
+            // THE SIXTH LEAK, and EPG19 added the state that could leak (2026-08-08).
+            // Staff_performer keeps its instrument-to-channel map in STATIC members,
+            // because upstream gets one process per file and clears them when the last
+            // Staff_performer finalizes. A score that dies before finalize would hand its
+            // channel assignments to the next file in the sweep, which is exactly the
+            // shape of the three leaks above. Upstream's own mechanism is reproduced in
+            // StaffPerformer; this is the belt to its braces.
+            Engine.Translation.StaffPerformer.ResetStaticChannelState();
+
+            // THE EIGHTH LEAK, and unlike the others it points at a MECHANISM rather
+            // than a variable (found 2026-08-08 through the MIDI comparator). Upstream
+            // re-initializes every `define-session' variable per file — scm/lily.scm's
+            // session machinery exists precisely for multi-file invocations — and the
+            // port does not yet drive that machinery; it belongs to EPG16 with the
+            // real book path. Until then, the one session variable MEASURED to leak
+            // is put back by hand: `unique-counter' names the voices \addlyrics
+            // generates (uniqueContext0, 1, ...), so a counter that keeps climbing
+            // across the sweep names every file's contexts after the first
+            // differently from the oracle. Run alone the same file is correct — the
+            // EPG4 trap again.
+            CodeBrix.LilyScheme.Interpreter interpreter = Engine.Bootstrap.LilyPondScheme.Current;
+            CodeBrix.LilyScheme.Runtime.SchemeModule lilyModule = interpreter?.Modules?.Resolve(
+                CodeBrix.LilyScheme.Values.Pair.List(Symbol.Intern("lily")));
+            CodeBrix.LilyScheme.Values.Variable uniqueCounter
+                = lilyModule?.Lookup(Symbol.Intern("unique-counter"));
+            if (uniqueCounter != null && uniqueCounter.IsBound)
+            {
+                uniqueCounter.SetValue(-1L);
             }
         }
     }
@@ -221,10 +292,12 @@ public static class LilyPondInit
             _loadedFor = null;
             _defaultLayout = null;
             _defaultPaper = null;
+            _defaultMidi = null;
             _session = null;
             _diagnostics = Array.Empty<string>();
             _layoutSnapshot = null;
             _paperSnapshot = null;
+            _midiSnapshot = null;
         }
     }
 
@@ -250,6 +323,7 @@ public static class LilyPondInit
 
             layout = session.LookupIdentifier(DefaultLayoutSymbol.Name) as OutputDef;
             _defaultPaper = session.LookupIdentifier(DefaultPaperSymbol.Name) as OutputDef;
+            _defaultMidi = session.LookupIdentifier(DefaultMidiSymbol.Name) as OutputDef;
             _session = session;
         });
 
@@ -287,6 +361,7 @@ public static class LilyPondInit
         // the first file would have seen rather than a half-built one.
         _layoutSnapshot = Snapshot(_defaultLayout);
         _paperSnapshot = Snapshot(_defaultPaper);
+        _midiSnapshot = Snapshot(_defaultMidi);
 
         // The note-name table the init layer settled on, so a file that says
         // \language (or includes one that does) cannot rename the notes for the rest

@@ -507,6 +507,76 @@ public static class MusicSequence
     private static readonly Symbol ElementsSymbol = Symbol.Intern("elements");
     private static readonly Symbol DurationSymbol = Symbol.Intern("duration");
 
+    /// <summary>
+    /// Returns a key alist transposed by a pitch — upstream's <c>ly_transpose_key_alist</c>.
+    /// </summary>
+    /// <param name="alist">The key alist.</param>
+    /// <param name="delta">The pitch to transpose by.</param>
+    /// <returns>The transposed alist, in the original order.</returns>
+    /// <remarks>
+    /// <para>
+    /// PULLED FORWARD FROM EPG23 (2026-08-08, EPG19), and forced rather than chosen:
+    /// <c>ly_transpose_key_alist</c> is DECLARED in <c>lily/include/music-sequence.hh</c>
+    /// — this file's header — but DEFINED in <c>music-scheme.cc</c>, which is a leaf
+    /// binding file EPG23 owns. <see cref="Translation.KeyPerformer"/> calls it twice and
+    /// cannot emit a MIDI key signature without it.
+    /// </para>
+    /// <para>
+    /// Upstream's own comment is worth keeping: "This is hairy, since the scale in a key
+    /// change event may contain octaveless notes." That is exactly what the two branches
+    /// below are — a key whose entry is <c>(octave . notename)</c> and one whose entry is
+    /// a bare notename. Upstream also has a standing TODO here: "this should use
+    /// ly:pitch".
+    /// </para>
+    /// </remarks>
+    public static object TransposeKeyAlist(object alist, Pitch delta)
+    {
+        List<object> transposed = new List<object>();
+
+        foreach (object entry in Pair.ToList(alist))
+        {
+            if (!(entry is Pair pair))
+            {
+                continue;
+            }
+
+            object key = pair.Car;
+            object alteration = pair.Cdr;
+            Rational alterationValue
+                = Bootstrap.SchemeConvert.TryToRational(alteration, out Rational rational)
+                    ? rational
+                    : Rational.Zero;
+
+            if (key is Pair keyPair)
+            {
+                Pitch original = new Pitch(
+                    (int)Convert.ToInt64(keyPair.Car),
+                    (int)Convert.ToInt64(keyPair.Cdr),
+                    alterationValue).Transposed(delta);
+
+                object newKey = new Pair((long)original.Octave, (long)original.NoteName);
+                transposed.Add(new Pair(
+                    newKey, Bootstrap.SchemeConvert.FromRational(original.Alteration)));
+            }
+            else if (key is long || key is int || key is double)
+            {
+                Pitch original = new Pitch(
+                    0, (int)Convert.ToInt64(key), alterationValue).Transposed(delta);
+
+                // Upstream answers to_scm (orig.get_alteration ()) — a SCHEME number.
+                // Storing the Flower Rational itself read identically from C# and threw
+                // wrong-type-arg the moment Scheme's alterations-in-key multiplied it.
+                transposed.Add(new Pair(
+                    (long)original.NoteName,
+                    Bootstrap.SchemeConvert.FromRational(original.Alteration)));
+            }
+        }
+
+        // Upstream builds the list by consing (so, reversed) and reverses it back at the
+        // end; the port appends and therefore already has the original order.
+        return Pair.ListFrom(transposed);
+    }
+
     /// <summary>Returns the total length of a music list, laid end to end.</summary>
     /// <param name="list">The music list.</param>
     /// <returns>The summed length.</returns>

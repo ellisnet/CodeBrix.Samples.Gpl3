@@ -310,7 +310,7 @@ public class VerticalOrganizationEngraverTests : IDisposable
         //Arrange
         EngraveRun run = EngraveOneNote();
         run.ScoreEngraver.PaperScore.Process();
-        run.ScoreEngraver.PaperScore.PlaceColumnsOnOneLine();
+        run.ScoreEngraver.PaperScore.GetPaperSystems();
         Grob alignment = run.Find("VerticalAlignment");
         Grob axisGroup = run.Find("VerticalAxisGroup");
 
