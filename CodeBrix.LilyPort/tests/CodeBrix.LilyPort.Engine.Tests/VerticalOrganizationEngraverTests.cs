@@ -121,9 +121,21 @@ public class VerticalOrganizationEngraverTests : IDisposable
 
         public ProbeEngraver Probe { get; set; }
 
-        public Grob Find(string grobName)
+        public Grob Find(string grobName) => FindOn(System, grobName);
+
+        /// <summary>
+        /// The system to read grobs from AFTER line breaking has run: the first broken
+        /// piece if there is one, the root otherwise. EPG15 made this distinction real —
+        /// <c>System::break_into_pieces</c> clones the root into one piece per line and the
+        /// root then suicides, so a test that calls <c>GetPaperSystems</c> and keeps reading
+        /// the root finds nothing.
+        /// </summary>
+        public SystemGrob EngravedLine =>
+            System != null && System.BrokenIntos.Count > 0 ? System.BrokenSystems()[0] : System;
+
+        public static Grob FindOn(SystemGrob system, string grobName)
         {
-            foreach (Grob grob in System.AllElements)
+            foreach (Grob grob in system.AllElements)
             {
                 if (grob.Name == grobName)
                 {
@@ -311,14 +323,22 @@ public class VerticalOrganizationEngraverTests : IDisposable
         EngraveRun run = EngraveOneNote();
         run.ScoreEngraver.PaperScore.Process();
         run.ScoreEngraver.PaperScore.GetPaperSystems();
-        Grob alignment = run.Find("VerticalAlignment");
-        Grob axisGroup = run.Find("VerticalAxisGroup");
+
+        // EPG15: the grobs to read are the BROKEN PIECE's, not the root's. The root is
+        // cloned into one piece per line and then suicides, so both Finds answered null
+        // here and the test died on a NullReferenceException that named nothing.
+        SystemGrob line = run.EngravedLine;
+        line.Should().NotBeSameAs(run.System);
+        Grob alignment = EngraveRun.FindOn(line, "VerticalAlignment");
+        Grob axisGroup = EngraveRun.FindOn(line, "VerticalAxisGroup");
+        alignment.Should().NotBeNull();
+        axisGroup.Should().NotBeNull();
 
         //Act
         // This read is the trigger: Y-offset resolves to y-parent-positioning, which
         // reads the alignment's positioning-done, which is
         // ly:align-interface::align-to-ideal-distances in the real grob definition.
-        double y = axisGroup.RelativeCoordinate(run.System, Axis.Y);
+        double y = axisGroup.RelativeCoordinate(line, Axis.Y);
 
         //Assert
         // The staff is pushed DOWN so that its top skyline touches the alignment's

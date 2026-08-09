@@ -639,6 +639,44 @@ public class SystemGrob : Spanner
     }
 
     /// <summary>
+    /// Which of a system's staves the page spacer may space, or may not, or all of them.
+    /// <para>
+    /// The three <c>ly:system::get-*-staves</c> callbacks are one upstream function under
+    /// a filter, and they exist for <c>annotate-spacing</c>: <c>scm/paper-system.scm</c>
+    /// asks for them by name and immediately takes their <c>length</c>. Unported, they
+    /// answered the inert placeholder, and `\paper { annotate-spacing = ##t }' — two
+    /// words in a file — took the whole book down with "Not a proper list", naming
+    /// neither the property nor the callback. Ported by EPG16, 2026-08-09.
+    /// </para>
+    /// <para>
+    /// A DEAD stave is skipped, which is not tidiness: hara-kiri suicides empty staves,
+    /// and an annotation drawn against one would be measured from a grob with no extent.
+    /// </para>
+    /// </summary>
+    /// <param name="filter">Which staves to keep.</param>
+    /// <returns>The staves, as a Scheme list.</returns>
+    public object GetMaybeSpaceableStaves(StaffFilter filter)
+    {
+        List<object> kept = new List<object>();
+        if (GetObject(VerticalAlignmentSymbol) is Grob alignment)
+        {
+            foreach (Grob stave in PointerGroupInterface.ExtractGrobSet(alignment, ElementsSymbol))
+            {
+                bool spaceable = CodeBrix.LilyPort.Engine.Layout.PageLayoutSpacing.IsSpaceable(stave);
+                if (stave.IsLive
+                    && (filter == StaffFilter.All
+                        || (filter == StaffFilter.Spaceable && spaceable)
+                        || (filter == StaffFilter.NonSpaceable && !spaceable)))
+                {
+                    kept.Add(stave);
+                }
+            }
+        }
+
+        return Pair.ListFrom(kept);
+    }
+
+    /// <summary>
     /// The PURE vertical extent of one part of a line — the beginning of it, or the rest.
     /// <para>
     /// The split exists because the start of a line carries things nothing else does — a
@@ -1041,4 +1079,20 @@ public class SystemGrob : Spanner
 
         return null;
     }
+}
+
+/// <summary>
+/// Which staves <see cref="SystemGrob.GetMaybeSpaceableStaves"/> keeps. Upstream spells
+/// these as three unnamed <c>int</c> constants local to <c>system.cc</c>.
+/// </summary>
+public enum StaffFilter
+{
+    /// <summary>Every live stave.</summary>
+    All,
+
+    /// <summary>Only the staves the page spacer may space.</summary>
+    Spaceable,
+
+    /// <summary>Only the staves it may not.</summary>
+    NonSpaceable,
 }

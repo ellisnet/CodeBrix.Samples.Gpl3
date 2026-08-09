@@ -53,6 +53,9 @@ public static class AlignInterface
     private static readonly Symbol MinimumTranslationsAlistSymbol
         = Symbol.Intern("minimum-translations-alist");
 
+    private static readonly Symbol AxisGroupInterfaceSymbol
+        = Symbol.Intern("axis-group-interface");
+
     /// <summary>
     /// The <c>ly:align-interface::align-to-minimum-distances</c> callback: mark the
     /// positioning as done FIRST — the translation reads the elements' offsets, and
@@ -104,17 +107,44 @@ public static class AlignInterface
             return skylines;
         }
 
-        // Upstream first asks Hara_kiri_group_spanner::request_suicide whether the
-        // group vanishes over [start, end); suicide is deliberately unported (the
-        // EPG3 hara-kiri note), so no group ever requests it here.
-        //
-        // The rest of the pure branch reads g->pure_y_extent and refines it through
-        // Axis_group_interface::rest_of_line_pure_height /
-        // begin_of_line_pure_height — all EPG15 pure machinery. The port answers the
-        // ORDINARY extent as one flat box, which is upstream's own shape for a grob
-        // with no pure story. Recorded in PORT-COVERAGE.
-        Interval extent = g.Extent(g, Axis.Y);
+        // THE STAND-IN IS GONE (EPG15 close-out, 2026-08-08). This branch used to ask
+        // for the ORDINARY extent — g.Extent(g, Y) — because hara-kiri, pure heights and
+        // the begin/rest-of-line split were all unported. Every one of them landed with
+        // EPG15, and the stand-in was not merely approximate: an ordinary extent asks for
+        // a grob's STENCIL, so spacing pulled real stencils out of grobs whose spanners
+        // had not been broken yet. That is what drew a VoltaBracket with both bounds on
+        // unplaced columns and put a NaN through the skyline builder
+        // (volta-multi-staff-inner-staff.ly). The pure path never asks for a stencil,
+        // which is the whole point of it.
+        if (HaraKiriGroupSpanner.RequestSuicide(g, start, end))
+        {
+            return new SkylinePair();
+        }
+
+        Interval extent = g.PureYExtent(g, start, end);
         List<Box> boxes = new List<Box>();
+
+        // Upstream's own comment, kept: this is a hack to get better accuracy on the
+        // pure-height of VerticalAlignment. It is quite common for a treble clef to be
+        // the highest element of one system and for a low note (or lyrics) to be the
+        // lowest note on another. The two will never collide, but the pure-height stuff
+        // only works with bounding boxes, so it does not know that. The result is a
+        // significant over-estimation of the pure-height, especially on systems with many
+        // staves. To correct for this, the skyline is built in two parts: the part above
+        // contains most of the grobs (note-heads, etc.) while the bit below only contains
+        // the breakable grobs at the beginning of the system. This way, the tall treble
+        // clefs are only compared with the treble clefs of the other staff and they will
+        // be ignored if the staff above is, for example, lyrics.
+        if (g.HasInterface(AxisGroupInterfaceSymbol))
+        {
+            extent = AxisGroupInterfacePure.RestOfLinePureHeight(g, start, end);
+            Interval beginOfLineExtent = AxisGroupInterfacePure.BeginOfLinePureHeight(g, start);
+            if (!beginOfLineExtent.IsEmpty)
+            {
+                boxes.Add(new Box(
+                    new Interval(double.NegativeInfinity, -1), beginOfLineExtent));
+            }
+        }
 
         if (!extent.IsEmpty)
         {

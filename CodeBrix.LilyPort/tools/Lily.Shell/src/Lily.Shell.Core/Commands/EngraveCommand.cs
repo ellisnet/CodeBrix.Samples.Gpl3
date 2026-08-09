@@ -87,7 +87,24 @@ public sealed class EngraveCommand : IShellCommand
 
         if (result.SvgPath != null)
         {
-            context.IO.WriteLine("SVG:  " + result.SvgPath);
+            // The system count is worth printing now that it means something: EPG15
+            // (2026-08-08) made line breaking real, so a score too long for one line
+            // comes back as several systems rather than one over-full one.
+            //
+            // EVERY PAGE IS LISTED, not just the first (EPG16, 2026-08-09). The runner
+            // writes one file per page now, so reporting SvgPath alone told the user
+            // about page 1 and silently dropped the rest of the book — the shell's own
+            // version of the bug the comparator had, where a multi-page reference was
+            // reported MISSING however well the music engraved.
+            string systems = result.SystemCount == 1 ? "1 system" : result.SystemCount + " systems";
+            string pages = result.SvgPaths.Count == 1
+                ? "1 page"
+                : result.SvgPaths.Count + " pages";
+            context.IO.WriteLine("SVG:  " + pages + ", " + systems);
+            foreach (var svgPath in result.SvgPaths)
+            {
+                context.IO.WriteLine("      " + svgPath);
+            }
         }
 
         foreach (var midiPath in result.MidiPaths)

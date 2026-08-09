@@ -136,11 +136,10 @@ public static class SystemGrobVertical
     /// <c>Objects/SystemGrob.cs</c>, which stays closed.
     /// </para>
     /// <para>
-    /// DELIBERATE OMISSION, same as <c>staff-grouper-interface.cc</c>'s: upstream calls
-    /// <c>Hara_kiri_group_spanner::consider_suicide</c> on each candidate, which is
-    /// EPG15's file and unported. Skipping it can only leave a staff ALIVE that upstream
-    /// would have killed, so the answer is never a staff upstream would not have
-    /// considered — it can only be one upstream would have skipped. Revisit at EPG15.
+    /// The omission EPG14 recorded here is DISCHARGED (EPG15 close-out, 2026-08-08):
+    /// upstream's <c>Hara_kiri_group_spanner::consider_suicide</c> call on each candidate
+    /// was skipped only because that file was unported, and it is ported now. Without it
+    /// this answered a staff upstream would have killed first.
     /// </para>
     /// </remarks>
     public static Grob GetNeighboringStaff(
@@ -165,7 +164,11 @@ public static class SystemGrobVertical
                 return outGrob;
             }
 
-            // upstream considers hara-kiri suicide here — see the remarks.
+            if (elts[i].HasInterface(HaraKiriInterface))
+            {
+                HaraKiriGroupSpanner.ConsiderSuicide(elts[i]);
+            }
+
             bounds.Intersect(elts[i].SpannedColumnRankInterval());
             if (elts[i].IsLive && !bounds.IsEmpty)
             {

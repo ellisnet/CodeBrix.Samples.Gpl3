@@ -17,7 +17,9 @@
   along with LilyPond.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+using System.Collections.Generic;
 using CodeBrix.LilyPort.Engine.Layout;
+using CodeBrix.LilyScheme.Runtime;
 using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Objects; //was previously: lily/book.cc, lily/include/book.hh;
@@ -109,4 +111,183 @@ public class Book
     /// </summary>
     /// <param name="score">The score (or markup list) to add.</param>
     public void AddScore(object score) => Scores = new Pair(score, Scores);
+
+    /// <summary>Gets or sets the enclosing book, when this one is a bookpart.</summary>
+    public Book Parent { get; set; }
+
+    /// <summary>
+    /// Adds a bookpart, consing it onto the FRONT of <see cref="Bookparts"/>.
+    /// </summary>
+    /// <param name="part">The bookpart.</param>
+    public void AddBookpart(object part) => Bookparts = new Pair(part, Bookparts);
+
+    /// <summary>
+    /// Concatenates every score's and bookpart's output into one <see cref="PaperBook"/>.
+    /// <para>
+    /// Landed with EPG16 (2026-08-08) — the rendering half this file's ledger row said was
+    /// absent. This is what <c>ly:book-process</c> calls and therefore what the whole page
+    /// path hangs off.
+    /// </para>
+    /// <para>
+    /// TWO ORDERING FACTS matter here. The scores are rendered in PARSE order, which means
+    /// reversing the list, because <see cref="AddScore"/> conses onto the front. And
+    /// <c>Normalize</c> runs on the paper book's ALREADY-SCALED paper, not before it: the
+    /// scaling happens in <see cref="PaperBook"/>'s constructor and normalize computes
+    /// line-width from dimensions that must already be in output units.
+    /// </para>
+    /// </summary>
+    /// <param name="defaultPaper">The paper to use when the book carries none.</param>
+    /// <param name="defaultLayout">The layout to render scores under.</param>
+    /// <param name="parentPart">The enclosing bookpart's paper book, or null.</param>
+    /// <returns>The paper book, or <see langword="null"/> when there is nothing to make.</returns>
+    public PaperBook Process(
+        OutputDef defaultPaper, OutputDef defaultLayout, PaperBook parentPart = null)
+    {
+        OutputDef paper = Paper ?? defaultPaper;
+
+        // Only the TOP book checks for score errors; a bookpart's errors were already
+        // counted when its parent asked.
+        if (parentPart == null && ErrorFound())
+        {
+            return null;
+        }
+
+        if (paper == null)
+        {
+            return null;
+        }
+
+        PaperBook paperBook = new PaperBook(paper, parentPart);
+        paperBook.Header = Header;
+
+        if (Bookparts is Pair)
+        {
+            ProcessBookparts(paperBook, paper, defaultLayout);
+        }
+        else
+        {
+            paperBook.Paper.Normalize();
+
+            List<object> scores = Pair.ToList(Scores);
+            scores.Reverse();
+            foreach (object score in scores)
+            {
+                ProcessScore(score, paperBook, defaultLayout);
+            }
+        }
+
+        return paperBook;
+    }
+
+    /// <summary>
+    /// Whether this book, or any bookpart under it, holds a score the parser marked
+    /// errored.
+    /// </summary>
+    /// <returns><see langword="true"/> when an error was found.</returns>
+    public bool ErrorFound()
+    {
+        foreach (object entry in Pair.ToList(Scores))
+        {
+            if (entry is Score score && score.ErrorFound)
+            {
+                return true;
+            }
+        }
+
+        foreach (object entry in Pair.ToList(Bookparts))
+        {
+            if (entry is Book bookpart && bookpart.ErrorFound())
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Moves any scores added directly to this book into a child bookpart, so that a book
+    /// mixing loose scores with explicit <c>\bookpart</c> blocks has one uniform shape.
+    /// </summary>
+    private void AddScoresToBookpart()
+    {
+        if (Scores is Pair)
+        {
+            Book part = new Book { Parent = this, Scores = Scores };
+            Bookparts = new Pair(part, Bookparts);
+            Scores = Nil.Instance;
+        }
+    }
+
+    private void ProcessBookparts(PaperBook outputPaperBook, OutputDef paper, OutputDef layout)
+    {
+        AddScoresToBookpart();
+        List<object> parts = Pair.ToList(Bookparts);
+        parts.Reverse();
+        foreach (object entry in parts)
+        {
+            if (entry is Book book)
+            {
+                PaperBook paperBookPart = book.Process(paper, layout, outputPaperBook);
+                if (paperBookPart != null)
+                {
+                    outputPaperBook.AddBookpart(paperBookPart);
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Renders one entry of the score list into the paper book.
+    /// <para>
+    /// A performance collects THREE header layers, outermost first — the book's first
+    /// header, the book's current header, then the score's own — so that the innermost
+    /// wins when the metadata is written. A paper score contributes its header as a
+    /// separate print element BEFORE itself, which is how <c>GetSystemSpecs</c> knows
+    /// which header titles which score.
+    /// </para>
+    /// </summary>
+    private static void ProcessScore(object scoreScm, PaperBook outputPaperBook, OutputDef layout)
+    {
+        if (scoreScm is Score score)
+        {
+            object outputs = score.BookRendering(outputPaperBook.Paper, layout);
+
+            foreach (object output in Pair.ToList(outputs))
+            {
+                if (output is Layout.Performance perf)
+                {
+                    outputPaperBook.AddPerformance(perf);
+
+                    if (outputPaperBook.Header0 is SchemeModule header0)
+                    {
+                        perf.PushHeader(header0);
+                    }
+
+                    if (outputPaperBook.Header is SchemeModule header)
+                    {
+                        perf.PushHeader(header);
+                    }
+
+                    if (score.GetHeader() is SchemeModule scoreHeader)
+                    {
+                        perf.PushHeader(scoreHeader);
+                    }
+                }
+                else if (output is Layout.PaperScore pscore)
+                {
+                    if (score.GetHeader() is SchemeModule)
+                    {
+                        outputPaperBook.AddScore(score.GetHeader());
+                    }
+
+                    outputPaperBook.AddScore(pscore);
+                }
+            }
+        }
+        else if (TextInterface.IsMarkupList(scoreScm) || scoreScm is Layout.PageMarker)
+        {
+            outputPaperBook.AddScore(scoreScm);
+        }
+    }
 }

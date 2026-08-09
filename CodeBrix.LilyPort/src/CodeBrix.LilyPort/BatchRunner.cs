@@ -35,17 +35,29 @@ namespace CodeBrix.LilyPort;
 /// <see cref="ProloguelLy"/> and <see cref="EpilogueLy"/> for exactly what and why),
 /// so score collection, book construction, the version check and the
 /// expect-error handshake are all upstream's real code running through the real
-/// parser. The one deliberate divergence is decision D20: the runner defines
-/// <c>default-toplevel-book-handler</c> — the escape hatch <c>init.ly</c> itself
-/// checks for — and takes each book's scores STRAIGHT to the SVG backend,
-/// score by score, instead of through <c>ly:book-process</c>. Page assembly is
-/// EPG16's subsystem; when it lands, the handler comes out and the real book
-/// path goes in. Recorded in PORT-COVERAGE under DIVERGENCES.
+/// parser. D20's divergence is DISCHARGED as of EPG16 (2026-08-08): the runner used to
+/// define <c>default-toplevel-book-handler</c> — the escape hatch <c>init.ly</c> itself
+/// checks for — and take each book's scores STRAIGHT to the SVG backend, score by score.
+/// It now runs the real <c>Book::process</c> → <c>Paper_book</c> → page-breaker path and
+/// writes ONE FILE PER PAGE under the oracle's own naming.
+/// </para>
+/// <para>
+/// What it still does differently from upstream is WHERE book processing happens:
+/// upstream reaches it from inside the parser, this runner collects books during the
+/// parse and processes them after it. That is why the loop publishes <c>%parser</c>
+/// itself — see the note on <see cref="LilyParserSession.AsCurrentParser"/>'s call site.
 /// </para>
 /// </summary>
 public static class BatchRunner
 {
     private static readonly object Gate = new object();
+
+    /// <summary>
+    /// The identifier <c>print-book-with</c> reads the layout out of at book-processing
+    /// time. Looked up by NAME because a toplevel <c>\layout</c> block rebinds it.
+    /// </summary>
+    private const string DefaultLayoutName = "$defaultlayout";
+    private const string DefaultPaperName = "$defaultpaper";
 
     /// <summary>
     /// <c>ly/init.ly</c> lines 27–35, verbatim: the session variables the toplevel
@@ -57,12 +69,6 @@ public static class BatchRunner
     /// loop defines it before init.ly runs, and the epilogue's version check reads
     /// it when present.
     /// </summary>
-    /// <summary>
-    /// The identifier <c>print-book-with</c> reads the layout out of at book-processing
-    /// time. Looked up by NAME because a toplevel <c>\layout</c> block rebinds it.
-    /// </summary>
-    private const string DefaultLayoutName = "$defaultlayout";
-
     private const string ProloguelLy = @"
 #(define toplevel-scores (list))
 #(define toplevel-bookparts (list))
@@ -314,9 +320,18 @@ public static class BatchRunner
         LilyParserSession session = LilyPondInit.Session();
         int errorCount = RunLifecycle(session, text, baseName, includeDirectory, diagnostics);
 
-        // D20: straight from each score to the SVG backend — one document per input
-        // file, systems stacked in file order. Page assembly is EPG16's.
-        List<Stencil> systems = new List<Stencil>();
+        // EPG16 (2026-08-08): one stencil per PAGE, as the page breaker chose them.
+        // Until this group it was one per SCORE, stacked at a fixed padding into a single
+        // document per input file -- which is why every multi-page reference page in the
+        // oracle read as MISSING no matter how well the port engraved it.
+        List<Stencil> pageStencils = new List<Stencil>();
+
+        // How many LINES the scores broke into, which is not how many scores there are.
+        // Until EPG15's close-out (2026-08-08) this figure was systems.Count -- one per
+        // score -- and every sweep log in the project reported it under the name
+        // "system(s)". It read as a line count and was not one: accidental-styles.ly has
+        // twenty scores and reported twenty systems before line breaking existed at all.
+        int lines = 0;
         List<Performance> performances = new List<Performance>();
         int skipped = 0;
         double unitLength = 0.0;
@@ -328,8 +343,21 @@ public static class BatchRunner
         // score-level short-circuit moved the port's engraving OUT of that extent, and
         // HARNESS-FIX measured what it cost: 18 files died on "there is no current
         // parser", because \markup \note asks for $defaultpaper while BUILDING ITS
-        // STENCIL. Restoring the extent here is the cheap half of what EPG16 will do
-        // properly when the runner moves onto the real ly:book-process path.
+        // STENCIL.
+        //
+        // ⚠ THIS IS NOT A STAND-IN AND IT DOES NOT RETIRE. EPG16 inherited it as item 3
+        // of three, on the premise that moving the runner onto the real ly:book-process
+        // path would make it unnecessary. That premise is WRONG and was MEASURED wrong on
+        // 2026-08-09: with the runner fully on the book path, removing this wrapper puts
+        // apply-output, fermata-dot-position, markup-rhythm-ragged and
+        // flags-straight-layout-staff-size straight back on "there is no current parser".
+        // The reason is that the book path is not the parser's DYNAMIC EXTENT. Upstream
+        // reaches book processing from default-toplevel-book-handler, which the parser
+        // calls WHILE PARSING, so %parser is live by construction; this runner collects
+        // books during the parse and processes them after it, so it must publish %parser
+        // itself. AsCurrentParser is upstream's own fluid, not a workaround. Retiring it
+        // would mean processing each book from inside the toplevel handler, which is a
+        // different design decision and not a clean-up.
         // THE LAYOUT IS RESOLVED BY NAME HERE, NOT CAPTURED BEFORE THE PARSE.
         //
         // `print-book-with' (scm/lily-library.scm) does (ly:parser-lookup '$defaultlayout)
@@ -345,105 +373,74 @@ public static class BatchRunner
         OutputDef parsedLayout
             = session.LookupIdentifier(DefaultLayoutName) as OutputDef ?? defaultLayout;
 
+        // $defaultpaper is resolved BY NAME for the same reason $defaultlayout is: a
+        // toplevel \paper block REBINDS the identifier rather than mutating the object,
+        // so the one captured before the parse is the wrong one. It is what a book with
+        // no \paper of its own falls back to.
+        OutputDef parsedPaper = session.LookupIdentifier(DefaultPaperName) as OutputDef;
+
         session.AsCurrentParser(() =>
         {
         foreach (Book book in books)
         {
-            // Paper_book's CONSTRUCTOR scales the paper, and Book::process normalizes
-            // the result — in that order, because normalize computes line-width from
-            // dimensions that must already be in output units. Everything downstream is
-            // then engraved in staff spaces rather than millimetres.
-            OutputDef paper = book.Paper;
-            if (paper != null)
+            // THE REAL ly:book-process PATH (EPG16, 2026-08-08). D20's score-level
+            // short-circuit is RETIRED: this used to walk the book's scores and hand each
+            // one to LilyPortEngraver, producing one stacked drawing per input file. It
+            // now runs Book::process, which builds a Paper_book, scales and normalizes its
+            // paper, renders every score through Score::book_rendering, and then lets the
+            // paper block's own `page-breaking' procedure choose the pages.
+            //
+            // The scaling that used to happen here is gone because Paper_book's
+            // CONSTRUCTOR does it -- doing it twice would scale the paper squared.
+            try
             {
-                double outputScale = paper.GetDimension("output-scale");
-                if (outputScale > 0.0)
+                PaperBook paperBook = book.Process(parsedPaper, parsedLayout);
+                if (paperBook == null)
                 {
-                    paper = paper.ScaledClone(outputScale);
-                    unitLength = outputScale;
+                    diagnostics.Add("book produced no paper book");
+                    continue;
                 }
 
-                paper.Normalize();
+                unitLength = paperBook.Paper.GetDimension("output-scale");
+
+                foreach (object entry in Pair.ToList(paperBook.Pages()))
+                {
+                    if (entry is Prob page && page.GetProperty("stencil") is Stencil pageStencil)
+                    {
+                        pageStencils.Add(pageStencil);
+                    }
+                }
+
+                lines += CountLines(paperBook);
+
+                foreach (object performance in Pair.ToList(paperBook.Performances()))
+                {
+                    if (performance is Performance performed)
+                    {
+                        performances.Add(performed);
+                    }
+                }
             }
-
-            foreach (object entry in Pair.ToList(book.Scores))
+            catch (Exception exception) when (!(exception is OutOfMemoryException))
             {
-                if (!(entry is Score score))
-                {
-                    // Toplevel markup and page markers wait on the text interface
-                    // (EPG13) and page layout (EPG16); a named absence beats a
-                    // wrong drawing.
-                    skipped++;
-                    diagnostics.Add("skipped toplevel non-score entry: "
-                        + (entry?.GetType().Name ?? "null"));
-                    continue;
-                }
-
-                if (score.ErrorFound)
-                {
-                    diagnostics.Add("score skipped: parse marked it errored");
-                    continue;
-                }
-
-                try
-                {
-                    OutputDef layout = ScoreLayout(score, paper, parsedLayout);
-                    EngraveResult engraved = LilyPortEngraver.Engrave(
-                        score.GetMusic() as MusicObject, layout);
-                    systems.Add(engraved.Stencil);
-                }
-                catch (Exception exception) when (!(exception is OutOfMemoryException))
-                {
-                    diagnostics.Add("engraving failed: " + exception.Message);
-                }
-
-                // EPG19 (2026-08-08): the MIDI half, and it is deliberately a SEPARATE
-                // try/catch from the engraving above. Upstream produces a `.midi' and a
-                // page from the same score independently -- Paper_book::output writes
-                // both -- so a score whose layout fails must still be able to perform,
-                // and vice versa. Folding them together would make every MIDI reference
-                // hostage to a layout gap that has nothing to do with it.
-                OutputDef scoreMidi = ScoreMidi(score);
-                if (scoreMidi != null)
-                {
-                    try
-                    {
-                        Performance performed = LilyPortPerformer.Perform(
-                            score.GetMusic() as MusicObject, scoreMidi);
-
-                        if (performed != null)
-                        {
-                            // Book::process_score pushes the book's two header layers
-                            // and then the SCORE's header onto every performance, so
-                            // the metadata is reachable when the performance is
-                            // written. This runner intercepts at score level (D20), so
-                            // the book layers are EPG16's; the score's own header is
-                            // what \score { \header { title = ... } } needs.
-                            if (score.GetHeader() is SchemeModule scoreHeader)
-                            {
-                                performed.PushHeader(scoreHeader);
-                            }
-
-                            performances.Add(performed);
-                        }
-                    }
-                    catch (Exception exception) when (!(exception is OutOfMemoryException))
-                    {
-                        diagnostics.Add("performing failed: " + exception.Message);
-                    }
-                }
+                diagnostics.Add("book processing failed: " + exception.Message);
             }
         }
 
             return Unspecified.Instance;
         });
 
+        // ONE FILE PER PAGE, named the way scm/framework-svg.scm names them: a
+        // single-page book is `<base>.svg' and a multi-page one is `<base>-1.svg'
+        // upwards, counting from ONE. That naming is the ORACLE's, so the comparator
+        // pairs a candidate with a reference by name alone -- and until EPG16 the port
+        // wrote one stacked `<base>.svg' for every file, which meant every page of every
+        // multi-page reference was reported MISSING however well the music was engraved.
         string svgPath = null;
-        if (systems.Count > 0)
+        List<string> svgPaths = new List<string>();
+        if (pageStencils.Count > 0)
         {
-            Stencil page = StackSystems(systems);
             Directory.CreateDirectory(outputDirectory);
-            svgPath = Path.Combine(outputDirectory, baseName + ".svg");
 
             // framework-svg.scm's (set-unit-length (lookup 'output-scale)) — the one
             // number the backend needs that is not in the stencil.
@@ -453,7 +450,26 @@ public static class BatchRunner
                 backend.UnitLength = unitLength;
             }
 
-            File.WriteAllText(svgPath, backend.RenderDocument(page));
+            for (int i = 0; i < pageStencils.Count; i++)
+            {
+                string pagePath = Path.Combine(
+                    outputDirectory,
+                    pageStencils.Count > 1
+                        ? baseName + "-" + (i + 1) + ".svg"
+                        : baseName + ".svg");
+
+                try
+                {
+                    File.WriteAllText(pagePath, backend.RenderDocument(pageStencils[i]));
+                    svgPaths.Add(pagePath);
+                }
+                catch (Exception exception) when (!(exception is OutOfMemoryException))
+                {
+                    diagnostics.Add("SVG output failed: " + exception.Message);
+                }
+            }
+
+            svgPath = svgPaths.Count > 0 ? svgPaths[0] : null;
         }
 
         // scm/midi.scm's write-performances-midis names the files: the first performance
@@ -494,11 +510,12 @@ public static class BatchRunner
         return new BatchRunResult(
             svgPath,
             books.Count,
-            systems.Count,
+            lines,
             skipped,
             errorCount,
             diagnostics,
-            midiPaths);
+            midiPaths,
+            svgPaths);
     }
 
     /// <summary>
@@ -655,26 +672,25 @@ public static class BatchRunner
     }
 
     /// <summary>
-    /// Stacks system stencils top to bottom the way a single page would show them,
-    /// separated by a staff-height's worth of padding.
+    /// How many LINES the book came to, summed over its pages — the figure the sweep log
+    /// reports under "system(s)".
+    /// <para>Counted off each page's <c>lines</c> property rather than off the page count,
+    /// because a page carries as many systems as the breaker put on it.</para>
     /// </summary>
-    private static Stencil StackSystems(List<Stencil> systems)
+    private static int CountLines(PaperBook paperBook)
     {
-        const double padding = 4.0;
-
-        if (systems.Count == 1)
+        int total = 0;
+        foreach (object entry in Pair.ToList(paperBook.Pages()))
         {
-            return systems[0];
+            if (entry is Prob page)
+            {
+                total += Pair.ToList(page.GetProperty("lines")).Count;
+            }
         }
 
-        Stencil page = systems[0];
-        for (int i = 1; i < systems.Count; i++)
-        {
-            page.AddAtEdge(Flower.Axis.Y, Flower.Direction.Negative, systems[i], padding);
-        }
-
-        return page;
+        return total;
     }
+
 }
 
 /// <summary>What one batch run produced.</summary>
@@ -688,6 +704,7 @@ public sealed class BatchRunResult
     /// <param name="errorCount">Parse and epilogue errors.</param>
     /// <param name="diagnostics">Everything reported along the way.</param>
     /// <param name="midiPaths">The MIDI files written, in performance order.</param>
+    /// <param name="svgPaths">The SVG pages written, in page order.</param>
     public BatchRunResult(
         string svgPath,
         int bookCount,
@@ -695,9 +712,13 @@ public sealed class BatchRunResult
         int skippedEntries,
         int errorCount,
         IReadOnlyList<string> diagnostics,
-        IReadOnlyList<string> midiPaths = null)
+        IReadOnlyList<string> midiPaths = null,
+        IReadOnlyList<string> svgPaths = null)
     {
         SvgPath = svgPath;
+        SvgPaths = svgPaths ?? (svgPath != null
+            ? new[] { svgPath }
+            : System.Array.Empty<string>());
         BookCount = bookCount;
         SystemCount = systemCount;
         SkippedEntries = skippedEntries;
@@ -706,8 +727,17 @@ public sealed class BatchRunResult
         MidiPaths = midiPaths ?? System.Array.Empty<string>();
     }
 
-    /// <summary>Gets the SVG file written, or <see langword="null"/> when nothing engraved.</summary>
+    /// <summary>Gets the FIRST SVG file written, or <see langword="null"/> when nothing engraved.</summary>
     public string SvgPath { get; }
+
+    /// <summary>
+    /// Gets every SVG file written, one per page, in page order.
+    /// <para>Since EPG16 a file may produce several. The driver's self-check counts what
+    /// is on disk against what was reported written, so reporting only the first page
+    /// would make every later page of every multi-page book look like a stale leftover.
+    /// </para>
+    /// </summary>
+    public IReadOnlyList<string> SvgPaths { get; }
 
     /// <summary>Gets how many books the toplevel handlers delivered.</summary>
     public int BookCount { get; }

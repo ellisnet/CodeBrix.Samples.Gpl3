@@ -139,17 +139,19 @@ public static class GrobPrimitives
             return Unspecified.Instance;
         });
 
+        // grob-scheme.cc's ly:grob-system calls the VIRTUAL Grob::get_system(), which
+        // Item answers from its X parent, Paper_column from the system it was assigned
+        // and Spanner from its two bounds when both agree. It is NOT the static
+        // Grob::get_system(Grob *) helper, which walks X parents and is upstream's
+        // documented PRE-line-breaking version. This binding used to walk Y PARENTS --
+        // neither function, on neither axis -- so a spanner whose bounds knew their
+        // system still answered nothing. Upstream answers SCM_EOL, not #f, and '() is
+        // TRUE in Scheme: `(and (ly:grob-system g) ...)' therefore takes upstream's
+        // branch here for the first time.
         interpreter.DefinePrimitive("ly:grob-system", 1, 1, a =>
         {
-            for (Grob grob = AsGrob(a[0], "ly:grob-system"); grob != null; grob = grob.GetParent(Axis.Y))
-            {
-                if (grob is SystemGrob system)
-                {
-                    return system;
-                }
-            }
-
-            return false;
+            SystemGrob system = AsGrob(a[0], "ly:grob-system").GetSystem();
+            return (object)system ?? Nil.Instance;
         });
 
         // item-scheme.cc, PULLED FORWARD out of EPG23 by EPG4's demand loop: the

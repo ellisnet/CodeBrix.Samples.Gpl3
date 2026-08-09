@@ -1673,14 +1673,15 @@ THE OTHER DEFECT: A LISTENER REGISTERED IN A CONSTRUCTOR TAKES THE TREE DOWN
 DELIBERATE DIVERGENCES IN THIS PASS
 -------------------------------------------------------------------------------
 
-  PaperScore.PlaceColumnsOnOneLine is a STAND-IN for calc_breaking +
-  System::break_into_pieces. Line breaking is EPG15 and page layout EPG16;
-  until they land the score is spaced as ONE unbroken line. The per-column
-  half is upstream's shape verbatim -- translate by the solved configuration,
-  record the system, then set_loose_columns -- so what EPG15 replaces is the
-  choice of where lines end, not the placement itself. Music that fits on one
-  line is right; anything longer is visibly wrong rather than silently
-  plausible, and the ratchet reports it by file.
+  [RETIRED 2026-08-08, EPG15.] PaperScore.PlaceColumnsOnOneLine was a STAND-IN
+  for calc_breaking + System::break_into_pieces, and it is DELETED: the port runs
+  the real Paper_score::calc_breaking -> System::break_into_pieces ->
+  do_break_substitution_and_fixup_refpoints chain. The entry is kept because its
+  last sentence turned out to be the thing worth knowing -- "anything longer is
+  visibly wrong rather than silently plausible" was true of the stand-in and NOT
+  true of what replaced it: line breaking chose the right lines for a whole
+  session while the runner drew only the first of them, which is silently
+  plausible in exactly the way the stand-in was not.
 
   System::pre_processing now reads before-line-breaking and springs-and-rods
   across every element, which is what actually invokes the spacing spanner --
@@ -2549,10 +2550,12 @@ DELIBERATE DIVERGENCES (EPG8)
     stop-timestep sort and marked for deduplication when EPG14 lands.
   * Measure_spanner::print throws (loudly, naming bracket.cc / EPG14) when a
     bracket must actually be drawn; the text half is complete.
-  * The pure-height entry points EPG8 registered (ly:grob-pure-height,
-    ly:axis-group-interface::pure-height) answer the ORDINARY extents -- the
-    same no-pure-machinery divergence recorded for the ten pure skyline
-    callbacks, gone when EPG15 lands unpure-pure-container.
+  * [DISCHARGED 2026-08-08, EPG15's close-out.] The pure-height entry points EPG8
+    registered (ly:grob-pure-height, ly:axis-group-interface::pure-height)
+    answered the ORDINARY extents. Both are registered for real now, in
+    Epg15Callbacks, and EPG8's two stand-ins are gone. What the entry understated:
+    an ordinary extent does not merely approximate a pure one, it asks for a
+    STENCIL -- so these two were pulling stencils out of grobs during spacing.
   * The EPG7/EPG15 alignment callbacks EPG8's grobs carry (self-alignment,
     side-position, break-align anchors) are stood in with 0.0 -- the
     force-hara-kiri-callback device. Without them the FIRST multi-measure score
@@ -3241,10 +3244,10 @@ EPG18 -- LYRICS & MELODY (2026-08-07)
 
   KNOWN LIMIT, deliberate and not EPG18's to close: Lyric_hyphen::print and
   Vowel_transition::set_spacing_rods both branch on break_status_dir and on
-  find_prebroken_piece, so their broken-line halves cannot take effect until
-  EPG15 lands line breaking. The unbroken branch is what runs today, which is
-  upstream's own behaviour for an unbroken score, so nothing is wrong now and
-  nothing needs revisiting when EPG15 arrives.
+  find_prebroken_piece, so their broken-line halves could not take effect until
+  line breaking landed. [EPG15 landed it 2026-08-08, so both branches are now
+  reachable; neither was re-measured by that session and both are worth a look
+  the next time a lyric file's verdict moves.]
 
   ONE ENTRY POINT IS DEAD UPSTREAM AND IS PORTED ANYWAY:
   ly:lyric-combine-music::length-callback. lyric-combine-music.cc declares it
@@ -4545,3 +4548,497 @@ WHAT THE SWEEP SAYS
   at the top of the unported-translator demand list at 4,132 misses per sweep each,
   with Figured_bass_engraver at 3,429 and ly:chord-bracket::print at 96. All are now
   registered and reached.
+
+================================================================================
+EPG15 -- LINE BREAKING & BROKEN SPANNERS (2026-08-08, close-out)
+================================================================================
+
+All 12 upstream files ported, with NO pull-forward of any other group's FILES. The
+group's ledger bucket is EMPTY. Three LEAVES of grob-scheme.cc came forward, forced
+by the demand loop rather than chosen; that file keeps its EPG23 disposition, the
+same distinction stencil-scheme.cc has carried since EPG14.
+
+THE GROUP IS MUCH BIGGER THAN ITS FILE LIST, and the reason is worth generalising:
+FIVE FILES WHOSE LEDGER ROWS HAVE SAID `ported' SINCE EPG0 WERE HOLLOW ON THEIR
+BREAK-PROCESSING HALVES -- grob.cc, spanner.cc, item.cc, system.cc and
+axis-group-interface.cc, whose ENTIRE pure-height half was absent. Nothing asked for
+any of it until line breaking did. A `ported' row means a file was visited, not that
+it is whole.
+
+DELIBERATE DIVERGENCES
+
+  One score's lines are stacked with a fixed padding (LilyPortEngraver)
+                 Upstream assembles lines onto pages in Page_layout_problem, which is
+                 EPG16's, reading system-system-spacing and the rest. Until the runner
+                 moves onto the real ly:book-process path, a score's lines are stacked
+                 top to bottom at the SAME fixed padding BatchRunner already uses
+                 between two SCORES. Drawing every line is not optional -- it is the
+                 whole visible effect of the group -- so the choice is between this
+                 stand-in and drawing one line in four. Retires with D20's book path.
+
+  fast_substitute_grob_array declines the fast path on an empty range
+                 (BreakSubstitution) Upstream forbids the case with an assert. The
+                 port cannot: an empty Slice made it subtract one sentinel from
+                 another, overflow into a small positive range and index off the end
+                 of its table. It falls back to the slow path, which gives the same
+                 answer.
+
+WHAT THE CLOSE-OUT DISCHARGED
+
+  The whole INHERIT LIST that earlier groups parked on this group is gone, and every
+  guard was REMOVED and RE-MEASURED rather than kept:
+
+    * EPG12's two slur search-range guards (SlurScoring). The expression under them
+      is upstream's, and it divides by the distance between the slur's two base
+      attachments. It was safe to restore because spacing now runs before any stencil
+      is asked for. Measured: no stall, and tuplet-slurs and tuplet-slur-tweaks came
+      back from MISSING.
+    * EPG17's zero-length guard in Bracket::make_bracket. Restored to upstream's
+      unconditional division.
+    * EPG14's null answer in Spanner::find_broken_piece and its hara-kiri omission in
+      System::get_neighboring_staff. Both restored to upstream; consider_suicide runs
+      on each candidate because hara-kiri-group-spanner.cc is ported now.
+    * EPG10's null-bound guard in Beam::common_with_bound. Restored to upstream's
+      unconditional dereference: Spanner::do_break_processing is what guarantees the
+      bound, and it exists now. An unbounded beam reaching print again would fail
+      loudly on that line, which is the honest outcome.
+    * The pure-height stand-ins. Grob::pure_y_extent reads through the real
+      call_pure_function, and Align_interface::get_skylines takes upstream's pure path.
+
+DEFECTS FOUND IN ALREADY-PORTED CODE
+
+  Align_interface::get_skylines asked for STENCILS in its PURE branch
+                 It called g->extent (g, Y_AXIS) where upstream calls pure_y_extent,
+                 so SPACING pulled real stencils out of grobs whose spanners had not
+                 been broken yet. That is what drew a VoltaBracket with both bounds on
+                 unplaced columns and put a NaN through the skyline builder
+                 (volta-multi-staff-inner-staff.ly, whose oracle run reports no such
+                 error). The pure path exists so that this question can be answered
+                 WITHOUT a stencil; answering it with one is not an approximation but
+                 a different computation, and it was also four times slower.
+
+  Grob::internal_get_pure_property had never come across (grob-property.cc)
+                 Another hollow half, found when the real pure path demanded
+                 ly:grob-pure-property. Nothing had asked while every pure read was
+                 answered by an ordinary extent.
+
+  Paper_column_engraver was missing three more halves besides handle_manual_breaks
+                 No listen_break and no handle_manual_breaks, so \break, \noBreak,
+                 \pageBreak and \pageTurn had NO effect of their own -- invisible while
+                 every column was breakable by accident, load-bearing the moment the
+                 CARRY-FORWARD session restored the permission-stripping block. No
+                 listen_label, so page labels never reached a column. And no
+                 process_music AT ALL, so nothing ever wrote `measure-length' onto a
+                 command column -- a property Spacing_spanner and Multi_measure_rest
+                 both READ, and both had been reading an unset value since EPG4.
+
+  Hara_kiri_group_spanner::calc_skylines was wrong in both halves
+                 It called combine_skylines, which upstream reserves for an axis group
+                 whose children are all axis groups, where upstream calls
+                 skyline_spacing; and it answered the SkylinePair OBJECT where the
+                 property holds a Scheme cons of two skylines. There is no
+                 skyline-pair type in Scheme, so every answer failed its own property's
+                 type check and vertical-skylines was left UNSET on every hara-kiri
+                 group in every score.
+
+  Only the first line of every score was ever drawn (LilyPortEngraver)
+                 Engrave() took paperSystems[0] and discarded the rest. Invisible while
+                 PlaceColumnsOnOneLine made every score one line; the moment line
+                 breaking landed it became the group's entire visible effect, because
+                 the port CHOSE three lines for break.ly and drew one.
+
+A MEASUREMENT THAT WAS WRONG, AND IS NOW CORRECTED
+
+  The sweep log's "N system(s)" column NEVER counted systems. It counted the number
+  of stencils the runner stacked, which is one per SCORE -- accidental-styles.ly
+  reported 20 systems before line breaking existed at all, because it holds 20 scores.
+  It now reports the sum of the LINES each score broke into. Any comparison of that
+  column against a sweep log older than 2026-08-08 is comparing two different
+  quantities; the SVG/NOOUT/ERROR verdicts either side of that date are unaffected.
+
+================================================================================
+EPG16 -- PAGE BREAKING AND PAGE LAYOUT (2026-08-08)
+================================================================================
+
+Files ported: page-breaking.cc(+scheme), page-layout-problem.cc(+scheme),
+page-spacing.cc, page-spacing-result.cc, optimal/minimal/one-page/
+one-line-page/one-line-auto-height/page-turn-page-breaking.cc,
+page-turn-engraver.cc, footnote-engraver.cc, paper-book.cc(+scheme), and
+book-scheme.cc's ly:book-process / ly:book-process-to-systems. Seventeen ledger
+rows; the group's bucket is EMPTY.
+
+D20 IS DISCHARGED. The batch runner no longer short-circuits at score level.
+It runs Book::process, which builds a Paper_book, scales and normalizes its
+paper, renders every score through Score::book_rendering, and lets the paper
+block's own `page-breaking' procedure choose the pages. The runner then writes
+ONE FILE PER PAGE with framework-svg.scm's own naming -- <base>.svg for a
+single-page book and <base>-1.svg upwards for a multi-page one. The previous
+divergence note (§ "THE BATCH RUNNER runs D20's short-circuit") is retired by
+this entry.
+
+DELIBERATE DIVERGENCES (EPG16)
+
+  paper-book.cc -- THE OUTPUT HALF IS NOT PORTED. Paper_book::output,
+    classic_output, output_stencil, output_stencils and dump_header_fields
+    dispatch into `lily framework-<backend>' modules and act on the
+    -dclip-systems / -dpreview / -dcrop / -daux-files program options. That is
+    the CLI surface D14 replaced with Lily.Shell and the PS/Cairo backends D19
+    replaced. PAGE ASSEMBLY -- Pages(), which is what every caller in this port
+    actually needs -- is ported in full.
+
+  ly:book-process / ly:book-process-to-systems ANSWER THE PAPER BOOK where
+    upstream answers SCM_UNSPECIFIED. Upstream can discard it because output()
+    has already written the files; here the caller (the batch runner, Lily.Shell)
+    needs the pages back. Scheme callers that ignore the result -- every one in
+    ly/init.ly -- are unaffected. Both bindings FORCE the pages before
+    returning, because a lazily-empty paper book is indistinguishable from a
+    book with nothing in it.
+
+  page-turn-page-breaking.cc -- print_break_node is not ported. It exists only
+    behind -ddebug-page-breaking-scoring, which this port does not carry.
+
+  page-layout-problem.cc -- the spacing-spec readers (is_spaceable,
+    read_spacing_spec, get_spacing_spec, get_fixed_spacing, add_stretchability)
+    stay in Layout/PageLayoutSpacing.cs, where EPG7 pulled them forward because
+    Align_interface reads every adjacent pair of staves through them. They are
+    NOT duplicated here.
+
+DEFECTS FOUND IN ALREADY-PORTED CODE (EPG16)
+
+  ly:format-output READ THE PROPERTY OFF THE WRONG CONTEXT. Upstream's
+    Global_context::get_output does `get_property (get_score_context (),
+    "output")', and Score_engraver::finalize sets it on its OWN context -- the
+    Score, a CHILD of Global. The port read it off Global, and context lookup
+    walks UPWARD, so it never found it: ly:format-output and
+    ly:score-embedded-format both answered nothing. Invisible because the only
+    path the sweep exercised, LilyPortEngraver, reaches the paper score by
+    walking the tree for the ScoreEngraver instead of by asking for it.
+
+  THE SVG DOCUMENT WAS NEVER SCALED BY output-scale. framework-svg.scm's
+    output-stencil computes `svg-width = output-scale * device-width' for the
+    width and height attributes and passes the UNSCALED extents to the view box.
+    The port omitted the factor, so every page it has ever written declared
+    1/output-scale of its true size -- an A4 page came out 119.5 x 169.0mm
+    instead of 210 x 297. Fixed in SvgBackend.RenderDocument.
+
+  output-def-scheme.cc WAS MISSING ly:paper-get-number while its ledger row read
+    `ported'. lily/page.scm asks for it on the very first page it builds. The
+    file's disposition is unchanged -- the stencil-scheme.cc pattern.
+
+  score.cc AND book.cc WERE HOLLOW ON THEIR RENDERING HALVES. Both rows read
+    `ported'; Score::book_rendering and Book::process/process_score/
+    process_bookparts/error_found/add_scores_to_bookpart were simply absent.
+    Same shape EPG15 found in five files at once.
+
+  ConstrainedBreaking.GetLineDetails HANDS BACK ITS LIVE DP-TABLE OBJECTS.
+    Upstream only survives mutating them because Line_details is a STRUCT copied
+    on every assignment. Ported literally, Page_breaking::calc_line_heights
+    writes each page configuration's tallness straight back into the line
+    breaker's own table and leaks it into the next configuration. LineDetails
+    now carries Copy(), and PageBreaking copies at both points upstream copies.
+
+TRAPS WORTH NOT REDISCOVERING (EPG16)
+
+  THE UNSIGNED-VPOS TRAP IS REAL AND IT COST THIS SESSION A SWEEP.
+    Page_spacer::calc_subproblem guards its cell update with
+    `if (page > 0 || page_start == 0)'. When the page count is UNCONSTRAINED
+    upstream passes page = VPOS, which is the LARGEST unsigned value, so
+    `page > 0' is TRUE. Ported literally against NoPosition (-1) the test
+    INVERTS: the only cell ever written is page_start == 0, so every line's best
+    solution becomes "put lines 0..line on ONE page" and the unconstrained
+    solver answers a single page for any book of any height. It is not a subtle
+    mis-scoring -- it is the entire page-breaking decision, and it fails
+    silently with a plausible-looking page. Every `> 0' and `< size' test
+    against a vsize that may hold VPOS needs reading twice.
+
+
+-------------------------------------------------------------------------------
+ADDED 2026-08-09 (EPG16 CLOSE-OUT) -- FIVE BINDINGS THAT WERE NEVER REGISTERED
+-------------------------------------------------------------------------------
+
+Every defect this session found was in code whose LEDGER ROW ALREADY SAID
+`ported', and every one of them was silent. The shape repeats often enough now
+to state as a rule:
+
+  A PORTED TYPE WITH AN UNREGISTERED BINDING IS WORSE THAN AN UNPORTED TYPE.
+  The C# side works, every C# caller works, the ledger row is honest about the
+  FILE, and the Scheme side quietly receives an UnportedValue placeholder --
+  which is inert, so it flows politely through whatever asked for it. Nothing
+  fails. PORT-COVERAGE's own EPG0-era note predicted this in as many words
+  ("one Scheme call away from being actively wrong"); it took until EPG16 to
+  come true, twice.
+
+  ly:context-def-modify, ly:context-def-lookup  (context-def.cc)
+
+    NEITHER WAS REGISTERED. Context_def itself was ported whole -- Clone,
+    AddContextMod, Lookup and IsAlias all existed -- so both bindings are
+    one-line calls onto methods already there.
+
+    The cost was not a missing feature. lily-library.scm's
+    `context-defs-from-music', which EVERY toplevel \layout block containing a
+    context modification runs through, does
+
+        (ly:output-def-set-variable! output-def (car entry)
+                                     (ly:context-def-modify (cdr entry) mods))
+
+    so each context definition the block touched was OVERWRITTEN with the
+    placeholder. Measured: `\layout { \override StaffSymbol.staff-space = 1.23 }'
+    took the layout from 43 context definitions to 20 -- every one of the 23
+    that answer to `Bottom' destroyed -- and `\layout { \markLengthOn }'
+    destroyed all four that answer to `Score'. The score then had no context to
+    engrave into and the file produced NO PAGES AT ALL. The only diagnostic was
+    "cannot create default child context: Voice", which names neither the
+    \layout block, nor the binding, nor the context definitions.
+
+    Seven regression files were dying this way. A plain `\layout { ragged-right
+    = ##t }' was unaffected, which is what made the defect look absent: a
+    variable assignment never reaches context-defs-from-music at all.
+
+  ly:system::get-staves, ly:system::get-spaceable-staves,
+  ly:system::get-nonspaceable-staves  (system.cc)
+
+    One upstream function under a filter, and its only caller is
+    paper-system.scm's `paper-system-annotate', which takes (length ...) of the
+    answer on the very next line. So `\paper { annotate-spacing = ##t }' -- two
+    words -- took the whole book down with wrong-type-arg ("length" "Not a
+    proper list"), naming neither the paper variable nor the callback.
+
+    Registered here with EPG16 rather than with system.cc's other callbacks
+    because they are page-layout surface: annotate-spacing is what wants them.
+
+THE DEPRECATED-PROPERTY PATH WAS ONLY HALF PORTED (lily-guile.cc)
+
+  Deprecated_property::getter_desc was wired into ly:context-property. The
+  SETTER half -- internal_type_check's deprecation branch and type_check_unset
+  -- was not, and SchemeUtilities.TypeCheckAssignment said so in a comment:
+  "until the deprecation path is ported the property is simply unknown".
+
+  The cost was that `\unset Timing.<deprecated>' was DISCARDED. A file that set
+  skipTypesetting, then unset it through the deprecated alias, never turned
+  typesetting back on -- and engraved nothing at all, with no diagnostic.
+
+  Two structural changes came with it, both required rather than incidental:
+
+  * THE PREDICATE LOOKUP NOW COMES FIRST. The port ran value_type_check's
+    short-circuits ('()/#f/*unspecified*, and backend-type?'s procedures) BEFORE
+    asking whether the property exists, so an unknown name carrying any of those
+    values was accepted in silence -- and the deprecation branch was unreachable
+    for exactly the case that needs it most, since \unset passes no value at
+    all. Upstream asks for the predicate first; only a property that HAS one
+    gets the short-circuits.
+
+  * TypeCheckAssignment ANSWERS A SYMBOL AND A VALUE, not just a bool. A
+    deprecated property redirects to its replacement AND converts its value on
+    the way (the description carries an old->new function precisely because a
+    rename is not always only a rename). The bool overload is kept for
+    backend-type? and music-type?, the two categories scm/lily.scm leaves
+    unwired, and says in its own doc why it is safe there and nowhere else.
+
+  DeprecatedProperty now threads the CATEGORY through
+  deprecated-setter-object-property instead of hardcoding the translation
+  table, which is upstream's indirection and exists so a backend or music
+  deprecation table can be added without silently consulting the wrong one.
+
+ly:grob-system USED THE WRONG FUNCTION ON THE WRONG AXIS (grob-scheme.cc)
+
+  grob-scheme.cc:349 calls the VIRTUAL me->get_system(): Grob answers 0, Item
+  answers from its X parent, Paper_column answers the system it was assigned,
+  and Spanner (spanner.cc:336) answers from its TWO BOUNDS when both agree. The
+  port instead walked Y PARENTS -- which is not that function, and is not
+  upstream's static Grob::get_system(Grob *) helper either, since that walks X
+  parents and is documented as the PRE-line-breaking version.
+
+  All four levels of the virtual were already ported correctly. Only the
+  binding was wrong, so a spanner whose bounds knew their system still answered
+  nothing. Second half of the same divergence: upstream answers SCM_EOL, the
+  port answered #f, and '() is TRUE in Scheme -- so `(and (ly:grob-system g)
+  ...)' took different branches in the two.
+
+  ⚠ FIXING THE TRUTHINESS ALONE FIXES NOTHING, and the previous session's note
+  said so: bar-line.scm hands the answer to ly:grob-extent, which rejects '() as
+  firmly as #f. The first half is the substantive one. Three ratchet rows came
+  back with it.
+
+THE KEEP-THE-PARSER-CURRENT WRAPPER DOES NOT RETIRE (BatchRunner)
+
+  EPG16 inherited it as item 3 of three, on the premise that moving the runner
+  onto the real ly:book-process path would make it unnecessary. THAT PREMISE IS
+  WRONG AND WAS MEASURED WRONG on 2026-08-09: with the runner fully on the book
+  path, removing the wrapper puts apply-output, fermata-dot-position,
+  markup-rhythm-ragged and flags-straight-layout-staff-size straight back on
+  "there is no current parser".
+
+  The book path is not the parser's DYNAMIC EXTENT. Upstream reaches book
+  processing from default-toplevel-book-handler, which the parser calls WHILE
+  PARSING, so %parser is live by construction. This runner collects books
+  during the parse and processes them after it, so it must publish %parser
+  itself. AsCurrentParser is upstream's own fluid, not a workaround. Retiring
+  it would mean processing each book from inside the toplevel handler, which is
+  a design decision rather than a clean-up.
+
+LilyPortEngraver's FIXED PADDING IS RETIRED (inherited item 2)
+
+  The one-score API stacked a score's lines at a hardcoded 4.0. It now takes
+  the offsets from the REAL Page_layout_problem, built with NO paper book and
+  NO page -- upstream's own supported shape for a book-less problem, and the
+  honest one here, because this API engraves one score against an UNSCALED
+  layout and has no page to read system-system-spacing off. Anything wanting
+  the paper's real spacing wants a book, and that path is BatchRunner.
+
+  BatchRunner's own StackSystems was DEAD CODE by then and is deleted.
+
+================================================================================
+EPG21 -- ANCIENT NOTATION (2026-08-09)
+================================================================================
+
+All twelve ledger rows landed in one session: the ligature engraver hierarchy
+(Ligature_engraver, Coherent_ligature_engraver, Gregorian_ligature_engraver --
+all three abstract), the four concrete ligature engravers, Episema_engraver,
+and the four ligature grobs. Ledger 394 -> 406 ported, 25 -> 13 owed, and the
+group's bucket is EMPTY. Entry points 673 -> 678.
+
+THE GROUP CLOSED THE WHOLE UNPORTED-TRANSLATOR DEMAND LIST
+
+  The 2026-08-09 sweep asked for exactly five translator names it could not
+  resolve, and all five are this group's:
+
+    Ligature_bracket_engraver     4,224 misses
+    Episema_engraver                 54
+    Mensural_ligature_engraver       44
+    Vaticana_ligature_engraver       19
+    Kievan_ligature_engraver         18
+
+  ⚠ READ THE 4,224 CORRECTLY. It is not a measure of how much ancient music the
+  suite contains -- it is one per Voice context per score, because
+  Ligature_bracket_engraver is in the DEFAULT Voice. Every score in the suite
+  asked for it and every score engraved anyway, because an unresolved \consists
+  is a warning and nothing more. After this group the list is empty but for
+  Rhythmic_column_engraver_foo, which is a test input's deliberate typo.
+
+ABSTRACT BASES: THE ACKNOWLEDGERS MOVED UP, THE SET DID NOT CHANGE
+
+  Upstream declares ADD_ACKNOWLEDGER (rest) and ADD_ACKNOWLEDGER (ligature_head)
+  in each of the three CONCRETE subclasses of Ligature_engraver, and one
+  ADD_DELEGATE_LISTENER (ligature) alongside, because a C++ base class cannot run
+  its subclass's boot (). The port registers all of them in LigatureEngraver
+  itself. The set is identical: all three subclasses declare exactly those, and
+  Ligature_bracket_engraver -- which declares note_column instead of
+  ligature_head -- is NOT a subclass of Ligature_engraver, upstream or here.
+
+  The `Grob_info_t<Item>' narrowing upstream's dispatcher applies BEFORE the hook
+  runs is an `is Item' test here. It is not cosmetic: without it a non-item
+  carrying ligature-head-interface would be collected as a null primitive and
+  every later pass over the array would dereference it.
+
+DEAD UPSTREAM, KEPT DEAD
+
+  Two members of Ligature_engraver are written or declared and read or called by
+  NOTHING in the whole upstream tree: ligature_start_mom_ (assigned in
+  process_music) and current_ligature () (a defined virtual). Both are ported
+  because they are part of the class's declared shape. ligature_start_mom_ is a
+  property rather than a field only so that "assigned but never read" is not a
+  build warning.
+
+  Coherent_ligature_engraver::collect_accidentals has a bare `/* TODO */' body
+  upstream and has one here. Making it do something would be a divergence, not
+  an improvement -- accidentals inside a ligature stay where they are in both.
+
+  mensural-ligature.cc's `#if 0 /* what happend with the ledger lines? */' block
+  and coherent-ligature-engraver.cc's `if constexpr (false)' spacing-collapse
+  block are dead by construction upstream and are not ported; the comments that
+  name them are kept.
+
+⚠ UPSTREAM'S OWN TYPO IS REPRODUCED, NOT CORRECTED
+
+  gregorian-ligature-engraver.cc's fix_prefix_set ends with
+
+    fix_prefix ("pes_or_flexa", LINEA, current_set, min_set, max_set, primitive);
+
+  -- the name says pes_or_flexa and the mask is LINEA, so LINEA is checked twice
+  and PES_OR_FLEXA never. The port reproduces it exactly. Fixing it would change
+  which warnings a Gregorian score emits, and parity is the job here. Recorded so
+  that a future reader does not "fix" it either.
+
+⚠ Bezier IS A CLASS IN Flower, SO UPSTREAM'S COPY-ON-ASSIGN NEEDED WRITING OUT
+
+  vaticana-ligature.cc's flexa maker is built on
+
+    Bezier top_curve = curve, bottom_curve = curve;
+
+  which COPIES in C++ and would ALIAS in C#, because Flower's Bezier is a sealed
+  class rather than a struct. All three names would be the same object and every
+  control-point adjustment would land on all three, silently, producing a
+  degenerate shape rather than an error. VaticanaLigature.CopyOf makes the copy
+  explicit and is commented as load-bearing at both ends.
+
+  This is a defect CLASS, not one site: any port of upstream code that assigns a
+  Bezier by value has it. No other current site does -- checked -- but the next
+  one will.
+
+from_scm<bool> IS EXACTLY-#t, AND THIS GROUP DEPENDS ON IT
+
+  scm_conversions<bool>::from_scm defaults its fallback to false, which makes it
+  scm_is_eq (s, SCM_BOOL_T) -- NOT Scheme truth. Gregorian_ligature_engraver
+  MULTIPLIES the result by a bit mask, so a truthy-but-not-#t value would have to
+  come out 1 anyway; but Mensural_ligature_engraver branches on ligature-flexa,
+  ligature-pes, left-down-stem, right-down-stem and right-up-stem, and there an
+  unset property read as true would change every shape in the ligature. The port
+  uses SchemeUtilities.ToBool (exactly-#t) throughout, never IsSchemeTrue -- the
+  defect class the 2026-08-08 CARRY-FORWARD session named.
+
+PITCH READS FALL BACK TO 0 WHERE UPSTREAM DEREFERENCES A NULL
+
+  calc_delta_pitches, provide_context_info, Mensural_ligature_engraver's
+  transform_heads and Vaticana_ligature_engraver's ambiguous-dot check all read
+
+    unsmob<Pitch> (get_property (cause, "pitch"))->steps ()
+
+  with no null check. Upstream segfaults if a ligature primitive has no pitch;
+  the port answers 0. The case is unreachable in valid input -- rests are refused
+  by acknowledge_rest and transform_heads checks note-event before it reads the
+  pitch -- so this is a crash-safety choice, not a behaviour change.
+
+WHAT THE GROUP MEASURABLY CHANGED
+
+  Measured by disabling Mensural_ligature_engraver's registration and re-running
+  the same file, which is the only honest way to attribute output to a group:
+
+    mensural-ligatures.ly    0 -> 174 polygons, and the oracle has 174 exactly.
+                             2 pages -> 1 page, and the oracle writes 1.
+
+  The ligature shapes ARE the polygons: without the engraver the heads are drawn
+  as ordinary glyphs and no connected geometry exists at all. The page count
+  follows from move_related_items_to_column folding each ligature's heads into
+  ONE paper column, which is most of what a ligature does to spacing.
+
+  mensural-ligature-citations.ly went MISSING -> GLYPHS-DIFFER: it produced no
+  output before this group and produces its three pages now.
+
+⚠ A PRE-EXISTING LEDGER-LINE OVER-DRAW IS VISIBLE HERE AND IS NOT THIS GROUP'S
+
+  mensural-ligatures.ly draws a family of ledger-line rects (height 0.23 =
+  staff-line thickness 0.13 + staff-space * 0.1) that the oracle does not draw at
+  all. The same rects are present WITHOUT this group's engravers -- 464 of them,
+  which this group REDUCES to 368 by folding heads into shared columns. It
+  belongs to whoever owns ledger lines on ancient staves, and it is recorded here
+  only because a reader comparing this file against the oracle will see it first.
+
+WARNINGS: THE ORACLE'S LOGS CANNOT SETTLE THEM
+
+  The port emits 11 "flexa cannot have stem in the middle" warnings on
+  mensural-ligatures.ly and the reference log for that file is EMPTY. That is not
+  a divergence: generate-reference.sh runs the oracle with --silent, so NOT ONE of
+  the 2,316 reference logs contains a `warning:' line. Whether upstream warns has
+  to be settled by reading upstream, and it does warn here -- pairwise flexa
+  formation leaves every second note with a previous head whose shape is
+  MLP_FLEXA_END, which fails prev_brevis_shape, which is exactly that branch. The
+  port's warning columns match that trace note for note.
+
+TESTS
+
+  Epg21Tests (11, Engine.Tests) fences the two things this group can get wrong
+  invisibly: the bit masks -- asserted as the RELATIONSHIPS upstream defines them
+  by, not as literals, so a renumbering cannot satisfy both sides -- and the
+  registrations. AncientNotationEndToEndTests (9, LilyPort.Tests) fences the
+  shapes, each fact against a control that must come out differently.
+

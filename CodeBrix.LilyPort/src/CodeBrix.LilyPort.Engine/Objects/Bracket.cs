@@ -80,23 +80,15 @@ public static class Bracket
 
         DrulArray<Offset> straightCorners = corners;
 
-        // DIVERGENCE, and a deliberate one. Upstream divides by `length' unconditionally
-        // because it is never asked to draw a bracket of zero length: by the time any of
-        // its four callers runs, horizontal spacing has placed the columns. THIS PORT IS
-        // ASKED, because spacing is still incomplete until EPG15/EPG16 -- most files'
-        // columns are still at x = 0, so a spanner's two bounds can share a coordinate
-        // and dz is (0, 0). Upstream's expression then evaluates 0/0, and the NaN
-        // propagates through the corner offsets into the stencil's EXTENT BOX, where
-        // Stencil::translate's own NaN guard cannot reach it; the file dies later in
-        // skyline building with "slope is not finite".
-        //
-        // Scaling by zero is the LIMIT of these expressions along the path that actually
-        // occurs (shorten and gap fixed, length -> 0), so a zero-length bracket
-        // degenerates to a point instead of to NaN. Found by
-        // volta-multi-staff-inner-staff.ly, 2026-08-07. Revisit when EPG15/EPG16 land:
-        // if columns are always placed by then, this guard becomes unreachable and can
-        // go back to matching upstream character for character.
-        double inverseLength = length > 0.0 && double.IsFinite(length) ? 1.0 / length : 0.0;
+        // EPG17's zero-length guard is GONE (EPG15 close-out, 2026-08-08) and this is
+        // upstream's own division again. It existed because the port drew brackets while
+        // horizontal spacing was incomplete, so a spanner's two bounds could share a
+        // coordinate, dz was (0, 0), and upstream's expression evaluated 0/0 -- the NaN
+        // reaching the stencil's extent box and killing the file later in skyline
+        // building with "slope is not finite" (volta-multi-staff-inner-staff.ly,
+        // 2026-08-07). EPG15's line breaking places the columns before any stencil is
+        // asked for, which is the condition upstream relies on.
+        double inverseLength = 1.0 / length;
 
         foreach (Direction d in Directions)
         {

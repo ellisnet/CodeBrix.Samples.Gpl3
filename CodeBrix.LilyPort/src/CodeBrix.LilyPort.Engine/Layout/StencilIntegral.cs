@@ -107,6 +107,9 @@ public static class StencilIntegral
     /// </summary>
     /// <param name="grob">The grob.</param>
     /// <param name="axis">The horizon axis.</param>
+    /// <param name="pure">Whether the vertical extent is read purely.</param>
+    /// <param name="beg">The starting column rank, for a pure read.</param>
+    /// <param name="end">The ending column rank, for a pure read.</param>
     /// <param name="ignoreX">
     /// Whether to treat the horizontal extent as infinite. Set before line breaking,
     /// when how far a spanner stretches is not yet known.
@@ -117,20 +120,32 @@ public static class StencilIntegral
     /// </param>
     /// <returns>The skyline pair.</returns>
     public static SkylinePair SimpleSkylinesFromExtents(
-        Grob grob, Axis axis, bool ignoreX, bool ignoreY)
+        Grob grob, Axis axis, bool pure, int beg, int end, bool ignoreX, bool ignoreY)
     {
         if (grob == null)
         {
             throw new ArgumentNullException(nameof(grob));
         }
 
+        // we don't know how far spanners stretch along the X axis before
+        // line breaking. better have them take up the whole thing
         Interval x = ignoreX
             ? new Interval(double.NegativeInfinity, double.PositiveInfinity)
             : grob.Extent(grob, Axis.X);
 
+        // If we're looking at the x extent of a cross staff grob, it could be
+        // very early on in the computation process. We won't know its height
+        // until way later, so we give a brute force approximation.
+        //
+        // THE Y READ IS MAYBE-PURE (EPG15 close-out, 2026-08-08). Upstream takes it
+        // through maybe_pure_extent and the port took the ORDINARY extent whatever the
+        // caller asked for, which meant the two PURE callbacks below computed a STENCIL —
+        // the one thing a pure read exists to avoid. It is what drew a MeasureSpanner
+        // whose bounds were still on unplaced columns and put a NaN through skyline
+        // building (measure-spanner.ly, divisiones-staff-override-*.ly).
         Interval y = ignoreY
             ? new Interval(double.NegativeInfinity, double.PositiveInfinity)
-            : grob.Extent(grob, Axis.Y);
+            : grob.MaybePureExtent(grob, Axis.Y, pure, beg, end);
 
         if (x.IsEmpty || y.IsEmpty)
         {
@@ -146,7 +161,7 @@ public static class StencilIntegral
     /// <param name="grob">The grob.</param>
     /// <returns>The skyline pair.</returns>
     public static SkylinePair SimpleVerticalFromExtents(Grob grob)
-        => SimpleSkylinesFromExtents(grob, Axis.X, false, false);
+        => SimpleSkylinesFromExtents(grob, Axis.X, false, 0, 0, false, false);
 
     /// <summary>
     /// <c>ly:grob::pure-simple-vertical-skylines-from-extents</c>. The horizontal
@@ -154,9 +169,11 @@ public static class StencilIntegral
     /// far a spanner reaches.
     /// </summary>
     /// <param name="grob">The grob.</param>
+    /// <param name="beg">The starting column rank.</param>
+    /// <param name="end">The ending column rank.</param>
     /// <returns>The skyline pair.</returns>
-    public static SkylinePair PureSimpleVerticalFromExtents(Grob grob)
-        => SimpleSkylinesFromExtents(grob, Axis.X, true, false);
+    public static SkylinePair PureSimpleVerticalFromExtents(Grob grob, int beg, int end)
+        => SimpleSkylinesFromExtents(grob, Axis.X, true, beg, end, true, false);
 
     /// <summary>
     /// <c>ly:grob::simple-horizontal-skylines-from-extents</c>.
@@ -164,15 +181,17 @@ public static class StencilIntegral
     /// <param name="grob">The grob.</param>
     /// <returns>The skyline pair.</returns>
     public static SkylinePair SimpleHorizontalFromExtents(Grob grob)
-        => SimpleSkylinesFromExtents(grob, Axis.Y, false, IsCrossStaff(grob));
+        => SimpleSkylinesFromExtents(grob, Axis.Y, false, 0, 0, false, IsCrossStaff(grob));
 
     /// <summary>
     /// <c>ly:grob::pure-simple-horizontal-skylines-from-extents</c>.
     /// </summary>
     /// <param name="grob">The grob.</param>
+    /// <param name="beg">The starting column rank.</param>
+    /// <param name="end">The ending column rank.</param>
     /// <returns>The skyline pair.</returns>
-    public static SkylinePair PureSimpleHorizontalFromExtents(Grob grob)
-        => SimpleSkylinesFromExtents(grob, Axis.Y, true, IsCrossStaff(grob));
+    public static SkylinePair PureSimpleHorizontalFromExtents(Grob grob, int beg, int end)
+        => SimpleSkylinesFromExtents(grob, Axis.Y, true, beg, end, false, IsCrossStaff(grob));
 
     /// <summary>
     /// The skyline pair of a grob's own drawing.

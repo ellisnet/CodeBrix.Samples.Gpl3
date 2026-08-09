@@ -48,6 +48,9 @@ public static class DeprecatedProperty
     private static readonly Symbol SetterDescriptionSymbol
         = Symbol.Intern("deprecated-translation-setter-description");
 
+    private static readonly Symbol SetterObjectPropertySymbol
+        = Symbol.Intern("deprecated-setter-object-property");
+
     /// <summary>
     /// Looks a deprecated GETTER up, warning the first time the name is used.
     /// </summary>
@@ -68,14 +71,57 @@ public static class DeprecatedProperty
         => Describe(oldSymbol, SetterDescriptionSymbol, 2);
 
     /// <summary>
+    /// Looks a deprecated SETTER up through the object property a CATEGORY nominates,
+    /// which is the form <c>internal_type_check</c> uses.
+    /// </summary>
+    /// <param name="oldSymbol">The name that was assigned to.</param>
+    /// <param name="objectProperty">
+    /// The category's table, from <see cref="SetterObjectProperty"/>.
+    /// </param>
+    /// <returns>The description, or <see langword="false"/> when never deprecated.</returns>
+    public static object SetterDescription(Symbol oldSymbol, object objectProperty)
+        => Describe(oldSymbol, objectProperty, 2);
+
+    /// <summary>
+    /// Answers which deprecation table a property CATEGORY uses for sets.
+    /// <para>
+    /// The indirection is upstream's and it is not decoration: <c>scm/lily.scm</c> links
+    /// <c>deprecated-setter-object-property</c> for <c>translation-type?</c> and for
+    /// nothing else, with the comment that backend and music properties "would need"
+    /// similar links. Hardcoding the translation table instead would consult it for
+    /// grob and music properties too, and answer a redirection that upstream does not
+    /// have.
+    /// </para>
+    /// </summary>
+    /// <param name="categoryTypeSymbol">
+    /// <c>translation-type?</c>, <c>backend-type?</c> or <c>music-type?</c>.
+    /// </param>
+    /// <returns>The table, or <see langword="false"/> when the category has none.</returns>
+    public static object SetterObjectProperty(Symbol categoryTypeSymbol)
+        => CategoryTable(SetterObjectPropertySymbol, categoryTypeSymbol);
+
+    private static object CategoryTable(Symbol tableName, Symbol categoryTypeSymbol)
+    {
+        object table = LilyPondScheme.LookupProcedure(tableName);
+        if (table == null || categoryTypeSymbol == null)
+        {
+            return false;
+        }
+
+        return SchemeUtilities.CallCallback(table, categoryTypeSymbol);
+    }
+
+    /// <summary>
     /// The shared body of the two lookups. They differ ONLY in which object property
     /// holds the table and in where the replacement name sits in the description —
     /// index 0 for a getter, index 2 for a setter.
     /// </summary>
     private static object Describe(Symbol oldSymbol, Symbol tableName, int newNameIndex)
+        => Describe(oldSymbol, LilyPondScheme.LookupProcedure(tableName), newNameIndex);
+
+    private static object Describe(Symbol oldSymbol, object table, int newNameIndex)
     {
-        object table = LilyPondScheme.LookupProcedure(tableName);
-        if (table == null || oldSymbol == null)
+        if (table == null || table is bool || oldSymbol == null)
         {
             return false;
         }

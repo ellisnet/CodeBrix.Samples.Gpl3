@@ -247,6 +247,24 @@ public static class TranslatorRegistry
         Add(registries, "Keep_alive_together_engraver",
             c => new KeepAliveTogetherEngraver(c));
 
+        // EPG16 (2026-08-08) -- page breaking and page layout. Footnote_engraver led the
+        // sweep's unported-translator list among EPG16's names at 2,524 misses; both of
+        // these carry no Scheme surface, so registering them here is the whole of how
+        // ly/engraver-init.ly finds them.
+        Add(registries, "Footnote_engraver", c => new FootnoteEngraver(c));
+        Add(registries, "Page_turn_engraver", c => new PageTurnEngraver(c));
+
+        // EPG21 (2026-08-09) -- ancient notation. Ligature_bracket_engraver led the whole
+        // sweep's unported-translator list at 4,224 misses, and not because ancient music
+        // is common: it is in the DEFAULT Voice context, so every score in the suite asked
+        // for it. The other four are the ancient contexts' own, which \remove the bracket
+        // and \consists one of these instead.
+        Add(registries, "Ligature_bracket_engraver", c => new LigatureBracketEngraver(c));
+        Add(registries, "Mensural_ligature_engraver", c => new MensuralLigatureEngraver(c));
+        Add(registries, "Vaticana_ligature_engraver", c => new VaticanaLigatureEngraver(c));
+        Add(registries, "Kievan_ligature_engraver", c => new KievanLigatureEngraver(c));
+        Add(registries, "Episema_engraver", c => new EpisemaEngraver(c));
+
         // EPG19 (2026-08-08) -- the MIDI side. These are the fourteen concrete performers
         // ly/performer-init.ly names; the two GROUPS (Performer_group, Score_performer)
         // are made by GetTranslatorGroup below, not here, exactly as the engraver groups

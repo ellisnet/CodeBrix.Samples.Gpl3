@@ -809,10 +809,9 @@ public abstract class Grob : IDiagnostics
     /// <c>ported</c> since EPG0, but this function had never come across, because
     /// <c>Slur::pure_height</c> and <c>Slur::pure_outside_slur_callback</c> are the
     /// port's first callers. It reads <c>Y-extent</c> through
-    /// <see cref="CallPureFunction"/>, which is the SAME minimal stand-in the rest of
-    /// the port's pure machinery uses — the full <c>unpure-pure-container.cc</c>
-    /// treatment is EPG15's, and until it lands a grob with no pure callback simply
-    /// answers its ordinary extent. Recorded in PORT-COVERAGE.
+    /// <see cref="CallPureFunction"/>, which is no longer a stand-in: EPG15 landed
+    /// <c>unpure-pure-container.cc</c>, so a grob with a genuine pure callback is now
+    /// measured by it rather than by its ordinary extent.
     /// </remarks>
     /// <param name="refp">The reference grob.</param>
     /// <param name="start">The starting column rank.</param>
@@ -841,6 +840,47 @@ public abstract class Grob : IDiagnostics
         }
 
         return iv;
+    }
+
+    /// <summary>
+    /// Reads a property the PURE way, over a range of columns —
+    /// <c>Grob::internal_get_pure_property</c>.
+    /// <para>
+    /// A procedure is called through <see cref="CallPureFunction"/>; an
+    /// unpure-pure container whose pure half was omitted is read as an ORDINARY
+    /// property, which is upstream's own caching shortcut for a function that ignores
+    /// its two column arguments; anything else is the value itself.
+    /// </para>
+    /// </summary>
+    /// <remarks>
+    /// Another half of <c>grob-property.cc</c> that had never come across, found by
+    /// EPG15's close-out (2026-08-08) when the real pure path in
+    /// <c>Align_interface::get_skylines</c> started demanding
+    /// <c>ly:grob-pure-property</c>. Nothing had asked for it while every pure read was
+    /// answered by an ordinary extent.
+    /// </remarks>
+    /// <param name="sym">The property to read.</param>
+    /// <param name="start">The starting column rank.</param>
+    /// <param name="end">The ending column rank.</param>
+    /// <returns>The pure value.</returns>
+    public object GetPureProperty(Symbol sym, int start, int end)
+    {
+        object val = GetPropertyData(sym);
+
+        if (SchemeUtilities.IsProcedure(val))
+        {
+            return CallPureFunction(val, new object[] { this }, start, end);
+        }
+
+        if (val is UnpurePureContainer upc)
+        {
+            // Do cache, if the function ignores 'start' and 'end'.
+            return upc.IsPureOmitted
+                ? GetProperty(sym)
+                : CallPureFunction(val, new object[] { this }, start, end);
+        }
+
+        return val;
     }
 
     /// <summary>
@@ -1336,6 +1376,18 @@ public abstract class Grob : IDiagnostics
     /// <param name="orig">The alist to substitute through.</param>
     internal void SubstituteObjectLinks(Direction crit, object orig)
         => _objectAlist = BreakSubstitution.SubstituteObjectAlist(crit, orig);
+
+    /// <summary>
+    /// Reads a property the pure or the ordinary way, as the caller asks —
+    /// <c>Grob::internal_get_maybe_pure_property</c>.
+    /// </summary>
+    /// <param name="sym">The property to read.</param>
+    /// <param name="pure">Whether to read purely.</param>
+    /// <param name="start">The starting column rank.</param>
+    /// <param name="end">The ending column rank.</param>
+    /// <returns>The value.</returns>
+    public object GetMaybePureProperty(Symbol sym, bool pure, int start, int end)
+        => pure ? GetPureProperty(sym, start, end) : GetProperty(sym);
 
     /// <summary>
     /// Returns a coordinate that is PURE when asked for on the Y axis and ordinary

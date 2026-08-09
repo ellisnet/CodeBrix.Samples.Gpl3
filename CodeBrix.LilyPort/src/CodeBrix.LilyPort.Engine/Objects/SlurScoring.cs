@@ -495,32 +495,25 @@ public sealed class SlurScoreState
         Interval additionalYs = new Interval(0.0, 0.0);
 
         /*
-          DELIBERATE DIVERGENCE, and the same one EPG17 recorded for
-          Bracket::make_bracket. The loop below interpolates ALONG the slur, dividing by
-          (right base attachment X - left base attachment X). Upstream may do that
-          unguarded because horizontal spacing has ALWAYS run by the time a slur is
-          scored, so its two ends are staff spaces apart. This port is asked to score
-          slurs while spacing is incomplete and most columns still sit at x = 0 -- on
-          phrasing-slur-tuplet the two ends came out 0.037 apart -- so the division
-          explodes and end_ys reached +-5455 instead of +-4. That is not a wrong slur; it
-          is enumerate_attachments stepping half a staff space at a time across a range
-          ten thousand wide, twice nested: 119 million configurations, which reads as a
-          hang.
+          THE TWO GUARDS EPG12 PUT HERE ARE GONE (EPG15 close-out, 2026-08-08) and this
+          loop is upstream's expression, character for character.
 
-          Guarded at upstream's OWN notion of a slur too short to treat as one:
-          `minimum-length', which enumerate_attachments already uses to decide that a
-          candidate should re-attach to the note head centres. Below that there is no
-          "along the slur" to interpolate, so an encompassed object contributes nothing.
-          Whenever the span is real this is exactly upstream's expression, unchanged.
-          REVISIT WHEN EPG15/EPG16 LAND.
+          They were put in because the port scored slurs while horizontal spacing was
+          incomplete: the loop interpolates ALONG the slur, dividing by (right base
+          attachment X - left base attachment X), and with most columns still at x = 0
+          that span came out 0.037 on phrasing-slur-tuplet, or exactly zero. end_ys
+          reached +-5455 where upstream's is +-4, and enumerate_attachments stepped half
+          a staff space across it twice nested -- about 119 million configurations, which
+          reads as a hang rather than as an error. Upstream may divide unguarded because
+          spacing has ALWAYS run by the time a slur is scored.
+
+          It runs here now too: EPG15 landed Paper_score::calc_breaking and
+          System::break_into_pieces, so columns hold real positions before any stencil is
+          asked for. Removing the guards is the re-measurement EPG12 asked for, and the
+          sweep is what checks it -- a stall here would show up as a file that never
+          finishes, not as a wrong page.
         */
-        double baseSpan = Math.Abs(
-            BaseAttachments[Direction.Positive][Axis.X]
-            - BaseAttachments[Direction.Negative][Axis.X]);
-        bool spanIsReal
-            = baseSpan >= (StaffSpace * ReadReal(Slur.GetProperty(MinimumLengthSymbol), 2.0));
-
-        for (int i = 0; spanIsReal && i < ExtraEncompassInfos.Count; i++)
+        for (int i = 0; i < ExtraEncompassInfos.Count; i++)
         {
             if (ExtraEncompassInfos[i].Extents[Axis.X].IsEmpty)
             {
@@ -552,26 +545,11 @@ public sealed class SlurScoreState
                                        BaseAttachments[Direction.Negative][Axis.X])
                                    + (Dir == Direction.Negative ? 0 : -1))));
 
-                    // DELIBERATE DIVERGENCE, and the same one EPG17 recorded for
-                    // Bracket::make_bracket. Both linear_interpolate and normalize divide
-                    // by (right base attachment X - left base attachment X). Upstream may
-                    // do that unguarded because horizontal spacing has ALWAYS run by the
-                    // time a slur is scored, so the two are never equal. This port is
-                    // asked to score slurs while spacing is incomplete and most columns
-                    // still sit at x = 0, so they routinely ARE equal -- and the infinity
-                    // that comes out makes end_ys infinite, which makes
-                    // enumerate_attachments' `while (dir * y <= dir * end_y)' loop step by
-                    // half a staff space towards infinity and never return.
-                    //
-                    // Guarded at its mathematical limit: a slur with no horizontal span
-                    // has no position ALONG it at which to place an encompassed object, so
-                    // the object contributes nothing. Triggers only where upstream's own
-                    // arithmetic is undefined; whenever the span is real this is exactly
-                    // upstream's expression. REVISIT WHEN EPG15/EPG16 LAND.
-                    if (double.IsFinite(contribution))
-                    {
-                        additionalYs[d] = Direction.MinMax(Dir, additionalYs[d], contribution);
-                    }
+                    // EPG12's second guard -- a finite-contribution test -- is gone with
+                    // the first (EPG15 close-out, 2026-08-08). See the comment above the
+                    // loop: it existed only for a world in which the two base attachments
+                    // could share a coordinate, which line breaking has ended.
+                    additionalYs[d] = Direction.MinMax(Dir, additionalYs[d], contribution);
                 }
             }
         }

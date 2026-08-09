@@ -377,7 +377,70 @@ public class Epg18Tests
         // defines it anywhere, so it is not an entry point -- the stencil comes from
         // Scheme's figured-bass-continuation::print, which carries no ly: prefix. Same
         // shape as the Slur::vertical_skylines declaration EPG12 recorded.
-        closure.Implemented.Count.Should().Be(629);
+        // 629 until the CARRY-FORWARD session (2026-08-08) added THREE leaves the
+        // demand loop forced forward from EPG23 -- ly:make-music-relative!,
+        // ly:modules-lookup and ly:duration->moment -- taking it to 632. All three had
+        // been POLITE STUBS whose placeholder answers their callers silently absorbed.
+        // 632 until EPG15's close-out (2026-08-08), which added NINETEEN, taking it to
+        // 651. SEVENTEEN are the group's own: Bootstrap/Epg15Callbacks.cs registers
+        // TWENTY-SEVEN names and the net is seventeen, because the other ten already had
+        // implementations from earlier groups and are re-registered there beside their
+        // siblings. The two that matter most are ly:spanner::calc-normalized-endpoints
+        // and ly:spanner::set-spacing-rods, which were the two most demanded unported
+        // names anywhere in the project at 2,991 and 961 calls per sweep.
+        //
+        // The other TWO are grob-scheme.cc leaves the demand loop FORCED forward from
+        // EPG23 -- ly:grob-pure-property and ly:grob-pure-relative-coordinate -- and that
+        // file keeps its EPG23 disposition, the stencil-scheme.cc pattern. A THIRD leaf,
+        // ly:grob-pure-height, came forward with them and does NOT move this number: it
+        // was already implemented as an EPG8 stand-in that answered the ordinary extent,
+        // so re-pointing it at Grob.PureYExtent changes what it computes and not whether
+        // it exists. That distinction is why this count is not a measure of correctness.
+        //
+        // 651 until EPG16 (2026-08-08), which added SEVENTEEN, taking it to 668: the six
+        // page-breaking strategies (ly:optimal-breaking, ly:minimal-breaking,
+        // ly:page-turn-breaking, ly:one-page-breaking, ly:one-line-breaking,
+        // ly:one-line-auto-height-breaking), the seven Paper_book names (ly:paper-book?
+        // plus its six accessors), ly:get-spacing-spec, the two ly:book-process entry
+        // points, and ONE leaf the demand loop FORCED forward -- ly:paper-get-number from
+        // output-def-scheme.cc, which lily/page.scm asks for on the very first page it
+        // builds and which was simply absent while that file's row read `ported'. As with
+        // the grob-scheme.cc leaves above, that file keeps its own disposition.
+        //
+        // READ SEVENTEEN AGAINST SEVENTEEN LEDGER ROWS AS A COINCIDENCE, not a pattern:
+        // eleven of EPG16's rows contribute NO Scheme surface at all (the strategies'
+        // .cc files, the two engravers, page-spacing, page-spacing-result,
+        // page-layout-problem), and the bindings come from the four *-scheme.cc files
+        // and book-scheme.cc instead.
+        //
+        // 668 until EPG16's CLOSE-OUT (2026-08-09), which added FIVE more, taking it to
+        // 673 — and every one of the five was already in the entry-point table, answering
+        // the inert UnportedValue, while its FILE's ledger row read `ported'. That is the
+        // shape worth reading, not the number: context-def.cc's ly:context-def-modify and
+        // ly:context-def-lookup, and system.cc's ly:system::get-staves,
+        // ly:system::get-spaceable-staves and ly:system::get-nonspaceable-staves. None of
+        // them is new code — Context_def and System were ported whole, and each binding is
+        // a one-line call onto a method that already existed. What was missing was the
+        // BINDING, and PORT-COVERAGE had recorded the risk in as many words: those stubs
+        // were "one Scheme call away from being actively wrong". They were. A toplevel
+        // \layout block destroyed its own context definitions and `annotate-spacing = ##t'
+        // killed the book.
+        //
+        // ⚠ THIS COUNT MEASURES SURFACE, NEVER CORRECTNESS, and these five are the
+        // sharpest illustration the project has: for as long as they sat unregistered,
+        // every ledger row involved said `ported' and every C# caller worked.
+        //
+        // 678 after EPG21 (2026-08-09), which added the ancient-notation group's whole
+        // Scheme surface: ly:kievan-ligature::print, ly:mensural-ligature::print and
+        // ::brew-ligature-primitive, ly:vaticana-ligature::print and
+        // ::brew-ligature-primitive. Three of those five ANSWER '() -- the ligature
+        // spanners draw nothing themselves -- which is precisely why they had to be
+        // registered rather than left as stubs: the stub answers the inert UnportedValue,
+        // and an UnportedValue in a `stencil' property is TRUTHY where '() is skipped.
+        // The other twelve ledger rows the group closed carry no Scheme surface at all;
+        // they are translators, which ly/engraver-init.ly reaches by NAME through
+        // TranslatorRegistry and which this number cannot see.
+        closure.Implemented.Count.Should().Be(678);
     }
 
     [Fact]

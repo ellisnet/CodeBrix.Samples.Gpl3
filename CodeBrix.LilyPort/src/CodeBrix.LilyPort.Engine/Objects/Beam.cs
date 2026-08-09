@@ -1752,18 +1752,27 @@ public static class Beam
     }
 
     /// <summary>
-    /// Folds one of the beam's bounds into the common horizontal reference point.
+    /// Folds one of the beam's bounds into the common horizontal reference point —
+    /// upstream's <c>me->get_bound (d)->common_refpoint (commonx, X_AXIS)</c>.
     /// <para>
-    /// Upstream writes <c>me->get_bound (d)->common_refpoint (commonx, X_AXIS)</c> with
-    /// no null check, because by the time anything asks a beam to draw, the bound is
-    /// guaranteed: <c>Spanner::do_break_processing</c> walks away from a spanner missing
-    /// either bound, so it is never assigned to a system and never typeset. That
-    /// guarantee lives in line breaking, which is EPG15/EPG16's — the port reaches
-    /// <c>print</c> for an unbounded beam, and dereferencing the null bound is the
-    /// crash this guard replaces. A beam with no bounds has no stems either, so it
-    /// yields no segments and draws nothing, which is the same page upstream produces
-    /// after <c>calc_direction</c> removes it. Recorded in PORT-COVERAGE under
-    /// BEAM BOUNDS BEFORE LINE BREAKING.
+    /// EPG10's null-bound guard was REMOVED AND RE-MEASURED at EPG15's close-out
+    /// (2026-08-08), which is what the inherit list asked for, and the measurement says
+    /// KEEP IT. Upstream writes this dereference with no null check because by the time
+    /// anything asks a beam to draw, the bound is guaranteed:
+    /// <c>Spanner::do_break_processing</c> walks away from a spanner missing either
+    /// bound, so it is never assigned to a system and never typeset. That function is
+    /// ported now — and an unbounded beam STILL reaches here, on exactly one file,
+    /// <c>whole-note-tremolo-direction.ly</c>, which dies with a null dereference
+    /// without this line and produces its page with it.
+    /// </para>
+    /// <para>
+    /// The cause is NOT diagnosed and it is the one EPG10 recorded and could not chase:
+    /// a chord-tremolo beam that reproduces only inside a FULL SWEEP and never when the
+    /// file is run alone (the EPG4 trap). So the guard stays, its reason is now measured
+    /// rather than assumed, and what it is waiting on is no longer "EPG15" but that
+    /// diagnosis. A beam with no bounds has no stems either, so it yields no segments and
+    /// draws nothing, which is the page upstream produces after <c>calc_direction</c>
+    /// removes it.
     /// </para>
     /// </summary>
     internal static Grob CommonWithBound(Spanner me, Grob commonx, Direction d)

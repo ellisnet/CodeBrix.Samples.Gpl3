@@ -1574,6 +1574,147 @@ Copyright: Copyright (C) 1996--2026 Han-Wen Nienhuys <hanwen@xs4all.nl>
            the managed spelling of from_scm (value, Interval ()), beside the
            ToDrulDouble and ToDrulBool that were already there.
 
+    -- EPG15, line breaking and broken spanners (added 2026-08-08) --
+
+    All twelve files below are derived from LilyPond 2.27.2 and carry upstream's
+    copyright header verbatim, per section 1.3.
+
+    src/CodeBrix.LilyPort.Engine/Layout/ConstrainedBreaking.cs
+           lily/constrained-breaking.cc + lily/include/constrained-breaking.hh
+           Copyright (C) 2006--2026 Joe Neeman <joeneeman@gmail.com>
+           The dynamic program that chooses where the lines break.
+    src/CodeBrix.LilyPort.Engine/Layout/LineDetails.cs
+           lily/constrained-breaking.cc + lily/include/constrained-breaking.hh
+           Copyright (C) 2006--2026 Joe Neeman <joeneeman@gmail.com>
+           The Line_details half of the same upstream file, carried separately
+           because a type named after its own namespace is barred by the family
+           naming rule and Line_details is a type in its own right.
+    src/CodeBrix.LilyPort.Engine/Objects/BreakSubstitution.cs
+           lily/break-substitution.cc
+           GAINED the System half at EPG15 (2026-08-08); EPG22 had carried the
+           Direction half on 2026-08-07.
+    src/CodeBrix.LilyPort.Engine/Objects/BreakAlignInterface.cs
+           lily/break-alignment-interface.cc
+           + lily/include/break-alignment-interface.hh
+           Holds Break_alignment_interface, Break_aligned_interface and
+           Break_alignable_interface, as upstream's one file does.
+    src/CodeBrix.LilyPort.Engine/Translation/BreakAlignEngraver.cs
+           lily/break-align-engraver.cc
+    src/CodeBrix.LilyPort.Engine/Translation/BreakForbidEngravers.cs
+           lily/forbid-break-engraver.cc, lily/spanner-break-forbid-engraver.cc
+           Two upstream files of the same shape, carried together.
+    src/CodeBrix.LilyPort.Engine/Objects/HaraKiriGroupSpanner.cs
+           lily/hara-kiri-group-spanner.cc
+           + lily/include/hara-kiri-group-spanner.hh
+           Copyright (C) 1998--2026 Han-Wen Nienhuys <hanwen@xs4all.nl>
+    src/CodeBrix.LilyPort.Engine/Translation/KeepAliveTogetherEngraver.cs
+           lily/keep-alive-together-engraver.cc
+           Copyright (C) 2010--2026 Joe Neeman <joeneeman@gmail.com>
+    src/CodeBrix.LilyPort.Engine/Objects/PureFromNeighborInterface.cs
+           lily/pure-from-neighbor-interface.cc
+           + lily/include/pure-from-neighbor-interface.hh
+           Copyright (C) 2011--2026 Mike Solomon <mike@mikesolomon.org>
+    src/CodeBrix.LilyPort.Engine/Translation/PureFromNeighborEngraver.cs
+           lily/pure-from-neighbor-engraver.cc
+           Copyright (C) 2011--2026 Mike Solomon <mike@mikesolomon.org>
+    src/CodeBrix.LilyPort.Engine/Objects/GrobClosure.cs
+           lily/grob-closure.cc
+    src/CodeBrix.LilyPort.Engine/Objects/AxisGroupInterfacePure.cs
+           lily/axis-group-interface.cc, the pure-height half
+           Carried in a file of its own because Objects/AxisGroupInterface.cs was
+           already large; the ledger row stays with the parent file.
+    src/CodeBrix.LilyPort.Engine/Bootstrap/RegistryPrimitives.cs
+           GAINED lily/unpure-pure-container.cc + its header: the
+           Unpure_pure_container and Unpure_pure_call types and their three
+           bindings. call_pure_function itself is grob-property.cc's and lives on
+           Grob.
+    src/CodeBrix.LilyPort.Engine/Bootstrap/Epg15Callbacks.cs
+           New-in-family binding code with no upstream analogue: the registrations
+           for the group's Scheme-visible callbacks, plus three grob-scheme.cc
+           leaves the demand loop forced forward (ly:grob-pure-height,
+           ly:grob-pure-property, ly:grob-pure-relative-coordinate).
+
+  EPG16 CLOSE-OUT (2026-08-09) added NO new upstream files. Every change was a
+  BINDING over a type this repository had already ported, so the derivation was
+  already recorded above and no attribution moves:
+
+    src/CodeBrix.LilyPort.Engine/Bootstrap/TranslationPrimitives.cs
+           GAINED lily/context-def.cc's two LY_DEFINEs, ly:context-def-modify
+           and ly:context-def-lookup. Both call methods that Translation/
+           ContextDef.cs (already attributed to lily/context-def.cc) has carried
+           since EPG2; neither adds upstream code.
+    src/CodeBrix.LilyPort.Engine/Bootstrap/Epg16Callbacks.cs
+           GAINED lily/system.cc's three staff accessors -- ly:system::get-staves,
+           ly:system::get-spaceable-staves, ly:system::get-nonspaceable-staves --
+           over SystemGrob.GetMaybeSpaceableStaves, which is the port of
+           get_maybe_spaceable_staves in the already-attributed
+           Objects/SystemGrob.cs.
+    src/CodeBrix.LilyPort.Engine/Objects/SchemeUtilities.cs
+           GAINED the deprecation branch of lily/lily-guile.cc's
+           internal_type_check and its type_check_unset. That file is already
+           attributed above.
+
+    -- EPG21, ancient notation (added 2026-08-09) --
+
+    All eleven files below are derived from LilyPond 2.27.2 and carry upstream's
+    copyright header verbatim, per section 1.3. Three of the four grob files also
+    carry their header's bit-mask definitions, which are grob PROPERTY values and
+    so are part of the derived work rather than an implementation choice.
+
+    src/CodeBrix.LilyPort.Engine/Translation/LigatureEngraver.cs
+           lily/ligature-engraver.cc + lily/include/ligature-engraver.hh
+           Copyright (C) 2002--2026 Juergen Reuter <reuter@ipd.uka.de>
+           The abstract framework: start/stop handling and head collection.
+    src/CodeBrix.LilyPort.Engine/Translation/CoherentLigatureEngraver.cs
+           lily/coherent-ligature-engraver.cc
+           + lily/include/coherent-ligature-engraver.hh
+           Copyright (C) 2003--2026 Juergen Reuter <reuter@ipd.uka.de>
+           Abstract: folds a ligature's grobs into one paper column.
+    src/CodeBrix.LilyPort.Engine/Translation/GregorianLigatureEngraver.cs
+           lily/gregorian-ligature-engraver.cc
+           + lily/include/gregorian-ligature-engraver.hh
+           Copyright (C) 2003--2026 Juergen Reuter <reuter@ipd.uka.de>
+           Abstract: the musical half of Gregorian neumes -- prefix validation
+           and per-head context information.
+    src/CodeBrix.LilyPort.Engine/Translation/LigatureBracketEngraver.cs
+           lily/ligature-bracket-engraver.cc
+           Copyright (C) 2002--2026 Juergen Reuter <reuter@ipd.uka.de>
+    src/CodeBrix.LilyPort.Engine/Translation/MensuralLigatureEngraver.cs
+           lily/mensural-ligature-engraver.cc
+           Copyright (C) 2002--2026 Juergen Reuter <reuter@ipd.uka.de>,
+                                    Pal Benko <benkop@freestart.hu>
+    src/CodeBrix.LilyPort.Engine/Translation/VaticanaLigatureEngraver.cs
+           lily/vaticana-ligature-engraver.cc
+           Copyright (C) 2003--2026 Juergen Reuter <reuter@ipd.uka.de>
+    src/CodeBrix.LilyPort.Engine/Translation/KievanLigatureEngraver.cs
+           lily/kievan-ligature-engraver.cc
+           Copyright (C) 2013--2026 Aleksandr Andreev
+                                    <aleksandr.andreev@gmail.com>
+    src/CodeBrix.LilyPort.Engine/Translation/EpisemaEngraver.cs
+           lily/episema-engraver.cc
+           Copyright (C) 2010--2026 Neil Puttock <n.puttock@gmail.com>
+    src/CodeBrix.LilyPort.Engine/Objects/GregorianLigature.cs
+           lily/gregorian-ligature.cc + lily/include/gregorian-ligature.hh
+           Copyright (C) 2003--2026 Han-Wen Nienhuys <hanwen@xs4all.nl>
+           The header's two bit-mask families come with it.
+    src/CodeBrix.LilyPort.Engine/Objects/MensuralLigature.cs
+           lily/mensural-ligature.cc + lily/include/mensural-ligature.hh
+           Copyright (C) 2002--2026 Juergen Reuter <reuter@ipd.uka.de>,
+                                    Pal Benko <benkop@freestart.hu>
+           The header's MLP_* primitive codes come with it.
+    src/CodeBrix.LilyPort.Engine/Objects/VaticanaLigature.cs
+           lily/vaticana-ligature.cc + lily/include/vaticana-ligature.hh
+           Copyright (C) 2003--2026 Juergen Reuter <reuter@ipd.uka.de>
+           The header's STACKED_HEAD mask comes with it.
+    src/CodeBrix.LilyPort.Engine/Objects/KievanLigature.cs
+           lily/kievan-ligature.cc + lily/include/kievan-ligature.hh
+           Copyright (C) 2013--2026 Aleksandr Andreev
+                                    <aleksandr.andreev@gmail.com>
+
+    src/CodeBrix.LilyPort.Engine/Bootstrap/Epg21Callbacks.cs
+           New-in-family binding code with no upstream analogue: the
+           registrations for the group's five Scheme-visible callbacks.
+
 --------------------------------------------------------------------------------
 1.6  LILYPOND LICENSE TEXT
 --------------------------------------------------------------------------------
@@ -2395,6 +2536,59 @@ If you have any questions about any third-party code or services referenced
 here, or if you believe that any third-party code has been included in
 CodeBrix.LilyPort in error, please open a new issue at:
 https://github.com/ellisnet/CodeBrix.Samples.Gpl3/issues
+
+    -- EPG16, page breaking and page layout (added 2026-08-08) --
+
+    All nine files below are derived from LilyPond 2.27.2 and carry upstream's
+    copyright header verbatim, per section 1.3.
+
+    src/CodeBrix.LilyPort.Engine/Layout/PageBreaking.cs
+           lily/page-breaking.cc + lily/include/page-breaking.hh
+           Copyright (C) 2006--2026 Joe Neeman <joeneeman@gmail.com>
+           The shared machinery every page-breaking strategy is built on, plus
+           System_spec and Break_position.
+    src/CodeBrix.LilyPort.Engine/Layout/PageBreakers.cs
+           lily/optimal-page-breaking.cc, lily/minimal-page-breaking.cc,
+           lily/one-page-breaking.cc, lily/one-line-page-breaking.cc,
+           lily/one-line-auto-height-breaking.cc
+           Copyright (C) 2006--2026 Joe Neeman <joeneeman@gmail.com>
+           Five strategies in one file: each is a single solve() over the
+           machinery above.
+    src/CodeBrix.LilyPort.Engine/Layout/PageTurnPageBreaking.cs
+           lily/page-turn-page-breaking.cc
+           + lily/include/page-turn-page-breaking.hh
+           Copyright (C) 2006--2026 Joe Neeman <joeneeman@gmail.com>
+    src/CodeBrix.LilyPort.Engine/Layout/PageSpacing.cs
+           lily/page-spacing.cc + lily/include/page-spacing.hh
+           Copyright (C) 2006--2026 Joe Neeman <joeneeman@gmail.com>
+           Page_spacing and Page_spacer.
+    src/CodeBrix.LilyPort.Engine/Layout/PageSpacingResult.cs
+           lily/page-spacing-result.cc + lily/include/page-spacing-result.hh
+           Copyright (C) 2007--2026 Han-Wen Nienhuys <hanwen@lilypond.org>
+    src/CodeBrix.LilyPort.Engine/Layout/PageLayoutProblem.cs
+           lily/page-layout-problem.cc
+           Copyright (C) 2009--2026 Joe Neeman <joeneeman@gmail.com>
+           The per-page vertical spacing solver. The spacing-spec readers of the
+           same upstream file live in Layout/PageLayoutSpacing.cs, where EPG7
+           pulled them forward.
+    src/CodeBrix.LilyPort.Engine/Layout/PaperBook.cs
+           lily/paper-book.cc + lily/include/paper-book.hh
+           Copyright (C) 2004--2026 Jan Nieuwenhuizen <janneke@gnu.org>
+           Page assembly only; the output half is not ported (PORT-COVERAGE).
+    src/CodeBrix.LilyPort.Engine/Translation/PageTurnEngraver.cs
+           lily/page-turn-engraver.cc
+           Copyright (C) 2006--2026 Joe Neeman <joeneeman@gmail.com>
+    src/CodeBrix.LilyPort.Engine/Translation/FootnoteEngraver.cs
+           lily/footnote-engraver.cc
+           Copyright (C) 2012--2026 Mike Solomon <mike@mikesolomon.org>
+
+    New-in-family binding code for this group carries NO upstream header, per
+    section 1.3: src/CodeBrix.LilyPort.Engine/Bootstrap/Epg16Callbacks.cs holds
+    the six page-breaking strategies, the Paper_book accessors,
+    ly:get-spacing-spec, ly:paper-get-number and the two ly:book-process entry
+    points, all derived from lily/page-breaking-scheme.cc,
+    lily/paper-book-scheme.cc, lily/page-layout-problem-scheme.cc,
+    lily/output-def-scheme.cc and lily/book-scheme.cc.
 
 ================================================================================
 

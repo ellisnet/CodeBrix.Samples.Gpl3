@@ -50,6 +50,9 @@ public static class SidePositionInterface
     private static readonly Symbol CrossStaffSymbol = Symbol.Intern("cross-staff");
     private static readonly Symbol DirectionSymbol = Symbol.Intern("direction");
     private static readonly Symbol QuantizePosition = Symbol.Intern("quantize-position");
+    private static readonly Symbol VerticalSkylinesSymbol = Symbol.Intern("vertical-skylines");
+    private static readonly Symbol HorizontalSkylinesSymbol
+        = Symbol.Intern("horizontal-skylines");
     private static readonly Symbol StaffPadding = Symbol.Intern("staff-padding");
     private static readonly Symbol StemInterface = Symbol.Intern("stem-interface");
     private static readonly Symbol AddStemSupport = Symbol.Intern("add-stem-support");
@@ -292,11 +295,13 @@ public static class SidePositionInterface
         }
 
         Grob staffSymbol = StaffSymbolReferencer.GetStaffSymbol(me);
-        bool quantizePosition = SchemeUtilities.ToBool(me.GetProperty(QuantizePosition));
+        bool quantizePosition = SchemeUtilities.ToBool(
+            me.GetMaybePureProperty(QuantizePosition, pure, start, end));
         bool meCrossStaff = SchemeUtilities.ToBool(me.GetProperty(CrossStaffSymbol));
 
         bool includeStaff = staffSymbol != null && a == Axis.Y
-                            && SchemeConvert.IsNumber(me.GetProperty(StaffPadding))
+                            && SchemeConvert.IsNumber(
+                                me.GetMaybePureProperty(StaffPadding, pure, start, end))
                             && !quantizePosition;
 
         if (includeStaff)
@@ -310,7 +315,20 @@ public static class SidePositionInterface
         // callbacks, so — as upstream — the read always answers a pair. For the X
         // axis the pair wanted is the horizontal one, which is what the helper's
         // axis argument selects.
-        SkylinePair myPair = AxisGroupInterfaceVertical.ReadSkylinePair(me, a);
+        //
+        // THE READ IS MAYBE-PURE (EPG15 close-out, 2026-08-08). Upstream takes it through
+        // get_maybe_pure_property, and reading it ORDINARILY in the pure branch is not a
+        // rounding difference: an ordinary skyline read asks for a STENCIL, so a
+        // MeasureSpanner was drawn while its two bounds still sat on unplaced columns and
+        // the zero-length bracket put a NaN through skyline building. The pure branch
+        // exists to answer without a stencil.
+        SkylinePair myPair = SkylinePair.FromScheme(
+            me.GetMaybePureProperty(
+                a == Axis.X ? HorizontalSkylinesSymbol : VerticalSkylinesSymbol,
+                pure,
+                start,
+                end))
+            ?? AxisGroupInterfaceVertical.ReadSkylinePair(me, a);
         {
             // for spanner pure heights, we don't know horizontal spacing,
             // so a spanner can never have a meaningful x coordiante
@@ -340,8 +358,9 @@ public static class SidePositionInterface
             // before line breaking.  because there is no thing as "pure" x spacing,
             // we assume that it is all pure
             double yc = a == Axis.X
-                ? me.RelativeCoordinate(common[(int)Axis.Y], Axis.Y)
-                : me.GetParent(Axis.Y).RelativeCoordinate(common[(int)Axis.Y], Axis.Y);
+                ? me.PureRelativeYCoordinate(common[(int)Axis.Y], start, end)
+                : me.GetParent(Axis.Y).MaybePureCoordinate(
+                    common[(int)Axis.Y], Axis.Y, pure, start, end);
             myPair.Shift(a == Axis.X ? yc : xc);
             myPair.Raise(a == Axis.X ? xc : yc);
             myDim = myPair[-dir];

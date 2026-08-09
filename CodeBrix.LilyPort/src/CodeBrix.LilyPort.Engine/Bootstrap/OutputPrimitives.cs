@@ -516,9 +516,20 @@ public static class OutputPrimitives
     /// Asks a finished context for what it produced and lays it out — upstream's
     /// <c>ly:format-output</c> body.
     /// </summary>
-    private static object FormatOutput(GlobalContext global)
+    internal static object FormatOutput(GlobalContext global)
     {
-        object output = global.GetProperty(OutputSymbol);
+        // THE PROPERTY IS ON THE SCORE CONTEXT, NOT ON GLOBAL (EPG16, 2026-08-08).
+        // Upstream's Global_context::get_output does `get_property (get_score_context (),
+        // "output")', and Score_engraver::finalize sets it on ITS OWN context — which is
+        // the Score, a CHILD of Global. Reading it off Global walks UPWARD and therefore
+        // never finds it, so this answered nothing at all for every caller: both
+        // ly:format-output and ly:score-embedded-format. It was invisible because the one
+        // path the sweep exercised, LilyPortEngraver, reaches the paper score by walking
+        // the tree for the ScoreEngraver instead of by asking for this property.
+        Context scoreContext = global.ScoreContext;
+        object output = scoreContext != null
+            ? scoreContext.GetProperty(OutputSymbol)
+            : Nil.Instance;
         if (output is MusicOutput musicOutput)
         {
             musicOutput.Process();
@@ -545,7 +556,7 @@ public static class OutputPrimitives
     /// rather than applying a factor it did not compute.
     /// </para>
     /// </summary>
-    private static OutputDef ScaleOutputDef(OutputDef definition, double scale)
+    internal static OutputDef ScaleOutputDef(OutputDef definition, double scale)
     {
         object procedure = LilyPondScheme.LookupProcedure(Symbol.Intern("scale-layout"));
         if (procedure != null)

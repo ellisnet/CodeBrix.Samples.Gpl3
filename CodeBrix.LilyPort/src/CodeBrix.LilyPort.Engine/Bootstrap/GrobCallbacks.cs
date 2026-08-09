@@ -256,7 +256,9 @@ public static class GrobCallbacks
         interpreter.DefinePrimitive(
             "ly:grob::pure-simple-vertical-skylines-from-extents", 3, 3, a =>
                 StencilIntegral.PureSimpleVerticalFromExtents(
-                    AsGrob(a[0], "ly:grob::pure-simple-vertical-skylines-from-extents")).ToScheme());
+                    AsGrob(a[0], "ly:grob::pure-simple-vertical-skylines-from-extents"),
+                    AsRank(a[1], 0),
+                    AsRank(a[2], int.MaxValue)).ToScheme());
 
         interpreter.DefinePrimitive(
             "ly:grob::simple-horizontal-skylines-from-extents", 1, 1, a =>
@@ -266,7 +268,9 @@ public static class GrobCallbacks
         interpreter.DefinePrimitive(
             "ly:grob::pure-simple-horizontal-skylines-from-extents", 3, 3, a =>
                 StencilIntegral.PureSimpleHorizontalFromExtents(
-                    AsGrob(a[0], "ly:grob::pure-simple-horizontal-skylines-from-extents")).ToScheme());
+                    AsGrob(a[0], "ly:grob::pure-simple-horizontal-skylines-from-extents"),
+                    AsRank(a[1], 0),
+                    AsRank(a[2], int.MaxValue)).ToScheme());
 
         interpreter.DefinePrimitive(
             "ly:grob::vertical-skylines-from-stencil", 1, 1, a =>
@@ -385,4 +389,9 @@ public static class GrobCallbacks
 
     private static Grob AsGrob(object value, string procedureName)
         => value as Grob ?? throw SchemeErrors.WrongType(procedureName, "grob", value);
+
+    private static int AsRank(object value, int fallback)
+        => SchemeConvert.IsNumber(value)
+            ? (int)SchemeConvert.ToDouble(value, "column rank")
+            : fallback;
 }

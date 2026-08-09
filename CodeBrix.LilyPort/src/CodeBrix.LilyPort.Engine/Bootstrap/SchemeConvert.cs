@@ -169,6 +169,43 @@ public static class SchemeConvert
     }
 
     /// <summary>
+    /// Converts a Scheme number to a double, answering a FALLBACK rather than throwing —
+    /// upstream's <c>from_scm&lt;double&gt; (scm, fallback)</c> overload.
+    /// <para>
+    /// This is the shape output-definition variables need: <c>c_variable</c> answers the
+    /// unbound object for a paper variable nobody set, and every caller wants a default
+    /// rather than an exception. Two ad-hoc copies of this had already grown in the engine
+    /// (in <c>Stem</c> and in <c>Epg8Support</c>) before it was given a home here; EPG20
+    /// found what a second copy of a conversion costs when it discovered a whole separate
+    /// <c>equal?</c>.
+    /// </para>
+    /// </summary>
+    /// <param name="value">The Scheme value.</param>
+    /// <param name="fallback">The answer when the value is not a number.</param>
+    /// <returns>The value as a double, or the fallback.</returns>
+    public static double ToDouble(object value, double fallback)
+        => IsNumber(value) ? ToDouble(value, "from_scm") : fallback;
+
+    /// <summary>
+    /// Converts a Scheme number to an integer, answering a FALLBACK rather than throwing.
+    /// </summary>
+    /// <param name="value">The Scheme value.</param>
+    /// <param name="fallback">The answer when the value is not a number.</param>
+    /// <returns>The value as an integer, or the fallback.</returns>
+    public static int ToInt(object value, int fallback)
+        => IsNumber(value) ? ToInt(value, "from_scm") : fallback;
+
+    /// <summary>
+    /// Boxes an integer as a Scheme number.
+    /// <para>Scheme integers are plain boxed <see cref="long"/> in this port — the same
+    /// representation <see cref="FromRational"/> hands back for a whole number — so this
+    /// exists to say that once rather than sprinkling casts through the callers.</para>
+    /// </summary>
+    /// <param name="value">The integer.</param>
+    /// <returns>The Scheme number.</returns>
+    public static object FromInt(int value) => (long)value;
+
+    /// <summary>
     /// Determines whether a value is a Scheme number, the way <c>scm_is_number</c>
     /// does.
     /// <para>

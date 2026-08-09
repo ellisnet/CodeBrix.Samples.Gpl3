@@ -1724,39 +1724,32 @@ public static class Stem
     }
 
     /// <summary>
-    /// Reads a property's PURE value — <c>get_pure_property</c>, minimally: the pure
-    /// half of an unpure-pure container is called, a cached value answers directly,
-    /// and a plain procedure answers nothing. The full <c>call_pure_function</c>
-    /// machinery is EPG15's (unpure-pure-container.cc); recorded in this group's
-    /// report.
+    /// Reads a property's PURE value — <c>Grob::internal_get_pure_property</c> over the
+    /// whole score, which is the range every caller in this file wants.
     /// </summary>
+    /// <remarks>
+    /// EPG6's minimal stand-in is GONE (EPG15 close-out, 2026-08-08). It differed from
+    /// upstream in both directions: it called an unpure-pure container's pure half even
+    /// when that half had been omitted, where upstream reads the property ORDINARILY,
+    /// and it answered <c>'()</c> for a bare procedure where upstream answers <c>#f</c>.
+    /// </remarks>
     /// <param name="me">The grob.</param>
     /// <param name="symbol">The property name.</param>
     /// <returns>The pure value.</returns>
     internal static object GetPureProperty(Grob me, Symbol symbol)
-    {
-        object value = me.GetPropertyData(symbol);
-        if (value is UnpurePureContainer container)
-        {
-            return SchemeUtilities.CallCallback(
-                container.Pure, me, 0L, (long)int.MaxValue);
-        }
-
-        if (value is Procedure)
-        {
-            return Nil.Instance;
-        }
-
-        return value;
-    }
+        => me.GetPureProperty(symbol, 0, int.MaxValue);
 
     /// <summary>
-    /// A grob's pure vertical extent — <c>pure_y_extent</c>. The pure machinery is
-    /// EPG15's; the ordinary extent is what a grob with no pure callback answers, the
-    /// same fallback the EPG13 skyline callbacks take. Recorded in PORT-COVERAGE.
+    /// A grob's pure vertical extent — <c>pure_y_extent</c>, over the whole score.
     /// </summary>
+    /// <remarks>
+    /// EPG6's stand-in — the ORDINARY extent — is GONE (EPG15 close-out, 2026-08-08):
+    /// <c>Grob.PureYExtent</c> reads through the real <c>call_pure_function</c> now, so a
+    /// grob with a genuine pure callback is measured by it. An ordinary extent asks for a
+    /// STENCIL, which is the one thing a pure read exists to avoid.
+    /// </remarks>
     /// <param name="me">The grob.</param>
     /// <returns>The extent.</returns>
     internal static Interval PureYExtent(Grob me)
-        => me.Extent(me, Axis.Y);
+        => me.PureYExtent(me, 0, int.MaxValue);
 }

@@ -80,7 +80,20 @@ public static class HaraKiriGroupSpanner
     public static object CalcSkylines(Grob me)
     {
         ConsiderSuicide(me);
-        return AxisGroupInterfaceVertical.CombineSkylines(me);
+
+        // Axis_group_interface::calc_skylines, which is SKYLINE_SPACING and not
+        // combine_skylines: upstream's own comment separates the two, and combine is for
+        // an axis group whose only children are other axis groups, i.e. VerticalAlignment.
+        //
+        // Both halves of this line were wrong when EPG15 first landed it (fixed at its
+        // close-out, 2026-08-08): it called combine, and it answered the SkylinePair
+        // OBJECT where the property holds a Scheme CONS of two skylines. There is no
+        // skyline-pair type in Scheme -- ly:skyline-pair? is "a pair whose car and cdr are
+        // skylines" -- so every answer failed its own property's type check and
+        // vertical-skylines was left UNSET on every hara-kiri group in every score. The
+        // symptom was a `Type check for vertical-skylines failed' programming error per
+        // group per file, which is how it was found.
+        return AxisGroupInterfaceVertical.SkylineSpacing(me).ToScheme();
     }
 
     /// <summary>

@@ -335,6 +335,61 @@ public sealed class LineDetails
     /// <summary>Gets or sets whether this line is spaced tightly.</summary>
     public bool TightSpacing { get; set; }
 
+    /// <summary>
+    /// A private copy of this line — the port's stand-in for upstream's copy on
+    /// assignment, since <c>Line_details</c> is a struct there and a class here.
+    /// <para>
+    /// PAGE BREAKING CANNOT WORK WITHOUT THIS, and the reason is not obvious.
+    /// <c>ConstrainedBreaking.GetLineDetails</c> hands back the very objects stored in its
+    /// dynamic-programming table, so two page-breaking configurations asking for the same
+    /// stretch of music get the SAME instances. <c>Page_breaking</c> then compresses the
+    /// list and writes each line's tallness into it — which, without a copy, would write
+    /// through into the line breaker's own table and leak one configuration's page layout
+    /// into the next. Upstream never meets this because every one of those steps copies.
+    /// </para>
+    /// <para>
+    /// The two lists are copied too, and not shared: <c>compress_lines</c> INSERTS the
+    /// upper line's footnotes into the lower line's own list, so a shared list would grow
+    /// every time a configuration was compressed.
+    /// </para>
+    /// </summary>
+    /// <returns>The copy.</returns>
+    public LineDetails Copy()
+    {
+        LineDetails copy = new LineDetails
+        {
+            LastColumn = LastColumn,
+            Force = Force,
+            Shape = new LineShape(Shape.Begin, Shape.Rest),
+            RefpointExtent = RefpointExtent,
+            Tallness = Tallness,
+            Padding = Padding,
+            TitlePadding = TitlePadding,
+            MinDistance = MinDistance,
+            TitleMinDistance = TitleMinDistance,
+            BottomPadding = BottomPadding,
+            Space = Space,
+            TitleSpace = TitleSpace,
+            InverseHooke = InverseHooke,
+            BreakPermission = BreakPermission,
+            PagePermission = PagePermission,
+            TurnPermission = TurnPermission,
+            BreakPenalty = BreakPenalty,
+            PagePenalty = PagePenalty,
+            TurnPenalty = TurnPenalty,
+            IsTitle = IsTitle,
+            CompressedLinesCount = CompressedLinesCount,
+            CompressedNontitleLinesCount = CompressedNontitleLinesCount,
+            LastMarkupLine = LastMarkupLine,
+            FirstMarkupLine = FirstMarkupLine,
+            TightSpacing = TightSpacing,
+        };
+
+        copy.FootnoteHeights.AddRange(FootnoteHeights);
+        copy.InNoteHeights.AddRange(InNoteHeights);
+        return copy;
+    }
+
     /// <summary>Gets the full height of the line: both halves of the shape united.</summary>
     /// <returns>The height.</returns>
     public double FullHeight()

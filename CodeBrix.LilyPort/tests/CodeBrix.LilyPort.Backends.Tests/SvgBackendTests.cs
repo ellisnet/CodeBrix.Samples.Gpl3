@@ -399,20 +399,49 @@ public class SvgBackendTests
     }
 
     [Fact]
-    public void a_document_is_sized_from_the_stencil_extents()
+    public void a_documents_mm_size_is_the_stencil_extents_scaled_by_output_scale()
     {
         //Arrange
+        // framework-svg.scm's output-stencil: svg-width = output-scale * device-width.
+        // A 10-unit-wide stencil at the default output-scale of 1.7573 is 17.573mm, which
+        // is how an A4 page comes out 210mm wide rather than 119.5. This test asserted
+        // the UNSCALED figure until EPG16 (2026-08-08), which is to say it fenced the
+        // divergence in place.
         Stencil stencil = Lookup.FilledBox(UnitBox(0, 10, 0, 4));
-        SvgBackend backend = new SvgBackend();
+        SvgBackend backend = new SvgBackend { UnitLength = 1.7573 };
 
         //Act
         string svg = backend.RenderDocument(stencil);
 
         //Assert
         svg.Should().StartWith("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
-        svg.Should().Contain("width=\"10.0000mm\" height=\"4.0000mm\"");
+        svg.Should().Contain("width=\"17.5730mm\" height=\"7.0292mm\"");
+
+        // THE VIEW BOX IS NOT SCALED, and that asymmetry is the point: upstream passes
+        // the raw extents to it, so the document declares its real millimetre size while
+        // its coordinates stay in staff spaces. Scaling both would render identically and
+        // put every coordinate in the file at the wrong magnitude.
         svg.Should().Contain("viewBox=\"0.0000 -4.0000 10.0000 4.0000\"");
         svg.TrimEnd().Should().EndWith("</svg>");
+    }
+
+    [Fact]
+    public void a_document_at_unit_length_one_is_sized_from_the_stencil_extents()
+    {
+        //Arrange
+        // The control for the test above. At an output-scale of 1 the two figures
+        // coincide, so a build that dropped the factor again would still pass here --
+        // which is exactly why the scaled case is asserted separately rather than this
+        // one being trusted to catch it.
+        Stencil stencil = Lookup.FilledBox(UnitBox(0, 10, 0, 4));
+        SvgBackend backend = new SvgBackend { UnitLength = 1.0 };
+
+        //Act
+        string svg = backend.RenderDocument(stencil);
+
+        //Assert
+        svg.Should().Contain("width=\"10.0000mm\" height=\"4.0000mm\"");
+        svg.Should().Contain("viewBox=\"0.0000 -4.0000 10.0000 4.0000\"");
     }
 
     [Fact]

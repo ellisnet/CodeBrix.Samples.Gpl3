@@ -162,4 +162,87 @@ public class Score
     /// </summary>
     /// <param name="module">The header module.</param>
     public void SetHeader(object module) => _header = module;
+
+    /// <summary>
+    /// Renders the score under a book's paper: runs the translators once per output
+    /// definition the score carries, and answers the resulting outputs.
+    /// <para>
+    /// A score with NO output definitions of its own still renders ONCE, under the book's
+    /// default — that is what upstream's <c>for (i = 0; !i || i &lt; count; i++)</c> loop
+    /// says, and it is the ordinary case: a plain <c>\score { ... }</c> carries no
+    /// <c>\layout</c> block and must still produce a page.
+    /// </para>
+    /// <para>
+    /// Only a <c>layout</c> definition is RESCALED. A <c>\midi</c> block has no dimensions
+    /// to scale, and the scale itself is 1 unless the book's definition is a real
+    /// <c>paper</c> block.
+    /// </para>
+    /// <para>
+    /// Landed with EPG16 (2026-08-08), and its absence is why this file's ledger row read
+    /// <c>ported</c> while the rendering half was hollow — the same shape EPG15 found in
+    /// five files at once.
+    /// </para>
+    /// </summary>
+    /// <param name="layoutBook">The book's paper definition.</param>
+    /// <param name="defaultDef">The layout to use when the score carries none.</param>
+    /// <returns>The music outputs, as a Scheme list, in definition order.</returns>
+    public object BookRendering(OutputDef layoutBook, OutputDef defaultDef)
+    {
+        if (ErrorFound)
+        {
+            return Nil.Instance;
+        }
+
+        double scale = 1.0;
+
+        if (layoutBook != null
+            && ReferenceEquals(layoutBook.CVariable("output-def-kind"), PaperSymbol))
+        {
+            scale = Bootstrap.SchemeConvert.ToDouble(layoutBook.CVariable("output-scale"), 1.0);
+        }
+
+        List<object> outputs = new List<object>();
+
+        int outdefCount = _defs.Count;
+
+        for (int i = 0; i == 0 || i < outdefCount; i++)
+        {
+            OutputDef def = outdefCount != 0 ? _defs[i] : defaultDef;
+            if (def == null)
+            {
+                continue;
+            }
+
+            OutputDef scaled = def;
+            if (ReferenceEquals(def.CVariable("output-def-kind"), LayoutSymbol))
+            {
+                scaled = Bootstrap.OutputPrimitives.ScaleOutputDef(def, scale);
+                scaled.Parent = layoutBook;
+            }
+
+            Translation.ContextDef globalDef
+                = Translation.ContextDef.FindContextDef(scaled, GlobalSymbol);
+            if (globalDef == null)
+            {
+                continue;
+            }
+
+            Translation.GlobalContext global
+                = new Translation.GlobalContext(scaled, globalDef);
+            global.MakeGlobalTranslator();
+            global.Iterate(_music as Music.MusicObject);
+
+            object output = Bootstrap.OutputPrimitives.FormatOutput(global);
+            if (output != null && !(output is Nil))
+            {
+                outputs.Add(output);
+            }
+        }
+
+        return Pair.ListFrom(outputs);
+    }
+
+    private static readonly Symbol PaperSymbol = Symbol.Intern("paper");
+    private static readonly Symbol LayoutSymbol = Symbol.Intern("layout");
+    private static readonly Symbol GlobalSymbol = Symbol.Intern("Global");
 }

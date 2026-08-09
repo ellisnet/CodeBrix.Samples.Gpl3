@@ -61,13 +61,26 @@ public class PaperColumnEngraver : Engraver
     private static readonly Symbol ForbidBreakSymbol = Symbol.Intern("forbidBreak");
     private static readonly Symbol ForceBreakSymbol = Symbol.Intern("forceBreak");
     private static readonly Symbol ScoreSymbol = Symbol.Intern("Score");
+    private static readonly Symbol BreakEventSymbol = Symbol.Intern("break-event");
+    private static readonly Symbol LabelEventSymbol = Symbol.Intern("label-event");
+    private static readonly Symbol ClassSymbol = Symbol.Intern("class");
+    private static readonly Symbol BreakPenaltySymbol = Symbol.Intern("break-penalty");
+    private static readonly Symbol BreakPermissionSymbol = Symbol.Intern("break-permission");
+    private static readonly Symbol PageLabelSymbol = Symbol.Intern("page-label");
+    private static readonly Symbol LabelsSymbol = Symbol.Intern("labels");
+    private static readonly Symbol MeasureStartNowSymbol = Symbol.Intern("measureStartNow");
+    private static readonly Symbol MeasureLengthGrobSymbol = Symbol.Intern("measure-length");
 
     private readonly List<Item> _items = new List<Item>();
+    private readonly List<StreamEvent> _breakEvents = new List<StreamEvent>();
+    private readonly List<StreamEvent> _labelEvents = new List<StreamEvent>();
 
     private SystemGrob _system;
     private PaperColumn _commandColumn;
     private PaperColumn _musicalColumn;
     private bool _skipTypesettingAtStartOfTimestep;
+    private bool _firstTime = true;
+    private bool _haveTiming;
     private int _breaks;
 
     /// <summary>Initializes the engraver in a context.</summary>
@@ -92,14 +105,37 @@ public class PaperColumnEngraver : Engraver
         _system = GetProperty(RootSystemSymbol) as SystemGrob;
     }
 
-    /// <summary>Records whether typesetting is being skipped, for the whole timestep.</summary>
+    /// <summary>Starts listening for the break and label events a score writes by hand.</summary>
+    public override void ConnectToContext()
+    {
+        base.ConnectToContext();
+        ListenTo(BreakEventSymbol, ListenBreak);
+        ListenTo(LabelEventSymbol, ListenLabel);
+    }
+
+    /// <summary>
+    /// Records whether typesetting is being skipped, for the whole timestep, and drops
+    /// the previous timestep's break events.
+    /// </summary>
     public override void StartTranslationTimestep()
-        => _skipTypesettingAtStartOfTimestep
+    {
+        _breakEvents.Clear();
+        _skipTypesettingAtStartOfTimestep
             = SchemeUtilities.ToBool(GetProperty(SkipTypesettingSymbol));
+    }
 
     /// <summary>Makes this timestep's pair of columns and publishes them.</summary>
     public override void PreProcessMusic()
     {
+        if (_firstTime)
+        {
+            _firstTime = false;
+
+            // internalBarNumber is evidence that Timing_translator is working in this
+            // context. Not finding it means that we are processing a polymetric score.
+            _haveTiming = Context?.WhereDefined(InternalBarNumberSymbol, out object _) != null;
+        }
+
         /* Use the value of skipTypesetting at the start of this time step.
            The effect is that columns are created at the beginning of a
            skipped section, and when music stops being skipped, the columns
@@ -124,7 +160,118 @@ public class PaperColumnEngraver : Engraver
             _system.SetBound(Direction.Negative, _commandColumn);
             _commandColumn.SetProperty(LineBreakPermissionSymbol, AllowSymbol);
         }
+
+        HandleManualBreaks(false);
     }
+
+    /// <summary>
+    /// Hangs this timestep's page labels on the command column, and records the measure
+    /// length in the first command column of every measure.
+    /// </summary>
+    public override void ProcessMusic()
+    {
+        foreach (StreamEvent labelEvent in _labelEvents)
+        {
+            object label = labelEvent.GetProperty(PageLabelSymbol);
+            object labels = _commandColumn?.GetProperty(LabelsSymbol);
+            _commandColumn?.SetProperty(LabelsSymbol, new Pair(label, labels ?? Nil.Instance));
+        }
+
+        // Upstream's own note, kept: this cannot be done in start_translation_timestep
+        // because meter changes may occur between there and here. In polymetric scores
+        // measureStartNow is never set in this context, so a legacy condition stands in
+        // -- upstream's TODO, and its issue #4633, come across with it.
+        bool measureStartNow
+            = _haveTiming
+                ? SchemeUtilities.ToBool(GetProperty(MeasureStartNowSymbol))
+                : !MeasureTiming.MeasurePosition(Context).MainPart.IsNonZero;
+
+        if (measureStartNow)
+        {
+            Moment mlen = new Moment(MeasureTiming.MeasureLength(Context));
+            if (GetProperty(CurrentCommandColumnSymbol) is Grob column)
+            {
+                column.SetProperty(MeasureLengthGrobSymbol, mlen);
+            }
+            else
+            {
+                Warn.ProgrammingError("No command column?");
+            }
+        }
+    }
+
+    /// <summary>
+    /// Applies every manual <c>\break</c>, <c>\noBreak</c>, <c>\pageBreak</c>,
+    /// <c>\pageTurn</c> and their no- and allow- siblings to the command column —
+    /// <c>Paper_column_engraver::handle_manual_breaks</c>.
+    /// <para>
+    /// NOT PORTED UNTIL EPG15's CLOSE-OUT (2026-08-08), and invisible before it: with no
+    /// permission-stripping block in <see cref="StopTranslationTimestep"/> every column
+    /// was breakable anyway, so a score asking for a break got one by accident and a
+    /// score forbidding one was ignored. The strip landed with the CARRY-FORWARD
+    /// session's stall fix, which is what made the gap visible.
+    /// </para>
+    /// </summary>
+    /// <param name="onlyDoPermissions">
+    /// When <see langword="true"/>, penalties are ignored and only the event's
+    /// permission is applied — the shape <c>finalize</c> needs, where the score's end
+    /// has already granted its own permissions.
+    /// </param>
+    private void HandleManualBreaks(bool onlyDoPermissions)
+    {
+        foreach (StreamEvent breakEvent in _breakEvents)
+        {
+            string name = (breakEvent.GetProperty(ClassSymbol) is Pair classes
+                           && classes.Car is Symbol nameSym)
+                ? nameSym.Name
+                : null;
+            int end = name != null ? name.LastIndexOf("-event", System.StringComparison.Ordinal) : -1;
+            if (end <= 0)
+            {
+                Warn.ProgrammingError(
+                    "Paper_column_engraver doesn't know about this break-event");
+                return;
+            }
+
+            string prefix = name.Substring(0, end);
+            Symbol permSymbol = Symbol.Intern(prefix + "-permission");
+            Symbol penSymbol = Symbol.Intern(prefix + "-penalty");
+
+            object currentPenalty = _commandColumn?.GetProperty(penSymbol);
+            object penalty = breakEvent.GetProperty(BreakPenaltySymbol);
+            object permission = breakEvent.GetProperty(BreakPermissionSymbol);
+            bool forceBreakPermission;
+
+            if (!onlyDoPermissions && Bootstrap.SchemeConvert.IsNumber(penalty))
+            {
+                double newPenalty
+                    = ReadPenalty(currentPenalty)
+                      + Bootstrap.SchemeConvert.ToDouble(penalty, "break-penalty");
+                _commandColumn?.SetProperty(penSymbol, newPenalty);
+                _commandColumn?.SetProperty(permSymbol, AllowSymbol);
+                forceBreakPermission = true;
+            }
+            else
+            {
+                _commandColumn?.SetProperty(permSymbol, permission ?? Nil.Instance);
+                forceBreakPermission = !(permission is null || permission is Nil);
+            }
+
+            if (forceBreakPermission)
+            {
+                Context?.SetProperty(ForceBreakSymbol, true);
+            }
+        }
+    }
+
+    private static double ReadPenalty(object value)
+        => Bootstrap.SchemeConvert.IsNumber(value)
+            ? Bootstrap.SchemeConvert.ToDouble(value, "break-penalty")
+            : 0.0;
+
+    private void ListenBreak(StreamEvent ev) => _breakEvents.Add(ev);
+
+    private void ListenLabel(StreamEvent ev) => _labelEvents.Add(ev);
 
     /// <summary>Collects every item announced this timestep.</summary>
     /// <param name="info">The announcement record.</param>
@@ -203,6 +350,8 @@ public class PaperColumnEngraver : Engraver
         Context score = Context?.FindContextAbove(ScoreSymbol);
         score?.UnsetProperty(ForbidBreakSymbol);
         score?.UnsetProperty(ForceBreakSymbol);
+
+        _labelEvents.Clear();
     }
 
     /// <summary>
@@ -219,6 +368,9 @@ public class PaperColumnEngraver : Engraver
         // At the end of the score, allow page breaks and turns by default, but...
         _commandColumn.SetProperty(PageBreakPermissionSymbol, AllowSymbol);
         _commandColumn.SetProperty(PageTurnPermissionSymbol, AllowSymbol);
+
+        // ...allow the user to override them.
+        HandleManualBreaks(true);
 
         // On the other hand, line breaks are always allowed at the end of a score,
         // even if they try to stop us.

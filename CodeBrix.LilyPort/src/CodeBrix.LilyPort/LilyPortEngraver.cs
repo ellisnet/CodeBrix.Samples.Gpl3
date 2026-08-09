@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using CodeBrix.LilyPort.Backends;
 using CodeBrix.LilyPort.Engine;
+using CodeBrix.LilyPort.Engine.Bootstrap;
 using CodeBrix.LilyPort.Engine.Layout;
 using CodeBrix.LilyPort.Engine.Music;
 using CodeBrix.LilyPort.Engine.Objects;
@@ -96,6 +97,7 @@ public static class LilyPortEngraver
         // reports the root, so a probe against empty input behaves as it did.
         PaperScore paperScore = scoreEngraver?.PaperScore;
         Stencil stencil = Stencil.Empty;
+        int lineCount = 0;
 
         if (paperScore != null)
         {
@@ -110,17 +112,42 @@ public static class LilyPortEngraver
             // The stencil comes OUT of the paper system rather than being asked for a
             // second time: GetPaperSystemStencil runs PostProcessing, which TRANSLATES the
             // system, so calling it twice would move the music twice.
-            if (paperSystems.Count > 0)
+            //
+            // EVERY line is drawn, not just the first (EPG15 close-out, 2026-08-08). Until
+            // then this took paperSystems[0] and threw the rest away, which was invisible
+            // while PlaceColumnsOnOneLine made every score one line and became the whole
+            // of EPG15's visible effect the moment line breaking landed: the port CHOSE
+            // three lines for break.ly and drew one of them.
+            //
+            // THE FIXED PADDING IS RETIRED (EPG16, 2026-08-09). Until now the lines were
+            // stacked at a hardcoded 4.0 — an EPG15-era stand-in for page layout, from
+            // before there was any. The offsets come from the REAL Page_layout_problem
+            // now, so lines sit where their SKYLINES allow rather than at an invented
+            // constant, and a line with nothing above it no longer reserves the same gap
+            // as one carrying a row of dynamics.
+            //
+            // The problem is built with NO paper book and NO page, which is upstream's own
+            // supported shape for a book-less layout problem and is the honest one here:
+            // this API engraves ONE SCORE against an UNSCALED layout and has no page to
+            // put it on, so there is nothing to read system-system-spacing off. Anything
+            // that wants the paper's real spacing wants a book, and that path is
+            // BatchRunner — which is what the regression harness and Lily.Shell both use.
+            List<Stencil> lines = new List<Stencil>();
+            foreach (Prob paperSystem in paperSystems)
             {
-                stencil = PaperSystem.GetStencil(paperSystems[0]);
+                lines.Add(PaperSystem.GetStencil(paperSystem));
             }
+
+            stencil = StackLinesByLayoutProblem(paperSystems, lines);
+            lineCount = paperSystems.Count;
         }
         else if (system != null)
         {
             stencil = system.GetPaperSystemStencil();
+            lineCount = 1;
         }
 
-        return new EngraveResult(global, scoreEngraver, system, stencil);
+        return new EngraveResult(global, scoreEngraver, system, stencil, lineCount);
     }
 
     /// <summary>Engraves a music tree straight to an SVG document.</summary>
@@ -129,6 +156,57 @@ public static class LilyPortEngraver
     /// <returns>The SVG document text.</returns>
     public static string EngraveToSvg(MusicObject music, OutputDef layout = null)
         => new SvgBackend().RenderDocument(Engrave(music, layout).Stencil);
+
+    /// <summary>
+    /// Places a score's lines at the offsets <c>Page_layout_problem</c> chooses for them.
+    /// </summary>
+    /// <param name="paperSystems">The paper systems, in order.</param>
+    /// <param name="lines">Their stencils, already extracted.</param>
+    /// <returns>The combined drawing.</returns>
+    private static Stencil StackLinesByLayoutProblem(
+        IReadOnlyList<Prob> paperSystems, IReadOnlyList<Stencil> lines)
+    {
+        if (lines.Count == 0)
+        {
+            return Stencil.Empty;
+        }
+
+        Stencil combined = lines[0];
+        if (lines.Count == 1)
+        {
+            return combined;
+        }
+
+        PageLayoutProblem problem
+            = new PageLayoutProblem(null, null, Pair.ListFrom(paperSystems));
+
+        // Ragged, because a book-less problem has no page to fill: the springs would
+        // otherwise be stretched against the placeholder page height.
+        List<object> offsets = Pair.ToList(problem.Solution(true));
+
+        for (int i = 1; i < lines.Count; i++)
+        {
+            if (i >= offsets.Count)
+            {
+                // Fewer offsets than lines can only mean the solver refused the problem.
+                // Falling back to the stand-in would hide that, so say so and stop.
+                Flower.Warn.ProgrammingError(
+                    "page layout answered fewer offsets than there are lines");
+                break;
+            }
+
+            // The offsets are distances DOWN from the first line's reference point, which
+            // is the direction Y decreases in.
+            Stencil line = lines[i];
+            line.TranslateAxis(
+                -SchemeConvert.ToDouble(offsets[i], 0.0)
+                + SchemeConvert.ToDouble(offsets[0], 0.0),
+                Flower.Axis.Y);
+            combined.AddStencil(line);
+        }
+
+        return combined;
+    }
 
     private static ScoreEngraver FindScoreEngraver(Context context)
     {
@@ -162,17 +240,20 @@ public sealed class EngraveResult
     /// <param name="global">The root context the run used.</param>
     /// <param name="scoreEngraver">The score engraver, or null when none was created.</param>
     /// <param name="system">The system, or null when nothing was engraved.</param>
-    /// <param name="stencil">The system's stencil.</param>
+    /// <param name="stencil">The stencil of every line, stacked.</param>
+    /// <param name="lineCount">How many lines the breaker chose.</param>
     public EngraveResult(
         GlobalContext global,
         ScoreEngraver scoreEngraver,
         SystemGrob system,
-        Stencil stencil)
+        Stencil stencil,
+        int lineCount = 1)
     {
         Global = global;
         ScoreEngraver = scoreEngraver;
         System = system;
         Stencil = stencil;
+        LineCount = lineCount;
     }
 
     /// <summary>Gets the root context the run used.</summary>
@@ -184,8 +265,14 @@ public sealed class EngraveResult
     /// <summary>Gets the one system everything was typeset into.</summary>
     public SystemGrob System { get; }
 
-    /// <summary>Gets the system's stencil.</summary>
+    /// <summary>Gets the stencil of every line this score broke into, stacked.</summary>
     public Stencil Stencil { get; }
+
+    /// <summary>
+    /// Gets how many lines the breaker chose for this score. One for music that fits on
+    /// a single line; more once <c>\break</c> or a full line forces a break.
+    /// </summary>
+    public int LineCount { get; }
 
     /// <summary>Gets the paper score, or null when nothing was engraved.</summary>
     public PaperScore PaperScore => ScoreEngraver?.PaperScore;

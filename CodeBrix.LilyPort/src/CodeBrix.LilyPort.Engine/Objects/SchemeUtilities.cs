@@ -21,6 +21,7 @@
 using System;
 using System.Collections.Generic;
 using CodeBrix.LilyPort.Engine.Bootstrap;
+using CodeBrix.LilyPort.Engine.Translation;
 using CodeBrix.LilyPort.Flower;
 using CodeBrix.LilyScheme;
 using CodeBrix.LilyScheme.Primitives;
@@ -212,6 +213,16 @@ public static class SchemeUtilities
     /// <param name="value">The value to test.</param>
     /// <returns><see langword="true"/> when the value can be applied.</returns>
     public static bool IsProcedure(object value) => value is Procedure || value is IApplicable;
+
+    /// <summary>
+    /// Answers Guile's <c>procedure-with-setter?</c> — an object property built by
+    /// <c>make-object-property</c> is one, and that is how upstream decides whether a
+    /// property category has a deprecation table at all.
+    /// </summary>
+    /// <param name="value">The value to test.</param>
+    /// <returns><see langword="true"/> when the value carries a setter.</returns>
+    public static bool IsProcedureWithSetter(object value)
+        => value is Procedure procedure && procedure.Setter != null;
 
     /// <summary>
     /// Calls a Scheme procedure through the ambient interpreter.
@@ -432,13 +443,164 @@ public static class SchemeUtilities
     /// <c>translation-type?</c>.
     /// </param>
     /// <returns><see langword="true"/> when the assignment is allowed.</returns>
+    /// <remarks>
+    /// This overload DISCARDS any deprecation substitution, which is safe only for the
+    /// categories that have no deprecation table — <c>backend-type?</c> and
+    /// <c>music-type?</c>, the only two upstream leaves unwired (<c>scm/lily.scm</c>
+    /// links <c>deprecated-setter-object-property</c> for <c>translation-type?</c>
+    /// alone). A <c>translation-type?</c> caller must use the overload that hands the
+    /// checked symbol and value back.
+    /// </remarks>
     public static bool TypeCheckAssignment(Symbol symbol, object value, Symbol typeSymbol)
+        => TypeCheckAssignment(symbol, value, typeSymbol, out Symbol _, out object _);
+
+    /// <summary>
+    /// Type-checks a property assignment and hands back the symbol and value that
+    /// should actually be written — which are NOT always the ones passed in, because a
+    /// deprecated property redirects to its replacement and converts its value on the
+    /// way.
+    /// </summary>
+    /// <param name="symbol">The property being set.</param>
+    /// <param name="value">The value being assigned.</param>
+    /// <param name="typeSymbol">
+    /// Which family of properties this is: <c>music-type?</c>, <c>backend-type?</c> or
+    /// <c>translation-type?</c>.
+    /// </param>
+    /// <param name="checkedSymbol">The property to write, or <see langword="null"/>.</param>
+    /// <param name="checkedValue">The value to write.</param>
+    /// <returns><see langword="true"/> when the assignment is allowed.</returns>
+    public static bool TypeCheckAssignment(
+        Symbol symbol,
+        object value,
+        Symbol typeSymbol,
+        out Symbol checkedSymbol,
+        out object checkedValue)
     {
+        InternalTypeCheck(symbol, value, false, typeSymbol, out checkedSymbol, out checkedValue);
+        return checkedSymbol != null;
+    }
+
+    /// <summary>
+    /// The unset half of the same check — upstream's <c>type_check_unset</c>.
+    /// <para>
+    /// It exists for ONE reason: a deprecated property has to be unset under its
+    /// REPLACEMENT'S name, because that is where the value actually lives. Skipping the
+    /// check leaves the replacement set, which is the opposite of what was asked and
+    /// says nothing about it.
+    /// </para>
+    /// </summary>
+    /// <param name="symbol">The property being unset.</param>
+    /// <param name="typeSymbol">Which family of properties this is.</param>
+    /// <returns>The property to remove, or <see langword="null"/> when refused.</returns>
+    public static Symbol TypeCheckUnset(Symbol symbol, Symbol typeSymbol)
+    {
+        InternalTypeCheck(symbol, null, true, typeSymbol, out Symbol checkedSymbol, out object _);
+        return checkedSymbol;
+    }
+
+    private static void InternalTypeCheck(
+        Symbol symbol,
+        object value,
+        bool unset,
+        Symbol typeSymbol,
+        out Symbol checkedSymbol,
+        out object checkedValue)
+    {
+        checkedSymbol = null;
+        checkedValue = Unspecified.Instance;
+
         if (symbol == null)
         {
-            return false;
+            return;
         }
 
+        Interpreter interpreter = LilyPondScheme.Current;
+        if (interpreter == null)
+        {
+            // Without a live interpreter there is nothing to check against. Allowing
+            // the assignment keeps the object model usable from plain unit tests.
+            checkedSymbol = symbol;
+            checkedValue = value;
+            return;
+        }
+
+        // ⚠ THE PREDICATE LOOKUP COMES FIRST, AND THE ORDER IS THE WHOLE POINT.
+        // The port used to run value_type_check's short-circuits ('()/#f/*unspecified*,
+        // and backend-type?'s procedures) BEFORE asking whether the property exists, so
+        // an unknown name carrying any of those values was accepted in silence and the
+        // deprecation path below was unreachable for exactly the cases that need it most
+        // — `\unset' passes no value at all. Upstream asks for the predicate first and
+        // only a property that HAS one gets the short-circuits.
+        object predicate = ObjectProperty(interpreter, symbol, typeSymbol);
+        if (predicate is Procedure)
+        {
+            if (unset || ValueTypeCheck(interpreter, symbol, value, typeSymbol, predicate))
+            {
+                checkedSymbol = symbol;
+                checkedValue = value;
+            }
+
+            return;
+        }
+
+        // THE DEPRECATED-PROPERTY PATH (EPG16, 2026-08-09). Until now the port stopped at
+        // the warning below, and the comment where this code goes said so: "until the
+        // deprecation path is ported the property is simply unknown". The cost was not a
+        // missing warning — `\unset Timing.<deprecated>' was DISCARDED, so a file that
+        // set skipTypesetting and then unset it through the deprecated alias never turned
+        // typesetting back on and produced NO PAGES AT ALL.
+        //
+        // scm/lily.scm wires deprecated-setter-object-property for `translation-type?'
+        // ALONE and says why, so the category is threaded through rather than assumed;
+        // the two unwired categories fall past this to the warning exactly as upstream.
+        object objectProperty = DeprecatedProperty.SetterObjectProperty(typeSymbol);
+        if (IsProcedureWithSetter(objectProperty))
+        {
+            // desc is (old-type? old->new 'newSymbol warning)
+            object description = DeprecatedProperty.SetterDescription(symbol, objectProperty);
+            if (IsSchemeTrue(description))
+            {
+                if (unset)
+                {
+                    // Nothing to convert: the caller is removing the value, and the value
+                    // lives under the REPLACEMENT'S name.
+                    checkedSymbol = Nth(description, 2) as Symbol;
+                    checkedValue = value;
+                    return;
+                }
+
+                // Check the given value against the DEPRECATED property's type, convert
+                // it, then re-check the converted value against the NEW property's — a
+                // rename is not always only a rename.
+                object oldTypePredicate = Nth(description, 0);
+                if (ValueTypeCheck(interpreter, symbol, value, typeSymbol, oldTypePredicate))
+                {
+                    object newValue = interpreter.Evaluator.Apply(
+                        Nth(description, 1), new[] { value });
+                    InternalTypeCheck(
+                        Nth(description, 2) as Symbol,
+                        newValue,
+                        false,
+                        typeSymbol,
+                        out checkedSymbol,
+                        out checkedValue);
+                }
+
+                return;
+            }
+        }
+
+        Warn.Warning("the property '" + symbol.Name
+            + "' does not exist (perhaps a typing error)");
+    }
+
+    private static bool ValueTypeCheck(
+        Interpreter interpreter,
+        Symbol symbol,
+        object value,
+        Symbol typeSymbol,
+        object predicate)
+    {
         // Upstream's value_type_check opens with "'(), #f and *unspecified* always
         // succeed" — unsetting through a set IS the idiom (Timing does it to
         // whichBar and measureStartNow at every timestep). The port refused all
@@ -468,30 +630,13 @@ public static class SchemeUtilities
 
             if (value is UnpurePureContainer upc)
             {
-                return TypeCheckAssignment(symbol, upc.Unpure, typeSymbol)
-                       && TypeCheckAssignment(symbol, upc.Pure, typeSymbol);
+                return ValueTypeCheck(interpreter, symbol, upc.Unpure, typeSymbol, predicate)
+                       && ValueTypeCheck(interpreter, symbol, upc.Pure, typeSymbol, predicate);
             }
         }
 
-        Interpreter interpreter = LilyPondScheme.Current;
-        if (interpreter == null)
-        {
-            // Without a live interpreter there is nothing to check against. Allowing
-            // the assignment keeps the object model usable from plain unit tests.
-            return true;
-        }
-
-        object predicate = ObjectProperty(interpreter, symbol, typeSymbol);
         if (!(predicate is Procedure))
         {
-            // Upstream then consults the deprecated-property tables before refusing.
-            // Those tables live in Scheme and are consulted the same way; until the
-            // deprecation path is ported the property is simply unknown.
-            Warn.ProgrammingError("Not a "
-                + typeSymbol.Name
-                + ", "
-                + symbol.Name
-                + " (must be one of the properties defined in scm/define-*-properties.scm)");
             return false;
         }
 
@@ -503,6 +648,17 @@ public static class SchemeUtilities
 
         Warn.ProgrammingError("Type check for `" + symbol.Name + "' failed; value found: " + Describe(value));
         return false;
+    }
+
+    private static object Nth(object list, int index)
+    {
+        object cursor = list;
+        for (int i = 0; i < index && cursor is Pair pair; i++)
+        {
+            cursor = pair.Cdr;
+        }
+
+        return cursor is Pair result ? result.Car : Nil.Instance;
     }
 
     /// <summary>Reads a Guile object property from the interpreter's table.</summary>

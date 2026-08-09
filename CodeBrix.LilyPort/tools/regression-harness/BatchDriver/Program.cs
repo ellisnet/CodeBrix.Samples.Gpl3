@@ -139,7 +139,14 @@ public static class Program
                 if (result.SvgPath != null)
                 {
                     produced++;
-                    written.Add(Path.GetFullPath(result.SvgPath));
+
+                    // EVERY page, not just the first: since EPG16 one input file may
+                    // write several, and the self-check compares what is on disk against
+                    // exactly this set.
+                    foreach (string page in result.SvgPaths)
+                    {
+                        written.Add(Path.GetFullPath(page));
+                    }
                     Console.WriteLine(name + "\tSVG\t" + result.SystemCount
                         + " system(s), " + result.ErrorCount + " parse error(s)");
                 }

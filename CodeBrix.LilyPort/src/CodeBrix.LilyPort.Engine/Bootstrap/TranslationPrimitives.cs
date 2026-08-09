@@ -224,6 +224,64 @@ public static class TranslationPrimitives
             GrobPropertyInfo.ApplyPropertyOperations(target, mod.GetMods());
             return Unspecified.Instance;
         });
+
+        // context-def.cc's OWN two bindings, and they are the same bindings-rule gap one
+        // file over: Context_def was ported WHOLE -- Clone, AddContextMod, Lookup and
+        // IsAlias all exist and every C# caller works -- and neither LY_DEFINE over it
+        // was ever registered, so both answered the inert UnportedValue placeholder.
+        //
+        // THE COST WAS NOT A MISSING FEATURE, IT WAS SILENT DESTRUCTION. lily-library's
+        // `context-defs-from-music' -- what EVERY toplevel `\layout' containing a context
+        // modification runs through -- does
+        //     (ly:output-def-set-variable! output-def (car entry)
+        //                                  (ly:context-def-modify (cdr entry) mods))
+        // so each context def the block touched was OVERWRITTEN with the placeholder.
+        // `\layout { \override StaffSymbol.staff-space = 1.23 }' took the layout's context
+        // defs from 43 to 20 -- every one of the 23 that answer to `Bottom' destroyed --
+        // and `\layout { \markLengthOn }' destroyed all four that answer to `Score'. The
+        // score then had no context to engrave into and the file produced NO PAGES AT ALL,
+        // reported only as "cannot create default child context". PORT-COVERAGE had
+        // recorded the risk in as many words: these stubs were "one Scheme call away from
+        // being actively wrong". Found by EPG16, 2026-08-09.
+        interpreter.DefinePrimitive("ly:context-def-lookup", 2, 3, a =>
+        {
+            ContextDef definition = AsContextDef(a[0], "ly:context-def-lookup");
+            if (!(a[1] is Symbol symbol))
+            {
+                throw SchemeErrors.WrongType("ly:context-def-lookup", "symbol", a[1]);
+            }
+
+            object result = definition.Lookup(symbol);
+
+            // Upstream folds SCM_UNDEFINED to '() FIRST, then substitutes the caller's
+            // fallback for a null answer -- so an unknown KEY and a genuinely empty value
+            // both take the fallback. Collapsing those two into one test would answer '()
+            // where upstream answers the fallback.
+            if (result is DefaultArgument)
+            {
+                result = Nil.Instance;
+            }
+
+            return result is Nil && HasDefault(a, 2) ? a[2] : result;
+        });
+
+        interpreter.DefinePrimitive("ly:context-def-modify", 2, 2, a =>
+        {
+            ContextDef original = AsContextDef(a[0], "ly:context-def-modify");
+            ContextMod mod = AsContextMod(a[1], "ly:context-def-modify");
+
+            // "Does not change def" is the documented contract, and it is load-bearing:
+            // the definition being modified is the one the INIT LAYER built and every
+            // later file shares, so mutating it would leak one file's \layout into the
+            // rest of a sweep.
+            ContextDef modified = original.Clone();
+            foreach (object one in Pair.ToList(mod.GetMods()))
+            {
+                modified.AddContextMod(one);
+            }
+
+            return modified;
+        });
     }
 
     private static void InstallStreamEvents(Interpreter interpreter)
@@ -490,6 +548,10 @@ public static class TranslationPrimitives
     private static ContextMod AsContextMod(object value, string procedureName)
         => value as ContextMod
             ?? throw SchemeErrors.WrongType(procedureName, "context modification", value);
+
+    private static ContextDef AsContextDef(object value, string procedureName)
+        => value as ContextDef
+            ?? throw SchemeErrors.WrongType(procedureName, "context definition", value);
 
     private static Translator AsTranslator(object value, string procedureName)
         => value as Translator ?? throw SchemeErrors.WrongType(procedureName, "translator", value);

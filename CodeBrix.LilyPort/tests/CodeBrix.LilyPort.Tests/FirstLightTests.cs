@@ -110,8 +110,21 @@ public class FirstLightTests
         // Track T session recorded.
         result.System.Should().NotBeNull();
         result.PaperScore.Should().NotBeNull();
-        result.PaperScore.RootSystem.Should().BeSameAs(result.System);
         result.System.ElementCount.Should().BeGreaterThan(0);
+
+        // Until EPG15 this asserted RootSystem and System were the SAME object, which
+        // was true only while PlaceColumnsOnOneLine stood in for line breaking. Line
+        // breaking clones the root into one piece per line -- one piece here, since a
+        // single quarter note fits -- and then suicides the root, whose bounds by then
+        // belong to its pieces. So the reported system is the first PIECE, and the
+        // relationship to assert is parentage rather than identity. Asserting the
+        // pieces exist is a STRONGER fence than the old one: a build in which
+        // break_into_pieces silently did nothing would have passed the identity test
+        // and fails this one.
+        SystemGrob root = result.PaperScore.RootSystem;
+        root.Should().NotBeNull();
+        root.BrokenIntos.Should().NotBeEmpty();
+        root.BrokenSystems()[0].Should().BeSameAs(result.System);
     }
 
     [Fact]
@@ -246,13 +259,42 @@ public class FirstLightTests
 
         //Assert
         // Beam_engraver was the example here until EPG10 ported it, then Tie_engraver
-        // until EPG11 did, then Font_size_engraver until EPG14 did.
-        // Spanner_break_forbid_engraver stands in their place -- it is EPG15's, and it
-        // is what now leads the sweep's unported-translator demand list at 3,143 misses.
-        // When EPG15 lands, pick another.
-        missing.Should().Contain("Spanner_break_forbid_engraver");
+        // until EPG11 did, then Font_size_engraver until EPG14 did, then
+        // Spanner_break_forbid_engraver until EPG15 did, then Page_turn_engraver until
+        // EPG16 did. Ligature_bracket_engraver stood in their place until EPG21 landed on
+        // 2026-08-09 -- and there is NO NAME LEFT TO PUT THERE.
+        //
+        // ⚠ THE SENTINEL IS RETIRED BECAUSE THE LIST IS EMPTY. Every translator the real
+        // context tree names for an ordinary quarter note is now one the port can make.
+        // That is a stronger fact than any single name and it is asserted as such: a
+        // sentinel can only catch the ONE name it holds, an empty list catches every name
+        // at once, including one a future context-definition change introduces.
+        //
+        // If this ever fails again, the failure message prints what came back, and that
+        // name is the next group's work -- it does NOT mean the assertion should go back
+        // to naming a sentinel.
+        //
+        // READ THE SCOPE HONESTLY: this is the demand of a DEFAULT Voice/Staff/Score
+        // tree, not of the whole suite. It says nothing about the ancient contexts, which
+        // \consists their own engravers; Epg21Tests fences those five by name.
+        missing.Should().BeEmpty();
         missing.Should().NotContain("Beam_engraver");
         missing.Should().NotContain("Tie_engraver");
+        missing.Should().NotContain("Ligature_bracket_engraver");
+
+        // EPG15's five, on the ported side of the fence since 2026-08-08. The first two
+        // led the entire unported-translator demand list at 4,156 and 4,150 misses per
+        // sweep -- more than any other name in the project.
+        missing.Should().NotContain("Spanner_break_forbid_engraver");
+        missing.Should().NotContain("Forbid_line_break_engraver");
+        missing.Should().NotContain("Pure_from_neighbor_engraver");
+        missing.Should().NotContain("Break_align_engraver");
+        missing.Should().NotContain("Keep_alive_together_engraver");
+
+        // EPG16's two, on the ported side since 2026-08-08. Footnote_engraver led the
+        // demand list among this group's names at 2,524 misses per sweep.
+        missing.Should().NotContain("Footnote_engraver");
+        missing.Should().NotContain("Page_turn_engraver");
 
         // EPG20's, on the ported side of the fence since 2026-08-08. The first three
         // were tied at the TOP of the unported-translator demand list at 4,132 misses

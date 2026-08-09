@@ -63,25 +63,16 @@ public static class Epg8Callbacks
     /// <param name="interpreter">The interpreter to extend.</param>
     private static void InstallSchemeGaps(Interpreter interpreter)
     {
-        // The two PURE height entry points the BarLine spacing path demands the
-        // moment a Bar_engraver exists: BarLine.extra-spacing-height is
-        // pure-from-neighbor-interface::account-for-span-bar, which calls both on
-        // every breakable column. The port has no pure-property machinery yet
-        // (unpure-pure-container.cc, EPG15), so these answer the ORDINARY extents —
-        // the same divergence GrobCallbacks records for the ten pure skyline
-        // callbacks. ly:grob-pure-height belongs to grob-scheme.cc (EPG23's leaf
-        // sweep) and ly:axis-group-interface::pure-height to the already-ported
-        // axis-group-interface.cc; both are recorded under FINDINGS.
-        interpreter.DefinePrimitive("ly:grob-pure-height", 4, 5, a =>
-        {
-            Grob grob = AsGrob(a[0], "ly:grob-pure-height");
-            Grob refp = AsGrob(a[1], "ly:grob-pure-height");
-            return ToPair(grob.Extent(refp, Axis.Y));
-        });
-
-        interpreter.DefinePrimitive("ly:axis-group-interface::pure-height", 3, 3, a =>
-            ToPair(AxisGroupInterface.GenericGroupExtent(
-                AsGrob(a[0], "ly:axis-group-interface::pure-height"), Axis.Y)));
+        // EPG8's two PURE height stand-ins are GONE (EPG15 close-out, 2026-08-08).
+        // They were here because the BarLine spacing path demands both the moment a
+        // Bar_engraver exists -- BarLine.extra-spacing-height is
+        // pure-from-neighbor-interface::account-for-span-bar, which calls them on every
+        // breakable column -- and the port had no pure-property machinery to answer
+        // with, so each returned an ORDINARY extent. EPG15 landed
+        // unpure-pure-container.cc and the pure-height family, and both names are now
+        // registered for real in Epg15Callbacks: ly:grob-pure-height through
+        // Grob.PureYExtent and ly:axis-group-interface::pure-height through
+        // AxisGroupInterfacePure.PureGroupHeight.
 
         // The four stencil constructors scm/bar-line.scm builds every bar line out
         // of. They belong to stencil-scheme.cc (EPG23's leaf sweep; the Stencil type

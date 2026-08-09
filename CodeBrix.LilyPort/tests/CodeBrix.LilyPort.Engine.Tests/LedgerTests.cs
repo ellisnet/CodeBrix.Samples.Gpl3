@@ -329,9 +329,32 @@ public class LedgerTests
         // almost entirely TRANSLATORS, which have no Scheme surface, so the entry-point
         // count moves by fourteen against fourteen files rather than by some larger
         // number. Its bucket is EMPTY.
-        ported.Should().Be(365);
+        //
+        // EPG15 moved TWELVE at its close-out (2026-08-08): its entire group, with no
+        // pull-forward of any other group's FILES. Three LEAVES of grob-scheme.cc came
+        // forward — ly:grob-pure-height, ly:grob-pure-property and
+        // ly:grob-pure-relative-coordinate — and that file keeps its EPG23 disposition
+        // for the same reason stencil-scheme.cc and music-scheme.cc do above. The group
+        // is far larger than twelve rows makes it look: five files whose rows have said
+        // `ported' since EPG0 were hollow on their break-processing halves and were
+        // filled in without changing any disposition (grob.cc, spanner.cc, item.cc,
+        // system.cc, axis-group-interface.cc).
+        //
+        // EPG21 moved TWELVE on 2026-08-09: its entire group, with NO pull-forward of any
+        // other group's files and NO binding forced forward -- the demand loop asked this
+        // group for nothing it did not already own, which is unusual and worth reading as
+        // a property of the group rather than of the session. Ancient notation is a LEAF
+        // of the engine: eight of the twelve rows are translators reached only by an
+        // ancient context's \consists list, and the four grobs are drawn by their own
+        // stencils and referenced by nothing else.
+        //
+        // EPG23 is what remains, at THIRTEEN rows -- every one of them a *-scheme.cc
+        // binding file plus lily-random.cc. That the tail is now entirely bindings is the
+        // shape EPG0 predicted, and it is why EntryPointClosureTests rather than this test
+        // is the measurement that closes G3.
+        ported.Should().Be(406);
         noPort.Should().Be(29);
-        PortLedger.NotYetPorted.Should().HaveCount(54);
+        PortLedger.NotYetPorted.Should().HaveCount(13);
     }
 
     [Fact]

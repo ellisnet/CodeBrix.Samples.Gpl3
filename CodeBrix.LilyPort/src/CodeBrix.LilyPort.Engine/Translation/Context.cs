@@ -463,12 +463,17 @@ public class Context
     /// <param name="value">The value to store.</param>
     public void SetProperty(Symbol symbol, object value)
     {
-        if (!SchemeUtilities.TypeCheckAssignment(symbol, value, TranslationTypeSymbol))
+        // The CHECKED symbol and value are what get written, not the ones passed in: a
+        // deprecated property redirects to its replacement and converts its value on the
+        // way (EPG16, 2026-08-09).
+        if (!SchemeUtilities.TypeCheckAssignment(
+                symbol, value, TranslationTypeSymbol,
+                out Symbol checkedSymbol, out object checkedValue))
         {
             return;
         }
 
-        _properties[symbol] = value;
+        _properties[checkedSymbol] = checkedValue;
     }
 
     /// <summary>Sets a property by name.</summary>
@@ -478,7 +483,14 @@ public class Context
 
     /// <summary>Removes a property from this context.</summary>
     /// <param name="symbol">The property name.</param>
-    public void UnsetProperty(Symbol symbol) => _properties.Remove(symbol);
+    public void UnsetProperty(Symbol symbol)
+    {
+        Symbol checkedSymbol = SchemeUtilities.TypeCheckUnset(symbol, TranslationTypeSymbol);
+        if (checkedSymbol != null)
+        {
+            _properties.Remove(checkedSymbol);
+        }
+    }
 
     /// <summary>Returns this context's own properties as an alist.</summary>
     /// <returns>The alist, newest binding first.</returns>
@@ -1250,18 +1262,22 @@ public class Context
         }
 
         object value = streamEvent.GetProperty(ValueSymbol);
-        if (!SchemeUtilities.TypeCheckAssignment(symbol, value, TranslationTypeSymbol))
+        if (!SchemeUtilities.TypeCheckAssignment(
+                symbol, value, TranslationTypeSymbol,
+                out Symbol checkedSymbol, out object checkedValue))
         {
             return;
         }
 
+        // The finalization reverts what was WRITTEN. Recording the deprecated name here
+        // would restore nothing and leave the replacement set past its \once.
         if (SchemeUtilities.ToBool(streamEvent.GetProperty(OnceSymbol)))
         {
-            AddGlobalFinalization(MakeRevertFinalization(symbol));
+            AddGlobalFinalization(MakeRevertFinalization(checkedSymbol));
         }
 
         // Bypassing SetProperty avoids repeating the type check.
-        _properties[symbol] = value;
+        _properties[checkedSymbol] = checkedValue;
     }
 
     private void UnsetPropertyFromEvent(StreamEvent streamEvent)
@@ -1271,12 +1287,21 @@ public class Context
             return;
         }
 
-        if (SchemeUtilities.ToBool(streamEvent.GetProperty(OnceSymbol)))
+        // Upstream type-checks the UNSET too, and it is not a formality: it is the only
+        // thing that turns a deprecated name into the name the value actually lives
+        // under. Without it `\unset Timing.<deprecated>' silently removed nothing.
+        Symbol checkedSymbol = SchemeUtilities.TypeCheckUnset(symbol, TranslationTypeSymbol);
+        if (checkedSymbol == null)
         {
-            AddGlobalFinalization(MakeRevertFinalization(symbol));
+            return;
         }
 
-        _properties.Remove(symbol);
+        if (SchemeUtilities.ToBool(streamEvent.GetProperty(OnceSymbol)))
+        {
+            AddGlobalFinalization(MakeRevertFinalization(checkedSymbol));
+        }
+
+        _properties.Remove(checkedSymbol);
     }
 
     /// <summary>

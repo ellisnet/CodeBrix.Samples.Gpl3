@@ -224,13 +224,13 @@ public class Spanner : Grob
 
         int rank = system.Rank;
         Spanner first = BrokenIntos[0];
-        SystemGrob firstSystem = first.GetSystem();
-        if (firstSystem == null)
-        {
-            return null;
-        }
 
-        int delta = rank - firstSystem.Rank;
+        // EPG14 answered null here rather than dereferencing a first piece with no
+        // system, because the port asked this question before line breaking had run.
+        // Upstream dereferences unconditionally, and the guard is GONE (EPG15 close-out,
+        // 2026-08-08): break_into_pieces gives every piece its system before anything
+        // can ask for one.
+        int delta = rank - first.GetSystem().Rank;
         return delta >= 0 && delta < BrokenIntos.Count ? BrokenIntos[delta] : null;
     }
 

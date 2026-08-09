@@ -100,6 +100,43 @@ public static class LilyPondScheme
     }
 
     /// <summary>
+    /// Looks a name up in a NAMED module — upstream's <c>scm_c_public_ref</c>, and what
+    /// <c>lily-imports.cc</c>'s <c>Module_variable</c> table exists to provide.
+    /// <para>
+    /// Page breaking needs this because <c>make-page</c> and <c>calc-printable-height</c>
+    /// live in <c>(lily page)</c> and nothing imports that module into the engine's current
+    /// one. Resolving the name is also what AUTOLOADS <c>lily/page.scm</c>, so this is the
+    /// only thing that has to happen for the file to be there at all.
+    /// </para>
+    /// <para>
+    /// Looked up fresh on every call for the same reason <see cref="LookupProcedure"/> is:
+    /// the interpreter is process-global and is replaced between tests, so a cached
+    /// procedure would go on running against a dead one without failing.
+    /// </para>
+    /// </summary>
+    /// <param name="moduleName">The module name components, for example <c>lily</c>, <c>page</c>.</param>
+    /// <param name="name">The name to look up in it.</param>
+    /// <returns>The value, or <see langword="null"/> when the module has no such binding.</returns>
+    public static object PublicRef(string[] moduleName, string name)
+    {
+        Interpreter interpreter = Current;
+        if (interpreter == null || moduleName == null || moduleName.Length == 0 || name == null)
+        {
+            return null;
+        }
+
+        object spec = Nil.Instance;
+        for (int i = moduleName.Length; i-- > 0;)
+        {
+            spec = new Pair(Symbol.Intern(moduleName[i]), spec);
+        }
+
+        SchemeModule module = interpreter.Modules.Resolve(spec);
+        Variable variable = module?.Lookup(Symbol.Intern(name));
+        return variable != null && variable.IsBound ? variable.GetValue() : null;
+    }
+
+    /// <summary>
     /// Gets LilyPond's own load order, from <c>scm/lily.scm</c>, filtered to the files
     /// that actually exist.
     /// <para>
@@ -360,6 +397,18 @@ public static class LilyPondScheme
         // on a grob that is otherwise fully working.
         Epg20Callbacks.Install(interpreter);
         Epg15Callbacks.Install(interpreter);
+
+        // EPG16 (2026-08-08): the six page-breaking strategies, Paper_book's accessors and
+        // ly:book-process. These go in AFTER Epg15Callbacks because a page breaker calls
+        // straight into the line breaker EPG15 landed.
+        Epg16Callbacks.Install(interpreter);
+
+        // EPG21 (2026-08-09): the four ancient-notation ligature grobs. Order-independent
+        // of everything above -- every name is its own -- but it must be installed BEFORE
+        // any score runs, because the mensural and vaticana engravers look their
+        // brew-ligature-primitive callbacks up BY NAME at construction time and install
+        // them as the stencil of every head they collect.
+        Epg21Callbacks.Install(interpreter);
 
         // EPG22 (2026-08-07): dispatcher-scheme.cc, pulled forward from EPG23 because
         // \addQuote cannot run without it. It must go in AFTER Epg8Callbacks, which is

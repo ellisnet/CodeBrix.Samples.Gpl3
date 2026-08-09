@@ -150,11 +150,18 @@ public sealed class SvgBackend : IStencilSink
         // first document the port produced. LilyPond's own SVG binds it too.
         document.Append("<svg xmlns=\"http://www.w3.org/2000/svg\"");
         document.Append(" xmlns:xlink=\"http://www.w3.org/1999/xlink\" version=\"1.2\"\n");
+        // THE mm SIZE IS SCALED BY output-scale AND THE VIEW BOX IS NOT (EPG16,
+        // 2026-08-08). framework-svg.scm's output-stencil computes
+        // `svg-width = output-scale * device-width' for the width and height attributes
+        // and passes the UNSCALED extents to the view box, so the document declares its
+        // real millimetre size while its coordinates stay in staff spaces. The port
+        // omitted the factor, which made every page it wrote 1/output-scale of the size
+        // the oracle writes — an A4 page came out 119.5 x 169.0 instead of 210 x 297.
         document.Append(string.Format(
             CultureInfo.InvariantCulture,
             "     width=\"{0}mm\" height=\"{1}mm\"\n",
-            Format(x.Length),
-            Format(y.Length)));
+            Format(x.Length * UnitLength),
+            Format(y.Length * UnitLength)));
 
         // The view box is in LilyPond coordinates with Y already flipped, so the
         // fragment's own numbers need no further adjustment.

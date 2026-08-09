@@ -118,6 +118,47 @@ public static class Epg15Callbacks
             BreakAlignedInterface.CalcBreakVisibility(
                 AsGrob(a[0], "ly:break-aligned-interface::calc-break-visibility")));
 
+        // ----- grob-scheme.cc's PURE leaves -----
+        //
+        // FORCED FORWARD FROM EPG23 by EPG15's own demand loop (2026-08-08), the same way
+        // stencil-scheme.cc's five leaves came forward with EPG14: the file keeps its
+        // EPG23 disposition and only the leaves the pure path asks for land here.
+        //
+        // Two of the three were UNBOUND until the pure path became real. Nothing had asked
+        // for them while Align_interface::get_skylines answered every pure question with an
+        // ORDINARY extent, and the moment it stopped doing that, fourteen files died on
+        // `wrong-type-arg ("-")' against an unported binding -- the whole parenthesize
+        // family, the pitched trill spanners and chord-grid-parentheses.
+        //
+        // ly:grob-pure-height REPLACES EPG8's stand-in, which answered grob.Extent: an
+        // ordinary extent, computed by asking for a STENCIL, for a question whose whole
+        // purpose is to answer without one.
+        interpreter.DefinePrimitive("ly:grob-pure-height", 4, 5, a =>
+        {
+            Grob grob = AsGrob(a[0], "ly:grob-pure-height");
+            Grob refp = AsGrob(a[1], "ly:grob-pure-height");
+            Interval extent = grob.PureYExtent(refp, AsRank(a[2], 0), AsRank(a[3], int.MaxValue));
+            return new Pair(extent.Left, extent.Right);
+        });
+
+        interpreter.DefinePrimitive("ly:grob-pure-property", 4, 5, a =>
+        {
+            Grob grob = AsGrob(a[0], "ly:grob-pure-property");
+            object value = grob.GetPureProperty(
+                AsSymbol(a[1], "ly:grob-pure-property"),
+                AsRank(a[2], 0),
+                AsRank(a[3], int.MaxValue));
+
+            // "If no value is found, return val or '() if val is not specified."
+            return value is Nil && a.Length > 4 ? a[4] : value;
+        });
+
+        interpreter.DefinePrimitive("ly:grob-pure-relative-coordinate", 4, 4, a =>
+            AsGrob(a[0], "ly:grob-pure-relative-coordinate").PureRelativeYCoordinate(
+                AsGrob(a[1], "ly:grob-pure-relative-coordinate"),
+                AsRank(a[2], 0),
+                AsRank(a[3], int.MaxValue)));
+
         // ----- hara-kiri-group-spanner.cc -----
 
         interpreter.DefinePrimitive("ly:hara-kiri-group-spanner::y-extent", 1, 1, a =>
@@ -217,4 +258,14 @@ public static class Epg15Callbacks
         => SchemeConvert.IsNumber(value)
             ? (int)SchemeConvert.ToDouble(value, "column rank")
             : fallback;
+
+    private static Symbol AsSymbol(object value, string procedureName)
+    {
+        if (value is Symbol symbol)
+        {
+            return symbol;
+        }
+
+        throw SchemeErrors.WrongType(procedureName, "symbol", value);
+    }
 }

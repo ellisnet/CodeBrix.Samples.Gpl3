@@ -539,7 +539,7 @@ public sealed class ConstrainedBreaking
     /// break is not.
     /// </para>
     /// </summary>
-    private static object MinPermission(object perm1, object perm2)
+    internal static object MinPermission(object perm1, object perm2)
     {
         if (ReferenceEquals(perm1, ForceSymbol))
         {
