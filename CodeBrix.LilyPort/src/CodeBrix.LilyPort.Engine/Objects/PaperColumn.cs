@@ -27,6 +27,16 @@ using CodeBrix.LilyScheme.Values;
 namespace CodeBrix.LilyPort.Engine.Objects; //was previously: lily/paper-column.cc, lily/include/paper-column.hh;
 
 // Modified by Jeremy Ellis on 2026-08-03 as part of the CodeBrix port.
+// Modified by Jeremy Ellis on 2026-08-11 as part of the CodeBrix port:
+//   - break_align_width's ELSE branch is restored. It was absent, so the loop matched only
+//     the literal `break-alignment' symbol and skipped every named group before it: a
+//     StaffSymbol asks with (staff-bar break-alignment), so `staff-bar' was never consulted
+//     and the answer fell through to the whole BreakAlignment. The function it calls,
+//     Break_alignment_interface::find_nonempty_break_align_group, landed with EPG15 -- this
+//     caller was written while it did not exist and nothing re-checked it afterwards.
+//   - minimum_distance carries upstream's Separation_item::conditional_skyline merge,
+//     restored by the STAFF-LINES session; its "needs Separation_item" note had been
+//     stale since that type landed. See PORT-COVERAGE, STAFF-LINES.
 
 /// <summary>
 /// One horizontal position in the score: everything sounding at the same moment
@@ -275,6 +285,16 @@ public class PaperColumn : Item
                 // extent.
                 break;
             }
+            else
+            {
+                Grob group = BreakAlignmentInterface.FindNonemptyBreakAlignGroup(
+                    breakAlignment, pair.Car);
+                if (group != null)
+                {
+                    align = group;
+                    break;
+                }
+            }
 
             cursor = pair.Cdr;
         }
@@ -306,6 +326,10 @@ public class PaperColumn : Item
         // why each side reads the pair member opposite to its own direction.
         Skyline leftSky = SkylineFacing(left, Direction.Positive);
         Skyline rightSky = SkylineFacing(right, Direction.Negative);
+
+        // The EPG4-era omission of upstream's conditional-skyline merge retired with
+        // the STAFF-LINES session (2026-08-11): its callee had long since landed.
+        rightSky.Merge(SeparationItem.ConditionalSkyline(right, left));
 
         return Math.Max(0.0, leftSky.Distance(rightSky));
     }

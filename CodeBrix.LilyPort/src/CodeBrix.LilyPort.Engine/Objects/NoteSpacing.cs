@@ -27,6 +27,11 @@ using CodeBrix.LilyScheme.Values;
 namespace CodeBrix.LilyPort.Engine.Objects; //was previously: lily/note-spacing.cc, lily/include/note-spacing.hh;
 
 // Modified by Jeremy Ellis on 2026-08-05 as part of the CodeBrix port.
+// Modified by Jeremy Ellis on 2026-08-11 as part of the CodeBrix port:
+//   - stem_dir_correction's stem loop is ported in full, knee_correction included.
+//     It had been hollow behind a stale EPG5/EPG6 absence note, and became reachable
+//     when Paper_column_engraver started acknowledging spacing wishes onto the
+//     columns. See PORT-COVERAGE, STAFF-LINES.
 
 /*
   Adjust the ideal and minimum distance between note columns,
@@ -59,7 +64,9 @@ public static class NoteSpacing
     private static readonly Symbol SameDirectionCorrection
         = Symbol.Intern("same-direction-correction");
 
-    private static bool _stemAbsenceReported;
+    private static readonly Symbol KneeSpacingCorrection
+        = Symbol.Intern("knee-spacing-correction");
+
     private static bool _headAbsenceReported;
     private static bool _staffBarGroupAbsenceReported;
 
@@ -161,11 +168,10 @@ public static class NoteSpacing
     /// Adds the optical correction that up-stem/down-stem pairs need: the combination
     /// up-then-down wants extra room, down-then-up less.
     /// <para>
-    /// NAMED ABSENCE, recorded in PORT-COVERAGE: every measurement here comes off a
-    /// note column's STEM, and stems are EPG6 (note columns EPG5). The structure is
-    /// ported in full — including the bar-line substitution, which needs no stem — and
-    /// the moment a real note column turns up the method takes upstream's own
-    /// give-up path, which leaves the space unchanged.
+    /// The EPG5/EPG6-era named absence here retired with the STAFF-LINES session
+    /// (2026-08-11): the stem loop was hollow — its callees had all long since landed —
+    /// and it became reachable the moment <c>Paper_column_engraver</c> started
+    /// acknowledging spacing wishes onto the columns.
     /// </para>
     /// </summary>
     /// <param name="me">The note spacing wish.</param>
@@ -180,6 +186,11 @@ public static class NoteSpacing
         DrulArray<IReadOnlyList<Grob>> props = new DrulArray<IReadOnlyList<Grob>>(
             PointerGroupInterface.ExtractGrobSet(me, LeftItems),
             PointerGroupInterface.ExtractGrobSet(me, RightItems));
+
+        DrulArray<Spanner> beamsDrul = new DrulArray<Spanner>(null, null);
+        DrulArray<Grob> stemsDrul = new DrulArray<Grob>(null, null);
+
+        bool accRight = false;
 
         Interval barXextent = default;
         Interval barYextent = default;
@@ -209,19 +220,55 @@ public static class NoteSpacing
                     continue;
                 }
 
-                // Everything from here on reads the note column's stem, which is EPG6.
-                // Upstream RETURNS from this method the moment it cannot determine a
-                // stem, leaving *space untouched; that is the path taken here.
-                if (!_stemAbsenceReported)
+                /*
+                  Find accidentals which are sticking out of the right side.
+                */
+                if (d == Direction.Positive)
                 {
-                    _stemAbsenceReported = true;
-                    Warn.ProgrammingError(
-                        "Note_spacing::stem_dir_correction needs Note_column (EPG5) and"
-                        + " Stem (EPG6); taking upstream's own undeterminable-stem exit,"
-                        + " which leaves the space unchanged");
+                    accRight = accRight || NoteColumn.Accidentals(it) != null;
                 }
 
-                return;
+                Grob stem = NoteColumn.GetStem(it);
+
+                if (stem == null || !stem.IsLive || Stem.IsInvisible(stem))
+                {
+                    return;
+                }
+
+                stemsDrul[d] = stem;
+                beamsDrul[d] = Stem.GetBeam(stem);
+
+                Direction stemDir = DirectionalElementInterface.GetGrobDirection(stem);
+                if (stemDirs[d].IsNonZero && stemDirs[d] != stemDir)
+                {
+                    return;
+                }
+
+                stemDirs[d] = stemDir;
+
+                /*
+                  Correction doesn't seem appropriate  when there is a large flag
+                  hanging from the note.
+                */
+                if (d == Direction.Negative && Stem.DurationLog(stem) > 2
+                    && Stem.GetBeam(stem) == null)
+                {
+                    return;
+                }
+
+                Interval hp = Stem.HeadPositions(stem);
+                if (!hp.IsEmpty)
+                {
+                    double ss = StaffSymbolReferencer.StaffSpace(stem);
+                    // The read is PURE (upstream: `stem->pure_y_extent (stem, 0,
+                    // INT_MAX)`) — this runs during horizontal spacing, before line
+                    // breaking, where an ordinary extent would ask for a stencil.
+                    stemPosns[d] = stem.PureYExtent(stem, 0, int.MaxValue) * (2 / ss);
+
+                    Interval united = headPosns[d];
+                    united.Unite(hp);
+                    headPosns[d] = united;
+                }
             }
         }
 
@@ -236,14 +283,20 @@ public static class NoteSpacing
 
         if (Direction.DirectedOpposite(stemDirs[Direction.Negative], stemDirs[Direction.Positive]))
         {
-            // The knee case needs the right-hand STEM (EPG6); with no note columns
-            // reachable this branch cannot be entered, because both stem directions are
-            // still zero and directed_opposite is false for them.
-            correction = DifferentDirectionsCorrection(me, stemPosns, stemDirs[Direction.Negative]);
-
-            if (!barYextent.IsEmpty)
+            if (beamsDrul[Direction.Negative] != null
+                && ReferenceEquals(beamsDrul[Direction.Negative], beamsDrul[Direction.Positive]))
             {
-                correction *= 0.5;
+                correction = KneeCorrection(me, stemsDrul[Direction.Positive], increment);
+            }
+            else
+            {
+                correction = DifferentDirectionsCorrection(
+                    me, stemPosns, stemDirs[Direction.Negative]);
+
+                if (!barYextent.IsEmpty)
+                {
+                    correction *= 0.5;
+                }
             }
         }
 
@@ -251,7 +304,8 @@ public static class NoteSpacing
           Only apply same direction correction if there are no
           accidentals sticking out of the right hand side.
         */
-        else if (Direction.DirectedSame(stemDirs[Direction.Negative], stemDirs[Direction.Positive]))
+        else if (Direction.DirectedSame(stemDirs[Direction.Negative], stemDirs[Direction.Positive])
+            && !accRight)
         {
             correction = SameDirectionCorrectionOf(me, headPosns);
         }
@@ -284,6 +338,27 @@ public static class NoteSpacing
         }
 
         return ret;
+    }
+
+    private static double KneeCorrection(Grob noteSpacing, Grob rightStem, double increment)
+    {
+        double noteHeadWidth = increment;
+        Item head = rightStem != null ? Stem.SupportHead(rightStem) as Item : null;
+
+        if (head != null)
+        {
+            Interval headExtent = head.Extent(head.GetColumn(), Axis.X);
+
+            if (!headExtent.IsEmpty)
+            {
+                noteHeadWidth = headExtent[Direction.Positive];
+            }
+
+            noteHeadWidth -= Stem.Thickness(rightStem);
+        }
+
+        return -noteHeadWidth * DirectionalElementInterface.GetGrobDirection(rightStem)
+            * RobustDouble(noteSpacing.GetProperty(KneeSpacingCorrection), 0);
     }
 
     /*

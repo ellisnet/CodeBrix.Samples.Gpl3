@@ -89,9 +89,11 @@ public static class LilyPondInit
     /// nothing at all: the next book still picks up the clone by name.
     /// </para>
     /// <para>
-    /// LIMIT, recorded in PORT-COVERAGE: this restores the value of every variable the
-    /// definitions had after initialisation, which covers the numeric leaks. A variable
-    /// a file INVENTS is left in place, because the scope has no unbind.
+    /// The old LIMIT here — "a variable a file INVENTS is left in place, because the
+    /// scope has no unbind" — RETIRED on 2026-08-11 (the STAFF-LINES follow-up):
+    /// <see cref="Parsing.Session.LilyParserSession.RestoreToplevelScope"/> now removes
+    /// invented bindings and reverts overwritten ones, which is upstream's
+    /// one-parser-per-file semantics. The ssaattbb templates were the measured victim.
     /// </para>
     /// </summary>
     public static void RestoreDefaults()
@@ -101,6 +103,12 @@ public static class LilyPondInit
             Restore(_defaultPaper, _paperSnapshot);
             Restore(_defaultLayout, _layoutSnapshot);
             Restore(_defaultMidi, _midiSnapshot);
+
+            // THE NINTH LEAK: the base scope itself — every toplevel assignment and
+            // #(define ...) a file made. Removed/reverted FIRST, so the identifier
+            // re-pointing below lands on the restored scope. See the snapshot note
+            // in Load() and LilyParserSession.RestoreToplevelScope.
+            _session?.RestoreToplevelScope();
 
             if (_session != null)
             {
@@ -367,6 +375,16 @@ public static class LilyPondInit
         // \language (or includes one that does) cannot rename the notes for the rest
         // of the suite. See RestoreDefaults.
         _noteNamesSnapshot = _session.NoteNames();
+
+        // THE NINTH LEAK (found 2026-08-11, the STAFF-LINES follow-up, by bisecting
+        // the sweep against ssaattbb-template-with-all-staves): the parser's BASE
+        // SCOPE. Upstream makes one parser per file, so a file's toplevel
+        // assignments die with it; this shared session kept every one of them, and
+        // the built-in vocal templates read OPTIONAL variables — one template file's
+        // leftover `Time = { s1 \break s1 }' forced a line break inside every later
+        // template. The snapshot is names, variable identities AND values;
+        // RestoreDefaults plays it back per file. See LilyParserSession.
+        _session.SnapshotToplevelScope();
 
         // ly:parse-file and ly:parse-init were EPG1 bindings deferred "to EPG3's
         // batch runner by decision"; the runner exists, so every real session gets

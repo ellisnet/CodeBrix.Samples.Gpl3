@@ -27,6 +27,10 @@ using CodeBrix.LilyScheme.Values;
 namespace CodeBrix.LilyPort.Engine.Objects; //was previously: lily/staff-spacing.cc, lily/include/staff-spacing.hh;
 
 // Modified by Jeremy Ellis on 2026-08-05 as part of the CodeBrix port.
+// Modified by Jeremy Ellis on 2026-08-11 as part of the CodeBrix port:
+//   - optical_correction is ported in full (it answered 0 behind a stale EPG5/EPG6
+//     absence note); its stem read is the PURE extent, as upstream. See
+//     PORT-COVERAGE, STAFF-LINES.
 
 /// <summary>
 /// The spacing wish that runs from a prefatory symbol — a clef, a key signature, a bar
@@ -54,7 +58,8 @@ public static class StaffSpacing
     private static readonly Symbol ShrinkSpace = Symbol.Intern("shrink-space");
     private static readonly Symbol SemiShrinkSpace = Symbol.Intern("semi-shrink-space");
 
-    private static bool _opticalCorrectionAbsenceReported;
+    private static readonly Symbol StemSpacingCorrectionSymbol
+        = Symbol.Intern("stem-spacing-correction");
 
     /* A stem following a bar-line creates an optical illusion similar to the
        one mentioned in note-spacing.cc. We correct for it here.
@@ -67,10 +72,12 @@ public static class StaffSpacing
     /// Returns how much extra space a down-stem needs after a bar line, so that the two
     /// verticals do not read as crowded.
     /// <para>
-    /// NAMED ABSENCE, recorded in PORT-COVERAGE: the correction is measured from the
-    /// note column's STEM, and stems are EPG6. Nothing carries
-    /// <c>note-column-interface</c> until EPG5 either, so this answers zero — which is
-    /// upstream's own answer whenever the note column has no stem.
+    /// The EPG5/EPG6-era named absence here retired with the STAFF-LINES session
+    /// (2026-08-11): its callees had all long since landed, and it became reachable
+    /// the moment <c>Paper_column_engraver</c> started acknowledging spacing wishes
+    /// onto the columns. The stem read is PURE (upstream:
+    /// <c>stem-&gt;pure_y_extent (stem, 0, INT_MAX)</c>) because this runs during
+    /// horizontal spacing, before line breaking.
     /// </para>
     /// </summary>
     /// <param name="me">The staff spacing wish.</param>
@@ -84,16 +91,28 @@ public static class StaffSpacing
             return 0;
         }
 
-        if (!_opticalCorrectionAbsenceReported)
+        Grob stem = NoteColumn.GetStem(g);
+        double ret = 0.0;
+
+        if (!barHeight.IsEmpty && stem != null)
         {
-            _opticalCorrectionAbsenceReported = true;
-            Warn.ProgrammingError(
-                "Staff_spacing::optical_correction needs Note_column::get_stem (EPG5) and"
-                + " Stem (EPG6); answering 0, which is upstream's own answer for a note"
-                + " column without a stem");
+            Direction d = DirectionalElementInterface.GetGrobDirection(stem);
+            if (Stem.IsNormalStem(stem) && d == Direction.Negative)
+            {
+                Interval stemPosns = stem.PureYExtent(stem, 0, int.MaxValue);
+
+                stemPosns.Intersect(barHeight);
+
+                ret = Math.Min(Math.Abs(stemPosns.Length / 7.0), 1.0);
+                ret *= Bootstrap.SchemeConvert.IsNumber(
+                        me.GetProperty(StemSpacingCorrectionSymbol))
+                    ? Bootstrap.SchemeConvert.ToDouble(
+                        me.GetProperty(StemSpacingCorrectionSymbol), "stem-spacing-correction")
+                    : 1.0;
+            }
         }
 
-        return 0.0;
+        return ret;
     }
 
     /*

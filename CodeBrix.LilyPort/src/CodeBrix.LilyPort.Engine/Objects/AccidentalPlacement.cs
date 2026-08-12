@@ -26,6 +26,9 @@ using CodeBrix.LilyScheme.Values;
 namespace CodeBrix.LilyPort.Engine.Objects; //was previously: lily/accidental-placement.cc, lily/include/accidental-placement.hh;
 
 // Modified by Jeremy Ellis on 2026-08-07 as part of the CodeBrix port.
+// Modified by Jeremy Ellis on 2026-08-11 as part of the CodeBrix port:
+//   - build_heads_skyline reads the PURE Y extent, as upstream; the EPG13-era
+//     ordinary stand-in retired with its class. See PORT-COVERAGE, STAFF-LINES.
 
 /*
   This routine computes placements of accidentals. During
@@ -525,12 +528,15 @@ public static class AccidentalPlacement
         List<Box> headExtents = new List<Box>();
         for (int i = headsAndStems.Count; i-- > 0;)
         {
-            // Upstream reads the PURE Y extent over the whole piece; the pure-property
-            // machinery is EPG15's, and the ordinary extent is what a grob with no
-            // separate pure callback answers anyway. Recorded in PORT-COVERAGE.
+            // Upstream reads the PURE Y extent over the whole piece
+            // (`pure_y_extent (common[Y_AXIS], 0, INT_MAX)`): accidental placement
+            // runs during horizontal spacing, BEFORE line breaking, and an ordinary Y
+            // read here drags stencil computation in over still-unplaced columns.
+            // The EPG13-era ordinary stand-in retired with the STAFF-LINES session
+            // (2026-08-11), EPG15's pure machinery having long since landed.
             headExtents.Add(new Box(
                 headsAndStems[i].Extent(commonX, Axis.X),
-                headsAndStems[i].Extent(commonY, Axis.Y)));
+                headsAndStems[i].PureYExtent(commonY, 0, int.MaxValue)));
         }
 
         return new Skyline(headExtents, Axis.Y, Direction.Negative);

@@ -26,6 +26,9 @@ using CodeBrix.LilyScheme.Values;
 namespace CodeBrix.LilyPort.Engine.Objects; //was previously: lily/spacing-interface.cc, lily/include/spacing-interface.hh;
 
 // Modified by Jeremy Ellis on 2026-08-05 as part of the CodeBrix port.
+// Modified by Jeremy Ellis on 2026-08-11 as part of the CodeBrix port:
+//   - skylines shifts by the PURE relative Y coordinate, as upstream; EPG4's
+//     recorded re-check came true at scale. See PORT-COVERAGE, STAFF-LINES.
 
 /// <summary>
 /// The shared half of the two spacing wishes: how far apart the columns a wish spans
@@ -129,7 +132,13 @@ public static class SpacingInterface
 
                     IReadOnlyList<Grob> elts = PointerGroupInterface.ExtractGrobSet(g, ElementsSymbol);
                     Grob ycommon = AxisGroupInterface.CommonRefpointOfArray(elts, g, Axis.Y);
-                    double shift = ycommon.RelativeCoordinate(system, Axis.Y);
+
+                    // The shift is a PURE coordinate upstream
+                    // (`ycommon->pure_relative_y_coordinate (system, 0, INT_MAX)`):
+                    // this runs during horizontal spacing, and the EPG4-era
+                    // ordinary stand-in retired with the STAFF-LINES session
+                    // (2026-08-11) along with the rest of its class.
+                    double shift = ycommon.PureRelativeYCoordinate(system, 0, int.MaxValue);
 
                     skylines[d].Shift(-shift);
 

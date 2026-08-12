@@ -25,6 +25,12 @@ using CodeBrix.LilyScheme.Values;
 namespace CodeBrix.LilyPort.Engine.Fonts; //was previously: lily/font-metric.cc, lily/include/font-metric.hh, lily/modified-font-metric.cc, lily/include/modified-font-metric.hh;
 
 // Modified by Jeremy Ellis on 2026-08-03 as part of the CodeBrix port.
+// Modified by Jeremy Ellis on 2026-08-11 as part of the CodeBrix port:
+//   - OpenTypeFontMetric.IndexedAdvance scales the raw hmtx value by FontScaling over
+//     the em, the same factor the SVG backend draws outlines with. It multiplied by
+//     the POINT constant before — a unit from a different domain — so every composed
+//     text run in the MUSIC font advanced its pen fifty times too far. See
+//     MusicFontAdvanceTests and PORT-COVERAGE, STAFF-LINES FOLLOW-UP.
 
 /// <summary>
 /// A font as the engine consumes it: a way to turn a glyph NAME into a stencil and a
@@ -249,14 +255,26 @@ public sealed class OpenTypeFontMetric : FontMetric
         => index >= 0 && index < _font.GlyphNames.Count ? _font.GlyphNames[index] : null;
 
     /// <summary>
-    /// Returns a glyph's advance, scaled exactly the way the LILY character table's
-    /// boxes are — raw units times the point constant — so a composed run's pen
-    /// positions live in the same space as its glyph boxes.
+    /// Returns a glyph's advance in the stencil's units: the raw <c>hmtx</c> value —
+    /// which is in FONT units, on the same em as the outlines — times the same
+    /// <c>FontScaling / units-per-em</c> factor the SVG backend draws those outlines
+    /// with, so a composed run's pen positions live in the same space as its glyphs.
+    /// <para>
+    /// Until the STAFF-LINES follow-up (2026-08-11) this multiplied by the POINT
+    /// constant instead, which is a unit from a different domain entirely: every
+    /// advance came out exactly 50× the glyph's width, and a time signature whose
+    /// spec makes the numerals a STRING (`(1/2 . 3/4)` prints "1/2" over "3/4")
+    /// spread three characters across sixty staff spaces — wide enough to explode
+    /// line breaking on the whole time-signature-grob-* family.
+    /// </para>
     /// </summary>
     /// <param name="index">The glyph index.</param>
     /// <returns>The advance.</returns>
     public override double IndexedAdvance(int index)
-        => _font.RawAdvance(index) * Dimensions.Point;
+        // TODO: not urgent, but do not hard-code the em. Carried over from
+        // output-svg.scm's extract-glyph, which hardcodes 1000 with that same remark;
+        // every shipped music font is drawn on a 1000-unit em, so the two agree.
+        => _font.RawAdvance(index) * FontScaling / 1000.0;
 
     private static double ToDouble(object value)
     {

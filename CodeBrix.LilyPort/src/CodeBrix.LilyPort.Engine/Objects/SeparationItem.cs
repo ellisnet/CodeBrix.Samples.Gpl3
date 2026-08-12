@@ -27,6 +27,11 @@ using CodeBrix.LilyScheme.Values;
 namespace CodeBrix.LilyPort.Engine.Objects; //was previously: lily/separation-item.cc, lily/include/separation-item.hh;
 
 // Modified by Jeremy Ellis on 2026-08-05 as part of the CodeBrix port.
+// Modified by Jeremy Ellis on 2026-08-11 as part of the CodeBrix port:
+//   - boxes reads each item's PURE Y extent, as upstream. The ordinary read it carried
+//     ran during horizontal spacing and CACHED stencils (the StaffSymbol's among them)
+//     computed over still-unplaced columns -- the root of the collapsed-staff-line
+//     defect. See PORT-COVERAGE, STAFF-LINES.
 
 /// <summary>
 /// Collects the items a paper column has to keep clear of its neighbours.
@@ -247,7 +252,11 @@ public static class SeparationItem
                 continue;
             }
 
-            Interval y = il.Extent(ycommon, Axis.Y);
+            // Upstream reads the PURE height here (`il->pure_y_extent (ycommon, 0,
+            // very_large)`): boxes are built during horizontal spacing, BEFORE line
+            // breaking, and the ordinary Y extent drags side-position -> skyline ->
+            // stencil in and CACHES stencils computed over still-unplaced columns.
+            Interval y = il.PureYExtent(ycommon, 0, int.MaxValue);
             Interval x = il.Extent(pc, Axis.X);
 
             Interval extraWidth = Grob.TryNumberPair(element.GetProperty(ExtraSpacingWidth), out Interval ew)

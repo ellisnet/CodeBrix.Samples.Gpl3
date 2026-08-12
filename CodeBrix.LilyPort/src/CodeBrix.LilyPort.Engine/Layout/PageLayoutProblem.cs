@@ -19,6 +19,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using CodeBrix.LilyPort.Engine.Bootstrap;
 using CodeBrix.LilyPort.Engine.Objects;
 using CodeBrix.LilyPort.Flower;
@@ -33,6 +34,14 @@ namespace CodeBrix.LilyPort.Engine.Layout; //was previously: lily/page-layout-pr
 //     staves through them. They are NOT duplicated here; this file calls them.
 //   - Element is a struct-with-two-shapes upstream ("a union in spirit"); it is a sealed
 //     class here with the same invariant, that staves is empty or prob is null.
+// Modified by Jeremy Ellis on 2026-08-11 as part of the CodeBrix port:
+//   - every upstream `springs_.back ().foo ()' goes through LastSpring(), which answers a
+//     REFERENCE. Spring is a struct here, so `_springs[_springs.Count - 1].Foo ()' compiles
+//     cleanly, mutates a temporary copy and discards it -- see that method's remarks.
+//   - alter_spring_from_spacing_spec takes its Spring by `ref' (upstream: Spring*). The
+//     STAFF-LINES session found it taking the struct BY VALUE, which is the same trap
+//     through a parameter: no spacing spec ever reached any page spring, and every
+//     system sat at the skyline minimum instead of basic-distance.
 
 /// <summary>
 /// The vertical spacing problem for ONE page: a rod-and-spring system over the systems and
@@ -189,7 +198,7 @@ public sealed class PageLayoutProblem
                 double padding = 0.0;
                 double indent = ConstrainedBreaking.LineDimensionInterval(
                     sys.PaperScore.Layout, sys.Rank)[Direction.Negative];
-                AlterSpringFromSpacingSpec(spec, spring);
+                AlterSpringFromSpacingSpec(spec, ref spring);
                 PageLayoutSpacing.ReadSpacingSpec(spec, PaddingSymbol, ref padding);
 
                 AppendSystem(sys, spring, indent, padding);
@@ -202,7 +211,7 @@ public sealed class PageLayoutProblem
                     : lastSystemWasTitle ? markupMarkupSpacing : scoreMarkupSpacing;
                 Spring spring = new Spring(0, 0);
                 double padding = 0.0;
-                AlterSpringFromSpacingSpec(spec, spring);
+                AlterSpringFromSpacingSpec(spec, ref spring);
                 PageLayoutSpacing.ReadSpacingSpec(spec, PaddingSymbol, ref padding);
 
                 AppendProb(p, spring, padding);
@@ -216,7 +225,7 @@ public sealed class PageLayoutProblem
 
         Spring lastSpring = new Spring(0, 0);
         double lastPadding = 0;
-        AlterSpringFromSpacingSpec(lastBottomSpacing, lastSpring);
+        AlterSpringFromSpacingSpec(lastBottomSpacing, ref lastSpring);
         PageLayoutSpacing.ReadSpacingSpec(lastBottomSpacing, PaddingSymbol, ref lastPadding);
         lastSpring.EnsureMinDistance(lastPadding - _bottomSkyline.MaxHeight() + _footerHeight);
         _springs.Add(lastSpring);
@@ -726,6 +735,19 @@ public sealed class PageLayoutProblem
         return GetDetails(elt.Staves[elt.Staves.Count - 1].GetSystem());
     }
 
+    /// <summary>Answers a REFERENCE to the spring added most recently.</summary>
+    /// <returns>A reference to the last spring in the problem.</returns>
+    /// <remarks>
+    /// This is upstream's <c>springs_.back ()</c>, and it exists because the two languages
+    /// disagree about what that expression means. <see cref="Spring"/> is a STRUCT, so
+    /// <c>_springs[_springs.Count - 1]</c> answers a COPY: a mutation through it compiles
+    /// without a warning, changes a temporary, and is thrown away. Upstream's
+    /// <c>springs_.back ()</c> is a reference and mutates the spring that is actually in the
+    /// vector. Every such call site must go through this method.
+    /// </remarks>
+    private ref Spring LastSpring()
+        => ref CollectionsMarshal.AsSpan(_springs)[_springs.Count - 1];
+
     private static void MarkAsSpaceable(Grob g) => g.SetProperty(StaffAffinitySymbol, false);
 
     private static Interval ProbExtent(Prob p)
@@ -737,7 +759,7 @@ public sealed class PageLayoutProblem
     /// the stretchability, because it derives strength from the distances and would
     /// overwrite an explicit stretchability set before it.</para>
     /// </summary>
-    private static void AlterSpringFromSpacingSpec(object spec, Spring spring)
+    private static void AlterSpringFromSpacingSpec(object spec, ref Spring spring)
     {
         double space = 0;
         double stretch = 0;
@@ -931,7 +953,7 @@ public sealed class PageLayoutProblem
                 // Leave room for any loose lines above this system.
                 if (i > 0)
                 {
-                    _springs[_springs.Count - 1].EnsureMinDistance(
+                    LastSpring().EnsureMinDistance(
                         _bottomLooseBaseline - minimumOffsetsWithMinDist[i] + padding);
                 }
 
@@ -965,14 +987,14 @@ public sealed class PageLayoutProblem
                 }
             }
 
-            AlterSpringFromSpacingSpec(spec, staffSpring);
+            AlterSpringFromSpacingSpec(spec, ref staffSpring);
 
             _springs.Add(staffSpring);
             double minDistance = (foundSpaceableStaff
                     ? minimumOffsetsWithMinDist[lastSpaceableStaff]
                     : 0)
                 - minimumOffsetsWithMinDist[i];
-            staffSpring.EnsureMinDistance(minDistance);
+            LastSpring().EnsureMinDistance(minDistance);
 
             if (manualDists is Pair manualPair)
             {
@@ -980,9 +1002,9 @@ public sealed class PageLayoutProblem
                 {
                     double dy = SchemeConvert.ToDouble(manualPair.Car, 0.0);
 
-                    staffSpring.SetIdealDistance(dy);
-                    staffSpring.SetMinDistance(dy);
-                    staffSpring.SetInverseStretchStrength(0);
+                    LastSpring().SetIdealDistance(dy);
+                    LastSpring().SetMinDistance(dy);
+                    LastSpring().SetInverseStretchStrength(0);
                 }
 
                 manualDists = manualPair.Cdr;
@@ -1311,7 +1333,7 @@ public sealed class PageLayoutProblem
             object spec = PageLayoutSpacing.GetSpacingSpec(
                 looseLines[i], looseLines[i + 1], false, 0, int.MaxValue);
             Spring spring = new Spring(1.0, 0.0);
-            AlterSpringFromSpacingSpec(spec, spring);
+            AlterSpringFromSpacingSpec(spec, ref spring);
             spring.EnsureMinDistance(minDistances[i]);
             spacer.AddSpring(spring);
         }

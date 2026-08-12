@@ -35,6 +35,11 @@ using CodeBrix.LilyScheme.Values;
 namespace CodeBrix.LilyPort.Parsing.Session; //was previously: lily/lily-parser.cc, lily/lily-lexer.cc, lily/lexer.ll (the host halves);
 
 // Modified by Jeremy Ellis on 2026-08-03 as part of the CodeBrix port.
+// Modified by Jeremy Ellis on 2026-08-11 as part of the CodeBrix port:
+//   - SnapshotToplevelScope/RestoreToplevelScope give a shared batch session
+//     upstream's one-parser-per-file semantics for the base scope: bindings a file
+//     invents are removed and bindings it overwrites are reverted between files.
+//     The ssaattbb templates were the measured victim (the NINTH per-file leak).
 
 /// <summary>
 /// THE REAL HOST — what actually plays <c>Lily_parser</c> and <c>Lily_lexer</c> for a
@@ -260,6 +265,99 @@ public sealed partial class LilyParserSession : IParserHost, ILexerHost
 
     /// <inheritdoc/>
     public object CurrentModule() => _scopes[_scopes.Count - 1];
+
+    private Dictionary<Symbol, ToplevelBinding> _toplevelSnapshot;
+
+    private struct ToplevelBinding
+    {
+        public Variable Variable;
+        public bool IsBound;
+        public object Value;
+    }
+
+    /// <summary>
+    /// Records the base scope's bindings — names, variable identities and values — as
+    /// the state every file's parse should start from.
+    /// <para>
+    /// Upstream never needs this: it makes ONE PARSER PER FILE, so a file's toplevel
+    /// assignments and <c>#(define ...)</c>s die with the parser. This session is
+    /// shared across a whole batch, and the base scope is where those definitions
+    /// land — take the snapshot right after the init layer loads, and
+    /// <see cref="RestoreToplevelScope"/> gives each file upstream's fresh-parser
+    /// semantics.
+    /// </para>
+    /// </summary>
+    public void SnapshotToplevelScope()
+    {
+        SchemeModule scope = _scopes[0];
+        Dictionary<Symbol, ToplevelBinding> snapshot
+            = new Dictionary<Symbol, ToplevelBinding>();
+        foreach (KeyValuePair<Symbol, Variable> entry in scope.Bindings)
+        {
+            snapshot[entry.Key] = new ToplevelBinding
+            {
+                Variable = entry.Value,
+                IsBound = entry.Value.IsBound,
+                Value = entry.Value.IsBound ? entry.Value.GetValue() : null,
+            };
+        }
+
+        _toplevelSnapshot = snapshot;
+    }
+
+    /// <summary>
+    /// Puts the base scope back the way <see cref="SnapshotToplevelScope"/> recorded
+    /// it: a binding a file INVENTED is removed, and a binding a file overwrote gets
+    /// its init-layer value back.
+    /// <para>
+    /// The removal half is the one that bites — see the STAFF-LINES follow-up
+    /// (2026-08-11). The built-in vocal templates read OPTIONAL variables
+    /// (<c>Time</c>, <c>TwoVoicesPerStaff</c>, instrument names) with
+    /// <c>ly:parser-lookup</c>, so one template file's leftovers changed what the
+    /// next template file BUILT: a leaked <c>Time = { s1 \break s1 }</c> forced a
+    /// line break inside every later template in the sweep, and
+    /// <c>ssaattbb-template-*</c> wrote two pages where the oracle writes one —
+    /// while producing exactly one page run alone.
+    /// </para>
+    /// </summary>
+    public void RestoreToplevelScope()
+    {
+        if (_toplevelSnapshot == null)
+        {
+            return;
+        }
+
+        SchemeModule scope = _scopes[0];
+
+        List<Symbol> current = new List<Symbol>(scope.Bindings.Keys);
+        foreach (Symbol symbol in current)
+        {
+            if (!_toplevelSnapshot.ContainsKey(symbol))
+            {
+                scope.Remove(symbol);
+            }
+        }
+
+        foreach (KeyValuePair<Symbol, ToplevelBinding> entry in _toplevelSnapshot)
+        {
+            Variable local = scope.LookupLocal(entry.Key);
+            if (local == null || !ReferenceEquals(local, entry.Value.Variable))
+            {
+                // The snapshot's VARIABLE OBJECT is restored, not just its value:
+                // psyntax and the Scheme layer capture variables by identity, so a
+                // fresh Variable under the same name would strand every captured
+                // reference on the file's stale one.
+                scope.Remove(entry.Key);
+                scope.AddVariable(entry.Key, entry.Value.Variable);
+                local = entry.Value.Variable;
+            }
+
+            if (entry.Value.IsBound)
+            {
+                local.SetValue(entry.Value.Value);
+            }
+        }
+    }
 
     /// <inheritdoc/>
     public bool IsModule(object value) => value is SchemeModule;

@@ -27,6 +27,11 @@ using CodeBrix.LilyScheme.Values;
 namespace CodeBrix.LilyPort.Engine.Objects; //was previously: lily/side-position-interface.cc, lily/include/side-position-interface.hh, lily/grob.cc (get_vertical_axis_group only), lily/misc.cc (directed_round only);
 
 // Modified by Jeremy Ellis on 2026-08-07 as part of the CodeBrix port.
+// Modified by Jeremy Ellis on 2026-08-11 as part of the CodeBrix port:
+//   - aligned_side's SUPPORT loop reads each support's skylines, Y coordinate and
+//     add-stem-support maybe-pure, as upstream; and BOTH ReadSkylinePair
+//     constructor-default stand-ins are ordinary-branch only, because taking them in
+//     the pure branch asks for a stencil. See PORT-COVERAGE, STAFF-LINES.
 
 /// <summary>
 /// Positions a victim grob NEXT TO a set of support grobs: above or below them
@@ -322,13 +327,16 @@ public static class SidePositionInterface
         // MeasureSpanner was drawn while its two bounds still sat on unplaced columns and
         // the zero-length bracket put a NaN through skyline building. The pure branch
         // exists to answer without a stencil.
+        // The constructor-default stand-in below is ORDINARY-branch only: taking it in
+        // the pure branch would ask for a stencil, which is the one thing the pure
+        // read exists to avoid (upstream leaves my_dim the empty skyline instead).
         SkylinePair myPair = SkylinePair.FromScheme(
             me.GetMaybePureProperty(
                 a == Axis.X ? HorizontalSkylinesSymbol : VerticalSkylinesSymbol,
                 pure,
                 start,
                 end))
-            ?? AxisGroupInterfaceVertical.ReadSkylinePair(me, a);
+            ?? (pure ? new SkylinePair() : AxisGroupInterfaceVertical.ReadSkylinePair(me, a));
         {
             // for spanner pure heights, we don't know horizontal spacing,
             // so a spanner can never have a meaningful x coordiante
@@ -395,7 +403,30 @@ public static class SidePositionInterface
                 }
             }
 
-            SkylinePair skyp = AxisGroupInterfaceVertical.ReadSkylinePair(e, a);
+            // THE READ IS MAYBE-PURE HERE TOO (STAFF-LINES session, 2026-08-11).
+            // Upstream takes every support grob's skyline through
+            // get_maybe_pure_property; reading it ORDINARILY in the pure branch asks
+            // the support's axis group for a STENCIL during horizontal spacing, and
+            // the StaffSymbol stencil that computes is CACHED over still-unplaced
+            // columns — which is what drew three quarters of the suite's staff lines
+            // with no length. The ordinary branch keeps the recorded
+            // constructor-default stand-in; the pure branch must not take it, and a
+            // support that answers no pair is skipped the way upstream's else does.
+            SkylinePair skyp = SkylinePair.FromScheme(
+                e.GetMaybePureProperty(
+                    a == Axis.X ? HorizontalSkylinesSymbol : VerticalSkylinesSymbol,
+                    pure,
+                    start,
+                    end));
+            if (skyp == null)
+            {
+                if (pure)
+                {
+                    continue; // upstream: else { /* no warning */ }
+                }
+
+                skyp = AxisGroupInterfaceVertical.ReadSkylinePair(e, a);
+            }
 
             {
                 double xc = pure && e is Spanner
@@ -405,10 +436,11 @@ public static class SidePositionInterface
                 // same logic as above
                 // we assume horizontal spacing is always pure
                 double yc = a == Axis.X
-                    ? e.RelativeCoordinate(common[(int)Axis.Y], Axis.Y)
-                    : e.RelativeCoordinate(common[(int)Axis.Y], Axis.Y);
+                    ? e.PureRelativeYCoordinate(common[(int)Axis.Y], start, end)
+                    : e.MaybePureCoordinate(common[(int)Axis.Y], Axis.Y, pure, start, end);
                 if (a == Axis.Y && e.HasInterface(StemInterface)
-                    && SchemeUtilities.ToBool(me.GetProperty(AddStemSupport)))
+                    && SchemeUtilities.ToBool(
+                        me.GetMaybePureProperty(AddStemSupport, pure, start, end)))
                 {
                     skyp[dir].SetMinimumHeight(skyp[dir].MaxHeight());
                 }

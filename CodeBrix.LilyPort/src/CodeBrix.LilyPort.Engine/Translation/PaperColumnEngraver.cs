@@ -26,6 +26,12 @@ using CodeBrix.LilyScheme.Values;
 namespace CodeBrix.LilyPort.Engine.Translation; //was previously: lily/paper-column-engraver.cc, lily/include/paper-column-engraver.hh;
 
 // Modified by Jeremy Ellis on 2026-08-03 as part of the CodeBrix port.
+// Modified by Jeremy Ellis on 2026-08-11 as part of the CodeBrix port:
+//   - upstream's three specific acknowledgers are restored beside the plain item one:
+//     staff-spacing and note-spacing wishes go onto the columns' spacing-wishes, and
+//     the BreakAlignment is stored as the command column's break-alignment object.
+//     Without them, every wish-based spacing correction read empty sets since EPG4,
+//     and break_align_width answered points. See PORT-COVERAGE, STAFF-LINES.
 
 /// <summary>
 /// Creates the paper columns: the horizontal positions everything else hangs off.
@@ -70,6 +76,14 @@ public class PaperColumnEngraver : Engraver
     private static readonly Symbol LabelsSymbol = Symbol.Intern("labels");
     private static readonly Symbol MeasureStartNowSymbol = Symbol.Intern("measureStartNow");
     private static readonly Symbol MeasureLengthGrobSymbol = Symbol.Intern("measure-length");
+    private static readonly Symbol StaffSpacingInterfaceSymbol
+        = Symbol.Intern("staff-spacing-interface");
+    private static readonly Symbol NoteSpacingInterfaceSymbol
+        = Symbol.Intern("note-spacing-interface");
+    private static readonly Symbol BreakAlignmentInterfaceSymbol
+        = Symbol.Intern("break-alignment-interface");
+    private static readonly Symbol SpacingWishesSymbol = Symbol.Intern("spacing-wishes");
+    private static readonly Symbol BreakAlignmentObjectSymbol = Symbol.Intern("break-alignment");
 
     private readonly List<Item> _items = new List<Item>();
     private readonly List<StreamEvent> _breakEvents = new List<StreamEvent>();
@@ -273,13 +287,35 @@ public class PaperColumnEngraver : Engraver
 
     private void ListenLabel(StreamEvent ev) => _labelEvents.Add(ev);
 
-    /// <summary>Collects every item announced this timestep.</summary>
+    /// <summary>
+    /// Collects every item announced this timestep, and carries upstream's three
+    /// specific acknowledgers besides the plain item one: a StaffSpacing goes onto the
+    /// command column's <c>spacing-wishes</c>, a NoteSpacing onto the musical
+    /// column's, and the BreakAlignment is stored as the command column's
+    /// <c>break-alignment</c> object — which is what
+    /// <c>Paper_column::break_align_width</c> measures a staff line's ends against.
+    /// </summary>
     /// <param name="info">The announcement record.</param>
     public override void AcknowledgeGrob(GrobInfo info)
     {
         if (info.Grob is Item item && !(item is PaperColumn))
         {
             _items.Add(item);
+        }
+
+        if (_commandColumn != null && info.Grob.HasInterface(StaffSpacingInterfaceSymbol))
+        {
+            PointerGroupInterface.AddGrob(_commandColumn, SpacingWishesSymbol, info.Grob);
+        }
+
+        if (_musicalColumn != null && info.Grob.HasInterface(NoteSpacingInterfaceSymbol))
+        {
+            PointerGroupInterface.AddGrob(_musicalColumn, SpacingWishesSymbol, info.Grob);
+        }
+
+        if (info.Grob.HasInterface(BreakAlignmentInterfaceSymbol))
+        {
+            _commandColumn?.SetObject(BreakAlignmentObjectSymbol, info.Grob);
         }
     }
 

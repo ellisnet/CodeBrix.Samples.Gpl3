@@ -249,6 +249,9 @@ ADDED 2026-08-03 (second pass) -- the column and system layer
 
     Paper_column::minimum_distance omits the Separation_item::conditional_skyline
     merge, which needs Separation_item. The skyline half is exact.
+    [DISCHARGED 2026-08-11, STAFF-LINES session: the merge is in, its callee
+    having landed long before. Break_align_width was restored by EPG16's
+    close-out II; this row's other absences retired with their owners.]
 
   lily/system.cc  ->  Objects/SystemGrob.cs
 
@@ -1696,6 +1699,9 @@ DELIBERATE DIVERGENCES IN THIS PASS
   pure callback -- all of them, today -- but it does compute and cache a Y
   offset earlier than upstream would, which is a thing to re-check when EPG7's
   vertical alignment starts moving staves.
+  [DISCHARGED 2026-08-11, STAFF-LINES session: the shift is the pure
+  coordinate now. The re-check predicted here came true at scale -- see the
+  STAFF-LINES entry at the end of this file.]
 
   Three named absences, each taking upstream's OWN fallback path rather than
   inventing one:
@@ -1704,9 +1710,15 @@ DELIBERATE DIVERGENCES IN THIS PASS
       included. The branch that measures a note column's stem takes upstream's
       undeterminable-stem exit -- a bare return, leaving the space unchanged --
       and says so once, loudly. Note columns are EPG5, stems EPG6.
+      [DISCHARGED 2026-08-11, STAFF-LINES session: the stem loop is ported in
+      full, knee_correction included. It had been unreachable for a different
+      reason than the note assumed -- Paper_column_engraver never acknowledged
+      spacing wishes onto the columns, so NO wish-based correction ever ran.]
 
     * Staff_spacing::optical_correction answers 0, which is upstream's answer
       whenever the note column has no stem. EPG6.
+      [DISCHARGED 2026-08-11, STAFF-LINES session: ported in full, same
+      reachability story as stem_dir_correction above.]
 
     * Break_alignment_interface::find_nonempty_break_align_group is EPG8.
       Note_spacing then measures to the right side of the non-musical column,
@@ -2599,6 +2611,8 @@ EPG9 -- ACCIDENTALS AND PITCH MACHINERY (2026-08-07)
   * build_heads_skyline reads the PURE Y extent upstream; the port reads the
     real extent -- the standing pure-machinery divergence (EPG15), same as
     every earlier group.
+    [DISCHARGED 2026-08-11, STAFF-LINES session: reads the pure extent now,
+    with the rest of its class -- see the STAFF-LINES entry at the end.]
   * Accidental_engraver writes `forced' through the entry's accidental with a
     null-conditional where upstream writes unconditionally; the flags imply the
     accidental was just created, so the `?.` only changes what happens in a
@@ -5042,3 +5056,258 @@ TESTS
   registrations. AncientNotationEndToEndTests (9, LilyPort.Tests) fences the
   shapes, each fact against a control that must come out differently.
 
+
+================================================================================
+EPG16 -- CLOSE-OUT II: THE SPRING SEAM AND THE STAFF-LINE MEASUREMENT (2026-08-11)
+================================================================================
+
+This session was opened to close EPG16's ten red ratchet rows. It found and
+fixed one defect in EPG16's OWN machinery, restored one hollow branch in an
+already-`ported' file, and MEASURED a suite-wide defect that is not EPG16's and
+that the ten rows all sit on. Nothing was re-baselined; the floor is untouched
+at 1,815 / 501 and the gate still reads ten.
+
+DEFECT 1 -- A MUTABLE STRUCT IN A LIST: THREE SILENT LOSSES IN append_system
+
+  Spring is a STRUCT here and upstream mutates `springs_.back ()'. C#'s
+  List<T> indexer answers a COPY for a value type, so
+
+      _springs[_springs.Count - 1].EnsureMinDistance (x);
+
+  compiles with zero warnings, mutates a temporary and throws it away. Three
+  mutations in Page_layout_problem::append_system were being discarded:
+
+    1. the "leave room for any loose lines above this system" floor;
+    2. ensure_min_distance on EVERY spring BETWEEN two staves;
+    3. the whole alignment-distances block -- set_ideal_distance,
+       set_min_distance and set_inverse_stretch_strength -- so a score that
+       explicitly placed its staves was IGNORED OUTRIGHT.
+
+  ⚠ THE SITES WERE INCONSISTENT, WHICH IS THE SIGNATURE OF THIS TRAP. The
+  constructor's last_spring and append_prob's spring_copy both mutate-then-add
+  and were always correct; append_system's three add-then-mutate and were
+  always wrong. Whoever ported the file was aware of the seam in some places
+  and not in others, and nothing distinguishes the two shapes by eye.
+
+  Fixed with a ref-returning LastSpring(), which is what upstream's
+  `springs_.back ()' actually means. MEASURED: 47 pages changed geometry,
+  ZERO verdicts changed, zero regressions.
+
+  ⚠ THIS IS EPG21's Bezier FINDING IN THE MIRROR, and the pair should be read
+  as one rule: EVERY C++ VALUE/REFERENCE DECISION IS A PORT DECISION. There a
+  C++ value was aliased by a C# reference; here a C++ reference was copied by a
+  C# value. Both are silent and neither shows up in a diff against upstream.
+
+  THE CLASS WAS SWEPT, not just the site. Skyline and SkylinePair are sealed
+  CLASSES; beginLineHeights/midLineHeights, _dimensionCache and _pedalInfo are
+  ARRAYS, whose element access is a genuine ref for value types; DrulArray's
+  indexer answers by value but its only mutable-struct use is a read. The
+  List<Spring> in PageLayoutProblem is the only instance in the engine.
+
+DEFECT 2 -- Paper_column::break_align_width WAS HOLLOW ON ITS ELSE BRANCH
+
+  Upstream walks the requested align symbols and, for anything that is not the
+  literal `break-alignment', calls
+  Break_alignment_interface::find_nonempty_break_align_group. That entire else
+  branch was ABSENT: the port's loop matched only `break-alignment' and skipped
+  every named group before it. A StaffSymbol asks with
+  (staff-bar break-alignment), so `staff-bar' was never consulted.
+
+  ⚠ THE FUNCTION IT SHOULD CALL WAS ALREADY PORTED -- EPG15 landed
+  find_nonempty_break_align_group in BreakAlignInterface.cs. This caller was
+  written while it did not exist and NOTHING RE-CHECKED IT once it did. That is
+  RATCHET-FIX's own rule (a named absence stops being true the moment its owner
+  lands) meeting EPG16's (a ported type with a missing call is worse than an
+  unported type), in a file whose ledger row has read `ported' throughout.
+
+  Restored faithfully. MEASURED HONESTLY: it changed NOTHING in the sweep --
+  zero pages, zero verdicts -- because the BreakAlignment it would search has
+  no non-empty groups to find in the first place (see the finding below). It is
+  correct, it is inert today, and it is recorded as both.
+
+THE FINDING THIS SESSION IS REALLY ABOUT -- COLLAPSED STAFF LINES, SUITE-WIDE
+
+  Measured over the whole closing sweep, counting only HORIZONTAL <line>
+  elements (a vertical bar line or stem has x1 == x2 and must not be counted --
+  the first measurement of this made exactly that mistake and read 73.7%):
+
+                    horizontal <line>   collapsed (<0.5)   pages affected
+      oracle              32,254          1,568  ( 4.9%)         145
+      port                22,385         16,664  (74.4%)       1,296
+
+  THREE QUARTERS OF THE PORT'S STAFF LINES ARE DRAWN WITH NO LENGTH. They come
+  out as x1="0.0500" x2="-0.0500" -- running BACKWARDS, the full width being the
+  line thickness -- where the oracle draws, e.g., x1="0.0500" x2="80.7122".
+
+  ⚠ THE COMPARATOR HAS NEVER REPORTED THIS AND STRUCTURALLY CANNOT. It grades
+  glyph inventory and position; a staff line is a <line>, and a page whose
+  staff lines are collapsed holds the same glyphs in the same order. This is
+  EPG19's timing blindness in a second dimension, and the general rule it
+  argues for is now stated twice: A GREEN RATCHET IS EVIDENCE ABOUT WHAT THE
+  COMPARATOR GRADES AND ABOUT NOTHING ELSE.
+
+  Traced two levels. Staff_symbol::print is a faithful translation and its
+  span_points arrive as exactly (0,0) -- the initial value, untouched by both
+  branches. The BREAKALIGN branch is the one that fires, and
+  Paper_column::break_align_width answers a POINT interval because (a) the
+  BreakAlignment's extent is empty and (b) the bound column's coordinate
+  relative to its system is 0. Defect 2 above is on that path and does not
+  change it.
+
+  IT IS NOT LINE BREAKING ALONE, MEASURED: unbroken single-line scores are
+  62.9% collapsed and broken ones 81.9%. Line breaking worsens it; it does not
+  cause it.
+
+  OWNER: NOT EPG16. ly:break-alignment-interface::calc-positioning-done is
+  registered (Epg15Callbacks) and reached, and the sweep's demand list asks for
+  no break-align name at all -- so this is not a missing binding but the
+  break-alignment machinery producing empty extents over columns that are still
+  at zero, which is EPG15/EPG4 ground. It is the same "unplaced columns" family
+  RATCHET-FIX recorded for slashed-beam and could not guard.
+
+WHAT THIS SAYS ABOUT THE TEN
+
+  All ten regressed rows carry collapsed staff lines. The ten are one shape --
+  the oracle writes one page, the port writes two, so the port's <base>-1.svg
+  leaves the reference <base>.svg reading MISSING although the music drew --
+  and they are sitting on a defect that touches 1,296 pages. EPG16's close-out
+  called them "not page-breaking bugs" and handed them to their real owners on
+  the strength of per-file geometry; this session's suite-wide measurement is
+  the stronger form of the same argument.
+
+TESTS
+
+  SpringStorageTests (3, Engine.Tests) fences the storage seam in BOTH
+  directions: mutating a stored Spring through the List indexer must be
+  DISCARDED, and through a span reference must be KEPT. The pair is the point --
+  asserting only the ref case would pass against an indexer that started
+  handing back references, and asserting only the copy case would pass against
+  Spring quietly becoming a class. The third fences the alignment-distances
+  trio together, because a spring that kept its minimum but lost its stretch
+  strength would still drift.
+
+  ⚠ OWED AND NOT WRITTEN: an end-to-end fence that alignment-distances actually
+  places staves where a score asks. It is owed rather than skipped because the
+  observable it needs -- vertical separation between two staves -- is carried in
+  the SVG's enclosing translate transforms rather than in the line elements, and
+  because every such measurement today runs over collapsed staff lines. It
+  should be written once the finding above is closed, not before, or it fences
+  broken geometry.
+
+-------------------------------------------------------------------------------
+STAFF-LINES 2026-08-11 -- THE COLLAPSED-STAFF-LINE DEFECT, FIXED AT ITS ROOT
+-------------------------------------------------------------------------------
+
+  CLOSE-OUT II measured it: 74.4% of the port's horizontal staff lines were
+  drawn with no length (16,664 of 22,385 across 1,296 pages; oracle 4.9%).
+  After this session: 1.4%, on 103 pages against the oracle's 145. All the
+  fixes are faithful restorations; not one is new design.
+
+  THE ROOT. Separation_item::boxes read an item's ORDINARY Y extent where
+  upstream reads `il->pure_y_extent (ycommon, 0, INT_MAX)`. Boxes are built
+  during horizontal spacing, BEFORE line breaking, and the ordinary read
+  dragged the ordinary side-position chain in, which read the ordinary
+  vertical-skylines, which asked the StaffSymbol for its STENCIL -- computed
+  over columns still at x = 0, CACHED in the property alist, inherited by the
+  broken piece through Clone, and DRAWN. Print never ran twice; the collapsed
+  line was a stale cache, not a wrong computation.
+
+  THE CLASS, SWEPT. Every "answers the ordinary extent, pending EPG15" note
+  became a live bug the day EPG15 landed, and nothing re-checked them -- the
+  stale-named-absence rule at project scale. Retired this session (discharge
+  notes inline at each record):
+
+    * Separation_item::boxes                 pure_y_extent (the root)
+    * Side_position_interface::aligned_side  support skylines, support Y
+                                             coordinate, add-stem-support all
+                                             maybe-pure; BOTH ReadSkylinePair
+                                             constructor-default stand-ins are
+                                             ordinary-branch only now
+    * Accidental_placement::build_heads_skyline   pure_y_extent
+    * Self_alignment_interface::aligned_on_self   maybe_pure_extent
+    * Spacing_interface::skylines            pure_relative_y_coordinate
+    * Paper_column::minimum_distance         the conditional_skyline merge
+
+  THE DISCONNECTED MIDDLE. Paper_column_engraver was missing THREE
+  acknowledgers (staff_spacing, note_spacing, break_alignment). Nothing ever
+  wrote `spacing-wishes' onto any column, so every wish-based correction in
+  Spacing_spanner has been DEAD SINCE EPG4 -- reading empty sets, no
+  diagnostic -- and no column carried a `break-alignment' object, so
+  break_align_width answered a POINT at the column's coordinate for every
+  staff-line end in the suite. (That is why close-out II's restored else
+  branch "changed nothing": it searched an object no column carried.) With
+  the wishes connected, two hollow interiors became reachable and were ported
+  in full: Note_spacing::stem_dir_correction (knee_correction included) and
+  Staff_spacing::optical_correction, both behind stale EPG5/EPG6 absence
+  notes whose callees had landed on 2026-08-07.
+
+  THE SPRING TRAP, THIRD INSTANCE. Page_layout_problem's
+  alter_spring_from_spacing_spec took its Spring -- a struct -- BY VALUE, so
+  no spacing spec ever reached any page spring: every system sat at the
+  skyline MINIMUM instead of basic-distance (break.ly: 4.3 between systems
+  where the oracle has 8.0; exact after the fix). Upstream passes Spring*;
+  the port now passes `ref Spring'. Close-out II's List<Spring> fix was the
+  same trap through an indexer; EPG21's Bezier was its mirror. The class was
+  re-swept for by-value Spring parameters: NoteSpacing.GetSpacing is
+  value-in/value-out like upstream, AppendSystem/AppendProb mutate-then-store,
+  SpaceableGrob.AddSpring stores a copy upstream also stores. No other
+  mutating by-value site remains.
+
+  MEASURED, AGAINST THE COMMITTED FLOOR (nothing re-baselined):
+    sweep 1 (root + side-position + acknowledgers): 9 regressed / 21 improved
+      -- THE GATE WENT 10 -> 9 BY PORTING (script-custom-definition recovered)
+    sweep 2 (+ stem_dir/optical/accidental-placement): 9 / 84
+    closing sweep (+ spring-by-ref, self-alignment, spacing-interface,
+      minimum-distance): see STATUS_lilyport_stafflines_2026-08-11.txt
+
+  TESTS. StaffLinesEndToEndTests (4, CodeBrix.LilyPort.Tests): staff lines
+  span the system UNDER AN OUTSIDE-STAFF MARKUP (the markup is the trigger
+  for the poisoned-cache path), against an \omit StaffSymbol control that
+  must draw NO horizontal lines; and two systems sit at basic-distance
+  (12 - 4 = 8, derivable from ly/paper-defaults-init.ly), against a
+  basic-distance = 20 override that must answer 16 -- the pair that fences
+  the by-value Spring defect, because a port that ignores the spec answers
+  the default pair identically.
+
+-------------------------------------------------------------------------------
+STAFF-LINES FOLLOW-UP 2026-08-11 -- TWO OF THE NINE RED ROWS' FAMILIES CLOSED
+-------------------------------------------------------------------------------
+
+  Jeremy GO'd the ssaattbb leak hunt and the TimeSignature diagnosis. Both
+  found single defects; neither is what its symptom suggested.
+
+  THE MUSIC-FONT ADVANCE WAS FIFTY TIMES TOO LARGE. The
+  time-signature-grob-* family's "width explosion" (the port broke 3
+  oracle systems into 18) was not TimeSignature machinery at all:
+  OpenTypeFontMetric.IndexedAdvance multiplied the raw hmtx value by the
+  POINT constant -- a unit from a different domain -- where the SVG backend
+  draws the same outlines by FontScaling over the em. Every composed run in
+  the MUSIC font (fetaText: \number, \dynamic, figured bass, and time
+  signatures whose spec prints numerals as a STRING) advanced its pen 50x
+  per character; `(1/2 . 3/4)' prints "1/2" over "3/4", so three characters
+  spanned sixty staff spaces and line breaking exploded. Measured before and
+  after with a probe: advance('4') 80.0 -> 1.6000, exactly the glyph's box
+  width. Single-character runs never noticed, which is why figured bass
+  looked fine the day it landed. All four time-signature-grob-* files now
+  produce the oracle's ONE page. Fenced by MusicFontAdvanceTests as a
+  RELATIONSHIP (advance/box-width in a band around 1), because the defect
+  was a unit-domain mixup, not a wrong number.
+
+  THE NINTH PER-FILE LEAK IS THE PARSER'S BASE SCOPE ITSELF. Bisecting the
+  sweep against ssaattbb-template-with-all-staves (11 rounds, RATCHET-FIX's
+  recipe) converged on satb-template-with-changed-instrument-names -- and
+  the mechanism is the RestoreDefaults LIMIT recorded since EPG13: "a
+  variable a file INVENTS is left in place, because the scope has no
+  unbind". The built-in vocal templates read OPTIONAL variables by name
+  (Time, TwoVoicesPerStaff, instrument names), so the satb file's leftover
+  `Time = { s1 \break s1 }' forced a line break inside every LATER template
+  in the sweep: two pages in the sweep, one page alone. CLOSED generally,
+  not per-variable: LilyParserSession.SnapshotToplevelScope records the base
+  scope after the init layer (names, VARIABLE IDENTITIES, values) and
+  RestoreToplevelScope plays it back per file -- upstream's
+  one-parser-per-file semantics. Variable identity matters: psyntax captures
+  variables by object, so the restore re-attaches the SNAPSHOT'S variable
+  rather than minting a fresh one. The old LIMIT notes are retired. Fenced
+  by SessionLeakEndToEndTests: a reader file whose score DOUBLES its system
+  count if the canary variable is visible, paired with a same-file control
+  that must double -- the templates' mechanism in miniature.

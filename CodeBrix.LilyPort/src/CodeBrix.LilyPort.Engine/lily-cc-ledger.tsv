@@ -284,7 +284,7 @@ note-heads-engraver.cc	ported	src/CodeBrix.LilyPort.Engine/Translation/FirstEngr
 note-name-engraver.cc	ported	src/CodeBrix.LilyPort.Engine/Translation/NoteNameEngraver.cs	
 note-performer.cc	ported	src/CodeBrix.LilyPort.Engine/Translation/NotePerformers.cs	one of the 14 concrete performers
 note-spacing-engraver.cc	ported	src/CodeBrix.LilyPort.Engine/Translation/SpacingEngravers.cs	
-note-spacing.cc	ported	src/CodeBrix.LilyPort.Engine/Objects/NoteSpacing.cs	stem_dir_correction takes upstream own undeterminable-stem exit until EPG5/EPG6 land note columns and stems
+note-spacing.cc	ported	src/CodeBrix.LilyPort.Engine/Objects/NoteSpacing.cs	WHOLE as of STAFF-LINES (2026-08-11): stem_dir_correction's stem loop and knee_correction landed; the old note was stale, its callees having landed 2026-08-07
 one-line-auto-height-breaking.cc	ported	src/CodeBrix.LilyPort.Engine/Layout/PageBreakers.cs	
 one-line-page-breaking.cc	ported	src/CodeBrix.LilyPort.Engine/Layout/PageBreakers.cs	
 one-page-breaking.cc	ported	src/CodeBrix.LilyPort.Engine/Layout/PageBreakers.cs	
@@ -312,8 +312,8 @@ pango-font.cc	no-port	Pango shaping — replaced by the CodeBrix.Platform TextLa
 pango-select.cc	no-port	Pango face selection — replaced by the port font layer	
 paper-book-scheme.cc	ported	src/CodeBrix.LilyPort.Engine/Bootstrap/Epg16Callbacks.cs	
 paper-book.cc	ported	src/CodeBrix.LilyPort.Engine/Layout/PaperBook.cs	PAGE ASSEMBLY is ported in full. The OUTPUT half -- output, classic_output, output_stencil(s), dump_header_fields -- is NOT: those dispatch into lily framework-<backend> modules over the -dclip-systems/-dpreview/-dcrop/-daux-files program options, which D14 replaced with Lily.Shell and D19 replaced for PS/Cairo. See PORT-COVERAGE	
-paper-column-engraver.cc	ported	src/CodeBrix.LilyPort.Engine/Translation/PaperColumnEngraver.cs	
-paper-column.cc	ported	src/CodeBrix.LilyPort.Engine/Objects/PaperColumn.cs	
+paper-column-engraver.cc	ported	src/CodeBrix.LilyPort.Engine/Translation/PaperColumnEngraver.cs	STAFF-LINES (2026-08-11) restored the three specific acknowledgers (staff_spacing, note_spacing, break_alignment) this row had silently lacked
+paper-column.cc	ported	src/CodeBrix.LilyPort.Engine/Objects/PaperColumn.cs	EPG16 close-out II (2026-08-11) restored break_align_width's ELSE branch, which was ABSENT: the loop matched only the literal `break-alignment' symbol and never called Break_alignment_interface::find_nonempty_break_align_group, so a StaffSymbol asking with (staff-bar break-alignment) never consulted staff-bar. The callee had been ported by EPG15 and nothing re-checked this caller. Row disposition UNCHANGED -- the file was and is ported
 paper-def.cc	ported	src/CodeBrix.LilyPort.Engine/Fonts/FontInterface.cs	
 paper-outputter-scheme.cc	ported	src/CodeBrix.LilyPort.Engine/Bootstrap/OutputPrimitives.cs	
 paper-outputter.cc	ported	src/CodeBrix.LilyPort.Engine/Layout/PaperOutputter.cs	
@@ -426,7 +426,7 @@ spring.cc	ported	src/CodeBrix.LilyPort.Engine/Layout/Spring.cs
 staff-collecting-engraver.cc	ported	src/CodeBrix.LilyPort.Engine/Translation/VerticalOrganizationEngravers.cs	
 staff-grouper-interface.cc	ported	src/CodeBrix.LilyPort.Engine/Objects/StaffGrouperInterface.cs	the hara-kiri suicide calls are skipped with the rest of the unported suicide machinery
 staff-performer.cc	ported	src/CodeBrix.LilyPort.Engine/Translation/StaffPerformer.cs	
-staff-spacing.cc	ported	src/CodeBrix.LilyPort.Engine/Objects/StaffSpacing.cs	optical_correction answers 0 (upstream no-stem answer) until EPG6
+staff-spacing.cc	ported	src/CodeBrix.LilyPort.Engine/Objects/StaffSpacing.cs	WHOLE as of STAFF-LINES (2026-08-11): optical_correction landed; the old note was stale, its callees having landed 2026-08-07
 staff-symbol-engraver.cc	ported	src/CodeBrix.LilyPort.Engine/Translation/FirstEngravers.cs	
 staff-symbol-referencer-scheme.cc	group	EPG23	leaf binding file — EPG23 sweeps what its type's group did not land
 staff-symbol-referencer.cc	ported	src/CodeBrix.LilyPort.Engine/Objects/StaffSymbolReferencer.cs	
