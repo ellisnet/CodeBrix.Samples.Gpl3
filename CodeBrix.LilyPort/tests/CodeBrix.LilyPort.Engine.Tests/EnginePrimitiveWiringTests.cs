@@ -98,18 +98,27 @@ public class EnginePrimitiveWiringTests
     }
 
     [Fact]
-    public void function_documentation_is_an_empty_hash_table()
+    public void function_documentation_answers_a_table_keyed_by_entry_point_name()
     {
         //Arrange
-        // The port's primitives carry no LY_DEFINE docstrings, so the honest
-        // translation is the right SHAPE with nothing in it.
+        // RESTATED 2026-08-13 (EPG24). This used to assert the table was EMPTY, which
+        // was the honest reading while the port's bindings carried no docstrings; the
+        // vendored entry-point-docs.tsv now fills it, so the fact worth holding is the
+        // SHAPE of an entry rather than the absence of all of them.
+        //
+        // The entry is upstream's (varlist . docstring) pair, hand-read off
+        // lily/general-scheme.cc's LY_DEFINE for ly:dir?. The second half of the answer
+        // is a control: a name that no macro documents must be absent, so the test
+        // cannot pass against a table that answers everything.
         //Act
         string result = Eval(
-            "(list (hash-table? (ly:get-all-function-documentation))"
-            + "     (hash-map->list cons (ly:get-all-function-documentation)))");
+            "(let ((table (ly:get-all-function-documentation)))"
+            + "  (list (hash-table? table)"
+            + "        (car (hashq-ref table 'ly:dir?))"
+            + "        (hashq-ref table 'no-such-entry-point-exists)))");
 
         //Assert
-        result.Should().Be("(#t ())");
+        result.Should().Be("(#t \"(SCM s)\" #f)");
     }
 
     [Fact]

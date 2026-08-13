@@ -1151,6 +1151,7 @@ public class SystemGrob : Spanner
             int position = atBat.SpannedColumnRankInterval()[Direction.Negative];
             bool endOfLineVisible = true;
 
+
             if (atBat is Spanner spanner)
             {
                 Direction placement = DirectionOf(
@@ -1263,7 +1264,15 @@ public class SystemGrob : Spanner
                 // A spanner pushed to the right of its own origin is read at its RIGHT
                 // end instead — that is what puts an end-of-line footnote after the
                 // notes it follows rather than before them.
-                if (spanner.GetProperty(XOffsetPropertySymbol) is double offset && offset > 0)
+                //
+                // Read through SchemeConvert, which is upstream's own
+                // from_scm<double> (…, 0.0): the value routinely arrives as an EXACT
+                // integer (a footnote's X-offset is copied straight off the
+                // \footnote #'(1 . 1) pair), and a C#-`double`-only test answers "no
+                // offset" for every one of them.
+                double offset = Bootstrap.SchemeConvert.ToDouble(
+                    spanner.GetProperty(XOffsetPropertySymbol), 0.0);
+                if (offset > 0)
                 {
                     ranks[i] = spanner.SpannedColumnRankInterval()[Direction.Positive];
                 }

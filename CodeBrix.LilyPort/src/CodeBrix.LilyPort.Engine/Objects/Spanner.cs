@@ -65,6 +65,9 @@ public class Spanner : Grob
         = Symbol.Intern("minimum-length-after-break");
     private static readonly Symbol NormalizedEndpointsSymbol
         = Symbol.Intern("normalized-endpoints");
+    private static readonly Symbol StickyGrobInterfaceSymbol
+        = Symbol.Intern("sticky-grob-interface");
+    private static readonly Symbol StickyHostSymbol = Symbol.Intern("sticky-host");
 
     private DrulArray<Item> _spannedDrul;
     private Dictionary<(Symbol, int, int), object> _purePropertyCache;
@@ -107,14 +110,47 @@ public class Spanner : Grob
     /// <returns>The clone.</returns>
     public override Grob Clone() => new Spanner(this);
 
-    /// <summary>Returns the item at one end of the spanner.</summary>
+    /// <summary>
+    /// Returns the item at one end of the spanner, falling back to the sticky HOST's
+    /// bound when this is a sticky spanner carrying none of its own.
+    /// <para>
+    /// The fallback is the whole mechanism by which a sticky spanner gets bounds, not a
+    /// convenience: there is no point in the engraver cycle at which the
+    /// <c>Spanner_tracking_engraver</c> could reliably set them, because the engravers
+    /// looking after the host may set its right bound — and even its left bound — as late
+    /// as their finalize hook, and nothing here may depend on engraver order. So the
+    /// inheritance happens at RETRIEVAL time instead. Without it a sticky spanner keeps
+    /// two null bounds, which reads as "bounds of spanner are invalid" during break
+    /// processing and silently costs the grob its page.
+    /// </para>
+    /// </summary>
     /// <param name="direction">Which end.</param>
     /// <returns>The bound item, or <see langword="null"/> when unset.</returns>
-    public Item GetBound(Direction direction) => _spannedDrul[direction];
+    public Item GetBound(Direction direction)
+    {
+        Item bound = _spannedDrul[direction];
+        if (bound != null)
+        {
+            return bound;
+        }
 
-    /// <summary>Gets both bounds at once.</summary>
+        if (HasInterface(StickyGrobInterfaceSymbol))
+        {
+            if (GetObject(StickyHostSymbol) is Spanner host)
+            {
+                return host.GetBound(direction);
+            }
+
+            ProgrammingError("sticky spanner's host is not a spanner");
+        }
+
+        return null;
+    }
+
+    /// <summary>Gets both bounds at once, each through <see cref="GetBound"/>.</summary>
     /// <returns>The two bounds.</returns>
-    public DrulArray<Item> GetBounds() => _spannedDrul;
+    public DrulArray<Item> GetBounds()
+        => new DrulArray<Item>(GetBound(Direction.Negative), GetBound(Direction.Positive));
 
     /// <summary>
     /// Returns the system this spanner lies on: the one BOTH its bounds are on.

@@ -205,7 +205,18 @@ public class LilyPondOnDemandLoadTests
         Dictionary<string, string> signatures = new Dictionary<string, string>(StringComparer.Ordinal)
         {
             ["hyphenate-internal-words"] = "$defaultlayout",
-            ["documentation-generate"] = "string-length",
+
+            // RESTATED 2026-08-13 (EPG24), and the move is the good kind. This recorded
+            // "string-length", which was a real defect of its own showing through: a
+            // GOOPS slot's #:init-value '() was stored as the quoted list, so a childless
+            // <texi-node> looked like it had children and documentation-lib read a node
+            // name off the symbol `quote'. With that fixed the file gets as far as its
+            // own output code and stops at the ONE thing this project structurally
+            // cannot supply -- hyphenation-rules-string, which hyphenate-internal-words
+            // above would have defined if the parser were reachable. So the signature is
+            // now the parser gate itself, which is what the note beside BlockedFiles
+            // has claimed all along.
+            ["documentation-generate"] = "hyphenation-rules-string",
         };
 
         //Act

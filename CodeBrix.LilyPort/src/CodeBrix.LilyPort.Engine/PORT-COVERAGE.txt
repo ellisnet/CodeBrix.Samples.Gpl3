@@ -311,13 +311,19 @@ ADDED 2026-08-03 (third pass) -- the §7b unblock wirings
     error -- an unbound variable in a LilyScheme module is an ordinary state,
     not an inconsistency).
 
-  lily/function-documentation.cc  ->  GeneralPrimitives.cs   DIVERGENCE
+  lily/function-documentation.cc  ->  FunctionDocumentation.cs   CLOSED 2026-08-13
 
-    ly:get-all-function-documentation returns an EMPTY hash table. Upstream
-    fills it with every LY_DEFINE docstring at registration time; the port's
-    primitives carry no docstrings. The shape is right, the contents are
-    deliberately absent, and document-functions.scm therefore documents only
-    Scheme-defined functions until docstrings are ever wanted.
+    NO LONGER A DIVERGENCE (EPG24). The table is filled from the vendored
+    entry-point-docs.tsv at CreateInterpreter -- 448 entry points: the LY_DEFINE
+    and LY_DEFINE_WITH_SETTER docstrings, the four documented callback macros,
+    and the 36 smob type predicates, whose text Smob_base::init GENERATES from
+    the class name (smobs.tcc:141-145) rather than writing anywhere.
+
+    The PROCEDURE-PROPERTY half is carried too, and the note below that said it
+    was not needed was WRONG -- see the correction in the EPG3 section. The
+    superseded entry: "ly:get-all-function-documentation returns an EMPTY hash
+    table [...] document-functions.scm therefore documents only Scheme-defined
+    functions until docstrings are ever wanted."
 
   lily/grob-interface-scheme.cc ly:all-grob-interfaces  ->  RegistryPrimitives.cs
 
@@ -1556,6 +1562,28 @@ DELIBERATE DIVERGENCES (EPG3, finish -- 2026-08-05)
   not carried -- nothing in the vendored layer reads the property where it
   reads the table. ly_check_name guards C++-to-Scheme name mangling at
   compile time and has no analogue in C#.
+
+  ^^ CORRECTED 2026-08-13 (EPG24). BOTH halves of that paragraph are now
+  overtaken, and the second one was FALSE when it was written:
+
+    * The docstring content landed -- see the function-documentation.cc entry
+      near the top of this file.
+
+    * "Nothing in the vendored layer reads the property where it reads the
+      table" is wrong. document-functions.scm makes TWO passes: one over
+      ly:get-all-function-documentation, and a second over every public
+      procedure in (lily) that has a procedure-documentation and is NOT in the
+      table. The 63 entry points LilyPond re-exports under a Scheme name --
+      (define-public assoc-get ly:assoc-get) and its like -- are reached only by
+      the second pass, because the table is keyed ly:assoc-get while the module
+      binds assoc-get. The property is now set, with upstream's exact composed
+      string (" - LilyPond procedure: " name " " varlist "\n" doc).
+
+    The general lesson, which is trap 8's shape: a divergence note that says
+    "nothing reads this" is a claim about the WHOLE consuming layer, and it goes
+    stale the moment a file nobody had run yet turns out to read it.
+
+  ly_check_name remains without an analogue, as above.
 
   ly:spawn, ly:shutdown-gs and ly:gs-api are N/A per D25 (category
   ps-backend, rows in entry-point-na-candidates.tsv): they exist to drive the
@@ -5425,3 +5453,281 @@ EPG23 -- LONG TAIL & ENTRY-POINT CLOSURE (2026-08-12).  GATE G3 CLOSED.
   reference INTO the box, which is the faithful equivalent of upstream's
   pointer.  Fenced by Epg23Tests as a relationship: the caller's spring
   changes AND a different object comes back.
+
+================================================================================
+STICKY-SPANNER BOUNDS (2026-08-12).  EPG23'S TWO RED RATCHET ROWS, CLOSED.
+================================================================================
+
+  Two defects, both upstream of the place EPG23's close-out predicted, and
+  both found by measuring rather than by re-reading the predicted function.
+
+  (1) Spanner::get_bound HAD NO STICKY FALLBACK.  Objects/Spanner.cs answered
+  its own backing field and nothing else.  Upstream (lily/spanner.cc:146-172)
+  falls back to the sticky HOST's bound whenever the spanner carries
+  sticky-grob-interface and has none of its own, and its comment says why the
+  fallback lives at RETRIEVAL time: there is no point in the engraver cycle at
+  which the Spanner_tracking_engraver could reliably set the bounds, because
+  the engravers looking after the host may set its right bound -- and even its
+  left bound -- as late as their finalize hook, and nothing may depend on
+  engraver order.
+
+  So EVERY sticky SPANNER in the port carried two null bounds: a Footnote on a
+  beam or a hairpin, a BalloonText on a spanner, a Parentheses around one.
+  With null bounds a spanner fails break processing, never reaches any
+  system's all-elements, and is simply gone.  Nothing warned.  Sticky ITEMS --
+  a footnote on a note head -- were unaffected, which is exactly what made the
+  defect hard to see: footnotes worked, some of them.
+
+  Engraver.MakeSticky's own doc comment asserted the mechanism ("A sticky
+  spanner takes its bounds from its host implicitly") that was never
+  implemented -- standing trap 15a's shape, a port comment describing upstream
+  correctly while the port does something else.  The comment is now true.
+
+  (2) grob_2D_less READ X-offset AS A C# double ONLY.  Objects/SystemGrob.cs
+  tested `GetProperty("X-offset") is double', where upstream writes
+  from_scm<double> (get_property (s, "X-offset"), 0.0) -- which accepts ANY
+  Scheme number.  A footnote's X-offset is copied straight off the
+  \footnote #'(1 . 1) pair by grob::calc-property-by-copy and arrives as an
+  EXACT INTEGER, so every footnote spanner in the suite read as "not offset to
+  the right" and sorted at its LEFT column rank instead of its RIGHT one.  Now
+  read through SchemeConvert.ToDouble(value, 0.0), which IS from_scm<double>.
+
+  This is the numeric-tower half of standing trap 7: a value that is a number
+  in Scheme need not be a C# double, and an `is double' test fails SILENTLY
+  and plausibly -- it answers "no offset", which is a legal state.  Sweep for
+  the pattern when reading any numeric grob property.
+
+  WHY THE SIBLING FILES' GREEN WAS NOT EVIDENCE.  EPG23 recorded that
+  footnote-auto-numbering and footnote-auto-numbering-page-reset "now render
+  and PASS their numbering assertions", and reasoned from that to a defect in
+  the vertical tie-break.  Both files DO carry spanner footnotes (a hairpin
+  and a beam, with a simultaneous-numbering assertion on each), and both
+  passed because those footnotes did not exist to be numbered: the assertion
+  is a grob property, so a grob that never survives never asserts.  Their
+  green was the absence, not the machinery.  Grob::vertical_less itself was
+  faithful all along, as was grob_2D_less's structure.
+
+  Fences: SpannerTests (4, Engine -- each end inherits the host's SAME end, an
+  own bound still wins, the inherited column-rank interval, and a control
+  spanner WITHOUT the interface that must still answer null) and
+  StickyFootnoteEndToEndTests (2, LilyPort -- a footnote on a beam reaches the
+  page against a bare control and a note-head control; and the numbering order
+  beams-before-hairpins, whose control asserts the interleaving the X-offset
+  defect produced and must fail to render).
+
+================================================================================
+CTX-ORDER AND TEXT-SIZE (2026-08-12)
+================================================================================
+
+TWO DEFECTS, BOTH ORDERING/QUANTIZATION IN A CHAIN THE PORT HAD REPRODUCED
+STRUCTURALLY AND GOT WRONG NUMERICALLY OR TEMPORALLY.
+
+  (1) THE TWO DISPATCHERS WERE WIRED IN THE WRONG ORDER.  Context's constructor
+  called EventsBelow.RegisterAsListener(EventSource) BEFORE registering the five
+  listeners every context answers to (CreateContext, RemoveContext, ChangeParent,
+  SetProperty, UnsetProperty).  Upstream registers them the other way round in
+  both places it wires a context -- lily/context.cc:375-395 and
+  lily/global-context.cc:50-55 -- under the comment "We want to be the first
+  ones to hear our own events.  Therefore, wait before registering
+  events_below_".
+
+  A Dispatcher serves listeners in increasing priority and priority IS
+  registration order, so the two orders are not equivalent: with events_below_
+  first, an event broadcast AT a context reaches every OUTSIDE listener before
+  the context itself has acted on it.  CreateContext is the event that CREATES a
+  context, and Lyric_combine_music_iterator listens for it on the top context
+  for exactly one reason, stated in its own comment: "Wait for a Create_context
+  event.  If this isn't done, lyrics can be delayed when voices are created
+  implicitly" (lily/lyric-combine-music-iterator.cc:233-239).  Relayed early,
+  CheckNewContext ran a FindVoice that could not yet succeed.
+
+  The consequence was NOT confined to ordering.  The iterator binds to a voice
+  in order to hear its melodic events (set_busy), and start_new_syllable refuses
+  to set a syllable until busy_moment_ has caught up with now.  Binding one
+  timestep late therefore DROPPED THE FIRST SYLLABLE of every stanza whose voice
+  did not already exist when the lyric iterator ran create_contexts, and shifted
+  the rest one note late.  On the MIDI side it also announced the Lyrics
+  context's audio staff a timestep after every staff and voice, which is what
+  put all lyrics tracks after all music tracks -- G2's last open row.
+
+  RegisterContextListeners is now called from the constructor and is idempotent;
+  the pre-existing explicit calls (Context.CreateContextFromEvent, GlobalContext)
+  are now no-ops and are kept as documentation of where upstream does the work.
+
+  MEASURED: satb-template-with-keyboard-reduction.midi went from a dropped
+  syllable per voice and grouped tracks to BYTE-IDENTICAL to the oracle, and the
+  MIDI scoreboard closed at 90/90.  Layout gained four recovered syllables on
+  that file (23 -> 27 text elements against the oracle's 28).
+
+  (2) THE PANGO SIZE QUANTUM WAS MISSING.  lily/font-select.cc:215-216 does not
+  hand Pango the size it computed:
+
+      int pango_size = static_cast<int> (std::lround (requested_size * PANGO_SCALE));
+      pango_font_description_set_size (description, pango_size);
+
+  PANGO_SCALE is 1024 and a PangoFontDescription's size is an int, so every text
+  size upstream uses is a whole number of 1/1024ths, and
+  pango_font_description_to_string writes it to THREE DECIMALS.  That string is
+  the only route the size takes to the backend, which parses it back out with
+  output-svg.scm's own regular expression and divides by output-scale to write
+  font-size.  The port carried the exact real all the way through, so it emitted
+  1.7461 where the oracle emits 1.7459, 2.4694 against 2.4697, and so on.
+
+  Fixed in FontInterface.QuantizeToPangoUnits (lround semantics -- halves AWAY
+  from zero, which Math.Round's default banker's rounding does not give) plus a
+  three-decimal DescriptionString.  MEASURED against the pinned oracle over 31
+  font sizes from step -24 to +24: all 31 reproduce, and the suite's text-run
+  inventory differences fell from 558 pages differing by a text run ALONE to 73.
+
+  NOT DONE, and recorded rather than fixed: upstream routes the fetaText
+  encoding through the Pango branch (font-select.cc's "else // latin1,
+  fetaText", with requested_size *= point_constant first), where the port's
+  IsMusicEncoding groups fetaText with fetaMusic and takes the design-size
+  route.  Nothing in this session's measurements turned on it.
+
+A HOST-DEPENDENCE IN THE ORACLE, NOT A PORT DEFECT (measured, no code change).
+  ly/paper-defaults-init.ly:170-180 makes the SVG backend name the GENERIC font
+  families:
+
+      property-defaults.fonts.serif =
+        #(if (eq? 'svg (ly:get-option 'backend)) "serif" "LilyPond Serif")
+
+  so under the SVG backend Pango resolves "serif"/"sans"/"monospace" through the
+  HOST's fontconfig rather than through LilyPond's own "LilyPond Serif" alias.
+  On this machine that answers Noto Serif / Noto Sans / Noto Sans Mono, and the
+  committed reference corpus carries Noto metrics for every text run: measured
+  glyph-by-glyph, the oracle's x/X/g/o ink boxes and advances match Noto exactly
+  (x [0,536] w 578, X [0,714] w 660, g [-240,567] w 538, o [-10,546] w 577) and
+  do not match C059.  The port resolves the same generic names to its own
+  vendored faces (D23), which are byte-identical to the oracle's bundled ones,
+  and its extents are the exact ink of those faces.  Re-running the oracle with
+  the generic families pinned to the bundled fonts reproduces C059's real
+  metrics, i.e. the port's numbers.  This is the ~6% text-extent gap; it is a
+  yardstick question, not an engine one.
+
+================================================================================
+TEXT ADVANCES IGNORE KERNING (2026-08-13, found by REF-PIN)
+================================================================================
+
+NOT FIXED.  Recorded here because it is now the measured text blocker, and
+because it was invisible until the reference corpus stopped carrying host fonts.
+
+TextFontMetric.TextStencil sums each glyph's raw hmtx advance:
+
+    advance += face.Advance(glyph) * scale;
+
+Upstream takes the X extent from Pango's LOGICAL rect
+(lily/pango-font.cc's pango_item_string_stencil, PANGO_LBEARING/PANGO_RBEARING
+of logical_rect), and Pango has SHAPED the run by then -- so that width includes
+the font's GPOS kerning.  The port applies none.
+
+MEASURED against the pinned oracle at font-size 24 in C059-Roman, oracle width
+against the raw advance sum, in em:
+
+    "iiiiii"             1.8915  vs  1.8900   +0.0015   (no kern pairs)
+    "AVAVAV"             3.8499  vs  4.3320   -0.4821
+    "To Wo Yo"           4.2360  vs  4.4080   -0.1720
+    "LilyPond v2.27.2"   7.7299  vs  7.7810   -0.0511
+
+A string with no kern pairs agrees to the size quantum; every string with them
+is WIDER in the port.  The engraving tagline carries one on nearly every page,
+which is why its hot-zone rect is the visible instance: with fonts pinned the
+Y extents now agree EXACTLY (both -0.4532, height 2.0746) and only the width
+differs (reference 17.0034, port 17.1189).
+
+Fixing it means shaping, not arithmetic: the port would have to read GPOS pair
+adjustments (and the legacy kern table) and apply them between adjacent glyphs.
+That is its own work item and its own GO.
+
+A SECOND DIVERGENCE FOUND THE SAME WAY, ALSO NOT FIXED.  When no available face
+covers a code point, the two sides disagree about what to emit.  The port always
+writes the <text> element and draws .notdef -- D23's tofu.  Pango drops the run
+entirely, so the pinned oracle emits NOTHING.  Two regression files turn on it
+(markup-diacritic-marks asks for "Linux Libertine O, serif" and Hebrew;
+pdf-copy-paste asks for "Noto Serif JP" and Japanese), and under the pinned
+corpus neither font is reachable by design.  Which side is right is a ruling,
+not a defect: D23 says tofu, the yardstick says nothing.
+
+
+===============================================================================
+EPG24 -- DOCUMENTATION-GENERATION PARITY (2026-08-13)
+===============================================================================
+
+  ly/generate-documentation.ly runs end to end under the port and writes all
+  nineteen files.  EIGHTEEN ARE BYTE-IDENTICAL to the oracle's; internals.texi
+  is not, and its residue is three named classes, below.
+
+  Run it with:
+
+      dotnet run --project tools/regression-harness/DocsDriver -c Release -- OUT
+
+  The oracle is invoked the same way, and it must be, because the script writes
+  through open-output-file with RELATIVE names -- the output directory is the
+  PROCESS WORKING DIRECTORY, not an argument:
+
+      cd OUT && lilypond .../ly/generate-documentation.ly
+
+THE TWO NEW DATA TABLES
+
+  Scheme/translator-descriptions.tsv and Scheme/entry-point-docs.tsv carry what
+  upstream's ADD_TRANSLATOR and LY_DEFINE macros carry into C++ static
+  initialisers: the translator descriptions and the entry-point docstrings.
+  Both are registered at CreateInterpreter, the answer grob-interfaces.tsv
+  already gave for ADD_INTERFACE (plan decision O8, option C).  Regenerate them
+  with tools/table-extract/*.py against the pinned reference; no build step
+  reads them, per standing rule 7.
+
+  entry-point-docs.tsv covers 448 entry points from FOUR declaration sites, not
+  one: LY_DEFINE (402), LY_DEFINE_WITH_SETTER (6), the two MAKE_SCHEME_CALLBACK
+  macros that take a docstring (4), and the 36 smob type predicates, whose text
+  Smob_base::init GENERATES from the class name (smobs.tcc:141-145).  The first
+  extraction pass had only the first of the four and left 63 entry points
+  undocumented -- the same shape entry-points.tsv's own history records.
+
+WHAT internals.texi STILL DIFFERS BY (measured, 496 hunks)
+
+  1. PROCEDURE SOURCE LOCATIONS -- 213 hunks.  Guile prints an anonymous
+     procedure as #<procedure at lily/define-music-types.scm:352:33 (x p)>; the
+     port prints #<procedure anonymous>.  CodeBrix.LilyScheme's reader does not
+     track source locations at all -- source-properties, source-property and
+     supports-source-properties? are stubs answering '(), #f and #f -- so this
+     is a real feature (reader -> psyntax -> lambda meta), not a printing tweak.
+     Its own work item and its own GO.
+
+  2. module-public-interface RETURNS THE WHOLE MODULE -- 126 hunks.  The port
+     documents procedures upstream does not, because a plain `define' inside a
+     (define-module (lily)) file lands in what the port calls the public
+     interface.  CodeBrix.LilyScheme's AGENT-README already records this as a
+     deliberate divergence ("scope is WIDER than Guile's, never narrower") and
+     records that narrowing it can only remove bindings other files may be
+     resolving through the over-import -- so it wants a session that can sweep
+     behind it.  Not attempted here.
+
+  3. SMOB PRINT REPRESENTATIONS -- 7 hunks.  The oracle prints #<Duration 1 >
+     and #<Mom 0> where the port prints 1 and 0.  Small, and the only one of
+     the three that is a contained fix.
+
+DEFECTS THIS RUN SURFACED IN THE ENGINE (all fixed, all silent)
+
+  ly:dir?  answered #t TO EVERYTHING that was not a C# long.  It read its
+  argument as `a[0] is long value ? value : 0', and 0 is a valid direction, so a
+  symbol, a list, a string or a grob all passed.  general-scheme.cc:117 tests
+  scm_is_integer first and answers #f otherwise.  Trap 6b's failure mode reached
+  through trap 6c's cause: a C# type pattern where upstream reads the numeric
+  tower.  The visible consequence was in scm->string, whose ly-type? asks every
+  exported predicate in turn -- so every symbol and every list "was" a
+  direction, and the documentation printed quoted values unquoted and stopped
+  pretty-printing lists.
+
+  ly:camel-case->lisp-identifier returned a STRING where general-scheme.cc:367
+  returns ly_symbol2scm -- a symbol.  It prints identically, and it matches
+  nothing that looks it up: document-music.scm hands the answer to
+  ly:make-event-class, which is keyed by symbol, so all 272 music types silently
+  lost their "Event classes" and "Accepted by" blocks.
+
+  Scheme/lilyport/support.scm defined index?, character for character what
+  scm/lily.scm:221 defines.  Two bindings of one name in two modules, so
+  type-p-name-alist (keyed by the predicate OBJECT) missed the one the on-demand
+  files resolved, and five paper variables documented their type as "index"
+  instead of "non-negative, exact integer".  The duplicate is removed; the file
+  records why at the point where it stood.

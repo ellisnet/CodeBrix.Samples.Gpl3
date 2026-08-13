@@ -1,0 +1,90 @@
+<?xml version="1.0"?>
+<fontconfig>
+
+  <!--
+    reference-fonts.conf.in : the font configuration the ORACLE renders the
+    reference corpus under.  Copyright (c) 2026 Jeremy Ellis and contributors.
+
+    @FONTDIR@ is substituted by generate-reference.sh with the font directory of
+    the pinned oracle install (share/lilypond/<version>/fonts/otf).
+
+    (Note for editors: this is an XML comment, so it may not contain a double
+    hyphen anywhere.  Write ranges and dashes as single hyphens.)
+
+    WHY THIS FILE EXISTS
+    ====================
+    ly/paper-defaults-init.ly:170-180 makes the SVG backend name the GENERIC font
+    families rather than LilyPond's own:
+
+        property-defaults.fonts.serif =
+          #(if (eq? 'svg (ly:get-option 'backend)) "serif" "LilyPond Serif")
+
+    so under the SVG backend Pango resolves "serif", "sans" and "monospace"
+    through whatever fontconfig the HOST has.  On an ordinary Linux desktop that
+    answers the system's default families : on the machine this corpus was first
+    generated on, Noto Serif / Noto Sans / Noto Sans Mono, and the reference then
+    carries THOSE metrics for every text run.  Measured: the oracle's ink boxes
+    and advances for x/X/g/o matched Noto exactly and did not match C059.
+
+    That makes the corpus depend on the host's installed fonts, which is not a
+    property a parity yardstick may have, and it is unreachable for the port:
+    D23 fixes CodeBrix.LilyPort's text faces to the 24 vendored ones and forbids
+    system font fallback outright.
+
+    So the oracle is pinned here to the SAME faces the port uses, in the SAME
+    order.  The lists below mirror TextFontChain.Families in
+    src/CodeBrix.LilyPort.Engine/Fonts/TextFace.cs one for one; if that table
+    changes, this file changes with it.  Those faces are the oracle's own
+    bundled fonts, byte identical to the port's vendored copies, verified by
+    sha256, 24 of 24 : so this pins WHICH font is chosen and changes no font.
+
+    NO SYSTEM FALLBACK, BY CONSTRUCTION
+    ===================================
+    The only dir element is the oracle's own font directory, so fontconfig has no
+    system font to fall back to even in principle.  A code point none of the
+    bundled faces covers therefore draws .notdef on BOTH sides, which is exactly
+    what D23 asks for ("no system font fallback, ever", then tofu).  Do not add a
+    dir element here to "fix" a missing glyph: that would silently reintroduce
+    the host dependence this file exists to remove.
+  -->
+
+  <dir>@FONTDIR@</dir>
+  <cachedir prefix="xdg">fontconfig</cachedir>
+
+  <!-- serif: C059, then TeX Gyre Schola. -->
+  <alias binding="strong">
+    <family>serif</family>
+    <prefer>
+      <family>C059</family>
+      <family>TeX Gyre Schola</family>
+    </prefer>
+  </alias>
+
+  <!-- sans: Nimbus Sans, then TeX Gyre Heros.  Both spellings of the generic
+       name are pinned: LilyPond writes "sans", CSS and fontconfig "sans-serif",
+       and a markup reaching Pango under either must land on the same face. -->
+  <alias binding="strong">
+    <family>sans</family>
+    <prefer>
+      <family>Nimbus Sans</family>
+      <family>TeX Gyre Heros</family>
+    </prefer>
+  </alias>
+  <alias binding="strong">
+    <family>sans-serif</family>
+    <prefer>
+      <family>Nimbus Sans</family>
+      <family>TeX Gyre Heros</family>
+    </prefer>
+  </alias>
+
+  <!-- typewriter: Nimbus Mono PS, then TeX Gyre Cursor. -->
+  <alias binding="strong">
+    <family>monospace</family>
+    <prefer>
+      <family>Nimbus Mono PS</family>
+      <family>TeX Gyre Cursor</family>
+    </prefer>
+  </alias>
+
+</fontconfig>

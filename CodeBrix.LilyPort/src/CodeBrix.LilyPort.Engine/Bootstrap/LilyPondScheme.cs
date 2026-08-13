@@ -63,6 +63,21 @@ public static class LilyPondScheme
     public static Interpreter Current { get; private set; }
 
     /// <summary>
+    /// Gets the report <see cref="LoadViaLilyScm"/> is filling, or <see langword="null"/>
+    /// before the layer has been loaded.
+    /// <para>
+    /// The startup loader deliberately RECORDS a file's failure instead of throwing, so
+    /// that one bad file cannot abort the pass. Its hook then stays installed, which
+    /// means every ON-DEMAND load afterwards is recorded in the same report — and until
+    /// EPG24 nothing could read it, because <c>LilyPondInit</c> discards the returned
+    /// object. A documentation run loads sixteen files on demand; without this, one of
+    /// them failing is invisible and shows up only as an unbound variable much later,
+    /// with the real reason already thrown away.
+    /// </para>
+    /// </summary>
+    public static LoadReport CurrentLoadReport { get; private set; }
+
+    /// <summary>
     /// Restores a previously captured ambient interpreter — the restore half of a
     /// save/restore around a fixture that publishes a BARE interpreter through
     /// <see cref="CreateInterpreter"/> without loading the Scheme layer. A bare
@@ -357,6 +372,16 @@ public static class LilyPondScheme
         // context definition's \consists list must resolve the same way whether the
         // translator was written in C# or in Scheme.
         Translation.TranslatorRegistry.RegisterBuiltIn(Registries);
+
+        // Their DOCUMENTATION, from the same vendored-table mechanism the grob
+        // interfaces use, and for the same reason: upstream's ADD_TRANSLATOR macro
+        // carries the doc/create/read/write text into a C++ static initialiser, and a
+        // C# translator class has nowhere to put it. It must follow RegisterBuiltIn
+        // (it fills in descriptions for translators that already exist) and precede
+        // the Scheme layer, whose scheme-engravers.scm registers its own translators
+        // WITH descriptions that this pass must not touch.
+        TranslatorDescriptionTable.Register(Registries);
+
         GrobPrimitives.Install(interpreter);
         TranslationPrimitives.Install(interpreter);
         OutputPrimitives.Install(interpreter);
@@ -439,6 +464,13 @@ public static class LilyPondScheme
         // up by name, so every primitive involved has to exist first.
         SetterBindings.Install(interpreter);
 
+        // The entry points' own docstrings, from the third vendored documentation table.
+        // It goes here for the same reason SetterBindings does: half of what it records
+        // is a `documentation' property SET ON THE BOUND PROCEDURE, so every binding it
+        // documents has to exist by now. Upstream gets this ordering for free, because
+        // its macro registers the binding and its documentation in the same statement.
+        FunctionDocumentation.LoadTable(interpreter);
+
         EnableLilyModuleAutoload(interpreter);
 
         // Published only now. A half-built interpreter must never become the ambient
@@ -470,6 +502,7 @@ public static class LilyPondScheme
         }
 
         LoadReport report = new LoadReport();
+        CurrentLoadReport = report;
 
         // The hook is NOT ly:load. lily.scm defines its own ly:load in Scheme, which
         // resolves the name with %search-load-path and then hands off to

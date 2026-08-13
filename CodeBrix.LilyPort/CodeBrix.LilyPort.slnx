@@ -14,6 +14,7 @@
   </Folder>
   <Folder Name="/Tools/">
     <Project Path="tools/regression-harness/BatchDriver/CodeBrix.LilyPort.BatchDriver.csproj" />
+    <Project Path="tools/regression-harness/DocsDriver/CodeBrix.LilyPort.DocsDriver.csproj" />
   </Folder>
   <Project Path="src/CodeBrix.LilyPort/CodeBrix.LilyPort.csproj" />
   <Project Path="src/CodeBrix.LilyPort.Flower/CodeBrix.LilyPort.Flower.csproj" />

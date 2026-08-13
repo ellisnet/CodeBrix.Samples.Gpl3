@@ -17,7 +17,9 @@
   along with LilyPond.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+using System;
 using System.Collections.Generic;
+using CodeBrix.LilyScheme;
 using CodeBrix.LilyScheme.Primitives;
 using CodeBrix.LilyScheme.Values;
 
@@ -48,6 +50,8 @@ namespace CodeBrix.LilyPort.Engine.Bootstrap; //was previously: lily/function-do
 public static class FunctionDocumentation
 {
     private static readonly SchemeHashTable DocTable = new SchemeHashTable(null);
+
+    private static readonly Symbol DocumentationSymbol = Symbol.Intern("documentation");
 
     /// <summary>
     /// The predicate descriptions upstream's <c>init_func_doc</c> registers — the
@@ -88,6 +92,84 @@ public static class FunctionDocumentation
 
     /// <summary>Gets the table <c>ly:get-all-function-documentation</c> answers.</summary>
     public static SchemeHashTable Table => DocTable;
+
+    /// <summary>
+    /// Loads the vendored extraction of upstream's <c>LY_DEFINE</c> docstrings.
+    /// <para>
+    /// Upstream's macro hands the name, the stringified argument list and the docstring
+    /// to <c>ly_add_function_documentation</c> as the binding is registered, so the
+    /// table is exactly as complete as the binding set. A C# lambda has nowhere to carry
+    /// a docstring, so the port reads the same three fields from a committed table —
+    /// the mechanism <c>GrobInterfaceTable</c> and <c>TranslatorDescriptionTable</c>
+    /// already use for data that only exists at C++ compile time.
+    /// </para>
+    /// <para>
+    /// EVERY documented name is recorded, not only the ones this interpreter happens to
+    /// bind, because the table is upstream's and the generated manual is compared
+    /// against upstream's. Whether the port actually binds each of them is a different
+    /// question and a real one — <c>EntryPointDocumentationTests</c> asserts it, so a
+    /// documented-but-missing entry point fails a test instead of quietly documenting a
+    /// procedure that is not there.
+    /// </para>
+    /// </summary>
+    /// <param name="interpreter">The interpreter whose bound procedures carry the
+    /// <c>documentation</c> property half.</param>
+    public static void LoadTable(Interpreter interpreter)
+    {
+        if (interpreter == null)
+        {
+            throw new ArgumentNullException(nameof(interpreter));
+        }
+
+        foreach (EntryPointDocumentation entry in EntryPointDocumentationTable.All)
+        {
+            Add(entry.Name, entry.ArgumentList, entry.Documentation);
+            SetDocumentationProperty(interpreter, entry);
+        }
+    }
+
+    /// <summary>
+    /// Sets the <c>documentation</c> procedure-property upstream's
+    /// <c>ly_add_function_documentation</c> sets alongside the table entry.
+    /// <para>
+    /// This was recorded as a deliberate divergence — "nothing in the vendored Scheme
+    /// layer reads the property where it does read the table" — and that was wrong.
+    /// <c>scm/document-functions.scm</c> makes a SECOND pass over every public
+    /// procedure in <c>(lily)</c> and documents each one whose
+    /// <c>procedure-documentation</c> answers, deliberately skipping names the table
+    /// already covers. The 63 entry points LilyPond re-exports under a Scheme name —
+    /// <c>(define-public assoc-get ly:assoc-get)</c> and its like — are documented ONLY
+    /// through that pass, because the table is keyed by <c>ly:assoc-get</c> while the
+    /// module binds <c>assoc-get</c>.
+    /// </para>
+    /// <para>
+    /// The composed string is upstream's, character for character
+    /// (<c>lily/function-documentation.cc:66-69</c>): a leading <c>" - LilyPond
+    /// procedure: "</c>, the name, a space, the argument list as the C preprocessor
+    /// stringified it, a newline, then the docstring — which itself begins with a
+    /// newline, and that is what puts the blank line in the manual.
+    /// </para>
+    /// </summary>
+    /// <param name="interpreter">The interpreter holding the binding.</param>
+    /// <param name="entry">The entry point's documentation.</param>
+    private static void SetDocumentationProperty(
+        Interpreter interpreter, EntryPointDocumentation entry)
+    {
+        Variable variable = interpreter.GuileModule.Lookup(Symbol.Intern(entry.Name));
+        if (variable == null || !variable.IsBound || !(variable.GetValue() is Procedure procedure))
+        {
+            // Not bound here. The port binds every documented entry point, and
+            // EntryPointDocumentationTests asserts exactly that — so this is the
+            // fence's business, not a place to warn from.
+            return;
+        }
+
+        string composed = " - LilyPond procedure: " + entry.Name + " "
+            + entry.ArgumentList + "\n" + entry.Documentation;
+        procedure.Properties = new Pair(
+            new Pair(DocumentationSymbol, new MutableString(composed)),
+            procedure.Properties);
+    }
 
     /// <summary>
     /// Records one entry point's documentation — upstream's

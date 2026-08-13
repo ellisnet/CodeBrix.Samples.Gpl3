@@ -5,7 +5,9 @@
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
+using System;
 using System.Collections.Generic;
+using System.IO;
 using CodeBrix.LilyPort.Engine;
 using CodeBrix.LilyPort.Engine.Bootstrap;
 using CodeBrix.LilyPort.Parsing.Session;
@@ -49,22 +51,23 @@ public class SchemeLayerClosureTests
     };
 
     /// <summary>
-    /// The one file that still does not load, and why it is a different KIND of thing
-    /// from the other ninety.
+    /// The file that is a different KIND of thing from the other ninety, and now loads
+    /// anyway.
     /// <para>
     /// <c>documentation-generate.scm</c> is not a library: its whole body is output
     /// generation, and it ends by opening <c>markup-commands.tely</c>,
     /// <c>type-predicates.tely</c> and half a dozen more for writing. Upstream runs it
     /// as a SCRIPT — <c>lilypond scm/documentation-generate.scm</c> — when it builds the
     /// manual, and "loading" it means writing those files into the working directory.
-    /// So it is excluded on purpose rather than blocked: a fence that loaded it would be
-    /// asserting that a test run may litter the tree.
+    /// That is why <see cref="Loaded"/> points the working directory at a throwaway: a
+    /// fence must not let a test run litter the tree.
     /// </para>
     /// <para>
-    /// OPEN FOR JEREMY: gate G6 is worded "91 of 91 scm/ files load". On this reading it
-    /// closes at 90 of 91 plus one script. If the intended reading is that the script
-    /// must run too, that is a harness question — where its output goes — and not an
-    /// engine one.
+    /// UPDATE 2026-08-13 (EPG24): the script RUNS to completion now, so gate G6's
+    /// wording — "91 of 91 scm/ files load" — is satisfied on either reading, and the
+    /// question this note used to put to Jeremy no longer needs an answer. Whether the
+    /// nineteen outputs MATCH the oracle's is gate G8's question, measured by
+    /// <c>tools/regression-harness/DocsDriver</c> and not by this fence.
     /// </para>
     /// </summary>
     private const string DocumentationScript = "documentation-generate";
@@ -77,15 +80,43 @@ public class SchemeLayerClosureTests
             {
                 LoadReport report = null;
 
+                // LOADING documentation-generate.scm RUNS IT, and running it writes
+                // nineteen files through open-output-file with relative names — so the
+                // load happens with the working directory pointed at a throwaway.
+                // Before EPG24 the file could not get that far and the question never
+                // arose; the class note below it has always said a fence must not let a
+                // test run litter the tree.
+                string scratch = Path.Combine(
+                    Path.GetTempPath(),
+                    "codebrix-lilyport-scheme-closure-" + Guid.NewGuid().ToString("n"));
+                Directory.CreateDirectory(scratch);
+                string previous = Directory.GetCurrentDirectory();
+
                 // psyntax recurses hard enough to overflow the default stack, and the
                 // init layer expands a great deal of it.
-                Interpreter.RunWithLargeStack(() =>
+                try
                 {
-                    Interpreter interpreter = LilyPondScheme.CreateInterpreter();
-                    LilyPondScheme.LoadViaLilyScm(interpreter);
-                    new LilyParserSession(interpreter).LoadInitLayer();
-                    report = LilyPondScheme.LoadToFixpoint(interpreter, ParserGatedFiles);
-                });
+                    Directory.SetCurrentDirectory(scratch);
+                    Interpreter.RunWithLargeStack(() =>
+                    {
+                        Interpreter interpreter = LilyPondScheme.CreateInterpreter();
+                        LilyPondScheme.LoadViaLilyScm(interpreter);
+                        new LilyParserSession(interpreter).LoadInitLayer();
+                        report = LilyPondScheme.LoadToFixpoint(interpreter, ParserGatedFiles);
+                    });
+                }
+                finally
+                {
+                    Directory.SetCurrentDirectory(previous);
+                    try
+                    {
+                        Directory.Delete(scratch, true);
+                    }
+                    catch (IOException)
+                    {
+                        // A leftover temp directory is not worth failing a fence over.
+                    }
+                }
 
                 _report = report;
             }
@@ -112,19 +143,25 @@ public class SchemeLayerClosureTests
     }
 
     [Fact]
-    public void the_documentation_script_is_the_only_scm_file_left_and_it_is_a_script()
+    public void every_parser_gated_scm_file_loads_the_documentation_script_included()
     {
         //Arrange
-        // EQUALITY on the failure set, so an unblocked file cannot be absorbed silently
-        // and a newly-blocked one cannot hide. See DocumentationScript for why this one
-        // is excluded by KIND rather than blocked by a missing engine piece.
+        // RESTATED 2026-08-13 (EPG24). This asserted that documentation-generate was the
+        // ONE file still failing, and it is not: it runs to completion now. What used to
+        // stop it was a chain of four defects — load-from-path unbound, a GOOPS
+        // #:init-value quoted rather than evaluated, open-output-file refusing Guile's
+        // #:encoding, and no port flush — none of which was about this file.
+        //
+        // EQUALITY on the failure set is kept, so an unblocked file cannot be absorbed
+        // silently and a newly-blocked one cannot hide.
         //Act
         LoadReport report = Loaded();
 
         //Assert
         List<string> failed = new List<string>(report.Failed.Keys);
-        failed.Should().Equal(new[] { DocumentationScript });
-        report.Loaded.Count.Should().Be(ParserGatedFiles.Length - 1);
+        failed.Should().BeEmpty();
+        report.Loaded.Count.Should().Be(ParserGatedFiles.Length);
+        report.Loaded.Should().Contain(DocumentationScript);
     }
 
     private static IEnumerable<string> Describe(LoadReport report)

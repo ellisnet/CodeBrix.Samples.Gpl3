@@ -119,13 +119,29 @@ public class Context
         EventSource = new Dispatcher();
         EventsBelow = new Dispatcher();
 
-        // events_below ()->register_as_listener (event_source_), which upstream does in
-        // create_context_from_event and again in Global_context's constructor. It is
-        // what makes an event broadcast AT a context also travel up: without it, a
-        // translator in an ancestor never hears anything from below, and the port's
-        // earlier workaround — SendStreamEvent broadcasting on both dispatchers — could
-        // not help, because the iterators broadcast on the event source DIRECTLY, which
-        // is upstream's route too.
+        // ORDER IS LOAD-BEARING, and upstream says so out loud. Both places where
+        // upstream wires a context's dispatchers — create_context_from_event
+        // (lily/context.cc:375-395) and Global_context's constructor
+        // (lily/global-context.cc:50-55) — register the context's OWN listeners first
+        // and register events_below_ LAST, under the comment "We want to be the first
+        // ones to hear our own events. Therefore, wait before registering
+        // events_below_". A Dispatcher hands an event to its listeners in increasing
+        // priority, and priority is the order of registration, so the two orders are
+        // NOT equivalent: with events_below_ registered first, an event broadcast AT a
+        // context reaches every outside listener BEFORE the context has acted on it.
+        // That is not cosmetic — CreateContext is the event that CREATES a context, and
+        // LyricCombineIterator.CheckNewContext (upstream's check_new_context) listens
+        // for it on the top context precisely to catch the Voice the moment it exists.
+        // Relayed early, it ran a FindVoice that could not yet succeed, so \lyricsto
+        // bound its melody one timestep late and dropped the first syllable of every
+        // stanza in the suite.
+        RegisterContextListeners();
+
+        // events_below ()->register_as_listener (event_source_) — what makes an event
+        // broadcast AT a context also travel up: without it, a translator in an ancestor
+        // never hears anything from below, and the port's earlier workaround —
+        // SendStreamEvent broadcasting on both dispatchers — could not help, because the
+        // iterators broadcast on the event source DIRECTLY, which is upstream's route too.
         EventsBelow.RegisterAsListener(EventSource);
 
         for (object cursor = _definition.ContextAliases; cursor is Pair pair; cursor = pair.Cdr)
@@ -916,6 +932,11 @@ public class Context
     /// <para>Upstream does this inline in <c>create_context_from_event</c>. It is a
     /// method here so that a hand-built root — a <see cref="GlobalContext"/> a caller
     /// made directly — can be given the same protocol.</para>
+    /// <para>The constructor calls it, because these five MUST be registered before
+    /// <c>EventsBelow</c> is registered as a listener of <c>EventSource</c> — see the
+    /// note there. It is idempotent, so the explicit calls that predate that (here and
+    /// in <see cref="GlobalContext"/>) are now no-ops and are kept as documentation of
+    /// where upstream does the work.</para>
     /// </summary>
     public void RegisterContextListeners()
     {

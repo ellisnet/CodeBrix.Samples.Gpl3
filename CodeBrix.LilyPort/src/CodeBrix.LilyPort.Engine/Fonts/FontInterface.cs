@@ -60,6 +60,9 @@ public static class FontInterface
     private static readonly Symbol TypewriterSymbol = Symbol.Intern("typewriter");
     private static readonly Symbol FetaMusicSymbol = Symbol.Intern("fetaMusic");
     private static readonly Symbol FetaBracesSymbol = Symbol.Intern("fetaBraces");
+    /// <summary>Pango's <c>PANGO_SCALE</c>: the number of Pango units in one size unit.</summary>
+    private const double PangoScale = 1024.0;
+
     private static readonly Symbol FetaTextSymbol = Symbol.Intern("fetaText");
     private static readonly Symbol Latin1Symbol = Symbol.Intern("latin1");
     private static readonly Symbol StaffHeightSymbol = Symbol.Intern("staff-height");
@@ -303,6 +306,21 @@ public static class FontInterface
             smallCaps = ReferenceEquals(variant, SmallCapsSymbol);
         }
 
+        // THE PANGO SIZE QUANTUM. Upstream does not hand Pango the size it computed: it
+        // hands it an INTEGER number of Pango units --
+        //   int pango_size = static_cast<int> (std::lround (requested_size * PANGO_SCALE));
+        //   pango_font_description_set_size (description, pango_size);
+        // (lily/font-select.cc:215-216, PANGO_SCALE == 1024). From then on that quantized
+        // size is the ONLY size in play: it is what the font is instantiated at, so it is
+        // what the glyph metrics scale by, and it is what comes back out of
+        // pango_font_description_to_string into the stencil's description -- which the SVG
+        // backend parses to write font-size. Skipping it left the port emitting the exact
+        // real where the oracle emits the lattice point, e.g. 1.7461 against 1.7459, on
+        // over a thousand pages. MEASURED against the pinned oracle over 31 font sizes
+        // from step -24 to +24: quantizing here and formatting to three decimals in
+        // TextFontMetric.DescriptionString reproduces every one of them.
+        requestedSize = QuantizeToPangoUnits(requestedSize);
+
         OutputDef top = layout;
         while (top.Parent != null)
         {
@@ -332,6 +350,21 @@ public static class FontInterface
         table[key] = font;
         return font;
     }
+
+    /// <summary>
+    /// Rounds a text-font size to the lattice Pango stores sizes on.
+    /// </summary>
+    /// <remarks>
+    /// <c>PANGO_SCALE</c> is 1024 and a <c>PangoFontDescription</c>'s size is an
+    /// <c>int</c>, so every size upstream ever uses for a text font is a whole number of
+    /// 1/1024ths. <c>std::lround</c> rounds halves AWAY from zero, which
+    /// <see cref="MidpointRounding.AwayFromZero"/> matches;
+    /// <see cref="Math.Round(double)"/>'s default banker's rounding does not.
+    /// </remarks>
+    /// <param name="size">The size asked for.</param>
+    /// <returns>The size Pango would hold.</returns>
+    public static double QuantizeToPangoUnits(double size)
+        => Math.Round(size * PangoScale, MidpointRounding.AwayFromZero) / PangoScale;
 
     private static bool IsBoldSeries(object series)
     {

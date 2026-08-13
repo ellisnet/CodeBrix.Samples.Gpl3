@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>disable</Nullable>
+    <IsPackable>false</IsPackable>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <RootNamespace>CodeBrix.LilyPort.DocsDriver</RootNamespace>
+    <AssemblyName>CodeBrix.LilyPort.DocsDriver</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\src\CodeBrix.LilyPort\CodeBrix.LilyPort.csproj" />
+    <!--
+      CodeBrix.LilyPort references the sub-assemblies with PrivateAssets="all" so the
+      package ships as one unit, which means the Engine does NOT flow transitively.
+      The driver names it directly, the way the test projects do, for the one thing it
+      needs: reading the vendored ly/generate-documentation.ly out of the Engine's own
+      embedded resources rather than off a source path that only exists in a checkout.
+    -->
+    <ProjectReference Include="..\..\..\src\CodeBrix.LilyPort.Engine\CodeBrix.LilyPort.Engine.csproj" />
+  </ItemGroup>
+
+</Project>

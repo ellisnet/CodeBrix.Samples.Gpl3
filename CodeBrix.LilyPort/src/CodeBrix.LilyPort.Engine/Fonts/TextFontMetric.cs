@@ -151,7 +151,17 @@ public sealed class TextFontMetric : FontMetric
             }
 
             text.Append(' ');
-            text.Append(Size.ToString("0.##########", CultureInfo.InvariantCulture));
+
+            // THREE DECIMALS, and it is not cosmetic: this string is the ONLY route the
+            // size takes to the backend, which parses it back out with upstream's own
+            // regular expression (output-svg.scm's pango-description-to-text) and divides
+            // by output-scale to write font-size. Upstream's string comes from
+            // pango_font_description_to_string, which formats the description's size to
+            // three decimals; writing more digits here made the port emit sizes the
+            // oracle cannot express. MEASURED against the pinned oracle across 31 font
+            // sizes (steps -24..+24): with FontInterface.QuantizeToPangoUnits ahead of it,
+            // this format reproduces every one. See that method's note.
+            text.Append(Size.ToString("0.000", CultureInfo.InvariantCulture));
             return text.ToString();
         }
     }

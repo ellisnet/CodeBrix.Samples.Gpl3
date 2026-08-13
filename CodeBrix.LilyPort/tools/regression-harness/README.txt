@@ -96,6 +96,51 @@ Rendering flags, and why each is there:
                             machine that generated it.
     --silent                Keep the logs to real diagnostics.
 
+THE FONTS ARE PINNED, AND THEY HAVE TO BE (2026-08-13)
+--------------------------------------------------------------------------------
+generate-reference.sh builds reference-fonts.conf from reference-fonts.conf.in
+and points FONTCONFIG_FILE at it before rendering anything.  This is not a
+convenience.  ly/paper-defaults-init.ly:170-180 makes the SVG backend name the
+GENERIC font families:
+
+    property-defaults.fonts.serif =
+      #(if (eq? 'svg (ly:get-option 'backend)) "serif" "LilyPond Serif")
+
+so under -dbackend=svg Pango resolves "serif", "sans" and "monospace" through
+whatever fontconfig the HOST has, and the corpus silently records the metrics of
+whatever that machine happens to have installed.  The corpus generated before
+2026-08-13 carried Noto Serif / Noto Sans / Noto Sans Mono for every text run --
+measured glyph by glyph, the oracle's ink boxes and advances for x/X/g/o matched
+Noto exactly and did not match C059, which is what LilyPond's own "LilyPond
+Serif" alias prefers.
+
+Two things follow.  A corpus generated that way is not reproducible on another
+machine, which is the same class of defect as the point-and-click paths above.
+And it is unreachable for the port: D23 fixes CodeBrix.LilyPort's text faces to
+the 24 vendored ones and forbids system-font fallback outright, so the two sides
+were resolving the same generic name to different fonts and text-bearing pages
+could never MATCH.
+
+reference-fonts.conf.in therefore pins the generic families to the same faces the
+port uses, in the same order, out of the ORACLE'S OWN bundled font directory --
+which is byte-identical to the port's vendored copies (sha256, 24 of 24).  It
+pins WHICH font is chosen and changes no font.  Its only <dir> is that directory,
+so no system font is reachable even in principle, and a code point none of the
+bundled faces covers draws .notdef on both sides, which is what D23 asks for.
+
+    IF YOU REGENERATE THE REFERENCE WITHOUT THIS FILE, every text run in the
+    corpus moves and the ratchet floor becomes meaningless.  The manifest header
+    records the pinning and the font directory for exactly that reason: check it
+    before trusting a corpus you did not generate yourself.
+
+The face lists mirror TextFontChain.Families in
+src/CodeBrix.LilyPort.Engine/Fonts/TextFace.cs one for one.  If that table
+changes, reference-fonts.conf.in changes with it, and the corpus is regenerated.
+
+MIDI IS NOT AFFECTED.  reference-midi/ carries no font data, so
+generate-midi-reference.sh is deliberately left unpinned and the committed .midi
+files are unchanged by any of this.
+
 ================================================================================
 4.  WHAT IS COMMITTED, AND WHAT IS NOT
 ================================================================================

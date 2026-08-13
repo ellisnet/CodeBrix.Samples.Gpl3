@@ -13,6 +13,7 @@ using System.Text;
 using CodeBrix.LilyPort.Engine.Layout;
 using CodeBrix.LilyPort.Flower;
 using CodeBrix.LilyScheme;
+using CodeBrix.LilyScheme.Numeric;
 using CodeBrix.LilyScheme.Primitives;
 using CodeBrix.LilyScheme.Runtime;
 using CodeBrix.LilyScheme.Values;
@@ -490,10 +491,23 @@ public static class GeneralPrimitives
         interpreter.DefinePrimitive("ly:string-percent-encode", 1, 1, a =>
             new MutableString(Origins.PointAndClick.PercentEncode(TextOf(a[0]))));
 
+        // general-scheme.cc:116-123. A NON-NUMBER answers #f, and that half is the whole
+        // point of the predicate: this used to read the argument as `a[0] is long value ?
+        // value : 0`, so every value that was not a C# long — a symbol, a list, a string,
+        // a grob — became 0, and 0 IS a valid direction. The predicate answered #t to
+        // everything.
+        //
+        // It is also trap 6c's shape: upstream tests scm_is_integer, which is true of the
+        // whole exact-integer tower, not of one C# representation.
         interpreter.DefinePrimitive("ly:dir?", 1, 1, a =>
         {
-            long direction = a[0] is long value ? value : 0;
-            return direction == -1 || direction == 0 || direction == 1;
+            if (!SchemeNumber.IsNumber(a[0]) || !SchemeNumber.IsInteger(a[0]))
+            {
+                return false;
+            }
+
+            double direction = Convert.ToDouble(a[0], CultureInfo.InvariantCulture);
+            return direction >= -1 && direction <= 1;
         });
 
         interpreter.DefinePrimitive("ly:find-file", 1, 2, a =>
@@ -514,8 +528,14 @@ public static class GeneralPrimitives
 
         // Upstream lowercases the first letter and inserts a hyphen before each later
         // capital: Span_stem_engraver stays as-is, but NoteHead becomes note-head.
+        // general-scheme.cc:367 returns ly_symbol2scm (result) — a SYMBOL, not a string.
+        // The two callers are both in document-music.scm and both hand the answer
+        // straight to ly:make-event-class, which looks it up in a table keyed by symbol:
+        // a string prints exactly like the symbol it should have been, matches nothing,
+        // and the music node quietly loses the "Event classes" and "Accepted by" blocks
+        // of every one of its 272 entries.
         interpreter.DefinePrimitive("ly:camel-case->lisp-identifier", 1, 1, a =>
-            new MutableString(CamelCaseToLispIdentifier(AsSymbolName(a[0]))));
+            Symbol.Intern(CamelCaseToLispIdentifier(AsSymbolName(a[0]))));
 
         // A Bezier crosses the Scheme boundary as a list of four (x . y) pairs, which is
         // the representation LilyPond's Scheme already uses for control points.

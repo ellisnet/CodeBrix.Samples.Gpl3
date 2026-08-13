@@ -77,7 +77,9 @@ STATUS
     entry-points.tsv, load-order,  data extracted from lily/*.cc and
     grob-interfaces.tsv,           scm/*.scm. Section 1.5.
     lily-cc-ledger.tsv,
-    translators.tsv
+    translators.tsv,
+    translator-descriptions.tsv,
+    entry-point-docs.tsv
     assets/fonts/text/             24 prebuilt TEXT font faces (URW + TeX
                                    Gyre) vendored byte-for-byte from the
                                    official LilyPond 2.27.2 binary
@@ -1382,6 +1384,53 @@ Copyright: Copyright (C) 1996--2026 Han-Wen Nienhuys <hanwen@xs4all.nl>
            Extracted from lily/*.cc and scm/*.scm. DATA DERIVED FROM LILYPOND,
            GPL-3.0-or-later, vendored, on the same reasoning as entry-points.tsv
            above.
+
+    src/CodeBrix.LilyPort.Engine/Scheme/translator-descriptions.tsv
+           Added 2026-08-13 (EPG24). The Internals-Reference metadata of the 126
+           translators declared by the C++ ADD_TRANSLATOR macro: the description,
+           the grobs created, the context properties read and written -- the
+           macro's four text blocks, VERBATIM -- and the event classes the
+           translator listens to, derived from the ADD_LISTENER family in its
+           boot() as lily/translator.cc:112 derives them (underscores to hyphens,
+           then "-event").
+
+           Upstream assembles this alist in
+           Translator::static_translator_description (lily/translator.cc:126) out
+           of data that exists only at C++ compile time. The port's translators
+           are C# classes with nowhere to carry it, so it is vendored and
+           registered at CreateInterpreter, the same answer ADD_INTERFACE got in
+           grob-interfaces.tsv above.
+
+           This file carries upstream PROSE -- the descriptions are LilyPond's own
+           documentation text -- so it is DATA DERIVED FROM LILYPOND and
+           GPL-3.0-or-later on the same reasoning as entry-points.tsv, including
+           why it does not live in CodeBrix.LilyScheme.
+
+    src/CodeBrix.LilyPort.Engine/Scheme/entry-point-docs.tsv
+           Added 2026-08-13 (EPG24). The docstring and stringified argument list
+           of the 448 entry points upstream documents: 402 from LY_DEFINE, 6 from
+           LY_DEFINE_WITH_SETTER, 4 from the two MAKE_SCHEME_CALLBACK macros that
+           take a docstring, and the 36 smob type predicates, whose text
+           Smob_base::init GENERATES from the class name
+           (lily/include/smobs.tcc:141-145) and which is therefore generated the
+           same way here rather than copied.
+
+           Upstream registers each one from its macro into the hash table
+           ly:get-all-function-documentation returns
+           (lily/function-documentation.cc:58), and also as the procedure's own
+           `documentation' property; scm/document-functions.scm reads BOTH, the
+           second for the entry points LilyPond re-exports under a Scheme name.
+
+           The docstrings are upstream's documentation prose, so this is DATA
+           DERIVED FROM LILYPOND and GPL-3.0-or-later, on the same reasoning as
+           entry-points.tsv above.
+
+    tools/table-extract/
+           Added 2026-08-13 (EPG24). The scripts that regenerate the two tables
+           above from the pinned reference checkout, plus the shared C++ scanner
+           they read the registration macros with. New-in-family code, run BY
+           HAND when the reference moves: no build step reads them, and no build
+           step may read a non-CodeBrix checkout.
 
   Grammar and lexer mirror:
 
