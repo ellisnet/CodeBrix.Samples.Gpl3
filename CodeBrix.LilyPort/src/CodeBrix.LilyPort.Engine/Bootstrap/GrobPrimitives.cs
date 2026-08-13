@@ -107,7 +107,91 @@ public static class GrobPrimitives
             AsGrob(a[0], "ly:grob-suicide!").Suicide();
             return Unspecified.Instance;
         });
+
+        // grob-scheme.cc: chain PROC onto the FRONT of the callback already stored as
+        // property SYM, so it is called with the grob and the previous callback's
+        // result. The algorithm is grob-closure.cc's chain_callback, already carried.
+        //
+        // Upstream accepts a procedure OR an Unpure_pure_container here, and rejects
+        // anything else BY ARGUMENT POSITION — the container form is how a property
+        // carries separate ordinary and pure callbacks (trap 14), so refusing it would
+        // silently make every pure chain unreachable.
+        interpreter.DefinePrimitive("ly:grob-chain-callback", 3, 3, a =>
+        {
+            Grob grob = AsGrob(a[0], "ly:grob-chain-callback");
+            if (!SchemeUtilities.IsProcedure(a[1]) && !(a[1] is UnpurePureContainer))
+            {
+                throw SchemeErrors.WrongType(
+                    "ly:grob-chain-callback", "procedure or unpure pure container", a[1]);
+            }
+
+            GrobClosure.ChainCallback(grob, a[1], AsSymbol(a[2], "ly:grob-chain-callback"));
+            return Unspecified.Instance;
+        });
+
+        // Does A lie ABOVE B on the page? Same staff compares real Y coordinates against
+        // the common refpoint; different staves compare the staves' order in the root
+        // vertical alignment.
+        interpreter.DefinePrimitive("ly:grob-vertical<?", 2, 2, a =>
+            Grob.VerticalLess(
+                AsGrob(a[0], "ly:grob-vertical<?"),
+                AsGrob(a[1], "ly:grob-vertical<?")));
+
+        // Which staff, counting from the top of the root alignment, this grob sits on.
+        // -1 when it belongs to no vertical alignment — upstream's documented answer,
+        // and NOT an error.
+        interpreter.DefinePrimitive("ly:grob-get-vertical-axis-group-index", 1, 1, a =>
+            (long)Grob.GetVerticalAxisGroupIndex(
+                AsGrob(a[0], "ly:grob-get-vertical-axis-group-index")));
+
+        // The (leftmost . rightmost) column ranks this grob spans, as a PAIR — upstream
+        // conses the two ends of the interval rather than answering an interval object.
+        interpreter.DefinePrimitive("ly:grob-spanned-column-rank-interval", 1, 1, a =>
+        {
+            Slice ranks = AsGrob(a[0], "ly:grob-spanned-column-rank-interval")
+                .SpannedColumnRankInterval();
+            return new Pair((long)ranks.Left, (long)ranks.Right);
+        });
+
+        InstallDebugCallbacks(interpreter);
     }
+
+    /// <summary>
+    /// The three GROB DEBUG CALLBACKS — <c>grob-property.cc</c>'s modification and
+    /// property-cache hooks, and <c>engraver.cc</c>'s creation hook.
+    /// </summary>
+    /// <param name="interpreter">The interpreter to extend.</param>
+    /// <remarks>
+    /// All three go through upstream's <c>check_debug_callback</c>, and that function is
+    /// where their real behaviour lives: it is compiled two ways. Only an
+    /// <c>--enable-checking</c> build stores the procedure; every ordinary build — which
+    /// is what the pinned oracle binary is, and what the port corresponds to — takes the
+    /// other branch, issues the warning reproduced below, and stores <c>'()</c>. The
+    /// callbacks are then never invoked, because the sites that would call them are
+    /// themselves inside <c>if constexpr (CHECKING)</c>.
+    /// <para>
+    /// So this IS the port of these entry points, not a placeholder for one: refusing the
+    /// callback with upstream's own warning is upstream's own answer. Wiring the hooks up
+    /// for real would make the port behave like a build the oracle is not, which standing
+    /// rule 2 rules out.
+    /// </para>
+    /// </remarks>
+    private static void InstallDebugCallbacks(Interpreter interpreter)
+    {
+        DebugCallback(interpreter, "ly:set-grob-modification-callback");
+        DebugCallback(interpreter, "ly:set-property-cache-callback");
+        DebugCallback(interpreter, "ly:set-grob-creation-callback");
+    }
+
+    private static void DebugCallback(Interpreter interpreter, string name)
+        => interpreter.DefinePrimitive(name, 1, 1, a =>
+        {
+            // Upstream warns unconditionally in a non-checking build — even for the
+            // (cb = #f) "unset the callback" call, which the checking build answers
+            // silently. Reproduced, including that asymmetry.
+            Warn.Warning("To use grob debug callbacks, configure with --enable-checking");
+            return Unspecified.Instance;
+        });
 
     private static void InstallObjects(Interpreter interpreter)
     {
@@ -234,6 +318,18 @@ public static class GrobPrimitives
 
     private static void InstallGrobArrays(Interpreter interpreter)
     {
+        // pointer-group-interface-scheme.cc: append a grob to another grob's SYM array,
+        // CREATING the array when the link is unset — which is the whole reason the
+        // Scheme layer has this rather than ly:grob-set-object!.
+        interpreter.DefinePrimitive("ly:pointer-group-interface::add-grob", 3, 3, a =>
+        {
+            PointerGroupInterface.AddGrob(
+                AsGrob(a[0], "ly:pointer-group-interface::add-grob"),
+                AsSymbol(a[1], "ly:pointer-group-interface::add-grob"),
+                AsGrob(a[2], "ly:pointer-group-interface::add-grob"));
+            return Unspecified.Instance;
+        });
+
         interpreter.DefinePrimitive("ly:grob-array-length", 1, 1, a =>
             (long)AsGrobArray(a[0], "ly:grob-array-length").Count);
 

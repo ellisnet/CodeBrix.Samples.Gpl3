@@ -152,7 +152,7 @@ public sealed class LexerRule
 /// scanner must hand those out before reading any more input.</item>
 /// </list>
 /// </summary>
-public sealed class ModalScanner : IParserInput
+public sealed class ModalScanner : IParserInput, CodeBrix.LilyPort.Engine.Origins.ILilyLexer
 {
     private readonly List<LexerRule> _rules;
     private readonly Stack<LexerState> _stateStack = new Stack<LexerState>();

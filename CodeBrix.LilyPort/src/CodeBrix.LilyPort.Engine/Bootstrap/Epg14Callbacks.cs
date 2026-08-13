@@ -355,6 +355,26 @@ public static class Epg14Callbacks
             AsStencil(a[0], "ly:stencil-outline")
                 .WithOutline(AsStencil(a[1], "ly:stencil-outline")));
 
+        // stencil-scheme.cc. Rotate around an offset given RELATIVE to the stencil's own
+        // extent — (-1, 1) is its upper-left corner — where ly:stencil-rotate-absolute
+        // below takes a point in absolute coordinates. The two differ only in that
+        // conversion; both mutate a COPY, which is safe here because Stencil is a struct
+        // and AsStencil unboxes one (upstream copies explicitly, for the same reason).
+        //
+        // Live surface, not a leaf: scm/define-woodwind-diagrams.scm builds every
+        // woodwind key diagram through this, so as a stub it returned the inert
+        // placeholder for each one.
+        interpreter.DefinePrimitive("ly:stencil-rotate", 4, 4, a =>
+        {
+            Stencil s = AsStencil(a[0], "ly:stencil-rotate");
+            s.RotateDegrees(
+                SchemeConvert.ToDouble(a[1], "ly:stencil-rotate"),
+                new Offset(
+                    SchemeConvert.ToDouble(a[2], "ly:stencil-rotate"),
+                    SchemeConvert.ToDouble(a[3], "ly:stencil-rotate")));
+            return s;
+        });
+
         interpreter.DefinePrimitive("ly:stencil-rotate-absolute", 4, 4, a =>
         {
             Stencil s = AsStencil(a[0], "ly:stencil-rotate-absolute");
@@ -430,6 +450,28 @@ public static class Epg14Callbacks
             }
 
             return new Offset(pair.Left, pair.Right).Length;
+        });
+
+        // stencil-scheme.cc's ly:angle, ly:length's twin: the vector's angle in DEGREES,
+        // taken either from a number pair or from two coordinates. The one-argument form
+        // is the common one; the two-argument form is what makes the optional second
+        // parameter meaningful, and reading arity the other way round would silently
+        // treat (ly:angle 3 4) as "the angle of the pair 3" and raise a wrong-type.
+        interpreter.DefinePrimitive("ly:angle", 1, 2, a =>
+        {
+            if (a.Length > 1 && SchemeConvert.IsNumber(a[1]))
+            {
+                return new Offset(
+                    SchemeConvert.ToDouble(a[0], "ly:angle"),
+                    SchemeConvert.ToDouble(a[1], "ly:angle")).AngleDegrees();
+            }
+
+            if (!Grob.TryNumberPair(a[0], out Interval pair))
+            {
+                throw SchemeErrors.WrongType("ly:angle", "number pair", a[0]);
+            }
+
+            return new Offset(pair.Left, pair.Right).AngleDegrees();
         });
     }
 

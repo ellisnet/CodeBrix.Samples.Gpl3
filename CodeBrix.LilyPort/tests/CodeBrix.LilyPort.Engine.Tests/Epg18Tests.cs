@@ -440,7 +440,21 @@ public class Epg18Tests
         // The other twelve ledger rows the group closed carry no Scheme surface at all;
         // they are translators, which ly/engraver-init.ly reaches by NAME through
         // TranslatorRegistry and which this number cannot see.
-        closure.Implemented.Count.Should().Be(678);
+        //
+        // 679 after the fine-vertical-geometry session (2026-08-12) registered
+        // ly:set-middle-C! -- an even sharper illustration of surface-not-correctness
+        // than the five above: pitch.cc's set_middle_C had been faithfully ported since
+        // EPG14 and the ottava engraver called it correctly, while the Scheme binding
+        // parser-clef.scm applies after EVERY \clef stayed a stub. middleCPosition never
+        // left the treble context default, so every clef change in the whole port was a
+        // silent note-placement no-op.
+        //
+        // 737 -- ALL of them -- after EPG23 (2026-08-12), which closed gate G3: 36 real
+        // implementations plus 17 D25 N/A bindings, and an N/A binding counts as
+        // implemented here because it IS a real binding that raises with its reason. The
+        // number cannot rise again; from here it can only FALL, and a fall means a
+        // registration was lost.
+        closure.Implemented.Count.Should().Be(737);
     }
 
     [Fact]

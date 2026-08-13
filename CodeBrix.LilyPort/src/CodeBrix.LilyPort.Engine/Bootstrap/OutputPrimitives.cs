@@ -319,24 +319,40 @@ public static class OutputPrimitives
                 book.Header = a[1];
             }
 
-            // Upstream walks the rest IN ORDER, calling add_score, which PREPENDS —
-            // so init.ly's newest-first toplevel-scores list comes out in FILE order.
-            // Appending instead preserves newest-first, which silently reverses every
-            // multi-score file.
-            foreach (object score in FlattenRest(a, 2))
+            // Upstream (book-scheme.cc) never calls add_score here — it APPENDS the
+            // whole list at once: book->scores_ = ly_append (scores, book->scores_).
+            // init.ly passes toplevel-scores newest-first and Book.Process reverses on
+            // the way out ("Render in order of parsing"), so the list must arrive AS
+            // PASSED. Consing per score would reverse it a second time and render every
+            // multi-score file backwards. Consing from the tail is that append.
+            //
+            // The rest arrives SPREAD — this interpreter's `apply' spreads its final
+            // list — and every slot is one score-list ENTRY taken AS-IS: an entry may
+            // itself be a list (a toplevel markup is collected as a markup LIST), and
+            // flattening one level (which this did until 2026-08-12) stripped that
+            // wrapping so the entry failed is-markup-list and the whole book of a
+            // toplevel \markup \score rendered NOTHING.
+            for (int i = a.Length - 1; i >= 2; i--)
             {
-                book.AddScore(score);
+                if (!(a[i] is DefaultArgument))
+                {
+                    book.AddScore(a[i]);
+                }
             }
 
             return book;
         });
 
-        interpreter.DefinePrimitive("ly:make-book-part", 1, -1, a =>
+        // Upstream is 1-0-0: ONE required argument that IS the score list
+        // (lily-library.scm hands it toplevel-scores whole). Same append contract as
+        // ly:make-book — consing from the tail keeps the list as passed.
+        interpreter.DefinePrimitive("ly:make-book-part", 1, 1, a =>
         {
             Book book = new Book();
-            foreach (object score in FlattenRest(a, 0))
+            List<object> parts = Pair.ToList(a[0]);
+            for (int i = parts.Count - 1; i >= 0; i--)
             {
-                book.AddScore(score);
+                book.AddScore(parts[i]);
             }
 
             return book;
@@ -350,8 +366,10 @@ public static class OutputPrimitives
 
         interpreter.DefinePrimitive("ly:book-add-bookpart!", 2, 2, a =>
         {
-            Book book = AsBook(a[0], "ly:book-add-bookpart!");
-            book.Bookparts = new Pair(a[1], book.Bookparts);
+            // Through AddBookpart, never a bare cons: upstream's binding calls
+            // Book::add_bookpart, which wraps scores-so-far into an implicit part
+            // FIRST — the ordering the sequence-name* books depend on.
+            AsBook(a[0], "ly:book-add-bookpart!").AddBookpart(a[1]);
             return Unspecified.Instance;
         });
 
@@ -571,33 +589,6 @@ public static class OutputPrimitives
         return definition.Clone();
     }
 
-    private static List<object> FlattenRest(object[] arguments, int start)
-    {
-        List<object> items = new List<object>();
-        for (int i = start; i < arguments.Length; i++)
-        {
-            if (arguments[i] is DefaultArgument)
-            {
-                continue;
-            }
-
-            // The rest argument arrives as one list when the caller applied a list, and
-            // as loose values otherwise; both shapes reach here from real call sites.
-            if (arguments[i] is Pair || arguments[i] is Nil)
-            {
-                foreach (object item in Pair.ToList(arguments[i]))
-                {
-                    items.Add(item);
-                }
-            }
-            else
-            {
-                items.Add(arguments[i]);
-            }
-        }
-
-        return items;
-    }
 
     private static Score AsScore(object value, string procedureName)
         => value as Score ?? throw SchemeErrors.WrongType(procedureName, "score", value);

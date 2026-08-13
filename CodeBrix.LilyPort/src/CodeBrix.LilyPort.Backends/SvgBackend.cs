@@ -57,6 +57,7 @@ public sealed class SvgBackend : IStencilSink
     private static readonly Symbol NamedGlyph = Symbol.Intern("named-glyph");
     private static readonly Symbol GlyphString = Symbol.Intern("glyph-string");
     private static readonly Symbol Utf8String = Symbol.Intern("utf-8-string");
+    private static readonly Symbol UrlLink = Symbol.Intern("url-link");
 
     // output-svg.scm's pango-description-regexp-comma / -nocomma. A Pango description
     // ends in its size, optionally preceded by style words; everything before the match
@@ -419,6 +420,15 @@ public sealed class SvgBackend : IStencilSink
                 Text(args.Count > 1 ? args[1] : Nil.Instance));
         }
 
+        if (ReferenceEquals(head, UrlLink))
+        {
+            EmitUrlLink(
+                Text(args.Count > 0 ? args[0] : Nil.Instance),
+                args.Count > 1 ? args[1] : Nil.Instance,
+                args.Count > 2 ? args[2] : Nil.Instance);
+            return true;
+        }
+
         if (ReferenceEquals(head, GlyphString))
         {
             // Not handled here. Returning false lets the interpreter fall back to the
@@ -430,6 +440,58 @@ public sealed class SvgBackend : IStencilSink
         UnhandledCommands.Add(head.Name);
         return false;
     }
+
+    /// <summary>
+    /// Emits a hyperlink hot-zone, which is what <c>output-svg.scm</c>'s
+    /// <c>url-link</c> does: an <c>&lt;a&gt;</c> wrapping one INVISIBLE
+    /// <c>&lt;rect&gt;</c> covering the linked markup's extents.
+    /// <para>
+    /// The rect draws nothing — <c>fill="none" stroke="none"</c> — so it is pure
+    /// clickable area; the linked text is set separately by the sibling stencil. That
+    /// invisibility is why its absence went unnoticed for the whole port: it changes no
+    /// pixel, and it appears on 2,098 of the 2,316 reference pages because the
+    /// "Music engraving by LilyPond" tagline carries one.
+    /// </para>
+    /// <para>
+    /// Two things here are upstream's shape and are deliberately NOT tidied. First, the
+    /// Y coordinate is written RAW rather than through <see cref="FormatY"/>: upstream
+    /// writes <c>(car y)</c> and the interval's own height, so the rect sits mirrored
+    /// about the baseline relative to the text it covers. It is invisible, upstream has
+    /// always done it, and negating here would be a parity bug. Second, the URL is NOT
+    /// XML-escaped, because upstream's <c>attributes</c> helper interpolates it with
+    /// <c>~a</c> and escapes nothing; a URL containing an ampersand produces the same
+    /// malformed document on both sides.
+    /// </para>
+    /// </summary>
+    /// <param name="url">The link target.</param>
+    /// <param name="xExtent">The linked markup's X interval, as a Scheme pair.</param>
+    /// <param name="yExtent">The linked markup's Y interval, as a Scheme pair.</param>
+    private void EmitUrlLink(string url, object xExtent, object yExtent)
+    {
+        (double left, double right) = Interval(xExtent);
+        (double bottom, double top) = Interval(yExtent);
+
+        _body.Append(string.Format(
+            CultureInfo.InvariantCulture,
+            "<a xlink:href=\"{0}\">\n"
+            + "<rect x=\"{1}\" y=\"{2}\" width=\"{3}\" height=\"{4}\""
+            + " fill=\"none\" stroke=\"none\" stroke-width=\"0.0\"/>\n"
+            + "</a>\n",
+            url,
+            Format(left),
+            Format(bottom),
+            Format(right - left),
+            Format(top - bottom)));
+    }
+
+    /// <summary>
+    /// Reads a Scheme interval pair as a pair of doubles, answering an empty interval
+    /// at the origin when the expression is not a pair.
+    /// </summary>
+    /// <param name="value">The expression to read.</param>
+    /// <returns>The interval's start and end.</returns>
+    private static (double Start, double End) Interval(object value)
+        => value is Pair pair ? (ToDouble(pair.Car), ToDouble(pair.Cdr)) : (0.0, 0.0);
 
     /// <summary>
     /// Emits one music glyph as its outline, which is what

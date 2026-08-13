@@ -231,6 +231,15 @@ public static class SchemeUtilities
     /// procedure, rather than throwing: the engine reads callbacks out of property
     /// alists, where "no callback" is an ordinary state and not an error.
     /// </para>
+    /// <para>
+    /// The callable test is <see cref="IsProcedure"/>'s, exactly — until 2026-08-12 it
+    /// accepted only <see cref="Procedure"/> and silently answered the empty list for a
+    /// Scheme-defined closure (an <see cref="IApplicable"/>), which is how every
+    /// toplevel <c>\markup \score</c> book rendered ZERO systems: the walk handed
+    /// <c>interpret-markup-list</c> — a vendored Scheme lambda — to this method and got
+    /// <c>'()</c> back with no error. The EPG15 close-out recorded this exact asymmetry
+    /// as a loose end.
+    /// </para>
     /// </summary>
     /// <param name="callback">The procedure to call.</param>
     /// <param name="arguments">The arguments.</param>
@@ -238,7 +247,7 @@ public static class SchemeUtilities
     public static object CallCallback(object callback, params object[] arguments)
     {
         Interpreter interpreter = LilyPondScheme.Current;
-        if (interpreter == null || !(callback is Procedure))
+        if (interpreter == null || !IsProcedure(callback))
         {
             return Nil.Instance;
         }

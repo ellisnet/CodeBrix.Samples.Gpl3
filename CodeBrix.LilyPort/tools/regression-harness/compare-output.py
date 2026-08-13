@@ -29,7 +29,8 @@
 # A port passes stage 2 long before stage 3, and that ordering is deliberate: it
 # lets progress be measured continuously instead of as a single distant pass/fail.
 #
-# HOW A GLYPH IS IDENTIFIED (rewritten 2026-08-05, EPG13)
+# HOW A GLYPH IS IDENTIFIED (rewritten 2026-08-05, EPG13; rewritten again
+# 2026-08-12, GLYPH-PARITY -- see the CONTRACT below, which has CHANGED)
 #
 # This file used to look for <use xlink:href="#name"> elements and count <path>
 # elements by how many "M" commands they held. That was a guess about LilyPond's
@@ -43,10 +44,59 @@
 # coarse path-shape histogram, and could not report a position difference even in
 # principle. That is what pinned the whole suite at a GLYPHS-DIFFER floor.
 #
-# A glyph is now identified BY ITS OUTLINE. The `d` attribute is the shape, so two
-# glyphs are the same glyph exactly when their path data agrees -- no font, no
-# name table and no id numbering involved. Position comes from the accumulated
-# translate() of the enclosing <g> elements, which is where LilyPond puts it.
+# THE CONTRACT (D29 as restated 2026-08-12 -- this REPLACES "two glyphs are the
+# same glyph exactly when their path data agrees", which was this file's rule from
+# 2026-08-05 until then, and which is now WRONG for music glyphs):
+#
+#     Glyph identity is NAMED-GLYPH identity, byte-verified against each side's
+#     own font. Everything else remains byte-exact. Visual and tolerance
+#     comparison remain forbidden.
+#
+# Why it had to change. Both engravers copy a glyph's outline verbatim out of the
+# .svg font they were built against, and the two sides read DIFFERENT BUILDS of the
+# same font: the port ships its own Emmentaler (FontForge 20230101, from the
+# vendored mf/ mirror), the oracle's came from the official 2.27.2 release build
+# (FontForge 20200314). Same design -- LILC, LILY, every advance and every cmap
+# mapping byte-identical, sampled bounding boxes equal to 0.00 font-units -- but the
+# two FontForge versions SERIALIZE the outlines differently. So the same notehead
+# reads as two different strings of bytes, and under the old rule NO page carrying
+# music could ever report MATCH. That was measured: the oracle's black notehead path
+# appears in 1,242 reference pages and zero candidate pages; the port's appears in
+# 1,089 candidate pages and zero reference pages -- a perfect per-page substitution.
+#
+# What it is NOT. This is not fuzzy matching, and no tolerance was added. A glyph
+# path is still identified by its EXACT bytes; those bytes are simply resolved,
+# through the committed glyph-identity.tsv index, to the NAME of the glyph they are
+# a verbatim copy of IN THEIR OWN SIDE'S FONTS. The identity is
+#
+#     (the SET of glyph names whose outline bytes equal this path's d
+#      on this side, PLUS the transform's scale string)
+#
+# A name SET, because two names in one font can legitimately share bytes -- a whole
+# note and a half note shape-note head really are the same drawing. Those classes
+# are recorded in the index header and never resolved to a winner. The scale string
+# is part of the identity because it is what pins the OPTICAL SIZE: without it, a
+# glyph drawn from emmentaler-11 and the same-named glyph from emmentaler-26 would
+# collapse to one identity. (Note for the record: the scale did NOT participate in
+# the identity before 2026-08-12 -- it was only ever used to RECOGNISE a glyph path.
+# Under byte identity it did not need to; under name identity it does.)
+#
+# FAIL-STRICT. A `d` that resolves to no glyph name on its side keeps raw-byte
+# identity -- exactly the behaviour of this file before 2026-08-12. Unresolvable can
+# only ever make the comparison STRICTER, never looser.
+#
+# Everything that is not a music-glyph path -- staff lines, beams, slurs, rects,
+# text, every attribute -- is compared byte-exact, unchanged. Position still comes
+# from the accumulated translate() of the enclosing <g> elements, which is where
+# LilyPond puts it.
+#
+# THE NORMALIZATION THAT MAKES THE LOOKUP WORK. The SVG fonts carry literal newlines
+# inside long `d` values, and the pages inherit them; ElementTree turns those into
+# spaces when it parses a page. The index is built from font files and applies the
+# SAME normalization, so the two agree. If it ever stops agreeing, every lookup
+# misses, fail-strict takes every path, and this whole mechanism becomes a silent
+# no-op that still passes the reference-against-reference self-check -- which is
+# why --selftest carries a canary that a real page must resolve a real glyph name.
 # ----------------------------------------------------------------------------
 
 import argparse
@@ -69,10 +119,62 @@ SCALE = re.compile(r"scale\(\s*([-0-9.eE]+)\s*(?:,\s*([-0-9.eE]+)\s*)?\)")
 
 WHITESPACE = re.compile(r"\s+")
 
+INDEX_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                          "glyph-identity.tsv")
 
-def _outline_key(data):
-    """Identify a glyph by its outline, compactly and whitespace-insensitively."""
-    normalized = WHITESPACE.sub(" ", (data or "").strip())
+
+def load_glyph_index(path):
+    """Read the committed glyph-identity index.
+
+    Returns side -> {sha256-of-normalized-d: frozenset(glyph names)}. A missing
+    index is not fatal: resolution simply never fires and every glyph keeps raw-byte
+    identity, which is what this file did before 2026-08-12. It IS reported, because
+    silently degrading to the old behaviour is precisely the failure the canary in
+    --selftest exists to catch.
+    """
+    if not os.path.exists(path):
+        return None
+
+    accumulating = {}
+    with open(path) as handle:
+        for line in handle:
+            if line.startswith("#") or not line.strip():
+                continue
+            fields = line.rstrip("\n").split("\t")
+            if len(fields) != 4:
+                raise SystemExit("malformed glyph-identity row: %r" % line)
+            side, _font, glyph_name, digest = fields
+            accumulating.setdefault(side, {}).setdefault(digest, set()).add(glyph_name)
+
+    return {side: {digest: frozenset(names) for digest, names in by_digest.items()}
+            for side, by_digest in accumulating.items()}
+
+
+def _normalize_outline(data):
+    """The `d` string as both this file and the index generator agree to see it."""
+    return WHITESPACE.sub(" ", (data or "").strip())
+
+
+def _outline_key(data, scale, names_by_digest):
+    """Identify a music glyph: by NAME where its bytes resolve, by bytes where not.
+
+    `names_by_digest` is one side of the committed index, or None to force raw-byte
+    identity (--raw-glyph-bytes, and any run with no index present).
+
+    The scale string travels with the name because the name alone does not say which
+    optical size was drawn. It is carried VERBATIM rather than parsed, so a glyph is
+    the same glyph only when the two sides wrote the same transform -- no rounding,
+    no tolerance.
+    """
+    normalized = _normalize_outline(data)
+
+    if names_by_digest is not None:
+        digest = hashlib.sha256(normalized.encode("utf-8")).hexdigest()
+        names = names_by_digest.get(digest)
+        if names is not None:
+            return "glyph:%s@%s" % ("+".join(sorted(names)), scale)
+
+    # Fail-strict: unresolved bytes keep the pre-2026-08-12 identity exactly.
     digest = hashlib.sha1(normalized.encode("utf-8")).hexdigest()[:12]
     return "glyph:" + digest
 
@@ -89,11 +191,16 @@ def _path_signature(data):
     return "path:" + "".join(sorted(collections.Counter(letters).elements()))
 
 
-def parse_svg(path):
+def parse_svg(path, names_by_digest=None):
     """Extract the engraving-relevant marks from one SVG page.
 
-    Returns a dict with the mark inventory and each mark's placement in page
-    coordinates.
+    `names_by_digest` is THIS SIDE's half of the committed glyph-identity index (see
+    the contract at the top of this file), or None to identify glyphs by raw bytes.
+
+    Returns a dict with the mark inventory, each mark's placement in page
+    coordinates, and how many glyph paths resolved to a name -- the last is what the
+    canary reads, since a normalization slip would show up as "resolved 0" while
+    every other number stayed plausible.
     """
     try:
         tree = ElementTree.parse(path)
@@ -102,13 +209,19 @@ def parse_svg(path):
 
     glyphs = collections.Counter()
     placements = []
+    counts = {"glyph_paths": 0, "resolved": 0}
 
     def visit(element, offset_x, offset_y):
         transform = element.get("transform") or ""
 
         # A pure scale() on a <path> is the glyph transform, not a placement, and
         # must not move the accumulated origin.
-        is_glyph = element.tag == SVG_NS + "path" and GLYPH_TRANSFORM.match(transform)
+        glyph_scale = None
+        if element.tag == SVG_NS + "path":
+            match = GLYPH_TRANSFORM.match(transform)
+            if match:
+                glyph_scale = "%s,%s" % (match.group(1), match.group(2))
+        is_glyph = glyph_scale is not None
 
         if not is_glyph and transform:
             for match in TRANSLATE.finditer(transform):
@@ -119,7 +232,10 @@ def parse_svg(path):
         if tag == SVG_NS + "path":
             data = element.get("d") or ""
             if is_glyph:
-                name = _outline_key(data)
+                counts["glyph_paths"] += 1
+                name = _outline_key(data, glyph_scale, names_by_digest)
+                if "@" in name:
+                    counts["resolved"] += 1
             else:
                 name = _path_signature(data)
             glyphs[name] += 1
@@ -160,7 +276,7 @@ def parse_svg(path):
             visit(child, offset_x, offset_y)
 
     visit(tree.getroot(), 0.0, 0.0)
-    return {"glyphs": glyphs, "placements": placements}
+    return {"glyphs": glyphs, "placements": placements, "counts": counts}
 
 
 def _round(value):
@@ -174,18 +290,25 @@ def _number(text):
     return float(match.group(1)) if match else 0.0
 
 
-def compare_one(reference_path, candidate_path, tolerance):
-    """Compare one output file against its reference, returning a graded result."""
-    if not os.path.exists(candidate_path):
-        return "MISSING", "no output produced"
+def compare_one(reference_path, candidate_path, tolerance,
+                reference_names=None, candidate_names=None):
+    """Compare one output file against its reference, returning a graded result.
 
-    reference = parse_svg(reference_path)
-    candidate = parse_svg(candidate_path)
+    Each side is resolved against ITS OWN half of the glyph-identity index -- that
+    is what D29's "byte-verified against each side's own font" means, and it is why
+    the two halves are never merged into one lookup.
+    """
+    if not os.path.exists(candidate_path):
+        return "MISSING", "no output produced", None
+
+    reference = parse_svg(reference_path, reference_names)
+    candidate = parse_svg(candidate_path, candidate_names)
+    stats = (reference.get("counts"), candidate.get("counts"))
 
     if "error" in candidate:
-        return "UNPARSEABLE", candidate["error"]
+        return "UNPARSEABLE", candidate["error"], stats
     if "error" in reference:
-        return "REFERENCE-BAD", reference["error"]
+        return "REFERENCE-BAD", reference["error"], stats
 
     reference_glyphs = reference["glyphs"]
     candidate_glyphs = candidate["glyphs"]
@@ -200,20 +323,20 @@ def compare_one(reference_path, candidate_path, tolerance):
         if extra:
             detail.append("extra " + ", ".join(
                 "%s x%d" % (name, count) for name, count in extra.most_common(4)))
-        return "GLYPHS-DIFFER", "; ".join(detail)
+        return "GLYPHS-DIFFER", "; ".join(detail), stats
 
     # Same glyphs; now check where they sit.
     reference_places = sorted(reference["placements"])
     candidate_places = sorted(candidate["placements"])
     if len(reference_places) != len(candidate_places):
         return "PLACEMENT-COUNT", "%d vs %d placements" % (
-            len(reference_places), len(candidate_places))
+            len(reference_places), len(candidate_places)), stats
 
     worst = 0.0
     worst_name = None
     for (rname, rx, ry), (cname, cx, cy) in zip(reference_places, candidate_places):
         if rname != cname:
-            return "PLACEMENT-ORDER", "%s vs %s" % (rname, cname)
+            return "PLACEMENT-ORDER", "%s vs %s" % (rname, cname), stats
         delta = max(abs(rx - cx), abs(ry - cy))
         if delta > worst:
             worst = delta
@@ -221,16 +344,191 @@ def compare_one(reference_path, candidate_path, tolerance):
 
     if worst > tolerance:
         return "PLACEMENT-DIFFERS", "worst %.4f at %s (tolerance %.4f)" % (
-            worst, worst_name, tolerance)
+            worst, worst_name, tolerance), stats
 
-    return "MATCH", "worst placement delta %.4f" % worst
+    return "MATCH", "worst placement delta %.4f" % worst, stats
+
+
+SELFTEST_SCALE = "0.0040, -0.0040"
+SELFTEST_OTHER_SCALE = "0.0057, -0.0057"
+
+# Two serializations of one imaginary glyph, and one of a second glyph. These are
+# INVENTED path data, not outlines from either side's fonts: the mechanism under
+# test is "do equal names compare equal", which needs no real outline, and inventing
+# them keeps this file from redistributing font content.
+SELFTEST_HEAD_A = "M0 -46c0 91 116 182 217 182z"
+SELFTEST_HEAD_B = "M217 136c56 0 109 -27 109 -89z"
+SELFTEST_OTHER = "M5 5 L4 4 L3 9 z"
+SELFTEST_UNKNOWN = "M1 2 L3 4 L5 6 z"
+
+
+def _selftest_page(entries):
+    """One miniature page: [(path-data, scale-string)] inside a translate()."""
+    body = "".join(
+        '<path transform="scale(%s)" d="%s" fill="currentColor"/>' % (scale, data)
+        for data, scale in entries)
+    return ('<?xml version="1.0" encoding="UTF-8"?>\n'
+            '<svg xmlns="http://www.w3.org/2000/svg" version="1.2">'
+            '<g transform="translate(10.0, 20.0)">%s</g></svg>' % body)
+
+
+def command_selftest(arguments):
+    """Fence the named-glyph identity itself, in relationships with controls.
+
+    Rule 18: nothing here is a value recorded from the comparator's own output. Each
+    case states a RELATIONSHIP that must hold, and the cases that must MATCH are
+    paired with controls that must NOT -- a mechanism that answered MATCH to
+    everything would fail cases (ii), (iii) and (iv), and one that answered
+    "different" to everything would fail case (i).
+    """
+    import tempfile
+
+    index = {
+        "candidate": {
+            hashlib.sha256(SELFTEST_HEAD_A.encode()).hexdigest(): frozenset(["test.head"]),
+            hashlib.sha256(SELFTEST_OTHER.encode()).hexdigest(): frozenset(["test.other"]),
+        },
+        "reference": {
+            hashlib.sha256(SELFTEST_HEAD_B.encode()).hexdigest(): frozenset(["test.head"]),
+            hashlib.sha256(SELFTEST_OTHER.encode()).hexdigest(): frozenset(["test.other"]),
+        },
+    }
+
+    cases = [
+        ("(i)   same name, different serializations -> MATCH",
+         [(SELFTEST_HEAD_B, SELFTEST_SCALE)], [(SELFTEST_HEAD_A, SELFTEST_SCALE)],
+         "MATCH"),
+        ("(ii)  unresolvable candidate bytes -> NOT a match (fail-strict)",
+         [(SELFTEST_HEAD_B, SELFTEST_SCALE)], [(SELFTEST_UNKNOWN, SELFTEST_SCALE)],
+         "GLYPHS-DIFFER"),
+        ("(iii) different names, same scale -> differ",
+         [(SELFTEST_HEAD_B, SELFTEST_SCALE)], [(SELFTEST_OTHER, SELFTEST_SCALE)],
+         "GLYPHS-DIFFER"),
+        ("(iv)  same name, different scale strings -> differ",
+         [(SELFTEST_HEAD_B, SELFTEST_SCALE)], [(SELFTEST_HEAD_A, SELFTEST_OTHER_SCALE)],
+         "GLYPHS-DIFFER"),
+    ]
+
+    failures = 0
+    with tempfile.TemporaryDirectory() as workdir:
+        for index_of_case, (title, reference_entries, candidate_entries, expected) in \
+                enumerate(cases):
+            reference_path = os.path.join(workdir, "ref%d.svg" % index_of_case)
+            candidate_path = os.path.join(workdir, "cand%d.svg" % index_of_case)
+            with open(reference_path, "w") as handle:
+                handle.write(_selftest_page(reference_entries))
+            with open(candidate_path, "w") as handle:
+                handle.write(_selftest_page(candidate_entries))
+
+            verdict, detail, _ = compare_one(
+                reference_path, candidate_path, arguments.tolerance,
+                index["reference"], index["candidate"])
+            ok = verdict == expected
+            failures += 0 if ok else 1
+            print("  %-4s %s" % ("ok" if ok else "FAIL", title))
+            if not ok:
+                print("       expected %s, got %s (%s)" % (expected, verdict, detail))
+
+    failures += _selftest_canary(arguments)
+
+    if failures:
+        print("\n*** comparator --selftest FAILED (%d) ***" % failures, file=sys.stderr)
+        return 1
+    print("\n*** comparator --selftest holds ***")
+    return 0
+
+
+def _selftest_canary(arguments):
+    """A REAL page must resolve a REAL glyph name.
+
+    Everything above runs on a synthetic index, so it would pass unchanged even if
+    the normalization applied to real fonts disagreed with the normalization applied
+    to real pages -- the exact slip that would turn this whole mechanism into a
+    silent no-op. This case is the one that would catch it, so it reads a page the
+    oracle actually produced and insists a black notehead resolves by name.
+    """
+    index = load_glyph_index(arguments.index)
+    if index is None:
+        print("  skip no glyph-identity index at %s -- the canary cannot run, and "
+              "a skipped canary is not a passing one" % arguments.index)
+        return 1
+
+    page = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                        "reference", "svg", "bend-spanner-simple.svg")
+    if not os.path.exists(page):
+        # The reference corpus is a 62 MB build product and is deliberately not
+        # committed; regenerating it just to run a canary is not this command's job.
+        print("  skip reference corpus absent (%s) -- regenerate it with "
+              "generate-reference.sh to run the canary" % os.path.basename(page))
+        return 0
+
+    parsed = parse_svg(page, index["reference"])
+    counts = parsed["counts"]
+
+    # The identity is a name SET, so the glyph is looked for INSIDE the class rather
+    # than as a whole key: on this page noteheads.s2 shares its outline bytes with
+    # noteheads.s2sol, and reads as "noteheads.s2+noteheads.s2sol". Asserting the
+    # whole key would be asserting a duplicate class that is free to change.
+    wanted = [name for name in parsed["glyphs"]
+              if name.startswith("glyph:") and "@" in name
+              and "noteheads.s2" in name[len("glyph:"):name.rindex("@")].split("+")]
+
+    if not wanted:
+        print("  FAIL canary: %s resolved %d of %d glyph paths by name, but NONE to "
+              "noteheads.s2 -- suspect the normalization (see the header)"
+              % (os.path.basename(page), counts["resolved"], counts["glyph_paths"]))
+        return 1
+
+    print("  ok   canary: %s resolved %d of %d glyph paths by name, including %s"
+          % (os.path.basename(page), counts["resolved"], counts["glyph_paths"],
+             wanted[0]))
+    return 0
+
+
+def resolve_sides(index_path, reference_dir, candidate_dir, raw_glyph_bytes):
+    """Pick each side's half of the glyph-identity index.
+
+    Normally the first directory is the oracle's corpus and the second is the port's,
+    so they resolve against the "reference" and "candidate" halves respectively.
+
+    THE ONE EXCEPTION is the standing self-check, which compares the reference
+    directory against ITSELF. Those bytes came out of the oracle's fonts on both
+    sides, so both sides must resolve against the reference half; grading the second
+    copy against the port's half would make every oracle glyph unresolvable, and the
+    self-check would report thousands of differences between a directory and itself.
+    Comparing a directory with itself is therefore detected, not configured.
+
+    Returns (reference_names, candidate_names, note).
+    """
+    if raw_glyph_bytes:
+        return None, None, "glyph identity: RAW PATH BYTES (--raw-glyph-bytes, diagnostic)"
+
+    index = load_glyph_index(index_path)
+    if index is None:
+        return None, None, ("glyph identity: RAW PATH BYTES -- no index at %s"
+                            % index_path)
+
+    reference_names = index.get("reference")
+    same_corpus = os.path.realpath(reference_dir) == os.path.realpath(candidate_dir)
+    if same_corpus:
+        return (reference_names, reference_names,
+                "glyph identity: named-glyph (self-check -- both sides resolve "
+                "against the reference fonts)")
+
+    return (reference_names, index.get("candidate"),
+            "glyph identity: named-glyph (reference and candidate each against "
+            "their own fonts)")
 
 
 def main():
     parser = argparse.ArgumentParser(
         description="Compare CodeBrix.LilyPort output against the LilyPond reference.")
-    parser.add_argument("reference_dir", help="reference svg/ directory")
-    parser.add_argument("candidate_dir", help="CodeBrix.LilyPort svg/ output directory")
+    parser.add_argument("reference_dir", nargs="?", help="reference svg/ directory")
+    parser.add_argument("candidate_dir", nargs="?",
+                        help="CodeBrix.LilyPort svg/ output directory")
+    parser.add_argument("--selftest", action="store_true",
+                        help="fence the glyph-identity mechanism on miniature "
+                             "documents plus a real-page canary, and exit")
     parser.add_argument("--tolerance", type=float, default=0.01,
                         help="maximum placement difference to still count as a match")
     parser.add_argument("--show", type=int, default=15,
@@ -239,7 +537,20 @@ def main():
                         help="also write one machine-readable row per file: "
                              "name <TAB> verdict <TAB> detail. This is what ratchet.py "
                              "consumes; the human report above is not parseable.")
+    parser.add_argument("--index", default=INDEX_PATH,
+                        help="the committed glyph-identity index (default: %(default)s)")
+    parser.add_argument("--raw-glyph-bytes", action="store_true",
+                        help="DIAGNOSTIC: identify glyphs by raw path bytes, the "
+                             "pre-2026-08-12 rule. This is the A/B switch for the "
+                             "named-glyph change; it is not a comparison mode anyone "
+                             "should grade against.")
     arguments = parser.parse_args()
+
+    if arguments.selftest:
+        return command_selftest(arguments)
+
+    if not arguments.reference_dir or not arguments.candidate_dir:
+        parser.error("reference_dir and candidate_dir are required unless --selftest")
 
     references = sorted(
         name for name in os.listdir(arguments.reference_dir) if name.endswith(".svg"))
@@ -247,13 +558,25 @@ def main():
         print("no reference SVGs in %s" % arguments.reference_dir, file=sys.stderr)
         return 2
 
+    reference_names, candidate_names, index_note = resolve_sides(
+        arguments.index, arguments.reference_dir, arguments.candidate_dir,
+        arguments.raw_glyph_bytes)
+
     results = collections.defaultdict(list)
+    # A whole-corpus resolution rate, so a normalization slip cannot hide: it would
+    # read 0.0% here while every verdict count stayed superficially plausible.
+    seen = {"reference": [0, 0], "candidate": [0, 0]}
     for name in references:
-        verdict, detail = compare_one(
+        verdict, detail, stats = compare_one(
             os.path.join(arguments.reference_dir, name),
             os.path.join(arguments.candidate_dir, name),
-            arguments.tolerance)
+            arguments.tolerance, reference_names, candidate_names)
         results[verdict].append((name, detail))
+        if stats:
+            for side, counts in zip(("reference", "candidate"), stats):
+                if counts:
+                    seen[side][0] += counts["glyph_paths"]
+                    seen[side][1] += counts["resolved"]
 
     if arguments.tsv:
         with open(arguments.tsv, "w") as handle:
@@ -267,6 +590,12 @@ def main():
     print("reference : %s (%d files)" % (arguments.reference_dir, total))
     print("candidate : %s" % arguments.candidate_dir)
     print("tolerance : %.4f" % arguments.tolerance)
+    print("identity  : %s" % index_note)
+    for side in ("reference", "candidate"):
+        paths, resolved = seen[side]
+        if paths:
+            print("            %-10s %d of %d glyph paths resolved to a name (%.1f%%)"
+                  % (side, resolved, paths, 100.0 * resolved / paths))
     print()
 
     # Ordered coarse-to-fine, so the report reads as a progress ladder.

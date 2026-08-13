@@ -2514,6 +2514,38 @@ Files (12): texgyreschola-{regular,bold,italic,bolditalic}.otf   (serif
 
 ================================================================================
 
+11b. THE MERSENNE TWISTER (MT19937) -- ALGORITHM, NOT CODE
+================================================================================
+
+CodeBrix.LilyPort.Engine/Bootstrap/RandomPrimitives.cs contains a C#
+implementation of the MT19937 pseudo-random number generator.
+
+Provenance, stated precisely because standing trap 15b is about exactly this
+kind of claim: the implementation was written for this port from the
+PUBLISHED SPECIFICATION of the algorithm --
+
+    Makoto Matsumoto and Takuji Nishimura, "Mersenne Twister: A
+    623-dimensionally equidistributed uniform pseudo-random number
+    generator", ACM Transactions on Modeling and Computer Simulation,
+    Vol. 8, No. 1, January 1998, pp. 3-30.
+
+-- and is NOT a copy or translation of the authors' reference implementation,
+of libstdc++'s std::mt19937, or of any other existing source. The constants
+(624, 397, 0x9908B0DF, the tempering masks, the 1812433253 seeding
+multiplier, and std::mt19937's default seed of 5489) are the algorithm's
+defining parameters and are not copyrightable expression.
+
+Why it is here at all: upstream's lily/lily-random.cc holds a
+std::mt19937 whose state ly:set-rand-seed sets and ly:make-tmpfile-name
+draws from. .NET ships no MT19937, so porting those two entry points
+faithfully required carrying the generator.
+
+The bounded draw is NOT bit-identical to libstdc++'s: the reduction
+std::uniform_int_distribution performs is implementation-defined by the C++
+standard. This is recorded as a deliberate divergence in PORT-COVERAGE.txt.
+
+================================================================================
+
 12. RELATED REPOSITORIES AND THE SEPARATION OF MATERIAL
 ================================================================================
 

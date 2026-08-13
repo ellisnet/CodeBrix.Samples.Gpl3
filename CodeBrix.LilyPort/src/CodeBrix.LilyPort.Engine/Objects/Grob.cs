@@ -107,6 +107,7 @@ public abstract class Grob : IDiagnostics
     private static readonly Symbol CauseSymbol = Symbol.Intern("cause");
     private static readonly Symbol NameSymbol = Symbol.Intern("name");
     private static readonly Symbol BackendTypeSymbol = Symbol.Intern("backend-type?");
+    private static readonly Symbol ElementsSymbol = Symbol.Intern("elements");
     private static readonly Symbol CalculationInProgress = Symbol.Intern("calculation-in-progress");
     private static readonly Symbol VerticalSkylinesSymbol = Symbol.Intern("vertical-skylines");
     private static readonly Symbol HorizontalSkylinesSymbol
@@ -354,6 +355,139 @@ public abstract class Grob : IDiagnostics
     public static bool Less(Grob g1, Grob g2)
         => g1.SpannedColumnRankInterval()[Direction.Negative]
            < g2.SpannedColumnRankInterval()[Direction.Negative];
+
+    /// <summary>
+    /// <c>get_maybe_root_vertical_alignment</c> from <c>lily/grob.cc</c>: walk Y parents
+    /// to the TOPMOST align-interface grob, remembering the last one seen.
+    /// </summary>
+    /// <param name="g">The grob to walk up from.</param>
+    /// <param name="maybe">The best alignment found so far.</param>
+    /// <returns>The root vertical alignment, or <see langword="null"/>.</returns>
+    private static Grob GetMaybeRootVerticalAlignment(Grob g, Grob maybe)
+    {
+        if (g == null)
+        {
+            return maybe;
+        }
+
+        return g.HasInterface(AlignInterfaceSymbol)
+            ? GetMaybeRootVerticalAlignment(g.GetParent(Axis.Y), g)
+            : GetMaybeRootVerticalAlignment(g.GetParent(Axis.Y), maybe);
+    }
+
+    /// <summary>
+    /// <c>Grob::get_root_vertical_alignment</c>: the outermost alignment above this grob.
+    /// </summary>
+    /// <param name="g">The grob to start from.</param>
+    /// <returns>The alignment, or <see langword="null"/> when there is none.</returns>
+    public static Grob GetRootVerticalAlignment(Grob g)
+        => GetMaybeRootVerticalAlignment(g, null);
+
+    /// <summary>
+    /// <c>Grob::get_vertical_axis_group_index</c>: which staff, counting from the top of
+    /// the root alignment, this grob sits on. Answers <c>-1</c> when it belongs to no
+    /// alignment — and, as upstream does, ALSO answers <c>-1</c> with a programming
+    /// error when the grob has an alignment but its axis group is not among that
+    /// alignment's elements.
+    /// </summary>
+    /// <param name="g">The grob to locate.</param>
+    /// <returns>The index, or <c>-1</c>.</returns>
+    public static int GetVerticalAxisGroupIndex(Grob g)
+    {
+        Grob alignment = GetRootVerticalAlignment(g);
+        if (alignment == null)
+        {
+            return -1;
+        }
+
+        Grob axisGroup = SidePositionInterface.GetVerticalAxisGroup(g);
+        IReadOnlyList<Grob> elements
+            = PointerGroupInterface.ExtractGrobSet(alignment, ElementsSymbol);
+        for (int i = 0; i < elements.Count; i++)
+        {
+            if (ReferenceEquals(elements[i], axisGroup))
+            {
+                return i;
+            }
+        }
+
+        g.ProgrammingError(
+            "could not find this grob's vertical axis group in the vertical alignment");
+        return -1;
+    }
+
+    /// <summary>
+    /// <c>Grob::vertical_less</c>: does <paramref name="g1"/> lie ABOVE
+    /// <paramref name="g2"/> on the page?
+    /// </summary>
+    /// <param name="g1">The first grob.</param>
+    /// <param name="g2">The second grob.</param>
+    /// <returns><see langword="true"/> when the first is higher.</returns>
+    public static bool VerticalLess(Grob g1, Grob g2)
+        => InternalVerticalLess(g1, g2, false);
+
+    /// <summary>
+    /// <c>Grob::pure_vertical_less</c> — <see cref="VerticalLess"/> in a pure code path,
+    /// where reading a real coordinate is forbidden (standing trap 14).
+    /// </summary>
+    /// <param name="g1">The first grob.</param>
+    /// <param name="g2">The second grob.</param>
+    /// <returns><see langword="true"/> when the first is higher.</returns>
+    public static bool PureVerticalLess(Grob g1, Grob g2)
+        => InternalVerticalLess(g1, g2, true);
+
+    /// <summary>
+    /// <c>Grob::internal_vertical_less</c>. Two grobs on the SAME staff are ordered by
+    /// their actual Y coordinates — but only in the ordinary path; the pure path falls
+    /// through to the staff order, because asking for a coordinate there would drag the
+    /// stencil machinery into spacing. Grobs on different staves are ordered by which
+    /// staff appears first in the alignment.
+    /// </summary>
+    /// <param name="g1">The first grob.</param>
+    /// <param name="g2">The second grob.</param>
+    /// <param name="pure">Whether this is the pure path.</param>
+    /// <returns><see langword="true"/> when the first is higher.</returns>
+    private static bool InternalVerticalLess(Grob g1, Grob g2, bool pure)
+    {
+        Grob alignment = GetRootVerticalAlignment(g1);
+        if (alignment == null)
+        {
+            g1.ProgrammingError("grob does not belong to a VerticalAlignment?");
+            return false;
+        }
+
+        Grob axisGroup1 = SidePositionInterface.GetVerticalAxisGroup(g1);
+        Grob axisGroup2 = SidePositionInterface.GetVerticalAxisGroup(g2);
+
+        IReadOnlyList<Grob> elements
+            = PointerGroupInterface.ExtractGrobSet(alignment, ElementsSymbol);
+
+        if (ReferenceEquals(axisGroup1, axisGroup2) && !pure)
+        {
+            Grob common = g1.CommonRefpoint(g2, Axis.Y);
+
+            // Upstream's sense: GREATER Y is "less", because "less" here means
+            // "higher on the page".
+            return g1.RelativeCoordinate(common, Axis.Y)
+                   > g2.RelativeCoordinate(common, Axis.Y);
+        }
+
+        for (int i = 0; i < elements.Count; i++)
+        {
+            if (ReferenceEquals(elements[i], axisGroup1))
+            {
+                return true;
+            }
+
+            if (ReferenceEquals(elements[i], axisGroup2))
+            {
+                return false;
+            }
+        }
+
+        g1.ProgrammingError("could not place this grob in its axis group");
+        return false;
+    }
 
     /// <summary>Gets the grob's type name, from its <c>name</c> meta property.</summary>
     public string Name

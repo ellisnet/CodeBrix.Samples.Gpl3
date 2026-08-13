@@ -314,17 +314,61 @@ public static class BatchRunner
             return Unspecified.Instance;
         });
 
+        // The escape hatch above only catches the book init.ly's EPILOGUE builds from
+        // implicit toplevel scores. An EXPLICIT \book block never gets there: the parser
+        // hands it to `toplevel-book-handler' AT PARSE TIME, and the vendored binding
+        // (declarations-init.ly: print-book-with-defaults → ly:book-process) computes the
+        // pages and DISCARDS them — upstream's ly:book-process writes the output files
+        // itself, this port collects pages off the paper book in the caller. So the
+        // runner rebinds the parse-time name to the same collector, exactly the move
+        // upstream's own lilypond-book-preamble.ly makes when IT wants books collected
+        // instead of printed. Rebound per run for the same no-stale-capture reason as
+        // the escape hatch. Before this (2026-08-12), every explicit \book file was
+        // NOOUT: "0 book(s)" with the book fully built — the sequence-name* MIDI rows.
+        //
+        // ⚠ The interpreter define alone is NOT ENOUGH: the parser resolves
+        // `toplevel-book-handler' through ITS scope stack (Lily_lexer semantics), where
+        // declarations-init.ly's #(define ...) landed — so the same procedure must also
+        // be SET as a parser identifier, which happens below once the session is in hand.
+        Primitive bookCollector = interpreter.DefinePrimitive("toplevel-book-handler", 1, 1, a =>
+        {
+            if (a[0] is Book book)
+            {
+                books.Add(book);
+            }
+            else
+            {
+                diagnostics.Add("toplevel book handler received a non-book: "
+                    + (a[0]?.GetType().Name ?? "null"));
+            }
+
+            return Unspecified.Instance;
+        });
+
         // THE session — the one the init layer was read into. A second session would
         // trip the interpreter's call-after-session guards, exactly as a second
         // init.ly run would upstream.
         LilyParserSession session = LilyPondInit.Session();
+
+        // The parser half of the toplevel-book-handler rebind (see the note on the
+        // collector above). RestoreDefaults ran at the top of this method, so this
+        // per-run identifier survives the whole file and the NEXT run's restore wipes
+        // it before its own re-set — no stale capture list can leak.
+        session.SetIdentifier(Symbol.Intern("toplevel-book-handler"), bookCollector);
         int errorCount = RunLifecycle(session, text, baseName, includeDirectory, diagnostics);
 
         // EPG16 (2026-08-08): one stencil per PAGE, as the page breaker chose them.
         // Until this group it was one per SCORE, stacked at a fixed padding into a single
         // document per input file -- which is why every multi-page reference page in the
         // oracle read as MISSING no matter how well the port engraved it.
-        List<Stencil> pageStencils = new List<Stencil>();
+        //
+        // GROUPED PER BOOK since 2026-08-12 (BOOK-PATH): upstream names output PER
+        // TOPLEVEL BOOK — get-outfile-name's counter-alist gives the first printed book
+        // the bare base name and every further one `<base>-<n>' — and only within one
+        // book's output does the SVG framework number the pages. Concatenating every
+        // book's pages under one name mispaired a file holding both toplevel content
+        // and an explicit \book against the oracle (header-book-multiplescores).
+        List<List<Stencil>> bookPageGroups = new List<List<Stencil>>();
 
         // How many LINES the scores broke into, which is not how many scores there are.
         // Until EPG15's close-out (2026-08-08) this figure was systems.Count -- one per
@@ -403,13 +447,16 @@ public static class BatchRunner
 
                 unitLength = paperBook.Paper.GetDimension("output-scale");
 
+                List<Stencil> bookPages = new List<Stencil>();
                 foreach (object entry in Pair.ToList(paperBook.Pages()))
                 {
                     if (entry is Prob page && page.GetProperty("stencil") is Stencil pageStencil)
                     {
-                        pageStencils.Add(pageStencil);
+                        bookPages.Add(pageStencil);
                     }
                 }
+
+                bookPageGroups.Add(bookPages);
 
                 lines += CountLines(paperBook);
 
@@ -436,9 +483,12 @@ public static class BatchRunner
         // pairs a candidate with a reference by name alone -- and until EPG16 the port
         // wrote one stacked `<base>.svg' for every file, which meant every page of every
         // multi-page reference was reported MISSING however well the music was engraved.
+        // The OUTPUT NAME is per book (see bookPageGroups above): the first book prints
+        // under the bare base name, the k-th under `<base>-<k>' — get-outfile-name's
+        // counter — and the page numbering applies within each book's name.
         string svgPath = null;
         List<string> svgPaths = new List<string>();
-        if (pageStencils.Count > 0)
+        if (bookPageGroups.Exists(group => group.Count > 0))
         {
             Directory.CreateDirectory(outputDirectory);
 
@@ -450,22 +500,27 @@ public static class BatchRunner
                 backend.UnitLength = unitLength;
             }
 
-            for (int i = 0; i < pageStencils.Count; i++)
+            for (int b = 0; b < bookPageGroups.Count; b++)
             {
-                string pagePath = Path.Combine(
-                    outputDirectory,
-                    pageStencils.Count > 1
-                        ? baseName + "-" + (i + 1) + ".svg"
-                        : baseName + ".svg");
+                List<Stencil> bookPages = bookPageGroups[b];
+                string bookName = b > 0 ? baseName + "-" + b : baseName;
+                for (int i = 0; i < bookPages.Count; i++)
+                {
+                    string pagePath = Path.Combine(
+                        outputDirectory,
+                        bookPages.Count > 1
+                            ? bookName + "-" + (i + 1) + ".svg"
+                            : bookName + ".svg");
 
-                try
-                {
-                    File.WriteAllText(pagePath, backend.RenderDocument(pageStencils[i]));
-                    svgPaths.Add(pagePath);
-                }
-                catch (Exception exception) when (!(exception is OutOfMemoryException))
-                {
-                    diagnostics.Add("SVG output failed: " + exception.Message);
+                    try
+                    {
+                        File.WriteAllText(pagePath, backend.RenderDocument(bookPages[i]));
+                        svgPaths.Add(pagePath);
+                    }
+                    catch (Exception exception) when (!(exception is OutOfMemoryException))
+                    {
+                        diagnostics.Add("SVG output failed: " + exception.Message);
+                    }
                 }
             }
 

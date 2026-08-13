@@ -18,6 +18,7 @@
 */
 
 using System.Collections.Generic;
+using CodeBrix.LilyPort.Engine.Bootstrap;
 using CodeBrix.LilyPort.Engine.Layout;
 using CodeBrix.LilyScheme.Runtime;
 using CodeBrix.LilyScheme.Values;
@@ -116,10 +117,64 @@ public class Book
     public Book Parent { get; set; }
 
     /// <summary>
-    /// Adds a bookpart, consing it onto the FRONT of <see cref="Bookparts"/>.
+    /// Makes this book a part of <paramref name="parent"/> and MERGES HEADERS, the way
+    /// upstream's <c>Book::set_parent</c> does: a fresh module takes a copy of the
+    /// parent's header and the part's own header is copied OVER it, so the part's
+    /// definitions win while everything the parent defined shows through. This is how a
+    /// score in a headerless <c>\bookpart</c> gets titled by its enclosing
+    /// <c>\book</c>'s header — the <c>sequence-name-scoping</c> MIDI names. Setting the
+    /// bare <see cref="Parent"/> property (which both bookpart paths did until
+    /// 2026-08-12) skipped the merge and those names came out empty.
+    /// </summary>
+    /// <param name="parent">The enclosing book.</param>
+    /// <remarks>
+    /// Upstream's other half — giving a paper-less part an EMPTY <c>Output_def</c>
+    /// chained to the parent's — is deliberately NOT reproduced: <see cref="Process"/>
+    /// resolves a paper-less part with <c>Paper ?? defaultPaper</c>, which answers the
+    /// same variables the empty-chained paper would, and an empty Paper here would
+    /// shadow that resolution. A part that HAS its own paper gets the parent chain,
+    /// which is what makes its partial overrides fall through.
+    /// </remarks>
+    public void SetParent(Book parent)
+    {
+        Parent = parent;
+        if (Paper != null && parent.Paper != null)
+        {
+            Paper.Parent = parent.Paper;
+        }
+
+        if (parent.Header is SchemeModule parentHeader)
+        {
+            SchemeModule merged = LilyModules.Make("book-part-header");
+            LilyModules.Copy(merged, parentHeader);
+            if (Header is SchemeModule ownHeader)
+            {
+                LilyModules.Copy(merged, ownHeader);
+            }
+
+            Header = merged;
+        }
+    }
+
+    /// <summary>
+    /// Adds a bookpart, consing it onto the FRONT of <see cref="Bookparts"/> — after
+    /// FIRST wrapping any scores collected so far into an implicit bookpart, exactly as
+    /// upstream's <c>Book::add_bookpart</c> does. Deferring that wrap to process time
+    /// (which this method did until 2026-08-12) put the implicit part on the WRONG side
+    /// of the cons: scores written before a <c>\bookpart</c> came out after it, which
+    /// is how the sequence-name* books shuffled their MIDI sequence names.
     /// </summary>
     /// <param name="part">The bookpart.</param>
-    public void AddBookpart(object part) => Bookparts = new Pair(part, Bookparts);
+    public void AddBookpart(object part)
+    {
+        AddScoresToBookpart();
+        if (part is Book book)
+        {
+            book.SetParent(this);
+        }
+
+        Bookparts = new Pair(part, Bookparts);
+    }
 
     /// <summary>
     /// Concatenates every score's and bookpart's output into one <see cref="PaperBook"/>.
@@ -213,7 +268,8 @@ public class Book
     {
         if (Scores is Pair)
         {
-            Book part = new Book { Parent = this, Scores = Scores };
+            Book part = new Book { Scores = Scores };
+            part.SetParent(this);
             Bookparts = new Pair(part, Bookparts);
             Scores = Nil.Instance;
         }
@@ -232,6 +288,17 @@ public class Book
                 if (paperBookPart != null)
                 {
                     outputPaperBook.AddBookpart(paperBookPart);
+
+                    // Upstream leaves each part's performances on the part and lets
+                    // Paper_book::output RECURSE per bookpart; this port centralizes
+                    // output in the caller (the batch runner, Lily.Shell), which reads
+                    // ONLY the top book's performances. Hoisting here, in bookpart
+                    // order, is that recursion — without it every \bookpart's MIDI
+                    // vanished (the sequence-name* rows, 2026-08-12).
+                    foreach (object performance in Pair.ToList(paperBookPart.Performances()))
+                    {
+                        outputPaperBook.AddPerformance(performance);
+                    }
                 }
             }
         }

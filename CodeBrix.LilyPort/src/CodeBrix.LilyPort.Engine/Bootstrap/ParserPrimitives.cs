@@ -7,7 +7,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using CodeBrix.LilyPort.Engine.Origins;
+using CodeBrix.LilyPort.Flower;
 using CodeBrix.LilyScheme;
 using CodeBrix.LilyScheme.Primitives;
 using CodeBrix.LilyScheme.Runtime;
@@ -258,6 +260,140 @@ public static class ParserPrimitives
 
             return new MutableString(name.ToString());
         });
+
+        InstallFileParsing(interpreter);
+    }
+
+    /// <summary>
+    /// <c>ly:parse-file</c> and <c>ly:parse-init</c> — the session lifecycle
+    /// <c>lily-parser-scheme.cc</c> exposes to Scheme.
+    /// </summary>
+    /// <param name="interpreter">The interpreter to extend.</param>
+    /// <remarks>
+    /// These were the two entry points EPG23 was asked to rule N/A and did not, because
+    /// filing the session lifecycle as "not applicable" while
+    /// <c>CodeBrix.LilyPort.BatchRunner</c> reimplements it is the stale-named-absence
+    /// shape standing trap 8 records.
+    /// <para>
+    /// ⚠ The port has ONE parser session where upstream builds a fresh
+    /// <c>Lily_parser</c> per file and throws it away — the per-file state that difference
+    /// costs is restored by <c>SnapshotToplevelScope</c>/<c>RestoreToplevelScope</c>
+    /// (standing trap 12), and these bindings run through that same ambient session
+    /// rather than creating a second one. BatchRunner keeps its own path and does not go
+    /// through here; nothing in the vendored Scheme reaches these either, because
+    /// <c>ly:command-line-ly-files</c> answers <c>'()</c> and upstream's main loop is what
+    /// would call them.
+    /// </para>
+    /// <para>
+    /// Both throw upstream's <c>ly-file-failed</c> key on a non-zero error level, with the
+    /// resolved file name as the payload. That is the ONE observable contract a Scheme
+    /// caller can depend on, and it is reproduced exactly.
+    /// </para>
+    /// </remarks>
+    private static void InstallFileParsing(Interpreter interpreter)
+    {
+        interpreter.DefinePrimitive("ly:parse-file", 1, 1, a =>
+            ParseThroughAmbientSession(
+                interpreter, a[0], "ly:parse-file", setOutputName: true));
+
+        interpreter.DefinePrimitive("ly:parse-init", 1, 1, a =>
+            ParseThroughAmbientSession(
+                interpreter, a[0], "ly:parse-init", setOutputName: false));
+    }
+
+    /// <summary>
+    /// Resolves a file against the include path, parses it through the ambient session,
+    /// and raises <c>ly-file-failed</c> when the parse set an error level.
+    /// </summary>
+    /// <param name="interpreter">The interpreter holding the ambient parser.</param>
+    /// <param name="argument">The file name, as passed from Scheme.</param>
+    /// <param name="procedureName">The entry point's name, for errors.</param>
+    /// <param name="setOutputName">
+    /// Whether to derive the output base name from the input, as <c>ly:parse-file</c>
+    /// does and <c>ly:parse-init</c> does not.
+    /// </param>
+    /// <returns>Unspecified, or throws.</returns>
+    private static object ParseThroughAmbientSession(
+        Interpreter interpreter, object argument, string procedureName, bool setOutputName)
+    {
+        if (!(argument is MutableString) && !(argument is string))
+        {
+            throw SchemeErrors.WrongType(procedureName, "string", argument);
+        }
+
+        string file = StringPrimitives.Text(argument, procedureName);
+        ILilyParser parser = Parser(interpreter, procedureName);
+
+        string resolved = ResolveOnIncludePath(parser, file);
+        if (resolved == null)
+        {
+            // Upstream warns and then still throws ly-file-failed below, rather than
+            // raising a wrong-type error: a missing file is a run failure, not a caller
+            // mistake.
+            Warn.Warning("cannot find file: `" + file + "'");
+            throw FileFailed(file);
+        }
+
+        if (setOutputName)
+        {
+            Flower.FileName outputName = new Flower.FileName(resolved);
+            outputName.Extension = string.Empty;
+            outputName.Root = string.Empty;
+            if (StripOutputDirectory(interpreter))
+            {
+                outputName.Directory = string.Empty;
+            }
+
+            parser.OutputBaseName = outputName.ToString();
+        }
+
+        // Upstream reads error_level_ off a parser that was created for this file alone,
+        // so any non-zero level is THIS file's. The port's session is shared and may
+        // already carry a level from an earlier file, so the test has to be that the
+        // level ROSE — otherwise one bad file would make every later ly:parse-file throw.
+        int errorsBefore = parser.ErrorLevel;
+        int lexerErrorsBefore = parser.LexerErrorLevel;
+
+        parser.IncludeString(File.ReadAllText(resolved));
+
+        if (parser.ErrorLevel > errorsBefore || parser.LexerErrorLevel > lexerErrorsBefore)
+        {
+            throw FileFailed(resolved);
+        }
+
+        return Unspecified.Instance;
+    }
+
+    /// <summary>Builds upstream's <c>ly-file-failed</c> throw.</summary>
+    /// <param name="fileName">The file that failed, which is the throw's whole payload.</param>
+    /// <returns>The exception to raise.</returns>
+    private static SchemeThrow FileFailed(string fileName)
+        => new SchemeThrow(
+            Symbol.Intern("ly-file-failed"), Pair.List(new MutableString(fileName)));
+
+    /// <summary>
+    /// Finds a file on the parser's include path, trying the name as given first.
+    /// </summary>
+    /// <param name="parser">The parser whose include path to search.</param>
+    /// <param name="file">The file name.</param>
+    /// <returns>The resolved path, or <see langword="null"/>.</returns>
+    private static string ResolveOnIncludePath(ILilyParser parser, string file)
+    {
+        if (File.Exists(file))
+        {
+            return file;
+        }
+
+        foreach (string directory in parser.IncludePath)
+        {
+            string candidate = Path.Combine(directory, file);
+            if (File.Exists(candidate))
+            {
+                return candidate;
+            }
+        }
+
+        return null;
     }
 
     private static void InstallSources(Interpreter interpreter)

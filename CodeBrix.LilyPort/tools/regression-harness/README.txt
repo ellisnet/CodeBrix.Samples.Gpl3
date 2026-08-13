@@ -288,11 +288,18 @@ END
 COMPARATOR SELF-CHECK  (added 2026-08-05, EPG13)
 --------------------------------------------------------------------------------
 
-The comparator now grades at GLYPH and POSITION level, and it identifies a glyph
-by its OUTLINE -- upstream's SVG backend writes each glyph's own path inline
-rather than referencing a shared definition, so the `d` attribute IS the glyph's
-identity. Position comes from accumulating the translate() of the enclosing <g>
-elements.
+The comparator now grades at GLYPH and POSITION level. Position comes from
+accumulating the translate() of the enclosing <g> elements.
+
+*** SUPERSEDED IN PART, 2026-08-12 (GLYPH-PARITY). *** This section used to go on
+to say that the `d` attribute IS the glyph's identity, because upstream's SVG
+backend writes each glyph's own path inline rather than referencing a shared
+definition. The first half is still true and the conclusion no longer is: the port
+and the oracle copy their outlines out of DIFFERENT BUILDS of the same font, which
+serialize identically-shaped glyphs differently. A music glyph is now identified by
+NAME, resolved from its exact bytes through the committed glyph-identity index --
+see "NAMED-GLYPH IDENTITY, AND THE GLYPH-IDENTITY INDEX" at the end of this file
+for the current contract. Everything else is still byte-exact.
 
 Because that machinery only runs once two pages agree on their glyph inventory,
 and no port output does yet, it is fenced by comparing the reference directory
@@ -455,3 +462,175 @@ VERDICTS -- the same vocabulary compare-output.py uses
 THERE IS NO MIDI RATCHET YET. The layout floor is a per-file manifest with a gate;
 the MIDI side is currently a scoreboard read by hand. It should grow one once the
 figures stop moving in large steps.
+
+===============================================================================
+NAMED-GLYPH IDENTITY, AND THE GLYPH-IDENTITY INDEX
+(added 2026-08-12, GLYPH-PARITY -- this CHANGED the comparator's contract)
+===============================================================================
+
+THE CONTRACT NOW READS (D29, restated 2026-08-12):
+
+    Glyph identity is NAMED-GLYPH identity, byte-verified against each side's own
+    font. Everything else remains byte-exact. Visual and tolerance comparison
+    remain forbidden.
+
+  This REPLACES the rule this harness ran on from 2026-08-05 to 2026-08-12 --
+  "two glyphs are the same glyph exactly when their path data agrees". If you are
+  reading an older note that states the byte rule, the note is stale.
+
+WHY IT HAD TO CHANGE. Both engravers copy a glyph's outline verbatim out of the
+.svg font they were built against, and the two sides read DIFFERENT BUILDS of the
+same font: the port ships its own Emmentaler (FontForge 20230101, built from the
+vendored mf/ mirror -- the deliberate 2026-08-02 own-build decision, which STANDS),
+while the oracle's came from the official 2.27.2 release build (FontForge 20200314).
+The design is the same -- LILC, LILY, every advance and every cmap mapping are
+byte-identical between the builds, and sampled bounding boxes agree to 0.00
+font-units -- but the two FontForge versions serialize the outlines differently.
+
+  Measured by the GLYPH-DIAG session, 2026-08-12, on emmentaler-20's black
+  notehead specifically: that ONE outline string appears in 1,242 reference pages
+  and ZERO candidate pages, while the port's serialization of the same glyph
+  appears in 1,089 candidate pages and ZERO reference pages -- a perfect per-page
+  substitution. (Counting the same glyph BY NAME across every optical size, as the
+  comparator now does, reads 1,346 reference and 1,322 candidate pages. The two
+  figures measure different things and are both right; the byte figures are
+  per-serialization, the name figures per-glyph.)
+
+  Under the byte rule, no page carrying music could EVER read MATCH.
+
+WHAT THE IDENTITY IS. For a <path> whose transform is the pure glyph scale
+(scale(s, -s) -- dump-path's signature, and nothing else emits it):
+
+    (the SET of glyph names whose outline bytes equal this path's d, looked up in
+     THAT SIDE's own fonts, PLUS the transform's scale string)
+
+  A name SET, because two names in one font can legitimately share outline bytes:
+  a whole note and a half note shape-note head really are the same drawing. There
+  are 466 such classes per side. They are recorded in the index header and NEVER
+  resolved to a winner -- forcing a single name would plant a wrong answer for the
+  page that draws the other glyph.
+
+  The SCALE STRING is part of the identity because the name alone does not say
+  which OPTICAL SIZE was drawn; without it, a glyph from emmentaler-11 and the
+  same-named glyph from emmentaler-26 would collapse into one identity. It is
+  carried verbatim, not parsed -- no rounding, no tolerance. (Recorded because it
+  surprised the session that implemented this: the scale did NOT participate in
+  the identity before 2026-08-12. Under byte identity it did not need to.)
+
+  THIS IS NOT FUZZY MATCHING. A path is still identified by its EXACT bytes; those
+  bytes are simply resolved to the NAME of the glyph they are a verbatim copy of.
+
+FAIL-STRICT. A `d` that resolves to no glyph name on its side keeps raw-byte
+identity -- the pre-2026-08-12 behaviour exactly. Unresolvable can only ever make
+the comparison STRICTER, never looser.
+
+EACH SIDE RESOLVES AGAINST ITS OWN FONTS, which is why the two halves of the index
+are never merged into one lookup. The ONE exception is the self-check, which
+compares the reference directory against ITSELF: those bytes came out of the
+oracle's fonts on both sides, so both sides resolve against the reference half.
+That case is DETECTED (the two directories are the same path), not configured.
+
+THE INDEX
+
+    glyph-identity.tsv            committed; side / font / glyph-name / sha256
+    generate-glyph-identity.py    regenerates it; --check verifies it
+
+  Only HASHES are committed. No font file and no glyph outline from either side is
+  redistributed, and the COMPARATOR never reads a font or needs the oracle
+  installed -- the oracle is required only when the index is GENERATED, the same
+  model reference generation already uses. The header carries provenance: the
+  generation date, both font directories, the sha256 of all 18 source font files,
+  and the full list of duplicate-byte name classes.
+
+  Current content: 9 fonts and 5,872 named outlines PER SIDE, with identical
+  glyph-name sets in every font, and all 5,872 names resolving to the SAME
+  name-set on both sides (100.00% class agreement -- the two builds never disagree
+  about which glyphs share bytes). 2,131 of the 5,872 names (36.3%) serialize
+  IDENTICALLY in both builds; the rest are what made the byte rule unworkable.
+
+*** THE NORMALIZATION IS LOAD-BEARING -- get it wrong and this all silently does
+    nothing. ***
+
+  The FontForge SVG fonts carry literal NEWLINES inside long `d` attribute values
+  (318 of 662 glyphs in the port's emmentaler-20, 338 in the oracle's), and the
+  emitted pages inherit them. compare-output.py reads pages with ElementTree, and
+  XML attribute-value normalization turns newline, CR and tab inside an attribute
+  value into a SPACE -- so the `d` string the comparator sees is NOT the file's raw
+  bytes. Today that cancels, because both pages go through the same parser. The
+  index is built from FONT FILES, so it must apply the same normalization: any run
+  of whitespace to a single space, then strip. The generator reads the fonts with
+  ElementTree for exactly this reason.
+
+  If it ever stops agreeing, every lookup misses, fail-strict takes every path, and
+  the mechanism becomes a no-op THAT STILL PASSES the reference-against-reference
+  self-check. That is what the canary below is for.
+
+THE STANDING VERIFICATION PROTOCOL -- all four, after any comparator or font change
+
+    python3 compare-output.py --selftest
+        Four miniature documents on a synthetic index, each a relationship with a
+        control: (i) same name, different serializations -> MATCH; (ii) unresolvable
+        candidate bytes -> not a match; (iii) different names, same scale -> differ;
+        (iv) same name, different scale strings -> differ. Plus the CANARY: a real
+        oracle page must resolve a real glyph name. The miniature cases run on
+        invented path data and would pass even if the real normalization were
+        broken; the canary is the one that would catch it.
+
+    python3 compare-output.py reference/svg reference/svg
+        must still report 2316 of 2316 MATCH.
+
+    python3 generate-glyph-identity.py --check
+        regenerates the candidate side from the shipped assets and diffs it against
+        the committed index, then re-asserts two-sided inventory equality. This is
+        the fence for the index going STALE: our fonts are ours to regenerate and
+        nothing else would notice if they moved. (The reference side cannot drift --
+        it changes only if the pinned oracle changes, which is a project-wide event.)
+
+    python3 compare-midi.py reference-midi/midi reference-midi/midi
+        must still report 90 of 90 MATCH.
+
+  compare-output.py also prints a per-side RESOLUTION RATE on every run
+  ("N of M glyph paths resolved to a name"). A normalization slip reads as 0.0%
+  there while every verdict count stays superficially plausible, so it is worth a
+  glance every time.
+
+--raw-glyph-bytes is the A/B switch: it forces the pre-2026-08-12 byte rule. It is
+DIAGNOSTIC ONLY -- nothing is ever graded against it. It exists because trap 17
+says an attribution is honest only if made by disabling the change and re-running.
+
+WHAT LANDING THIS ACTUALLY BOUGHT, AND WHAT IT DID NOT (2026-08-12, measured)
+
+  100% of glyph paths on BOTH sides now resolve by name (73,292 reference, 72,987
+  candidate). Verdicts moved 0 regressed / 43 improved, every one
+  GLYPHS-DIFFER -> PLACEMENT-DIFFERS.
+
+  IT PRODUCED NO NEW MATCH ROWS, which the plan for this work expected it to. The
+  notehead substitution was not the last wall in front of G1; it was the first of
+  three. Behind it, measured over the 2,215 pages still differing:
+
+    * 2,081 pages differ by an INVISIBLE <rect> -- fill="none" stroke="none", a
+      zero-ink bounding box the oracle emits and the port does not. On 782 of them
+      it is the ENTIRE inventory difference. This is the single biggest thing
+      between the port and its first bulk MATCH population.
+    * ~1,000 more carry a text-run difference (the systematic 4th-decimal
+      text-font-size skew already recorded in CONDENSED_PLAN_2 §3.6).
+    * the remainder are real music-glyph, drawn-path and line differences.
+
+  Those are engine/backend work and were deliberately NOT touched here: this change
+  is comparator-side only, and the candidate bytes before and after it are identical.
+
+  *** FOLLOW-UP THE SAME DAY (URL-LINK, 2026-08-12): the rect is FIXED. ***
+
+  The SVG backend had no `url-link` case, so upstream's <a> and its invisible
+  hot-zone rect were dropped on every page carrying a link. Restoring it moved 782
+  pages GLYPHS-DIFFER -> PLACEMENT-DIFFERS with zero regressions -- exactly the
+  count predicted above, to the file. It produced no new MATCH rows either,
+  because the rect's EXTENTS differ (oracle h=2.2001, port h=2.0746 on the
+  tagline): the text skew was standing behind it.
+
+  So the list above now reads: 1,433 pages still differ at inventory level, led by
+  TEXT RUNS -- 501 differ by a text-run ALONE -- with rect involvement down to 450
+  from some other rect population, then real music-glyph, drawn-path and line
+  differences. A cheap high-signal probe for the text gap, needing no sweep: on any
+  page with a tagline, compare the hot-zone rect's width and height against the
+  oracle's.

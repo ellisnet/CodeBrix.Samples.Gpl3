@@ -142,6 +142,20 @@ public static class TypePredicates
         interpreter.DefinePrimitive("ly:font-metric?", 1, 1, a => a[0] is FontMetric);
         interpreter.DefinePrimitive("ly:grob?", 1, 1, a => a[0] is Grob);
         interpreter.DefinePrimitive("ly:grob-array?", 1, 1, a => a[0] is GrobArray);
+
+        // item-scheme.cc. A PaperColumn is an Item upstream and here, so it answers #t
+        // to this as well -- that is upstream's answer, not an approximation.
+        //
+        // ⚠ Stubbed, this answered #f to every item in the engine while the type had
+        // existed since EPG0 (standing rule 3 / trap 7). lily.scm's type-name-alist
+        // could not name an "item" either.
+        interpreter.DefinePrimitive("ly:item?", 1, 1, a => a[0] is Item);
+
+        // lily-lexer.cc's type_p_name_. The port's lexer is ModalScanner, which lives in
+        // CodeBrix.LilyPort.Parsing and so cannot be named from here -- it is matched
+        // through the ILilyLexer marker in Origins, the same shape ly:lily-parser? uses
+        // for ILilyParser.
+        interpreter.DefinePrimitive("ly:lily-lexer?", 1, 1, a => a[0] is Origins.ILilyLexer);
         interpreter.DefinePrimitive("ly:listener?", 1, 1, a => a[0] is Listener);
         interpreter.DefinePrimitive("ly:moment?", 1, 1, a => a[0] is Moment);
         interpreter.DefinePrimitive(

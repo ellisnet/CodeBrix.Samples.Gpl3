@@ -15,6 +15,9 @@
 #                   ~29 no-port rows)
 #   font-plumbing   fontconfig/Pango/FreeType discovery, replaced by the
 #                   port's font layer (D13/D23)
+#   instrumentation profiling machinery that measures LilyPond's OWN execution
+#                   rather than doing anything to the music (ratified by Jeremy
+#                   2026-08-12, for EPG23)
 # NEVER N/A: doc-introspection entry points -- they are EPG24's IMPLEMENTED
 # surface (D21/G8).
 #
@@ -29,9 +32,27 @@
 ly:spawn	general-scheme.cc	process spawning exists to drive the Ghostscript/PS pipeline (backend-library.scm, ps-to-png.scm); the SVG-only port never calls it (D15)	ps-backend	accepted ps-backend
 ly:shutdown-gs	general-scheme.cc	Ghostscript API instance teardown; PS pipeline only (D15)	ps-backend	accepted ps-backend
 ly:gs-api	general-scheme.cc	Ghostscript API invocation; PS pipeline only (D15)	ps-backend	accepted ps-backend
-ly:otf->cff	otf-scheme.cc	the CFF table is extracted to embed a font in a PostScript stream; the SVG backend embeds no font data at all (measured under D13), so nothing ever asks	ps-backend	candidate
-ly:get-cff-offset	open-type-font-scheme.cc	CFF table offset, needed only to embed a subsetted font in PostScript (D15)	ps-backend	candidate
-ly:has-glyph-names?	open-type-font-scheme.cc	asked before writing a PostScript font resource, to choose between name-keyed and CID-keyed embedding (D15)	ps-backend	candidate
-ly:get-font-format	open-type-font-scheme.cc	the font format decides which PostScript embedding path to take (D15)	ps-backend	candidate
-ly:extract-subfont-from-collection	open-type-font-scheme.cc	writes one face out of an OpenType collection to a FILE for PostScript embedding; the port's 24 text faces are vendored individually and no collection is shipped (D15)	ps-backend	candidate
-ly:system-font-load	all-font-metrics-scheme.cc	loads a font by name from the host's font configuration; D23 forbids system-font fallback outright, so there is no host lookup to make and answering #f would silently re-open the door	font-plumbing	candidate
+ly:otf->cff	otf-scheme.cc	the CFF table is extracted to embed a font in a PostScript stream; the SVG backend embeds no font data at all (measured under D13), so nothing ever asks	ps-backend	accepted ps-backend
+ly:get-cff-offset	open-type-font-scheme.cc	CFF table offset, needed only to embed a subsetted font in PostScript (D15)	ps-backend	accepted ps-backend
+ly:has-glyph-names?	open-type-font-scheme.cc	asked before writing a PostScript font resource, to choose between name-keyed and CID-keyed embedding (D15)	ps-backend	accepted ps-backend
+ly:get-font-format	open-type-font-scheme.cc	the font format decides which PostScript embedding path to take (D15)	ps-backend	accepted ps-backend
+ly:extract-subfont-from-collection	open-type-font-scheme.cc	writes one face out of an OpenType collection to a FILE for PostScript embedding; the port's 24 text faces are vendored individually and no collection is shipped (D15)	ps-backend	accepted ps-backend
+ly:system-font-load	all-font-metrics-scheme.cc	loads a font by name from the host's font configuration; D23 forbids system-font fallback outright, so there is no host lookup to make and answering #f would silently re-open the door	font-plumbing	accepted font-plumbing
+ly:cairo-output-stencil	cairo.cc	the Cairo backend writes PDF, PostScript and PNG; D15 makes SVG the port's only backend	ps-backend	accepted ps-backend
+ly:cairo-output-stencils	cairo.cc	the Cairo backend writes PDF, PostScript and PNG; D15 makes SVG the port's only backend	ps-backend	accepted ps-backend
+ly:png-dimensions	cairo.cc	reads back the size of a PNG the Ghostscript pipeline produced; that pipeline is not ported (D15)	ps-backend	accepted ps-backend
+ly:png->eps-dump	cairo.cc	wraps a PNG in an EPS for inclusion in a PostScript stream (D15)	ps-backend	accepted ps-backend
+ly:ttf->pfa	ttf.cc	converts a TrueType face to a PostScript Type 1 font for embedding (D15)	ps-backend	accepted ps-backend
+ly:ttf-ps-name	ttf.cc	reads the PostScript name a font would be embedded under (D15)	ps-backend	accepted ps-backend
+ly:font-config-add-directory	font-config-scheme.cc	adds a directory to fontconfig's search; D23 forbids system-font fallback, so there is no host search to widen	font-plumbing	accepted font-plumbing
+ly:font-config-add-font	font-config-scheme.cc	registers a font file with fontconfig; the port's faces are vendored and registered through its own font layer (D13/D23)	font-plumbing	accepted font-plumbing
+ly:font-config-display-fonts	font-config-scheme.cc	dumps fontconfig's view of the host's fonts; the port never consults it (D13/D23)	font-plumbing	accepted font-plumbing
+ly:font-config-get-font-file	font-config-scheme.cc	resolves a family name to a file through fontconfig; D23 forbids the host lookup outright	font-plumbing	accepted font-plumbing
+ly:pango-font-physical-fonts	pango-font-scheme.cc	lists the physical faces a Pango font resolved to; the port has no Pango layer (D13/D23)	font-plumbing	accepted font-plumbing
+ly:smob-protects	smobs.cc	lists the smobs held alive by GC protection; the port's objects are ordinary CLR references	guile-internals	accepted guile-internals
+ly:parsed-undead-list!	undead.cc	a GC-liveness test harness; there is no equivalent question to ask the CLR	guile-internals	rejected->owed (ly/declarations-init.ly:171 via session-save -> dump-zombies); IMPLEMENTED 2026-08-12 as the empty list, which is upstream's own answer for a run with no zombies
+ly:property-lookup-stats	profile.cc	reports grob property-lookup counts for -dprofile-property-accesses; the port does not instrument the property-lookup path	instrumentation	accepted instrumentation
+ly:time-tracer-set-file	time-tracer-scheme.cc	names the file the Chrome-trace timing log is written to	instrumentation	accepted instrumentation
+ly:time-tracer-restart	time-tracer-scheme.cc	restarts the Chrome-trace timing log	instrumentation	accepted instrumentation
+ly:time-tracer-stop	time-tracer-scheme.cc	stops the Chrome-trace timing log	instrumentation	accepted instrumentation
+ly:time-tracer-include-and-remove-file	time-tracer-scheme.cc	splices another trace file into this run's Chrome-trace log and deletes it	instrumentation	accepted instrumentation

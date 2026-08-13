@@ -53,6 +53,10 @@ public class MainViewModel : SimpleViewModel, ICopyToClipboard
 
         registry.Register(new HelpCommand(registry));
         registry.Register(new ClearCommand());
+
+        // EPG23 (2026-08-12): the shell-side half of ly:usage, so the port answers
+        // "how do I invoke this" the way upstream's --help does.
+        registry.Register(new UsageCommand());
         registry.Register(new ExitCommand(() => InvokeOnMainThread(
             () => Microsoft.UI.Xaml.Application.Current.Exit())));
         registry.Register(new VersionCommand(_host));

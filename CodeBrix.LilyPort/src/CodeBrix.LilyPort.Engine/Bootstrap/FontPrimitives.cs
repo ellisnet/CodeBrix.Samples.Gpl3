@@ -128,6 +128,56 @@ public static class FontPrimitives
         // ly:font-magnification and ly:font-get-glyph are installed with the grob
         // callbacks, where the engraving side of the font interface lives.
         InstallNotApplicable(interpreter);
+        InstallFontPredicates(interpreter);
+    }
+
+    /// <summary>
+    /// The two font TYPE PREDICATES <c>open-type-font-scheme.cc</c> and
+    /// <c>pango-font-scheme.cc</c> declare.
+    /// </summary>
+    /// <param name="interpreter">The interpreter to extend.</param>
+    /// <remarks>
+    /// ⚠ Both are declared with <c>LY_DEFINE</c> rather than as smob <c>type_p_name_</c>
+    /// predicates, so <see cref="EnginePrimitives.InstallStubs"/> does NOT give them the
+    /// type-predicate stub that answers <see langword="false"/> — they got the ordinary
+    /// stub, which answers the inert <see cref="UnportedValue"/>, and an
+    /// <c>UnportedValue</c> is TRUTHY in Scheme. So until EPG23 both of these answered
+    /// YES to every value they were handed, including each other's.
+    /// <para>
+    /// <c>ly:pango-font?</c> is a constant <see langword="false"/> and that is its real
+    /// implementation, not a placeholder for one: D13/D23 replace Pango with the port's
+    /// own font layer, so no value in the engine can ever be a Pango font, and the
+    /// correct answer to "is this one" is no. It is deliberately NOT filed N/A — a
+    /// predicate that THROWS would break <c>lily.scm</c>'s <c>type-name-alist</c>, which
+    /// calls every predicate in it to name a bad argument.
+    /// </para>
+    /// </remarks>
+    private static void InstallFontPredicates(Interpreter interpreter)
+    {
+        interpreter.DefinePrimitive("ly:otf-font?", 1, 1, a => IsOtf(a[0]));
+
+        interpreter.DefinePrimitive("ly:pango-font?", 1, 1, a => false);
+    }
+
+    /// <summary>
+    /// Returns the OpenType font under a value, or <see langword="null"/> when it is not
+    /// one — the non-throwing form <c>ly:otf-font?</c> needs.
+    /// </summary>
+    /// <param name="value">The value passed from Scheme.</param>
+    /// <returns>The font, or <see langword="null"/>.</returns>
+    private static bool IsOtf(object value)
+    {
+        FontMetric metric = value as FontMetric;
+
+        // Follow the scaled wrapper the way upstream's original_font () does: the font a
+        // grob holds is a ModifiedFontMetric at the requested magnification, so testing
+        // the wrapper itself would answer no for every font in real use.
+        if (metric is ModifiedFontMetric scaled)
+        {
+            metric = scaled.OriginalFont;
+        }
+
+        return metric is OpenTypeFontMetric;
     }
 
     /// <summary>

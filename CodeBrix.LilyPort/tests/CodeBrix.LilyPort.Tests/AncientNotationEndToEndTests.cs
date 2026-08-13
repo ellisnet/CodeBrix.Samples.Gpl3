@@ -51,6 +51,13 @@ public class AncientNotationEndToEndTests
     private static BatchRunResult Run(string body, string name)
         => BatchRunner.RunText(Version + Layout + body, name, null, ScratchDirectory());
 
+    /// <summary>
+    /// The three vaticana pitches with no ligature at all — the baseline every vaticana
+    /// fact here is counted against, so that page furniture (staff lines, the tagline's
+    /// invisible link hot-zone) cannot satisfy or break an assertion about the ligature.
+    /// </summary>
+    private const string Unligatured = "\\new VaticanaScore \\new VaticanaVoice { a g a }\n";
+
     private static int Count(BatchRunResult result, string element)
         => result.SvgPaths.Sum(
             p => Regex.Matches(File.ReadAllText(p), "<" + element + @"\b").Count);
@@ -141,13 +148,21 @@ public class AncientNotationEndToEndTests
         // stroke that vaticana_brew_join draws as a round-filled box. Nothing in the
         // Vaticana font supplies that stroke -- it exists only if the engraver decided
         // this head was the upper head of a pes and the backend drew the join.
+        //
+        // Counted AGAINST the same pitches unligatured rather than against zero: a page
+        // carries rects of its own -- the engraving tagline's link hot-zone is one -- so
+        // "more than none" would pass on furniture alone. The fact is that the ligature
+        // ADDS one.
         string body = "\\new VaticanaScore \\new VaticanaVoice { \\[ a \\flexa g \\pes a \\] }\n";
 
         //Act
         BatchRunResult result = Run(body, "vaticana-porrectus");
+        BatchRunResult unligatured = Run(Unligatured, "vaticana-porrectus-control");
 
         //Assert
-        Count(result, "rect").Should().BeGreaterThan(0);
+        Count(result, "rect").Should().BeGreaterThan(
+            Count(unligatured, "rect"),
+            "the pes join is drawn geometry the unligatured pitches never produce");
     }
 
     [Fact]
@@ -158,13 +173,22 @@ public class AncientNotationEndToEndTests
         // \pes. They are three separate puncta, so there is no join to draw and no curved
         // shape to draw either. A port that joined them anyway would be reading
         // context-info that provide_context_info never set.
+        //
+        // Compared with the unligatured pitches rather than with zero. This assertion
+        // USED to read Be(0), which was a value recorded from the port's own output at a
+        // time when the SVG backend dropped url-link entirely; restoring that element
+        // (2026-08-12) put the tagline's invisible link hot-zone on every page and broke
+        // it. Zero was never the fact -- "the ligature adds no rect" is.
         string body = "\\new VaticanaScore \\new VaticanaVoice { \\[ a g a \\] }\n";
 
         //Act
         BatchRunResult result = Run(body, "vaticana-puncta");
+        BatchRunResult unligatured = Run(Unligatured, "vaticana-puncta-control");
 
         //Assert
-        Count(result, "rect").Should().Be(0);
+        Count(result, "rect").Should().Be(
+            Count(unligatured, "rect"),
+            "three plain puncta have nothing to join, so the ligature draws no stroke");
     }
 
     // ----- episema: legal over a SINGLE neume -----

@@ -53,6 +53,7 @@ public sealed class ProgramOptions
     private readonly Dictionary<string, object> _values = new Dictionary<string, object>(StringComparer.Ordinal);
     private readonly Dictionary<string, string> _documentation = new Dictionary<string, string>(StringComparer.Ordinal);
     private readonly List<string> _order = new List<string>();
+    private readonly HashSet<string> _accumulative = new HashSet<string>(StringComparer.Ordinal);
 
     /// <summary>Gets or sets where diagnostics are written. Defaults to discarding them.</summary>
     public TextWriter Output { get; set; } = TextWriter.Null;
@@ -92,6 +93,51 @@ public sealed class ProgramOptions
     }
 
     /// <summary>
+    /// Marks an option ACCUMULATIVE — one that gathers repeated <c>-d</c> values into a
+    /// list rather than letting the last one overwrite the others.
+    /// <para>
+    /// Upstream records this as a Guile object property on the option's symbol
+    /// (<c>program-option-accumulative?</c>), set from <c>ly:add-option</c>'s
+    /// <c>#:accumulative?</c> keyword. The port keeps that object property too — the
+    /// vendored <c>lily.scm</c> reads it directly to choose between
+    /// <c>ly:append-to-option</c> and <c>ly:set-option</c> — and mirrors it here so the
+    /// option store itself can answer without a Scheme lookup.
+    /// </para>
+    /// </summary>
+    /// <param name="name">The option name.</param>
+    public void MarkAccumulative(string name) => _accumulative.Add(name);
+
+    /// <summary>Returns whether an option accumulates its values.</summary>
+    /// <param name="name">The option name.</param>
+    /// <returns><see langword="true"/> when the option is accumulative.</returns>
+    public bool IsAccumulative(string name) => _accumulative.Contains(name);
+
+    /// <summary>
+    /// Prepends a value to an accumulative option — <c>ly:append-to-option</c>.
+    /// </summary>
+    /// <param name="name">The option name.</param>
+    /// <param name="value">The value to add.</param>
+    /// <returns><see langword="false"/> when no such option is declared.</returns>
+    /// <remarks>
+    /// PREPENDS, and that is not a bug in the name: upstream stores an accumulative
+    /// option's values in REVERSE for efficiency and reverses them again in
+    /// <c>ly:get-option</c>. Appending here instead would read back reversed.
+    /// </remarks>
+    public bool AppendTo(string name, object value)
+    {
+        if (!_values.TryGetValue(name, out object current))
+        {
+            return false;
+        }
+
+        // Upstream conses onto whatever the handle holds, without checking that it is a
+        // list — so a mis-declared accumulative option builds an improper list there and
+        // here alike. Reproduced rather than corrected.
+        _values[name] = new Pair(value, current);
+        return true;
+    }
+
+    /// <summary>
     /// Gets an option's value, or <see langword="false"/> when it was never declared.
     /// <para>
     /// Returning <see langword="false"/> rather than raising matters: LilyPond's Scheme
@@ -102,7 +148,34 @@ public sealed class ProgramOptions
     /// <param name="name">The option name.</param>
     /// <returns>The value, or <see langword="false"/>.</returns>
     public object Get(string name)
-        => _values.TryGetValue(name, out object value) ? value : false;
+    {
+        if (!_values.TryGetValue(name, out object value))
+        {
+            return false;
+        }
+
+        // An accumulative option is STORED reversed (see AppendTo) and read back in
+        // order, which is upstream's own arrangement in ly:get-option.
+        return _accumulative.Contains(name) ? Reverse(value) : value;
+    }
+
+    /// <summary>Returns a list reversed, leaving a non-list value alone.</summary>
+    /// <param name="value">The value to reverse.</param>
+    /// <returns>The reversed list.</returns>
+    private static object Reverse(object value)
+    {
+        object result = Nil.Instance;
+        object cursor = value;
+        while (cursor is Pair pair)
+        {
+            result = new Pair(pair.Car, result);
+            cursor = pair.Cdr;
+        }
+
+        // A proper list reverses; anything else (an improper tail, or a non-list value a
+        // mis-declared option is holding) is handed back untouched.
+        return cursor is Nil ? result : value;
+    }
 
     /// <summary>Returns the options as a Scheme alist of name and value.</summary>
     /// <returns>The alist.</returns>

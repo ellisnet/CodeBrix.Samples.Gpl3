@@ -32,6 +32,18 @@ namespace CodeBrix.LilyPort.Engine.Tests;
 /// which belong to the font.
 /// </para>
 /// </summary>
+// ⚠ Standing rule 8: a test that BUILDS an interpreter must serialize with every other
+// one, because the engine's registries and the reader's hash extensions are
+// process-global. This class was the one interpreter-building class outside the
+// collection, so xUnit ran LoadMusicFont's SchemeBootstrap.LoadCore concurrently with the
+// serialized tests' own loads.
+//
+// It is the best candidate for an intermittent "psyntax-pp.scm:3749:0: unterminated list"
+// seen twice on 2026-08-12 — a reader hitting EOF mid-list is a TRUNCATED parse, which is
+// what shared reader state being mutated underneath it would look like. NOT PROVEN: the
+// failure never reproduced in six consecutive runs, so this is a rule-8 compliance fix
+// with a plausible mechanism, not a confirmed root cause.
+[Collection(EngineGlobalStateCollection.Name)]
 public class MusicFontAdvanceTests
 {
     private static OpenTypeFontMetric LoadMusicFont()

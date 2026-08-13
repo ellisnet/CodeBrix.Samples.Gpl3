@@ -1667,15 +1667,7 @@ public static class Stem
     /// <summary>Half the staff's line span — <c>Staff_symbol_referencer::staff_radius</c>.</summary>
     /// <param name="me">The grob.</param>
     /// <returns>The radius, in staff spaces.</returns>
-    internal static double StaffRadius(Grob me)
-    {
-        /*
-          line_span is measured in pitch steps, not in staff spaces
-        */
-        Grob symbol = StaffSymbolReferencer.GetStaffSymbol(me);
-        Interval span = symbol != null ? StaffSymbol.LineSpan(symbol) : Interval.Empty;
-        return span.Length / 4.0;
-    }
+    internal static double StaffRadius(Grob me) => StaffSymbolReferencer.StaffRadius(me);
 
     /// <summary>One side of a two-cell pair — <c>index_get_cell</c>.</summary>
     /// <param name="cell">The pair.</param>

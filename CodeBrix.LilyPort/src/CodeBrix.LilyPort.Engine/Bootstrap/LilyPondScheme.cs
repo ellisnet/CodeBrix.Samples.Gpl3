@@ -331,6 +331,12 @@ public static class LilyPondScheme
     public static Interpreter CreateInterpreter()
     {
         Interpreter interpreter = new Interpreter();
+
+        // Attached before LoadCore so the prelude's expansion caches too. Replaying
+        // still EVALUATES everything live — only read-and-macroexpand is substituted —
+        // so a cached boot and a live boot build identical interpreter state.
+        interpreter.ExpansionCache = BootExpansionCache.Acquire();
+
         SchemeBootstrap.LoadCore(interpreter);
 
         // Order matters. The stubs go in first so every entry point is REACHABLE and
@@ -417,6 +423,17 @@ public static class LilyPondScheme
         OriginPrimitives.Install(interpreter);
         ParserPrimitives.Install(interpreter);
         EngineSupport.Install(interpreter);
+
+        // EPG23 (2026-08-12): the leaf binding files the ledger still owed —
+        // simple-spacer-scheme.cc and spring-smob.cc here, lily-random.cc next. Both
+        // groups' TYPES landed long ago; only the LY_DEFINE surface was missing.
+        SpacingPrimitives.Install(interpreter);
+        RandomPrimitives.Install(interpreter);
+        Epg23Callbacks.Install(interpreter);
+
+        // D25's N/A half, LAST among EPG23's installers so that anything above may still
+        // claim a name for a real implementation instead.
+        NotApplicableEntryPoints.Install(interpreter);
 
         // LAST, and it must stay last: it looks both halves of each getter/setter pair
         // up by name, so every primitive involved has to exist first.
@@ -537,6 +554,11 @@ public static class LilyPondScheme
         {
             EnginePrimitives.ThrowOnUnported = true;
         }
+
+        // First live boot in a fresh world: persist the recording so every later boot
+        // — this process's next interpreter, the next test process, the next sweep —
+        // replays it. A boot that replayed has nothing new and skips this.
+        BootExpansionCache.SaveIfDirty(interpreter);
 
         return report;
     }

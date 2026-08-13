@@ -106,6 +106,12 @@ public static class MusicPrimitives
 
         interpreter.DefinePrimitive("ly:pitch<?", 2, 2, a =>
             Pitch.Compare(AsPitch(a[0], "ly:pitch<?"), AsPitch(a[1], "ly:pitch<?")) < 0);
+
+        interpreter.DefinePrimitive("ly:set-middle-C!", 1, 1, a =>
+        {
+            Pitch.SetMiddleC(AsContext(a[0], "ly:set-middle-C!"));
+            return Unspecified.Instance;
+        });
     }
 
     private static void InstallMoment(Interpreter interpreter)
@@ -247,6 +253,25 @@ public static class MusicPrimitives
         interpreter.DefinePrimitive("ly:duration<?", 2, 2, a =>
             AsDuration(a[0], "ly:duration<?") < AsDuration(a[1], "ly:duration<?"));
 
+        // duration-scheme.cc's MAKE_SCHEME_CALLBACK half of the same comparison. It is a
+        // SEPARATE entry point from ly:duration<? above and not an alias: upstream
+        // declares one with LY_DEFINE and the other with MAKE_SCHEME_CALLBACK, so the
+        // Scheme layer can hand this one to a sort as a callback value. Both compute
+        // Duration::compare (...) < 0.
+        //
+        // Upstream's Duration::less_p unsmobs WITHOUT asserting and dereferences the
+        // result, so a non-duration argument is undefined behaviour there. The port
+        // raises the wrong-type error instead — recorded in PORT-COVERAGE as a
+        // deliberate divergence, since reproducing a null dereference is not fidelity.
+        interpreter.DefinePrimitive("ly:duration::less?", 2, 2, a =>
+            AsDuration(a[0], "ly:duration::less?") < AsDuration(a[1], "ly:duration::less?"));
+
+        // Duration::to_string, already carried by the ported type: the negative-log
+        // "log = -1" form, then one '.' per dot, then "*<factor>" when the factor is
+        // not 1.
+        interpreter.DefinePrimitive("ly:duration->string", 1, 1, a =>
+            new MutableString(AsDuration(a[0], "ly:duration->string").ToString()));
+
         interpreter.DefinePrimitive("ly:number->duration", 1, 1, a =>
             Duration.FromWholeNotes(SchemeConvert.ToRational(a[0], "ly:number->duration"), true));
 
@@ -349,6 +374,53 @@ public static class MusicPrimitives
             Pitch start = a[1] as Pitch
                 ?? throw SchemeErrors.WrongType("ly:make-music-relative!", "pitch", a[1]);
             return music.ToRelativeOctave(start);
+        });
+
+        // music-scheme.cc's ly:event? — "is this a PROPER (non-rhythmic) event", which
+        // upstream answers by the 'post-event mus-type rather than by the C++ class.
+        //
+        // ⚠ This was a stubbed TYPE PREDICATE over a type the port already has, so it
+        // answered #f to everything (standing rule 3 / trap 7). Two live consequences,
+        // both measured before the fix: ly-syntax-constructors.scm's
+        // `(cond ((ly:event? item) (ly:set-origin! item)) ...)' never took its first
+        // branch, and lily.scm's type-name-alist could never name a bad argument
+        // "post-event". It is NOT a long-tail leaf.
+        interpreter.DefinePrimitive("ly:event?", 1, 1, a =>
+            a[0] is MusicObject music && music.IsMusicType("post-event"));
+
+        // Extract the duration field and answer its LENGTH as a moment. Upstream reports
+        // a programming error and answers the zero moment when the music carries no
+        // duration — it does not raise, and the caller goes on with zero.
+        interpreter.DefinePrimitive("ly:music-duration-length", 1, 1, a =>
+        {
+            MusicObject music = AsMusic(a[0], "ly:music-duration-length");
+            if (music.GetProperty(Symbol.Intern("duration")) is Duration duration)
+            {
+                return new Moment(duration.ToWholeNotes());
+            }
+
+            Warn.ProgrammingError("music has no duration");
+
+            // Rational.Zero, not default(Rational): Flower's Rational carries upstream's
+            // biased-by-one denominator, so a zeroed struct is not the zero rational
+            // (PORT-COVERAGE, standing rule 10).
+            return new Moment(Rational.Zero);
+        });
+
+        // Compress the duration field by FACT, which upstream takes as a MOMENT and uses
+        // the MAIN PART of — the grace part is deliberately ignored. Music with no
+        // duration is left alone, silently, and the result is unspecified either way.
+        interpreter.DefinePrimitive("ly:music-duration-compress", 2, 2, a =>
+        {
+            MusicObject music = AsMusic(a[0], "ly:music-duration-compress");
+            Moment factor = AsMoment(a[1], "ly:music-duration-compress");
+            if (music.GetProperty(Symbol.Intern("duration")) is Duration duration)
+            {
+                music.SetProperty(
+                    Symbol.Intern("duration"), duration.Compressed(factor.MainPart));
+            }
+
+            return Unspecified.Instance;
         });
 
         interpreter.DefinePrimitive("ly:music-length", 1, 1, a =>
@@ -545,6 +617,9 @@ public static class MusicPrimitives
 
     private static Pitch AsPitch(object value, string procedureName)
         => value as Pitch ?? throw SchemeErrors.WrongType(procedureName, "pitch", value);
+
+    private static Context AsContext(object value, string procedureName)
+        => value as Context ?? throw SchemeErrors.WrongType(procedureName, "context", value);
 
     private static Moment AsMoment(object value, string procedureName)
         => value is Moment moment ? moment : throw SchemeErrors.WrongType(procedureName, "moment", value);

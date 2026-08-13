@@ -136,7 +136,13 @@ public class EntryPointClosureTests
         // MAKE_SCHEME_CALLBACK_WITH_OPTARGS: the rest-collision pair is CHAINED onto a
         // rest's Y-offset, so the previous value in the chain arrives as a trailing
         // argument that is absent on the first link.
-        closure.Implemented.Count.Should().BeGreaterThanOrEqualTo(548);
+        // EPG23 (2026-08-12) took it to 737 of 737 and CLOSED G3. The floor is now the
+        // ceiling, so the assertion stops being a floor: 36 real implementations (22
+        // across the ledger's last twelve owed binding files, 13 hollow leaves in files
+        // already marked ported, and ly:parsed-undead-list! taken back out of the N/A set by demand) plus 17 D25 N/A bindings, which count as implemented
+        // because each one is a real binding that raises with its category and reason
+        // rather than answering the inert placeholder.
+        closure.Implemented.Count.Should().Be(737);
     }
 
     [Fact]
@@ -171,7 +177,7 @@ public class EntryPointClosureTests
     }
 
     [Fact]
-    public void the_outstanding_entry_points_are_attributed_to_upstream_files()
+    public void no_entry_point_answers_from_a_stub()
     {
         //Arrange
         EntryPointClosure closure = Measure();
@@ -180,14 +186,15 @@ public class EntryPointClosureTests
         IReadOnlyList<KeyValuePair<string, int>> byFile = closure.StubbedByFile();
 
         //Assert
-        // Every stub names the upstream file that declares it, so the worklist is always
-        // one grep from the source. A stub attributed to nothing would be work with no
-        // home -- the same failure the ledger's cross-check catches from the other side.
-        byFile.Should().NotBeEmpty();
-        foreach (KeyValuePair<string, int> pair in byFile)
-        {
-            pair.Key.Should().NotBeNullOrWhiteSpace();
-            pair.Key.Should().NotBe("-");
-        }
+        // GATE G3, closed by EPG23 on 2026-08-12: 737 of 737 entry points are
+        // implemented-or-N/A, so nothing answers from a stub any more.
+        //
+        // ⚠ This test used to assert the OPPOSITE -- that the stubbed list was NOT empty
+        // and that every stub named its upstream file, which is what made the remaining
+        // work greppable while there still was some. Inverting it is the honest end of
+        // that arc: the list being empty is now the fact, and the failure message names
+        // exactly which entry points regressed if a registration is ever lost.
+        byFile.Should().BeEmpty();
+        closure.Stubbed.Should().BeEmpty();
     }
 }

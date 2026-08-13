@@ -224,6 +224,25 @@ public static class StaffSymbolReferencer
         return result;
     }
 
+    /// <summary>
+    /// <c>staff_radius</c>: half the staff's line span, in STAFF SPACES.
+    /// </summary>
+    /// <param name="grob">The grob.</param>
+    /// <returns>The radius.</returns>
+    /// <remarks>
+    /// The divisor is 4, not 2, and that is not a typo of upstream's: the line span is
+    /// measured in PITCH STEPS, of which there are two to the staff space, so halving the
+    /// span and converting steps to spaces divides by four in one step. Upstream carries
+    /// the same comment for the same reason.
+    /// <para>
+    /// Added by EPG23 with <c>ly:staff-symbol-staff-radius</c>. The algorithm was already
+    /// in the engine as <c>Stem.StaffRadius</c> — a private copy in the wrong file, which
+    /// now delegates here, because two implementations of one upstream function is the
+    /// shape standing trap 11 records (a fix applied to one copy never reaches the other).
+    /// </para>
+    /// </remarks>
+    public static double StaffRadius(Grob grob) => StaffSpan(grob).Length / 4.0;
+
     /// <summary><c>pure_position_less</c>: orders grobs by pure staff position.</summary>
     /// <param name="a">The first grob.</param>
     /// <param name="b">The second grob.</param>

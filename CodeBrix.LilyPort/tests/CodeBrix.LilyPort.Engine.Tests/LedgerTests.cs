@@ -83,8 +83,17 @@ public class LedgerTests
             .Select(row => row.File);
 
         //Assert
+        // The derivation is what this test is really about, and it still holds when both
+        // sides are empty: NotYetPorted must equal the group-disposition rows, whatever
+        // they are.
         outstanding.Should().BeEquivalentTo(fromRows);
-        outstanding.Should().NotBeEmpty();
+
+        // ⚠ Was NotBeEmpty until EPG23 closed the ledger on 2026-08-12. Both sides are
+        // empty now, and asserting emptiness on BOTH is what keeps this test from passing
+        // vacuously: if a later session adds a group row and forgets to derive it, the
+        // equivalence above fails; if it adds one deliberately, this line fails and the
+        // session says so on purpose.
+        outstanding.Should().BeEmpty();
     }
 
     [Fact]
@@ -352,9 +361,28 @@ public class LedgerTests
         // binding file plus lily-random.cc. That the tail is now entirely bindings is the
         // shape EPG0 predicted, and it is why EntryPointClosureTests rather than this test
         // is the measurement that closes G3.
-        ported.Should().Be(406);
+        //
+        // The fine-vertical-geometry session moved ONE on 2026-08-12: pitch-scheme.cc,
+        // whose single remaining stub was ly:set-middle-C! -- the binding parser-clef.scm
+        // applies after every \clef to fold middleCClefPosition + middleCOffset into
+        // middleCPosition. Stubbed, it returned the polite UnportedValue and every staff
+        // in the port placed notes with the treble context default; registering it is
+        // what brought bend-spanner-simple and ssaattbb-men-women-and-descant back to one
+        // page. TWELVE rows remain, all EPG23's.
+        //
+        // EPG23 moved the LAST TWELVE on 2026-08-12, and the ledger is now CLOSED: 419
+        // ported, 29 no-port, ZERO owed. All twelve were leaf *-scheme.cc binding files
+        // plus lily-random.cc, so all twelve closed by landing their LY_DEFINE surface
+        // rather than by porting an algorithm -- exactly the shape EPG0 predicted for the
+        // tail.
+        //
+        // ⚠ ZERO owed is the reading from here. This assertion is now the fence that a
+        // later session does not re-open a row silently: any new 'group' row fails it, and
+        // that is intended -- a genuinely new work item should be a deliberate edit here,
+        // not a quiet regression.
+        ported.Should().Be(419);
         noPort.Should().Be(29);
-        PortLedger.NotYetPorted.Should().HaveCount(13);
+        PortLedger.NotYetPorted.Should().BeEmpty();
     }
 
     [Fact]

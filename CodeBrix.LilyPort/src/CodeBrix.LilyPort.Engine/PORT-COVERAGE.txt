@@ -5311,3 +5311,117 @@ STAFF-LINES FOLLOW-UP 2026-08-11 -- TWO OF THE NINE RED ROWS' FAMILIES CLOSED
   by SessionLeakEndToEndTests: a reader file whose score DOUBLES its system
   count if the canary variable is visible, paired with a same-file control
   that must double -- the templates' mechanism in miniature.
+
+================================================================================
+EPG23 -- LONG TAIL & ENTRY-POINT CLOSURE (2026-08-12).  GATE G3 CLOSED.
+================================================================================
+
+  737 of 737 entry points are implemented-or-N/A, the ledger closes at
+  419 ported / 0 owed / 29 no-port, and no name in entry-points.tsv answers
+  from a stub any more.  36 real implementations plus 17 D25 N/A bindings.
+
+  TWO OF THE "LONG TAIL" WERE LIVE ON THE MAIN PATH, not leaves.  This is
+  standing trap 7 twice over, and it is why the closure was worth doing as
+  porting rather than as bookkeeping:
+
+    ly:make-rand-seed / ly:set-rand-seed (lily-random.cc).  scm/lily.scm's
+    randomize-rand-seed calls BOTH on every single run, before anything is
+    engraved.  As stubs the first answered the inert UnportedValue and the
+    second silently discarded it, so the C++-side generator was never seeded
+    at all.  Ported with an MT19937 (std::mt19937 is that generator; .NET has
+    none) in Bootstrap/RandomPrimitives.cs.
+
+    ly:event? (music-scheme.cc).  A TYPE PREDICATE over a type the port has
+    had since EPG0, and -- because upstream declares it with LY_DEFINE rather
+    than as a smob type_p_name_ -- it got the ORDINARY stub, which answers the
+    inert UnportedValue.  An UnportedValue is TRUTHY, so
+    ly-syntax-constructors.scm's `(cond ((ly:event? item) (ly:set-origin!
+    item)) ...)' had been taking the WRONG branch, and lily.scm's
+    type-name-alist could not name a "post-event" in an error message.
+
+  THE SAME LY_DEFINE-NOT-TYPE-PREDICATE TRAP caught ly:otf-font? and
+  ly:pango-font? as well.  Both answered YES to every value handed to them.
+  ly:pango-font? is now a constant #f and that IS its implementation: D13/D23
+  replace Pango with the port's own font layer, so no value can be one.  It
+  is deliberately NOT filed N/A -- an N/A binding THROWS, and lily.scm's
+  type-name-alist calls every predicate in it to name a bad argument.
+
+  DELIBERATE DIVERGENCES, all four recorded here rather than left to be
+  re-discovered:
+
+    ly:duration::less?  Upstream's Duration::less_p unsmobs WITHOUT asserting
+    and dereferences the result, so a non-duration argument is undefined
+    behaviour there.  The port raises a wrong-type error instead.
+    Reproducing a null dereference is not fidelity.
+
+    ly:make-tmpfile-name.  MT19937 itself is exact (the algorithm is fully
+    specified), but std::uniform_int_distribution's reduction to a bounded
+    range is IMPLEMENTATION-DEFINED.  Same seed gives the same generator
+    sequence, not necessarily the same bounded draw.  The only consumer is a
+    temp file name's hex suffix -- random by design, never in engraved output.
+
+    ly:translate-cpp-warning-scheme.  Upstream wraps the result in _(), a
+    gettext lookup.  D17 defers i18n, so the port translates nothing and
+    passes the string through.  The printf->format rewrite itself is exact.
+
+    ly:usage.  Upstream prints the `lilypond' binary's option table.  D14
+    makes Lily.Shell the port's public command line and the batch runner
+    internal-only, so there is no such option table; the port prints its OWN
+    usage, from Bootstrap/UsageText.cs, which Lily.Shell's `usage' command
+    prints too.  One string, two callers.  A usage message is a statement
+    about THIS program, and reproducing a false one verbatim is worse than
+    diverging.
+
+  THE THREE GROB DEBUG CALLBACKS ARE PORTED, NOT STUBBED OUT.
+  ly:set-grob-modification-callback, ly:set-property-cache-callback and
+  ly:set-grob-creation-callback all go through upstream's
+  check_debug_callback, which is compiled two ways: only an
+  --enable-checking build stores the procedure, and every ordinary build --
+  which is what the pinned oracle binary is -- warns "To use grob debug
+  callbacks, configure with --enable-checking" and stores '().  The call
+  sites are themselves inside `if constexpr (CHECKING)'.  So warning and
+  refusing IS upstream's answer for the build the port corresponds to.
+
+  ly:paper-column::print is registered and fully drawn (rank, moment, the
+  blue ideal-distance and red minimum-distance arrows, one shared arrow
+  counter across BOTH loops as upstream's own comment demands) even though
+  nothing reaches it: scm/define-grobs.scm carries
+  `(stencil . ,ly:paper-column::print)' COMMENTED OUT on PaperColumn and
+  NonMusicalPaperColumn both.  It is the override a user reaches for when
+  debugging spacing, and a name the Scheme can name must not answer with the
+  inert placeholder.  NOTE: plan-2 recorded this as "demanded ~163x/sweep";
+  that figure is stale -- the references are commented out and it is reached
+  zero times.
+
+  ONE DUPLICATE ALGORITHM REMOVED.  Staff_symbol_referencer::staff_radius had
+  been carried as a private copy inside Objects/Stem.cs.  It now lives in
+  Objects/StaffSymbolReferencer.cs, its real home, and Stem delegates -- two
+  implementations of one upstream function is the shape standing trap 11
+  records, where a fix applied to one copy never reaches the other.
+
+  ONE NEW SEAM.  ly:lily-lexer? tests Origins/ILilyLexer, an empty marker
+  interface the Parsing assembly's ModalScanner implements -- the same shape
+  ly:lily-parser? already used for ILilyParser, and necessary for the same
+  reason: Parsing references the Engine and not the other way round.  The
+  interface is deliberately memberless; nothing in the vendored Scheme calls
+  a lexer method.
+
+  ACCUMULATIVE PROGRAM OPTIONS ARE NOW REAL.  ly:append-to-option needed
+  them, and honouring #:accumulative? in ly:add-option was the other half:
+  the vendored lily.scm reads (object-property key
+  'program-option-accumulative?) to choose between ly:append-to-option and
+  ly:set-option, so leaving that object property unset routed every
+  accumulative option to the wrong binding.  Values are STORED reversed and
+  reversed again by ly:get-option, which is upstream's own arrangement.
+  ly:set-option now warns and changes nothing when given an accumulative
+  option, as upstream does.
+
+  ONE USE OF Unsafe.Unbox IN THE WHOLE ENGINE, and it is standing trap 9's.
+  ly:spring-set-inverse-compress-strength! and its stretch twin mutate the
+  CALLER's spring in place and return a copy (upstream mutates the smob it
+  was handed, then answers smobbed_copy ()).  Spring is a struct, so the
+  value Scheme holds is a box; unboxing into a local would mutate a copy and
+  leave the caller's spring untouched, silently.  Unsafe.Unbox takes a
+  reference INTO the box, which is the faithful equivalent of upstream's
+  pointer.  Fenced by Epg23Tests as a relationship: the caller's spring
+  changes AND a different object comes back.

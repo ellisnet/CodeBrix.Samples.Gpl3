@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Text;
 using CodeBrix.LilyPort.Engine.Layout;
 using CodeBrix.LilyPort.Flower;
 using CodeBrix.LilyScheme;
@@ -116,23 +117,104 @@ public static class GeneralPrimitives
     private static void InstallOptions(Interpreter interpreter, ProgramOptions options)
     {
         // Three required arguments plus a keyword rest, which carries #:type and friends
-        // for command-line parsing. The rest is accepted and ignored -- nothing in the
-        // load path reads it back, and rejecting it would abort lily.scm outright.
+        // for command-line parsing. #:type and #:internal? are still accepted and
+        // ignored -- nothing in the port's load path reads them back, and rejecting them
+        // would abort lily.scm outright.
+        //
+        // #:accumulative? IS read, as of EPG23. It has to be: the vendored lily.scm asks
+        // `(object-property key 'program-option-accumulative?)' to decide between
+        // ly:append-to-option and ly:set-option, so leaving the property unset routes
+        // every accumulative option to the wrong binding. Upstream sets exactly this
+        // object property from exactly this keyword.
         interpreter.DefinePrimitive("ly:add-option", 3, -1, a =>
         {
-            options.Add(AsSymbolName(a[0]), a[1], TextOf(a[2]));
+            string name = AsSymbolName(a[0]);
+            options.Add(name, a[1], TextOf(a[2]));
+
+            if (ReadKeywordFlag(a, "accumulative?"))
+            {
+                options.MarkAccumulative(name);
+                SetObjectProperty(
+                    interpreter, Symbol.Intern(name), AccumulativeOptionSymbol, true);
+            }
+
             return Unspecified.Instance;
         });
 
         interpreter.DefinePrimitive("ly:set-option", 1, 2, a =>
         {
-            options.Set(AsSymbolName(a[0]), a.Length > 1 && !(a[1] is DefaultArgument) ? a[1] : true);
+            string name = AsSymbolName(a[0]);
+
+            // Upstream WARNS and changes nothing rather than overwriting an accumulative
+            // option's gathered list with a single value.
+            if (options.IsAccumulative(name))
+            {
+                options.Report(
+                    MessageSeverity.Warning,
+                    "option " + name + " is accumulative; use ly:append-to-option instead "
+                    + "of ly:set-option");
+                return Unspecified.Instance;
+            }
+
+            options.Set(name, a.Length > 1 && !(a[1] is DefaultArgument) ? a[1] : true);
+            return Unspecified.Instance;
+        });
+
+        // program-option-scheme.cc: add a value to an accumulative option. Upstream warns
+        // (and still adds) when the option is not accumulative, and warns and does
+        // NOTHING when no such option is declared -- two different outcomes for two
+        // different mistakes.
+        interpreter.DefinePrimitive("ly:append-to-option", 2, 2, a =>
+        {
+            string name = AsSymbolName(a[0]);
+            if (!options.IsAccumulative(name))
+            {
+                options.Report(
+                    MessageSeverity.Warning,
+                    "option " + name + " is not accumulative; use ly:set-option instead "
+                    + "of ly:add-to-option");
+            }
+
+            if (!options.AppendTo(name, a[1]))
+            {
+                options.Report(
+                    MessageSeverity.Warning, "no such program option: " + name);
+            }
+
+            return Unspecified.Instance;
+        });
+
+        // Reset every option to the values in ALIST. Upstream goes through
+        // internal_set_option, NOT through ly:set-option, so this deliberately bypasses
+        // both the accumulative guard above and the value type check.
+        interpreter.DefinePrimitive("ly:reset-options", 1, 1, a =>
+        {
+            for (object cursor = a[0]; cursor is Pair pair; cursor = pair.Cdr)
+            {
+                if (!(pair.Car is Pair entry))
+                {
+                    throw SchemeErrors.WrongType("ly:reset-options", "pair", pair.Car);
+                }
+
+                options.Set(AsSymbolName(entry.Car), entry.Cdr);
+            }
+
             return Unspecified.Instance;
         });
 
         interpreter.DefinePrimitive("ly:get-option", 1, 1, a => options.Get(AsSymbolName(a[0])));
 
         interpreter.DefinePrimitive("ly:option-usage", 0, 1, a => Unspecified.Instance);
+
+        // main.cc's ly:usage. Prints the port's own command line — see UsageText for why
+        // it is not upstream's option table — through the same sink ly:message uses, so
+        // it lands wherever the run's diagnostics are going rather than unconditionally
+        // on stdout.
+        interpreter.DefinePrimitive("ly:usage", 0, 0, a =>
+        {
+            options.Report(MessageSeverity.Message, UsageText.Text);
+            return Unspecified.Instance;
+        });
 
         interpreter.DefinePrimitive("ly:verbose-output?", 0, 0, a =>
             Evaluator.IsTrue(options.Get("verbose")));
@@ -141,6 +223,52 @@ public static class GeneralPrimitives
         interpreter.DefinePrimitive("ly:command-line-code", 0, 0, a => Nil.Instance);
         interpreter.DefinePrimitive("ly:command-line-ly-files", 0, 0, a => Nil.Instance);
         interpreter.DefinePrimitive("ly:all-options", 0, 0, a => options.ToAlist());
+    }
+
+    private static readonly Symbol AccumulativeOptionSymbol
+        = Symbol.Intern("program-option-accumulative?");
+
+    /// <summary>
+    /// Reads a boolean keyword flag out of an <c>ly:add-option</c> style rest argument.
+    /// </summary>
+    /// <param name="arguments">The full argument array.</param>
+    /// <param name="keyword">The keyword name, without its <c>#:</c> prefix.</param>
+    /// <returns>Whether the flag was given and is true.</returns>
+    /// <remarks>
+    /// Upstream binds these with <c>scm_c_bind_keyword_arguments</c>, which pairs each
+    /// keyword with the value that FOLLOWS it. Scanning to the last argument would read
+    /// <c>#:type string</c> as a flag; the scan therefore stops one short and steps in
+    /// pairs the way the binder does.
+    /// </remarks>
+    private static bool ReadKeywordFlag(object[] arguments, string keyword)
+    {
+        for (int i = 3; i + 1 < arguments.Length; i++)
+        {
+            if (arguments[i] is Keyword given
+                && string.Equals(given.Name.Name, keyword, StringComparison.Ordinal))
+            {
+                return Evaluator.IsTrue(arguments[i + 1]);
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Sets a Guile object property, in the shape <c>set-object-property!</c> stores —
+    /// the property symbol keys a table whose value is an alist of
+    /// <c>(object . value)</c>.
+    /// </summary>
+    /// <param name="interpreter">The interpreter holding the table.</param>
+    /// <param name="target">The object the property is attached to.</param>
+    /// <param name="property">The property name.</param>
+    /// <param name="value">The value to store.</param>
+    private static void SetObjectProperty(
+        Interpreter interpreter, object target, Symbol property, object value)
+    {
+        interpreter.ObjectProperties.TryGetValue(property, out object table);
+        interpreter.ObjectProperties[property]
+            = new Pair(new Pair(target, value), table ?? Nil.Instance);
     }
 
     private static void InstallGeneral(Interpreter interpreter, ProgramOptions options)
@@ -203,6 +331,93 @@ public static class GeneralPrimitives
             }
 
             return a.Length > 2 && !(a[2] is DefaultArgument) ? a[2] : (object)false;
+        });
+
+        // lily/module-scheme.cc: copy every BOUND binding out of SRC into DEST.
+        //
+        // Upstream's own comment is the contract: this is a one-time copy of VALUES, so a
+        // later change in SRC is not seen by DEST. Unbound variables are skipped rather
+        // than copied as unbound — scm_variable_bound_p guards the define.
+        interpreter.DefinePrimitive("ly:module-copy", 2, 2, a =>
+        {
+            if (!(a[0] is SchemeModule destination))
+            {
+                throw SchemeErrors.WrongType("ly:module-copy", "module", a[0]);
+            }
+
+            if (!(a[1] is SchemeModule source))
+            {
+                throw SchemeErrors.WrongType("ly:module-copy", "module", a[1]);
+            }
+
+            // Snapshot before defining: `(ly:module-copy m m)' is legal to write, and
+            // defining into the dictionary being enumerated would raise. Upstream folds
+            // over SRC's obarray while defining into DEST and has the same hazard; taking
+            // a copy is the port answering the question rather than inheriting it.
+            List<KeyValuePair<Symbol, Variable>> bindings
+                = new List<KeyValuePair<Symbol, Variable>>(source.Bindings);
+            foreach (KeyValuePair<Symbol, Variable> binding in bindings)
+            {
+                if (binding.Value.IsBound)
+                {
+                    destination.Define(binding.Key, binding.Value.GetValue());
+                }
+            }
+
+            return Unspecified.Instance;
+        });
+
+        // lily/warn-scheme.cc: rewrite a C++ printf format string as a Guile format
+        // string, character by character, exactly as upstream does and for the reason
+        // upstream gives — there is no order of simple replacements that gets `~`, `%%`
+        // and `%s` all right.
+        //
+        // The mapping: `~` doubles to `~~`; `%%` collapses to a literal `%`; `%s` and
+        // `%d` both become `~a` (NOT `~s`, which would add quotes, and not `~d`, which
+        // only ice-9 supports); any other `%` becomes a bare `~`.
+        //
+        // The translation step upstream wraps this in, _(...), is a gettext lookup. D17
+        // defers i18n, so the port translates nothing and passes the string through —
+        // recorded in PORT-COVERAGE rather than left to be re-discovered here.
+        interpreter.DefinePrimitive("ly:translate-cpp-warning-scheme", 1, 1, a =>
+        {
+            string text = TextOf(a[0]);
+            StringBuilder result = new StringBuilder(text.Length);
+            for (int i = 0; i < text.Length; i++)
+            {
+                char c = text[i];
+                if (c == '~')
+                {
+                    result.Append("~~");
+                }
+                else if (c == '%')
+                {
+                    // Upstream looks ahead one character; a C string is NUL-terminated so
+                    // the lookahead is always legal there. Here the bound check does the
+                    // same job, and a trailing '%' falls through to the bare '~'.
+                    char next = i + 1 < text.Length ? text[i + 1] : '\0';
+                    if (next == '%')
+                    {
+                        result.Append('%');
+                        i++;
+                    }
+                    else if (next == 's' || next == 'd')
+                    {
+                        result.Append("~a");
+                        i++;
+                    }
+                    else
+                    {
+                        result.Append('~');
+                    }
+                }
+                else
+                {
+                    result.Append(c);
+                }
+            }
+
+            return new MutableString(result.ToString());
         });
 
         interpreter.DefinePrimitive("ly:version", 0, 0, a =>

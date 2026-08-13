@@ -152,6 +152,11 @@ public static class GrobCallbacks
         interpreter.DefinePrimitive("ly:staff-symbol-line-thickness", 1, 1, a =>
             StaffSymbolReferencer.LineThickness(AsGrob(a[0], "ly:staff-symbol-line-thickness")));
 
+        // staff-symbol-referencer-scheme.cc's last owed leaf: half the line span, in
+        // staff spaces.
+        interpreter.DefinePrimitive("ly:staff-symbol-staff-radius", 1, 1, a =>
+            StaffSymbolReferencer.StaffRadius(AsGrob(a[0], "ly:staff-symbol-staff-radius")));
+
         interpreter.DefinePrimitive("ly:grob-staff-position", 1, 1, a =>
             StaffSymbolReferencer.GetPosition(AsGrob(a[0], "ly:grob-staff-position")));
 

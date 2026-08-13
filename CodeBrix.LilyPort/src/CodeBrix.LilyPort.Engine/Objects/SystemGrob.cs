@@ -1079,6 +1079,216 @@ public class SystemGrob : Spanner
 
         return null;
     }
+
+    /// <summary>
+    /// <c>System::footnotes_before_line_breaking</c>: every element carrying
+    /// <c>footnote-interface</c>, collected off <c>all-elements</c>.
+    /// </summary>
+    /// <param name="me">The system.</param>
+    /// <returns>The footnote grobs, as a grob array.</returns>
+    /// <remarks>
+    /// Reads <c>all-elements</c> and not <c>elements</c>: before line breaking the
+    /// footnotes have not been gathered into the system's own element list yet.
+    /// </remarks>
+    public static GrobArray FootnotesBeforeLineBreaking(Grob me)
+    {
+        GrobArray result = new GrobArray();
+        foreach (Grob element in PointerGroupInterface.ExtractGrobSet(me, AllElementsSymbol))
+        {
+            if (element.HasInterface(FootnoteInterfaceSymbol))
+            {
+                result.Add(element);
+            }
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// <c>System::footnotes_after_line_breaking</c>: the footnotes falling on THIS
+    /// system's stretch of columns, in reading order.
+    /// </summary>
+    /// <param name="me">The system.</param>
+    /// <returns>The footnote grobs, sorted, as a grob array.</returns>
+    public static GrobArray FootnotesAfterLineBreaking(SystemGrob me)
+    {
+        Slice ranks = me.SpannedColumnRankInterval();
+        List<Grob> footnotes = me.GetFootnoteGrobsInRange(ranks.Left, ranks.Right);
+        footnotes.Sort((a, b) => Grob2DLess(a, b) ? -1 : (Grob2DLess(b, a) ? 1 : 0));
+
+        GrobArray result = new GrobArray();
+        foreach (Grob footnote in footnotes)
+        {
+            result.Add(footnote);
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// <c>System::get_footnote_grobs_in_range</c>: the footnotes whose position falls
+    /// inside a column-rank range, with the end-of-line/beginning-of-line duplicates
+    /// weeded out.
+    /// </summary>
+    /// <param name="start">The first column rank.</param>
+    /// <param name="end">The last column rank.</param>
+    /// <returns>The footnotes in range, in <c>footnotes-before-line-breaking</c> order.</returns>
+    /// <remarks>
+    /// A broken spanner is represented by ONE of its pieces, chosen by
+    /// <c>spanner-placement</c> — the first piece for LEFT (and for CENTER, which
+    /// upstream folds into LEFT), the last for RIGHT — and its position is then read
+    /// from that piece's RIGHT end. The duplicate check at the bottom is upstream's own,
+    /// and upstream's comment there says it is working around duplicate entries in
+    /// <c>all_elements_</c> rather than being intrinsic.
+    /// </remarks>
+    public List<Grob> GetFootnoteGrobsInRange(int start, int end)
+    {
+        List<Grob> output = new List<Grob>();
+        foreach (Grob footnote in
+                 PointerGroupInterface.ExtractGrobSet(this, FootnotesBeforeLineBreakingSymbol))
+        {
+            Grob atBat = footnote;
+            int position = atBat.SpannedColumnRankInterval()[Direction.Negative];
+            bool endOfLineVisible = true;
+
+            if (atBat is Spanner spanner)
+            {
+                Direction placement = DirectionOf(
+                    spanner.GetProperty(SpannerPlacementSymbol), Direction.Negative);
+                if (placement == Direction.Center)
+                {
+                    placement = Direction.Negative;
+                }
+
+                position = spanner.SpannedColumnRankInterval()[placement];
+
+                Spanner original = spanner.Original;
+                if (original != null && original.BrokenIntos.Count > 0)
+                {
+                    atBat = placement == Direction.Negative
+                        ? original.BrokenIntos[0]
+                        : original.BrokenIntos[original.BrokenIntos.Count - 1];
+                    position = atBat.SpannedColumnRankInterval()[Direction.Positive];
+                }
+            }
+
+            if (atBat is Item item)
+            {
+                // Weeds out grobs falling at the END of a line when the grobs wanted are
+                // the ones at the BEGINNING.
+                endOfLineVisible = item.BreakStatusDirection() == Direction.Negative;
+
+                if (!item.BreakVisible())
+                {
+                    continue;
+                }
+
+                if (position == start && item.BreakStatusDirection() != Direction.Positive)
+                {
+                    continue;
+                }
+
+                if (position == end && item.BreakStatusDirection() != Direction.Negative)
+                {
+                    continue;
+                }
+
+                if (position != end && position != start
+                    && item.BreakStatusDirection() != Direction.Center)
+                {
+                    continue;
+                }
+            }
+
+            if (position < start || position > end)
+            {
+                continue;
+            }
+
+            if (position == start && endOfLineVisible)
+            {
+                continue;
+            }
+
+            if (position == end && !endOfLineVisible)
+            {
+                continue;
+            }
+
+            if (!atBat.IsLive)
+            {
+                continue;
+            }
+
+            if (output.Contains(atBat))
+            {
+                continue;
+            }
+
+            output.Add(atBat);
+        }
+
+        return output;
+    }
+
+    /// <summary>
+    /// <c>grob_2D_less</c>: reading order over the page — by column rank first, then top
+    /// to bottom within a rank.
+    /// </summary>
+    /// <param name="g1">The first grob.</param>
+    /// <param name="g2">The second grob.</param>
+    /// <returns><see langword="true"/> when the first comes first.</returns>
+    public static bool Grob2DLess(Grob g1, Grob g2)
+    {
+        Grob[] grobs = { g1, g2 };
+        int[] ranks = { 0, 0 };
+
+        for (int i = 0; i < 2; i++)
+        {
+            ranks[i] = grobs[i].SpannedColumnRankInterval()[Direction.Negative];
+            if (grobs[i] is Spanner spanner)
+            {
+                if (spanner.BrokenIntos.Count > 0)
+                {
+                    Direction placement = DirectionOf(
+                        spanner.BrokenIntos[0].GetProperty(SpannerPlacementSymbol),
+                        Direction.Center);
+                    spanner = placement == Direction.Negative
+                        ? spanner.BrokenIntos[0]
+                        : spanner.BrokenIntos[spanner.BrokenIntos.Count - 1];
+                }
+
+                grobs[i] = spanner;
+
+                // A spanner pushed to the right of its own origin is read at its RIGHT
+                // end instead — that is what puts an end-of-line footnote after the
+                // notes it follows rather than before them.
+                if (spanner.GetProperty(XOffsetPropertySymbol) is double offset && offset > 0)
+                {
+                    ranks[i] = spanner.SpannedColumnRankInterval()[Direction.Positive];
+                }
+            }
+        }
+
+        return ranks[0] == ranks[1]
+            ? VerticalLess(grobs[0], grobs[1])
+            : ranks[0] < ranks[1];
+    }
+
+    /// <summary>Reads a direction property, falling back when it is unset.</summary>
+    /// <param name="value">The property value.</param>
+    /// <param name="fallback">The direction to use when unset.</param>
+    /// <returns>The direction.</returns>
+    private static Direction DirectionOf(object value, Direction fallback)
+        => value is double number
+            ? new Direction(number)
+            : (value is long exact ? new Direction(exact) : fallback);
+
+    private static readonly Symbol FootnoteInterfaceSymbol = Symbol.Intern("footnote-interface");
+    private static readonly Symbol FootnotesBeforeLineBreakingSymbol
+        = Symbol.Intern("footnotes-before-line-breaking");
+    private static readonly Symbol SpannerPlacementSymbol = Symbol.Intern("spanner-placement");
+    private static readonly Symbol XOffsetPropertySymbol = Symbol.Intern("X-offset");
 }
 
 /// <summary>
