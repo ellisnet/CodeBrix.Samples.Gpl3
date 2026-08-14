@@ -23,7 +23,7 @@ using System.Collections.Generic;
 
 namespace CodeBrix.LilyPort.Parsing.Session; //was previously: lily/lily-lexer.cc (the_key_tab, make_keytable);
 
-// Modified by Jeremy Ellis on 2026-08-03 as part of the CodeBrix port.
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port.
 
 /// <summary>
 /// LilyPond's keyword table: the 45 words that are grammar keywords rather than

@@ -26,7 +26,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Objects; //was previously: lily/vaticana-ligature.cc, lily/include/vaticana-ligature.hh;
 
-// Modified by Jeremy Ellis on 2026-08-09 as part of the CodeBrix port:
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port:
 //   - STACKED_HEAD is a preprocessor #define in the header; it is a public const here,
 //     renamed to PascalCase. Its VALUE extends gregorian-ligature.hh's context-info
 //     family and is written into the `context-info' grob property, so it may not change.

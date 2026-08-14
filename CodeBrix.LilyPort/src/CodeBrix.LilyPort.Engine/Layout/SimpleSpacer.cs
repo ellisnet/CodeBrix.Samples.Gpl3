@@ -62,7 +62,7 @@ using CodeBrix.LilyPort.Flower;
 
 namespace CodeBrix.LilyPort.Engine.Layout; //was previously: lily/simple-spacer.cc, lily/include/simple-spacer.hh, lily/column-x-positions.cc, lily/include/column-x-positions.hh;
 
-// Modified by Jeremy Ellis on 2026-08-03 as part of the CodeBrix port.
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port.
 
 /// <summary>
 /// The result of solving a spacing problem: the force to apply, and whether the

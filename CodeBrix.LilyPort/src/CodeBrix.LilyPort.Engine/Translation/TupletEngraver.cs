@@ -25,7 +25,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Translation; //was previously: lily/tuplet-engraver.cc;
 
-// Modified by Jeremy Ellis on 2026-08-07 as part of the CodeBrix port:
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port:
 //   - upstream declares four separate acknowledgers (note_column, script, finger,
 //     string_number) and the macro layer dispatches by interface. The port has a single
 //     AcknowledgeGrob, so the interface tests that the macros generate are written out.
@@ -289,12 +289,12 @@ public class TupletEngraver : Engraver
             }
             else if (!(GetProperty(SkipTypesettingSymbol) is bool skip && skip))
             {
-                Epg8Support.EventWarning(ev, "No tuplet to end");
+                TranslatorSchemeHelpers.EventWarning(ev, "No tuplet to end");
             }
         }
         else
         {
-            Epg8Support.EventProgrammingError(ev, "direction tuplet-span-event_ invalid.");
+            TranslatorSchemeHelpers.EventProgrammingError(ev, "direction tuplet-span-event_ invalid.");
         }
     }
 

@@ -21,7 +21,7 @@ using System;
 using System.Globalization;
 
 namespace CodeBrix.LilyPort.Flower; //was previously: flower/include/interval.hh, flower/include/interval.tcc, flower/interval.cc;
-// Modified by Jeremy Ellis on 2026-08-02 as part of the CodeBrix port:
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port:
 //   - translated from C++17 to C# targeting net10.0
 //   - the C++ template Interval_t<T> is realised as two concrete types, Interval
 //     (over Real/double) and Slice (over int), which are the instantiations

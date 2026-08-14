@@ -25,7 +25,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Objects; //was previously: lily/align-interface.cc, lily/include/align-interface.hh;
 
-// Modified by Jeremy Ellis on 2026-08-07 as part of the CodeBrix port.
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port.
 
 /// <summary>
 /// Stacks grobs — staves, lyric lines, whole systems' worth of material — along one
@@ -107,10 +107,10 @@ public static class AlignInterface
             return skylines;
         }
 
-        // THE STAND-IN IS GONE (EPG15 close-out, 2026-08-08). This branch used to ask
+        // THE STAND-IN IS GONE. This branch used to ask
         // for the ORDINARY extent — g.Extent(g, Y) — because hara-kiri, pure heights and
         // the begin/rest-of-line split were all unported. Every one of them landed with
-        // EPG15, and the stand-in was not merely approximate: an ordinary extent asks for
+        // line breaking, and the stand-in was not merely approximate: an ordinary extent asks for
         // a grob's STENCIL, so spacing pulled real stencils out of grobs whose spanners
         // had not been broken yet. That is what drew a VoltaBracket with both bounds on
         // unplaced columns and put a NaN through the skyline builder
@@ -384,15 +384,15 @@ public static class AlignInterface
     /// <para>
     /// Upstream builds a <c>Page_layout_problem</c> over the system and takes its
     /// solution, which stretches every staff-to-staff spring toward its
-    /// <c>basic-distance</c>. That solver is EPG16's; until it lands the port takes
+    /// <c>basic-distance</c>. Here the port takes
     /// the MINIMUM distances instead — the same staves in the same order, packed
     /// rather than stretched. DELIBERATE STAND-IN, recorded in PORT-COVERAGE.
     /// </para>
     /// <para>
     /// Upstream also refuses outright when the alignment has no system yet, and can
     /// afford to: nothing upstream reads a staff's unpure Y position before line
-    /// breaking — the early readers all go through the pure machinery (EPG15). This
-    /// port's horizontal spacing DOES read early (the recorded EPG4 divergence in
+    /// breaking — the early readers all go through the pure machinery. This
+    /// port's horizontal spacing DOES read early (the recorded divergence in
     /// <c>Spacing_interface::skylines</c>), a grob's offset is computed exactly
     /// once, and a refusal would burn every staff's one-shot offset at zero. So the
     /// early call takes upstream's own currency for before-line-breaking questions:

@@ -24,15 +24,15 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Layout; //was previously: lily/page-layout-problem.cc (is_spaceable, read_spacing_spec, get_spacing_spec, get_fixed_spacing and add_stretchability only);
 
-// Modified by Jeremy Ellis on 2026-08-07 as part of the CodeBrix port.
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port.
 
 /// <summary>
 /// The staff-to-staff spacing-specification readers of
-/// <c>lily/page-layout-problem.cc</c>, pulled forward out of EPG16 because
-/// <c>Align_interface::internal_get_minimum_translations</c> — EPG7's file — reads
+/// <c>lily/page-layout-problem.cc</c>, pulled forward ahead of the page-layout group
+/// because <c>Align_interface::internal_get_minimum_translations</c> reads
 /// every pair of adjacent staves through them. The <c>Page_layout_problem</c> solver
-/// itself, which consumes the same specs to spread a page, remains EPG16's; the
-/// ledger row for the file still says so.
+/// itself, which consumes the same specs to spread a page, stayed with its owning
+/// file; the ledger row records the split.
 /// </summary>
 public static class PageLayoutSpacing
 {
@@ -108,7 +108,7 @@ public static class PageLayoutSpacing
     /// their <c>staff-affinity</c>.
     /// <para>
     /// PURE lookups take the unpure answer: the pure-property machinery is
-    /// <c>unpure-pure-container.cc</c>, EPG15, and every spec the vendored defaults
+    /// <c>unpure-pure-container.cc</c>'s, and every spec the vendored defaults
     /// state is a plain alist for which the two answers coincide. Recorded in
     /// PORT-COVERAGE.
     /// </para>
@@ -184,7 +184,7 @@ public static class PageLayoutSpacing
     /// infinity when none is forced.
     /// <para>
     /// Upstream caches the pure answer on the AFTER spanner
-    /// (<c>get_cached_pure_property</c>); the cache is EPG15 machinery and is skipped
+    /// (<c>get_cached_pure_property</c>); the cache is pure-property machinery and is skipped
     /// here — the answer is recomputed, never wrong.
     /// </para>
     /// </summary>

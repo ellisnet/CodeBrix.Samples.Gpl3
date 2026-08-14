@@ -45,7 +45,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Objects; //was previously: lily/beam.cc, lily/include/beam.hh;
 
-// Modified by Jeremy Ellis on 2026-08-07 as part of the CodeBrix port:
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port:
 //   - the three Beam_* helper structs become nested types on Beam, since C# has no
 //     free-floating file-scope structs and they are meaningless apart from it
 //   - Beam::print's `extreme` index is CLAMPED into range; upstream stores a signed
@@ -1755,8 +1755,8 @@ public static class Beam
     /// Folds one of the beam's bounds into the common horizontal reference point —
     /// upstream's <c>me->get_bound (d)->common_refpoint (commonx, X_AXIS)</c>.
     /// <para>
-    /// EPG10's null-bound guard was REMOVED AND RE-MEASURED at EPG15's close-out
-    /// (2026-08-08), which is what the inherit list asked for, and the measurement says
+    /// The original null-bound guard was REMOVED AND RE-MEASURED once line breaking
+    /// landed, which is what the inherit list asked for, and the measurement says
     /// KEEP IT. Upstream writes this dereference with no null check because by the time
     /// anything asks a beam to draw, the bound is guaranteed:
     /// <c>Spanner::do_break_processing</c> walks away from a spanner missing either
@@ -1766,10 +1766,11 @@ public static class Beam
     /// without this line and produces its page with it.
     /// </para>
     /// <para>
-    /// The cause is NOT diagnosed and it is the one EPG10 recorded and could not chase:
-    /// a chord-tremolo beam that reproduces only inside a FULL SWEEP and never when the
-    /// file is run alone (the EPG4 trap). So the guard stays, its reason is now measured
-    /// rather than assumed, and what it is waiting on is no longer "EPG15" but that
+    /// The cause is NOT diagnosed and it is the one the beam port recorded and could not
+    /// chase: a chord-tremolo beam that reproduces only inside a FULL SWEEP and never when
+    /// the file is run alone (the full-sweep-only trap). So the guard stays, its reason is
+    /// now measured rather than assumed, and what it is waiting on is no longer line
+    /// breaking but that
     /// diagnosis. A beam with no bounds has no stems either, so it yields no segments and
     /// draws nothing, which is the page upstream produces after <c>calc_direction</c>
     /// removes it.

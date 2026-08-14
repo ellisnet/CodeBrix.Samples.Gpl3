@@ -26,7 +26,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Layout; //was previously: lily/page-breaking.cc, lily/include/page-breaking.hh;
 
-// Modified by Jeremy Ellis on 2026-08-08 as part of the CodeBrix port:
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port:
 //   - upstream's vsize is unsigned and VPOS is its largest value; the port uses int with
 //     NoPosition (-1), matching ConstrainedBreaking. Every ordering test that upstream
 //     writes against VPOS is written here against NoPosition EXPLICITLY, because -1 sorts

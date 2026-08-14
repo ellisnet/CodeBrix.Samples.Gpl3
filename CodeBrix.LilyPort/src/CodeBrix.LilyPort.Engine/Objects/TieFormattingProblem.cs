@@ -26,11 +26,11 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Objects; //was previously: lily/tie-formatting-problem.cc, lily/include/tie-formatting-problem.hh;
 
-// Modified by Jeremy Ellis on 2026-08-08 as part of the CodeBrix port.
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port.
 //
 // SCORER — standing rule 2 applies to this whole file. The demerit weights, the order the
 // variations are generated in and the 1-opt search are decades-tuned; translate, never
-// improve. Deliberate divergences are listed in PORT-COVERAGE under EPG11.
+// improve. Deliberate divergences are listed in PORT-COVERAGE's ties section.
 //
 //   - upstream's Box default constructor leaves both intervals EMPTY, where C#'s
 //     default(Box) is a point at the origin. Every map entry that upstream default-builds

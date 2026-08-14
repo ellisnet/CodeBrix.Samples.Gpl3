@@ -26,7 +26,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Translation; //was previously: lily/dynamic-engraver.cc, lily/dynamic-align-engraver.cc, lily/concurrent-hairpin-engraver.cc;
 
-// Modified by Jeremy Ellis on 2026-08-08 as part of the CodeBrix port:
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port:
 //   - the three dynamic engravers share a file; the aligner and the collector exist only
 //     to serve what the first one makes.
 //   - upstream's std::unordered_set<Spanner *> `running_` becomes a HashSet with a
@@ -139,7 +139,7 @@ public class DynamicEngraver : Engraver
             {
                 if (!ReferenceEquals(crescType, HairpinTypeSymbol))
                 {
-                    Epg8Support.EventWarning(
+                    TranslatorSchemeHelpers.EventWarning(
                         starter,
                         "unknown crescendo style: " + SchemeUtilities.DeepCopy(crescType)
                         + "\ndefaulting to hairpin.");

@@ -27,7 +27,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Objects; //was previously: lily/slur-configuration.cc, lily/include/slur-configuration.hh;
 
-// Modified by Jeremy Ellis on 2026-08-08 as part of the CodeBrix port.
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port.
 //
 // SCORER — standing rule 2 applies to this whole file.
 //

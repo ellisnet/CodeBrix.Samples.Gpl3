@@ -25,7 +25,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Objects; //was previously: lily/piano-pedal-bracket.cc, lily/sustain-pedal.cc;
 
-// Modified by Jeremy Ellis on 2026-08-08 as part of the CodeBrix port:
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port:
 //   - the bracket and the sustain glyph share a file; both are single-callback structs.
 
 /// <summary>

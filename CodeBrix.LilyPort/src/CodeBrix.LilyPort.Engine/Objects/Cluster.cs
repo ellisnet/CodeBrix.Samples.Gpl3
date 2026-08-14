@@ -25,7 +25,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Objects; //was previously: lily/cluster.cc, lily/include/cluster.hh;
 
-// Modified by Jeremy Ellis on 2026-08-08 as part of the CodeBrix port:
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port:
 //   - upstream's free function brew_cluster_piece is a private static here; it has no
 //     header declaration and no caller outside this file.
 //   - Cluster_beacon is declared in cluster.cc's own body rather than in a header, and

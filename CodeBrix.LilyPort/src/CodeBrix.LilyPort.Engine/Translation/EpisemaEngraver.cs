@@ -25,7 +25,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Translation; //was previously: lily/episema-engraver.cc;
 
-// Modified by Jeremy Ellis on 2026-08-09 as part of the CodeBrix port:
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port:
 //   - upstream's two acknowledgers are branches of the one AcknowledgeGrob here, selected
 //     by the interfaces the ADD_ACKNOWLEDGER macros name, and in the ORDER the macros
 //     declare them -- note_column first, then note_head -- because a grob carrying both
@@ -92,7 +92,7 @@ public sealed class EpisemaEngraver : Engraver
         {
             if (_span != null)
             {
-                Epg8Support.EventWarning(starter, "already have an episema");
+                TranslatorSchemeHelpers.EventWarning(starter, "already have an episema");
                 _span.Warning("episema was started here");
             }
             else
@@ -106,7 +106,7 @@ public sealed class EpisemaEngraver : Engraver
         {
             if (_span == null)
             {
-                Epg8Support.EventWarning(ender, "cannot find start of episema");
+                TranslatorSchemeHelpers.EventWarning(ender, "cannot find start of episema");
             }
             else
             {

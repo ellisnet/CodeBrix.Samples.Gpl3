@@ -27,7 +27,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Translation; //was previously: lily/key-performer.cc, lily/time-signature-performer.cc;
 
-// Modified by Jeremy Ellis on 2026-08-08 as part of the CodeBrix port.
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port.
 
 /// <summary>Turns key changes into MIDI key-signature events.</summary>
 public sealed class KeyPerformer : Performer
@@ -231,7 +231,7 @@ public sealed class TimeSignaturePerformer : Performer
             const string message = "bad beatBase/beatStructure for MIDI time signature";
             if (_event != null)
             {
-                Epg8Support.EventWarning(_event, message);
+                TranslatorSchemeHelpers.EventWarning(_event, message);
             }
             else
             {

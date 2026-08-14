@@ -26,7 +26,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Objects; //was previously: lily/lyric-extender.cc, lily/include/lyric-extender.hh;
 
-// Modified by Jeremy Ellis on 2026-08-07 as part of the CodeBrix port:
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port:
 //   - upstream calls the Scheme predicate Lily::unbroken_spanner_p. That procedure is
 //     (eq? spanner (ly:grob-original spanner)) and nothing else, and ly:grob-original
 //     answers the grob itself when it has no original, so the port tests Original

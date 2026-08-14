@@ -26,7 +26,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Layout; //was previously: lily/stencil-integral.cc;
 
-// Modified by Jeremy Ellis on 2026-08-05 as part of the CodeBrix port.
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port.
 
 /// <summary>
 /// Where a grob's SKYLINES come from — the outline other grobs are kept clear of.
@@ -137,7 +137,7 @@ public static class StencilIntegral
         // very early on in the computation process. We won't know its height
         // until way later, so we give a brute force approximation.
         //
-        // THE Y READ IS MAYBE-PURE (EPG15 close-out, 2026-08-08). Upstream takes it
+        // THE Y READ IS MAYBE-PURE. Upstream takes it
         // through maybe_pure_extent and the port took the ORDINARY extent whatever the
         // caller asked for, which meant the two PURE callbacks below computed a STENCIL —
         // the one thing a pure read exists to avoid. It is what drew a MeasureSpanner
@@ -250,7 +250,7 @@ public static class StencilIntegral
             }
         }
 
-        // CLOSED 2026-08-08 (EPG14). Text used to be excluded here: the port's
+        // CLOSED. Text used to be excluded here: the port's
         // utf-8-string carried no inner drawing to walk, so walking one would have
         // silently omitted the text, and a skyline that omits ink is the one error
         // direction that causes collisions — so the whole stencil's BOX was taken
@@ -1007,7 +1007,7 @@ public static class StencilIntegral
     /// <param name="y2">The end of the target range.</param>
     /// <returns>The mapped value.</returns>
     /// <remarks>
-    /// EPG11/EPG12 (2026-08-08): this used to hold its own copy, associated as
+    /// This used to hold its own copy, associated as
     /// <c>((x2-x)*y1 + (x-x1)*y2) / (x2-x1)</c> where upstream's <c>misc.hh</c> writes
     /// <c>(x2-x)/(x2-x1)*y1 + (x-x1)/(x2-x1)*y2</c> — algebraically the same, not
     /// bit-for-bit the same. Upstream's <c>stencil-integral.cc</c> calls that same

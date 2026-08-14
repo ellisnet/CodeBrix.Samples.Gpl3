@@ -23,7 +23,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Music; //was previously: lily/moment.cc, lily/include/moment.hh;
 
-// Modified by Jeremy Ellis on 2026-08-02 as part of the CodeBrix port.
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port.
 
 /// <summary>
 /// Musical timing: a main part and a grace part, each a <see cref="Rational"/> number of

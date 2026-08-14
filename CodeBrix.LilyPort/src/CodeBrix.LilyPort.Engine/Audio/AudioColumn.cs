@@ -22,7 +22,7 @@ using CodeBrix.LilyPort.Engine.Music;
 
 namespace CodeBrix.LilyPort.Engine.Audio; //was previously: lily/audio-column.cc, lily/include/audio-column.hh;
 
-// Modified by Jeremy Ellis on 2026-08-08 as part of the CodeBrix port:
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port:
 //   - OffsetWhen is upstream's protected member, friended to Score_performer alone. C#
 //     has no `friend', so it is internal: the assembly boundary is the narrowest fence
 //     the language offers, and ScorePerformer is still the only caller.

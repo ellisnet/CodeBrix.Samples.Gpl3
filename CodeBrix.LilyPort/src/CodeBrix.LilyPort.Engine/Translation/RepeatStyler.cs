@@ -23,7 +23,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Translation; //was previously: lily/repeat-styler.cc, lily/include/repeat-styler.hh;
 
-// Modified by Jeremy Ellis on 2026-08-07 as part of the CodeBrix port:
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port:
 //   - the three concrete stylers are private nested classes rather than file-static
 //     ones, because C# has no file-scope class and the factory methods are the only
 //     intended way in, exactly as upstream's are.

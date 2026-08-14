@@ -26,7 +26,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Layout; //was previously: lily/page-turn-page-breaking.cc, lily/include/page-turn-page-breaking.hh;
 
-// Modified by Jeremy Ellis on 2026-08-08 as part of the CodeBrix port:
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port:
 //   - Break_node is a struct upstream and a class here. It is only ever read after being
 //     stored, and put_systems_on_pages builds a fresh one per call, so no copy is needed.
 //   - print_break_node is NOT ported: it exists only behind

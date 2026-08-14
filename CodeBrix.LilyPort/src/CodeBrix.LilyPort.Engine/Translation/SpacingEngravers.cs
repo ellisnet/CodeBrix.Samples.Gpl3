@@ -26,7 +26,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Translation; //was previously: lily/spacing-engraver.cc, lily/note-spacing-engraver.cc, lily/separating-line-group-engraver.cc;
 
-// Modified by Jeremy Ellis on 2026-08-05 as part of the CodeBrix port.
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port.
 
 /*
   Acknowledge rhythmic elements, for initializing spacing fields in

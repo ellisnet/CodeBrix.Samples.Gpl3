@@ -25,7 +25,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Translation; //was previously: lily/forbid-break-engraver.cc, lily/spanner-break-forbid-engraver.cc;
 
-// Modified by Jeremy Ellis on 2026-08-08 as part of the CodeBrix port:
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port:
 //   - Two upstream files in one .cs file. They are the two halves of the same job — saying
 //     "not here" to the line breaker — they are eleven and twenty lines of body between
 //     them, and they were the two most demanded unported translators in the sweep (4,150

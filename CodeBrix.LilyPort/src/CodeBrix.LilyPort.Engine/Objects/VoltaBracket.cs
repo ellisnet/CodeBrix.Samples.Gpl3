@@ -24,7 +24,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Objects; //was previously: lily/volta-bracket.cc, lily/include/volta-bracket.hh;
 
-// Modified by Jeremy Ellis on 2026-08-07 as part of the CodeBrix port.
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port.
 
 /// <summary>
 /// The volta bracket with its number: the horizontal line over an alternative, turned

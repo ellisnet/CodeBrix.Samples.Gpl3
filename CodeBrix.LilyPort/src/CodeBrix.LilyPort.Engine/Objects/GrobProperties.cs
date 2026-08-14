@@ -24,7 +24,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Objects; //was previously: lily/context-property.cc;
 
-// Modified by Jeremy Ellis on 2026-08-03 as part of the CodeBrix port.
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port.
 
 // This module is concerned with managing grob-properties (more
 // exactly, grob property templates, as they are not yet part of a

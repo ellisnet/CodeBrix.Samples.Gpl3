@@ -26,7 +26,7 @@ using CodeBrix.LilyPort.Flower;
 
 namespace CodeBrix.LilyPort.Engine.Objects; //was previously: lily/tie-configuration.cc, lily/include/tie-configuration.hh;
 
-// Modified by Jeremy Ellis on 2026-08-08 as part of the CodeBrix port:
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port:
 //   - upstream's Tie_configuration is a VALUE: Ties_configuration is a
 //     std::vector<Tie_configuration>, so every push_back, every copy-construction of a
 //     variant and every assignment from the possibilities_ cache makes a fresh copy, and

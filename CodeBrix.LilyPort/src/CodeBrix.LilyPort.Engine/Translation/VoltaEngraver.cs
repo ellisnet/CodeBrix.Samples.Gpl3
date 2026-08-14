@@ -27,7 +27,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Translation; //was previously: lily/volta-engraver.cc;
 
-// Modified by Jeremy Ellis on 2026-08-07 as part of the CodeBrix port:
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port:
 //   - Volta_layer is a private nested class rather than a file-scope one, and the
 //     Preinit base that exists only to order C++ member construction is dropped: the
 //     layer list is initialised in the constructor, which is what Preinit achieves.
@@ -170,7 +170,7 @@ public class VoltaEngraver : Engraver
                 }
                 else
                 {
-                    Moment voltaBracketMusicalLength = Epg8Support.ToMoment(
+                    Moment voltaBracketMusicalLength = TranslatorSchemeHelpers.ToMoment(
                         GetProperty(VoltaBracketMusicalLengthSymbol), Moment.Infinity);
 
                     end = voltaBracketMusicalLength <= NowMoment - layer.StartMoment;
@@ -284,7 +284,7 @@ public class VoltaEngraver : Engraver
             if (layer.StartBracketThisTimestep)
             {
                 layer.StopMoment = layer.StartMoment
-                    + Epg8Support.ToMoment(
+                    + TranslatorSchemeHelpers.ToMoment(
                         layer.Bracket.GetProperty(MusicalLengthSymbol), Moment.Infinity);
 
                 // Cancel the bracket if it will not end during a future timestep.
@@ -426,7 +426,7 @@ public class VoltaEngraver : Engraver
             return false;
         }
 
-        long repeatCount = Epg8Support.ToLong(ev.GetProperty(RepeatCountSymbol), 1);
+        long repeatCount = TranslatorSchemeHelpers.ToLong(ev.GetProperty(RepeatCountSymbol), 1);
         return repeatCount < 2 && !printTrivial;
     }
 
@@ -473,7 +473,7 @@ public class VoltaEngraver : Engraver
 
     private void ListenVoltaSpan(StreamEvent ev)
     {
-        long layerNo = Epg8Support.ToLong(ev.GetProperty(VoltaDepthSymbol), 0);
+        long layerNo = TranslatorSchemeHelpers.ToLong(ev.GetProperty(VoltaDepthSymbol), 0);
         if (layerNo < 0)
         {
             layerNo = 0;
@@ -515,7 +515,7 @@ public class VoltaEngraver : Engraver
                     // Include the volta numbers in the message because they might not be
                     // obvious if the source has the legacy \alternative syntax with
                     // implied \volta.
-                    Epg8Support.EventWarning(
+                    TranslatorSchemeHelpers.EventWarning(
                         ev,
                         "discarding conflicting volta numbers: "
                         + SchemeUtilities.RobustSymbolToString(
@@ -562,7 +562,7 @@ public class VoltaEngraver : Engraver
         }
         else
         {
-            Epg8Support.EventProgrammingError(
+            TranslatorSchemeHelpers.EventProgrammingError(
                 ev, "invalid direction of volta-span-event");
         }
     }

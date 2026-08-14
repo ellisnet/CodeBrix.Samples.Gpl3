@@ -25,7 +25,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Objects; //was previously: lily/tie-specification.cc, lily/include/tie-specification.hh;
 
-// Modified by Jeremy Ellis on 2026-08-08 as part of the CodeBrix port.
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port.
 
 /// <summary>
 /// What a tie grob ASKS for, as opposed to what the scorer decides: its own staff

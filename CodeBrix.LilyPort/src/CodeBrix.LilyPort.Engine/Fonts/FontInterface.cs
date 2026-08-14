@@ -28,7 +28,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Fonts; //was previously: lily/font-interface.cc, lily/font-select.cc, lily/paper-def.cc (find_scaled_font, output_scale);
 
-// Modified by Jeremy Ellis on 2026-08-03 as part of the CodeBrix port.
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port.
 
 /// <summary>
 /// How a grob gets the font it draws itself with.

@@ -24,7 +24,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Layout; //was previously: lily/page-spacing.cc, lily/include/page-spacing.hh;
 
-// Modified by Jeremy Ellis on 2026-08-08 as part of the CodeBrix port:
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port:
 //   - upstream's vsize is unsigned and its VPOS sentinel is the largest such value; the
 //     port uses int with PageBreaking.NoPosition (-1), the same convention
 //     ConstrainedBreaking already uses. Every place upstream relies on unsigned

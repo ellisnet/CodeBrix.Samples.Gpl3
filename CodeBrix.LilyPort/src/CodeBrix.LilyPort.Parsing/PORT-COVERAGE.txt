@@ -4,8 +4,7 @@ PORT-COVERAGE -- CodeBrix.LilyPort.Parsing
 Deliberate divergences from LilyPond's lily/parser.yy and lily/lexer.ll, with the
 reason. Read this before assuming any rule action is a literal translation. The
 grammar, tables, driver and lexer machinery are covered by tools/parser-baseline/
-and the Parsing test suite; this file records the RULE-ACTION layer, which began
-with the RAG13 + RAG1 session of 2026-08-03.
+and the Parsing test suite; this file records the RULE-ACTION layer.
 
 
 -------------------------------------------------------------------------------
@@ -38,10 +37,10 @@ LOCATIONS
   `locations` array) and their join (@$, `location`). Upstream actions use the
   two distinctly -- an error in `lilypond_header_body: ... SCM_TOKEN` points at
   @2 -- and a port that only had the join would silently degrade hundreds of
-  later action sites. Added in this session, while only three actions existed.
+  later action sites. Added while only three actions existed.
 
 -------------------------------------------------------------------------------
-MID-RULE STACK ACCESS (added with RAG3)
+MID-RULE STACK ACCESS (added with the book-blocks group)
 -------------------------------------------------------------------------------
 
   A mid-rule action reduces as an EMPTY production, so its values array is
@@ -55,31 +54,32 @@ MID-RULE STACK ACCESS (added with RAG3)
   Driver/LalrParser.cs when the first three actions needed it, the same way
   per-symbol locations were.
 
-  EXTENDED WITH RAG18: StackLocation(depth), the same access for @k rather
+  EXTENDED WITH MarkupStructure: StackLocation(depth), the same access for @k rather
   than $k. A mid-rule's own @$ is the point-span Bison gives an empty rule, so
   an action that reports an error at @1 -- markup_scm's does, and hands the
   same span to three MYBACKUP calls -- needs the stack's location, not its
   own. Same convention, same reason, same file.
 
 -------------------------------------------------------------------------------
-THE DRIVER'S LAZY LOOKAHEAD (added with the RAG8-RAG10 session)
+THE DRIVER'S LAZY LOOKAHEAD (added with the arglist-groups session)
 -------------------------------------------------------------------------------
 
   Driver/LalrParser.cs now reproduces Bison's yybackup entry test
   (yypact_value_is_default): a state whose ONLY action is its default reduction
   reduces WITHOUT reading a token. This is behaviour, not optimization -- rule
   actions switch the lexer's mode, and an eagerly-read token is lexed in the OLD
-  mode. It is the faithful, driver-level fix the wave-1/wave-2 sessions recorded
+  mode. It is the faithful, driver-level fix earlier groups' notes recorded
   as owed (their per-action analyses called it "Bison's yydefact behaviour");
   DriverTests pins both halves (a default-only state reduces at Reads == 1 with
   no lookahead; a mode-switch head reduces before its following token is read).
 
   Consequences for earlier groups' notes, each revised in place below:
-  - the RAG7 revert machinery's PushBackLookahead compensation is retired
+  - the property-paths revert machinery's PushBackLookahead compensation is retired
     (simple_revert_context no longer pushes back; MYBACKUP's own guarded
     pushback is upstream's macro, unchanged);
-  - the RAG4 "EAGER-LOOKAHEAD SITES" analysis, the RAG6 music_embedded_backup
-    per-site analysis, the RAG11 markup-pop note and the RAG12 mode-head caveat
+  - the output-definitions "EAGER-LOOKAHEAD SITES" analysis, the music-assembly
+    music_embedded_backup per-site analysis, the partial-functions markup-pop
+    note and the lyric-mode mode-head caveat
     are all RESOLVED: the port now reads the lookahead exactly where upstream
     does. The analyses stay as the record of why the driver had to change.
 
@@ -106,25 +106,26 @@ THE HOST SEAM (Actions/IParserHost.cs)
     unsmob<Score>, unsmob<Book>->paper_, Text_interface::is_markup(_list),
         Lily::markup_function_p / define_markup_command_internal / key_p,
         loc_on_copy -> host predicates/operations, because the engine did not
-        have those types or tables when RAG1 landed (Book and Score exist as
-        of RAG3; the members keep their shape).
+        have those types or tables when the top-level group landed (Book and
+        Score arrived with the book-blocks group; the members keep their
+        shape).
     Lily::key_list_p -> IsKeyList; scm_object_property (x, "is-grob?") ->
         IsGrobSymbol (the property is DATA set by set-object-property! in
         scm/define-grobs.scm, so only the host can answer); Input::warning ->
         Warning(location, message), which does not move the error level.
-    Lily_parser::default_duration_ -> DefaultDuration (RAG2); the Syntax::name
+    Lily_parser::default_duration_ -> DefaultDuration (EmbeddedScheme); the Syntax::name
         constructor lookup START_MAKE_SYNTAX conses without calling ->
-        SyntaxConstructor (RAG5); Lily::scorify_music -> ScorifyMusic (RAG3).
-    Lily_lexer::push_markup_state -> PushMarkupState (RAG18), the last of the
+        SyntaxConstructor (ContextDefinitions); Lily::scorify_music -> ScorifyMusic (BookBlocks).
+    Lily_lexer::push_markup_state -> PushMarkupState (MarkupStructure), the last of the
         mode pushes; and the Lily::name variables that markup expressions cons
-        WITHOUT calling -> LilyImport (RAG18), which is SyntaxConstructor's
+        WITHOUT calling -> LilyImport (MarkupStructure), which is SyntaxConstructor's
         opposite number for the (lily) module.
 
 -------------------------------------------------------------------------------
 PER-ACTION DIVERGENCES
 -------------------------------------------------------------------------------
 
-  start_symbol: EMBEDDED_LILY $@1 embedded_lilypond   (RAG1)
+  start_symbol: EMBEDDED_LILY $@1 embedded_lilypond   (TopLevel)
 
     Upstream stores $3 through the `SCM *retval` %parse-param and leaves $$
     alone. The port has no out-parameter: LalrParser.Parse RETURNS the start
@@ -132,7 +133,7 @@ PER-ACTION DIVERGENCES
     (`start_symbol: lilypond`) is unchanged -- callers of a file parse ignore
     the value either way, exactly as upstream ignores retval there.
 
-  symbol: embedded_scm_bare   (RAG13)
+  symbol: embedded_scm_bare   (StringsAndNumbers)
 
     Upstream's failure path generates an UNINTERNED symbol via
     `scm_make_symbol (to_scm ("undefined"))`. The port uses Symbol.Generate,
@@ -141,7 +142,7 @@ PER-ACTION DIVERGENCES
     reached only after a reported parse error, and what matters -- that it is
     fresh and cannot collide with a real binding -- is preserved.
 
-  text: / simple_string: embedded_scm_bare   (RAG13)
+  text: / simple_string: embedded_scm_bare   (StringsAndNumbers)
 
     The error-recovery value `scm_string (SCM_EOL)` is ported as CLR
     string.Empty rather than a fresh MutableString. Both satisfy every string
@@ -169,17 +170,17 @@ PER-ACTION DIVERGENCES
     ly_append are implemented locally as AppendReverse/Append -- reducing a rule
     must not depend on an interpreter being alive.
 
-  embedded_lilypond: duration post_events %prec ':'   (RAG2)
+  embedded_lilypond: duration post_events %prec ':'   (EmbeddedScheme)
 
     parser->default_duration_ is IParserHost.DefaultDuration -- Lily_parser state
     behind the host seam, like the lexer modes. Duration is the ported value type
     (a readonly struct), so the property assignment copies by value exactly as
     upstream's `*unsmob<Duration> ($1)` does. With no post events the body, like
-    upstream, never assigns $$ -- a bare duration stays a Duration. NOTE: RAG6's
+    upstream, never assigns $$ -- a bare duration stays a Duration. NOTE: MusicAssembly's
     music_embedded carries a SIMILAR-LOOKING duration post_events body that
     genuinely differs (it always makes the NoteEvent); do not copy this one.
 
-  reverse_music_list / add_post_events   (ParserActionHelpers.Rag2)
+  reverse_music_list / add_post_events   (ParserActionHelpers.MusicLists)
 
     Ported from parser.yy's epilogue directly over Engine MusicObject/Prob, the
     same choice as post_event_cons and for the same reason. The Lily_parser *
@@ -193,13 +194,13 @@ PER-ACTION DIVERGENCES
     form. scm_last_pair and the two-list scm_append_x are implemented locally
     (LastPair / AppendInPlace), like the scm_reverse_x family.
 
-  book/bookpart/score bodies (RAG3)
+  book/bookpart/score bodies (BookBlocks)
 
     unsmob<Book> / unsmob<Score> are DIRECT casts to the Engine's Book and
-    Score, ported for this group -- the OutputDef precedent from RAG1. The
-    RAG1 host members IsScore/BookHasPaper predate the types and keep their
+    Score, ported for this group -- the OutputDef precedent from the top-level group. The
+    original IsScore/BookHasPaper host members predate the types and keep their
     shape; retiring them for direct casts is an integration-time decision
-    recorded in the RAG3 session report. Smob protect/unprotect calls are
+    recorded when the book-blocks group landed. Smob protect/unprotect calls are
     dropped throughout, as everywhere in the port.
 
     scm_reverse_x over the collected output-definition list feeds
@@ -215,56 +216,56 @@ PER-ACTION DIVERGENCES
     Score; the scripted test host does only the ly:make-score tail and says
     so.
 
-  init_papers / push_paper / pop_paper / set_paper   (ParserActionHelpers.Rag3)
+  init_papers / push_paper / pop_paper / set_paper   (ParserActionHelpers.PaperStack)
 
     From lily/lily-parser.cc, over the host seam like get_header. set_paper is
     scm_set_car_x -- it MUTATES the pair at the top of $papers in place, so a
     host whose LookupIdentifier returns copies would silently lose the write.
-    get_paper (the read side) is NOT ported here; it belongs to RAG4's
+    get_paper (the read side) is NOT ported here; it belongs to the output-definitions
     paper_block/output_def_head actions.
 
-  context_def_spec_block: / context_def_spec_body: ...   (RAG5)
+  context_def_spec_block: / context_def_spec_body: ...   (ContextDefinitions)
 
     Context_def::make_scm () is `new ContextDef ()`, and unsmob<Context_def> /
     unsmob<Context_mod> / unsmob<Music> are C# type tests -- the direct
-    Engine-type-cast convention set by RAG1's OutputDef actions. The block's
+    Engine-type-cast convention set by the top-level group's OutputDef actions. The block's
     `td->origin ()->set_spot (@$)` is ContextDef.SetSpot(location): the port
     has no Input smob, so the definition stores the parser's SourceSpan
     opaquely, the same convention as MusicObject's origin.
 
-  context_prefix: CONTEXT/NEWCONTEXT symbol optional_id optional_context_mods   (RAG5)
+  context_prefix: CONTEXT/NEWCONTEXT symbol optional_id optional_context_mods   (ContextDefinitions)
 
     START_MAKE_SYNTAX is NOT MakeSyntax: upstream builds
     `ly_list (Syntax::name, args...)` without calling anything, and
-    FINISH_MAKE_SYNTAX (RAG6's contexted_basic_music) applies it later with a
+    FINISH_MAKE_SYNTAX (MusicAssembly's contexted_basic_music) applies it later with a
     location. The port adds IParserHost.SyntaxConstructor(name) -- the
     procedure-lookup half of that seam -- and conses exactly upstream's list.
     The names are the Scheme-side dashed ones (context-find-or-create,
     context-create), verified against the vendored ly-syntax-constructors.scm.
 
-  optional_context_mods: context_modification_mods_list   (RAG5)
+  optional_context_mods: context_modification_mods_list   (ContextDefinitions)
 
     scm_append_x is implemented locally as ParserActionHelpers.AppendInPlace
-    (the one-list-of-lists overload, ParserActionHelpers.Rag5.cs), destructive
+    (the one-list-of-lists overload, ParserActionHelpers.ScmListOperations.cs), destructive
     like the original. Safe here because ContextMod.GetMods returns fresh
     copies -- upstream's own comment at the rule -- and a ContextMod test pins
     that freshness.
 
-  revert_arg_backup: revert_arg_part / simple_revert_context: symbol_list_part   (RAG7)
+  revert_arg_backup: revert_arg_part / simple_revert_context: symbol_list_part   (PropertyPaths)
 
     Upstream reaches both reductions WITHOUT a lookahead token read (they sit in
     default-reduction states -- "symbol_list_part ... can be parsed without
     lookahead" -- and MYBACKUP guards its pushback with yychar != YYEMPTY).
     ORIGINALLY the port's driver read its lookahead eagerly before every
     reduction and both actions compensated by opening with PushBackLookahead().
-    -> REVISED in the RAG8-RAG10 session: the driver now defers the read exactly
+    -> REVISED in the arglist-groups session: the driver now defers the read exactly
     as Bison does (see THE DRIVER'S LAZY LOOKAHEAD above), so the compensation
     in simple_revert_context is REMOVED -- there is no lookahead to push back at
     a default-only reduction -- and revert_arg_backup's pushback is just
     MYBACKUP's own guard, which is upstream's macro verbatim. The wrong-mode
     caveat this entry used to carry is retired with it.
 
-  MYBACKUP / push_extra_token   (ParserActionHelpers.Rag7)
+  MYBACKUP / push_extra_token   (ParserActionHelpers.PropertyPaths)
 
     Upstream pushes tokens by their Bison-exported NUMBERS; the port pushes by
     NAME and resolves the number through the running ModalScanner's symbol
@@ -272,7 +273,7 @@ PER-ACTION DIVERGENCES
     so there is no second copy to drift. A token source that cannot resolve
     names makes PushExtraToken throw rather than push a guess.
 
-  try_word_variants   (ParserActionHelpers.Rag7)
+  try_word_variants   (ParserActionHelpers.PropertyPaths)
 
     Takes a CLR Func<object, bool> predicate where upstream takes an SCM
     procedure, following try_string_variants. The one caller ported so far
@@ -282,24 +283,24 @@ PER-ACTION DIVERGENCES
     rendered over CLR string.Split -- safe because is_regular_identifier has
     already vetted the shape.
 
-  property_path_dot_warning   (ParserActionHelpers.Rag7)
+  property_path_dot_warning   (ParserActionHelpers.PropertyPaths)
 
     Input::warning becomes IParserHost.Warning -- a diagnostic that must NOT
     raise the error level, unlike parser_error. An integer key in a dotless
     path would be a wrong-type error upstream (ly_symbol2string) and is an
     InvalidCastException here -- same failure, new spelling.
 
-  get_paper / get_midi / get_layout   (ParserActionHelpers.Rag4)
+  get_paper / get_midi / get_layout   (ParserActionHelpers.OutputDefConstructors)
 
     From lily/lily-parser.cc over the host seam, completing the $papers family
-    the Rag3 file began: get_paper is the READ side -- "Return a copy of the
+    the PaperStack file began: get_paper is the READ side -- "Return a copy of the
     top of $papers stack, or $defaultpaper if the stack is empty". A $papers
     binding that is neither unset, empty nor a pair is a wrong-type error at
     scm_car upstream and an InvalidCastException here -- same failure, new
     spelling. get_layout will be wanted again by the markup score-lines rules
     (parser.yy 4162 and 4333); it lives here, reuse it.
 
-  assign_context_def   (ParserActionHelpers.Rag4)
+  assign_context_def   (ParserActionHelpers.OutputDefConstructors)
 
     From lily/output-def.cc -- the one helper this group calls that upstream
     keeps in a third file. Upstream asserts AND guards its unsmob; the port
@@ -307,7 +308,7 @@ PER-ACTION DIVERGENCES
     and every call site has already tested the value. A bare `\context { }`
     stores under the empty symbol, ContextDef's default name.
 
-  output_def_head / output_def_body   (RAG4)
+  output_def_head / output_def_body   (OutputDefinitions)
 
     Output_def::input_origin_ is OutputDef.InputOrigin/SetSpot, added to the
     Engine type for this group (the Input-less opaque-span convention of
@@ -322,8 +323,8 @@ PER-ACTION DIVERGENCES
     (remove_scope + add_scope) only fires while the body's one-element marker
     list is intact, exactly as upstream's "stupid trick" comment intends.
 
-  EAGER-LOOKAHEAD SITES IN RAG4 (the wave-1 caveat, examined)
-  -> RESOLVED by the driver's lazy lookahead (RAG8-RAG10 session): every
+  EAGER-LOOKAHEAD SITES IN THE OUTPUT-DEFINITIONS GROUP (an early caveat, examined)
+  -> RESOLVED by the driver's lazy lookahead (arglist-groups session): every
      default-reduction site below now reads its following token exactly where
      upstream does. Kept as the record of the divergence the driver change
      closed.
@@ -343,34 +344,34 @@ PER-ACTION DIVERGENCES
     context (toplevel, book, bookpart, score) is itself INITIAL-mode with no
     scope-sensitive token adjacent. An output-def ARGUMENT inside a note-mode
     music-function arglist WOULD see the difference -- recorded for the
-    RAG8-RAG10 session, alongside the RAG7 caveat this extends.
+    arglist-groups session, alongside the property-paths caveat this extends.
 
-  music_list / braced_music_list / simultaneous_music   (RAG6)
+  music_list / braced_music_list / simultaneous_music   (MusicAssembly)
 
     reverse_music_list runs with (preserve=true, compress=false) at both list
-    sites, over the same ParserActionHelpers.Rag2 implementation RAG2's
-    embedded_lilypond uses. music_list error's MY_MAKE_MUSIC ("Music") is
+    sites, over the same ParserActionHelpers.MusicLists implementation that
+    EmbeddedScheme's embedded_lilypond uses. music_list error's MY_MAKE_MUSIC ("Music") is
     host.MakeMusic, and the error music is consed UNCONDITIONALLY — upstream
     conses whatever unsmob would say, unlike the music-tested cons of the
     ordinary alternative, and the port does the same.
 
-  music_embedded: duration post_events %prec ':'   (RAG6)
+  music_embedded: duration post_events %prec ':'   (MusicAssembly)
 
-    THE TWIN of RAG2's embedded_lilypond: duration post_events — ported from
-    its own body at parser.yy 1522-1533, NOT copied from RAG2: here the
+    THE TWIN of EmbeddedScheme's embedded_lilypond: duration post_events — ported from
+    its own body at parser.yy 1522-1533, NOT copied from EmbeddedScheme: here the
     NoteEvent is ALWAYS made and parser->default_duration_
     (IParserHost.DefaultDuration) is ALWAYS assigned; only the articulations
-    are conditional on post events existing. RAG2's side leaves a bare
+    are conditional on post events existing. EmbeddedScheme's side leaves a bare
     duration as a Duration and the default alone. Both files carry
     cross-referencing comments so neither can be "simplified" into the other,
     and RuleActionRag6Tests pins the always-a-NoteEvent behaviour explicitly.
 
-  music_embedded_backup: embedded_scm   (RAG6)
+  music_embedded_backup: embedded_scm   (MusicAssembly)
 
-    The group's MYBACKUP site (LYRIC_ELEMENT), over ParserActionHelpers.Rag7's
+    The group's MYBACKUP site (LYRIC_ELEMENT), over ParserActionHelpers.PropertyPaths's
     MyBackup; in the MYBACKUP branch $$ stays the pre-set $1, which both
     consumers of music_embedded_backup ignore. PER-SITE EAGER-LOOKAHEAD
-    ANALYSIS (the RAG7 caveat -> RETIRED with the driver's lazy lookahead;
+    ANALYSIS (the property-paths caveat -> RETIRED with the driver's lazy lookahead;
     the analysis below is the historical record): upstream reaches this reduce
     through a chain of default reductions (SCM_TOKEN -> embedded_scm_bare ->
     embedded_scm -> music_embedded_backup), usually with NO lookahead read;
@@ -388,16 +389,16 @@ PER-ACTION DIVERGENCES
     reasoning clears pitch_as_music's mode reads, where upstream holds a
     lookahead at reduce time anyway (post_events can only END on one).
 
-  pitch_as_music / make_music_from_simple   (RAG6)
+  pitch_as_music / make_music_from_simple   (MusicAssembly)
 
-    make_music_from_simple is ported whole into ParserActionHelpers.Rag6.cs
+    make_music_from_simple is ported whole into ParserActionHelpers.MakeSyntax.cs
     with its two helpers make_duration and make_chord_elements.
     Lily_lexer::scan_word folds to IParserHost.ScanWord(symbol) returning a
     LexerLookup; is_note/lyric/chord_state are host predicates;
     default_duration_.smobbed_copy () is the boxed DefaultDuration — a fresh
     copy per read, like the smob copies. make_duration's defaulted C++
     parameters (dots = 0, factor = SCM_UNDEFINED) are explicit arguments here;
-    RAG16's duration rules are the callers that vary them, and should REUSE
+    the pitches-and-durations duration rules are the callers that vary them, and should REUSE
     MakeDuration/MakeChordElements rather than re-adding them.
     make_chord_elements reaches Lily::construct_chord_elements through
     IParserHost.ConstructChordElements (the vendored scm/chord-entry.scm side)
@@ -405,10 +406,10 @@ PER-ACTION DIVERGENCES
     upstream's null dereference and the port's InvalidCastException: same
     failure, new spelling.
 
-  contexted_basic_music / FINISH_MAKE_SYNTAX   (RAG6)
+  contexted_basic_music / FINISH_MAKE_SYNTAX   (MusicAssembly)
 
-    The applying half of RAG5's START_MAKE_SYNTAX. FinishMakeSyntax
-    (ParserActionHelpers.Rag6) appends the music argument to the prefix list
+    The applying half of ContextDefinitions' START_MAKE_SYNTAX. FinishMakeSyntax
+    (ParserActionHelpers.MakeSyntax) appends the music argument to the prefix list
     with the destructive two-list AppendInPlace exactly as scm_append_x
     re-points the start list's own last pair, then applies through
     IParserHost.ApplySyntax(constructor, location, arguments) — upstream's
@@ -418,28 +419,28 @@ PER-ACTION DIVERGENCES
     while the add_lyrics wrapper gets @$; RuleActionRag6Tests pins the
     distinction.
 
-  partial_function / partial_function_scriptable   (RAG11)
+  partial_function / partial_function_scriptable   (PartialFunctions)
 
     The Syntax::name sites in these bodies (property_override, property_set,
     repeat, create_script_function) cons the CONSTRUCTOR PROCEDURE without
-    calling it -- the same START_MAKE_SYNTAX-shaped seam as RAG5's
+    calling it -- the same START_MAKE_SYNTAX-shaped seam as ContextDefinitions'
     context_prefix -- so they go through IParserHost.SyntaxConstructor with
     the Scheme-side dashed names, verified against the vendored
     ly-syntax-constructors.scm. The call happens later, inside
-    partial-music-function's fold (RAG1's identifier_init_nonumber), which
+    partial-music-function's fold (TopLevel's identifier_init_nonumber), which
     REVERSES the consed chain: the runtime call list is INNERMOST FIRST, the
     entry that directly receives the supplied argument leading. scm_acons is
     rendered as nested Pair construction at the action sites; no new list
     helper was added. SCM_INUM0, the "no direction" script_dir fallback, is
-    exact 0L -- the RAG13 precedent. On a bad property path (SCM_UNBNDP from
-    RAG7's grob_prop_path/context_prop_spec) the entry is ly_list (SCM_BOOL_F)
+    exact 0L -- the strings-and-numbers precedent. On a bad property path (SCM_UNBNDP from
+    PropertyPaths' grob_prop_path/context_prop_spec) the entry is ly_list (SCM_BOOL_F)
     and, in the tailed alternatives, the inner chain is DROPPED with it,
     exactly as upstream.
 
     partial_function: script_dir markup_mode markup_partial_function pops the
     markup lexer state MID-ACTION (parser->lexer_->pop_state ()), with the
     partial_markup dispatch before the pop and the partial_text_script
-    dispatch after it, in upstream's order. Eager-lookahead note (the wave-1
+    dispatch after it, in upstream's order. Eager-lookahead note (an early
     caveat): the port lexes the following token BEFORE this reduction, i.e.
     in markup mode, where upstream can pop first and lex after.
     partial_function is consumed ONLY by `identifier_init_nonumber:
@@ -448,15 +449,15 @@ PER-ACTION DIVERGENCES
     ordinary escaped-word lookup -- so the two token streams agree on all
     well-formed input; only already-erroneous input could see its error token
     lexed in the markup mode. -> RESOLVED by the driver's lazy lookahead
-    (RAG8-RAG10 session): the pop now runs before the following token is
-    lexed, exactly as upstream. Nothing to re-examine when RAG15/18/19 land.
+    (arglist-groups session): the pop now runs before the following token is
+    lexed, exactly as upstream. Nothing to re-examine for the post-events or markup groups.
 
   mode_changing_head / mode_changing_head_with_context / mode_changed_music /
-  lyric_mode_music   (RAG12)
+  lyric_mode_music   (LyricMode)
 
     The nine mode-keyword heads push lexer states through host members
     (PushLyricState, PushDrumState, PushFiguredBassState, PushChordState beside
-    RAG5's PushNoteState), and the CHORDMODE/CHORDS chordmodifier hand-off
+    ContextDefinitions' PushNoteState), and the CHORDMODE/CHORDS chordmodifier hand-off
     (`chordmodifier_tab_ = Hash_table::alist_to_hashq_table (mods)`) is one
     member, SetChordModifiers -- the alist->hashq-table conversion (vendored in
     scm/lily-library.scm) is folded in because the table's representation
@@ -466,8 +467,8 @@ PER-ACTION DIVERGENCES
     without switching the scanner; a REAL host must drive ModalScanner's mode
     stack or every mode block lexes in the wrong mode.
 
-    EAGER-LOOKAHEAD CAVEAT, examined for this group per the RAG7 note
-    -> RESOLVED by the driver's lazy lookahead (RAG8-RAG10 session), exactly
+    EAGER-LOOKAHEAD CAVEAT, examined for this group per the property-paths note
+    -> RESOLVED by the driver's lazy lookahead (arglist-groups session), exactly
     the fix this entry asked for. Historical record: upstream reaches every
     head reduction and every pop-site reduction (both mode_changed_music
     alternatives, lyric_mode_music) WITHOUT a lookahead read -- they are
@@ -484,28 +485,29 @@ PER-ACTION DIVERGENCES
     lookahead-free default reductions (Bison's yydefact behaviour), and
     DriverTests pins the mode-head case by name.
 
-  lyric_element_music: lyric_element optional_notemode_duration post_events   (RAG12)
+  lyric_element_music: lyric_element optional_notemode_duration post_events   (LyricMode)
 
     set_property (unsmob<Music> ($$), ...) on the MAKE_SYNTAX (lyric_event ...)
-    result is the direct Engine cast `(MusicObject) result` -- the RAG1/RAG5
-    unsmob convention -- so a host whose MakeSyntax answers non-music fails
+    result is the direct Engine cast `(MusicObject) result` -- the top-level /
+    context-definitions unsmob convention -- so a host whose MakeSyntax answers
+    non-music fails
     loudly exactly where upstream's null unsmob would crash. This is the first
     action that MUTATES a MakeSyntax result: the REAL host's lyric-event must
-    answer the actual music object, and the RAG12 tests exercise the branch
+    answer the actual music object, and the lyric-mode tests exercise the branch
     with a host whose MakeSyntax makes a real MusicObject.
 
-  lyric_element: SYMBOL   (RAG12)
+  lyric_element: SYMBOL   (LyricMode)
 
     _f ("not a note name: %s", from_scm<std::string> ($1)) is plain
     concatenation over SchemeStringText; the gettext wrapper drops as
     everywhere in the port.
 
-  figured bass bodies   (RAG17)
+  figured bass bodies   (FiguredBass)
 
     The BassFigureEvent bodies run over the host seam end to end: MY_MAKE_MUSIC
     is MakeMusic + SetMusicProperty as everywhere, and the two Music member
     calls the alteration body makes -- get_property (m, "alteration") and
-    Music::warning -- are the RAG17 host members GetMusicProperty and
+    Music::warning -- are the figured-bass host members GetMusicProperty and
     MusicWarning, because the music being read and warned at is HOST-MADE
     rather than an Engine MusicObject the action could reach directly
     (ParserActionHelpers.MusicWarning stays the raw-MusicObject sibling).
@@ -523,12 +525,12 @@ PER-ACTION DIVERGENCES
     over the expression's ASCII alphabet ([, !, +, -, whitespace; the lexer
     never puts ] inside the unbracketed token).
 
-    Eager-lookahead note (RAG7 caveat re-examined for this group): every
-    RAG17 reduction sits strictly inside FIGURES lexer mode and no RAG17
-    action changes modes, so no site in this group can see its lookahead
+    Eager-lookahead note (the property-paths caveat re-examined for this group): every
+    figured-bass reduction sits strictly inside FIGURES lexer mode and no
+    figured-bass action changes modes, so no site in this group can see its lookahead
     lexed in the wrong mode.
 
-  the function-signature announcement   (RAG8-RAG10 session, in the SCANNER)
+  the function-signature announcement   (arglist-groups session, in the SCANNER)
 
     Lily_lexer::scan_scm_id's EXPECT_* loop (lexer.ll 1019-1040) is
     ModalScanner.PushFunctionSignature, reached when a LexerLookup carries a
@@ -545,7 +547,7 @@ PER-ACTION DIVERGENCES
     the host's (it compares against Lily::ly_music_p et al.), exactly as the
     token name has always come from the lookup.
 
-  check_scheme_arg / MYREPARSE   (ParserActionHelpers.Rag8)
+  check_scheme_arg / MYREPARSE   (ParserActionHelpers.ArglistHelpers)
 
     check_scheme_arg follows upstream's write order exactly: the arglist tail
     is restored to a proper list BEFORE scm_length runs (it may already be #f
@@ -557,7 +559,7 @@ PER-ACTION DIVERGENCES
     carrying the predicate -- so REPARSE is read first, the order the
     `..._reparse REPARSE <token>` tails spell out.
 
-  argument predicates over the host   (RAG8-RAG10)
+  argument predicates over the host   (the arglist groups)
 
     The EXPECT_SCM semantic value IS the argument predicate, so every
     scm_is_true (ly_call (pred, x)) is IsSchemeTrue(host.Call(pred, x)) --
@@ -566,7 +568,7 @@ PER-ACTION DIVERGENCES
     ParserActionHelpers.HostPredicate, the deferred obligation both helper
     entries above recorded when their first callers passed fixed primitives.
 
-  the arglist bodies   (RAG8/RAG9/RAG10)
+  the arglist bodies   (the arglist groups)
 
     scm_difference ($n, SCM_UNDEFINED) is SchemeNumber.Negate. The UNSIGNED
     ladders construct ly_list ($4) TWICE -- the tested list and the pushed
@@ -580,7 +582,7 @@ PER-ACTION DIVERGENCES
     push_extra_token sequence; RuleActionRag9Tests pins the order. The
     '-' REAL body backs up the NEGATED value (upstream pushes n, not $5).
 
-  reparsed_rhythm: DURATION_ARG dots multipliers post_events %prec ':'   (RAG8)
+  reparsed_rhythm: DURATION_ARG dots multipliers post_events %prec ':'   (ArglistNonBackup)
 
     Upstream's `assert (m)` after make_music_from_simple is debug-only; in a
     release build a non-music result crashes only if articulations exist
@@ -590,7 +592,7 @@ PER-ACTION DIVERGENCES
     failure, new spelling. parser->default_duration_ = *unsmob<Duration> (d)
     is the host's DefaultDuration setter over the ported value type.
 
-  FRACTION's semantic value   (found by RAG16; fixed in the SCANNER)
+  FRACTION's semantic value   (found by the pitches-and-durations group; fixed in the SCANNER)
 
     scan_fraction (lexer.ll 1300-1310) returns scm_cons (num, den) -- a SCHEME
     PAIR. The port's LilyPondLexerRules.ScanFraction returned a private CLR
@@ -604,7 +606,7 @@ PER-ACTION DIVERGENCES
     ScanFraction now conses a Pair of exact integers, and the lexer test
     asserts the SHAPE rather than a tuple.
 
-  quotes / erroneous_quotes / octave_check   (RAG16)
+  quotes / erroneous_quotes / octave_check   (PitchesAndDurations)
 
     scm_is_eq (SCM_INUM0, x) is ParserActionHelpers.IsExactZero -- identity
     with the FIXNUM zero, which on the value model is "is the exact integer 0",
@@ -616,7 +618,7 @@ PER-ACTION DIVERGENCES
     marks" from "octave marks in the wrong place". Collapsing any two of the
     three would put an absolute-octave on every note.
 
-  steno_pitch / steno_tonic_pitch / pitch: PITCH_IDENTIFIER quotes   (RAG16)
+  steno_pitch / steno_tonic_pitch / pitch: PITCH_IDENTIFIER quotes   (PitchesAndDurations)
 
     Three IDENTICAL bodies, written out three times, matching upstream's own
     "ugh. duplication" comment. Deliberately not folded into a shared helper:
@@ -625,7 +627,7 @@ PER-ACTION DIVERGENCES
     RuleActionRag16Tests asserts all three behave the same, which is the check
     a fold would have been buying.
 
-  from_scm<bool> on exclamations / questions   (RAG16, and RAG14 inherits it)
+  from_scm<bool> on exclamations / questions   (PitchesAndDurations, and Chords inherits it)
 
     scm_conversions<bool>::from_scm is scm_is_eq (s, SCM_BOOL_T) -- EXACTLY #t,
     with an explicit upstream comment saying it deliberately differs from
@@ -634,7 +636,7 @@ PER-ACTION DIVERGENCES
     would make SCM_UNDEFINED (no accidental marks written) true, and every
     plain note would come out cautionary and force-accidental.
 
-  make_duration as a validity test   (tremolo_type, RAG16)
+  make_duration as a validity test   (tremolo_type, PitchesAndDurations)
 
     `tremolo_type: ':' UNSIGNED` calls make_duration only to find out whether
     the number is a positive power of two; the result is DISCARDED and the
@@ -642,26 +644,26 @@ PER-ACTION DIVERGENCES
     Ported as written -- a port that used the made duration would answer a
     Duration where the grammar promises a count.
 
-  Lily::scale_p / scale_to_factor   (RAG16)
+  Lily::scale_p / scale_to_factor   (PitchesAndDurations)
 
     Host members IsScale / ScaleToFactor: both are scale? / scale->factor in
-    the vendored scm/c++.scm, the same class as RAG7's IsKeyList. scale->factor
+    the vendored scm/c++.scm, the same class as PropertyPaths' IsKeyList. scale->factor
     "assumes valid input" by its own comment, so every call site tests with
     IsScale first, as upstream does. The scripted test host implements the
     rational and (num . den) arms and NOT the ly:moment? arm, which it says on
     itself -- it has no moments, and the real host answers from the vendored
     Scheme.
 
-  the sticky duration and the sticky tremolo type   (RAG16)
+  the sticky duration and the sticky tremolo type   (PitchesAndDurations)
 
     maybe_notemode_duration WRITES parser->default_duration_ and
     optional_notemode_duration READS it, which is how `c4 d` makes two quarter
-    notes. Both go through IParserHost.DefaultDuration (RAG2's member); the
+    notes. Both go through IParserHost.DefaultDuration (the DefaultDuration member); the
     read boxes the host's Duration, which is smobbed_copy -- a fresh box per
     read, never the parser's own storage. default_tremolo_type_ is the same
     shape and is this group's one new piece of Lily_parser state.
 
-  set_spot (override_input (loc)) on already-made music   (RAG15, reused by RAG14)
+  set_spot (override_input (loc)) on already-made music   (PostEvents, reused by Chords)
 
     IParserHost.SetMusicSpot. Lily_lexer::override_input answers the lexer's
     OWN override when one is installed and the given location otherwise; the
@@ -670,19 +672,19 @@ PER-ACTION DIVERGENCES
     for MY_MAKE_MUSIC -- a host implementing one without the other would locate
     parser-built music inconsistently. This retires, for these sites, the
     standing "upstream's override_input indirection is not yet represented"
-    obligation the RAG2 session recorded at the seam. NOTE for RAG6's
+    obligation the embedded-Scheme group recorded at the seam. NOTE for MusicAssembly's
     make_chord_elements, which is NOT this: upstream's make_chord_elements calls
     set_spot (loc) RAW, on the caller's location, and the port matches it.
 
-  IsMusic / IsMusicType / CloneMusic   (RAG15, reused by RAG14)
+  IsMusic / IsMusicType / CloneMusic   (PostEvents, reused by Chords)
 
-    Host members, following RAG17's rule: the music these bodies read, test and
+    Host members, following the figured-bass rule: the music these bodies read, test and
     clone is HOST-MADE (from MakeMusic, from MakeSyntax, or from an identifier
     lookup), so the action cannot reach an Engine MusicObject directly. IsMusic
     is unsmob<Music> used as a NULL TEST, which two of the post-event bodies
     make explicitly.
 
-  post_event_nofinger: script_dir music_function_call   (RAG15)
+  post_event_nofinger: script_dir music_function_call   (PostEvents)
 
     Upstream does NOT null-test its unsmob here, unlike the two rules beside it:
     `Music *m = unsmob<Music> ($2); if (!m->is_mus_type ("post-event"))` would
@@ -692,7 +694,7 @@ PER-ACTION DIVERGENCES
     and it cannot change any well-formed parse: music_function_call always
     yields music from the real syntax constructor.
 
-  the direction guard   (RAG15)
+  the direction guard   (PostEvents)
 
     script_dir's '-' alternative is SCM_UNDEFINED, not zero. Zero would be a
     written "centre"; SCM_UNDEFINED means nothing was written and the engraver
@@ -702,7 +704,7 @@ PER-ACTION DIVERGENCES
     `post_event: '-' fingering`, which locates the event and writes no
     direction at all. RuleActionRag15Tests pins all four shapes.
 
-  direction_reqd_event: script_abbreviation   (RAG15)
+  direction_reqd_event: script_abbreviation   (PostEvents)
 
     The shorthand's NAME is a lookup: "Dot" finds \dashDot in scope through
     IParserHost.LookupIdentifier (the folded lookup_identifier_symbol). The
@@ -711,21 +713,21 @@ PER-ACTION DIVERGENCES
     UNLOCATED on purpose (upstream's own comment: "origin will be set by
     post_event_nofinger", which knows the span including the script_dir).
 
-  make_simple_markup   (ParserActionHelpers.Rag15)
+  make_simple_markup   (ParserActionHelpers.PostEvents)
 
     Ported as the identity it is (`return a;`) rather than inlined, because
     three action sites across two groups call it -- gen_text_def's STRING and
-    SYMBOL alternatives here, and parser.yy 4095 and 4321 in RAG18. RAG18
+    SYMBOL alternatives here, and parser.yy 4095 and 4321 in the markup-structure group, which
     should REUSE it rather than inlining a pass-through a reader would have to
     verify.
 
-  script_abbreviation's latin-1 strings   (RAG15)
+  script_abbreviation's latin-1 strings   (PostEvents)
 
     scm_from_latin1_string ("Hat") and friends are CLR strings; the alphabet is
     ASCII throughout, and the values exist only to be concatenated after "dash"
     and interned.
 
-  note_chord_element   (RAG14)
+  note_chord_element   (Chords)
 
     WHERE A CHORD'S DURATION COMES FROM, and worth knowing because nothing else
     in the grammar works this way: the elements inside < > are parsed with NO
@@ -736,19 +738,19 @@ PER-ACTION DIVERGENCES
     rather than to an articulations property, which is what makes `<c e>4->`
     attach to the chord instead of to a note.
 
-    It also completes a path RAG17 could not reach: a figured-bass `<6 4>` goes
+    It also completes a path the figured-bass group could not reach: a figured-bass `<6 4>` goes
     through chord_body's FIGURE_OPEN alternative and then through here, so every
-    BassFigureEvent now carries a duration too. A RAG17 real-text test that
+    BassFigureEvent now carries a duration too. A figured-bass real-text test that
     asserted the figure's exact property count was updated (2 -> 3) rather than
     loosened -- the count moving is the rule becoming reachable.
 
-  chord_body: ANGLE_OPEN ...   (RAG14)
+  chord_body: ANGLE_OPEN ...   (Chords)
 
-    reverse_music_list with preserve = FALSE, compress = FALSE -- unlike RAG6's
+    reverse_music_list with preserve = FALSE, compress = FALSE -- unlike MusicAssembly's
     music_list sites, which pass (true, false). Inside < > an unattachable post
     event is DROPPED with a warning rather than kept on an empty chord.
 
-  chord_body_element: music_function_chord_body   (RAG14)
+  chord_body_element: music_function_chord_body   (Chords)
 
     The unwrapping loop REPLACES $$ as it descends ("$$ = get_property (m,
     "element")"), so a \tweak'd note contributes the NOTE rather than the
@@ -756,7 +758,7 @@ PER-ACTION DIVERGENCES
     chord note -- and anything that is neither is the "not a rhythmic event"
     error, whose SCM_UNSPECIFIED chord_body_elements then silently skips.
 
-  make_chord_step   (ParserActionHelpers.Rag14)
+  make_chord_step   (ParserActionHelpers.Chords)
 
     The step is one-based as written and zero-based as a scale index, hence the
     `- 1`; the ported Pitch constructor normalizes its own octave exactly as
@@ -765,15 +767,15 @@ PER-ACTION DIVERGENCES
     `get_notename () == 6` case is the SEVENTH, flattened because that is what a
     seventh means in chord naming. SHARP_ALTERATION / FLAT_ALTERATION are
     Rational (1, 2) / (-1, 2) inlined at their use sites with the upstream names
-    in comments -- the RAG17 precedent.
+    in comments -- the figured-bass precedent.
 
-  chord_items / step_numbers accumulate with $$ rather than $1   (RAG14)
+  chord_items / step_numbers accumulate with $$ rather than $1   (Chords)
 
     `$$ = scm_cons ($2, $$)` and `$$ = scm_cons ($3, $$)`: the same value, since
     Bison pre-sets $$ to $1, and ported as values[0] with the difference noted at
     the site so a reader does not go looking for a semantics the port dropped.
 
-  the scripted host's three music shapes   (test infrastructure, RAG14)
+  the scripted host's three music shapes   (test infrastructure, Chords)
 
     Actions cannot tell the recording MadeMusic, a SyntaxMark standing in for a
     constructor's result, and (under MakeRealMusic) the Engine's real
@@ -784,7 +786,7 @@ PER-ACTION DIVERGENCES
     property write. Anything else the scripted host is asked for is a loud
     failure rather than a guess.
 
-  A MARKUP IS ITS OWN EXPRESSION   (RAG18/RAG19, the thing to read first)
+  A MARKUP IS ITS OWN EXPRESSION   (MarkupStructure/MarkupCommands, the thing to read first)
 
     Nothing in these two groups interprets markup. `\markup \bold "x"` reduces
     to the LIST (bold-proc "x"), whose head is a procedure fetched out of the
@@ -793,26 +795,26 @@ PER-ACTION DIVERGENCES
     and ly_list and nothing else, and why a string needs no conversion at all
     to BE a markup.
 
-  IParserHost.LilyImport   (RAG18)
+  IParserHost.LilyImport   (MarkupStructure)
 
     Lily::line_markup, Lily::score_markup and Lily::score_lines_markup_list are
     (lily) module variables (lily/lily-imports.cc), consed into markup
-    expressions WITHOUT being called. This is RAG5's SyntaxConstructor for a
+    expressions WITHOUT being called. This is ContextDefinitions' SyntaxConstructor for a
     different module: SyntaxConstructor covers Syntax::, which lives in
     (lily ly-syntax-constructors); LilyImport covers Lily::, which lives in
     (lily). Two members rather than one because they are two modules, and a
     single "look a name up somewhere" member would have hidden that.
 
-  ParseContext.StackLocation   (driver, added with RAG18)
+  ParseContext.StackLocation   (driver, added with MarkupStructure)
 
-    The companion of RAG3's StackValue, and added for the same reason: a
+    The companion of BookBlocks' StackValue, and added for the same reason: a
     mid-rule action reduces as an EMPTY production, so its locations array is
     empty and its @$ is the point-span Bison gives an empty rule -- neither of
     which is @1. markup_scm's mid-rule needs the real @1: it reports "not a
     markup" AT the offending expression and hands the same span to three
     MYBACKUP calls. Driver semantics, not a divergence.
 
-  markup_scm classifies and BACKS UP   (RAG18, $@12)
+  markup_scm classifies and BACKS UP   (MarkupStructure, $@12)
 
     The whole rule is its mid-rule action. An embedded #(...) in markup
     position is evaluated, classified, and handed BACK to the token stream as
@@ -824,7 +826,7 @@ PER-ACTION DIVERGENCES
     error; anything else is an error that still yields an empty markup so the
     parse continues; and scm_string (SCM_EOL) is the empty CLR string.
 
-  markup_braced_list_body: the cons/splice pair   (RAG18)
+  markup_braced_list_body: the cons/splice pair   (MarkupStructure)
 
     Its two recursive alternatives look alike and do not behave alike. A
     `markup` CONSES on; a `markup_list` SPLICES (Srfi_1::append_reverse, which
@@ -833,7 +835,7 @@ PER-ACTION DIVERGENCES
     holding a list. Consing the list instead would produce a different markup
     from the same text with nothing to report it -- pinned by a test.
 
-  markup_top vs markup: identical bodies, different positions   (RAG18)
+  markup_top vs markup: identical bodies, different positions   (MarkupStructure)
 
     `markup_top: markup_head_1_list simple_markup` and
     `markup: markup_head_1_list simple_markup` are the same body verbatim. They
@@ -843,29 +845,29 @@ PER-ACTION DIVERGENCES
     top, while `\markup { \bold a b }` bolds `a` and leaves `b` alone. Both are
     test-pinned at their own position.
 
-  ParserActionHelpers.PrepareMarkupScore   (RAG18)
+  ParserActionHelpers.PrepareMarkupScore   (MarkupStructure)
 
     \score and \score-lines in markup share nine identical lines -- locate the
     score, and give it a layout if it brought none -- and differ only in the
     markup expression they then build (one wrap for \score, two for
     \score-lines, which yields a markup LIST). Factored, with the divergence
     that od->unprotect () is absent: Boehm-GC bookkeeping, one of the 201
-    measured call sites that delete rather than port. get_layout is RAG4's, as
-    the wave-2 reuse obligation prescribed.
+    measured call sites that delete rather than port. get_layout is OutputDefConstructors', as
+    the standing reuse obligation prescribed.
 
-  the EXPECT_* announcement is the mechanism   (RAG19)
+  the EXPECT_* announcement is the mechanism   (MarkupCommands)
 
     A markup command's signature is known to the LEXER, not to the grammar. On
     reading \bold the scanner pushes one EXPECT_* token per declared argument
     plus a terminating EXPECT_NO_MORE_ARGS, LAST ARGUMENT ANNOUNCED FIRST
     (ModalScanner.PushMarkupPredicates, ported earlier). So the grammar parses
     commands it has never heard of, and the argument count is right by
-    construction. Every RAG19 rule is a consumer of those announcements;
+    construction. Every markup-commands rule is a consumer of those announcements;
     markup_head_1_item is the shape that leaves the final markup argument
     outstanding for composition to supply, which is what makes `\bold \italic
     "x"` chain without parentheses.
 
-  markup_arglist_partial: discard versus match   (RAG19)
+  markup_arglist_partial: discard versus match   (MarkupCommands)
 
     Six rules, three pairs, and the difference is which announcement they throw
     away. The three recursive ones DISCARD an expectation; the three taking
@@ -874,7 +876,7 @@ PER-ACTION DIVERGENCES
     the discards are what let `\raise \etc` leave BOTH arguments outstanding
     while `\raise #2 \etc` keeps the 2. All six are exercised from real text.
 
-  the braced markup argument   (RAG19, $@14)
+  the braced markup argument   (MarkupCommands, $@14)
 
     The one body in these two groups with real logic. Upstream's comment says
     why: an argument expecting neither markup? nor markup-list? may be written
@@ -887,9 +889,9 @@ PER-ACTION DIVERGENCES
     updated ONLY on the branch that succeeded as music, so a refused `{ 4 }`
     does not silently change what a later bare note means. Both pinned.
 
-  the scripted host reproduces composed-markup-list   (test infrastructure, RAG18)
+  the scripted host reproduces composed-markup-list   (test infrastructure, MarkupStructure)
 
-    A second constructor a later rule reads back, after RAG14's event-chord,
+    A second constructor a later rule reads back, after Chords' event-chord,
     and read back harder: `markup: markup_head_1_list simple_markup` takes its
     CAR. So the scripted host performs the vendored constructor's list surgery
     for real (a fold of `(append cmd (list prev))`, scm/ly-syntax-constructors
@@ -898,7 +900,7 @@ PER-ACTION DIVERGENCES
     which is what the command order actually MEANS -- instead of asserting an
     argument list's order and trusting the constructor.
 
-  the scripted host's IsNoteState follows the scanner   (test infrastructure, RAG18)
+  the scripted host's IsNoteState follows the scanner   (test infrastructure, MarkupStructure)
 
     It was a scripted flag, which is fine while a test's text stays in one
     mode. `\markup \score { c }` does not: it is markup, then notes, then
@@ -915,12 +917,12 @@ PER-ACTION DIVERGENCES
     registered and the per-group tests prove the ones they exercise behave;
     neither catches an action that is registered, correct and never reached --
     because its production is unreachable or because the lexer never produces
-    the tokens it needs. Half of RAG19 is driven by tokens the scanner invents,
+    the tokens it needs. Half of the markup-commands group is driven by tokens the scanner invents,
     so that gap was real: the test found four rules the per-group tests had
     missed on its first run, and all four turned out to be reachable.
 
 -------------------------------------------------------------------------------
-THE REAL HOST (Session/LilyParserSession.cs) -- added with PHASE 3
+THE REAL HOST (Session/LilyParserSession.cs)
 -------------------------------------------------------------------------------
 
   Everything above this line was written against IParserHost/ILexerHost with
@@ -947,9 +949,8 @@ THE REAL HOST (Session/LilyParserSession.cs) -- added with PHASE 3
     The declarations are the part that makes a session able to read music.
 
   MakeModule is ANONYMOUS again — the named-scope workaround is RETIRED
-  (LS-FIX, 2026-08-05)
 
-    THE SHARPEST FINDING OF THE EPG1 SESSION, and it was an expander limitation
+    THE SHARPEST FINDING OF THE FIRST ENGINE-INTEGRATION PASS, and it was an expander limitation
     rather than a parser one. LilyScheme's expander resolved an imported MACRO
     only in a module it could name: in an anonymous module that merely USES
     (lily), `define-music-function` read as an ordinary variable, so its
@@ -957,8 +958,8 @@ THE REAL HOST (Session/LilyParserSession.cs) -- added with PHASE 3
     ly/music-functions-init.ly failed with an unbound variable named after its
     first parameter. Isolated to a two-line reproduction -- the same form
     expands in a named module and fails in an anonymous one. The port named its
-    parser scopes (lily parser-scope N) from EPG1 until 2026-08-05 to get
-    correct expansion.
+    parser scopes (lily parser-scope N) until the module-name fix landed, to
+    get correct expansion.
 
     THE REAL MECHANISM, found when the fix landed in LilyScheme: psyntax
     round-trips module identity BY NAME (hygiene wraps carry the module name
@@ -969,12 +970,12 @@ THE REAL HOST (Session/LilyParserSession.cs) -- added with PHASE 3
     AnonymousModuleMacroTests), so parser scopes, \header blocks and output
     definition scopes are all anonymous again, matching upstream's
     ly_make_module. The workaround's registration half is gone from
-    Engine/Bootstrap/LilyModules.cs the same day.
+    Engine/Bootstrap/LilyModules.cs with it.
 
-  set_spot takes an INPUT, never a raw span (fixed 2026-08-05)
+  set_spot takes an INPUT, never a raw span
 
     The session's SetSpot paths (MakeMusic, SetMusicSpot, LocOnCopy, and
-    Rag18's markup-score helper) stamped the parser's SourceSpan struct
+    the ScoreInMarkup helper) stamped the parser's SourceSpan struct
     straight into 'origin. Upstream's set_spot takes an Input, and nothing
     failed until the batch runner's first sweep ran an ly:input-location?
     type check over a music 'origin and answered #f on every note the parser
@@ -1019,7 +1020,7 @@ THE REAL HOST (Session/LilyParserSession.cs) -- added with PHASE 3
     than port under .NET's precise collector.
 
 -------------------------------------------------------------------------------
-THE SCANNER'S INCLUDE STACK (added with PHASE 3)
+THE SCANNER'S INCLUDE STACK
 -------------------------------------------------------------------------------
 
   ModalScanner now owns an input stack: \include pushes the current text,
@@ -1039,14 +1040,36 @@ THE SCANNER'S INCLUDE STACK (added with PHASE 3)
 NAMING
 -------------------------------------------------------------------------------
 
-  The rule-action partial-class files are named by RULE ACTION GROUP
-  (LilyPondRuleActions.Rag1.cs, .Rag13.cs, ...) -- the session-sized, disjoint
-  groups the porting effort is planned and fenced by. The group's grammar
-  content is named in each file's <content> doc; RuleActionFenceTests'
-  CompletedGroups theory is the ledger of which groups are done.
+  The rule-action partial-class files are named by their grammar content
+  (LilyPondRuleActions.TopLevel.cs, .StringsAndNumbers.cs, ...), one file per
+  disjoint porting group. Each file's <content> doc names its rules;
+  RuleActionFenceTests' CompletedGroups theory is the ledger of which groups
+  are done.
+
+  They were originally named by rule-action-group number (RagN); the cleanup
+  pass renamed the files (types were always the three partial classes and are
+  unchanged). Old suffix -> new suffix, for reading historical records:
+
+    Rag1  -> TopLevel            Rag11 -> PartialFunctions
+    Rag2  -> EmbeddedScheme      Rag12 -> LyricMode
+    Rag3  -> BookBlocks          Rag13 -> StringsAndNumbers
+    Rag4  -> OutputDefinitions   Rag14 -> Chords
+    Rag5  -> ContextDefinitions  Rag15 -> PostEvents
+    Rag6  -> MusicAssembly       Rag16 -> PitchesAndDurations
+    Rag7  -> PropertyPaths       Rag17 -> FiguredBass
+    Rag8  -> ArglistNonBackup    Rag18 -> MarkupStructure
+    Rag9  -> ArglistBackup       Rag19 -> MarkupCommands
+    Rag10 -> ArglistCommon
+
+  ParserActionHelpers files whose content is narrower than the group name took
+  their own names instead: Rag2 -> MusicLists, Rag3 -> PaperStack,
+  Rag4 -> OutputDefConstructors, Rag5 -> ScmListOperations, Rag6 -> MakeSyntax,
+  Rag8 -> ArglistHelpers, Rag18 -> ScoreInMarkup (others follow the group
+  table). The RegisterRagN methods became Register<GroupName>. Test class
+  names (RuleActionRagNTests, ...) were exempt and keep their historical names.
 
 -------------------------------------------------------------------------------
-CORRECTIONS MADE 2026-08-04 (EPG1) -- FOUR CLAIMS ABOVE THAT WERE WRONG
+CORRECTIONS -- FOUR CLAIMS ABOVE THAT WERE WRONG
 -------------------------------------------------------------------------------
 
   Each of these was recorded here as a deliberate divergence, and each was
@@ -1119,7 +1142,7 @@ CORRECTIONS MADE 2026-08-04 (EPG1) -- FOUR CLAIMS ABOVE THAT WERE WRONG
   things, and a scripted host can only ever prove the first two.
 
 -------------------------------------------------------------------------------
-THE ly:parser-* SURFACE (EPG1)
+THE ly:parser-* SURFACE
 -------------------------------------------------------------------------------
 
   lily-parser-scheme.cc's bindings live in the ENGINE
@@ -1143,11 +1166,11 @@ THE ly:parser-* SURFACE (EPG1)
   read as "not a note name".
 
   STILL OWED by this file: ly:parse-file and ly:parse-init. Both open a file,
-  build a Sources and a parser, and drive the whole thing -- which is EPG3's
-  internal batch runner, not a binding.
+  build a Sources and a parser, and drive the whole thing -- which is the
+  internal batch runner's job, not a binding.
 
 -------------------------------------------------------------------------------
-EMBEDDED SCHEME -- parse-scm.cc COMPLETE (EPG1, 2026-08-04)
+EMBEDDED SCHEME -- parse-scm.cc COMPLETE
 -------------------------------------------------------------------------------
 
   The reader half is LilyParserSession.ParseEmbeddedScheme; the evaluation half
@@ -1189,7 +1212,7 @@ EMBEDDED SCHEME -- parse-scm.cc COMPLETE (EPG1, 2026-08-04)
       the interpreter's own message is what the port reports.
 
 -------------------------------------------------------------------------------
-THE LEXER'S BASE MODE IS `notes' (EPG1, 2026-08-04)
+THE LEXER'S BASE MODE IS `notes'
 -------------------------------------------------------------------------------
 
   Lily_lexer's constructor ends in push_note_state() -- lily-lexer.cc 129, and

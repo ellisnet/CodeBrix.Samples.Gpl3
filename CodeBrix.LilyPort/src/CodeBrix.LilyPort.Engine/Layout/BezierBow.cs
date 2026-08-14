@@ -22,15 +22,14 @@ using CodeBrix.LilyPort.Flower;
 
 namespace CodeBrix.LilyPort.Engine.Layout; //was previously: lily/bezier-bow.cc (the shape half only);
 
-// Modified by Jeremy Ellis on 2026-08-07 as part of the CodeBrix port:
-//   - PARTIAL PULL-FORWARD FROM EPG12, on the same footing as EPG22's pull of
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port:
+//   - PULLED FORWARD from the slur group, on the same footing as the pull of
 //     break-substitution.cc's direction half. Tuplet_bracket::print draws a
-//     \tupletSlur through slur_shape, so EPG17 needs the SHAPE half of bezier-bow.cc
-//     and nothing else. bezier-bow.cc's ledger row STAYS with EPG12, which still owes
-//     Bezier_bow itself (the class that fits a curve around encompassing points) —
-//     that half is the decades-tuned code the faithfulness rule is about, and this
-//     half is not: it is three closed-form functions with upstream's own derivation
-//     kept verbatim in the comments.
+//     \tupletSlur through slur_shape, so the volta/tuplet group needed the SHAPE half
+//     of bezier-bow.cc and nothing else — three closed-form functions with upstream's
+//     own derivation kept verbatim in the comments. The ledger later established the
+//     file is WHOLE here: the pinned 2.27.2 has no Bezier_bow class (no bezier-bow.hh,
+//     no reference anywhere), so slur_shape and its helpers are the entire file.
 
 /// <summary>
 /// The closed-form slur shape: the curve a slur takes before any scoring adjusts it.

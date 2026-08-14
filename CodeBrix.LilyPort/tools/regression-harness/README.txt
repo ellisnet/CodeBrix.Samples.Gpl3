@@ -2,7 +2,7 @@
 CodeBrix.LilyPort -- REGRESSION HARNESS
 ================================================================================
 
-Written 2026-08-02, against LilyPond v2.27.2
+Written against LilyPond v2.27.2
 (commit 2d621459bd44cb1758f822a69757242eab843060).
 
 This is milestone 5 of the port: the machinery that answers "is CodeBrix.LilyPort
@@ -20,7 +20,7 @@ CONTENTS
   4.  What is committed, and what is not
   5.  Comparing the port against the reference
   6.  How the comparison works, and why it is not a byte diff
-  7.  Results from the 2026-08-02 baseline run
+  7.  Results from the initial baseline run
   8.  Licensing of the vendored suite
   9.  Troubleshooting
 
@@ -96,7 +96,7 @@ Rendering flags, and why each is there:
                             machine that generated it.
     --silent                Keep the logs to real diagnostics.
 
-THE FONTS ARE PINNED, AND THEY HAVE TO BE (2026-08-13)
+THE FONTS ARE PINNED, AND THEY HAVE TO BE
 --------------------------------------------------------------------------------
 generate-reference.sh builds reference-fonts.conf from reference-fonts.conf.in
 and points FONTCONFIG_FILE at it before rendering anything.  This is not a
@@ -108,8 +108,7 @@ GENERIC font families:
 
 so under -dbackend=svg Pango resolves "serif", "sans" and "monospace" through
 whatever fontconfig the HOST has, and the corpus silently records the metrics of
-whatever that machine happens to have installed.  The corpus generated before
-2026-08-13 carried Noto Serif / Noto Sans / Noto Sans Mono for every text run --
+whatever that machine happens to have installed.  A corpus generated before the pinning carried Noto Serif / Noto Sans / Noto Sans Mono for every text run --
 measured glyph by glyph, the oracle's ink boxes and advances for x/X/g/o matched
 Noto exactly and did not match C059, which is what LilyPond's own "LilyPond
 Serif" alias prefers.
@@ -177,7 +176,7 @@ files are unchanged by any of this.
 
     TOLERANCE=0.01 ./compare-output.sh ...     # placement tolerance
 
-*** FIRST RUN AGAINST THE PORT: 2026-08-03. ***
+*** THE FIRST RUN AGAINST THE PORT. ***
 
     Input `{ c'4 }`, one file. Verdict: GLYPHS-DIFFER -- up the ladder from
     MISSING, which is the position first light was expected to reach.
@@ -217,7 +216,7 @@ measured continuously instead of as a single distant pass/fail. Getting the righ
 notes on the page is a different milestone from getting them in the right place,
 and this reports them separately.
 
-*** CORRECTION, 2026-08-03, from the first run against the port ***
+*** CORRECTION, from the first run against the port ***
 
   The `<use>` branch of parse_svg is DEAD against real LilyPond output.
   LilyPond 2.27.2's SVG backend embeds each glyph's OUTLINE as a <path> with a
@@ -241,7 +240,7 @@ and this reports them separately.
   PORT-COVERAGE.txt, eighth pass.
 
 VALIDATION. A comparator that always says MATCH is worse than none, so this one
-was checked in both directions on 2026-08-02:
+was checked in both directions:
 
   * Reference against ITSELF          -> 60 of 60 MATCH (100%)
   * Reference against the same inputs
@@ -253,7 +252,7 @@ So it detects a real layout change and localises it, rather than merely
 reporting inequality.
 
 ================================================================================
-7.  RESULTS FROM THE 2026-08-02 BASELINE RUN
+7.  RESULTS FROM THE INITIAL BASELINE RUN
 ================================================================================
 
 Oracle: GNU LilyPond 2.27.2, SVG backend, point-and-click disabled.
@@ -330,13 +329,13 @@ END
 ================================================================================
 
 --------------------------------------------------------------------------------
-COMPARATOR SELF-CHECK  (added 2026-08-05, EPG13)
+COMPARATOR SELF-CHECK
 --------------------------------------------------------------------------------
 
 The comparator now grades at GLYPH and POSITION level. Position comes from
 accumulating the translate() of the enclosing <g> elements.
 
-*** SUPERSEDED IN PART, 2026-08-12 (GLYPH-PARITY). *** This section used to go on
+*** SUPERSEDED IN PART by named-glyph identity (below). *** This section used to go on
 to say that the `d` attribute IS the glyph's identity, because upstream's SVG
 backend writes each glyph's own path inline rather than referencing a shared
 definition. The first half is still true and the conclusion no longer is: the port
@@ -363,7 +362,7 @@ Run this self-check after any change to parse_svg.
 
 ===============================================================================
 THE CANDIDATE DIRECTORY WAS NOT CLEANED, AND THE RATCHET COULD NOT SEE IT
-(found 2026-08-07 by EPG17's first slice; FIXED the same day by HARNESS-FIX)
+(found by the repeats/voltas group's first slice; fixed the same day)
 ===============================================================================
 
 THE DEFECT, kept in full because the shape of it is worth recognising again.
@@ -371,14 +370,14 @@ THE DEFECT, kept in full because the shape of it is worth recognising again.
 BatchDriver WROTE INTO candidate/svg and never removed what was already there.
 So after a sweep the directory held this run's output PLUS every page any
 earlier run produced and this one did not. When it was found, candidate/svg had
-1,568 files for a sweep that produced 1,470, with some dating from 2026-08-05.
+1,568 files for a sweep that produced 1,470, with some dating from earlier sessions.
 
 WHY THAT MATTERED. compare-output.py grades whatever is in the directory. A file
 that STOPS producing a page therefore kept its stale page from a previous run
 and graded exactly as it did before -- so the ratchet reported no regression for
 precisely the failure mode it exists to catch.
 
-MEASURED, not theorised. EPG17's first slice registered the grace iterator
+MEASURED, not theorised. The repeats/voltas group's first slice registered the grace iterator
 constructor, and `measure-counter-grace` went SVG -> NOOUT (it now reaches an
 unported ly:spanner-broken-into). Its manifest row was GLYPHS-DIFFER, so that is
 a real regression. `ratchet.py check` reported 0 regressions, because it graded
@@ -436,11 +435,11 @@ The manifest records what the floor IS; the decisions file records what happened
 to it. Before this existed, nothing in the repository could tell an earned floor
 from an unearned one, which is why 97 unearned rows stood for three sessions.
 
-The first 97 entries are that re-baseline, 1,541 -> 1,444, on 2026-08-07.
+The first 97 entries are that re-baseline, 1,541 -> 1,444.
 
 
 ================================================================================
-THE MIDI SCOREBOARD (added 2026-08-08, EPG19)
+THE MIDI SCOREBOARD
 ================================================================================
 
 The layout harness above grades PAGES. This one grades MIDI, and it is a separate
@@ -473,7 +472,7 @@ THE SELF-CHECK, AND WHY IT IS NOT OPTIONAL
 
   must report 90 of 90 MATCH. That is what would catch this script reading zero
   events out of every file -- exactly the failure compare-output.py had, unnoticed,
-  for four sessions before EPG13 found it.
+  for four sessions before it was found.
 
 WHAT IS NORMALISED, AND WHAT DELIBERATELY IS NOT
 
@@ -501,8 +500,8 @@ VERDICTS -- the same vocabulary compare-output.py uses
     UNPARSEABLE     the port produced something that is not an SMF
 
   UNPARSEABLE is worth watching for the same reason it is on the layout side: it
-  means the port is emitting BYTES that are wrong, not a layout that is wrong. EPG19
-  met it on eleven files from a Rational conversion that threw mid-write.
+  means the port is emitting BYTES that are wrong, not a layout that is wrong. The MIDI
+  group met it on eleven files from a Rational conversion that threw mid-write.
 
 THERE IS NO MIDI RATCHET YET. The layout floor is a per-file manifest with a gate;
 the MIDI side is currently a scoreboard read by hand. It should grow one once the
@@ -510,29 +509,29 @@ figures stop moving in large steps.
 
 ===============================================================================
 NAMED-GLYPH IDENTITY, AND THE GLYPH-IDENTITY INDEX
-(added 2026-08-12, GLYPH-PARITY -- this CHANGED the comparator's contract)
+(this CHANGED the comparator's contract)
 ===============================================================================
 
-THE CONTRACT NOW READS (D29, restated 2026-08-12):
+THE CONTRACT NOW READS (D29, as restated):
 
     Glyph identity is NAMED-GLYPH identity, byte-verified against each side's own
     font. Everything else remains byte-exact. Visual and tolerance comparison
     remain forbidden.
 
-  This REPLACES the rule this harness ran on from 2026-08-05 to 2026-08-12 --
+  This REPLACES the rule this harness originally ran on --
   "two glyphs are the same glyph exactly when their path data agrees". If you are
   reading an older note that states the byte rule, the note is stale.
 
 WHY IT HAD TO CHANGE. Both engravers copy a glyph's outline verbatim out of the
 .svg font they were built against, and the two sides read DIFFERENT BUILDS of the
 same font: the port ships its own Emmentaler (FontForge 20230101, built from the
-vendored mf/ mirror -- the deliberate 2026-08-02 own-build decision, which STANDS),
+vendored mf/ mirror -- the deliberate own-build decision, which STANDS),
 while the oracle's came from the official 2.27.2 release build (FontForge 20200314).
 The design is the same -- LILC, LILY, every advance and every cmap mapping are
 byte-identical between the builds, and sampled bounding boxes agree to 0.00
 font-units -- but the two FontForge versions serialize the outlines differently.
 
-  Measured by the GLYPH-DIAG session, 2026-08-12, on emmentaler-20's black
+  Measured on emmentaler-20's black
   notehead specifically: that ONE outline string appears in 1,242 reference pages
   and ZERO candidate pages, while the port's serialization of the same glyph
   appears in 1,089 candidate pages and ZERO reference pages -- a perfect per-page
@@ -560,13 +559,13 @@ WHAT THE IDENTITY IS. For a <path> whose transform is the pure glyph scale
   same-named glyph from emmentaler-26 would collapse into one identity. It is
   carried verbatim, not parsed -- no rounding, no tolerance. (Recorded because it
   surprised the session that implemented this: the scale did NOT participate in
-  the identity before 2026-08-12. Under byte identity it did not need to.)
+  the identity under the byte rule. It did not need to.)
 
   THIS IS NOT FUZZY MATCHING. A path is still identified by its EXACT bytes; those
   bytes are simply resolved to the NAME of the glyph they are a verbatim copy of.
 
 FAIL-STRICT. A `d` that resolves to no glyph name on its side keeps raw-byte
-identity -- the pre-2026-08-12 behaviour exactly. Unresolvable can only ever make
+identity -- the original byte-rule behaviour exactly. Unresolvable can only ever make
 the comparison STRICTER, never looser.
 
 EACH SIDE RESOLVES AGAINST ITS OWN FONTS, which is why the two halves of the index
@@ -639,11 +638,11 @@ THE STANDING VERIFICATION PROTOCOL -- all four, after any comparator or font cha
   there while every verdict count stays superficially plausible, so it is worth a
   glance every time.
 
---raw-glyph-bytes is the A/B switch: it forces the pre-2026-08-12 byte rule. It is
+--raw-glyph-bytes is the A/B switch: it forces the original byte rule. It is
 DIAGNOSTIC ONLY -- nothing is ever graded against it. It exists because trap 17
 says an attribution is honest only if made by disabling the change and re-running.
 
-WHAT LANDING THIS ACTUALLY BOUGHT, AND WHAT IT DID NOT (2026-08-12, measured)
+WHAT LANDING THIS ACTUALLY BOUGHT, AND WHAT IT DID NOT (measured)
 
   100% of glyph paths on BOTH sides now resolve by name (73,292 reference, 72,987
   candidate). Verdicts moved 0 regressed / 43 improved, every one
@@ -664,7 +663,7 @@ WHAT LANDING THIS ACTUALLY BOUGHT, AND WHAT IT DID NOT (2026-08-12, measured)
   Those are engine/backend work and were deliberately NOT touched here: this change
   is comparator-side only, and the candidate bytes before and after it are identical.
 
-  *** FOLLOW-UP THE SAME DAY (URL-LINK, 2026-08-12): the rect is FIXED. ***
+  *** FOLLOW-UP THE SAME DAY: the rect is FIXED. ***
 
   The SVG backend had no `url-link` case, so upstream's <a> and its invisible
   hot-zone rect were dropped on every page carrying a link. Restoring it moved 782
@@ -682,7 +681,7 @@ WHAT LANDING THIS ACTUALLY BOUGHT, AND WHAT IT DID NOT (2026-08-12, measured)
 
 
 ================================================================================
-DOCUMENTATION PARITY -- THE DOCS RUN (G8, closed 2026-08-13)
+DOCUMENTATION PARITY -- THE DOCS RUN (G8)
 ================================================================================
 
   ly/generate-documentation.ly is the port's other oracle comparison, and it is

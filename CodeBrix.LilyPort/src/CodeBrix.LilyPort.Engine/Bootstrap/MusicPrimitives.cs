@@ -241,7 +241,7 @@ public static class MusicPrimitives
         interpreter.DefinePrimitive("ly:duration-scale", 1, 1, a =>
             SchemeConvert.FromRational(AsDuration(a[0], "ly:duration-scale").Factor));
 
-        // Pulled forward out of EPG23 by the demand loop (2026-08-05): the sweep named
+        // Pulled forward out of the long-tail pool by the demand loop: the sweep named
         // it in about fifty files, all of them tuplets and time-scaled music, and
         // scm/music-functions.scm reaches it before anything else in those files can
         // run. Duration::compressed itself is one line — the factor is a Rational and
@@ -275,7 +275,7 @@ public static class MusicPrimitives
         interpreter.DefinePrimitive("ly:number->duration", 1, 1, a =>
             Duration.FromWholeNotes(SchemeConvert.ToRational(a[0], "ly:number->duration"), true));
 
-        // Pulled forward out of EPG23 by the demand loop (2026-08-07): the error bucket
+        // Pulled forward out of the long-tail pool by the demand loop: the error bucket
         // named it in 29 files. lily-library.scm's duration-length, auto-beam.scm's
         // beat-position walk and ly-syntax-constructors.scm's \tempo handling all reach
         // it before anything can engrave. Upstream is Rational (*a) -- the duration's
@@ -285,7 +285,7 @@ public static class MusicPrimitives
 
         // Convert DUR to a moment with no grace part — upstream duration-scheme.cc.
         //
-        // PULLED FORWARD FROM EPG23 by the 2026-08-08 carry-forward session's demand:
+        // PULLED FORWARD from the long-tail pool by the carry-forward demand:
         // scm/music-functions.scm's \tempo-swing machinery reaches it, and the whole
         // swing-tripletfeel family of MIDI files died on the unported stub.
         interpreter.DefinePrimitive("ly:duration->moment", 1, 1, a =>
@@ -349,8 +349,8 @@ public static class MusicPrimitives
 
         // Make a new key alist of L transposed by pitch PIT.
         //
-        // PULLED FORWARD FROM EPG23 by EPG19's demand loop: music-scheme.cc is a leaf
-        // binding file EPG23 owns, but Key_performer cannot emit a MIDI key signature
+        // PULLED FORWARD from the long-tail pool by the MIDI demand loop: music-scheme.cc
+        // is a leaf binding file from that pool, but Key_performer cannot emit a MIDI key signature
         // without this one name. The algorithm lives in MusicSequence, beside the rest of
         // music-sequence.hh's declarations.
         interpreter.DefinePrimitive("ly:transpose-key-alist", 2, 2, a =>
@@ -361,13 +361,13 @@ public static class MusicPrimitives
 
         // Make MUSIC relative to PITCH, return the final pitch.
         //
-        // PULLED FORWARD FROM EPG23 by the 2026-08-08 carry-forward session's demand:
-        // music-scheme.cc is a leaf binding file EPG23 owns, but the vendored `relative'
+        // PULLED FORWARD from the long-tail pool by the carry-forward demand:
+        // music-scheme.cc is a leaf binding file from that pool, but the vendored `relative'
         // music function calls this FOR ITS SIDE EFFECT, so as an unported stub it
         // answered an UnportedValue that the caller politely ignored — and every
         // `\relative' block in the suite was read ABSOLUTELY. That is the whole of the
         // MIDI scoreboard's octave-out family: written `e' is MIDI 52 where the oracle's
-        // relative reading is 64. Nothing ever threw, which is why it survived EPG19.
+        // relative reading is 64. Nothing ever threw, which is why it survived the MIDI work.
         interpreter.DefinePrimitive("ly:make-music-relative!", 2, 2, a =>
         {
             MusicObject music = AsMusic(a[0], "ly:make-music-relative!");
@@ -541,7 +541,7 @@ public static class MusicPrimitives
         interpreter.DefinePrimitive("ly:music-wrapper::start-callback", 1, 1, a =>
             MusicWrapper.StartCallback(AsMusic(a[0], "ly:music-wrapper::start-callback")));
 
-        // grace-music.cc (EPG17). Grace music starts BEFORE the moment it is written at,
+        // grace-music.cc. Grace music starts BEFORE the moment it is written at,
         // by its own whole length — which is why the answer is a moment with a negative
         // GRACE part and a zero main part.
         interpreter.DefinePrimitive("ly:grace-music::start-callback", 1, 1, a =>

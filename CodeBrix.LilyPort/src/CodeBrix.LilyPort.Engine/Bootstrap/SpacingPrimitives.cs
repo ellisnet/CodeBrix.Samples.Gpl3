@@ -19,9 +19,9 @@ namespace CodeBrix.LilyPort.Engine.Bootstrap;
 /// The Scheme surface of the spacing solver: <c>lily/simple-spacer-scheme.cc</c> and
 /// <c>lily/spring-smob.cc</c>.
 /// <para>
-/// Both are leaf binding files whose TYPES the engine has carried since EPG4
+/// Both are leaf binding files whose TYPES the engine has carried since horizontal spacing
 /// (<see cref="SimpleSpacer"/>, <see cref="Spring"/>). Landing the bindings is standing
-/// rule 3's other half, and EPG23's job.
+/// rule 3's other half, and the long-tail closure's job.
 /// </para>
 /// </summary>
 public static class SpacingPrimitives

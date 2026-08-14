@@ -46,7 +46,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Objects; //was previously: lily/stem.cc, lily/include/stem.hh, lily/include/stem-info.hh;
 
-// Modified by Jeremy Ellis on 2026-08-07 as part of the CodeBrix port.
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port.
 
 /*
   Parameters for a stem, (multiply with stemdirection, to get real values
@@ -607,9 +607,9 @@ public static class Stem
             for (int i = 0; i < myStems.Count; i++)
             {
                 // Upstream reads the PURE relative Y coordinate. The pure machinery is
-                // EPG15's (unpure-pure-container.cc); the real coordinate is the same
+                // unpure-pure-container.cc's; the real coordinate is the same
                 // answer for every grob with no separate pure callback, which is the
-                // EPG4-recorded fallback. See PORT-COVERAGE.
+                // recorded fallback. See PORT-COVERAGE.
                 coords.Add(myStems[i].RelativeCoordinate(common, Axis.Y));
                 minPos = Math.Min(minPos, coords[i]);
                 maxPos = Math.Max(maxPos, coords[i]);
@@ -642,10 +642,10 @@ public static class Stem
     /// Caches a stem's pure height, clipped so a stem never claims to overshoot in its
     /// own direction.
     /// <para>
-    /// Upstream stores the result on the ITEM's pure-height cache. That cache is
-    /// EPG15's (the pure-property machinery); until it lands the clipped interval is
-    /// computed faithfully and dropped, which only matters for beams — EPG10 — and is
-    /// recorded in PORT-COVERAGE and this group's report.
+    /// Upstream stores the result on the ITEM's pure-height cache. The port does not
+    /// carry that Item-side cache: the clipped interval is
+    /// computed faithfully and dropped, which only matters for beams, and is
+    /// recorded in PORT-COVERAGE.
     /// </para>
     /// </summary>
     /// <param name="me">The stem.</param>
@@ -663,7 +663,7 @@ public static class Stem
         iv.Intersect(overshoot);
 
         // Upstream: dynamic_cast<Item *> (me)->cache_pure_height (iv);
-        // The Item pure-height cache arrives with EPG15; see the XML remarks above.
+        // The Item pure-height cache is not carried; see the XML remarks above.
         _ = iv;
     }
 
@@ -1617,7 +1617,7 @@ public static class Stem
     /// <param name="fallback">What a missing key answers.</param>
     /// <returns>The value.</returns>
     // ly_assoc_get's canonical home is lily-guile.cc — Objects/SchemeUtilities.cs. This
-    // stayed as a name Stem's own code already reads through (EPG14, 2026-08-08).
+    // stayed as a name Stem's own code already reads through.
     internal static object LyAssocGet(Symbol key, object alist, object fallback)
         => SchemeUtilities.LyAssocGet(key, alist, fallback);
 
@@ -1720,7 +1720,7 @@ public static class Stem
     /// whole score, which is the range every caller in this file wants.
     /// </summary>
     /// <remarks>
-    /// EPG6's minimal stand-in is GONE (EPG15 close-out, 2026-08-08). It differed from
+    /// The original minimal stand-in is GONE. It differed from
     /// upstream in both directions: it called an unpure-pure container's pure half even
     /// when that half had been omitted, where upstream reads the property ORDINARILY,
     /// and it answered <c>'()</c> for a bare procedure where upstream answers <c>#f</c>.
@@ -1735,7 +1735,7 @@ public static class Stem
     /// A grob's pure vertical extent — <c>pure_y_extent</c>, over the whole score.
     /// </summary>
     /// <remarks>
-    /// EPG6's stand-in — the ORDINARY extent — is GONE (EPG15 close-out, 2026-08-08):
+    /// The original stand-in — the ORDINARY extent — is GONE:
     /// <c>Grob.PureYExtent</c> reads through the real <c>call_pure_function</c> now, so a
     /// grob with a genuine pure callback is measured by it. An ordinary extent asks for a
     /// STENCIL, which is the one thing a pure read exists to avoid.

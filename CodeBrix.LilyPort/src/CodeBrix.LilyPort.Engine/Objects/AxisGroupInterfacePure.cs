@@ -24,14 +24,14 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Objects; //was previously: lily/axis-group-interface.cc (the pure-height half);
 
-// Modified by Jeremy Ellis on 2026-08-08 as part of the CodeBrix port:
-//   - NEW FILE, added by EPG15. axis-group-interface.cc's ledger row has said `ported'
-//     since EPG0, but its entire PURE-HEIGHT half had never come across: pure_group_height,
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port:
+//   - NEW FILE, added with line breaking. axis-group-interface.cc's ledger row has said `ported'
+//     from the start, but its entire PURE-HEIGHT half had never come across: pure_group_height,
 //     relative_pure_height, sum_partial_pure_heights, part_of_line_pure_height,
 //     begin_of_line_pure_height, rest_of_line_pure_height, combine_pure_heights,
 //     adjacent_pure_heights and the two calc_pure_relevant_grobs. Nothing asked for them
-//     until line breaking did, which is the same shape as EPG11's grob.cc constructor
-//     defaults and EPG18's Context_handle: registered, plausible, and hollow.
+//     until line breaking did, which is the same shape as grob.cc's constructor
+//     defaults and Context_handle: registered, plausible, and hollow.
 //   - It lives in its own file rather than in AxisGroupInterface.cs for the reason
 //     AxisGroupInterfaceVertical.cs already exists: the upstream file is 1,100 lines and
 //     the port splits it by subsystem. The `was previously' line names the half.

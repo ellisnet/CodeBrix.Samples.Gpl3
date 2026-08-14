@@ -238,7 +238,7 @@ public static class GrobPrimitives
             return (object)system ?? Nil.Instance;
         });
 
-        // item-scheme.cc, PULLED FORWARD out of EPG23 by EPG4's demand loop: the
+        // item-scheme.cc, PULLED FORWARD out of the long-tail pool by the spacing demand loop: the
         // moment a StaffSpacing grob exists, Staff_spacing::get_spacing reads the
         // space-alist off a break-aligned grob, and several of those entries are
         // break-alignment-list callbacks -- which ask an item which side of a break it
@@ -367,7 +367,7 @@ public static class GrobPrimitives
 
         // The argument order is (PREDICATE, ARRAY), like Scheme's own `filter' and unlike
         // every other ly:grob-array-* binding, which take the array first. This port had
-        // them the other way round until EPG17 (2026-08-07): VoltaBracketSpanner is the
+        // them the other way round originally: VoltaBracketSpanner is the
         // first grob whose define-grobs.scm callback calls it, and it died on
         // `wrong-type-arg ("ly:grob-array-filter" ... #<procedure grob::is-live?>)'.
         // Nothing had reached it before, so nothing had failed.

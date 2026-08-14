@@ -28,7 +28,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Translation; //was previously: lily/caesura-engraver.cc;
 
-// Modified by Jeremy Ellis on 2026-08-07 as part of the CodeBrix port.
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port.
 
 /// <summary>
 /// Notates a short break in sound that does not shorten the previous note.
@@ -290,7 +290,7 @@ public class CaesuraEngraver : Engraver
 
             if (!(sType is Symbol scriptType))
             {
-                Epg8Support.EventProgrammingError(
+                TranslatorSchemeHelpers.EventProgrammingError(
                     ev, "caesura script type must be a symbol: " + Printer.Write(sType));
                 continue;
             }
@@ -363,10 +363,10 @@ public class CaesuraEngraver : Engraver
             // Script_column if some scripts are UP and some are DOWN, though that
             // should not be a problem for traditional caesura engraving.
             //
-            // Script_interface::script_priority_less belongs to EPG14
-            // (script-interface.cc); the comparator below is its two-line body,
-            // repeated here so this engraver does not depend on code that has not
-            // landed. Recorded under FINDINGS for deduplication when EPG14 arrives.
+            // Script_interface::script_priority_less lives in script-interface.cc; the
+            // comparator below is its two-line body, copied before that port landed.
+            // ⚠ ScriptInterface.ScriptPriorityLess exists now; deduplicating this
+            // copy has not been re-measured. Recorded under FINDINGS.
             List<(Item Script, int Order)> keyed = new List<(Item, int)>();
             for (int i = 0; i < _scripts.Count; i++)
             {
@@ -375,8 +375,8 @@ public class CaesuraEngraver : Engraver
 
             keyed.Sort((a, b) =>
             {
-                long pa = Epg8Support.ToLong(a.Script.GetProperty(ScriptPrioritySymbol), 0);
-                long pb = Epg8Support.ToLong(b.Script.GetProperty(ScriptPrioritySymbol), 0);
+                long pa = TranslatorSchemeHelpers.ToLong(a.Script.GetProperty(ScriptPrioritySymbol), 0);
+                long pb = TranslatorSchemeHelpers.ToLong(b.Script.GetProperty(ScriptPrioritySymbol), 0);
                 return pa != pb ? pa.CompareTo(pb) : a.Order.CompareTo(b.Order);
             });
 
@@ -407,15 +407,16 @@ public class CaesuraEngraver : Engraver
         _userArticTypes = Nil.Instance;
     }
 
-    // make_script_from_event lives in lily/script-interface.cc, which belongs to
-    // EPG14 and has not been ported. Until it lands, a CaesuraScript is created but
-    // not configured from scriptDefinitions, and the gap is reported LOUDLY on every
-    // occurrence rather than silently producing a bare grob.
+    // make_script_from_event lives in lily/script-interface.cc. ⚠ This seam predates
+    // its port (the function now lives with the script engravers) and has not been
+    // re-routed or re-measured: a CaesuraScript is created but not configured from
+    // scriptDefinitions, and the gap is reported LOUDLY on every occurrence rather
+    // than silently producing a bare grob.
     private static void MakeScriptFromEvent(Item script, Symbol type, int index)
     {
         Warn.ProgrammingError(
             "Caesura_engraver: make_script_from_event (lily/script-interface.cc) is "
-            + "owed by EPG14; CaesuraScript `" + type.Name + "' left unconfigured");
+            + "not routed here; CaesuraScript `" + type.Name + "' left unconfigured");
     }
 
     private static object AssqRef(object alist, Symbol key)

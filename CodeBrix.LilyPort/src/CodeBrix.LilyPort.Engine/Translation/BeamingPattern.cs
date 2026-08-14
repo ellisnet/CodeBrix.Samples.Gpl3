@@ -26,7 +26,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Translation; //was previously: lily/beaming-pattern.cc, lily/include/beaming-pattern.hh;
 
-// Modified by Jeremy Ellis on 2026-08-07 as part of the CodeBrix port:
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port:
 //   - gc_mark() is dropped throughout, as everywhere else in this port: the
 //     managed collector traces the Tuplet_description and beat-structure
 //     references that upstream has to mark by hand
@@ -66,15 +66,15 @@ public sealed class BeamingOptions
     /// <param name="c">The context to read the beaming properties from.</param>
     public BeamingOptions(Context c)
     {
-        SubdivideBeams = Epg8Support.ToBool(c?.GetProperty(SubdivideBeamsSymbol));
-        StrictBeatBeaming = Epg8Support.ToBool(c?.GetProperty(StrictBeatBeamingSymbol));
-        RespectIncompleteBeams = Epg8Support.ToBool(c?.GetProperty(RespectIncompleteBeamsSymbol));
+        SubdivideBeams = TranslatorSchemeHelpers.ToBool(c?.GetProperty(SubdivideBeamsSymbol));
+        StrictBeatBeaming = TranslatorSchemeHelpers.ToBool(c?.GetProperty(StrictBeatBeamingSymbol));
+        RespectIncompleteBeams = TranslatorSchemeHelpers.ToBool(c?.GetProperty(RespectIncompleteBeamsSymbol));
         BeatStructure = c?.GetProperty(BeatStructureSymbol);
-        BeatBase = Epg8Support.ToRational(c?.GetProperty(BeatBaseSymbol), new Rational(1, 4));
+        BeatBase = TranslatorSchemeHelpers.ToRational(c?.GetProperty(BeatBaseSymbol), new Rational(1, 4));
         Period = CalcPeriod(c, BeatStructure, BeatBase);
-        MinimumSubdivisionInterval = Epg8Support.ToRational(
+        MinimumSubdivisionInterval = TranslatorSchemeHelpers.ToRational(
             c?.GetProperty(BeamMinimumSubdivisionSymbol), Rational.Zero);
-        MaximumSubdivisionInterval = Epg8Support.ToRational(
+        MaximumSubdivisionInterval = TranslatorSchemeHelpers.ToRational(
             c?.GetProperty(BeamMaximumSubdivisionSymbol), Rational.Infinity);
     }
 
@@ -113,7 +113,7 @@ public sealed class BeamingOptions
         object cursor = beatStructure;
         while (cursor is Pair pair)
         {
-            totalBeats += Epg8Support.ToRational(pair.Car, Rational.Zero);
+            totalBeats += TranslatorSchemeHelpers.ToRational(pair.Car, Rational.Zero);
             cursor = pair.Cdr;
         }
 
@@ -208,7 +208,7 @@ public sealed class BeamingPattern
 
                         curBeat = nextBeat;
                         Pair beats = (Pair)remainingBeats;
-                        nextBeat += Epg8Support.ToRational(beats.Car, Rational.Zero)
+                        nextBeat += TranslatorSchemeHelpers.ToRational(beats.Car, Rational.Zero)
                                     * options.BeatBase;
                         remainingBeats = beats.Cdr;
                     }

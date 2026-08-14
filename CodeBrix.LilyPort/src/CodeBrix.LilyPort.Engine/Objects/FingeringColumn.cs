@@ -26,7 +26,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Objects; //was previously: lily/fingering-column.cc, lily/include/fingering-column.hh;
 
-// Modified by Jeremy Ellis on 2026-08-08 as part of the CodeBrix port:
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port:
 //   - upstream's Fingering_and_offset struct becomes a value tuple; it exists only to be
 //     sorted by its offset, and the sort is stable here where std::sort is not — see the
 //     note on SortByOffset.

@@ -29,7 +29,7 @@ namespace CodeBrix.LilyPort;
 /// The context tree is built from REAL context definitions, read out of the output
 /// definition the score is laid out under, which is where <c>ly/engraver-init.ly</c>
 /// put them. The hand-written Score/Staff/Voice factory that stood in for those
-/// definitions until EPG2 is gone: a Staff's translator list, its acceptance list and
+/// definitions early on is gone: a Staff's translator list, its acceptance list and
 /// its property defaults now all come from the file that declares them.
 /// </para>
 /// <para>
@@ -88,7 +88,7 @@ public static class LilyPortEngraver
         // pieces independent. Skipping either one still produces a drawing, of every note
         // stacked at the origin.
         //
-        // EPG15 (2026-08-08) replaced PlaceColumnsOnOneLine here. THE REPORTED SYSTEM IS
+        // Line breaking replaced PlaceColumnsOnOneLine here. THE REPORTED SYSTEM IS
         // NOW THE FIRST BROKEN PIECE, NOT THE ROOT, and that is upstream's own shape
         // rather than a convenience: break substitution ends by calling
         // handle_broken_dependencies on the root, whose bounds by then belong to its
@@ -113,14 +113,14 @@ public static class LilyPortEngraver
             // second time: GetPaperSystemStencil runs PostProcessing, which TRANSLATES the
             // system, so calling it twice would move the music twice.
             //
-            // EVERY line is drawn, not just the first (EPG15 close-out, 2026-08-08). Until
+            // EVERY line is drawn, not just the first. Until
             // then this took paperSystems[0] and threw the rest away, which was invisible
             // while PlaceColumnsOnOneLine made every score one line and became the whole
-            // of EPG15's visible effect the moment line breaking landed: the port CHOSE
+            // of the visible effect the moment line breaking landed: the port CHOSE
             // three lines for break.ly and drew one of them.
             //
-            // THE FIXED PADDING IS RETIRED (EPG16, 2026-08-09). Until now the lines were
-            // stacked at a hardcoded 4.0 — an EPG15-era stand-in for page layout, from
+            // THE FIXED PADDING IS RETIRED. The lines used to be
+            // stacked at a hardcoded 4.0 — a stand-in for page layout, from
             // before there was any. The offsets come from the REAL Page_layout_problem
             // now, so lines sit where their SKYLINES allow rather than at an invented
             // constant, and a line with nothing above it no longer reserves the same gap

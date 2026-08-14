@@ -23,7 +23,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Translation; //was previously: lily/break-align-engraver.cc;
 
-// Modified by Jeremy Ellis on 2026-08-08 as part of the CodeBrix port:
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port:
 //   - derived_mark is not carried: it exists to keep column_alist_ from being collected,
 //     and the port's alist is an ordinary managed reference.
 

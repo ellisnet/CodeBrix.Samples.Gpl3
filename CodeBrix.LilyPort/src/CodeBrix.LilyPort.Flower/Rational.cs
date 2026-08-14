@@ -22,7 +22,7 @@ using System.Globalization;
 using System.Numerics;
 
 namespace CodeBrix.LilyPort.Flower; //was previously: flower/rational.cc, flower/include/rational.hh;
-// Modified by Jeremy Ellis on 2026-08-02 as part of the CodeBrix port:
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port:
 //   - translated from C++17 to C# targeting net10.0
 //   - class replaced by a readonly struct, since Rational is a value type with
 //     value semantics and is copied constantly through the layout code
@@ -511,7 +511,7 @@ public readonly struct Rational : IEquatable<Rational>, IComparable<Rational>
     /// <returns>The rational.</returns>
     /// <remarks>
     /// <para>
-    /// CORRECTED 2026-08-08 (EPG19). This USED to build the EXACT dyadic rational equal to
+    /// CORRECTED BY THE MIDI GROUP. This USED to build the EXACT dyadic rational equal to
     /// the double's binary value, using BigInteger — which is precisely what upstream's own
     /// comment warns against, in as many words: "do not blindly substitute by libg++ code,
     /// since that uses arbitrary-size integers. The rationals would overflow too easily."

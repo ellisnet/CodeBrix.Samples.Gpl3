@@ -382,7 +382,7 @@ public class Epg18Tests
         // ly:modules-lookup and ly:duration->moment -- taking it to 632. All three had
         // been POLITE STUBS whose placeholder answers their callers silently absorbed.
         // 632 until EPG15's close-out (2026-08-08), which added NINETEEN, taking it to
-        // 651. SEVENTEEN are the group's own: Bootstrap/Epg15Callbacks.cs registers
+        // 651. SEVENTEEN are the group's own: Bootstrap/LineBreakingCallbacks.cs registers
         // TWENTY-SEVEN names and the net is seventeen, because the other ten already had
         // implementations from earlier groups and are re-registered there beside their
         // siblings. The two that matter most are ly:spanner::calc-normalized-endpoints

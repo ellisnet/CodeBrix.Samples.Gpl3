@@ -25,7 +25,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Translation; //was previously: lily/time-signature-engraver.cc;
 
-// Modified by Jeremy Ellis on 2026-08-07 as part of the CodeBrix port.
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port.
 
 /**
    generate time_signatures.
@@ -149,7 +149,7 @@ public class TimeSignatureEngraver : Engraver
             // normalized to be >= 0 always.
             if (GetProperty(MeasurePositionSymbol) is Moment mp
                 && mp.MainPart > Rational.Zero
-                && !Epg8Support.ToBool(GetProperty(PartialBusySymbol)))
+                && !TranslatorSchemeHelpers.ToBool(GetProperty(PartialBusySymbol)))
             {
                 GrobWarning(_timeSignature, "mid-measure time signature without \\partial");
             }
@@ -166,7 +166,7 @@ public class TimeSignatureEngraver : Engraver
         StreamEvent cause = grob?.UltimateEventCause();
         if (cause != null)
         {
-            Epg8Support.EventWarning(cause, message);
+            TranslatorSchemeHelpers.EventWarning(cause, message);
         }
         else
         {

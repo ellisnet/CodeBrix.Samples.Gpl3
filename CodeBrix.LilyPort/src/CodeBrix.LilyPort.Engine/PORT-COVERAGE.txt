@@ -4,7 +4,7 @@ PORT-COVERAGE -- CodeBrix.LilyPort.Engine
 Deliberate divergences from LilyPond's lily/ sources, with the reason. Read this
 before assuming any file here is a literal translation.
 
-Started 2026-08-03, at the beginning of the Milestone 6 Phase 1 work.
+Started at the beginning of the Milestone 6 Phase 1 work.
 
 
 -------------------------------------------------------------------------------
@@ -49,6 +49,37 @@ VALUE-TYPE SEMANTICS
 -------------------------------------------------------------------------------
 NAMING
 -------------------------------------------------------------------------------
+
+  THE PORTING-GROUP INSTALLER RENAME (the cleanup pass). The Bootstrap installer
+  classes and two Translation files were originally named after the porting
+  groups that landed them; all were renamed to functional names, references
+  updated repo-wide, with no behaviour change. Test class names were exempt and
+  keep their historical names. The table, old -> new (class and file together
+  unless noted):
+
+    Epg5Callbacks  -> ColumnAndRestCallbacks
+    Epg6Callbacks  -> StemAndFlagCallbacks
+    Epg7Callbacks  -> VerticalLayoutCallbacks
+    Epg8Callbacks  -> MeterAndKeyCallbacks
+    Epg9Callbacks  -> AccidentalCallbacks
+    Epg10Callbacks -> BeamCallbacks
+    Epg11Callbacks -> TieCallbacks
+    Epg12Callbacks -> SlurCallbacks
+    Epg14Callbacks -> ScriptAndDynamicCallbacks
+    Epg15Callbacks -> LineBreakingCallbacks
+    Epg16Callbacks -> PageBreakingCallbacks
+    Epg17Callbacks -> VoltaAndTupletCallbacks
+    Epg18Callbacks -> LyricCallbacks
+    Epg20Callbacks -> TablatureAndChordCallbacks
+    Epg21Callbacks -> LigatureCallbacks
+    Epg23Callbacks -> AssortedGrobCallbacks
+    Epg8Support    -> TranslatorSchemeHelpers
+    Epg17Iterators.cs -> MeasureControlIterators.cs (file only; types unchanged)
+
+  The Parsing project's rule-action partial files were renamed the same way
+  (RagN -> functional names); that table lives in Parsing/PORT-COVERAGE.txt.
+  The committed ledger keeps its historical `EPG<n>` group vocabulary — it is
+  data, and this document's ledger section says so where it documents the format.
 
   lily/music.cc  ->  Music/MusicObject.cs
 
@@ -110,22 +141,22 @@ ALGORITHMIC EQUIVALENTS
 NOT YET PORTED, AND WHY
 -------------------------------------------------------------------------------
 
-  lily/stencil-integral.cc   -- CLOSED 2026-08-05. Left here for the record.
+  lily/stencil-integral.cc   -- CLOSED. Left here for the record.
 
     Was: "Needs glyph outlines, i.e. the CFF charstring interpreter. The
     metadata reader (Fonts/OpenTypeFont.cs) covers everything the ENGINE needs;
     outlines are only wanted for skyline tracing." Both halves proved wrong --
     the interpreter was also what stood between the port and its comparator
-    (see the 2026-08-05 note further down), and it is now built and the walk
+    (see THE FIRST ORACLE COMPARISON further down), and it is now built and the walk
     landed on top of it. See THE STENCIL EXPRESSION WALK at the end of this
     file.
 
   lily/line-interface.cc arrows / make_arrow / the property-driven `line`
-  -- CLOSED 2026-08-07 (EPG17). Left here for the record.
+  -- CLOSED by the repeats/voltas/tuplets group. Left here for the record.
 
     Was: "Read grob properties. Only the grob-free constructors are ported."
 
-    EPG17's demand loop closed it. Bracket::make_bracket draws EVERY bracket
+    That group's demand loop closed it. Bracket::make_bracket draws EVERY bracket
     edge through Line_interface::line, so neither VoltaBracket nor
     TupletBracket could exist without it; `line' in turn dispatches on the
     `style' property, so make_zigzag_line and make_trill_line came with it
@@ -147,7 +178,7 @@ NOT YET PORTED, AND WHY
 
     Page layout. Needs Prob-based paper systems and Paper_score.
 
-  ~~Grob_property_info and the \override chain~~  -> PORTED 2026-08-03.
+  ~~Grob_property_info and the \override chain~~  -> PORTED.
 
     Objects/NestedProperty.cs + Objects/GrobProperties.cs, and
     Engraver.LookupGrobDefinition now goes through GrobPropertyInfo.Updated().
@@ -162,8 +193,8 @@ NOT YET PORTED, AND WHY
 
   Prob::transpose's pitch-alist branch
 
-    CLOSED 2026-08-08 (carry-forward session). The identity stand-in this entry
-    recorded outlived its reason: the real algorithm landed with EPG19 as
+    CLOSED by a later carry-forward pass. The identity stand-in this entry
+    recorded outlived its reason: the real algorithm landed with the MIDI group as
     MusicSequence.TransposeKeyAlist and nothing re-pointed this branch at it, so
     every `\key PITCH \SCALE' carried the UNTRANSPOSED scale pattern — visible
     only as wrong MIDI key signatures (d minor announced c minor's three
@@ -174,7 +205,7 @@ NOT YET PORTED, AND WHY
     read identically from C# and threw wrong-type-arg the moment Scheme's
     alterations-in-key multiplied it. CarryForwardFixTests fences both, with
     the d-minor expectation hand-computed. The stale-stand-in lesson is
-    RATCHET-FIX's, again: a recorded absence stops being true the moment its
+    an old one relearned: a recorded absence stops being true the moment its
     owner lands, and nothing re-checks it.
 
 
@@ -218,7 +249,7 @@ UPSTREAM BEHAVIOUR THAT LOOKS LIKE A BUG BUT IS NOT
 
 
 -------------------------------------------------------------------------------
-ADDED 2026-08-03 (second pass) -- the column and system layer
+ADDED IN THE SECOND PASS -- the column and system layer
 -------------------------------------------------------------------------------
 
   lily/grob-array.cc, lily/pointer-group-interface.cc  ->  Objects/GrobArray.cs
@@ -249,9 +280,9 @@ ADDED 2026-08-03 (second pass) -- the column and system layer
 
     Paper_column::minimum_distance omits the Separation_item::conditional_skyline
     merge, which needs Separation_item. The skyline half is exact.
-    [DISCHARGED 2026-08-11, STAFF-LINES session: the merge is in, its callee
-    having landed long before. Break_align_width was restored by EPG16's
-    close-out II; this row's other absences retired with their owners.]
+    [DISCHARGED by the staff-line root-cause work: the merge is in, its callee
+    having landed long before. Break_align_width was restored by the
+    page-breaking close-out; this row's other absences retired with their owners.]
 
   lily/system.cc  ->  Objects/SystemGrob.cs
 
@@ -285,7 +316,7 @@ ADDED 2026-08-03 (second pass) -- the column and system layer
 
 
 -------------------------------------------------------------------------------
-ADDED 2026-08-03 (third pass) -- the §7b unblock wirings
+ADDED IN THE THIRD PASS -- the §7b unblock wirings
 -------------------------------------------------------------------------------
 
   lily/prob-scheme.cc  ->  Bootstrap/ProbPrimitives.cs
@@ -311,16 +342,18 @@ ADDED 2026-08-03 (third pass) -- the §7b unblock wirings
     error -- an unbound variable in a LilyScheme module is an ordinary state,
     not an inconsistency).
 
-  lily/function-documentation.cc  ->  FunctionDocumentation.cs   CLOSED 2026-08-13
+  lily/function-documentation.cc  ->  FunctionDocumentation.cs   CLOSED
 
-    NO LONGER A DIVERGENCE (EPG24). The table is filled from the vendored
+    NO LONGER A DIVERGENCE (closed by documentation-generation parity). The
+    table is filled from the vendored
     entry-point-docs.tsv at CreateInterpreter -- 448 entry points: the LY_DEFINE
     and LY_DEFINE_WITH_SETTER docstrings, the four documented callback macros,
     and the 36 smob type predicates, whose text Smob_base::init GENERATES from
     the class name (smobs.tcc:141-145) rather than writing anywhere.
 
     The PROCEDURE-PROPERTY half is carried too, and the note below that said it
-    was not needed was WRONG -- see the correction in the EPG3 section. The
+    was not needed was WRONG -- see the correction in the OUTPUT PIPELINE
+    section. The
     superseded entry: "ly:get-all-function-documentation returns an EMPTY hash
     table [...] document-functions.scm therefore documents only Scheme-defined
     functions until docstrings are ever wanted."
@@ -334,7 +367,7 @@ ADDED 2026-08-03 (third pass) -- the §7b unblock wirings
     all registered at startup, so the difference is unobservable today.
 
 -------------------------------------------------------------------------------
-ADDED 2026-08-03 (fifth pass) -- Track T: iterators, the override chain, engravers
+ADDED IN THE FIFTH PASS -- Track T: iterators, the override chain, engravers
 -------------------------------------------------------------------------------
 
   lily/music-iterator.cc         ->  Translation/MusicIterator.cs
@@ -438,7 +471,7 @@ ADDED 2026-08-03 (fifth pass) -- Track T: iterators, the override chain, engrave
     handed a default iterator that would drop its meaning.
 
 -------------------------------------------------------------------------------
-ADDED 2026-08-03 (fourth pass) -- the C++ ADD_INTERFACE table (plan O8, option C)
+ADDED IN THE FOURTH PASS -- the C++ ADD_INTERFACE table (plan O8, option C)
 -------------------------------------------------------------------------------
 
   lily/*.cc ADD_INTERFACE macros  ->  Scheme/grob-interfaces.tsv
@@ -543,7 +576,7 @@ A TEST-FIXTURE TRAP WORTH KNOWING
   System::pre_processing prebreaks first. Test fixtures must prebreak too, and
   must register springs from the prebroken pieces as well as the originals.
 
-  -> Since later on 2026-08-03 the trap is GUARDED rather than merely
+  -> Since later the same pass the trap is GUARDED rather than merely
   documented, in two places:
 
   1. Engine side: both LineSpacing entry points now check for the state that
@@ -577,7 +610,7 @@ A TEST-FIXTURE TRAP WORTH KNOWING
 
 
 -------------------------------------------------------------------------------
-ADDED 2026-08-03 (sixth pass) -- FIRST LIGHT: the score, output and font layers
+ADDED IN THE SIXTH PASS -- FIRST LIGHT: the score, output and font layers
 -------------------------------------------------------------------------------
 
 The Phase 2 "first light" pass: Paper_score, Score_engraver,
@@ -648,8 +681,8 @@ DELIBERATE DIVERGENCES IN THIS PASS
     magnification/output-scale division. The latin1 branch is D23's text
     chain (TextFontMetric).
 
-    fetaText STRINGS COMPOSE FOR REAL AS OF 2026-08-08 (carry-forward
-    session). Upstream sets a string in the music font through Pango; the
+    fetaText STRINGS COMPOSE FOR REAL since a carry-forward pass restored
+    them. Upstream sets a string in the music font through Pango; the
     port composes the run itself from the font's own cmap and hmtx
     (TextInterface.MusicFontTextStencil): each code point maps to a named
     glyph, and the pen advances by the glyph's hmtx advance, scaled the same
@@ -657,7 +690,8 @@ DELIBERATE DIVERGENCES IN THIS PASS
     for a font with no kerning in that range. Until then a string under a
     music encoding answered an EMPTY stencil, which made \number, \dynamic
     and every figured-bass digit silently invisible; the divergence was found
-    from EPG20's flagged no-BassFigure-reaches-the-page gap. A code point the
+    from the figured-bass group's flagged no-BassFigure-reaches-the-page gap.
+    A code point the
     font does not map still draws nothing and the run continues.
     CarryForwardFixTests fences the cmap and advances;
     ChordsAndClustersEndToEndTests' unskipped figured-bass test is the
@@ -749,7 +783,7 @@ NEWLY PORTED TYPE PREDICATES (the standing obligation)
 
 
 -------------------------------------------------------------------------------
-ADDED 2026-08-03 (seventh pass) -- TRACK P begins: the vendored grammar
+ADDED IN THE SEVENTH PASS -- TRACK P begins: the vendored grammar
 -------------------------------------------------------------------------------
 
 parser-mirror/ is a byte-identical mirror of lily/parser.yy and lily/lexer.ll,
@@ -812,7 +846,7 @@ NOT YET DONE IN TRACK P
 
 
 -------------------------------------------------------------------------------
-ADDED 2026-08-03 (eighth pass) -- THE FIRST ORACLE COMPARISON, AND WHAT IT SAID
+ADDED IN THE EIGHTH PASS -- THE FIRST ORACLE COMPARISON, AND WHAT IT SAID
 -------------------------------------------------------------------------------
 
 The Milestone 5 comparator has now been run against the port for the first time,
@@ -871,7 +905,7 @@ WHAT THE REMAINING DIFFERENCES ARE, ALL ALREADY KNOWN
 
 
 -------------------------------------------------------------------------------
-ADDED 2026-08-03 (ninth pass) -- TRACK P: the generator, the driver, the fences
+ADDED IN THE NINTH PASS -- TRACK P: the generator, the driver, the fences
 -------------------------------------------------------------------------------
 
 The machinery of decision O7 is BUILT AND VERIFIED. The bulk translation work --
@@ -953,7 +987,7 @@ DELIBERATE CHOICES
 WHAT IS NOT DONE IN TRACK P
 ...........................
 
-  * ~~The LEXER's token-producing rules~~ DONE 2026-08-03: ALL FOURTEEN start
+  * ~~The LEXER's token-producing rules~~ DONE: ALL FOURTEEN start
     conditions are ported and tested -- notes, chords, figures, lyrics, markup,
     quote, commandquote, incl, maininput and the rest. What the scanner still
     DELEGATES is the DATA those rules consult (note-name and keyword tables,
@@ -976,13 +1010,13 @@ WHAT IS NOT DONE IN TRACK P
   translation.
 
 -------------------------------------------------------------------------------
-ADDED 2026-08-04 (RAG3 + RAG5) -- the parser-facing engine types
+ADDED FOR THE PARSER'S BOOK AND CONTEXT RULES -- the parser-facing engine types
 -------------------------------------------------------------------------------
 
   lily/book.cc, lily/include/book.hh    ->  Objects/Book.cs
   lily/score.cc, lily/include/score.hh  ->  Objects/Score.cs
 
-    Ported for the parser's book/bookpart/score rule actions (RAG3): the
+    Ported for the parser's book/bookpart/score rule actions (the BookBlocks group): the
     parser-facing halves only -- construction defaults, paper/header storage,
     the reverse-order scores_/bookparts_ lists, add_score, add_output_def,
     set_music/get_music with its error handling, error_found_, and the origin
@@ -1002,7 +1036,7 @@ ADDED 2026-08-04 (RAG3 + RAG5) -- the parser-facing engine types
   lily/acceptance-set.cc, lily/include/acceptance-set.hh
                                     ->  AcceptanceSet, hosted IN ContextDef.cs
 
-    Ported for the parser's \context/\with actions (RAG5): the definition DATA
+    Ported for the parser's \context/\with actions (the ContextDefinitions group): the definition DATA
     and the pure queries over it -- add_context_mod's full tag dispatch,
     get_translator_names (Scheme_hash_table becomes a Dictionary over
     ReferenceComparer.Instance, i.e. hashq), to_alist, lookup, is_alias, the
@@ -1034,10 +1068,10 @@ ADDED 2026-08-04 (RAG3 + RAG5) -- the parser-facing engine types
 
 
 -------------------------------------------------------------------------------
-ADDED 2026-08-04 (EPG0) -- THE LEDGER, THE RATCHET AND SUITE MODE
+ADDED WITH THE PORT'S BOOKKEEPING MACHINERY -- THE LEDGER, THE RATCHET AND SUITE MODE
 -------------------------------------------------------------------------------
 
-EPG0 ports nothing. It builds the machinery that makes the REMAINING engine
+That machinery ports nothing itself. It is what makes the REMAINING engine
 work computed rather than remembered, so no later session has to re-derive it.
 
   lily-cc-ledger.tsv  (Engine project root, embedded)
@@ -1046,7 +1080,7 @@ work computed rather than remembered, so no later session has to re-derive it.
     `ported <C# file(s)>`, `group EPG<n>` or `no-port <reason>`. Read through
     PortLedger.cs; fenced by LedgerTests.
 
-    The EPG0 baseline: 75 ported, 344 owed by a group, 29 no-port.
+    The opening baseline: 75 ported, 344 owed by a group, 29 no-port.
 
     THE ROW SET IS VENDORED, not enumerated from ~/GitHome/lilypond. Standing
     rule 7 keeps every build and test step out of the reference tree, so the
@@ -1065,10 +1099,10 @@ work computed rather than remembered, so no later session has to re-derive it.
 
     BY FILE the 37 split 35 / 2 (scheme-engravers.scm, scheme-performers.scm).
     BY KIND they split 36 ENGRAVERS / 1 PERFORMER, which is the number that
-    matters to EPG2: scheme-performers.scm registers Beat_performer AND
+    matters to the contexts group: scheme-performers.scm registers Beat_performer AND
     Beat_engraver, the latter wrapping the same function with
-    (is-midi . #f) (is-layout . #t). So EPG2's scheme-engraver.cc bridge serves
-    36, not 35, and EPG19 owes the single Scheme performer.
+    (is-midi . #f) (is-layout . #t). So the scheme-engraver.cc bridge serves
+    36, not 35, and the MIDI group owes the single Scheme performer.
 
     CORRECTION TO THE PLAN: the condensed plan says "34 Scheme"; the real count
     is 37. Counted from scm/scheme-engravers.scm and scm/scheme-performers.scm.
@@ -1085,7 +1119,7 @@ work computed rather than remembered, so no later session has to re-derive it.
     An entry point whose binding VANISHED counts as stubbed, not implemented:
     the Scheme cannot call it either way, and the other answer flatters G3.
 
-    MEASURED BASELINE, 2026-08-04: 234 of 737 implemented, 503 still stubs.
+    MEASURED BASELINE AT THE TIME: 234 of 737 implemented, 503 still stubs.
     EntryPointClosureTests asserts it as a FLOOR, so a session that raises the
     number need not come back and edit it, but a session that breaks a
     registration fails.
@@ -1102,7 +1136,8 @@ work computed rather than remembered, so no later session has to re-derive it.
     per-file verdicts; its human report is not parseable and never was.
 
     pass-manifest.tsv is COMMITTED EMPTY. The port cannot engrave a regression
-    file end to end until EPG3, and the verdicts only become meaningful at EPG4.
+    file end to end until the output pipeline landed, and the verdicts only
+    become meaningful once horizontal spacing did.
     The machinery lands first on purpose: a ratchet retrofitted afterwards
     records whatever the port happened to be doing that day, which is how a
     suite ends up enshrining its own bugs.
@@ -1144,27 +1179,30 @@ ONE DISPOSITION WORTH ARGUING WITH
   System.Text.RegularExpressions -- ly:make-regex, ly:regex-exec,
   ly:regex-replace and ly:regex? all work, and those three scm files load on
   their own merits, not on a placeholder. Only ly:regex-exec->list and
-  ly:regex-quote remain, so the EPG3 row stands for a much smaller reason.
+  ly:regex-quote remain, so the output-pipeline row stands for a much smaller
+  reason.
 
   The first reading was wrong because the ledger scrapes `was previously:`
-  comments and binding files correctly carry none. See the EPG1 section's note
+  comments and binding files correctly carry none. See the SOURCE LOCATIONS
+  AND MUSIC FUNCTIONS section's note
   on every_bindings_complete_scheme_file_is_marked_ported, the fence added so
   that blind spot cannot hide a finished file again.
 
 ONE GAP IN THE PLAN
 
   figured-bass-continuation.cc, figured-bass-engraver.cc and
-  figured-bass-position-engraver.cc are named by NO EPG group. They are
+  figured-bass-position-engraver.cc are named by NO work group. They are
   referenced from ly/engraver-init.ly and scm/define-grobs.scm, so they are
-  real work. Parked in EPG20 and flagged for Jeremy's ruling; the ledger rows
+  real work. Parked with the figured-bass group and flagged for Jeremy's
+  ruling; the ledger rows
   carry "PLAN GAP" in their notes column so the decision is not lost.
 
 
 -------------------------------------------------------------------------------
-ADDED 2026-08-04 (EPG1, PARTIAL) -- SOURCE LOCATIONS AND MUSIC FUNCTIONS
+ADDED PARTIAL -- SOURCE LOCATIONS AND MUSIC FUNCTIONS
 -------------------------------------------------------------------------------
 
-Seven of EPG1's nine ledger rows landed. lily-parser-scheme.cc and parse-scm.cc
+Seven of the group's nine ledger rows landed. lily-parser-scheme.cc and parse-scm.cc
 did NOT -- see "STILL OWED" at the end of this section.
 
   lily/input.cc, lily/include/input.hh        ->  Origins/Input.cs
@@ -1248,7 +1286,7 @@ FLOWER GAINED Warn.DeprecationWarning
   process, and a warning suppressed by an EARLIER test is a test that has
   silently stopped checking anything.
 
-STILL OWED BY EPG1
+STILL OWED BY THE SOURCE-LOCATIONS GROUP
 
   lily-parser-scheme.cc   16 bindings (the ly:parser-* family, ly:parse-file,
                           ly:parse-string-expression, ly:parse-init,
@@ -1263,11 +1301,11 @@ STILL OWED BY EPG1
                           deliberately does not assert binding completeness,
                           and the standing bindings rule still owes these.
 
-  Consequence: EPG1's exit criterion (all 62 ly/ init files load to completion,
+  Consequence: the group's exit criterion (all 62 ly/ init files load to completion,
   pitchnames real, music-function calls run from .ly text) is NOT yet met.
 
 -------------------------------------------------------------------------------
-OUTPUT DEFINITIONS HOLD A REAL MODULE (corrected 2026-08-04, EPG1)
+OUTPUT DEFINITIONS HOLD A REAL MODULE (corrected)
 -------------------------------------------------------------------------------
 
   Output_def::scope_ is a Guile module upstream, and this file used to record
@@ -1300,7 +1338,7 @@ OUTPUT DEFINITIONS HOLD A REAL MODULE (corrected 2026-08-04, EPG1)
   reads the module's own bound bindings. It is a snapshot, not a live view.
 
 -------------------------------------------------------------------------------
-ly:set-origin! AND THE %location FLUID (EPG1)
+ly:set-origin! AND THE %location FLUID
 -------------------------------------------------------------------------------
 
   Every syntax constructor in scm/ly-syntax-constructors.scm ends in
@@ -1317,7 +1355,7 @@ ly:set-origin! AND THE %location FLUID (EPG1)
   root-module lookup answered nothing and every origin came out #f.
 
 -------------------------------------------------------------------------------
-MUSIC FUNCTIONS ARE APPLICABLE (EPG1)
+MUSIC FUNCTIONS ARE APPLICABLE
 -------------------------------------------------------------------------------
 
   music-function.hh declares LY_DECLARE_SMOB_PROC (&Music_function::call, 0, 0, 1),
@@ -1330,13 +1368,14 @@ MUSIC FUNCTIONS ARE APPLICABLE (EPG1)
   Guile's scm_set_smob_apply.
 
 -------------------------------------------------------------------------------
-context-mod-scheme.cc -- PULLED FORWARD OUT OF EPG2 (2026-08-04)
+context-mod-scheme.cc -- PULLED FORWARD OUT OF THE CONTEXTS GROUP
 -------------------------------------------------------------------------------
 
   All four bindings (ly:get-context-mods, ly:add-context-mod,
   ly:make-context-mod, ly:context-mod-apply!) are in
-  Bootstrap/TranslationPrimitives.cs. They are EPG2's by the plan, and the EPG1
-  demand loop pulled them forward because the ly/ init layer could not finish
+  Bootstrap/TranslationPrimitives.cs. They are the contexts group's by the
+  plan, and the init-layer demand loop pulled them forward because the ly/
+  init layer could not finish
   without them.
 
   This is standing rule 3's textbook case. Context_mod itself had been ported
@@ -1351,10 +1390,10 @@ context-mod-scheme.cc -- PULLED FORWARD OUT OF EPG2 (2026-08-04)
   ly:output-def-scope was pulled forward the same way and for the same kind of
   reason -- scm/paper.scm's set-default-paper-size and set-global-staff-size
   both need it at declarations-init.ly:156-157. The rest of
-  output-def-scheme.cc remains EPG3's; the ledger row says so.
+  output-def-scheme.cc remains the output pipeline's; the ledger row says so.
 
 ===============================================================================
-EPG2 -- CONTEXTS GO REAL (2026-08-05)
+CONTEXTS GO REAL
 ===============================================================================
 
   The whole group landed: context-handle.cc, context-scheme.cc,
@@ -1397,7 +1436,7 @@ DISPATCHER
   constructor, and SendStreamEvent broadcasts once, on the event source.
 
 -------------------------------------------------------------------------------
-DELIBERATE DIVERGENCES (EPG2)
+DELIBERATE DIVERGENCES (contexts)
 -------------------------------------------------------------------------------
 
   Context (Symbol, string) -- a name-only constructor building a SYNTHETIC
@@ -1417,7 +1456,8 @@ DELIBERATE DIVERGENCES (EPG2)
   the same.
 
   PerformerGroupPlaceholder stands in for Performer_group and Score_performer
-  until EPG19. It is a real, empty Translator_group rather than a null return,
+  until the MIDI group landed. It is a real, empty Translator_group rather
+  than a null return,
   and the difference matters: a null group makes \midi fail at context creation
   with a programming error, whereas an empty one builds the same context tree
   and simply produces no performance. That keeps ly/performer-init.ly loadable.
@@ -1435,7 +1475,7 @@ DELIBERATE DIVERGENCES (EPG2)
   addressed at Global takes effect here and is ignored upstream.
 
 -------------------------------------------------------------------------------
-G4's MEASUREMENT IS COMPUTED (EPG2)
+G4's MEASUREMENT IS COMPUTED
 -------------------------------------------------------------------------------
 
   TranslatorRegistry.RegisterBuiltIn lists the port's C#-side translators and
@@ -1451,7 +1491,7 @@ G4's MEASUREMENT IS COMPUTED (EPG2)
   nothing to explain it.
 
 ===============================================================================
-EPG3 -- OUTPUT PIPELINE, FIRST SLICE (2026-08-05)
+OUTPUT PIPELINE, FIRST SLICE
 ===============================================================================
 
   Landed: music-output.cc, paper-system.cc (+scheme), page-marker.cc
@@ -1459,26 +1499,27 @@ EPG3 -- OUTPUT PIPELINE, FIRST SLICE (2026-08-05)
   glib-regex-scheme.cc, most of book-scheme.cc and most of
   output-def-scheme.cc.
 
-  STILL OWED BY EPG3, and the ledger rows say so per file: paper-book.cc,
+  STILL OWED BY THE OUTPUT PIPELINE, and the ledger rows say so per file:
+  paper-book.cc,
   paper-outputter.cc (+scheme), function-documentation.cc, lily-version.cc,
   the general-scheme.cc remainder, ly:book-process / ly:book-process-to-systems
   (both go through Book::process into Paper_book, which is page layout), and
   the INTERNAL in-process batch runner.
 
 -------------------------------------------------------------------------------
-DELIBERATE DIVERGENCES (EPG3, first slice)
+DELIBERATE DIVERGENCES (output pipeline, first slice)
 -------------------------------------------------------------------------------
 
   Paper_score::get_paper_systems answers the SINGLE unbroken system. Upstream
   runs calc_breaking and System::break_into_pieces first, so its answer is one
-  paper system per LINE. Line breaking is EPG15. This is the right answer for
+  paper system per LINE. Line breaking is its own group. This is the right answer for
   music that fits on one line and the wrong one for anything longer, which is
   what the regression ratchet will report by file rather than something
   silently plausible.
 
   System::get_paper_system leaves staff-refpoint-extent unset. Upstream
   computes it from the vertical alignment's spaceable staves, which is
-  Page_layout_problem::is_spaceable -- EPG16's file. An absent property is an
+  Page_layout_problem::is_spaceable -- a page-layout file. An absent property is an
   honest "not computed"; a zero interval would read as "the staves are all at
   the origin", which is a different and wrong claim.
 
@@ -1492,7 +1533,7 @@ DELIBERATE DIVERGENCES (EPG3, first slice)
   below would silently come out zero.
 
 -------------------------------------------------------------------------------
-ly:regex-exec RETURNS A GOOPS <regex-match> (EPG3)
+ly:regex-exec RETURNS A GOOPS <regex-match>
 -------------------------------------------------------------------------------
 
   Not a bare match object, and this cost a whole file. scm/lily-library.scm
@@ -1515,13 +1556,14 @@ ly:regex-exec RETURNS A GOOPS <regex-match> (EPG3)
   context names.
 
 -------------------------------------------------------------------------------
-DELIBERATE DIVERGENCES (EPG3, finish -- 2026-08-05)
+DELIBERATE DIVERGENCES (output pipeline, finish)
 -------------------------------------------------------------------------------
 
   THE BATCH RUNNER runs D20's short-circuit. BatchRunner (src/CodeBrix.LilyPort)
   defines default-toplevel-book-handler -- the escape hatch ly/init.ly itself
   checks for -- and takes each book's scores STRAIGHT to the SVG backend,
-  score by score, instead of through ly:book-process. Page assembly is EPG16's
+  score by score, instead of through ly:book-process. Page assembly is page
+  layout's
   subsystem; when Paper_book lands there, the handler comes out and the real
   book path goes in. Until then:
 
@@ -1541,13 +1583,13 @@ DELIBERATE DIVERGENCES (EPG3, finish -- 2026-08-05)
 
     * A score engraves under its own \layout (else $defaultlayout), CLONED and
       parented into the book's \paper so paper variables resolve; the scale
-      stays 1 because Paper_book's scaling pass is EPG16's. Toplevel markups
-      and page markers are SKIPPED with a named diagnostic (text interface is
-      EPG13, page layout EPG16).
+      stays 1 because Paper_book's scaling pass is page layout's. Toplevel
+      markups and page markers are SKIPPED with a named diagnostic (text
+      interface and page layout own them).
 
   ly:format renders ~f/~$/~Nf through .NET's "F<precision>" invariant
   formatting where upstream goes through C's %.*lf. The two agree except
-  possibly in the last digit of exact-halfway ties. If EPG13's glyph-level
+  possibly in the last digit of exact-halfway ties. If the glyph-level
   comparator ever reports a last-digit coordinate delta, look here first.
 
   ly:stderr-redirect's FILE form redirects the port's diagnostic writer
@@ -1557,13 +1599,15 @@ DELIBERATE DIVERGENCES (EPG3, finish -- 2026-08-05)
 
   function-documentation.cc: the TABLE mechanism is real and
   ly:get-all-function-documentation answers it; the docstring CONTENT is
-  EPG24's (the port's bindings declare none yet, so the table is honestly
+  documentation-generation parity's (the port's bindings declare none yet, so
+  the table is honestly
   sparse). The procedure-property half of ly_add_function_documentation is
   not carried -- nothing in the vendored layer reads the property where it
   reads the table. ly_check_name guards C++-to-Scheme name mangling at
   compile time and has no analogue in C#.
 
-  ^^ CORRECTED 2026-08-13 (EPG24). BOTH halves of that paragraph are now
+  ^^ CORRECTED by documentation-generation parity. BOTH halves of that
+  paragraph are now
   overtaken, and the second one was FALSE when it was written:
 
     * The docstring content landed -- see the function-documentation.cc entry
@@ -1605,7 +1649,7 @@ DELIBERATE DIVERGENCES (EPG3, finish -- 2026-08-05)
   both printed as file:line:col.
 
 ===============================================================================
-EPG4 -- HORIZONTAL SPACING (2026-08-05)
+HORIZONTAL SPACING
 ===============================================================================
 
   The whole group landed: spacing-options.cc, rod.cc, spacing-interface.cc,
@@ -1629,23 +1673,24 @@ NAMING
   including the ones that legitimately want the type.
 
 -------------------------------------------------------------------------------
-THE THREE THINGS EPG4 PULLED FORWARD, AND WHY
+THE THREE THINGS HORIZONTAL SPACING PULLED FORWARD, AND WHY
 -------------------------------------------------------------------------------
 
   separation-item.cc was carried as a PARTIAL port: add_item only. Its skyline
-  half is not optional for EPG4 and was completed here -- calc_skylines,
+  half is not optional for horizontal spacing and was completed here --
+  calc_skylines,
   boxes, set_distance, is_empty, conditional_skyline, add_conditional_item.
   Without calc_skylines, every column's horizontal-skylines property answers
   nothing, Paper_column::minimum_distance answers 0 for every pair, and the
   spacing problem is stated with no rods at all: a solution would exist, and
   it would let everything collide.
 
-  ly:item-break-dir (item-scheme.cc, EPG23's file) came forward the moment a
+  ly:item-break-dir (item-scheme.cc, a long-tail file) came forward the moment a
   StaffSpacing grob existed. Staff_spacing::get_spacing reads the space-alist
   off a break-aligned grob, and several space-alist entries are
   break-alignment-list callbacks from scm/output-lib.scm, whose first act is to
   ask an item which side of a break it is on. The rest of item-scheme.cc is
-  still EPG23's and the ledger row says so.
+  still the long tail's and the ledger row says so.
 
   robust_relative_extent (misc.cc) is carried on LooseColumns, its only
   port-side caller so far.
@@ -1667,7 +1712,8 @@ THE DEFECT THIS FOUND, AND IT IS THE ONE TO REMEMBER: A SKYLINE PAIR IS A CONS
   and breaks every Scheme reader that expects to car it (skyline.scm,
   paper-system.scm).
 
-  This was invisible until EPG4, because nothing had ever WRITTEN
+  This was invisible until horizontal spacing landed, because nothing had
+  ever WRITTEN
   horizontal-skylines: the property was only ever read, and reading an unset
   property answers '() rather than a wrong type. The first write is what
   surfaced it. SkylinePair now carries ToScheme/FromScheme -- including
@@ -1704,7 +1750,7 @@ THE OTHER DEFECT: A LISTENER REGISTERED IN A CONSTRUCTOR TAKES THE TREE DOWN
 DELIBERATE DIVERGENCES IN THIS PASS
 -------------------------------------------------------------------------------
 
-  [RETIRED 2026-08-08, EPG15.] PaperScore.PlaceColumnsOnOneLine was a STAND-IN
+  [RETIRED by line breaking.] PaperScore.PlaceColumnsOnOneLine was a STAND-IN
   for calc_breaking + System::break_into_pieces, and it is DELETED: the port runs
   the real Paper_score::calc_breaking -> System::break_into_pieces ->
   do_break_substitution_and_fixup_refpoints chain. The entry is kept because its
@@ -1719,17 +1765,17 @@ DELIBERATE DIVERGENCES IN THIS PASS
   nothing calls set_springs by name. handle_prebroken_dependencies and
   fixup_refpoint, which sit between those two halves upstream, are still
   absent: both re-point grobs at prebroken pieces, which only matters once
-  lines are really broken (EPG15).
+  lines are really broken (the line-breaking group's job).
 
   Spacing_interface::skylines shifts by a PURE relative Y coordinate upstream.
-  The pure/unpure machinery is EPG15's (unpure-pure-container.cc). The port
+  The pure/unpure machinery is line breaking's (unpure-pure-container.cc). The port
   uses the real coordinate: the same answer for every grob with no separate
   pure callback -- all of them, today -- but it does compute and cache a Y
-  offset earlier than upstream would, which is a thing to re-check when EPG7's
+  offset earlier than upstream would, which is a thing to re-check when
   vertical alignment starts moving staves.
-  [DISCHARGED 2026-08-11, STAFF-LINES session: the shift is the pure
+  [DISCHARGED by the staff-line root-cause work: the shift is the pure
   coordinate now. The re-check predicted here came true at scale -- see the
-  STAFF-LINES entry at the end of this file.]
+  staff-line close-out entry near the end of this file.]
 
   Three named absences, each taking upstream's OWN fallback path rather than
   inventing one:
@@ -1737,18 +1783,19 @@ DELIBERATE DIVERGENCES IN THIS PASS
     * Note_spacing::stem_dir_correction is structurally complete, bar handling
       included. The branch that measures a note column's stem takes upstream's
       undeterminable-stem exit -- a bare return, leaving the space unchanged --
-      and says so once, loudly. Note columns are EPG5, stems EPG6.
-      [DISCHARGED 2026-08-11, STAFF-LINES session: the stem loop is ported in
+      and says so once, loudly.
+      [DISCHARGED by the staff-line root-cause work: the stem loop is ported in
       full, knee_correction included. It had been unreachable for a different
       reason than the note assumed -- Paper_column_engraver never acknowledged
       spacing wishes onto the columns, so NO wish-based correction ever ran.]
 
     * Staff_spacing::optical_correction answers 0, which is upstream's answer
-      whenever the note column has no stem. EPG6.
-      [DISCHARGED 2026-08-11, STAFF-LINES session: ported in full, same
+      whenever the note column has no stem.
+      [DISCHARGED by the staff-line root-cause work: ported in full, same
       reachability story as stem_dir_correction above.]
 
-    * Break_alignment_interface::find_nonempty_break_align_group is EPG8.
+    * Break_alignment_interface::find_nonempty_break_align_group is the
+      bars/meter group's.
       Note_spacing then measures to the right side of the non-musical column,
       which is upstream's own no-staff-bar-group fallback; in
       Spacing_spanner::is_loose_column the consequence is different and worth
@@ -1758,12 +1805,13 @@ DELIBERATE DIVERGENCES IN THIS PASS
       ordinary bar line.
 
   Separation_item::boxes takes the unfiltered branch for conditional elements:
-  the filter is Accidental_placement::get_relevant_accidentals (EPG9), and
+  the filter is Accidental_placement::get_relevant_accidentals (accidentals
+  group), and
   nothing carries accidental-placement-interface yet, so the branch is
   currently unreachable rather than wrong.
 
 -------------------------------------------------------------------------------
-WHERE line-width COMES FROM, AND THE TWO REASONS IT WAS NOWHERE (EPG4)
+WHERE line-width COMES FROM, AND THE TWO REASONS IT WAS NOWHERE
 -------------------------------------------------------------------------------
 
   The spacing solver takes a line width. The port had none, and fell back to a
@@ -1789,18 +1837,19 @@ WHERE line-width COMES FROM, AND THE TWO REASONS IT WAS NOWHERE (EPG4)
 
   Upstream calls normalize from Book::process. The port calls it from
   BatchRunner.ScoreLayout -- same object, same point in the sequence -- until
-  EPG16 lands the real book path and it can move to where it belongs.
+  the real book path lands and it can move to where it belongs.
 
   Measured effect on the 2,146-file sweep: 121 of the 915 files that produce
   SVG went from a zero-width page to a real one, and 108 from every grob at
   x = 0 to real horizontal positions. The comparator's verdict does not move
   yet (897 pages stay at the GLYPHS-DIFFER floor) because it cannot grade
-  positions while the glyph inventories differ -- that is EPG13's upgrade, and
-  it is why the plan slots EPG13 immediately after EPG4.
+  positions while the glyph inventories differ -- that is the text-interface
+  group's upgrade, and it is why the plan slots it immediately after
+  horizontal spacing.
 
 
 -------------------------------------------------------------------------------
-EPG13 -- TEXT INTERFACE, GLYPH OUTLINES AND FONT ASSETS (2026-08-05)
+TEXT INTERFACE, GLYPH OUTLINES AND FONT ASSETS
 -------------------------------------------------------------------------------
 
   WHERE THE FONTS LIVE
@@ -1942,7 +1991,8 @@ EPG13 -- TEXT INTERFACE, GLYPH OUTLINES AND FONT ASSETS (2026-08-05)
 
   Skipping it does not fail. Everything is laid out in millimetres instead and
   the whole page comes out scaled by about 1.757 with no diagnostic anywhere,
-  which is why it survived EPG3 and EPG4. It is fixed here because EPG13's
+  which is why it survived the earlier groups. It is fixed here because this
+  group's
   purpose is to make the comparator able to grade POSITIONS, and no position
   could ever have matched.
 
@@ -1994,31 +2044,33 @@ EPG13 -- TEXT INTERFACE, GLYPH OUTLINES AND FONT ASSETS (2026-08-05)
   The consequence is bounded and one-directional: a box always CONTAINS the
   outline, so nothing is ever placed too close, and the cost is extra space
   around non-rectangular grobs rather than a collision. The expression walk
-  plus Lazy_skyline_pair is the one EPG13 work item left owed, and it wants to
-  land with or before EPG10-EPG12 (beams, ties, slurs), whose whole point is
+  plus Lazy_skyline_pair is the one text-interface work item left owed, and it
+  wants to land with or before beams, ties and slurs, whose whole point is
   outlines that are not boxes.
 
-  CLOSED 2026-08-05 (later the same day) -- the walk landed. See THE STENCIL
+  CLOSED later the same pass -- the walk landed. See THE STENCIL
   EXPRESSION WALK at the end of this file; the only case that still takes the
   box is a stencil containing TEXT, and that one is recorded there.
 
   PURE VARIANTS
 
   The pure-* skyline callbacks answer the ordinary extents. The port has no
-  pure-property machinery yet -- that is unpure-pure-container.cc, EPG15 -- and
+  pure-property machinery yet -- that is unpure-pure-container.cc, line
+  breaking's file -- and
   answering the ordinary extent is what a grob declaring no pure callback would
   give anyway.
 
 
 -------------------------------------------------------------------------------
-ADDED 2026-08-05 (EPG13 carry-forward) -- THE STENCIL EXPRESSION WALK
+ADDED WITH THE TEXT-INTERFACE FOLLOW-UP -- THE STENCIL EXPRESSION WALK
 -------------------------------------------------------------------------------
 
   lily/include/lazy-skyline-pair.hh  ->  Layout/LazySkylinePair.cs
   lily/stencil-integral.cc           ->  Layout/StencilIntegral.cs  (the walk)
   lily/freetype.cc Path_interpreter  ->  Fonts/CffFont.cs  (OutlineWalker)
 
-  The item EPG13 left owed. The two from-stencil callbacks now WALK the stencil
+  The item the text-interface group left owed. The two from-stencil callbacks
+  now WALK the stencil
   expression instead of taking its bounding box: every draw-line, dashed-line,
   circle, ellipse, partial-ellipse, round-filled-box, polygon, path and
   named-glyph is turned into segments, curves are flattened at one segment per
@@ -2045,7 +2097,8 @@ ADDED 2026-08-05 (EPG13 carry-forward) -- THE STENCIL EXPRESSION WALK
   design-units-to-output-units factor by DIVIDING two boxes: FreeType's glyph
   metrics and FreeType's outline bounding box, which round differently. The
   port has one source for both -- the Type 2 charstring interpreter, which
-  EPG13 built and validated against the shipped SVG fonts -- so that ratio is
+  the text-interface group built and validated against the shipped SVG fonts
+  -- so that ratio is
   the scale factor itself: the font's drawing size over its units per em. It is
   the same number SvgBackend scales the same outline by, and the traced result
   agrees with the LILC-declared extents of noteheads.s2 to within 0.002 staff
@@ -2077,17 +2130,18 @@ ADDED 2026-08-05 (EPG13 carry-forward) -- THE STENCIL EXPRESSION WALK
   glyph-string itself is NOT handled, because the port never emits it.
 
   WHEN TO CLOSE IT: text does not reach a swept page yet -- in-score text needs
-  Text_engraver (EPG14) and the tagline needs page layout (EPG16). EPG14 is the
+  Text_engraver (scripts/dynamics group) and the tagline needs page layout.
+  The scripts group is the
   session where per-glyph text outlines become measurable and worth writing;
   the machinery to do it is already here (TextFontChain plus CffFont's
   AddOutlineToSkyline, which is face-agnostic).
 
   PURE VARIANTS are unchanged: they still answer the ordinary extents, pending
-  unpure-pure-container.cc in EPG15.
+  unpure-pure-container.cc with line breaking.
 
 
 ===============================================================================
-EPG5 -- COLUMNS, RESTS, DOTS, COLLISIONS (2026-08-07)
+COLUMNS, RESTS, DOTS, COLLISIONS
 ===============================================================================
 
   The whole group landed: note-column.cc (+scheme), note-collision.cc, rest.cc,
@@ -2098,26 +2152,28 @@ EPG5 -- COLUMNS, RESTS, DOTS, COLLISIONS (2026-08-07)
   multi-measure-rest.cc (+engraver).
 
 -------------------------------------------------------------------------------
-THE SEAM FILE (EPG5), AND WHY IT EXISTS
+THE SEAM FILE, AND WHY IT EXISTED
 -------------------------------------------------------------------------------
 
-  Objects/Epg5Seams.cs carries line-for-line ports of the SMALL statics EPG5's
-  files call but whose OWNING upstream files belong to groups running in
-  parallel with, or after, this one:
+  An early seam file (since deleted -- see SEAM RETIREMENT below) carried
+  line-for-line ports of the SMALL statics this group's files call but whose
+  OWNING upstream files belong to groups running in parallel with, or after,
+  this one:
 
-    stem.cc (EPG6)                    head_count, duration_log, is_normal_stem,
+    stem.cc (stems group)             head_count, duration_log, is_normal_stem,
                                       is_invisible, extremal_heads, first_head,
                                       last_head, get_reference_head, flag,
                                       is_valid_stem, thickness, support_head,
                                       internal_calc_stem_offset_from_head,
                                       head_positions, note_head_positions
     directional-element-interface.cc  get_grob_direction,
-      (EPG7)                          get_strict_grob_direction,
+      (vertical organization)         get_strict_grob_direction,
                                       set_grob_direction
-    side-position-interface.cc (EPG7) add_support
-    tie.cc / tie-column.cc (EPG11)    set_head, head / add_tie
-    script-engraver.cc (EPG14)        make_script_from_event
-    grob-closure.cc (EPG15)           chain_offset_callback (via the vendored
+    side-position-interface.cc        add_support
+      (vertical organization)
+    tie.cc / tie-column.cc (ties)     set_head, head / add_tie
+    script-engraver.cc (scripts)      make_script_from_event
+    grob-closure.cc (line breaking)   chain_offset_callback (via the vendored
                                       grob::compose-function, exactly as
                                       upstream's Lily:: import)
     staff-symbol-referencer.cc        pure_get_position, pure_get_rounded_position,
@@ -2133,10 +2189,11 @@ THE SEAM FILE (EPG5), AND WHY IT EXISTS
   to drift, which is why each carries the upstream name in its doc comment.
 
   The pure_* members answer the ORDINARY values -- the same standing divergence
-  every pure variant takes until unpure-pure-container.cc (EPG15) lands.
+  every pure variant takes until unpure-pure-container.cc (line breaking)
+  lands.
 
 -------------------------------------------------------------------------------
-NAMING (EPG5)
+NAMING (columns and rests)
 -------------------------------------------------------------------------------
 
   Note_column::dot_column is NoteColumn.GetDotColumn. A static method named
@@ -2148,7 +2205,7 @@ NAMING (EPG5)
   namespace.
 
 -------------------------------------------------------------------------------
-DELIBERATE DIVERGENCES (EPG5)
+DELIBERATE DIVERGENCES (columns and rests)
 -------------------------------------------------------------------------------
 
   * Rest_collision_engraver's busy-column set and Dot_column's stem set are
@@ -2186,46 +2243,52 @@ THE PULLED-FORWARD ENTRY POINTS, AND THE Y-OFFSET ODDITY THAT FORCED ONE
   ly:grob::x-parent-positioning and ly:grob::y-parent-positioning (grob.cc) had
   stubs only -- grob.cc's ledger row says ported, but nothing had ever
   registered them. Dot_column::add_head and Note_collision_interface::add_column
-  STORE them as offset callbacks, so EPG5 implements them in Epg5Callbacks.
+  STORE them as offset callbacks, so this group implements them in
+  ColumnAndRestCallbacks.
   Note the upstream oddity, ported as-is: add_head stores the X proc under
   Y-OFFSET ("adding a dot overwrites Y-offset"), so reading a dot's Y offset
   triggers its X parent's positioning.
 
-  ly:unpure-call and ly:pure-call (unpure-pure-container.cc, EPG15) are what
+  ly:unpure-call and ly:pure-call (unpure-pure-container.cc, line breaking)
+  are what
   the vendored grob::compose-function calls, and Rest_collision::add_column
   chains its force-shift callback through exactly that composer. With the stubs
   in place the chain would have run -- and silently produced UnportedValue
   offsets. Both are implemented faithfully (including pure-call's fall-through
-  applying (data grob . rest) WITHOUT the start/end columns). EPG15 inherits
+  applying (data grob . rest) WITHOUT the start/end columns). Line breaking
+  inherits
   them working.
 
 -------------------------------------------------------------------------------
-WHAT WAITS ON PARALLEL AND LATER GROUPS (EPG5)
+WHAT WAITS ON PARALLEL AND LATER GROUPS (columns and rests)
 -------------------------------------------------------------------------------
 
-  * busyGrobs is written by Grob_pq_engraver (EPG10). Until it lands,
+  * busyGrobs is written by Grob_pq_engraver (beams group). Until it lands,
     Rest_collision_engraver reads an empty queue and makes no RestCollision --
     upstream's own path for an empty queue, pinned by a test rather than
     stubbed. The rest-collision CHAIN itself is live and tested end to end.
 
   * The completion engravers read measureLength/measurePosition/timing exactly
-    as upstream; without EPG8's Timing_translator those answer unset and no
+    as upstream; without the bars/meter group's Timing_translator those
+    answer unset and no
     split happens. The reachability test pins the split by setting the Timing
     properties by hand.
 
   * Multi_measure_rest_engraver finalizes on measureStartNow, which nothing
-    sets until EPG8: in a pre-integration sweep the spanner keeps measure-count
+    sets until bars/meter lands: in a pre-integration sweep the spanner keeps
+    measure-count
     unset (symbol_stencil answers empty), calculate_spacing_rods reports
     "Multi measure rest seems misplaced" for the missing right bound, and the
     unset MultiMeasureRestNumber text warns as a non-markup. All three resolve
-    with EPG8 at integration; re-check the smoke files then.
+    with the bars/meter group at integration; re-check the smoke files then.
 
-  * MultiMeasureRestNumber/Text/Script read EPG7's side-position and
+  * MultiMeasureRestNumber/Text/Script read vertical organization's
+    side-position and
     self-alignment callbacks, still stubs -- their X/Y-offset type-check
-    warnings in the sweep are EPG7's to silence.
+    warnings in the sweep are vertical organization's to silence.
 
 -------------------------------------------------------------------------------
-EPG6 -- STEMS, FLAGS AND STEM TREMOLOS (2026-08-07)
+STEMS, FLAGS AND STEM TREMOLOS
 -------------------------------------------------------------------------------
 
   lily/stem.cc                 ->  Objects/Stem.cs  (with stem.hh's Stem_info as
@@ -2234,7 +2297,7 @@ EPG6 -- STEMS, FLAGS AND STEM TREMOLOS (2026-08-07)
   lily/flag.cc                 ->  Objects/Flag.cs
   lily/stem-tremolo.cc         ->  Objects/StemTremolo.cs
   lily/stem-engraver.cc        ->  Translation/StemEngraver.cs
-  Bootstrap/Epg6Callbacks.cs       (new-in-family: the 33-callback installer)
+  Bootstrap/StemAndFlagCallbacks.cs       (new-in-family: the 33-callback installer)
 
   Whole notes and rests still get a stem -- an INVISIBLE one (Stem::is_invisible),
   ported faithfully because downstream spacing measures against its presence.
@@ -2247,40 +2310,48 @@ NAMING
 
   Stem::flag is Stem.FlagGrob. A method called Flag on that class would shadow
   the Flag type that sits beside it in the same namespace -- the same collision
-  EPG4 recorded for SpacingSpanner.NoteSpacingSpring. Stem_info is StemInfo.
+  horizontal spacing recorded for SpacingSpanner.NoteSpacingSpring. Stem_info
+  is StemInfo.
 
 THE BEAM SEAM, AND WHAT WAS PULLED FORWARD
 
-  stem.cc's beam-aware branches are ported faithfully, not stubbed: EPG10
+  stem.cc's beam-aware branches are ported faithfully, not stubbed: the beams
+  group
   inherits them working. The small beam.cc statics they call --
   get_beam_thickness, get_beam_translation, get_beam_count,
   get_direction_beam_count, is_cross_staff, first/last_normal_stem -- are
   carried as an INTERNAL BeamHelpers class inside Stem.cs, ported verbatim from
   beam.cc. Every one is a pure read over a live Beam grob, so none is reachable
-  until a Beam_engraver exists to make one. When EPG10 ports beam.cc these move
+  until a Beam_engraver exists to make one. When the beams group ports
+  beam.cc these move
   to the canonical Beam class and BeamHelpers goes away; the ledger row on
   stem.cc says so, so the duplication cannot drift silently.
 
-  Note_collision_interface::note_head_positions (note-collision.cc, EPG5's
+  Note_collision_interface::note_head_positions (note-collision.cc, the
+  columns group's
   file) is carried the same way, privately in StemTremolo.cs: the whole-note
   tremolo direction decision needs it, and every read in it is a generic grob
-  read over "elements" and "stem". EPG5 adopts it when note-collision.cc lands.
+  read over "elements" and "stem". The columns group adopts it when
+  note-collision.cc lands.
 
-DELIBERATE DIVERGENCES (EPG6)
+DELIBERATE DIVERGENCES (stems and flags)
 
-  * PURE reads take the established fallbacks, pending EPG15's
+  * PURE reads take the established fallbacks, pending line breaking's
     unpure-pure-container machinery. Stem.GetPureProperty is a minimal
     get_pure_property: an unpure-pure container's PURE half is called with
     (grob, 0, INT_MAX), a cached value answers directly, and a plain procedure
     answers '() rather than going through call_pure_function (which does not
     exist yet). pure_y_extent is the ordinary extent -- the same answer a grob
-    with no pure callback gives, and the same fallback the EPG13 skyline
+    with no pure callback gives, and the same fallback the text-interface
+    skyline
     callbacks take. pure_relative_y_coordinate in the beamed half of
-    internal_pure_height is the real coordinate, EPG4's recorded fallback.
+    internal_pure_height is the real coordinate, horizontal spacing's
+    recorded fallback.
 
   * Stem::cache_pure_height computes the clipped interval faithfully and then
     DROPS it: upstream stores it in the Item's pure-height cache, which is
-    EPG15's machinery. Only reachable under a beam (EPG10), and EPG15 must
+    line breaking's machinery. Only reachable under a beam, and line breaking
+    must
     rewire the final store when the cache exists.
 
   * Stem::calc_stem_info guards its knee/shorten reads with a null-beam check
@@ -2303,7 +2374,7 @@ DELIBERATE DIVERGENCES (EPG6)
   upstream -- a dead declaration.
 
 ===============================================================================
-EPG7 -- VERTICAL ORGANIZATION (2026-08-07)
+VERTICAL ORGANIZATION
 ===============================================================================
 
   The whole group landed: align-interface.cc, side-position-interface.cc,
@@ -2315,7 +2386,7 @@ EPG7 -- VERTICAL ORGANIZATION (2026-08-07)
   spacing engravers share theirs.
 
 -------------------------------------------------------------------------------
-NAMING (EPG7)
+NAMING (vertical organization)
 -------------------------------------------------------------------------------
 
   Align_interface::axis is AlignInterface.GetAxis: a static method named Axis
@@ -2325,22 +2396,23 @@ NAMING (EPG7)
   over -- a member named Symbol shadows CodeBrix.LilyScheme.Values.Symbol.
 
 -------------------------------------------------------------------------------
-WHAT LIVES WHERE, AND WHY THE SPLITS EXIST (EPG7)
+WHAT LIVES WHERE, AND WHY THE SPLITS EXIST (vertical organization)
 -------------------------------------------------------------------------------
 
   Standing Wave A rules close every already-ported file, so the pieces of
-  OTHER files this group needed live beside their EPG7 callers, each with its
+  OTHER files this group needed live beside their callers here, each with its
   own `was previously:` provenance:
 
   * Objects/AxisGroupInterfaceVertical.cs -- the half of axis-group-interface
-    .cc that Objects/AxisGroupInterface.cs (ported 2026-08-03) does not carry:
+    .cc that Objects/AxisGroupInterface.cs (ported earlier) does not carry:
     skyline_spacing and the outside-staff placement machinery,
     combine_skylines, generic_bound_extent /
     relative_maybe_bound_group_extent, calc_common, and
     calc_maybe_pure_staff_staff_spacing. The pure-height family
     (adjacent_pure_heights, pure_height, calc_pure_relevant_grobs,
     calc_pure_y_common, calc_pure_staff_staff_spacing) is NOT ported and its
-    Scheme names deliberately keep their stubs: it needs EPG15's pure/broken
+    Scheme names deliberately keep their stubs: it needs line breaking's
+    pure/broken
     machinery.
 
   * Objects/SystemGrobVertical.cs -- system.cc's get_vertical_alignment and
@@ -2354,15 +2426,17 @@ WHAT LIVES WHERE, AND WHY THE SPLITS EXIST (EPG7)
     The composition itself is NOT done in C#: grob::compose-function and
     grob::offset-function are looked up in the Scheme layer BY NAME at the
     moment of use, the same late-binding rule MusicFunctionSupport records.
-    grob-closure.cc's ledger row stays with EPG15, which owes the rest of the
+    grob-closure.cc's ledger row stays with line breaking, which owes the rest
+    of the
     unpure/pure closure story.
 
   * Layout/PageLayoutSpacing.cs -- page-layout-problem.cc's is_spaceable,
     read_spacing_spec, get_spacing_spec, get_fixed_spacing and
     add_stretchability, pulled forward because internal_get_minimum_
     translations reads every pair of adjacent staves through them. The solver
-    is EPG16's and the file's ledger row still says so. get_fixed_spacing
-    skips upstream's pure-answer cache (get_cached_pure_property is EPG15
+    is page layout's and the file's ledger row still says so. get_fixed_spacing
+    skips upstream's pure-answer cache (get_cached_pure_property is line
+    breaking's
     machinery); the answer is recomputed instead, never wrong.
 
   * Paper_column::get_interface_extent is carried in
@@ -2374,12 +2448,13 @@ WHAT LIVES WHERE, AND WHY THE SPLITS EXIST (EPG7)
     Objects/SidePositionInterface.cs beside their only callers.
 
 -------------------------------------------------------------------------------
-THE PREMATURE ALIGNMENT TRIGGER, AND THE PURE STAND-IN THAT ABSORBS IT (EPG7)
+THE PREMATURE ALIGNMENT TRIGGER, AND THE PURE STAND-IN THAT ABSORBS IT
 -------------------------------------------------------------------------------
 
-  The EPG4 note on Spacing_interface::skylines -- "it does compute and cache a
+  The horizontal-spacing note on Spacing_interface::skylines -- "it does
+  compute and cache a
   Y offset earlier than upstream would, which is a thing to re-check when
-  EPG7's vertical alignment starts moving staves" -- came due, and it was the
+  vertical alignment starts moving staves" -- came due, and it was the
   single hardest thing in this pass.
 
   Upstream never reads a staff's unpure Y position before line breaking: the
@@ -2387,7 +2462,8 @@ THE PREMATURE ALIGNMENT TRIGGER, AND THE PURE STAND-IN THAT ABSORBS IT (EPG7)
   answers #f in a pure context (call_pure_function), so an early pure read of
   a parent-positioned grob yields 0 WITHOUT running the alignment and WITHOUT
   consuming the one-shot offset. The port's spacing reads the REAL coordinate
-  (the recorded EPG4 stand-in), which triggers ly:grob::y-parent-positioning
+  (the recorded horizontal-spacing stand-in), which triggers
+  ly:grob::y-parent-positioning
   -> positioning-done -> the alignment, DURING System::pre_processing -- when
   the alignment has no system yet and the columns have no X positions.
 
@@ -2414,45 +2490,49 @@ THE PREMATURE ALIGNMENT TRIGGER, AND THE PURE STAND-IN THAT ABSORBS IT (EPG7)
   range brings basic-distance into the distances, exactly as upstream's pure
   estimate does, so staves land near their ideal separations rather than
   packed. When the alignment DOES have a system (nothing triggered it early),
-  it stacks at the unpure minimum distances -- still a stand-in for EPG16's
+  it stacks at the unpure minimum distances -- still a stand-in for page
+  layout's
   Page_layout_problem solution, recorded as such. Both stand-ins retire with
-  EPG15 (pure reads in spacing) + EPG16 (the real solver).
+  line breaking (pure reads in spacing) + page layout (the real solver).
 
   A visible side effect, deliberate: single-staff pages now sit with the
   system's top at y=0 (the alignment translates the staff down, then
   System::post_processing re-anchors), a RIGID vertical shift of the whole
-  drawing relative to pre-EPG7 output. The comparator's inventory verdicts do
+  drawing relative to earlier output. The comparator's inventory verdicts do
   not move.
 
 -------------------------------------------------------------------------------
-ReadSkylinePair -- THE CONSTRUCTOR-DEFAULT STAND-IN (EPG7)
+ReadSkylinePair -- THE CONSTRUCTOR-DEFAULT STAND-IN
 -------------------------------------------------------------------------------
 
   Upstream's Grob constructor installs default callbacks for X-extent,
   Y-extent, vertical-skylines and horizontal-skylines (grob.cc:75-90), so a
   skyline property read ALWAYS answers a pair. The port's Grob deliberately
-  does not install them yet (the first-light note), and EPG7 is the first
+  does not install them yet (the first-light note), and this group is the first
   code that READS those properties broadly. AxisGroupInterfaceVertical
   .ReadSkylinePair is the stand-in at the read sites this group owns: when
   the property is unset it computes exactly what upstream's default callback
   would -- simple-skylines-from-extents, with a grob whose definition names
   no extent falling back on its STENCIL's extent, which is what the default
   X-extent/Y-extent callbacks answer. It also tolerates a bare CLR
-  SkylinePair in the property, because the EPG13 callbacks cache one (a
+  SkylinePair in the property, because the text-interface callbacks cache one
+  (a
   defect, reported separately). When the constructor defaults land centrally,
   the fallback becomes dead code by construction.
 
 -------------------------------------------------------------------------------
-DELIBERATE DIVERGENCES (EPG7)
+DELIBERATE DIVERGENCES (vertical organization)
 -------------------------------------------------------------------------------
 
   * PURE lookups take the unpure answers throughout (properties, coordinates,
-    extents), the established EPG13/EPG4 stand-in; the pure FLAG's
+    extents), the established text-interface/horizontal-spacing stand-in; the
+    pure FLAG's
     control-flow effects (which stems are skipped, the xc=0 choice in
     aligned_side's Y branch, the spanner parent_relative choice) are kept
     exactly. Align_interface's pure get_skylines branch skips the
     begin-of-line refinement (rest_of_line_pure_height /
-    begin_of_line_pure_height are EPG15's) and answers ONE flat box over the
+    begin_of_line_pure_height are line breaking's) and answers ONE flat box
+    over the
     ordinary extent; Hara_kiri_group_spanner::request_suicide is "no" with
     the rest of the unported suicide machinery, in get_skylines and in
     Staff_grouper_interface::maybe_pure_within_group alike.
@@ -2504,7 +2584,7 @@ DELIBERATE DIVERGENCES (EPG7)
     declarations, not ported -- same disposition as Context_def::set_acceptor.
 
 ===============================================================================
-EPG8 -- BARS, METER, KEYS, MARKS (2026-08-07)
+BARS, METER, KEYS, MARKS
 ===============================================================================
 
   The whole group landed: bar-engraver, span-bar-engraver, span-bar-stub-engraver,
@@ -2522,7 +2602,7 @@ EPG8 -- BARS, METER, KEYS, MARKS (2026-08-07)
   candidate glyph strings to scm/bar-line.scm, which decides everything visual.
 
 -------------------------------------------------------------------------------
-THE DEFECT THIS GROUP FOUND, AND IT IS THE ONE TO REMEMBER (EPG8)
+THE DEFECT THIS GROUP FOUND, AND IT IS THE ONE TO REMEMBER
 -------------------------------------------------------------------------------
 
   lily-guile.cc's value_type_check begins with "'(), #f and *unspecified* always
@@ -2534,8 +2614,8 @@ THE DEFECT THIS GROUP FOUND, AND IT IS THE ONE TO REMEMBER (EPG8)
   and stores anyway, with noise); context properties do not.
 
   Until the central three-line fix lands in SchemeUtilities.TypeCheckAssignment,
-  the EPG8 translators spell upstream's set-to-'() as an UNSET
-  (Epg8Support.SetContextProperty), which reads identically unless an ancestor
+  this group's translators spell upstream's set-to-'() as an UNSET
+  (TranslatorSchemeHelpers.SetContextProperty), which reads identically unless an ancestor
   context sets the same property -- for the affected properties (whichBar,
   measureStartNow, alternativeNumber, currentBarLine, timeSignature,
   beamHalfMeasure, autoBeaming) that ancestor would have to be Global, so the
@@ -2546,11 +2626,12 @@ THE DEFECT THIS GROUP FOUND, AND IT IS THE ONE TO REMEMBER (EPG8)
   markup-command-signature's answer through ToBool, which is true only for the
   C# boolean -- but a command's signature is a LIST, so every non-string markup
   reads as "not a markup" and InterpretMarkup refuses it ("Trying to interpret a
-  non-markup object"). The EPG8 engravers carry a correct scheme-truth IsMarkup
-  in Epg8Support until TextInterface is fixed centrally.
+  non-markup object"). The group's engravers carry a correct scheme-truth
+  IsMarkup
+  in TranslatorSchemeHelpers until TextInterface is fixed centrally.
 
 -------------------------------------------------------------------------------
-DELIBERATE DIVERGENCES (EPG8)
+DELIBERATE DIVERGENCES (bars, meter, keys, marks)
 -------------------------------------------------------------------------------
 
   Missing-seam carriers, each a faithful port of code whose home file predates
@@ -2562,8 +2643,9 @@ DELIBERATE DIVERGENCES (EPG8)
   * BarEngravers.cs carries grob.cc's get_root_vertical_alignment,
     get_vertical_axis_group and get_vertical_axis_group_index as the internal
     SpanBarVerticalOrder class. They answer by interface SYMBOL, so they work the
-    moment EPG7's VerticalAlignment grobs exist without referencing EPG7 code.
-  * Epg8Support carries grob-array.cc's grob_list_to_grob_array and
+    moment VerticalAlignment grobs exist without referencing vertical-
+    organization code.
+  * TranslatorSchemeHelpers carries grob-array.cc's grob_list_to_grob_array and
     simple-event-listener.hh's Boolean_event_listener.
   * BreathingSign.cs carries staff-symbol-referencer.cc's staff_span and
     directional-element-interface.cc's get_strict_grob_direction as private
@@ -2577,26 +2659,31 @@ DELIBERATE DIVERGENCES (EPG8)
     never read, and an assigned-but-unread private field is compiler warning
     CS0414 against a 0-warning gate.
   * Span_bar_engraver's stable sort is List.Sort with an index tiebreak
-    (List.Sort is unstable; upstream uses std::stable_sort). Until EPG7 lands,
+    (List.Sort is unstable; upstream uses std::stable_sort). Until vertical
+    organization lands,
     every sort key is -1 and announcement order is preserved.
   * Bar_engraver's BarType enum is spelled BarLayerType: it is a file-scoped
     implementation detail upstream, and "BarType" invites collision with the
     bar-type event property naming.
   * Caesura_engraver creates CaesuraScript grobs but cannot configure them:
-    make_script_from_event lives in script-interface.cc (EPG14). Each script
+    make_script_from_event lives in script-interface.cc (scripts group). Each
+    script
     raises a programming error naming the owner rather than throwing, so caesura
     regression files keep engraving their BreathingSign halves. The
     script-priority comparator (two lines upstream) is repeated locally for the
-    stop-timestep sort and marked for deduplication when EPG14 lands.
-  * Measure_spanner::print throws (loudly, naming bracket.cc / EPG14) when a
+    stop-timestep sort and marked for deduplication when the scripts group
+    lands.
+  * Measure_spanner::print throws (loudly, naming bracket.cc) when a
     bracket must actually be drawn; the text half is complete.
-  * [DISCHARGED 2026-08-08, EPG15's close-out.] The pure-height entry points EPG8
+  * [DISCHARGED by line breaking's close-out.] The pure-height entry points
+    this group
     registered (ly:grob-pure-height, ly:axis-group-interface::pure-height)
     answered the ORDINARY extents. Both are registered for real now, in
-    Epg15Callbacks, and EPG8's two stand-ins are gone. What the entry understated:
+    LineBreakingCallbacks, and the two stand-ins here are gone. What the entry
+    understated:
     an ordinary extent does not merely approximate a pure one, it asks for a
     STENCIL -- so these two were pulling stencils out of grobs during spacing.
-  * The EPG7/EPG15 alignment callbacks EPG8's grobs carry (self-alignment,
+  * The alignment callbacks this group's grobs carry (self-alignment,
     side-position, break-align anchors) are stood in with 0.0 -- the
     force-hara-kiri-callback device. Without them the FIRST multi-measure score
     died in Paper_score::process, because the stubs' inert values reached Scheme
@@ -2605,7 +2692,7 @@ DELIBERATE DIVERGENCES (EPG8)
     stand-ins when their groups land.
 
 -------------------------------------------------------------------------------
-EPG9 -- ACCIDENTALS AND PITCH MACHINERY (2026-08-07)
+ACCIDENTALS AND PITCH MACHINERY
 -------------------------------------------------------------------------------
 
   The whole group landed: accidental.cc, accidental-placement.cc,
@@ -2637,10 +2724,11 @@ EPG9 -- ACCIDENTALS AND PITCH MACHINERY (2026-08-07)
     object's identity hash. The value only has to differ between sources, and
     does.
   * build_heads_skyline reads the PURE Y extent upstream; the port reads the
-    real extent -- the standing pure-machinery divergence (EPG15), same as
+    real extent -- the standing pure-machinery divergence, same as
     every earlier group.
-    [DISCHARGED 2026-08-11, STAFF-LINES session: reads the pure extent now,
-    with the rest of its class -- see the STAFF-LINES entry at the end.]
+    [DISCHARGED by the staff-line root-cause work: reads the pure extent now,
+    with the rest of its class -- see the staff-line close-out entry near the
+    end.]
   * Accidental_engraver writes `forced' through the entry's accidental with a
     null-conditional where upstream writes unconditionally; the flags imply the
     accidental was just created, so the `?.` only changes what happens in a
@@ -2671,8 +2759,9 @@ EPG9 -- ACCIDENTALS AND PITCH MACHINERY (2026-08-07)
     not carry them and group sessions may not edit already-ported files. They
     belong in Translation/Context.cs.
   * ly:grob::x-parent-positioning (grob.cc -- marked ported, binding still a
-    stub) is registered from Epg9Callbacks: it is the X-offset of exactly the
-    grobs EPG9 makes, and its whole job is to DEMAND the placement's
+    stub) is registered from AccidentalCallbacks: it is the X-offset of exactly the
+    grobs the accidentals group makes, and its whole job is to DEMAND the
+    placement's
     positioning-done. Left stubbed, the packing algorithm never ran at all --
     silently, the exact defect class the callback-fence comment in
     GrobCallbacks.cs warns about. y-parent-positioning stays with grob.cc's
@@ -2698,39 +2787,44 @@ EPG9 -- ACCIDENTALS AND PITCH MACHINERY (2026-08-07)
     still on the iterator worklist.
 
 ===============================================================================
-WAVE A CENTRAL INTEGRATION (2026-08-07)
+CENTRAL INTEGRATION OF THE PARALLEL GROUPS
 ===============================================================================
 
-  Five groups landed in one parallel session (EPG5-EPG9, 64 ledger rows, 33 new
+  Five groups landed in one parallel wave (columns through accidentals, 64
+  ledger rows, 33 new
   translators, 82 new files) and were merged by a single integrator. What the
   merge changed beyond the union of the groups' own reports:
 
   DEDUPLICATIONS (same binding pulled forward independently by several groups):
   * ly:grob::x-parent-positioning / ly:grob::y-parent-positioning -- pulled by
-    EPG5, EPG7 and EPG9 (x) with identical semantics. The ONE registration
-    lives in Epg7Callbacks over Objects/GrobClosure.cs; the EPG5 and EPG9
+    the columns, vertical-organization and accidentals groups (x) with
+    identical semantics. The ONE registration
+    lives in VerticalLayoutCallbacks over Objects/GrobClosure.cs; the other two
     copies were removed.
-  * ly:unpure-call / ly:pure-call -- pulled by EPG5 and EPG7, semantically
-    identical (both keep upstream's dropped-start/end asymmetry). Epg7Callbacks'
-    registrations stay; Epg5Callbacks' were removed.
-  * EPG8's nine zero stand-ins for EPG7 names (self-alignment x6, side-position
-    x-aligned-side/y-aligned-side/move-to-extremal-staff) were removed: EPG7's
+  * ly:unpure-call / ly:pure-call -- pulled by two of the groups, semantically
+    identical (both keep upstream's dropped-start/end asymmetry). VerticalLayoutCallbacks'
+    registrations stay; ColumnAndRestCallbacks' were removed.
+  * The bars/meter group's nine zero stand-ins for vertical-organization names
+    (self-alignment x6, side-position
+    x-aligned-side/y-aligned-side/move-to-extremal-staff) were removed: the real
     REAL implementations landed in the same wave. Its three
-    break-alignment-interface.cc anchors stay as zero stand-ins (EPG15).
+    break-alignment-interface.cc anchors stay as zero stand-ins (line
+    breaking's).
   * StemTremolo's private note-collision note_head_positions copy and
     SeparationItem's RelevantAccidentals placeholder now DELEGATE to the
     canonical NoteCollisionInterface / AccidentalPlacement that landed in-wave.
   * NoteHead's private direction helpers now delegate to the ported
     DirectionalElementInterface -- closing the twice-reported defect where the
     strict copy warned with the wrong text and never stored the direction.
-  * Objects/Epg5Seams.cs still carries its faithful private copies (stem statics,
+  * The seam file still carries its faithful private copies (stem statics,
     direction trio, add_support, tie heads, script/measure helpers): re-pointing
-    every EPG5 caller at the in-wave canonical homes is deliberate follow-up
+    every columns-group caller at the in-wave canonical homes is deliberate
+    follow-up
     work, listed in the plan, so the copies do not silently drift -- each names
     its upstream original, and the canonical classes now exist to diff against.
     Same for BarEngravers' SpanBarVerticalOrder, BreathingSign's private
-    helpers, AccidentalEngraver's MeasureCounting/TieHead and EPG6's
-    BeamHelpers (whose owner, beam.cc, is still EPG10's).
+    helpers, AccidentalEngraver's MeasureCounting/TieHead and the stems
+    group's BeamHelpers (whose owner, beam.cc, is still the beams group's).
 
   CENTRAL DEFECT FIXES (each found by a Wave A group in already-ported code,
   reported per the rules, applied once by the integrator):
@@ -2738,32 +2832,36 @@ WAVE A CENTRAL INTEGRATION (2026-08-07)
     *unspecified* always succeed" rule (lily-guile.cc value_type_check). The
     long-standing pop-first/instrumentName/stencil type-check noise came from
     its absence, and refused CONTEXT writes left stale values behind.
-    Epg8Support.SetContextProperty (the workaround) is deleted and its call
+    TranslatorSchemeHelpers.SetContextProperty (the workaround) is deleted and its call
     sites are plain SetProperty again.
   * TextInterface.IsMarkup tests markup-command-signature's answer with Scheme
     truth instead of the C# boolean, so non-string markups are markups again.
-    Epg8Support.IsMarkup (the workaround) is deleted.
+    TranslatorSchemeHelpers.IsMarkup (the workaround) is deleted.
   * GrobCallbacks' ten skyline registrations return the Scheme cons
-    (.ToScheme()) instead of the CLR SkylinePair; Epg7Callbacks' repair
+    (.ToScheme()) instead of the CLR SkylinePair; VerticalLayoutCallbacks' repair
     re-registrations and ReadSkylinePair's CLR-acceptance branch are retired.
   * StaffSymbolReferencer.GetStaffSymbol has upstream's identity branch (a
     staff symbol IS its own staff symbol).
   * OriginTests joined the engine-global-state collection and its two
     Warn-recording tests filter for their own messages (the pre-existing
-    parallel-collection race EPG6 proved with a pristine-control run).
+    parallel-collection race the stems group proved with a pristine-control
+    run).
 
   STILL OPEN, INHERITED KNOWINGLY (owners unchanged):
   * The pure-* family stubs on axis-group-interface.cc (except pure-height,
-    which EPG8's demand gave an ordinary-extent stand-in) -- EPG15.
+    which the bars/meter demand gave an ordinary-extent stand-in) -- line
+    breaking's.
   * AxisGroupInterface.GenericGroupExtent's missing skyline trigger loop --
-    load-bearing when outside-staff grobs exist; EPG14's session or earlier.
+    load-bearing when outside-staff grobs exist; the scripts group's or
+    earlier.
   * The Grob constructor defaults (X/Y-extent, skylines) -- first-light note;
-    ReadSkylinePair's computed fallback stands in at EPG7's read sites.
-  * finite? / euclidean-remainder live in Epg8Callbacks until the next
+    ReadSkylinePair's computed fallback stands in at the vertical-organization
+    read sites.
+  * finite? / euclidean-remainder live in MeterAndKeyCallbacks until the next
     LilyScheme-touching session moves them into NumericPrimitives.
 
 ===============================================================================
-EPG22 -- REMAINING ITERATORS & MUSIC PLUMBING (2026-08-07)
+REMAINING ITERATORS & MUSIC PLUMBING
 ===============================================================================
 
   All fifteen of the group's ledger rows landed, plus two pull-forwards the work
@@ -2777,12 +2875,12 @@ EPG22 -- REMAINING ITERATORS & MUSIC PLUMBING (2026-08-07)
     and the single highest-leverage file left anywhere: every wrapper music type in
     scm/define-music-types.scm names ly:music-wrapper::length-callback, so without
     it \relative, \fixed, \transpose and \context all reported ZERO length. The
-    2026-08-07 sweep recorded 19,940 failures of that one callback across ~1,374
+    sweep at the time recorded 19,940 failures of that one callback across ~1,374
     files, and an expression of zero length engraves an empty page.
   * context-specced-music-iterator.cc, initial-context-music-iterator.cc,
     change-iterator.cc, apply-context-iterator.cc -> Translation/ContextIterators.cs.
     The first of these is what makes \new X { } instantiate a context at all, which
-    is why EPG7's whole vertical stack and EPG8's \partial/\time delivery had been
+    is why the whole vertical stack and the \partial/\time delivery had been
     invisible in sweeps and provable only by tests.
   * property-iterator.cc -> Translation/PropertyIterators.cs (all four iterators:
     \set, \unset, \override, \revert as MUSIC).
@@ -2799,23 +2897,25 @@ EPG22 -- REMAINING ITERATORS & MUSIC PLUMBING (2026-08-07)
 
   PULLED FORWARD
 
-  * dispatcher-scheme.cc (EPG23's) -> Bootstrap/DispatcherPrimitives.cs, the WHOLE
+  * dispatcher-scheme.cc (a long-tail file) -> Bootstrap/DispatcherPrimitives.cs,
+    the WHOLE
     binding surface rather than just the one entry point that demanded it. \addQuote
     cannot run without ly:add-listener: scm/part-combiner.scm's
     recording-group-emulate makes a dispatcher, connects it to the context's event
     source, and registers Scheme procedures on it -- every step a binding in that
-    file. ly:broadcast moved here from Epg8Callbacks, where EPG8 had pulled it
+    file. ly:broadcast moved here from MeterAndKeyCallbacks, which had pulled it
     forward alone; its DispatcherPrimitives registration must therefore be installed
-    AFTER Epg8Callbacks.
+    AFTER MeterAndKeyCallbacks.
     Note on listener equality: upstream stores the raw procedure in the dispatcher's
     list where the port's list holds Listeners, so the port makes the procedure the
     listener's TARGET. Nothing removes a Scheme-added listener -- dispatcher-scheme.cc
     binds no ly:remove-listener -- so the removal-by-equality path is unreachable
     from Scheme in either upstream or the port.
-  * break-substitution.cc's DIRECTION half (EPG15's file) ->
+  * break-substitution.cc's DIRECTION half (line breaking's file) ->
     Objects/BreakSubstitution.cs, with Grob::handle_prebroken_dependencies and
-    Item's override beside it. The ledger row stays 'group EPG15' with a note,
-    because the System half -- line breaking proper -- is still EPG15's.
+    Item's override beside it. The ledger row stays with line breaking (its
+    recorded group tag) with a note, because the System half -- line breaking
+    proper -- is still that group's.
 
   DEFECTS FOUND IN ALREADY-PORTED CODE
 
@@ -2837,9 +2937,9 @@ EPG22 -- REMAINING ITERATORS & MUSIC PLUMBING (2026-08-07)
 
   SEAM RETIREMENT (the Wave A follow-up)
 
-  Objects/Epg5Seams.cs went from 746 lines to the three families whose OWNING file is
-  still unported: script-engraver.cc's make_script_from_event (EPG14) and the tie pair
-  (EPG11). Everything else was re-pointed at the canonical class -- Stem,
+  The seam file went from 746 lines to the three families whose OWNING file
+  was still unported: script-engraver.cc's make_script_from_event and the tie
+  pair. Everything else was re-pointed at the canonical class -- Stem,
   DirectionalElementInterface, SidePositionInterface, MeasureTiming, GrobClosure --
   and the statics that had no home in their own already-ported file were MOVED into
   it rather than copied again:
@@ -2849,24 +2949,26 @@ EPG22 -- REMAINING ITERATORS & MUSIC PLUMBING (2026-08-07)
     * intlog2 -> Misc.
     * robust_symbol2string -> SchemeUtilities (lily-guile.cc's home).
   BreathingSign's three private copies (staff_span, get_strict_grob_direction and its
-  grob-scoped warning wrapper) are gone the same way. EPG6's BeamHelpers stays: its
-  owner, beam.cc, is EPG10's and has not landed.
+  grob-scoped warning wrapper) are gone the same way. The stems group's
+  BeamHelpers stays: its owner, beam.cc, is the beams group's and has not
+  landed.
 
   STILL OPEN, KNOWINGLY
 
   * fixup_refpoint's pass in System::pre_processing is still absent. Unlike
     handle_prebroken_dependencies it really does only matter once lines are broken,
-    so it stays with EPG15.
+    so it stays with line breaking.
   * scm/part-combiner.scm needs a procedure-with-setter that LilyScheme does not
     provide: \partCombine now reaches it and errors on
     (set! (split-index ...) ...). The part-combine family is the visible cost.
-    CLOSED by LS-FIX3, 2026-08-07 -- see the block below.
+    CLOSED by the LilyScheme gap fixes -- see the block below.
   * The type check in Grob::SetProperty runs UNGATED where upstream gates it on
-    do_internal_type_checking_global. That is older than EPG22 and untouched here;
+    do_internal_type_checking_global. That is older than this group and
+    untouched here;
     grob-interface.cc's own check keeps its faithful gate (check-internal-types).
 
 -------------------------------------------------------------------------------
-LS-FIX3 -- THE FOUR LilyScheme GAPS EPG22's SWEEP MEASURED (2026-08-07)
+FOUR LilyScheme GAPS THE ITERATOR SWEEP MEASURED
 -------------------------------------------------------------------------------
 
   All four fixes landed in CodeBrix.LilyScheme, not here; this block records what
@@ -2879,7 +2981,7 @@ LS-FIX3 -- THE FOUR LilyScheme GAPS EPG22's SWEEP MEASURED (2026-08-07)
      <Pitch>. LilyScheme was defining a fresh generic in the DEFINING module, so
      the extension was invisible from every other one -- and a parser scope
      evaluating (- pitch pitch) for \transpose resolved the raw numeric '-' and
-     threw wrong-type-arg. 28 files in the EPG22 sweep, the whole accidental and
+     threw wrong-type-arg. 28 files in the group's sweep, the whole accidental and
      \transpose family.
 
      Upstream's mechanism is not a module operation at all: oop/goops.scm's
@@ -2921,9 +3023,10 @@ LS-FIX3 -- THE FOUR LilyScheme GAPS EPG22's SWEEP MEASURED (2026-08-07)
      still is not: scope stays wider than Guile's, never narrower, and narrowing
      it wants a session that can sweep behind the removal.
 
-  4. finite? and euclidean-remainder MOVED out of Bootstrap/Epg8Callbacks.cs into
-     LilyScheme's NumericPrimitives, where a Guile-core name belongs (EPG8's
-     FINDINGS 3, carried by the EPG22 work order). They are DELETED here rather
+  4. finite? and euclidean-remainder MOVED out of Bootstrap/MeterAndKeyCallbacks.cs into
+     LilyScheme's NumericPrimitives, where a Guile-core name belongs (the
+     bars/meter group's FINDINGS 3, carried by this work order). They are
+     DELETED here rather
      than duplicated: a copy would shadow the interpreter's own and re-create the
      divergence the move removes. The LilyScheme versions compute over that
      library's numeric tower instead of through this port's Rational, whose
@@ -2937,22 +3040,23 @@ LS-FIX3 -- THE FOUR LilyScheme GAPS EPG22's SWEEP MEASURED (2026-08-07)
      for its first caller.
 
 -------------------------------------------------------------------------------
-EPG17 -- FIRST SLICE (2026-08-07): FOUR ITERATORS AND grace-music.cc
+REPEATS AND GRACE, FIRST SLICE: FOUR ITERATORS AND grace-music.cc
 -------------------------------------------------------------------------------
 
-  EPG17 is 24 upstream files / ~4,900 lines. This session landed the part that
+  The repeats/voltas territory is 24 upstream files / ~4,900 lines. This pass
+  landed the part that
   is genuinely SELF-CONTAINED and left the rest, rather than stubbing toward it:
 
-    fine-iterator.cc              -> Translation/Epg17Iterators.cs
-    premeasure-iterator.cc        -> Translation/Epg17Iterators.cs
-    measure-remainder-iterator.cc -> Translation/Epg17Iterators.cs
+    fine-iterator.cc              -> Translation/MeasureControlIterators.cs
+    premeasure-iterator.cc        -> Translation/MeasureControlIterators.cs
+    measure-remainder-iterator.cc -> Translation/MeasureControlIterators.cs
     grace-iterator.cc             -> Translation/GraceIterators.cs
     grace-music.cc                -> Translation/GraceIterators.cs
 
-  Iterator constructors: 18 of 28 -> 22 of 28. Still owed are EPG17's remaining
-  five and EPG18's one:
+  Iterator constructors: 18 of 28 -> 22 of 28. Still owed are this group's
+  remaining five and the lyrics group's one:
     volta-repeat, alternative-sequence, volta-specced, percent-repeat, tuplet
-    lyric-combine (EPG18)
+    lyric-combine (lyrics group)
 
   WHY THOSE FIVE WERE HELD BACK, and it is not arbitrary. Three of them are
   built on Repeat_styler (repeat-styler.cc, ~300 lines, an abstract base with
@@ -2961,7 +3065,7 @@ EPG17 -- FIRST SLICE (2026-08-07): FOUR ITERATORS AND grace-music.cc
   needs the styler. Landing any one of them alone means writing a stand-in for
   exactly the machinery the group exists to port -- the kind of half-reproduced
   declaration this project's standing rule 4 is about. They go together, with
-  the styler, in EPG17's next session.
+  the styler, in the group's next pass.
 
   ONE NEW-IN-FAMILY FILE: Music/MusicFactory.cs, the managed stand-in for
   upstream's Lily::make_music / Lily::make_span_event.
@@ -2995,7 +3099,8 @@ EPG17 -- FIRST SLICE (2026-08-07): FOUR ITERATORS AND grace-music.cc
   * Grace_iterator converts between two clocks -- the outside moment and the
     wrapped music's -- and announces GraceChange so Grace_engraver can tell
     \stemNeutral \grace { ... apart from \grace { \stemNeutral ... . The
-    Grace_engraver that consumes it is NOT yet ported (still EPG17), so the
+    Grace_engraver that consumes it is NOT yet ported (still this group's),
+    so the
     event is currently announced to nobody. That is upstream's own ordering, not
     a gap: the iterator is correct on its own terms and the engraver is the next
     file in the same group.
@@ -3009,7 +3114,7 @@ EPG17 -- FIRST SLICE (2026-08-07): FOUR ITERATORS AND grace-music.cc
 
 
 ================================================================================
-EPG17 REMAINDER -- REPEATS, VOLTAS, PERCENT, TUPLETS, GRACE (2026-08-07)
+REPEATS, VOLTAS, PERCENT, TUPLETS, GRACE
 ================================================================================
 
   The group's other nineteen files, landed in one session after the first
@@ -3040,21 +3145,24 @@ EPG17 REMAINDER -- REPEATS, VOLTAS, PERCENT, TUPLETS, GRACE (2026-08-07)
   THREE PULL-FORWARDS, each demand-driven and each recorded on the group it
   was taken from:
 
-  * lily/bracket.cc WHOLE, from EPG14. Both EPG17 bracket grobs draw through
-    Bracket::make_bracket. The file declares no Scheme callbacks, so EPG14's
+  * lily/bracket.cc WHOLE, from the scripts group. Both of this group's
+    bracket grobs draw through Bracket::make_bracket. The file declares no
+    Scheme callbacks, so the owner's
     own bracket grobs (HorizontalBracket, BassFigureBracket, ottava, piano
     pedal) are untouched and the ledger row flips to ported.
 
-  * lily/bezier-bow.cc IN PART, from EPG12 -- the closed-form shape half only
+  * lily/bezier-bow.cc IN PART, from the slurs group -- the closed-form shape
+    half only
     (slur_shape and its three helpers), for \tupletSlur. Bezier_bow itself is
-    the curve-fitting the faithfulness rule is about and stays EPG12's, so
-    that ledger row STAYS GROUPED. Same shape as EPG22's partial pull of
-    break-substitution.cc's Direction half from EPG15.
+    the curve-fitting the faithfulness rule is about and stays the slurs
+    group's, so that ledger row STAYS GROUPED. Same shape as the iterator
+    group's partial pull of break-substitution.cc's Direction half from line
+    breaking.
 
-  * lily/spanner-scheme.cc WHOLE, from EPG23, under standing rule 3: a
+  * lily/spanner-scheme.cc WHOLE, from the long tail, under standing rule 3: a
     *-scheme.cc file is never a work item of its own, and whoever ports a type
     owes its LY_DEFINE surface. Spanner.cs landed long ago without one, and
-    EPG17 is the first group to NEED it. Measured, not assumed: before this,
+    this group is the first to NEED it. Measured, not assumed: before this,
     `\times 2/3 { c8 d e }' died on #<unported ly:spanner-bound>.
 
   FINDINGS -- defects in already-ported code, all found by running the new
@@ -3071,7 +3179,7 @@ EPG17 REMAINDER -- REPEATS, VOLTAS, PERCENT, TUPLETS, GRACE (2026-08-07)
 
   2. Grob::check_cross_staff was never ported, though grob.cc's ledger row
      says `ported'. Tuplet_bracket::calc_cross_staff needs it. Added to
-     Objects/Grob.cs. Same class of gap EPG22 found three of.
+     Objects/Grob.cs. Same class of gap the iterator group found three of.
 
   3. check_repeat_count_visibility was never ported, though context.cc's row
      says `ported'. Both percent engravers ask it before making their counter
@@ -3107,7 +3215,8 @@ EPG17 REMAINDER -- REPEATS, VOLTAS, PERCENT, TUPLETS, GRACE (2026-08-07)
      codepoint ZERO otherwise, and every caller in scm/ and ly/ passes an
      integer: the hair spaces around boxed rehearsal-mark numbers (#x200a), the
      IJ/ij ligatures, and the whole chord-modifier set. Nothing failed, because
-     a NUL is a perfectly good string to the engine; it surfaced only when EPG17
+     a NUL is a perfectly good string to the engine; it surfaced only when this
+     group
      put enough marks on the page for the comparator to report a new verdict
      class, UNPARSEABLE -- NUL is not a legal XML character, so the SVG was not
      well-formed. Fixed in Bootstrap/GeneralPrimitives.cs.
@@ -3156,14 +3265,15 @@ EPG17 REMAINDER -- REPEATS, VOLTAS, PERCENT, TUPLETS, GRACE (2026-08-07)
     note away from its start.
 
   KNOWN LIMIT, deliberate: Tuplet_number's knee-against-beam placement is
-  ported in full but cannot take effect until EPG10 lands Beam, because it
+  ported in full but cannot take effect until the beams group lands Beam,
+  because it
   asks Stem::get_beam and then reads the beam's `knee' and
   `quantized-positions'. With no beam it takes the bracket-based branch,
   which is upstream's own behaviour for unbeamed tuplets, so nothing is wrong
-  today and nothing needs revisiting when EPG10 arrives.
+  today and nothing needs revisiting when beams arrive.
 
 ================================================================================
-EPG18 -- LYRICS & MELODY (2026-08-07)
+LYRICS & MELODY
 ================================================================================
 
   All ten of the group's files, in one session, with NO pull-forward from any
@@ -3177,7 +3287,7 @@ EPG18 -- LYRICS & MELODY (2026-08-07)
   port groups by subject:
 
     lyric-combine-music-iterator.cc  Translation/LyricCombineIterator.cs
-    lyric-combine-music.cc           Bootstrap/Epg18Callbacks.cs (one callback)
+    lyric-combine-music.cc           Bootstrap/LyricCallbacks.cs (one callback)
     lyric-engraver.cc                Translation/LyricEngravers.cs
     extender-engraver.cc             Translation/LyricEngravers.cs
     hyphen-engraver.cc               Translation/LyricEngravers.cs
@@ -3284,10 +3394,11 @@ EPG18 -- LYRICS & MELODY (2026-08-07)
     "did this grob start here". Its own comment records that includeGraceNotes
     cannot be obeyed through this mechanism; kept verbatim.
 
-  KNOWN LIMIT, deliberate and not EPG18's to close: Lyric_hyphen::print and
+  KNOWN LIMIT, deliberate and not the lyrics group's to close:
+  Lyric_hyphen::print and
   Vowel_transition::set_spacing_rods both branch on break_status_dir and on
   find_prebroken_piece, so their broken-line halves could not take effect until
-  line breaking landed. [EPG15 landed it 2026-08-08, so both branches are now
+  line breaking landed. [It has since landed, so both branches are now
   reachable; neither was re-measured by that session and both are worth a look
   the next time a lyric file's verdict moves.]
 
@@ -3312,7 +3423,7 @@ EPG18 -- LYRICS & MELODY (2026-08-07)
   siblings. That is why the melody half is fenced by hand-computed unit tests
   rather than by sweep movement: three files is not a signal.
 
-  TWO DEFECTS IN ALREADY-PORTED CODE, both silent until EPG18 ran:
+  TWO DEFECTS IN ALREADY-PORTED CODE, both silent until the lyrics group ran:
 
   1. THE BIG ONE — Music_iterator did not hold its context through a
      Context_handle, so EVERY CONTEXT IN THE SCORE READ AS REMOVABLE.
@@ -3348,17 +3459,19 @@ EPG18 -- LYRICS & MELODY (2026-08-07)
      which is what upstream intends.
 
   2. Grob did not implement IDiagnostics, though upstream declares
-     `class Grob : public Smob<Grob>, public Diagnostics'. EPG22 added
+     `class Grob : public Smob<Grob>, public Diagnostics'. The iterator group
+     added
      Warning/ProgrammingError/Origin to Grob as plain members and stopped
      there, so a grob had the diagnostic surface but not the TYPE: an
      `(IDiagnostics)' cast on a Spanner compiled and threw
      InvalidCastException at run time, which is how spanner-break-beyond-parent
      went SVG -> NOOUT the moment Hyphen_engraver warned about an unterminated
-     hyphen. Same family as EPG17's finding that MusicObject did not implement
+     hyphen. Same family as the repeats group's finding that MusicObject did
+     not implement
      it either. Fixed by declaring the interface on Grob and mapping
      IDiagnostics.Origin() to the existing Origin property.
 
-  ONE PULL-FORWARD: lily/grob-pq-engraver.cc WHOLE, from EPG10.
+  ONE PULL-FORWARD: lily/grob-pq-engraver.cc WHOLE, from the beams group.
 
   Demand-driven twice over. `busyGrobs' has exactly one writer in the whole
   engine and this is it, so with the engraver unported the property was
@@ -3371,7 +3484,7 @@ EPG18 -- LYRICS & MELODY (2026-08-07)
   translator" warnings), behind only Font_size_engraver.
 
   It is 172 upstream lines, declares no grobs, and its only Scheme surface is
-  ly:grob-pq<? -- which comes with it under the bindings rule. EPG10 loses
+  ly:grob-pq<? -- which comes with it under the bindings rule. Beams lose
   nothing: the file has no beam code in it at all, and was grouped there only
   because Beam_engraver is its most conspicuous consumer.
 
@@ -3382,18 +3495,19 @@ EPG18 -- LYRICS & MELODY (2026-08-07)
 
   WHAT IS STILL GATED, and on what -- worth knowing before reading a lyrics
   page and calling it wrong:
-  * TEXT SCRIPTS in a lyric score (`d8.^"melisma"') need Text_engraver, EPG14.
-  * MELISMATA FROM SLURS need Slur_engraver, EPG12, because automaticMelismas
+  * TEXT SCRIPTS in a lyric score (`d8.^"melisma"') need Text_engraver
+    (scripts group).
+  * MELISMATA FROM SLURS need Slur_engraver, because automaticMelismas
     works by having the slur set a melismaBusyProperty. \melisma / \melismaEnd
-    (the manual form) work today. Until EPG12 lands, a slurred passage offers
+    (the manual form) work today. Until slurs land, a slurred passage offers
     MORE syllable slots than upstream gives it, so a lyric-combine file can show
     extra syllables rather than missing ones -- the opposite of the usual
     unported-code symptom, and easy to misread.
   * The broken-line halves of Lyric_hyphen::print and
-    Vowel_transition::set_spacing_rods need EPG15, as noted above.
+    Vowel_transition::set_spacing_rods need line breaking, as noted above.
 
   A SECOND PULL-FORWARD, forced by the first: lily/bezier-scheme.cc COMPLETED,
-  from EPG23, under standing rule 3.
+  from the long tail, under standing rule 3.
 
   The context-handle fix let two tablature files reach their own tie-drawing
   code for the first time, and they died on #<unported ly:bezier-extent>. The
@@ -3404,7 +3518,8 @@ EPG18 -- LYRICS & MELODY (2026-08-07)
   ONLY ONE OF THE TWO WAS ACTUALLY MISSING. ly:bezier-extract was already
   implemented, in Bootstrap/GeneralPrimitives.cs, landed by whoever needed it
   without the ledger row being flipped -- so that row had been OVERSTATING the
-  remaining work, which is the same failure EPG1 found in six other
+  remaining work, which is the same failure the source-locations group found
+  in six other
   bindings-complete *-scheme.cc files. EntryPointClosureTests caught it here by
   ARITHMETIC: the closure moved by nine where ten were expected. That is the
   reason that test asserts a NUMBER and not merely a floor, and it is worth
@@ -3424,11 +3539,12 @@ EPG18 -- LYRICS & MELODY (2026-08-07)
 
 
 ================================================================================
-EPG10 -- BEAMS (2026-08-07)
+BEAMS
 ================================================================================
 
   All ten of the group's files. The eleventh, grob-pq-engraver.cc, had already
-  landed with EPG18, so the group was one file lighter than its work order says.
+  landed with the lyrics group, so this one was one file lighter than its work
+  order says.
 
   The rows land in seven C# files:
 
@@ -3503,19 +3619,22 @@ EPG10 -- BEAMS (2026-08-07)
   check. Upstream does not need one: Spanner::do_break_processing walks away
   from a spanner missing either bound, so such a spanner is never assigned to a
   system and never typeset. That guarantee lives in line breaking, which is
-  EPG15/EPG16's, and the port reaches print for an unbounded beam -- it is what
+  line breaking's and page layout's, and the port reaches print for an
+  unbounded beam -- it is what
   made tablature-slurs-with-beams and ten other files stop producing a page,
   and it is the regression the ratchet caught on this session's first sweep.
   Both walks go through Beam.CommonWithBound, which skips a missing bound. A
   beam with no bounds has no stems either, so it yields no segments and draws
   nothing, which is the same page upstream produces after calc_direction removes
-  it. REVISIT WHEN EPG15/EPG16 LAND: the guard should become unnecessary.
+  it. REVISIT WHEN LINE BREAKING AND PAGE LAYOUT LAND: the guard should
+  become unnecessary.
 
-  THE EPG6 BEAM SEAM IS RETIRED
+  THE STEM-GROUP BEAM SEAM IS RETIRED
 
   Objects/Stem.cs carried a private BeamHelpers class holding faithful copies of
-  six beam.cc statics, pulled forward because their callers landed in EPG6 while
-  beams were EPG10's. Beam.cs now owns all six under their upstream names, the
+  six beam.cc statics, pulled forward because their callers landed with the
+  stems group while beams were their own group. Beam.cs now owns all six under
+  their upstream names, the
   Stem and StemTremolo call sites point at Beam, and BeamHelpers is deleted.
 
   THREE FREE FUNCTIONS THAT WERE NEVER CARRIED
@@ -3561,15 +3680,16 @@ EPG10 -- BEAMS (2026-08-07)
     <=). Guile's C assoc is two-argument; the three-argument form comes from
     SRFI-1, which the port resolves through the core binding, so the core one
     now accepts it. Scope stays WIDER than Guile's here, never narrower, which
-    is the same posture LS-FIX3 recorded for #:select.
+    is the same posture the LilyScheme gap fixes recorded for #:select.
 
   WHAT BEAMS STILL DO NOT DO, AND WHY IT IS NOT THIS GROUP'S
 
   Beams draw with correct thickness and correct beam counts, and the polygon
   count matches the oracle file for file. They are close to ZERO LENGTH in most
   swept files, because a beam segment runs from one stem's x to another's and
-  the port's columns are still at x = 0 in most files -- EPG4 measured 108 of
-  915 files placing at real x, and that has not moved. When EPG15/EPG16 land the
+  the port's columns are still at x = 0 in most files -- horizontal spacing
+  measured 108 of 915 files placing at real x, and that has not moved. When
+  line breaking and page layout land the
   real line-breaking and spacing pipeline, beam length follows without further
   work here. Nothing in this group papers over it.
 
@@ -3592,11 +3712,12 @@ EPG10 -- BEAMS (2026-08-07)
   it, and it is the last regression the ratchet reported this session). The
   suspects are the tremolo engraver's span-stop handling and the sweep's known
   cross-file state leak; distinguishing them wants a session that owns tremolo
-  work. Left for EPG20 or Phase 4, recorded here rather than in a comment so it
+  work. Left for the chords/figured-bass group or Phase 4, recorded here
+  rather than in a comment so it
   is findable.
 
 ================================================================================
-EPG11 -- TIES, AND EPG12 -- SLURS (2026-08-08)
+TIES AND SLURS
 ================================================================================
 
 Ported together, as the condensed plan proposed. They pair because they are the
@@ -3616,7 +3737,8 @@ use and the places where it does the same thing twice.
 WHAT THE ALREADY-PORTED FILES HAD NEVER CARRIED
 --------------------------------------------------------------------------------
 
-FIVE gaps in files whose ledger rows have said `ported' since EPG0. All five are
+FIVE gaps in files whose ledger rows have said `ported' since the ledger was
+built. All five are
 the same shape, and it is the shape standing rule 4 describes: something upstream
 declares was half-reproduced, and NOTHING FAILED.
 
@@ -3651,7 +3773,8 @@ GROB IN EVERY SCORE.
      dies. That is how a defect this size stayed invisible: it needed a caller
      that both wanted the value AND could not survive a wrong one.
 
-     Found by the ratchet, not by reading: EPG11's first sweep reported 23
+     Found by the ratchet, not by reading: the tie group's first sweep
+     reported 23
      regressions, all of them semi-tie files, all with the same
      "Skyline building slope is not finite".
 
@@ -3678,7 +3801,8 @@ callers anywhere in the engine, and neither existed until now.
      Slur::pure_outside_slur_callback are the port's first callers. Now in
      Objects/Grob.cs, reading Y-extent through the SAME minimal pure stand-in the
      rest of the port uses -- the full unpure-pure-container.cc treatment is
-     EPG15's, and until it lands a grob with no pure callback answers its ordinary
+     line breaking's, and until it lands a grob with no pure callback answers
+     its ordinary
      extent. Recorded as a divergence below.
 
   4. lily/pitch.cc's five alteration constants (NATURAL, FLAT, DOUBLE_FLAT,
@@ -3690,8 +3814,9 @@ callers anywhere in the engine, and neither existed until now.
 A ROW THAT NEEDED NO CODE: bezier-bow.cc WAS ALREADY WHOLE
 --------------------------------------------------------------------------------
 
-EPG17 pulled bezier-bow.cc's "shape half" forward for \tupletSlur and recorded
-that EPG12 still owed `Bezier_bow itself -- the class that fits a curve around
+The repeats group pulled bezier-bow.cc's "shape half" forward for \tupletSlur
+and recorded that the slurs group still owed `Bezier_bow itself -- the class
+that fits a curve around
 encompassing points', described as the decades-tuned code the faithfulness rule
 is about. That is what the file looked like in older LilyPond.
 
@@ -3699,8 +3824,9 @@ THERE IS NO SUCH CLASS IN THE PINNED 2.27.2. There is no lily/include/
 bezier-bow.hh, no definition anywhere under lily/, and no reference from scm/ or
 ly/. bezier-bow.cc is 132 lines and holds exactly four functions: F0_1,
 slur_height, get_slur_indent_height and slur_shape -- all four of which landed
-with EPG17. The file was already complete; only the ledger row and the notes
-were wrong, and they had been overstating the remaining work since 2026-08-07.
+with the repeats group. The file was already complete; only the ledger row and
+the notes were wrong, and they had been overstating the remaining work ever
+since.
 
 Corrected in the ledger, in THIRD-PARTY-NOTICES.txt and in Layout/BezierBow.cs.
 The lesson generalises: a note that says "half of file X is still owed" is a
@@ -3733,7 +3859,8 @@ reader will otherwise find them and file a bug.
   * A third, milder one, in Slur_engraver: upstream registers an acknowledger for
     `fingering-interface', and nothing in scm/ or lily/ declares that interface.
     The acknowledger is dead upstream and dead here. Kept rather than dropped, so
-    that if EPG14 gives Fingering that interface it starts working with no change
+    that if the scripts group gives Fingering that interface it starts working
+    with no change
     to this file.
 
 --------------------------------------------------------------------------------
@@ -3766,7 +3893,8 @@ DELIBERATE DIVERGENCES
     a real extent with a phantom point at zero, which is the kind of error that
     moves a tie by a fraction of a staff space and never throws.
 
-  * THE CONFIGURATION HEAP IS SHARED, NOT RE-DERIVED. EPG10 wrote a replica of
+  * THE CONFIGURATION HEAP IS SHARED, NOT RE-DERIVED. The beams group wrote a
+    replica of
     libstdc++'s push_heap/pop_heap privately inside BeamQuanting.cs.
     Slur_score_state::get_best_curve runs the identical pattern with the identical
     inverting comparator, so the replica moved to Objects/ConfigurationHeap.cs and
@@ -3781,7 +3909,8 @@ DELIBERATE DIVERGENCES
     Arithmetic unchanged: floor (x - 0.5) + 1.0.
 
   * THE SLUR'S SEARCH RANGE IS GUARDED AGAINST A COLLAPSED HORIZONTAL SPAN, and
-    this is the same divergence EPG17 recorded for Bracket::make_bracket.
+    this is the same divergence the repeats group recorded for
+    Bracket::make_bracket.
     Slur_score_state::fill widens the range of endpoint heights it will explore by
     interpolating ALONG the slur, which divides by (right base attachment X - left
     base attachment X). Upstream may do that unguarded because horizontal spacing
@@ -3802,19 +3931,22 @@ DELIBERATE DIVERGENCES
     there is no "along the slur" to interpolate and an encompassed object
     contributes nothing to the range. A second, narrower guard rejects a
     non-finite contribution outright. Whenever the span is real, the expression is
-    upstream's, unchanged. REVISIT WHEN EPG15/EPG16 LAND.
+    upstream's, unchanged. REVISIT WHEN LINE BREAKING AND PAGE LAYOUT LAND.
 
     Worth stating plainly for whoever picks this up: the underlying condition is
-    NOT a slur bug. It is EPG4's recorded state -- columns leave x = 0 in only
+    NOT a slur bug. It is horizontal spacing's recorded state -- columns
+    leave x = 0 in only
     some files -- meeting the first code in the engine that divides by a
     horizontal distance between two note heads.
 
-  * PURE HEIGHTS ARE APPROXIMATE UNTIL EPG15. Grob::pure_y_extent is ported, but
+  * PURE HEIGHTS ARE APPROXIMATE UNTIL LINE BREAKING. Grob::pure_y_extent is
+    ported, but
     it reads Y-extent through the port's minimal pure stand-in rather than through
-    unpure-pure-container.cc's call_pure_function, which is EPG15's. A grob with a
+    unpure-pure-container.cc's call_pure_function, which is line breaking's. A
+    grob with a
     genuine pure callback is therefore measured by its ordinary extent. This
-    matters only during line breaking, which is EPG15's too, so the approximation
-    and the code that would expose it land in the same session. REVISIT AT EPG15.
+    matters only during line breaking, so the approximation and the code that
+    would expose it land in the same group. REVISIT WITH LINE BREAKING.
 
   * SORT STABILITY. Tie_column and Semi_tie_column sort their ties with
     std::sort on Tie::less / Semi_tie::less, which is unstable; List<T>.Sort is
@@ -3835,18 +3967,20 @@ DELIBERATE DIVERGENCES
 ORDINARY TIES DO NOT DRAW, AND THE REASON IS IN THE PARSER
 --------------------------------------------------------------------------------
 
-Measured against the oracle's own references on 2026-08-08, counting the curves
+Measured against the oracle's own references, counting the curves
 each page carries:
 
     repeat-tie            port 5    oracle 5     EXACT MATCH
     laissez-vibrer-ties   port 22   oracle 22    EXACT MATCH
-    slur-broken-trend     port 20   oracle 30    draws; broken curves await EPG15
+    slur-broken-trend     port 20   oracle 30    draws; broken curves await
+                                                 line breaking
     tie-accidental        port 0    oracle 1     ORDINARY TIES DO NOT DRAW
 
 The two semi-tie families are not merely working, they AGREE WITH THE ORACLE
 EXACTLY -- and a laissez-vibrer tie goes through the same Tie_formatting_problem,
 the same scorer, the same Tie::get_control_points and the same Tie::print as an
-ordinary tie. Everything EPG11 owns downstream of the event is therefore verified.
+ordinary tie. Everything the tie group owns downstream of the event is
+therefore verified.
 
 The gap is upstream of the engraver. Instrumented: Tie_engraver IS instantiated,
 IS acknowledging every note head, its listener NEVER fires, and the note event's
@@ -3861,7 +3995,7 @@ identifier:
 and the port's parser does not resolve string-named identifiers, so no tie-event
 is ever created and nothing hears one.
 
-THAT IS A TRACK P GAP, not an EPG11 one, and Track P is marked COMPLETE. Recorded
+THAT IS A TRACK P GAP, not a tie one, and Track P is marked COMPLETE. Recorded
 here rather than fixed because the parser is a different track. Four end-to-end
 tests in TiesAndSlursEndToEndTests are skipped with this reason in their skip
 message -- the CONTROL included, because a control that would pass for the wrong
@@ -3886,13 +4020,13 @@ NAMING
   it is NOT an entry point and the port creates no binding for it.
 
 ================================================================================
-EPG14 -- SCRIPTS, DYNAMICS, BRACKETS, PEDALS, FINGERING (2026-08-08)
+SCRIPTS, DYNAMICS, BRACKETS, PEDALS, FINGERING
 ================================================================================
 
   All 35 ledger rows ported; the group's bucket is EMPTY. It is the largest
   group on the board and it landed in one session.
 
-  SEAM RETIREMENT: Objects/Epg5Seams.cs is DELETED. make_script_from_event was
+  SEAM RETIREMENT: the early seam file is DELETED. make_script_from_event was
   its last method and has gone home to Translation/ScriptEngravers.cs, which is
   script-engraver.cc's own file; Multi_measure_rest_engraver calls it there.
 
@@ -3926,20 +4060,23 @@ EPG14 -- SCRIPTS, DYNAMICS, BRACKETS, PEDALS, FINGERING (2026-08-08)
     reproduce, so the port sorts stably. (scm_stable_sort_x, which
     Script_column::order_grobs actually calls, is stable upstream too.)
 
-  System::get_neighboring_staff skips hara-kiri suicide -- SAME AS EPG7's
+  System::get_neighboring_staff skips hara-kiri suicide -- SAME AS vertical
+  organization's
 
     Upstream calls Hara_kiri_group_spanner::consider_suicide on each candidate.
-    That file is EPG15's and unported, exactly as staff-grouper-interface.cc
+    That file is line breaking's and unported, exactly as
+    staff-grouper-interface.cc
     already records. Skipping it can only leave a staff ALIVE that upstream
     would have killed, so the answer is never a staff upstream would not have
-    considered. REVISIT AT EPG15.
+    considered. REVISIT WITH LINE BREAKING.
 
   Spanner::find_broken_piece guards a null first-piece system
 
     Upstream reads broken_intos_.front ()->get_system ()->get_rank () with no
     check, which is safe there because line breaking has always run. The port is
-    asked before EPG15/EPG16 land, so the guard answers null instead of
-    dereferencing. Same treatment as EPG12's slur guard: REMOVE AND RE-MEASURE
+    asked before line breaking and page layout land, so the guard answers
+    null instead of
+    dereferencing. Same treatment as the slur guard: REMOVE AND RE-MEASURE
     once line breaking runs.
 
   Line_spanner::calc_bound_info's assert
@@ -3976,13 +4113,15 @@ EPG14 -- SCRIPTS, DYNAMICS, BRACKETS, PEDALS, FINGERING (2026-08-08)
      `\override Hairpin.stencil = #flared-hairpin' -- ordinary LilyPond -- was
      REFUSED and the override never reached the grob.
 
-     EPG8 had already fixed this function's FIRST short-circuit ('(), #f and
+     The bars/meter group had already fixed this function's FIRST
+     short-circuit ('(), #f and
      *unspecified* always succeed). This is the next one down.
 
   3. grob.hh's find_broken_piece -- DECLARED, DEFINED THREE TIMES, NEVER CARRIED
 
      Declared virtual in grob.hh and defined in grob.cc, item.cc and spanner.cc,
-     all three of which the ledger has called `ported' since EPG0. Nothing asked
+     all three of which the ledger has called `ported' from the start. Nothing
+     asked
      until Line_spanner::calc_bound_info needed to follow a cross-staff
      glissando's bound onto another system.
 
@@ -4005,13 +4144,15 @@ EPG14 -- SCRIPTS, DYNAMICS, BRACKETS, PEDALS, FINGERING (2026-08-08)
   and ly_append, which Stencil and GlobalContext each had one of.
 
 
-  BINDINGS PULLED FORWARD FROM EPG23 -- FORCED, NOT CHOSEN
+  BINDINGS PULLED FORWARD FROM THE LONG TAIL -- FORCED, NOT CHOSEN
 
-  EPG14's FIRST sweep regressed 46 files, and the cause was EPG14 making
+  The scripts group's FIRST sweep regressed 46 files, and the cause was the
+  group making
   progress: with ly:line-spanner::print ported, every trill spanner, text
   spanner and glissando produced a real stencil for the first time, so the
   skyline machinery ran on it -- and ly:skylines-for-stencil, which
-  scm/define-grobs.scm names on those grobs, was still a stub. This is EPG22's
+  scm/define-grobs.scm names on those grobs, was still a stub. This is the
+  iterator group's
   pattern exactly: files stop producing EMPTY pages and reach real engraving,
   where they hit gaps that were always there.
 
@@ -4033,17 +4174,19 @@ EPG14 -- SCRIPTS, DYNAMICS, BRACKETS, PEDALS, FINGERING (2026-08-08)
   STILL OWED and now visible: ly:paper-column::print is demanded 124 times per
   sweep and is NOT killing any file (it is the debug column-number stencil). It
   is paper-column.cc's own MAKE_SCHEME_CALLBACK, so it belongs to whoever
-  finishes that file's binding surface. Left for EPG23.
+  finishes that file's binding surface. Left for the long tail.
 
 
-  THE STENCIL EXPRESSION WALK -- EPG13's TEXT CARRY-FORWARD IS CLOSED
+  THE STENCIL EXPRESSION WALK -- THE TEXT-INTERFACE FOLLOW-UP IS CLOSED
 
-  EPG13 left text stencils taking their extent BOX rather than their real ink,
+  The text-interface group left text stencils taking their extent BOX rather
+  than their real ink,
   because the port's utf-8-string node carried nothing to walk: upstream's
   fourth element is the glyph string Pango shaped, and the port has no Pango.
   Walking such a node anyway would have silently OMITTED the text, and a skyline
   that omits ink is the one error direction that causes collisions -- so the box
-  was taken, conservatively, and EPG14 was named as the session to close it.
+  was taken, conservatively, and the scripts group was named as the owner to
+  close it.
 
   Closed. TextFontMetric.TextStencil already resolves every code point through
   the D23 fallback chain to a FACE, a GLYPH INDEX and a SCALE while it measures
@@ -4061,17 +4204,19 @@ EPG14 -- SCRIPTS, DYNAMICS, BRACKETS, PEDALS, FINGERING (2026-08-08)
   change face mid-run.
 
   PURE VARIANTS are still unchanged: they answer the ordinary extents, pending
-  unpure-pure-container.cc in EPG15.
+  unpure-pure-container.cc with line breaking.
 
 
 -------------------------------------------------------------------------------
-RATCHET-FIX 2026-08-08 -- THE THREE ROWS EPG14 LEFT OPEN
+THE THREE ROWS THE SCRIPTS/DYNAMICS GROUP LEFT OPEN
 -------------------------------------------------------------------------------
 
-  EPG14 closed with the ratchet gate RED on three rows and left them for a
+  The scripts group closed with the ratchet gate RED on three rows and left
+  them for a
   ruling rather than re-baselining them. All three were diagnosed to root this
   session; two were defects and are FIXED, and the third is a dependency on
-  work EPG15/EPG16 owns and is recorded here rather than papered over.
+  work line breaking and page layout own and is recorded here rather than
+  papered over.
 
 
   THE TOPLEVEL \layout BLOCK NEVER REACHED ANY CONTEXT (script-custom-definition)
@@ -4115,7 +4260,8 @@ RATCHET-FIX 2026-08-08 -- THE THREE ROWS EPG14 LEFT OPEN
   $defaultlayout names at that moment, so a score block already inherits the
   toplevel one and can then override it.
 
-  This is EPG13's $defaultpaper finding one identifier over, and it is the same
+  This is the text-interface group's $defaultpaper finding one identifier
+  over, and it is the same
   lesson twice: these definitions are reached BY NAME and rebound wholesale, so
   a cached reference to the object is not a reference to the current value.
   Fenced by ToplevelLayoutEndToEndTests, whose every case is paired against the
@@ -4123,7 +4269,7 @@ RATCHET-FIX 2026-08-08 -- THE THREE ROWS EPG14 LEFT OPEN
   $defaultlayout and so always worked.
 
 
-  slashed-beam -- NOT FIXED, AND THE REASON IS EPG15/EPG16
+  slashed-beam -- NOT FIXED, AND THE REASON IS UNPLACED COLUMNS
 
   Reported as "(min) called with zero arguments". Traced to
   beam::calc-right-extreme-vertical-count in scm/output-lib.scm, which filters
@@ -4143,24 +4289,25 @@ RATCHET-FIX 2026-08-08 -- THE THREE ROWS EPG14 LEFT OPEN
   The port's Beam::calc_x_positions is upstream's, line for line, INCLUDING
   that fallback -- upstream fed the same segments would answer the same thing.
   The divergence is upstream of all of it: the columns have not been placed, so
-  the stem coordinates are not yet meaningful. That is EPG15/EPG16.
+  the stem coordinates are not yet meaningful. That is line breaking and page
+  layout.
 
   This is the FOURTH instance of one recorded pattern and it is worth naming as
-  such: EPG10 (beams draw with correct count but near-zero length), EPG12 (the
+  such: beams (draw with correct count but near-zero length), slurs (the
   slur search range explodes when the horizontal span collapses -- "upstream may
-  do that unguarded because spacing has ALWAYS run by then"), EPG17
+  do that unguarded because spacing has ALWAYS run by then"), repeats
   (Bracket::make_bracket divides by the bracket length), and now this. The
   earlier three were in C++ and could be guarded at upstream's own threshold.
   This one CANNOT be: the arithmetic is in scm/output-lib.scm, which is vendored
   byte-identical, and editing vendored upstream Scheme to survive a condition
   upstream never meets would be a parity bug wearing a fix's clothes.
 
-  Why the file regressed at EPG14 rather than earlier: EPG14 fixed
+  Why the file regressed at the scripts group rather than earlier: it fixed
   value_type_check refusing a procedure for a grob property, which is what had
   been silently throwing away \override Beam.stencil = #beam::slashed-stencil.
   Verified directly -- the same music with the stencil override removed still
-  produces a page. Before EPG14 the default beam stencil drew and the file
-  passed; EPG14 made the override real, and the code it now reaches needs
+  produces a page. Before then the default beam stencil drew and the file
+  passed; the fix made the override real, and the code it now reaches needs
   spacing to have run.
 
 
@@ -4182,7 +4329,8 @@ RATCHET-FIX 2026-08-08 -- THE THREE ROWS EPG14 LEFT OPEN
   stop-translation-timestep and fell through to its finalize branch -- which is
   scm/scheme-engravers.scm:306, (set! (ly:spanner-bound finished RIGHT) ...), an
   UPSTREAM bug: ly:spanner-bound is a plain LY_DEFINE with no setter half. Upstream
-  never reaches it. This is EPG14's assq-compares-boxed-numbers-by-reference finding
+  never reaches it. This is the scripts group's
+  assq-compares-boxed-numbers-by-reference finding
   one level up.
 
   Fixed with ISchemeEqual, the managed analogue of declaring an equal_p, on the model
@@ -4202,7 +4350,8 @@ RATCHET-FIX 2026-08-08 -- THE THREE ROWS EPG14 LEFT OPEN
   (2) A STALE UNIMPLEMENTED-THROW IN Measure_spanner::print.
 
   The bracket half threw, loudly and by name, saying it needed
-  Bracket::make_axis_constrained_bracket "owed by EPG14". EPG17 landed lily/bracket.cc
+  Bracket::make_axis_constrained_bracket "owed by the scripts group". The
+  repeats group landed lily/bracket.cc
   WHOLE -- that function included -- while pulling it forward for its own two bracket
   grobs, and the throw was never taken back down. Nothing demanded it in between
   because the \layout block that turns Measure_spanner_engraver on was being discarded.
@@ -4218,7 +4367,8 @@ RATCHET-FIX 2026-08-08 -- THE THREE ROWS EPG14 LEFT OPEN
   after it parsed with ITALIAN note names.
 
   This one had been costing real rows since well before the \layout work, and the
-  sweep logs prove it rather than the directory: at EPG14 part-combine.ly and
+  sweep logs prove it rather than the directory: at the scripts group
+  part-combine.ly and
   part-combine-relative.ly were already NOOUT on "not a note name: g", while
   part-combine-a2.ly and part-combine-inside-scale-durations.ly still PRODUCED PAGES --
   with 12 and 26 parse errors respectively. A file whose notes fail to parse still
@@ -4230,7 +4380,8 @@ RATCHET-FIX 2026-08-08 -- THE THREE ROWS EPG14 LEFT OPEN
   \layout rebinds $defaultlayout, and \language rebinds pitchnames. Upstream needs
   none of it -- one file per process. Fenced by BatchRunnerTests.
 
-  THE EPG4 TRAP IS STILL LIVE, and it cost a bisect here: part-combine-a2.ly PASSES
+  THE SINGLE-FILE-VS-SWEEP TRAP IS STILL LIVE, and it cost a bisect here:
+  part-combine-a2.ly PASSES
   WHEN RUN ALONE and fails only inside the sweep. Bisecting the ordinal file list
   against the single victim found the culprit in nine runs; that is the technique to
   reach for, rather than a one-file probe, whenever a failure will not reproduce alone.
@@ -4245,7 +4396,8 @@ RATCHET-FIX 2026-08-08 -- THE THREE ROWS EPG14 LEFT OPEN
   from the port's loop.
 
   check_removal is what SENDS RemoveContext. So the port had the event defined, its
-  listener registration wired, and the event never once fired. This is EPG18's
+  listener registration wired, and the event never once fired. This is the
+  lyrics group's
   Context_handle finding's sibling: same subsystem, same shape -- something declared
   upstream, half-reproduced, and silent because the one caller that depends on it had
   not been reached yet.
@@ -4270,24 +4422,29 @@ RATCHET-FIX 2026-08-08 -- THE THREE ROWS EPG14 LEFT OPEN
 
   WHAT THIS SESSION LEFT OPEN -- TWO ROWS, BOTH OWNED BY LATER GROUPS
 
-  slashed-beam   EPG15/EPG16. Unplaced columns; full account above. Cannot be guarded,
+  slashed-beam   Unplaced columns (line breaking / page layout); full account
+                 above. Cannot be guarded,
                  because the arithmetic is in vendored upstream Scheme.
-  nullvoice-change  EPG16. Its toplevel expression is a \markup \score-lines block, not
+  nullvoice-change  Page layout's. Its toplevel expression is a \markup
+                 \score-lines block, not
                  a score, and D20's score-level short-circuit skips toplevel non-score
                  entries -- the runner says so by name ("skipped toplevel non-score
-                 entry"). It produced a page at EPG14 only because the \language leak
+                 entry"). It produced a page under the scripts group only
+                 because the \language leak
                  kept the markup from parsing; parsing it correctly is what exposes the
-                 known limit. Closes when EPG16 moves the runner onto ly:book-process.
+                 known limit. Closes when the runner moves onto
+                 ly:book-process.
 
 
 ================================================================================
-EPG19 -- MIDI: PERFORMERS, THE AUDIO LAYER, AND THE SMF WRITER (2026-08-08)
+MIDI: PERFORMERS, THE AUDIO LAYER, AND THE SMF WRITER
 ================================================================================
 
 All 30 upstream files ported, with NO pull-forward of any other group's FILES. One
 LEAF came forward from music-scheme.cc, ly:transpose-key-alist, and that file keeps
-its EPG23 disposition -- the same distinction stencil-scheme.cc has carried since
-EPG14, and the reason LedgerTests counts FILES while EntryPointClosureTests counts
+its long-tail disposition -- the same distinction stencil-scheme.cc has
+carried since the scripts group, and the reason LedgerTests counts FILES while
+EntryPointClosureTests counts
 BINDINGS.
 
 Scope is D27's: MIDI GENERATION plus the comparator and the oracle's references.
@@ -4307,7 +4464,8 @@ THE ONE STRUCTURAL DIVERGENCE, AND IT IS NOT OPTIONAL: byte[] REPLACES std::stri
   The whole MIDI layer is therefore byte[] end to end: MidiItem.ToBytes,
   MidiChunk.ToBytes, MidiEvent.ToBytes, MidiStream.Write.
 
-  THIS IS THE ONE PLACE IN EPG19 WHERE FOLLOWING THE LETTER OF UPSTREAM WOULD HAVE
+  THIS IS THE ONE PLACE IN THE MIDI GROUP WHERE FOLLOWING THE LETTER OF
+  UPSTREAM WOULD HAVE
   PRODUCED WRONG FILES RATHER THAN MERELY DIFFERENT CODE. Midi_text::to_string writes
   a variable-length LENGTH PREFIX taken from text_string_.length (), which is a BYTE
   count because a std::string already holds encoded bytes. A .NET string's Length is
@@ -4334,7 +4492,8 @@ Rational.FromDouble WAS THE ALGORITHM UPSTREAM EXPLICITLY WARNS AGAINST
   tempo ramp in the MIDI subsuite produced a double whose exact numerator does not fit
   a ulong; the conversion THREW; the exception escaped mid-write; and ELEVEN MIDI
   FILES were left truncated after their header, which the comparator reported as a
-  verdict class of its own (UNPARSEABLE, the same class EPG17 met from ly:wide-char->utf-8).
+  verdict class of its own (UNPARSEABLE, the same class the repeats group met
+  from ly:wide-char->utf-8).
 
   Corrected to upstream's algorithm. ONE deliberate divergence remains: where the
   exponent shift would exceed 63 bits upstream shifts a uint64_t past its width, which
@@ -4362,19 +4521,21 @@ THE FIFTH PER-FILE LEAK, AND IT IS THE OLDEST AND WIDEST FOUND SO FAR
       \language rebinds pitchnames
       the parser remembers default_duration_ (and default_tremolo_type_)
 
-  FOUND THROUGH MIDI, WHICH IS WHY IT SURVIVED TRACK P, EPG3, EPG4, EPG13 AND EVERY
+  FOUND THROUGH MIDI, WHICH IS WHY IT SURVIVED TRACK P, THE OUTPUT PIPELINE,
+  HORIZONTAL SPACING, THE TEXT INTERFACE AND EVERY
   SWEEP SINCE. The layout comparator grades GLYPH INVENTORIES, and a page whose notes
   are all half length holds the same glyphs in the same order -- it is graded
   GLYPHS-DIFFER either way, for reasons that have nothing to do with duration. The MIDI
   comparator grades TICKS, and a note-off at 192 where the oracle says 384 is not a
-  near miss. Measured both ways, and it is the EPG4 trap in reverse:
+  near miss. Measured both ways, and it is the single-file-vs-sweep trap in
+  reverse:
   crescendo-return-crescendo.ly is CORRECT when run alone and halved inside the sweep.
 
   Worth generalising: a comparator can only catch what it grades. The layout ratchet
   has been blind to every timing error in the suite since it was seeded.
 
 
-DELIBERATE DIVERGENCES (EPG19)
+DELIBERATE DIVERGENCES (MIDI)
 
   - Midi_walker::operator++ becomes Advance(); finalize() becomes FinalizeTrack(),
     for the reason Translator::finalize became FinalizeTranslation -- Finalize is the
@@ -4392,14 +4553,15 @@ DELIBERATE DIVERGENCES (EPG19)
     order, which is at least reproducible.
   - note-performer.cc and drum-note-performer.cc share their articulation walk
     VERBATIM upstream (it is copied and pasted between the two files). The port
-    factors it into PerformerArticulations. This is the one duplication EPG19 does not
+    factors it into PerformerArticulations. This is the one duplication the
+    MIDI group does not
     reproduce, and it is safe precisely because the two copies are identical line for
     line, so a single implementation cannot drift from either.
   - AudioTextType is a top-level enum, because upstream nests it as `Type' and that
     name is on standing rule 6's banned list. ITS VALUES ARE UPSTREAM'S and must stay
     so: they are written into the file as the meta-event type byte.
   - PerformerGroupPlaceholder, the empty stand-in TranslatorCreator returned for both
-    Performer_group and Score_performer since EPG2, IS RETIRED.
+    Performer_group and Score_performer since the contexts group, IS RETIRED.
 
 UPSTREAM CODE NOT CARRIED, AND WHY
 
@@ -4424,7 +4586,8 @@ A SILENT DEFECT THE PORT ALMOST SHIPPED, AND THE GENERAL LESSON
   interval.
 
   SchemeConvert.TryToRational was added for this and every numeric property read in
-  EPG19 goes through it. Prefer it over a type test anywhere upstream writes
+  the MIDI group goes through it. Prefer it over a type test anywhere
+  upstream writes
   from_scm<Rational>. Note that the pre-existing SchemeConvert.IsNumber does NOT count
   a flower Rational and is therefore not a substitute.
 
@@ -4438,14 +4601,15 @@ STATE THAT CAN LEAK, AND THE GUARD ADDED FOR IT
   comment says these members "would prefer to be members of the containing class
   Performance"; this is that wish, minus the restructuring.
 
-WHERE MIDI OUTPUT COMES FROM, AND WHAT STILL WAITS ON EPG16
+WHERE MIDI OUTPUT COMES FROM, AND WHAT STILL WAITS ON PAGE LAYOUT
 
   Upstream writes MIDI from Paper_book::output, which calls scm/midi.scm's
   write-performances-midis -- and that is reached through ly:book-process, which the
   port does not take (D20's score-level short-circuit). LilyPortPerformer is therefore
   the MIDI twin of LilyPortEngraver and BatchRunner drives both, per score, writing
   <base>.midi and <base>-<n>.midi exactly as write-performances-midis names them so the
-  comparator can pair candidate to reference by name alone. When EPG16 moves the runner
+  comparator can pair candidate to reference by name alone. When page layout
+  moves the runner
   onto the real book path, both collapse into it.
 
   The MIDI half is a SEPARATE try/catch from the engraving half, deliberately:
@@ -4455,34 +4619,39 @@ WHERE MIDI OUTPUT COMES FROM, AND WHAT STILL WAITS ON EPG16
 
 WHAT THE COMPARATOR SAYS TODAY, MEASURED AND NOT ROUNDED UP
 
-  2026-08-08, after the carry-forward session closed EPG19's five families: 79 of the
+  After a carry-forward pass closed the MIDI group's five families: 79 of the
   90 references MATCH the oracle event for event, 1 differs (a satb template whose
-  layout side also fails, an EPG15-state finding), and 10 are missing -- every one an
+  layout side also fails, a finding from the line-breaking era), and 10 are
+  missing -- every one an
   explicit \book file that D20's score-level short-circuit skips, so the whole missing
-  set is EPG16's. The original 2026-08-08 EPG19 reading, kept for the record: 68
+  set is page layout's. The original MIDI-group reading, kept for the record:
+  68
   produced, 41 MATCH, 27 differ, 22 missing.
 
-THE SEVENTH AND EIGHTH PER-FILE LEAKS (2026-08-08, carry-forward session)
+THE SEVENTH AND EIGHTH PER-FILE LEAKS
 
   (7) A TOPLEVEL \midi BLOCK REBINDS $defaultmidi -- the same shape as $defaultpaper
-  (EPG13) and $defaultlayout (RATCHET-FIX). midi2ly-generated regression files set
+  (the text-interface find) and $defaultlayout (the ratchet-fix find).
+  midi2ly-generated regression files set
   midiChannelMapping = #'instrument in exactly such a block, so every file swept after
   the first of them performed under 'instrument mapping instead of performer-init.ly's
   'staff -- visible as every staff landing on MIDI channel 0. Run alone the same file
-  is correct: the EPG4 trap, MIDI edition. LilyPondInit now snapshots and restores
+  is correct: the single-file-vs-sweep trap, MIDI edition. LilyPondInit now
+  snapshots and restores
   $defaultmidi beside its two siblings.
 
   (8) define-session VARIABLES ARE A LEAK CLASS, NOT A VARIABLE. Upstream re-initializes
   every `define-session' variable per file -- scm/lily.scm's session machinery exists
   for multi-file invocations -- and the port does not yet drive that machinery; it
-  belongs to EPG16 with the real book path. The one variable MEASURED to leak,
+  belongs to page layout with the real book path. The one variable MEASURED
+  to leak,
   `unique-counter' (names \addlyrics' generated voices uniqueContext0, 1, ...), is put
   back to -1 by RestoreDefaults until then. Any other define-session variable is a
   candidate for the same failure shape.
 
 
 ================================================================================
-EPG20 -- CHORDS, FRETS, TAB, DRUMS, CLUSTERS, ARPEGGIO, FIGURED BASS (2026-08-08)
+CHORDS, FRETS, TAB, DRUMS, CLUSTERS, ARPEGGIO, FIGURED BASS
 ================================================================================
 
 All 14 upstream files ported, with NO pull-forward of any other group's files and no
@@ -4492,8 +4661,9 @@ a shortfall: eleven of the fourteen files are TRANSLATORS, and a translator has 
 Scheme surface at all -- ly/engraver-init.ly names it in a \consists list and
 TranslatorRegistry answers, so a binding is not how it is found.
 
-D24 (2026-08-05) put the figured-bass trio here rather than in EPG14, and the session
-note it carried was followed: EPG14's landed side-position, column and alignment code
+D24 put the figured-bass trio here rather than with scripts/dynamics, and the
+note it carried was followed: the landed side-position, column and alignment
+code
 was read first, because fingering columns and text-attached grobs are the trio's
 closest technical cousins.
 
@@ -4531,11 +4701,12 @@ DELIBERATE DIVERGENCES
                  terminates because each adds its own height. A squiggle of ZERO
                  height would never terminate, and the symptom would be a sweep that
                  stops making progress with nothing in the log -- exactly the shape
-                 EPG12's slur search range had. Upstream is protected by the music
+                 the slur search range had. Upstream is protected by the music
                  font always carrying scripts.arpeggio; the port asks rather than
                  assumes, and reports. When the glyph is real the guard cannot fire
                  and the expression underneath it is upstream's, unchanged. This is
-                 NOT one of the guards EPG15 is meant to remove: it is about a missing
+                 NOT one of the guards line breaking is meant to remove: it is
+                 about a missing
                  glyph, not about spacing not having run.
 
   Figured_bass_position_engraver's assert becomes a programming error
@@ -4550,7 +4721,8 @@ WHAT UPSTREAM DECLARES AND NEVER DEFINES
   and no binding is made for it: define-grobs.scm names `figured-bass-continuation::
   print', with no ly: prefix, which scm/output-lib.scm defines. That file contributes
   exactly ONE binding, ly:figured-bass-continuation::center-on-figures. Same shape as
-  the Slur::vertical_skylines declaration EPG12 recorded -- and worth generalising: a
+  the Slur::vertical_skylines declaration the slurs group recorded -- and
+  worth generalising: a
   DECLARE_SCHEME_CALLBACK is not evidence that an entry point exists.
 
 A DEFECT IN ALREADY-PORTED CODE, FOUND BY PORTING A CALLER
@@ -4565,7 +4737,8 @@ A DEFECT IN ALREADY-PORTED CODE, FOUND BY PORTING A CALLER
   narrowing is closed. Fenced from both sides by Epg20Tests: a string key must be
   found, and an absent key must still answer the fallback.
 
-  Generalise it the way RATCHET-FIX generalised its stale throw: a recorded narrowing
+  Generalise it the way the ratchet fixes generalised their stale throw: a
+  recorded narrowing
   stops being harmless the moment a caller arrives, and nothing re-checks it.
 
 FIRST CALLER OF ARTICULATIONS.CC
@@ -4592,16 +4765,18 @@ WHAT THE SWEEP SAYS
   registered and reached.
 
 ================================================================================
-EPG15 -- LINE BREAKING & BROKEN SPANNERS (2026-08-08, close-out)
+LINE BREAKING & BROKEN SPANNERS
 ================================================================================
 
 All 12 upstream files ported, with NO pull-forward of any other group's FILES. The
 group's ledger bucket is EMPTY. Three LEAVES of grob-scheme.cc came forward, forced
-by the demand loop rather than chosen; that file keeps its EPG23 disposition, the
-same distinction stencil-scheme.cc has carried since EPG14.
+by the demand loop rather than chosen; that file keeps its long-tail
+disposition, the same distinction stencil-scheme.cc has carried since the
+scripts group.
 
 THE GROUP IS MUCH BIGGER THAN ITS FILE LIST, and the reason is worth generalising:
-FIVE FILES WHOSE LEDGER ROWS HAVE SAID `ported' SINCE EPG0 WERE HOLLOW ON THEIR
+FIVE FILES WHOSE LEDGER ROWS HAVE SAID `ported' FROM THE START WERE HOLLOW ON
+THEIR
 BREAK-PROCESSING HALVES -- grob.cc, spanner.cc, item.cc, system.cc and
 axis-group-interface.cc, whose ENTIRE pure-height half was absent. Nothing asked for
 any of it until line breaking did. A `ported' row means a file was visited, not that
@@ -4611,7 +4786,8 @@ DELIBERATE DIVERGENCES
 
   One score's lines are stacked with a fixed padding (LilyPortEngraver)
                  Upstream assembles lines onto pages in Page_layout_problem, which is
-                 EPG16's, reading system-system-spacing and the rest. Until the runner
+                 page layout's, reading system-system-spacing and the rest.
+                 Until the runner
                  moves onto the real ly:book-process path, a score's lines are stacked
                  top to bottom at the SAME fixed padding BatchRunner already uses
                  between two SCORES. Drawing every line is not optional -- it is the
@@ -4630,17 +4806,18 @@ WHAT THE CLOSE-OUT DISCHARGED
   The whole INHERIT LIST that earlier groups parked on this group is gone, and every
   guard was REMOVED and RE-MEASURED rather than kept:
 
-    * EPG12's two slur search-range guards (SlurScoring). The expression under them
+    * The two slur search-range guards (SlurScoring). The expression under them
       is upstream's, and it divides by the distance between the slur's two base
       attachments. It was safe to restore because spacing now runs before any stencil
       is asked for. Measured: no stall, and tuplet-slurs and tuplet-slur-tweaks came
       back from MISSING.
-    * EPG17's zero-length guard in Bracket::make_bracket. Restored to upstream's
+    * The zero-length guard in Bracket::make_bracket. Restored to upstream's
       unconditional division.
-    * EPG14's null answer in Spanner::find_broken_piece and its hara-kiri omission in
+    * The null answer in Spanner::find_broken_piece and its hara-kiri omission
+      in
       System::get_neighboring_staff. Both restored to upstream; consider_suicide runs
       on each candidate because hara-kiri-group-spanner.cc is ported now.
-    * EPG10's null-bound guard in Beam::common_with_bound. Restored to upstream's
+    * The null-bound guard in Beam::common_with_bound. Restored to upstream's
       unconditional dereference: Spanner::do_break_processing is what guarantees the
       bound, and it exists now. An unbounded beam reaching print again would fail
       loudly on that line, which is the honest outcome.
@@ -4668,11 +4845,13 @@ DEFECTS FOUND IN ALREADY-PORTED CODE
                  No listen_break and no handle_manual_breaks, so \break, \noBreak,
                  \pageBreak and \pageTurn had NO effect of their own -- invisible while
                  every column was breakable by accident, load-bearing the moment the
-                 CARRY-FORWARD session restored the permission-stripping block. No
+                 carry-forward pass restored the permission-stripping block.
+                 No
                  listen_label, so page labels never reached a column. And no
                  process_music AT ALL, so nothing ever wrote `measure-length' onto a
                  command column -- a property Spacing_spanner and Multi_measure_rest
-                 both READ, and both had been reading an unset value since EPG4.
+                 both READ, and both had been reading an unset value since
+                 horizontal spacing landed.
 
   Hara_kiri_group_spanner::calc_skylines was wrong in both halves
                  It called combine_skylines, which upstream reserves for an axis group
@@ -4695,11 +4874,12 @@ A MEASUREMENT THAT WAS WRONG, AND IS NOW CORRECTED
   of stencils the runner stacked, which is one per SCORE -- accidental-styles.ly
   reported 20 systems before line breaking existed at all, because it holds 20 scores.
   It now reports the sum of the LINES each score broke into. Any comparison of that
-  column against a sweep log older than 2026-08-08 is comparing two different
+  column against a sweep log from before the multi-page naming change is
+  comparing two different
   quantities; the SVG/NOOUT/ERROR verdicts either side of that date are unaffected.
 
 ================================================================================
-EPG16 -- PAGE BREAKING AND PAGE LAYOUT (2026-08-08)
+PAGE BREAKING AND PAGE LAYOUT
 ================================================================================
 
 Files ported: page-breaking.cc(+scheme), page-layout-problem.cc(+scheme),
@@ -4718,7 +4898,7 @@ single-page book and <base>-1.svg upwards for a multi-page one. The previous
 divergence note (§ "THE BATCH RUNNER runs D20's short-circuit") is retired by
 this entry.
 
-DELIBERATE DIVERGENCES (EPG16)
+DELIBERATE DIVERGENCES (page breaking)
 
   paper-book.cc -- THE OUTPUT HALF IS NOT PORTED. Paper_book::output,
     classic_output, output_stencil, output_stencils and dump_header_fields
@@ -4741,11 +4921,12 @@ DELIBERATE DIVERGENCES (EPG16)
 
   page-layout-problem.cc -- the spacing-spec readers (is_spaceable,
     read_spacing_spec, get_spacing_spec, get_fixed_spacing, add_stretchability)
-    stay in Layout/PageLayoutSpacing.cs, where EPG7 pulled them forward because
+    stay in Layout/PageLayoutSpacing.cs, where vertical organization pulled
+    them forward because
     Align_interface reads every adjacent pair of staves through them. They are
     NOT duplicated here.
 
-DEFECTS FOUND IN ALREADY-PORTED CODE (EPG16)
+DEFECTS FOUND IN ALREADY-PORTED CODE (page breaking)
 
   ly:format-output READ THE PROPERTY OFF THE WRONG CONTEXT. Upstream's
     Global_context::get_output does `get_property (get_score_context (),
@@ -4770,7 +4951,7 @@ DEFECTS FOUND IN ALREADY-PORTED CODE (EPG16)
   score.cc AND book.cc WERE HOLLOW ON THEIR RENDERING HALVES. Both rows read
     `ported'; Score::book_rendering and Book::process/process_score/
     process_bookparts/error_found/add_scores_to_bookpart were simply absent.
-    Same shape EPG15 found in five files at once.
+    Same shape line breaking found in five files at once.
 
   ConstrainedBreaking.GetLineDetails HANDS BACK ITS LIVE DP-TABLE OBJECTS.
     Upstream only survives mutating them because Line_details is a STRUCT copied
@@ -4779,7 +4960,7 @@ DEFECTS FOUND IN ALREADY-PORTED CODE (EPG16)
     breaker's own table and leaks it into the next configuration. LineDetails
     now carries Copy(), and PageBreaking copies at both points upstream copies.
 
-TRAPS WORTH NOT REDISCOVERING (EPG16)
+TRAPS WORTH NOT REDISCOVERING (page breaking)
 
   THE UNSIGNED-VPOS TRAP IS REAL AND IT COST THIS SESSION A SWEEP.
     Page_spacer::calc_subproblem guards its cell update with
@@ -4795,7 +4976,8 @@ TRAPS WORTH NOT REDISCOVERING (EPG16)
 
 
 -------------------------------------------------------------------------------
-ADDED 2026-08-09 (EPG16 CLOSE-OUT) -- FIVE BINDINGS THAT WERE NEVER REGISTERED
+ADDED AT THE PAGE-BREAKING CLOSE-OUT -- FIVE BINDINGS THAT WERE NEVER
+REGISTERED
 -------------------------------------------------------------------------------
 
 Every defect this session found was in code whose LEDGER ROW ALREADY SAID
@@ -4806,8 +4988,9 @@ to state as a rule:
   The C# side works, every C# caller works, the ledger row is honest about the
   FILE, and the Scheme side quietly receives an UnportedValue placeholder --
   which is inert, so it flows politely through whatever asked for it. Nothing
-  fails. PORT-COVERAGE's own EPG0-era note predicted this in as many words
-  ("one Scheme call away from being actively wrong"); it took until EPG16 to
+  fails. PORT-COVERAGE's own early note predicted this in as many words
+  ("one Scheme call away from being actively wrong"); it took until page
+  breaking to
   come true, twice.
 
   ly:context-def-modify, ly:context-def-lookup  (context-def.cc)
@@ -4845,7 +5028,8 @@ to state as a rule:
     words -- took the whole book down with wrong-type-arg ("length" "Not a
     proper list"), naming neither the paper variable nor the callback.
 
-    Registered here with EPG16 rather than with system.cc's other callbacks
+    Registered here with page breaking rather than with system.cc's other
+    callbacks
     because they are page-layout surface: annotate-spacing is what wants them.
 
 THE DEPRECATED-PROPERTY PATH WAS ONLY HALF PORTED (lily-guile.cc)
@@ -4903,9 +5087,10 @@ ly:grob-system USED THE WRONG FUNCTION ON THE WRONG AXIS (grob-scheme.cc)
 
 THE KEEP-THE-PARSER-CURRENT WRAPPER DOES NOT RETIRE (BatchRunner)
 
-  EPG16 inherited it as item 3 of three, on the premise that moving the runner
+  Page breaking inherited it as item 3 of three, on the premise that moving
+  the runner
   onto the real ly:book-process path would make it unnecessary. THAT PREMISE IS
-  WRONG AND WAS MEASURED WRONG on 2026-08-09: with the runner fully on the book
+  WRONG AND WAS MEASURED WRONG: with the runner fully on the book
   path, removing the wrapper puts apply-output, fermata-dot-position,
   markup-rhythm-ragged and flags-straight-layout-staff-size straight back on
   "there is no current parser".
@@ -4930,7 +5115,7 @@ LilyPortEngraver's FIXED PADDING IS RETIRED (inherited item 2)
   BatchRunner's own StackSystems was DEAD CODE by then and is deleted.
 
 ================================================================================
-EPG21 -- ANCIENT NOTATION (2026-08-09)
+ANCIENT NOTATION
 ================================================================================
 
 All twelve ledger rows landed in one session: the ligature engraver hierarchy
@@ -4941,7 +5126,7 @@ group's bucket is EMPTY. Entry points 673 -> 678.
 
 THE GROUP CLOSED THE WHOLE UNPORTED-TRANSLATOR DEMAND LIST
 
-  The 2026-08-09 sweep asked for exactly five translator names it could not
+  The close-out sweep asked for exactly five translator names it could not
   resolve, and all five are this group's:
 
     Ligature_bracket_engraver     4,224 misses
@@ -5026,7 +5211,7 @@ from_scm<bool> IS EXACTLY-#t, AND THIS GROUP DEPENDS ON IT
   ligature-pes, left-down-stem, right-down-stem and right-up-stem, and there an
   unset property read as true would change every shape in the ligature. The port
   uses SchemeUtilities.ToBool (exactly-#t) throughout, never IsSchemeTrue -- the
-  defect class the 2026-08-08 CARRY-FORWARD session named.
+  defect class the carry-forward pass named.
 
 PITCH READS FALL BACK TO 0 WHERE UPSTREAM DEREFERENCES A NULL
 
@@ -5086,12 +5271,13 @@ TESTS
 
 
 ================================================================================
-EPG16 -- CLOSE-OUT II: THE SPRING SEAM AND THE STAFF-LINE MEASUREMENT (2026-08-11)
+PAGE BREAKING CLOSE-OUT: THE SPRING SEAM AND THE STAFF-LINE MEASUREMENT
 ================================================================================
 
-This session was opened to close EPG16's ten red ratchet rows. It found and
-fixed one defect in EPG16's OWN machinery, restored one hollow branch in an
-already-`ported' file, and MEASURED a suite-wide defect that is not EPG16's and
+This pass was opened to close page breaking's ten red ratchet rows. It found
+and fixed one defect in page breaking's OWN machinery, restored one hollow
+branch in an already-`ported' file, and MEASURED a suite-wide defect that is
+not page breaking's and
 that the ten rows all sit on. Nothing was re-baselined; the floor is untouched
 at 1,815 / 501 and the gate still reads ten.
 
@@ -5121,7 +5307,8 @@ DEFECT 1 -- A MUTABLE STRUCT IN A LIST: THREE SILENT LOSSES IN append_system
   `springs_.back ()' actually means. MEASURED: 47 pages changed geometry,
   ZERO verdicts changed, zero regressions.
 
-  ⚠ THIS IS EPG21's Bezier FINDING IN THE MIRROR, and the pair should be read
+  ⚠ THIS IS THE ANCIENT-NOTATION Bezier FINDING IN THE MIRROR, and the pair
+  should be read
   as one rule: EVERY C++ VALUE/REFERENCE DECISION IS A PORT DECISION. There a
   C++ value was aliased by a C# reference; here a C++ reference was copied by a
   C# value. Both are silent and neither shows up in a diff against upstream.
@@ -5141,11 +5328,12 @@ DEFECT 2 -- Paper_column::break_align_width WAS HOLLOW ON ITS ELSE BRANCH
   every named group before it. A StaffSymbol asks with
   (staff-bar break-alignment), so `staff-bar' was never consulted.
 
-  ⚠ THE FUNCTION IT SHOULD CALL WAS ALREADY PORTED -- EPG15 landed
+  ⚠ THE FUNCTION IT SHOULD CALL WAS ALREADY PORTED -- line breaking landed
   find_nonempty_break_align_group in BreakAlignInterface.cs. This caller was
   written while it did not exist and NOTHING RE-CHECKED IT once it did. That is
-  RATCHET-FIX's own rule (a named absence stops being true the moment its owner
-  lands) meeting EPG16's (a ported type with a missing call is worse than an
+  the ratchet fixes' own rule (a named absence stops being true the moment its
+  owner lands) meeting page breaking's (a ported type with a missing call is
+  worse than an
   unported type), in a file whose ledger row has read `ported' throughout.
 
   Restored faithfully. MEASURED HONESTLY: it changed NOTHING in the sweep --
@@ -5170,7 +5358,8 @@ THE FINDING THIS SESSION IS REALLY ABOUT -- COLLAPSED STAFF LINES, SUITE-WIDE
   ⚠ THE COMPARATOR HAS NEVER REPORTED THIS AND STRUCTURALLY CANNOT. It grades
   glyph inventory and position; a staff line is a <line>, and a page whose
   staff lines are collapsed holds the same glyphs in the same order. This is
-  EPG19's timing blindness in a second dimension, and the general rule it
+  the MIDI group's timing blindness in a second dimension, and the general
+  rule it
   argues for is now stated twice: A GREEN RATCHET IS EVIDENCE ABOUT WHAT THE
   COMPARATOR GRADES AND ABOUT NOTHING ELSE.
 
@@ -5186,19 +5375,22 @@ THE FINDING THIS SESSION IS REALLY ABOUT -- COLLAPSED STAFF LINES, SUITE-WIDE
   62.9% collapsed and broken ones 81.9%. Line breaking worsens it; it does not
   cause it.
 
-  OWNER: NOT EPG16. ly:break-alignment-interface::calc-positioning-done is
-  registered (Epg15Callbacks) and reached, and the sweep's demand list asks for
+  OWNER: NOT PAGE BREAKING. ly:break-alignment-interface::calc-positioning-done
+  is
+  registered (LineBreakingCallbacks) and reached, and the sweep's demand list asks for
   no break-align name at all -- so this is not a missing binding but the
   break-alignment machinery producing empty extents over columns that are still
-  at zero, which is EPG15/EPG4 ground. It is the same "unplaced columns" family
-  RATCHET-FIX recorded for slashed-beam and could not guard.
+  at zero, which is line-breaking/horizontal-spacing ground. It is the same
+  "unplaced columns" family the ratchet fixes recorded for slashed-beam and
+  could not guard.
 
 WHAT THIS SAYS ABOUT THE TEN
 
   All ten regressed rows carry collapsed staff lines. The ten are one shape --
   the oracle writes one page, the port writes two, so the port's <base>-1.svg
   leaves the reference <base>.svg reading MISSING although the music drew --
-  and they are sitting on a defect that touches 1,296 pages. EPG16's close-out
+  and they are sitting on a defect that touches 1,296 pages. Page breaking's
+  close-out
   called them "not page-breaking bugs" and handed them to their real owners on
   the strength of per-file geometry; this session's suite-wide measurement is
   the stronger form of the same argument.
@@ -5223,10 +5415,11 @@ TESTS
   broken geometry.
 
 -------------------------------------------------------------------------------
-STAFF-LINES 2026-08-11 -- THE COLLAPSED-STAFF-LINE DEFECT, FIXED AT ITS ROOT
+THE COLLAPSED-STAFF-LINE DEFECT, FIXED AT ITS ROOT
 -------------------------------------------------------------------------------
 
-  CLOSE-OUT II measured it: 74.4% of the port's horizontal staff lines were
+  The page-breaking close-out measured it: 74.4% of the port's horizontal
+  staff lines were
   drawn with no length (16,664 of 22,385 across 1,296 pages; oracle 4.9%).
   After this session: 1.4%, on 103 pages against the oracle's 145. All the
   fixes are faithful restorations; not one is new design.
@@ -5240,8 +5433,9 @@ STAFF-LINES 2026-08-11 -- THE COLLAPSED-STAFF-LINE DEFECT, FIXED AT ITS ROOT
   broken piece through Clone, and DRAWN. Print never ran twice; the collapsed
   line was a stale cache, not a wrong computation.
 
-  THE CLASS, SWEPT. Every "answers the ordinary extent, pending EPG15" note
-  became a live bug the day EPG15 landed, and nothing re-checked them -- the
+  THE CLASS, SWEPT. Every "answers the ordinary extent, pending line
+  breaking" note became a live bug the day line breaking landed, and nothing
+  re-checked them -- the
   stale-named-absence rule at project scale. Retired this session (discharge
   notes inline at each record):
 
@@ -5259,15 +5453,16 @@ STAFF-LINES 2026-08-11 -- THE COLLAPSED-STAFF-LINE DEFECT, FIXED AT ITS ROOT
   THE DISCONNECTED MIDDLE. Paper_column_engraver was missing THREE
   acknowledgers (staff_spacing, note_spacing, break_alignment). Nothing ever
   wrote `spacing-wishes' onto any column, so every wish-based correction in
-  Spacing_spanner has been DEAD SINCE EPG4 -- reading empty sets, no
+  Spacing_spanner has been DEAD since horizontal spacing landed -- reading
+  empty sets, no
   diagnostic -- and no column carried a `break-alignment' object, so
   break_align_width answered a POINT at the column's coordinate for every
   staff-line end in the suite. (That is why close-out II's restored else
   branch "changed nothing": it searched an object no column carried.) With
   the wishes connected, two hollow interiors became reachable and were ported
   in full: Note_spacing::stem_dir_correction (knee_correction included) and
-  Staff_spacing::optical_correction, both behind stale EPG5/EPG6 absence
-  notes whose callees had landed on 2026-08-07.
+  Staff_spacing::optical_correction, both behind stale absence notes whose
+  callees had long since landed.
 
   THE SPRING TRAP, THIRD INSTANCE. Page_layout_problem's
   alter_spring_from_spacing_spec took its Spring -- a struct -- BY VALUE, so
@@ -5275,7 +5470,8 @@ STAFF-LINES 2026-08-11 -- THE COLLAPSED-STAFF-LINE DEFECT, FIXED AT ITS ROOT
   skyline MINIMUM instead of basic-distance (break.ly: 4.3 between systems
   where the oracle has 8.0; exact after the fix). Upstream passes Spring*;
   the port now passes `ref Spring'. Close-out II's List<Spring> fix was the
-  same trap through an indexer; EPG21's Bezier was its mirror. The class was
+  same trap through an indexer; the ancient-notation Bezier was its mirror.
+  The class was
   re-swept for by-value Spring parameters: NoteSpacing.GetSpacing is
   value-in/value-out like upstream, AppendSystem/AppendProb mutate-then-store,
   SpaceableGrob.AddSpring stores a copy upstream also stores. No other
@@ -5298,7 +5494,7 @@ STAFF-LINES 2026-08-11 -- THE COLLAPSED-STAFF-LINE DEFECT, FIXED AT ITS ROOT
   the default pair identically.
 
 -------------------------------------------------------------------------------
-STAFF-LINES FOLLOW-UP 2026-08-11 -- TWO OF THE NINE RED ROWS' FAMILIES CLOSED
+STAFF-LINE FOLLOW-UP -- TWO OF THE NINE RED ROWS' FAMILIES CLOSED
 -------------------------------------------------------------------------------
 
   Jeremy GO'd the ssaattbb leak hunt and the TimeSignature diagnosis. Both
@@ -5322,9 +5518,10 @@ STAFF-LINES FOLLOW-UP 2026-08-11 -- TWO OF THE NINE RED ROWS' FAMILIES CLOSED
   was a unit-domain mixup, not a wrong number.
 
   THE NINTH PER-FILE LEAK IS THE PARSER'S BASE SCOPE ITSELF. Bisecting the
-  sweep against ssaattbb-template-with-all-staves (11 rounds, RATCHET-FIX's
+  sweep against ssaattbb-template-with-all-staves (11 rounds, the recorded
   recipe) converged on satb-template-with-changed-instrument-names -- and
-  the mechanism is the RestoreDefaults LIMIT recorded since EPG13: "a
+  the mechanism is the RestoreDefaults LIMIT recorded since the text-interface
+  group: "a
   variable a file INVENTS is left in place, because the scope has no
   unbind". The built-in vocal templates read OPTIONAL variables by name
   (Time, TwoVoicesPerStaff, instrument names), so the satb file's leftover
@@ -5341,7 +5538,7 @@ STAFF-LINES FOLLOW-UP 2026-08-11 -- TWO OF THE NINE RED ROWS' FAMILIES CLOSED
   that must double -- the templates' mechanism in miniature.
 
 ================================================================================
-EPG23 -- LONG TAIL & ENTRY-POINT CLOSURE (2026-08-12).  GATE G3 CLOSED.
+LONG TAIL & ENTRY-POINT CLOSURE.  GATE G3 CLOSED.
 ================================================================================
 
   737 of 737 entry points are implemented-or-N/A, the ledger closes at
@@ -5360,7 +5557,8 @@ EPG23 -- LONG TAIL & ENTRY-POINT CLOSURE (2026-08-12).  GATE G3 CLOSED.
     none) in Bootstrap/RandomPrimitives.cs.
 
     ly:event? (music-scheme.cc).  A TYPE PREDICATE over a type the port has
-    had since EPG0, and -- because upstream declares it with LY_DEFINE rather
+    had from the start, and -- because upstream declares it with LY_DEFINE
+    rather
     than as a smob type_p_name_ -- it got the ORDINARY stub, which answers the
     inert UnportedValue.  An UnportedValue is TRUTHY, so
     ly-syntax-constructors.scm's `(cond ((ly:event? item) (ly:set-origin!
@@ -5455,10 +5653,11 @@ EPG23 -- LONG TAIL & ENTRY-POINT CLOSURE (2026-08-12).  GATE G3 CLOSED.
   changes AND a different object comes back.
 
 ================================================================================
-STICKY-SPANNER BOUNDS (2026-08-12).  EPG23'S TWO RED RATCHET ROWS, CLOSED.
+STICKY SPANNER BOUNDS.  THE LONG TAIL'S TWO RED RATCHET ROWS, CLOSED.
 ================================================================================
 
-  Two defects, both upstream of the place EPG23's close-out predicted, and
+  Two defects, both upstream of the place the long tail's close-out predicted,
+  and
   both found by measuring rather than by re-reading the predicted function.
 
   (1) Spanner::get_bound HAD NO STICKY FALLBACK.  Objects/Spanner.cs answered
@@ -5497,7 +5696,8 @@ STICKY-SPANNER BOUNDS (2026-08-12).  EPG23'S TWO RED RATCHET ROWS, CLOSED.
   and plausibly -- it answers "no offset", which is a legal state.  Sweep for
   the pattern when reading any numeric grob property.
 
-  WHY THE SIBLING FILES' GREEN WAS NOT EVIDENCE.  EPG23 recorded that
+  WHY THE SIBLING FILES' GREEN WAS NOT EVIDENCE.  The long-tail close recorded
+  that
   footnote-auto-numbering and footnote-auto-numbering-page-reset "now render
   and PASS their numbering assertions", and reasoned from that to a defect in
   the vertical tie-break.  Both files DO carry spanner footnotes (a hairpin
@@ -5516,7 +5716,7 @@ STICKY-SPANNER BOUNDS (2026-08-12).  EPG23'S TWO RED RATCHET ROWS, CLOSED.
   defect produced and must fail to render).
 
 ================================================================================
-CTX-ORDER AND TEXT-SIZE (2026-08-12)
+CONTEXT LISTENER ORDER, AND PANGO FONT-SIZE QUANTIZATION
 ================================================================================
 
 TWO DEFECTS, BOTH ORDERING/QUANTIZATION IN A CHAIN THE PORT HAD REPRODUCED
@@ -5606,8 +5806,7 @@ A HOST-DEPENDENCE IN THE ORACLE, NOT A PORT DEFECT (measured, no code change).
   yardstick question, not an engine one.
 
 ================================================================================
-TEXT ADVANCES ARE KERNED (2026-08-13; the gap was found by REF-PIN and closed
-by the SS3.9 KERNING session the same week, Jeremy's GO)
+TEXT ADVANCES ARE KERNED
 ================================================================================
 
 FIXED.  TextFontMetric.TextStencil now measures the SHAPED advance sum: the raw
@@ -5636,8 +5835,8 @@ behaviour rather than an arithmetic that looks equivalent:
   * A face change ends the run -- Pango itemizes runs per font and never kerns
     across two of them (TextStencil's previousFace check).
 
-MEASURED across the 24 vendored faces (independently, fontTools 4.57.0,
-2026-08-13): every face that kerns at all does it with ONE plain type-2 lookup
+MEASURED across the 24 vendored faces (independently, fontTools 4.57.0):
+every face that kerns at all does it with ONE plain type-2 lookup
 of PairPos FORMAT 1 subtables, ValueFormat1=XAdvance, ValueFormat2=0, flag 0,
 and names the SAME lookups from every script it declares.  The monospace
 quartets (NimbusMonoPS, TeX Gyre Cursor) carry no kerning; NO vendored face
@@ -5662,10 +5861,10 @@ fences fail and every control holds.
 KNOWN REMAINING DIVERGENCE, deliberate: kerning only, NOT full shaping.  No
 GSUB substitution (ligatures), no mark attachment, no per-script feature
 selection beyond the default LangSys.  If ligature substitution ever matters it
-shows as a glyph-inventory difference and gets its own ruling (the SS3.9 GO's
-scope note).
+shows as a glyph-inventory difference and gets its own ruling (the kerning
+GO's scope note).
 
-A SECOND DIVERGENCE FOUND THE SAME WAY -- RULED, 2026-08-13 (D31): when no
+A SECOND DIVERGENCE FOUND THE SAME WAY -- RULED (D31): when no
 available face covers a code point, the port always writes the <text> element
 and draws .notdef -- D23's tofu -- while Pango drops the run entirely, so the
 pinned oracle emits NOTHING.  Two regression files turn on it
@@ -5678,7 +5877,7 @@ pass-manifest-decisions.tsv; they cannot reach MATCH while the ruling stands.
 
 
 ===============================================================================
-EPG24 -- DOCUMENTATION-GENERATION PARITY (2026-08-13)
+DOCUMENTATION-GENERATION PARITY
 ===============================================================================
 
   ly/generate-documentation.ly runs end to end under the port and writes all
@@ -5762,10 +5961,10 @@ DEFECTS THIS RUN SURFACED IN THE ENGINE (all fixed, all silent)
 
 ================================================================================
 G8 CLOSED -- generate-documentation.ly IS BYTE-IDENTICAL, ALL 19 FILES
-(2026-08-13, the §3.10 session)
 ================================================================================
 
-internals.texi went 496 hunks -> 0.  The three classes the EPG24 close recorded
+internals.texi went 496 hunks -> 0.  The three classes the docs-parity close
+recorded
 were the right three NAMES, and two of them were the wrong SIZE and the wrong
 mechanism; two more classes existed that nothing had measured.  What each turned
 out to be:

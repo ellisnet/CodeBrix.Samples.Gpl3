@@ -26,7 +26,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Translation; //was previously: lily/piano-pedal-engraver.cc, lily/piano-pedal-align-engraver.cc, lily/include/piano-pedal.hh;
 
-// Modified by Jeremy Ellis on 2026-08-08 as part of the CodeBrix port:
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port:
 //   - the two pedal engravers share a file, and PedalType is declared once for both;
 //     upstream declares the enum in piano-pedal.hh and AGAIN, privately and identically,
 //     inside Piano_pedal_align_engraver.
@@ -331,7 +331,7 @@ public class PianoPedalEngraver : Engraver
             string msg = "expect 3 strings for piano pedals, found: " + stringList.Count;
             if (m != null)
             {
-                Epg8Support.EventWarning(m, msg);
+                TranslatorSchemeHelpers.EventWarning(m, msg);
             }
             else
             {
@@ -347,7 +347,7 @@ public class PianoPedalEngraver : Engraver
             {
                 if (p.StartEv == null)
                 {
-                    Epg8Support.EventWarning(
+                    TranslatorSchemeHelpers.EventWarning(
                         p.EventDrul[Direction.Positive],
                         "cannot find start of piano pedal: `" + p.Type.BaseName + "'");
                 }
@@ -365,7 +365,7 @@ public class PianoPedalEngraver : Engraver
             {
                 if (p.StartEv == null)
                 {
-                    Epg8Support.EventWarning(
+                    TranslatorSchemeHelpers.EventWarning(
                         p.EventDrul[Direction.Positive],
                         "cannot find start of piano pedal: `" + p.Type.BaseName + "'");
                 }
@@ -402,7 +402,7 @@ public class PianoPedalEngraver : Engraver
     {
         if (p.Bracket == null && p.EventDrul[Direction.Positive] != null)
         {
-            Epg8Support.EventWarning(
+            TranslatorSchemeHelpers.EventWarning(
                 p.EventDrul[Direction.Positive],
                 "cannot find start of piano pedal bracket: `" + p.Type.BaseName + "'");
             p.EventDrul[Direction.Positive] = null;

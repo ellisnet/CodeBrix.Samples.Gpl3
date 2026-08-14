@@ -26,12 +26,12 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Objects; //was previously: lily/note-spacing.cc, lily/include/note-spacing.hh;
 
-// Modified by Jeremy Ellis on 2026-08-05 as part of the CodeBrix port.
-// Modified by Jeremy Ellis on 2026-08-11 as part of the CodeBrix port:
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port.
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port:
 //   - stem_dir_correction's stem loop is ported in full, knee_correction included.
-//     It had been hollow behind a stale EPG5/EPG6 absence note, and became reachable
+//     It had been hollow behind a stale absence note, and became reachable
 //     when Paper_column_engraver started acknowledging spacing wishes onto the
-//     columns. See PORT-COVERAGE, STAFF-LINES.
+//     columns. See PORT-COVERAGE.
 
 /*
   Adjust the ideal and minimum distance between note columns,
@@ -168,8 +168,8 @@ public static class NoteSpacing
     /// Adds the optical correction that up-stem/down-stem pairs need: the combination
     /// up-then-down wants extra room, down-then-up less.
     /// <para>
-    /// The EPG5/EPG6-era named absence here retired with the STAFF-LINES session
-    /// (2026-08-11): the stem loop was hollow — its callees had all long since landed —
+    /// The early named absence here retired with the stale-stand-in class
+    /// sweep: the stem loop was hollow — its callees had all long since landed —
     /// and it became reachable the moment <c>Paper_column_engraver</c> started
     /// acknowledging spacing wishes onto the columns.
     /// </para>
@@ -400,9 +400,10 @@ public static class NoteSpacing
     }
 
     /// <summary>
-    /// The seam for <c>Note_column::first_head</c>, which is EPG5's. Nothing carries
-    /// <c>note-column-interface</c> yet, so this is only ever reached with a grob that
-    /// cannot be one.
+    /// The seam for <c>Note_column::first_head</c>. ⚠ This stand-in answers null and
+    /// predates the later port of <c>NoteColumn.FirstHead</c>; whether this call site
+    /// should now route through it has not been re-measured. Its own note — that nothing
+    /// carries <c>note-column-interface</c> here — dates from the same era.
     /// </summary>
     private static Grob FirstHead(Item noteColumn)
     {
@@ -410,7 +411,7 @@ public static class NoteSpacing
         {
             _headAbsenceReported = true;
             Warn.ProgrammingError(
-                "Note_column::first_head is not ported (EPG5); the left head end stays 0,"
+                "Note_column::first_head is not routed here; the left head end stays 0,"
                 + " which is upstream's answer when the first head cannot be determined");
         }
 
@@ -419,9 +420,11 @@ public static class NoteSpacing
 
     /// <summary>
     /// The seam for <c>Break_alignment_interface::find_nonempty_break_align_group</c>,
-    /// which is EPG8's. Until it lands the spacing measures to the right side of the
-    /// non-musical column instead — upstream's own fallback when no staff-bar group is
-    /// found.
+    /// ⚠ This stand-in answers null and predates the later port of
+    /// <c>BreakAlignInterface.FindNonemptyBreakAlignGroup</c>; whether this call site
+    /// should now route through it has not been re-measured. Until it does, the spacing
+    /// measures to the right side of the non-musical column instead — upstream's own
+    /// fallback when no staff-bar group is found.
     /// </summary>
     private static Grob FindStaffBarGroup(Item breakAlignment)
     {
@@ -429,8 +432,8 @@ public static class NoteSpacing
         {
             _staffBarGroupAbsenceReported = true;
             Warn.ProgrammingError(
-                "Break_alignment_interface::find_nonempty_break_align_group is not ported"
-                + " (EPG8); measuring to the right side of the non-musical column, which is"
+                "Break_alignment_interface::find_nonempty_break_align_group is not routed"
+                + " here; measuring to the right side of the non-musical column, which is"
                 + " upstream's own no-staff-bar-group fallback");
         }
 

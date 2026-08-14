@@ -22,7 +22,7 @@ using System.Collections.Generic;
 
 namespace CodeBrix.LilyPort.Engine.Layout; //was previously: lily/page-spacing-result.cc, lily/include/page-spacing-result.hh;
 
-// Modified by Jeremy Ellis on 2026-08-08 as part of the CodeBrix port.
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port.
 
 /// <summary>
 /// Whether a page's system count satisfies <c>min-systems-per-page</c> and

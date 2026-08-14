@@ -21,7 +21,7 @@ using CodeBrix.LilyPort.Flower;
 
 namespace CodeBrix.LilyPort.Engine.Music; //was previously: lily/pitch-interval.cc, lily/include/pitch-interval.hh;
 
-// Modified by Jeremy Ellis on 2026-08-07 as part of the CodeBrix port.
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port.
 
 /// <summary>
 /// A pair of pitches bounding a range, kept as a <see cref="DrulArray{T}"/> of

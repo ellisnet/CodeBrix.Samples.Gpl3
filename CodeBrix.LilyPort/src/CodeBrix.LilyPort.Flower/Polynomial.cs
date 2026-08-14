@@ -22,7 +22,7 @@ using System;
 using System.Collections.Generic;
 
 namespace CodeBrix.LilyPort.Flower; //was previously: flower/polynomial.cc, flower/include/polynomial.hh;
-// Modified by Jeremy Ellis on 2026-08-02 as part of the CodeBrix port:
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port:
 //   - translated from C++17 to C# targeting net10.0
 //   - std::vector<Real> coefs_ becomes List<double> Coefficients
 //   - the closed-form solvers are translated LITERALLY, including Cardano's

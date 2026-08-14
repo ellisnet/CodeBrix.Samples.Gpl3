@@ -24,8 +24,8 @@ namespace CodeBrix.LilyPort.Engine.Bootstrap;
 /// than plumbing, is reproduced here so every scope in the port is built the same way.
 /// </para>
 /// <para>
-/// The scopes are ANONYMOUS, matching upstream, since LS-FIX (2026-08-05). They
-/// spent EPG1–EPG3 named and registered instead, because the expander resolved an
+/// The scopes are ANONYMOUS, matching upstream. They
+/// were named and registered at first, because the expander resolved an
 /// imported MACRO only in a module it could name; LilyScheme now gives an anonymous
 /// module a lazy name on the first <c>module-name</c> ask — Guile's own boot-9
 /// behaviour — so the divergence is retired. Both halves are recorded in
@@ -43,8 +43,8 @@ public static class LilyModules
     /// isolation still has a real scope to read and write.</para>
     /// </summary>
     /// <param name="kind">A word naming what the scope belongs to. Kept for the call
-    /// sites' self-description; since the scopes went back to being ANONYMOUS
-    /// (LS-FIX, 2026-08-05) it no longer reaches the module.</param>
+    /// sites' self-description; since the scopes went back to being
+    /// ANONYMOUS it no longer reaches the module.</param>
     /// <returns>The new module.</returns>
     public static SchemeModule Make(string kind) => Make(LilyPondScheme.Current, kind);
 
@@ -56,11 +56,11 @@ public static class LilyModules
     public static SchemeModule Make(Interpreter interpreter, string kind)
     {
         // ANONYMOUS, matching upstream's ly_make_module at last. The scopes were
-        // named-and-registered from EPG1 until 2026-08-05 as a workaround for the
+        // named-and-registered at first as a workaround for the
         // expander not resolving imported macros in anonymous modules; LilyScheme
         // now names an anonymous module lazily on the first module-name ask,
-        // exactly as Guile's boot-9 does, so the workaround is retired (LS-FIX —
-        // see Parsing/PORT-COVERAGE.txt, which records both halves).
+        // exactly as Guile's boot-9 does, so the workaround is retired
+        // (see Parsing/PORT-COVERAGE.txt, which records both halves).
         SchemeModule module = new SchemeModule(null);
 
         if (interpreter == null)

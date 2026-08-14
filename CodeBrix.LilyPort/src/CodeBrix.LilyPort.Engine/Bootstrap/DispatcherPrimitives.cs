@@ -18,7 +18,7 @@ namespace CodeBrix.LilyPort.Engine.Bootstrap;
 /// The <c>ly:*-dispatcher*</c> and listener entry points from
 /// <c>lily/dispatcher-scheme.cc</c>.
 /// <para>
-/// PULLED FORWARD from EPG23 by EPG22 (2026-08-07). <c>\addQuote</c> is the demand:
+/// PULLED FORWARD from the long-tail pool by the iterator group. <c>\addQuote</c> is the demand:
 /// <c>scm/part-combiner.scm</c>'s <c>recording-group-emulate</c> makes a dispatcher,
 /// connects it to the context's event source and registers SCHEME procedures on it, and
 /// every one of those steps is a binding in this file. Without them <c>\addQuote</c>

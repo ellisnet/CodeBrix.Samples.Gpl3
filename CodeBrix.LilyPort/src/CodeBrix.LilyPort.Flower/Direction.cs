@@ -20,7 +20,7 @@
 using System;
 
 namespace CodeBrix.LilyPort.Flower; //was previously: flower/include/direction.hh;
-// Modified by Jeremy Ellis on 2026-08-02 as part of the CodeBrix port:
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port:
 //   - translated from C++17 to C# targeting net10.0
 //   - final class replaced by a readonly struct; Direction is a value carrying one
 //     int and is passed everywhere by value

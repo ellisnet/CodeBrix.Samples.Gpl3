@@ -35,7 +35,7 @@ namespace CodeBrix.LilyPort;
 /// <see cref="ProloguelLy"/> and <see cref="EpilogueLy"/> for exactly what and why),
 /// so score collection, book construction, the version check and the
 /// expect-error handshake are all upstream's real code running through the real
-/// parser. D20's divergence is DISCHARGED as of EPG16 (2026-08-08): the runner used to
+/// parser. D20's divergence is DISCHARGED since the page-layout group landed: the runner used to
 /// define <c>default-toplevel-book-handler</c> — the escape hatch <c>init.ly</c> itself
 /// checks for — and take each book's scores STRAIGHT to the SVG backend, score by score.
 /// It now runs the real <c>Book::process</c> → <c>Paper_book</c> → page-breaker path and
@@ -323,7 +323,7 @@ public static class BatchRunner
         // runner rebinds the parse-time name to the same collector, exactly the move
         // upstream's own lilypond-book-preamble.ly makes when IT wants books collected
         // instead of printed. Rebound per run for the same no-stale-capture reason as
-        // the escape hatch. Before this (2026-08-12), every explicit \book file was
+        // the escape hatch. Before this, every explicit \book file was
         // NOOUT: "0 book(s)" with the book fully built — the sequence-name* MIDI rows.
         //
         // ⚠ The interpreter define alone is NOT ENOUGH: the parser resolves
@@ -357,12 +357,12 @@ public static class BatchRunner
         session.SetIdentifier(Symbol.Intern("toplevel-book-handler"), bookCollector);
         int errorCount = RunLifecycle(session, text, baseName, includeDirectory, diagnostics);
 
-        // EPG16 (2026-08-08): one stencil per PAGE, as the page breaker chose them.
+        // One stencil per PAGE, as the page breaker chose them.
         // Until this group it was one per SCORE, stacked at a fixed padding into a single
         // document per input file -- which is why every multi-page reference page in the
         // oracle read as MISSING no matter how well the port engraved it.
         //
-        // GROUPED PER BOOK since 2026-08-12 (BOOK-PATH): upstream names output PER
+        // GROUPED PER BOOK: upstream names output PER
         // TOPLEVEL BOOK — get-outfile-name's counter-alist gives the first printed book
         // the bare base name and every further one `<base>-<n>' — and only within one
         // book's output does the SVG framework number the pages. Concatenating every
@@ -371,7 +371,7 @@ public static class BatchRunner
         List<List<Stencil>> bookPageGroups = new List<List<Stencil>>();
 
         // How many LINES the scores broke into, which is not how many scores there are.
-        // Until EPG15's close-out (2026-08-08) this figure was systems.Count -- one per
+        // Until line breaking landed this figure was systems.Count -- one per
         // score -- and every sweep log in the project reported it under the name
         // "system(s)". It read as a line count and was not one: accidental-styles.ly has
         // twenty scores and reported twenty systems before line breaking existed at all.
@@ -379,20 +379,20 @@ public static class BatchRunner
         List<Performance> performances = new List<Performance>();
         int skipped = 0;
         double unitLength = 0.0;
-        // THE PARSER STAYS CURRENT ACROSS ENGRAVING (2026-08-08, EPG14).
+        // THE PARSER STAYS CURRENT ACROSS ENGRAVING.
         //
         // Upstream never leaves the parser's dynamic extent to engrave: book processing
         // is reached from `default-toplevel-book-handler', which the PARSER calls, so
         // ly:parser-lookup and ly:parser-clone answer normally all the way down. D20's
         // score-level short-circuit moved the port's engraving OUT of that extent, and
-        // HARNESS-FIX measured what it cost: 18 files died on "there is no current
+        // The harness sweep measured what it cost: 18 files died on "there is no current
         // parser", because \markup \note asks for $defaultpaper while BUILDING ITS
         // STENCIL.
         //
-        // ⚠ THIS IS NOT A STAND-IN AND IT DOES NOT RETIRE. EPG16 inherited it as item 3
-        // of three, on the premise that moving the runner onto the real ly:book-process
-        // path would make it unnecessary. That premise is WRONG and was MEASURED wrong on
-        // 2026-08-09: with the runner fully on the book path, removing this wrapper puts
+        // ⚠ THIS IS NOT A STAND-IN AND IT DOES NOT RETIRE. The page-layout work inherited
+        // it on the premise that moving the runner onto the real ly:book-process
+        // path would make it unnecessary. That premise is WRONG and was MEASURED
+        // wrong: with the runner fully on the book path, removing this wrapper puts
         // apply-output, fermata-dot-position, markup-rhythm-ragged and
         // flags-straight-layout-staff-size straight back on "there is no current parser".
         // The reason is that the book path is not the parser's DYNAMIC EXTENT. Upstream
@@ -408,12 +408,12 @@ public static class BatchRunner
         // at BOOK-PROCESSING time and hands the answer to ly:book-process, so a toplevel
         // \layout block is in place by then: parser.yy's toplevel_expression REBINDS the
         // $defaultlayout IDENTIFIER to the new definition rather than mutating the old
-        // one. Reading the cached init-layer object instead — which is what this did
-        // until 2026-08-08 — silently discarded every toplevel \layout in the suite:
+        // one. Reading the cached init-layer object instead — which is what this once
+        // did — silently discarded every toplevel \layout in the suite:
         // \consists still worked, because a translator list is read off the definition
         // the layout block built, but no property operation from it ever ran, so
         // `\layout { \context { \Score scriptDefinitions = ... } }' set nothing at all.
-        // Same shape as EPG13's $defaultpaper finding, one identifier over.
+        // Same shape as the earlier $defaultpaper finding, one identifier over.
         OutputDef parsedLayout
             = session.LookupIdentifier(DefaultLayoutName) as OutputDef ?? defaultLayout;
 
@@ -427,7 +427,7 @@ public static class BatchRunner
         {
         foreach (Book book in books)
         {
-            // THE REAL ly:book-process PATH (EPG16, 2026-08-08). D20's score-level
+            // THE REAL ly:book-process PATH. D20's score-level
             // short-circuit is RETIRED: this used to walk the book's scores and hand each
             // one to LilyPortEngraver, producing one stacked drawing per input file. It
             // now runs Book::process, which builds a Paper_book, scales and normalizes its
@@ -480,7 +480,8 @@ public static class BatchRunner
         // ONE FILE PER PAGE, named the way scm/framework-svg.scm names them: a
         // single-page book is `<base>.svg' and a multi-page one is `<base>-1.svg'
         // upwards, counting from ONE. That naming is the ORACLE's, so the comparator
-        // pairs a candidate with a reference by name alone -- and until EPG16 the port
+        // pairs a candidate with a reference by name alone -- and before the book path
+        // landed the port
         // wrote one stacked `<base>.svg' for every file, which meant every page of every
         // multi-page reference was reported MISSING however well the music was engraved.
         // The OUTPUT NAME is per book (see bookPageGroups above): the first book prints
@@ -581,7 +582,7 @@ public static class BatchRunner
     /// <remarks>
     /// <c>performance-name-from-headers</c> is module-private in <c>(lily)</c>, so its
     /// two-lookup chain is reproduced through the same primitives rather than resolved
-    /// by name. Until 2026-08-08 the runner passed <see cref="string.Empty"/> here,
+    /// by name. The runner once passed <see cref="string.Empty"/> here,
     /// which was right for every headerless regression file and wrong for the one that
     /// sets a title — the control track's name placeholder was erased instead of
     /// filled.
@@ -684,7 +685,7 @@ public static class BatchRunner
     /// The layout a score engraves under: its own <c>\layout</c> block when it has
     /// one, the session's <c>$defaultlayout</c> otherwise, parented into the book's
     /// paper so paper variables resolve. The upstream path runs this through
-    /// <c>Paper_book</c>'s scaling; until EPG16 lands that subsystem, the parenting
+    /// <c>Paper_book</c>'s scaling; here the parenting
     /// carries the variables and the scale stays 1 (PORT-COVERAGE, DIVERGENCES).
     /// </summary>
     private static OutputDef ScoreLayout(Score score, OutputDef paper, OutputDef defaultLayout)
@@ -787,7 +788,7 @@ public sealed class BatchRunResult
 
     /// <summary>
     /// Gets every SVG file written, one per page, in page order.
-    /// <para>Since EPG16 a file may produce several. The driver's self-check counts what
+    /// <para>On the book path a file may produce several. The driver's self-check counts what
     /// is on disk against what was reported written, so reporting only the first page
     /// would make every later page of every multi-page book look like a stale leftover.
     /// </para>

@@ -26,7 +26,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Translation; //was previously: lily/sequential-iterator.cc, lily/include/sequential-iterator.hh, lily/calculated-sequential-music.cc, lily/music-wrapper-iterator.cc, lily/simultaneous-music-iterator.cc, lily/event-chord-iterator.cc, lily/rhythmic-music-iterator.cc;
 
-// Modified by Jeremy Ellis on 2026-08-03 as part of the CodeBrix port.
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port.
 
 /// <summary>
 /// The elements of sequential music, obtained through its own

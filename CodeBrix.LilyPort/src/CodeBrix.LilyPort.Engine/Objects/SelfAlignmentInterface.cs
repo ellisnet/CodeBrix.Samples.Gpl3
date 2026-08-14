@@ -24,10 +24,10 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Objects; //was previously: lily/self-alignment-interface.cc, lily/include/self-alignment-interface.hh, lily/paper-column.cc (get_interface_extent only);
 
-// Modified by Jeremy Ellis on 2026-08-07 as part of the CodeBrix port.
-// Modified by Jeremy Ellis on 2026-08-11 as part of the CodeBrix port:
-//   - aligned_on_self reads the MAYBE-PURE extent, as upstream; the EPG15-era
-//     ordinary stand-in retired with its class. See PORT-COVERAGE, STAFF-LINES.
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port.
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port:
+//   - aligned_on_self reads the MAYBE-PURE extent, as upstream; the early
+//     ordinary stand-in retired with its class. See PORT-COVERAGE.
 
 /// <summary>
 /// Positions a grob on its own extent, on its parent's, or on both: the
@@ -86,8 +86,8 @@ public static class SelfAlignmentInterface
     /// <c>self-alignment</c> point of the extent at the reference point.
     /// <para>
     /// The extent read is MAYBE-PURE, as upstream's
-    /// <c>me-&gt;maybe_pure_extent (me, a, pure, start, end)</c>: the EPG15-era
-    /// ordinary stand-in retired with the STAFF-LINES session (2026-08-11), because
+    /// <c>me-&gt;maybe_pure_extent (me, a, pure, start, end)</c>: the early
+    /// ordinary stand-in retired with the stale-stand-in class sweep, because
     /// an ordinary read in the pure branch asks for a stencil during spacing and
     /// caches it over still-unplaced columns.
     /// </para>

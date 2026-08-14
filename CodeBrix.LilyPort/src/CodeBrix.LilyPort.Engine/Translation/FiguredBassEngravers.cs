@@ -27,7 +27,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Translation; //was previously: lily/figured-bass-engraver.cc, lily/figured-bass-position-engraver.cc;
 
-// Modified by Jeremy Ellis on 2026-08-08 as part of the CodeBrix port:
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port:
 //   - Figure_group is a CLASS here, not a struct. Upstream's is a value type held in a
 //     std::vector, and every use in the file mutates a group IN PLACE through a reference
 //     (`Figure_group &group = groups_[i];`). A C# struct in a List<T> would hand back a

@@ -24,7 +24,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Translation; //was previously: lily/grid-point-engraver.cc, lily/grid-line-span-engraver.cc;
 
-// Modified by Jeremy Ellis on 2026-08-07 as part of the CodeBrix port.
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port.
 
 /// <summary>
 /// Generates grid points: one <c>GridPoint</c> whenever the current moment is a
@@ -47,7 +47,7 @@ public class GridPointEngraver : Engraver
     /// <summary>Makes a <c>GridPoint</c> on grid moments.</summary>
     public override void ProcessMusic()
     {
-        Rational gridInterval = Epg8Support.ToRational(
+        Rational gridInterval = TranslatorSchemeHelpers.ToRational(
             GetProperty(GridIntervalSymbol), Rational.Infinity);
         if (gridInterval.IsFinite)
         {

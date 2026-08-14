@@ -21,9 +21,9 @@ using System;
 
 namespace CodeBrix.LilyPort.Flower; //was previously: flower/libc-extension.cc, flower/include/libc-extension.hh;
 
-// Modified by Jeremy Ellis on 2026-08-08 as part of the CodeBrix port:
-//   - EPG10 wrote round_halfway_up as a private static inside Objects/BeamQuanting.cs,
-//     because beams were its only caller. EPG11 and EPG12 add three more callers
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port:
+//   - round_halfway_up began as a private static inside Objects/BeamQuanting.cs,
+//     because beams were its only caller. Ties and slurs added three more callers
 //     (Tie_formatting_problem, Slur_score_state and avoid_staff_line), so it moves to
 //     the file upstream actually declares it in rather than being re-derived per group.
 //     BeamQuanting now forwards here; the arithmetic is unchanged.

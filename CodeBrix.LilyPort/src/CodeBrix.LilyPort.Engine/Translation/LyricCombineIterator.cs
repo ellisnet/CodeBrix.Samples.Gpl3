@@ -26,7 +26,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Translation; //was previously: lily/lyric-combine-music-iterator.cc;
 
-// Modified by Jeremy Ellis on 2026-08-07 as part of the CodeBrix port:
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port:
 //   - derived_mark () has no counterpart. It exists to keep the four SCM members and the
 //     child iterator reachable for Guile's garbage collector; the CLR reaches them
 //     through the fields themselves, so there is nothing to mark.

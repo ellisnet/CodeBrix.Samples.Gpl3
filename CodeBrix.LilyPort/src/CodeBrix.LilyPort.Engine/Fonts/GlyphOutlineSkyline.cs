@@ -23,7 +23,7 @@ using CodeBrix.LilyPort.Flower;
 
 namespace CodeBrix.LilyPort.Engine.Fonts; //was previously: lily/freetype.cc;
 
-// Modified by Jeremy Ellis on 2026-08-05 as part of the CodeBrix port.
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port.
 
 /// <summary>
 /// Traces a glyph's outline into a skyline — upstream's <c>Path_interpreter</c> and

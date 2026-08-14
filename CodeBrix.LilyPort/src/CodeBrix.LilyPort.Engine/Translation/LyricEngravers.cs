@@ -31,12 +31,12 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Translation; //was previously: lily/lyric-engraver.cc, lily/extender-engraver.cc, lily/hyphen-engraver.cc;
 
-// Modified by Jeremy Ellis on 2026-08-07 as part of the CodeBrix port:
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port:
 //   - upstream declares acknowledge_lyric_syllable (Grob_info_t<Item>), and the macro
 //     layer generates both the interface test and the Item cast. The port has a single
 //     AcknowledgeGrob (GrobInfo), so both are written out at the top of each override.
 //   - get_voice_to_lyrics and get_current_note_head are free functions declared in
-//     context.hh and DEFINED in lyric-engraver.cc, so they are EPG18's to port. They live
+//     context.hh and DEFINED in lyric-engraver.cc, so they are the lyrics group's to port. They live
 //     here as statics on LyricEngraver, which is their upstream file.
 
 /**

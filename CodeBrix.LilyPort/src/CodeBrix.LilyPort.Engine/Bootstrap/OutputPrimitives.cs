@@ -261,7 +261,7 @@ public static class OutputPrimitives
     }
 
     /// <summary>
-    /// <c>performance-scheme.cc</c>, whole — both of its bindings (EPG19, 2026-08-08).
+    /// <c>performance-scheme.cc</c>, whole — both of its bindings.
     /// </summary>
     /// <param name="interpreter">The interpreter to extend.</param>
     private static void InstallPerformances(Interpreter interpreter)
@@ -297,10 +297,11 @@ public static class OutputPrimitives
     /// <c>book-scheme.cc</c>, minus the two processing entry points.
     /// <para>
     /// <c>ly:book-process</c> and <c>ly:book-process-to-systems</c> both go through
-    /// <c>Book::process</c> into a <c>Paper_book</c>, whose whole job is PAGE layout —
-    /// EPG16's subsystem. They stay stubbed rather than half-built, because a book that
-    /// silently produced one page per score would be indistinguishable from a correct
-    /// one on every single-score regression file and wrong on every longer one.
+    /// <c>Book::process</c> into a <c>Paper_book</c>, whose whole job is PAGE layout.
+    /// The real implementations are registered by <c>PageBreakingCallbacks</c>; before
+    /// that subsystem landed they stayed stubbed rather than half-built, because a book
+    /// that silently produced one page per score would be indistinguishable from a
+    /// correct one on every single-score regression file and wrong on every longer one.
     /// </para>
     /// </summary>
     /// <param name="interpreter">The interpreter to extend.</param>
@@ -329,7 +330,7 @@ public static class OutputPrimitives
             // The rest arrives SPREAD — this interpreter's `apply' spreads its final
             // list — and every slot is one score-list ENTRY taken AS-IS: an entry may
             // itself be a list (a toplevel markup is collected as a markup LIST), and
-            // flattening one level (which this did until 2026-08-12) stripped that
+            // flattening one level (which this once did) stripped that
             // wrapping so the entry failed is-markup-list and the whole book of a
             // toplevel \markup \score rendered NOTHING.
             for (int i = a.Length - 1; i >= 2; i--)
@@ -433,7 +434,7 @@ public static class OutputPrimitives
 
         // Font selection over an alist chain of grob properties. The music branches
         // (fetaMusic, fetaBraces) answer real metrics; the text branches are the
-        // TextLayout bridge's and answer #f with a warning until EPG13 — a named
+        // TextLayout bridge's and answered #f with a warning until the text interface landed — a named
         // absence, not a wrong font.
         interpreter.DefinePrimitive("ly:paper-get-font", 2, 2, a =>
         {
@@ -536,7 +537,7 @@ public static class OutputPrimitives
     /// </summary>
     internal static object FormatOutput(GlobalContext global)
     {
-        // THE PROPERTY IS ON THE SCORE CONTEXT, NOT ON GLOBAL (EPG16, 2026-08-08).
+        // THE PROPERTY IS ON THE SCORE CONTEXT, NOT ON GLOBAL.
         // Upstream's Global_context::get_output does `get_property (get_score_context (),
         // "output")', and Score_engraver::finalize sets it on ITS OWN context — which is
         // the Score, a CHILD of Global. Reading it off Global walks UPWARD and therefore

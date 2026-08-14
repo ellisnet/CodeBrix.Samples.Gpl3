@@ -26,7 +26,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Layout; //was previously: lily/optimal-page-breaking.cc, lily/minimal-page-breaking.cc, lily/one-page-breaking.cc, lily/one-line-page-breaking.cc, lily/one-line-auto-height-breaking.cc;
 
-// Modified by Jeremy Ellis on 2026-08-08 as part of the CodeBrix port:
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port:
 //   - the five strategies share one file because each is a single `solve' over
 //     PageBreaking's machinery, and the port keeps a family of small related types
 //     together rather than spreading five thirty-line files across the folder (the

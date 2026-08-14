@@ -19,9 +19,9 @@ namespace Lily.Shell.Commands;
 /// <c>\midi</c> block — and reports every artifact it wrote.
 /// </summary>
 /// <remarks>
-/// Until 2026-08-08 this command stopped at the parse step, with a note that
-/// the pipeline was under construction; the pipeline has produced pages since
-/// EPG3 and MIDI since EPG19, and the standing expectation is that Lily.Shell
+/// This command once stopped at the parse step, with a note that
+/// the pipeline was under construction; the pipeline produces pages and
+/// MIDI, and the standing expectation is that Lily.Shell
 /// keeps up with user-visible engine capability.
 /// </remarks>
 public sealed class EngraveCommand : IShellCommand
@@ -87,11 +87,11 @@ public sealed class EngraveCommand : IShellCommand
 
         if (result.SvgPath != null)
         {
-            // The system count is worth printing now that it means something: EPG15
-            // (2026-08-08) made line breaking real, so a score too long for one line
+            // The system count is worth printing now that it means something: line
+            // breaking is real, so a score too long for one line
             // comes back as several systems rather than one over-full one.
             //
-            // EVERY PAGE IS LISTED, not just the first (EPG16, 2026-08-09). The runner
+            // EVERY PAGE IS LISTED, not just the first. The runner
             // writes one file per page now, so reporting SvgPath alone told the user
             // about page 1 and silently dropped the rest of the book — the shell's own
             // version of the bug the comparator had, where a multi-page reference was

@@ -27,7 +27,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Translation; //was previously: lily/staff-symbol-engraver.cc, lily/clef-engraver.cc, lily/note-heads-engraver.cc, lily/axis-group-engraver.cc;
 
-// Modified by Jeremy Ellis on 2026-08-03 as part of the CodeBrix port.
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port.
 
 /// <summary>
 /// Creates the constellation of five (default) staff lines.
@@ -468,11 +468,11 @@ public class AxisGroupEngraver : Engraver
     /// <c>items-worth-living</c>.
     /// </summary>
     /// <remarks>
-    /// The keep-alive half was MISSING until 2026-08-08: nothing anywhere populated
-    /// <c>items-worth-living</c>, so the moment EPG15's
+    /// The keep-alive half was MISSING at first: nothing anywhere populated
+    /// <c>items-worth-living</c>, so the moment line breaking's
     /// <see cref="HaraKiriGroupSpanner"/> landed, every <c>remove-empty</c> group in
     /// every score read as EMPTY and suicided with all its children — which is how
-    /// EPG20's flagged no-BassFigure-reaches-the-page gap turned out to end: the
+    /// the tablature group's flagged no-BassFigure-reaches-the-page gap turned out to end: the
     /// figures were drawn into a FiguredBass axis group whose staffline killed them.
     /// </remarks>
     /// <param name="info">The announcement record.</param>

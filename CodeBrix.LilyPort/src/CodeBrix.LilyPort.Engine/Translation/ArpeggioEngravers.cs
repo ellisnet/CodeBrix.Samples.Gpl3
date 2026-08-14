@@ -24,7 +24,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Translation; //was previously: lily/arpeggio-engraver.cc, lily/span-arpeggio-engraver.cc;
 
-// Modified by Jeremy Ellis on 2026-08-08 as part of the CodeBrix port:
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port:
 //   - the two engravers share a file because they are the two halves of one mechanism:
 //     the first makes the per-voice grob and the second spans the ones it made.
 //   - upstream's Arpeggio_type enum is a private nested enum here; its ORDER is not

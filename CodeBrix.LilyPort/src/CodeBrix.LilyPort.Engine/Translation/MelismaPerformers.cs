@@ -25,7 +25,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Translation; //was previously: lily/beam-performer.cc, lily/slur-performer.cc, lily/tie-performer.cc;
 
-// Modified by Jeremy Ellis on 2026-08-08 as part of the CodeBrix port:
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port:
 //   - beam-performer.cc and slur-performer.cc are the SAME FILE upstream, and upstream
 //     says so: slur-performer.cc opens with the comment "this is C&P from
 //     beam_performer". They are kept as two separate types here, because the property

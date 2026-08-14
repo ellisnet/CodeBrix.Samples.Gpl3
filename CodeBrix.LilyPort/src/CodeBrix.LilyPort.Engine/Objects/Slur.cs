@@ -27,7 +27,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Objects; //was previously: lily/slur.cc, lily/include/slur.hh;
 
-// Modified by Jeremy Ellis on 2026-08-08 as part of the CodeBrix port:
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port:
 //   - `Slur` is a PARTIAL static class: upstream defines Slur::calc_control_points in
 //     slur-scoring.cc rather than here, and the port keeps that split so each file's
 //     `//was previously:` line stays true.

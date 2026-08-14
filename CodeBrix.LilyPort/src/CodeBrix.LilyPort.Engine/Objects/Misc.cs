@@ -25,9 +25,9 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Objects; //was previously: lily/misc.cc, lily/include/misc.hh;
 
-// Modified by Jeremy Ellis on 2026-08-03 as part of the CodeBrix port.
-// Modified by Jeremy Ellis on 2026-08-08 as part of the CodeBrix port:
-//   - EPG11/EPG12 finding: this file's ledger row has said `ported` since EPG0, but FOUR
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port.
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port:
+//   - Ties-and-slurs finding: this file's ledger row has said `ported` from the start, but FOUR
 //     of the functions upstream declares in misc.hh had never been carried —
 //     peak_around and convex_amplifier (defined in misc.cc) and the two inline
 //     linear_interpolate and normalize. Nothing had demanded them because they are used

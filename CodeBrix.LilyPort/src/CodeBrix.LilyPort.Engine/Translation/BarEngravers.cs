@@ -28,7 +28,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Translation; //was previously: lily/bar-engraver.cc, lily/span-bar-engraver.cc, lily/span-bar-stub-engraver.cc, lily/bar-number-engraver.cc;
 
-// Modified by Jeremy Ellis on 2026-08-07 as part of the CodeBrix port.
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port.
 
 /// <summary>
 /// The bar-type layers <c>Bar_engraver</c> weighs against each other, from low to high
@@ -233,7 +233,7 @@ public class BarEngraver : Engraver
             object cursor = structureScm;
             while (cursor is Pair pair)
             {
-                running += Epg8Support.ToRational(pair.Car, Rational.Zero);
+                running += TranslatorSchemeHelpers.ToRational(pair.Car, Rational.Zero);
                 _submeasurePositions.Add(running);
                 cursor = pair.Cdr;
             }
@@ -245,7 +245,7 @@ public class BarEngraver : Engraver
             _submeasurePositions.RemoveAt(_submeasurePositions.Count - 1);
 
             // Convert units from beats to whole notes.
-            Rational beatBase = Epg8Support.ToRational(
+            Rational beatBase = TranslatorSchemeHelpers.ToRational(
                 GetProperty(BeatBaseSymbol), new Rational(1, 4));
             _submeasurePeriod *= beatBase;
             for (int i = 0; i < _submeasurePositions.Count; i++)
@@ -267,7 +267,7 @@ public class BarEngraver : Engraver
         {
             // If we're at a measure boundary, say that we're also at a submeasure
             // boundary.
-            return Epg8Support.ToBool(GetProperty(MeasureStartNowSymbol));
+            return TranslatorSchemeHelpers.ToBool(GetProperty(MeasureStartNowSymbol));
         }
 
         Moment pos = MeasureTiming.ScaledMeasurePosition(Context, _submeasurePeriod);
@@ -464,7 +464,7 @@ public class BarEngraver : Engraver
                     break;
 
                 case BarLayerType.Measure:
-                    if (!_firstTime && Epg8Support.ToBool(GetProperty(MeasureStartNowSymbol)))
+                    if (!_firstTime && TranslatorSchemeHelpers.ToBool(GetProperty(MeasureStartNowSymbol)))
                     {
                         ReadBar(MeasureBarTypeSymbol);
                     }
@@ -473,7 +473,7 @@ public class BarEngraver : Engraver
 
                 case BarLayerType.Submeasure:
                     if (!_firstTime
-                        && Epg8Support.ToBool(GetProperty(SubmeasureBarsEnabledSymbol))
+                        && TranslatorSchemeHelpers.ToBool(GetProperty(SubmeasureBarsEnabledSymbol))
                         && IsAtSubmeasureDivision())
                     {
                         ReadBar(SubmeasureBarTypeSymbol);
@@ -578,7 +578,7 @@ public class BarEngraver : Engraver
         }
         else // consider automatic bars
         {
-            if (!_firstTime || Epg8Support.ToBool(GetProperty(PrintInitialRepeatBarSymbol)))
+            if (!_firstTime || TranslatorSchemeHelpers.ToBool(GetProperty(PrintInitialRepeatBarSymbol)))
             {
                 object repeatCommands = GetProperty(RepeatCommandsSymbol);
                 object cursor = repeatCommands;
@@ -596,10 +596,10 @@ public class BarEngraver : Engraver
                     {
                         const long Default = 1L;
                         long retCount = options is Pair optionPair
-                            ? Epg8Support.ToLong(optionPair.Car, Default)
+                            ? TranslatorSchemeHelpers.ToLong(optionPair.Car, Default)
                             : Default;
                         if (retCount >= 1
-                            || Epg8Support.ToBool(GetProperty(PrintTrivialVoltaRepeatsSymbol)))
+                            || TranslatorSchemeHelpers.ToBool(GetProperty(PrintTrivialVoltaRepeatsSymbol)))
                         {
                             _repeatEndObserved = true;
                         }
@@ -608,10 +608,10 @@ public class BarEngraver : Engraver
                     {
                         const long Default = 2L;
                         long repCount = options is Pair optionPair
-                            ? Epg8Support.ToLong(optionPair.Car, Default)
+                            ? TranslatorSchemeHelpers.ToLong(optionPair.Car, Default)
                             : Default;
                         if (repCount >= 2
-                            || Epg8Support.ToBool(GetProperty(PrintTrivialVoltaRepeatsSymbol)))
+                            || TranslatorSchemeHelpers.ToBool(GetProperty(PrintTrivialVoltaRepeatsSymbol)))
                         {
                             _repeatStartObserved = true;
                         }
@@ -648,7 +648,7 @@ public class BarEngraver : Engraver
         // of them to efficiently skip processing that is only needed at potential
         // break points.
         if (!_hasAnyGlyph
-            && Epg8Support.ToBool(GetProperty(ForbidBreakBetweenBarLinesSymbol)))
+            && TranslatorSchemeHelpers.ToBool(GetProperty(ForbidBreakBetweenBarLinesSymbol)))
         {
             FindScoreContext()?.SetProperty(ForbidBreakSymbol, true);
         }
@@ -742,7 +742,7 @@ public class BarEngraver : Engraver
     {
         if (_bar != null) // otherwise avoid a little work
         {
-            if (info.Grob is Spanner sp && Epg8Support.ToBool(sp.GetProperty(ToBarlineSymbol)))
+            if (info.Grob is Spanner sp && TranslatorSchemeHelpers.ToBool(sp.GetProperty(ToBarlineSymbol)))
             {
                 _spanners.Add(sp);
             }
@@ -872,8 +872,8 @@ public class SpanBarEngraver : Engraver
             // (or whatever context it happens to be).
             foreach (Item stub in _stubs)
             {
-                if (!Epg8Support.ToBool(stub.GetProperty(AllowSpanBarSymbol))
-                    || !Epg8Support.ToBool(stub.GetProperty(AllowSpanBarAboveSymbol)))
+                if (!TranslatorSchemeHelpers.ToBool(stub.GetProperty(AllowSpanBarSymbol))
+                    || !TranslatorSchemeHelpers.ToBool(stub.GetProperty(AllowSpanBarAboveSymbol)))
                 {
                     _bars.Add(stub);
                     PointerGroupInterface.AddGrob(_spanbar, ElementsSymbol, stub);
@@ -914,8 +914,8 @@ public class SpanBarEngraver : Engraver
                 Item bar = _bars[i];
                 bool isBottom = (i + 1) == numBars;
                 bool allowBelow = !isBottom
-                    && Epg8Support.ToBool(bar.GetProperty(AllowSpanBarSymbol))
-                    && Epg8Support.ToBool(_bars[i + 1].GetProperty(AllowSpanBarAboveSymbol));
+                    && TranslatorSchemeHelpers.ToBool(bar.GetProperty(AllowSpanBarSymbol))
+                    && TranslatorSchemeHelpers.ToBool(_bars[i + 1].GetProperty(AllowSpanBarAboveSymbol));
                 bar.SetObject(
                     HasSpanBarSymbol,
                     new Pair(
@@ -1067,7 +1067,7 @@ public class SpanBarStubEngraver : Engraver
                     if (c.Parent != null)
                     {
                         keepExtent.Add(
-                            Epg8Support.ToBool(bars[k].GetProperty(AllowSpanBarSymbol)));
+                            TranslatorSchemeHelpers.ToBool(bars[k].GetProperty(AllowSpanBarSymbol)));
                         yParents.Add(g);
                         affectedContexts.Add(c);
                     }
@@ -1241,10 +1241,10 @@ public class BarNumberEngraver : Engraver
             object bn = GetProperty(CurrentBarNumberSymbol);
             if (SchemeConvert.IsNumber(bn))
             {
-                Moment mp = Epg8Support.ToMoment(
+                Moment mp = TranslatorSchemeHelpers.ToMoment(
                     GetProperty(MeasurePositionSymbol), Moment.Zero);
 
-                if (Epg8Support.ToBool(SchemeUtilities.CallCallback(visibility, bn, mp)))
+                if (TranslatorSchemeHelpers.ToBool(SchemeUtilities.CallCallback(visibility, bn, mp)))
                 {
                     object formatter = GetProperty(BarNumberFormatterSymbol);
                     object formattedText = Nil.Instance;
@@ -1296,7 +1296,7 @@ public class BarNumberEngraver : Engraver
         {
             _text.SetObject(
                 SideSupportElementsSymbol,
-                Epg8Support.GrobListToGrobArray(GetProperty(StavesFoundSymbol)));
+                TranslatorSchemeHelpers.GrobListToGrobArray(GetProperty(StavesFoundSymbol)));
 
             if (_breakAllowedNow && !_sawBarLine
                 && IsFalse(GetProperty(CenterBarNumbersSymbol)))
@@ -1326,7 +1326,7 @@ public class BarNumberEngraver : Engraver
 
     private long GetAltNumber()
     {
-        long altNum = Epg8Support.ToLong(GetProperty(AlternativeNumberSymbol), 0);
+        long altNum = TranslatorSchemeHelpers.ToLong(GetProperty(AlternativeNumberSymbol), 0);
 
         // TODO: Here we have things baked into C++ that should probably be done in
         // Scheme.  Why not just pass the alternative number to the formatter and let
@@ -1352,9 +1352,9 @@ public class BarNumberEngraver : Engraver
 /// <c>Span_bar_stub_engraver</c> need — upstream these are static members of
 /// <c>Grob</c> in lily/grob.cc (<c>get_root_vertical_alignment</c>,
 /// <c>get_vertical_axis_group</c>, <c>get_vertical_axis_group_index</c>). They live
-/// here because <c>Objects/Grob.cs</c> predates them and this session may not edit
-/// it; the divergence is recorded in PORT-COVERAGE. They answer by INTERFACE symbol,
-/// so they need no type from EPG7 — until a <c>VerticalAlignment</c> grob exists they
+/// here because <c>Objects/Grob.cs</c> predates
+/// them; the divergence is recorded in PORT-COVERAGE. They answer by INTERFACE symbol,
+/// so they need no alignment type — until a <c>VerticalAlignment</c> grob exists they
 /// simply find none, which is upstream's start-of-score answer too.
 /// </summary>
 internal static class SpanBarVerticalOrder

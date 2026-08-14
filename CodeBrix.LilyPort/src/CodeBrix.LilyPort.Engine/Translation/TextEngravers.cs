@@ -27,7 +27,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Translation; //was previously: lily/text-engraver.cc, lily/text-spanner-engraver.cc, lily/ottava-engraver.cc;
 
-// Modified by Jeremy Ellis on 2026-08-08 as part of the CodeBrix port:
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port:
 //   - the three text-producing engravers share a file.
 //   - upstream's derived_mark on Ottava_spanner_engraver protects `ottavation_` from the
 //     garbage collector; the port holds a managed reference, so there is nothing to mark
@@ -181,7 +181,7 @@ public class TextSpannerEngraver : Engraver
         {
             if (_span == null)
             {
-                Epg8Support.EventWarning(ender, "cannot find start of text spanner");
+                TranslatorSchemeHelpers.EventWarning(ender, "cannot find start of text spanner");
             }
             else
             {
@@ -195,7 +195,7 @@ public class TextSpannerEngraver : Engraver
         {
             if (_span != null)
             {
-                Epg8Support.EventWarning(starter, "already have a text spanner");
+                TranslatorSchemeHelpers.EventWarning(starter, "already have a text spanner");
                 _span.Warning("text spanner was started here");
             }
             else

@@ -24,7 +24,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Translation; //was previously: lily/context-def.cc, lily/include/context-def.hh (and, for AcceptanceSet below, lily/acceptance-set.cc, lily/include/acceptance-set.hh);
 
-// Modified by Jeremy Ellis on 2026-08-03 as part of the CodeBrix port.
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port.
 
 /* TODO: should junk this class an replace by
    a single list of context modifications?  */

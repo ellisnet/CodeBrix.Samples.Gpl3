@@ -22,7 +22,7 @@ using CodeBrix.LilyPort.Engine.Music;
 
 namespace CodeBrix.LilyPort.Engine.Audio; //was previously: lily/audio-staff.cc, lily/include/audio-staff.hh;
 
-// Modified by Jeremy Ellis on 2026-08-08 as part of the CodeBrix port.
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port.
 
 /// <summary>
 /// One MIDI track's worth of audio items, and the thing that knows how to write itself

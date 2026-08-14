@@ -25,7 +25,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Objects; //was previously: lily/spacing-determine-loose-columns.cc;
 
-// Modified by Jeremy Ellis on 2026-08-05 as part of the CodeBrix port.
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port.
 
 /// <summary>
 /// The half of the spacing spanner that decides which columns are LOOSE — attached to
@@ -392,8 +392,11 @@ public static partial class SpacingSpanner
     }
 
     /// <summary>
-    /// The seam for <c>Break_alignment_interface::find_nonempty_break_align_group</c>,
-    /// which is EPG8's. Until it lands the bar-line guard below cannot fire, so a
+    /// The seam for <c>Break_alignment_interface::find_nonempty_break_align_group</c>.
+    /// ⚠ This stand-in predates the later port of
+    /// <c>BreakAlignInterface.FindNonemptyBreakAlignGroup</c>; whether this call site
+    /// should now route through it has not been re-measured. Until it does the bar-line
+    /// guard below cannot fire, so a
     /// bar-line column that upstream would refuse to float may be declared loose here.
     /// The guard above it — a column with real width and both neighbours in series — is
     /// ported and catches the ordinary bar line.
@@ -405,7 +408,7 @@ public static partial class SpacingSpanner
             _breakAlignGroupAbsenceReported = true;
             Warn.ProgrammingError(
                 "Break_alignment_interface::find_nonempty_break_align_group is not ported"
-                + " (EPG8); the do-not-float-a-bar-line guard in Spacing_spanner cannot"
+                + " here; the do-not-float-a-bar-line guard in Spacing_spanner cannot"
                 + " fire, so a bar-line column may be declared loose");
         }
 

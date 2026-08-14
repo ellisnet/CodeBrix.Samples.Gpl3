@@ -24,7 +24,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Objects; //was previously: lily/staff-symbol-referencer.cc, lily/include/staff-symbol-referencer.hh;
 
-// Modified by Jeremy Ellis on 2026-08-03 as part of the CodeBrix port.
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port.
 
 /// <summary>
 /// Anything positioned relative to a staff: note heads, clefs, accidentals, rests.
@@ -52,7 +52,7 @@ public static class StaffSymbolReferencer
         // Upstream's identity branch: a staff symbol asked for its own staff symbol
         // answers ITSELF (has_interface<Staff_symbol> (me) -> me). Missing, this
         // made a staff symbol read the 1.0 staff-space fallback instead of its own
-        // property. Found by EPG7, fixed centrally 2026-08-07.
+        // property. Found by the vertical-organization group, fixed centrally.
         if (grob != null && grob.HasInterface(StaffSymbolInterfaceSymbol))
         {
             return grob;
@@ -183,7 +183,7 @@ public static class StaffSymbolReferencer
 
     /// <summary>
     /// <c>pure_get_position</c>. The port has no pure-property machinery yet
-    /// (<c>unpure-pure-container.cc</c>, EPG15), so this answers the ORDINARY position —
+    /// (<c>unpure-pure-container.cc</c>), so this answers the ORDINARY position —
     /// the same standing divergence every pure variant takes today.
     /// </summary>
     /// <param name="grob">The grob.</param>
@@ -235,7 +235,7 @@ public static class StaffSymbolReferencer
     /// span and converting steps to spaces divides by four in one step. Upstream carries
     /// the same comment for the same reason.
     /// <para>
-    /// Added by EPG23 with <c>ly:staff-symbol-staff-radius</c>. The algorithm was already
+    /// Added with <c>ly:staff-symbol-staff-radius</c>. The algorithm was already
     /// in the engine as <c>Stem.StaffRadius</c> — a private copy in the wrong file, which
     /// now delegates here, because two implementations of one upstream function is the
     /// shape standing trap 11 records (a fix applied to one copy never reaches the other).

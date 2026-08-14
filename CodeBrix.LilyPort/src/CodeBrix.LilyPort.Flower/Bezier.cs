@@ -23,7 +23,7 @@ using System.Collections.Generic;
 
 namespace CodeBrix.LilyPort.Flower; //was previously: lily/bezier.cc, lily/include/bezier.hh;
 
-// Modified by Jeremy Ellis on 2026-08-02 as part of the CodeBrix port.
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port.
 
 /// <summary>
 /// A cubic Bézier curve: four control points.

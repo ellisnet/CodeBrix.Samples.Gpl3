@@ -54,7 +54,7 @@ public static class IteratorPrimitives
             ["ly:sequential-iterator::constructor"] = () => new SequentialIterator(),
             ["ly:simultaneous-music-iterator::constructor"] = () => new SimultaneousMusicIterator(),
 
-            // EPG22 (2026-08-07).
+            // The remaining iterators:
             ["ly:context-specced-music-iterator::constructor"] = () => new ContextSpeccedMusicIterator(),
             ["ly:initial-context-music-iterator::constructor"] = () => new InitialContextMusicIterator(),
             ["ly:change-iterator::constructor"] = () => new ChangeIterator(),
@@ -66,14 +66,14 @@ public static class IteratorPrimitives
             ["ly:quote-iterator::constructor"] = () => new QuoteIterator(),
             ["ly:part-combine-iterator::constructor"] = () => new PartCombineIterator(),
 
-            // EPG17 (2026-08-07), first slice: the four whose behaviour is entirely their
+            // The repeats/grace first slice: the four whose behaviour is entirely their
             // own.
             ["ly:fine-iterator::constructor"] = () => new FineIterator(),
             ["ly:grace-iterator::constructor"] = () => new GraceIterator(),
             ["ly:measure-remainder-iterator::constructor"] = () => new MeasureRemainderIterator(),
             ["ly:premeasure-iterator::constructor"] = () => new PremeasureIterator(),
 
-            // EPG17 (2026-08-07), remainder: the five built on Repeat_styler and on each
+            // The repeats/voltas remainder: the five built on Repeat_styler and on each
             // other. Volta_repeat owns the styler, Alternative_sequence borrows it, and
             // Volta_specced reads its bracket state off Alternative_sequence — which is
             // why they had to land together rather than one at a time.
@@ -83,7 +83,7 @@ public static class IteratorPrimitives
             ["ly:volta-repeat-iterator::constructor"] = () => new VoltaRepeatIterator(),
             ["ly:volta-specced-music-iterator::constructor"] = () => new VoltaSpeccedMusicIterator(),
 
-            // EPG18 (2026-08-07). The last one: with this entry the table holds all 28
+            // The lyrics group's, and the last one: with this entry the table holds all 28
             // constructors upstream declares, and NotYetPorted below is empty.
             ["ly:lyric-combine-music-iterator::constructor"] = () => new LyricCombineMusicIterator(),
         };
@@ -91,7 +91,7 @@ public static class IteratorPrimitives
     /// <summary>
     /// The iterator constructors upstream declares that this port has NOT reached yet.
     /// <para>
-    /// EMPTY as of EPG18 (2026-08-07), and it is meant to stay that way: all 28
+    /// EMPTY, and it is meant to stay that way: all 28
     /// constructors upstream declares are registered above, which is gate G5. The list is
     /// kept rather than deleted because it is the honest shape of this mechanism — a music
     /// type whose iterator is not ported has NO constructor registered and falls through

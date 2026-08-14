@@ -25,10 +25,10 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Objects; //was previously: lily/accidental-placement.cc, lily/include/accidental-placement.hh;
 
-// Modified by Jeremy Ellis on 2026-08-07 as part of the CodeBrix port.
-// Modified by Jeremy Ellis on 2026-08-11 as part of the CodeBrix port:
-//   - build_heads_skyline reads the PURE Y extent, as upstream; the EPG13-era
-//     ordinary stand-in retired with its class. See PORT-COVERAGE, STAFF-LINES.
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port.
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port:
+//   - build_heads_skyline reads the PURE Y extent, as upstream; the early
+//     ordinary stand-in retired with its class. See PORT-COVERAGE.
 
 /*
   This routine computes placements of accidentals. During
@@ -532,8 +532,8 @@ public static class AccidentalPlacement
             // (`pure_y_extent (common[Y_AXIS], 0, INT_MAX)`): accidental placement
             // runs during horizontal spacing, BEFORE line breaking, and an ordinary Y
             // read here drags stencil computation in over still-unplaced columns.
-            // The EPG13-era ordinary stand-in retired with the STAFF-LINES session
-            // (2026-08-11), EPG15's pure machinery having long since landed.
+            // The early ordinary stand-in retired with the stale-stand-in class
+            // sweep, the pure machinery having long since landed.
             headExtents.Add(new Box(
                 headsAndStems[i].Extent(commonX, Axis.X),
                 headsAndStems[i].PureYExtent(commonY, 0, int.MaxValue)));

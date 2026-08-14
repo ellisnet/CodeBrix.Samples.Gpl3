@@ -16,7 +16,7 @@ using CodeBrix.LilyScheme;
 namespace CodeBrix.LilyPort.DocsDriver;
 
 /// <summary>
-/// EPG24's driver: runs the vendored <c>ly/generate-documentation.ly</c> through the
+/// The docs-parity driver: runs the vendored <c>ly/generate-documentation.ly</c> through the
 /// port and reports which of the nineteen documentation files it wrote.
 /// <para>
 /// Usage: <c>DocsDriver OUT_DIR</c>. Upstream's entry point is a <c>.ly</c> file that

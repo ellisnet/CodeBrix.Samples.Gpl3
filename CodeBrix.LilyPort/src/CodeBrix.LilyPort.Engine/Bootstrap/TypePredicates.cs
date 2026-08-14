@@ -54,13 +54,13 @@ public static class TypePredicates
     {
         // The score/output layer -- milestone 6's later work. Paper_score and
         // Output_def landed with first light, and Book and Score with the parser's
-        // book/score rule actions (RAG3), so those moved to Ported below; the page
+        // book/score rule actions (the BookBlocks group), so those moved to Ported below; the page
         // layer above them has not been reached yet.
         "ly:page-marker?",
         "ly:paper-book?",
 
         // The parser and lexer themselves -- Track P. Input, Source_file and
-        // Music_function moved to Ported with EPG1; these two host types have not.
+        // Music_function moved to Ported early; these two host types have not.
         "ly:lily-lexer?",
         "ly:lily-parser?",
 
@@ -82,7 +82,7 @@ public static class TypePredicates
         "ly:output-def?",
         "ly:score?",
 
-        // EPG17: the engraver's record of one tuplet it is inside.
+        // The engraver's record of one tuplet it is inside.
         "ly:tuplet-description?",
 
         // These four are registered by the class that owns them rather than here --
@@ -94,7 +94,7 @@ public static class TypePredicates
         "ly:regex?",
         "ly:unpure-pure-container?",
 
-        // EPG1: source locations, the files they point into, and music functions.
+        // Source locations, the files they point into, and music functions.
         "ly:input-location?",
         "ly:music-function?",
         "ly:source-file?",
@@ -147,7 +147,7 @@ public static class TypePredicates
         // to this as well -- that is upstream's answer, not an approximation.
         //
         // ⚠ Stubbed, this answered #f to every item in the engine while the type had
-        // existed since EPG0 (standing rule 3 / trap 7). lily.scm's type-name-alist
+        // existed from the start (standing rule 3 / trap 7). lily.scm's type-name-alist
         // could not name an "item" either.
         interpreter.DefinePrimitive("ly:item?", 1, 1, a => a[0] is Item);
 

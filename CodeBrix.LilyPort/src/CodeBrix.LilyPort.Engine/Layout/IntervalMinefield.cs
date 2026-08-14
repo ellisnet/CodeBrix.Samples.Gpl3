@@ -23,7 +23,7 @@ using CodeBrix.LilyPort.Flower;
 
 namespace CodeBrix.LilyPort.Engine.Layout; //was previously: lily/interval-minefield.cc, lily/include/interval-minefield.hh;
 
-// Modified by Jeremy Ellis on 2026-08-07 as part of the CodeBrix port.
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port.
 
 /// <summary>
 /// Finds where a beam of a given thickness may be placed, given a set of intervals it

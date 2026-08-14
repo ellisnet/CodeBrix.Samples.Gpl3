@@ -26,7 +26,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Translation; //was previously: lily/auto-beam-engraver.cc;
 
-// Modified by Jeremy Ellis on 2026-08-07 as part of the CodeBrix port:
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port:
 //   - derived_mark () is dropped, as everywhere else in this port
 //   - beam_settings_ is an object rather than an SCM; the beam is still built from
 //     the SNAPSHOT taken at begin_beam, not from the context's current overrides,
@@ -422,7 +422,7 @@ public class AutoBeamEngraver : TemplateEngraverForBeams
             ? d
             : new Duration(0, 0);
 
-        Rational meterScalingFactor = Epg8Support.ToRational(
+        Rational meterScalingFactor = TranslatorSchemeHelpers.ToRational(
             GetProperty(MeterScalingFactorSymbol), Rational.One);
         stemDuration = stemDuration.Compressed(Rational.One / meterScalingFactor);
 

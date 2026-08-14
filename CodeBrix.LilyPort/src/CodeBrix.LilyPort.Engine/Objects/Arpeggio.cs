@@ -27,7 +27,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Objects; //was previously: lily/arpeggio.cc, lily/include/arpeggio.hh;
 
-// Modified by Jeremy Ellis on 2026-08-08 as part of the CodeBrix port:
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port:
 //   - upstream's one file holds THREE classes (Arpeggio, Chord_bracket, Chord_slur) and
 //     so does this one, because they share the "positions" property, the squiggle-free
 //     vertical-span idea and the engraver that makes all three.
@@ -202,7 +202,7 @@ public static class Arpeggio
         // The loop below stacks squiggles until they cover the chord. It terminates
         // because each one adds its own height — so a squiggle of ZERO height would
         // never terminate, and the symptom would be a sweep that stops making progress
-        // with nothing in the log, exactly the shape EPG12's slur search range had.
+        // with nothing in the log, exactly the shape the slur search range had.
         // Upstream is protected by the music font always carrying scripts.arpeggio;
         // this asks rather than assumes. When the glyph is real the guard cannot fire
         // and the expression underneath it is upstream's, unchanged.

@@ -26,7 +26,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Translation; //was previously: lily/tab-note-heads-engraver.cc, lily/tab-staff-symbol-engraver.cc;
 
-// Modified by Jeremy Ellis on 2026-08-08 as part of the CodeBrix port:
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port:
 //   - the two engravers share a file because tab-staff-symbol-engraver.cc is a single
 //     six-line acknowledger and belongs beside the engraver whose staff it sizes.
 //   - upstream walks the returned string/fret/finger list with scm_list_ref inside the

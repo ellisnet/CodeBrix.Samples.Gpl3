@@ -18,7 +18,7 @@
 */
 
 // was previously: flower/test-interval.cc, flower/test-interval-set.cc
-// Modified by Jeremy Ellis on 2026-08-02 as part of the CodeBrix port:
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port:
 //   - translated from C++/yaffut to C#/xUnit v3 with SilverAssertions
 //   - the NaN and infinity cases are upstream's, and they are the reason this file
 //     exists: an interval implementation that gets them wrong fails silently

@@ -24,7 +24,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Translation; //was previously: lily/beam-collision-engraver.cc;
 
-// Modified by Jeremy Ellis on 2026-08-07 as part of the CodeBrix port:
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port:
 //   - the contexts_ set and derived_mark () are dropped: they exist only to keep
 //     Contexts alive across Guile's collector, which the managed one does anyway
 //   - std::sort is unstable; List.Sort is too, and grob_less compares only the

@@ -238,16 +238,16 @@ public static class GrobCallbacks
     /// of <c>vertical-skylines</c> and <c>horizontal-skylines</c>.
     /// <para>
     /// The PURE variants take a begin and end column and answer what the grob will look
-    /// like over that range before line breaking has happened. The port has no
-    /// pure-property machinery yet — that is <c>unpure-pure-container.cc</c>, EPG15 —
-    /// so they answer the ordinary extents, which is what a grob that declares no pure
-    /// callback would give anyway.
+    /// like over that range before line breaking has happened. These answer the ordinary
+    /// extents — what a grob that declares no pure callback would give anyway; whether
+    /// they should now route through the pure-property machinery (which has since
+    /// landed) has not been re-measured.
     /// </para>
     /// <para>
     /// Each answer goes back as the Scheme CONS a skyline-pair property value IS
-    /// (the EPG4 rule: a skyline pair is a cons, not an object). Returning the CLR
+    /// (the standing rule: a skyline pair is a cons, not an object). Returning the CLR
     /// SkylinePair here failed the property's own ly:skyline-pair? type check on
-    /// every broad read — found by EPG7, fixed centrally 2026-08-07.
+    /// every broad read — found by the vertical-organization group, fixed centrally.
     /// </para>
     /// </summary>
     /// <param name="interpreter">The interpreter to install into.</param>

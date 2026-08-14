@@ -26,7 +26,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Layout; //was previously: lily/constrained-breaking.cc, lily/include/constrained-breaking.hh;
 
-// Modified by Jeremy Ellis on 2026-08-08 as part of the CodeBrix port:
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port:
 //   - UNSIGNED SENTINEL. Upstream indexes with vsize (unsigned) and uses VPOS, its
 //     all-ones value, both as "no position" and as the loop terminator: `for (vsize i = n;
 //     i != VPOS; i--)' relies on 0-- wrapping. This port indexes with int and spells those

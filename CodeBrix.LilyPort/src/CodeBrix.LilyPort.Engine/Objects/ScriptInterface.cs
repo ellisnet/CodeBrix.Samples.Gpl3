@@ -24,7 +24,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Objects; //was previously: lily/script-interface.cc, lily/script-column.cc, lily/include/script-interface.hh, lily/include/script-column.hh;
 
-// Modified by Jeremy Ellis on 2026-08-08 as part of the CodeBrix port:
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port:
 //   - script-interface.cc and script-column.cc share a file: the column exists only to
 //     order scripts, and it reaches into Script_interface::script_priority_less to do it.
 //   - upstream's Grob_scripts_map is std::unordered_map<Grob *, std::vector<Grob *>>.

@@ -27,7 +27,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Objects; //was previously: lily/ledger-line-spanner.cc;
 
-// Modified by Jeremy Ellis on 2026-08-08 as part of the CodeBrix port:
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port:
 //   - upstream's std::map<vsize, Drul_array<Ledger_request>> and
 //     std::map<Real, std::vector<Interval>> are both ORDERED maps, and both are iterated
 //     in key order to decide where ledgers shorten. The port keeps the keys in a sorted

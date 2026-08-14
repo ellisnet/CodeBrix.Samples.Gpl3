@@ -37,7 +37,7 @@ namespace CodeBrix.LilyPort.Engine.Fonts;
 /// <para>
 /// Every vendored face that kerns at all does it with a single plain type-2 lookup of
 /// Format 1 subtables, <c>ValueFormat1 = XAdvance</c>, <c>ValueFormat2 = 0</c>, and
-/// names the SAME lookups from every script it declares (measured 2026-08-13 across
+/// names the SAME lookups from every script it declares (measured across
 /// all 24 faces; the monospace quartets carry no kerning and no face carries a legacy
 /// <c>kern</c> table). The wider surface here — Format 2, Extension, the legacy
 /// fallback — is for the faces D23's fallback chain may grow (the pinned Roboto
@@ -219,7 +219,7 @@ public sealed class KerningTable
     {
         // The script: DFLT when present, then latn, then whatever comes first — and
         // its default LangSys, falling back to the first LangSys record. Measured
-        // 2026-08-13: every vendored face names the SAME kern lookups from every
+        // Measured: every vendored face names the SAME kern lookups from every
         // script it declares, so the choice cannot change an answer today.
         List<int> result = new List<int>();
         if (scriptList + 2 > gpos.Length)

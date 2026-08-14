@@ -23,7 +23,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Objects; //was previously: lily/gregorian-ligature.cc, lily/include/gregorian-ligature.hh;
 
-// Modified by Jeremy Ellis on 2026-08-09 as part of the CodeBrix port:
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port:
 //   - upstream's bit masks are preprocessor #defines in the header, which C# has no
 //     equivalent for; they are public consts here, renamed from MACRO_CASE to PascalCase.
 //     The VALUES are upstream's exactly, and they are load-bearing: `prefix-set` and

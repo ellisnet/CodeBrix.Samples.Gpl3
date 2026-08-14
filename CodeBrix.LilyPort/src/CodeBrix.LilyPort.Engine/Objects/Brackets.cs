@@ -25,8 +25,8 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Objects; //was previously: lily/horizontal-bracket.cc, lily/enclosing-bracket.cc, lily/include/horizontal-bracket.hh;
 
-// Modified by Jeremy Ellis on 2026-08-08 as part of the CodeBrix port:
-//   - the two bracket grobs share a file; both are thin callers of Bracket, which EPG17
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port:
+//   - the two bracket grobs share a file; both are thin callers of Bracket, which was
 //     already pulled forward.
 
 /// <summary>A horizontal bracket encompassing notes.</summary>

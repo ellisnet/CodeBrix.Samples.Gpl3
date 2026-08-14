@@ -25,7 +25,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Objects; //was previously: lily/system.cc, lily/include/system.hh;
 
-// Modified by Jeremy Ellis on 2026-08-03 as part of the CodeBrix port.
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port.
 
 /*
   If you keep following offset reference points, you will always end
@@ -318,7 +318,7 @@ public class SystemGrob : Spanner
     /// </para>
     /// <para>
     /// <c>handle_prebroken_dependencies</c> runs between the two halves, as upstream
-    /// does. EPG22 landed it (2026-08-07) after the earlier note here — that it "only
+    /// does. The iterator group landed it after the earlier note here — that it "only
     /// matters once lines are actually broken" — was DISPROVEN by measurement: a clone
     /// starts with an empty object alist, and <c>ly:span-bar::before-line-breaking</c>
     /// reads a SpanBar's <c>elements</c> with no default, so 87 files died in this very
@@ -327,11 +327,11 @@ public class SystemGrob : Spanner
     /// <para>
     /// The <c>fixup_refpoint</c> pass is the third step and is NOT optional, though a
     /// recorded divergence used to say it "only matters once lines are actually broken".
-    /// That claim was wrong on its own terms and EPG15 removed it: the pass runs
+    /// That claim was wrong on its own terms and the line-breaking work removed it: the pass runs
     /// immediately after the PREBREAK clones are made, and its second job — re-pointing
     /// an item whose parent is an item with a different break direction — is entirely
     /// about prebroken pieces, which exist well before any line is chosen. It is the
-    /// same shape of mistake `handle_prebroken_dependencies' had at EPG22.
+    /// same shape of mistake `handle_prebroken_dependencies' carried when it first landed.
     /// </para>
     /// </summary>
     public void PreProcessing()
@@ -646,7 +646,7 @@ public class SystemGrob : Spanner
     /// asks for them by name and immediately takes their <c>length</c>. Unported, they
     /// answered the inert placeholder, and `\paper { annotate-spacing = ##t }' — two
     /// words in a file — took the whole book down with "Not a proper list", naming
-    /// neither the property nor the callback. Ported by EPG16, 2026-08-09.
+    /// neither the property nor the callback. Ported with the page-layout group.
     /// </para>
     /// <para>
     /// A DEAD stave is skipped, which is not tidiness: hara-kiri suicides empty staves,
@@ -983,7 +983,7 @@ public class SystemGrob : Spanner
     /// <para>
     /// DIVERGENCE, recorded in PORT-COVERAGE: <c>staff-refpoint-extent</c> is left
     /// unset. Upstream computes it from the vertical alignment's spaceable staves, which
-    /// is <c>Page_layout_problem::is_spaceable</c> — EPG16's file. An absent property is
+    /// is <c>Page_layout_problem::is_spaceable</c>. An absent property is
     /// an honest "not computed"; a zero interval would read as "the staves are all at
     /// the origin", which is a different and wrong claim.
     /// </para>

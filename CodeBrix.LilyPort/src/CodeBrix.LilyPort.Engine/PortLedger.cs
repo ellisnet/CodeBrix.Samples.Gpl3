@@ -23,7 +23,7 @@ public enum LedgerDisposition
     /// <summary>The file's types and algorithms are carried by named C# file(s).</summary>
     Ported,
 
-    /// <summary>The file is owed by a named engine port group (EPG).</summary>
+    /// <summary>The file is owed to a named porting group (the ledger's historical <c>EPGn</c> labels).</summary>
     Group,
 
     /// <summary>The file has no analogue in the port, for a recorded reason.</summary>
@@ -80,7 +80,7 @@ public sealed class LedgerRow
 /// The ledger over upstream's <c>lily/*.cc</c>: one row per file, so what remains to port
 /// is COMPUTED rather than remembered.
 /// <para>
-/// This is the EPG0 deliverable. The alternative — a plan document listing what is left —
+/// This ledger was the engine port's first deliverable. The alternative — a plan document listing what is left —
 /// goes stale the moment a session lands a file and forgets to cross it off, and the
 /// error is invisible because nothing fails. Here, a file that gains a port changes its
 /// row, and <see cref="NotYetPorted"/> shrinks by construction.
@@ -111,7 +111,7 @@ public static class PortLedger
     public static IReadOnlyList<string> Ported => Select(LedgerDisposition.Ported);
 
     /// <summary>
-    /// Gets the files still owed by an EPG group — the porting worklist, computed from
+    /// Gets the files still owed to a porting group — the porting worklist, computed from
     /// the ledger rather than maintained by hand.
     /// </summary>
     public static IReadOnlyList<string> NotYetPorted => Select(LedgerDisposition.Group);
@@ -119,7 +119,7 @@ public static class PortLedger
     /// <summary>Gets the files that will never be ported, each with a recorded reason.</summary>
     public static IReadOnlyList<string> NoPort => Select(LedgerDisposition.NoPort);
 
-    /// <summary>Gets how many files each EPG group still owes, largest group first.</summary>
+    /// <summary>Gets how many files each porting group still owes, largest group first.</summary>
     /// <returns>The group names mapped to their outstanding file counts.</returns>
     public static IReadOnlyList<KeyValuePair<string, int>> RemainingByGroup()
         => RowCache
@@ -130,8 +130,8 @@ public static class PortLedger
             .ThenBy(pair => pair.Key, StringComparer.Ordinal)
             .ToList();
 
-    /// <summary>Gets the rows a single EPG group owes.</summary>
-    /// <param name="group">The group name, for example <c>EPG4</c>.</param>
+    /// <summary>Gets the rows a single porting group owes.</summary>
+    /// <param name="group">The group name as recorded in the ledger data, for example <c>EPG4</c>.</param>
     /// <returns>The upstream files that group still owes.</returns>
     public static IReadOnlyList<string> Owed(string group)
     {

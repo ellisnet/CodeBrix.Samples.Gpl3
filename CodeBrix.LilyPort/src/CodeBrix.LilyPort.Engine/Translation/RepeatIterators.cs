@@ -27,7 +27,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Translation; //was previously: lily/volta-repeat-iterator.cc, lily/alternative-sequence-iterator.cc, lily/volta-specced-music-iterator.cc;
 
-// Modified by Jeremy Ellis on 2026-08-07 as part of the CodeBrix port:
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port:
 //   - the three iterators share one file because they are one mechanism: the repeat
 //     creates the styler, the alternative sequence borrows it, and the volta-specced
 //     wrapper reads its bracket state off the alternative sequence.

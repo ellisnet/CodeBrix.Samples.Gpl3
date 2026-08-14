@@ -30,7 +30,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Objects; //was previously: lily/flag.cc;
 
-// Modified by Jeremy Ellis on 2026-08-07 as part of the CodeBrix port.
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port.
 
 /// <summary>
 /// The flag on an unbeamed eighth note or shorter: a music-font glyph named after the
@@ -211,7 +211,7 @@ public static class Flag
         double blot = me.Layout == null ? 0.0 : me.Layout.GetDimension(BlotDiameterSymbol);
 
         // Upstream's pure branch reads stem->pure_y_extent; the pure machinery is
-        // EPG15's, and the ordinary extent is its recorded fallback.
+        // the line-breaking group's, and the ordinary extent is its recorded fallback.
         Interval stemExtent = pure
             ? Stem.PureYExtent(stem)
             : stem.Extent(stem, Axis.Y);

@@ -25,7 +25,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Objects; //was previously: lily/break-alignment-interface.cc, lily/include/break-align-interface.hh;
 
-// Modified by Jeremy Ellis on 2026-08-08 as part of the CodeBrix port:
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port:
 //   - Three upstream interfaces live in one .cc file and therefore in one .cs file:
 //     Break_alignment_interface, Break_alignable_interface and Break_aligned_interface.
 //     The port keeps them as three static classes with upstream's names.

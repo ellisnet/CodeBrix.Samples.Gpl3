@@ -25,7 +25,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Layout; //was previously: lily/paper-system.cc, lily/include/paper-system.hh;
 
-// Modified by Jeremy Ellis on 2026-08-05 as part of the CodeBrix port.
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port.
 
 /// <summary>
 /// One laid-out line of music, as the page breaker and the backends see it: a
@@ -97,7 +97,7 @@ public static class PaperSystem
     /// It exists so a caller that has already built the paper systems can draw them
     /// without asking the system grob for its stencil a SECOND time — that path runs
     /// <c>PostProcessing</c>, which translates the system, so a second call moves the
-    /// music twice. Added by EPG15 (2026-08-08).
+    /// music twice. Added with line breaking.
     /// </para>
     /// </summary>
     /// <param name="prob">The paper system.</param>

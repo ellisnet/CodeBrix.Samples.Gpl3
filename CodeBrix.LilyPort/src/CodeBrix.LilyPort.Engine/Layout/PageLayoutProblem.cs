@@ -27,19 +27,19 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Layout; //was previously: lily/page-layout-problem.cc;
 
-// Modified by Jeremy Ellis on 2026-08-08 as part of the CodeBrix port:
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port:
 //   - the SPACING-SPEC readers of this file -- is_spaceable, read_spacing_spec,
-//     get_spacing_spec, get_fixed_spacing and add_stretchability -- landed with EPG7 in
+//     get_spacing_spec, get_fixed_spacing and add_stretchability -- landed with the vertical-organization group in
 //     Layout/PageLayoutSpacing.cs, because Align_interface reads every adjacent pair of
 //     staves through them. They are NOT duplicated here; this file calls them.
 //   - Element is a struct-with-two-shapes upstream ("a union in spirit"); it is a sealed
 //     class here with the same invariant, that staves is empty or prob is null.
-// Modified by Jeremy Ellis on 2026-08-11 as part of the CodeBrix port:
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port:
 //   - every upstream `springs_.back ().foo ()' goes through LastSpring(), which answers a
 //     REFERENCE. Spring is a struct here, so `_springs[_springs.Count - 1].Foo ()' compiles
 //     cleanly, mutates a temporary copy and discards it -- see that method's remarks.
 //   - alter_spring_from_spacing_spec takes its Spring by `ref' (upstream: Spring*). The
-//     STAFF-LINES session found it taking the struct BY VALUE, which is the same trap
+//     stale-stand-in class sweep found it taking the struct BY VALUE, which is the same trap
 //     through a parameter: no spacing spec ever reached any page spring, and every
 //     system sat at the skyline minimum instead of basic-distance.
 

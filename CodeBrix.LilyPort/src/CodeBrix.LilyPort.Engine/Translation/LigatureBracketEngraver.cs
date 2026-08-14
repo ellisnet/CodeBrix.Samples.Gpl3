@@ -23,7 +23,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Translation; //was previously: lily/ligature-bracket-engraver.cc;
 
-// Modified by Jeremy Ellis on 2026-08-09 as part of the CodeBrix port:
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port:
 //   - upstream's two acknowledgers are branches of the one AcknowledgeGrob here, selected
 //     by the interfaces the ADD_ACKNOWLEDGER macros name.
 //   - this engraver is deliberately NOT a LigatureEngraver, upstream or here. It marks a
@@ -92,7 +92,7 @@ public sealed class LigatureBracketEngraver : Engraver
         {
             if (_ligature == null)
             {
-                Epg8Support.EventWarning(ender, "cannot find start of ligature");
+                TranslatorSchemeHelpers.EventWarning(ender, "cannot find start of ligature");
                 return;
             }
 
@@ -104,7 +104,7 @@ public sealed class LigatureBracketEngraver : Engraver
         {
             if (_ligature != null)
             {
-                Epg8Support.EventWarning(starter, "already have a ligature");
+                TranslatorSchemeHelpers.EventWarning(starter, "already have a ligature");
                 _ligature.Warning("ligature was started here");
                 return;
             }

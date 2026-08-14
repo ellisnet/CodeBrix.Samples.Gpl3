@@ -24,8 +24,8 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Translation; //was previously: lily/grob-pq-engraver.cc;
 
-// Modified by Jeremy Ellis on 2026-08-07 as part of the CodeBrix port:
-//   - PULLED FORWARD FROM EPG10 by EPG18's demand loop. Lyric extenders are attached to
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port:
+//   - PULLED FORWARD by the lyrics demand loop. Lyric extenders are attached to
 //     the note heads sounding under them, which get_current_note_head finds by reading
 //     `busyGrobs' -- and this engraver is the only thing that ever writes that property.
 //     Without it the list is permanently empty, so every extender ends up with no heads

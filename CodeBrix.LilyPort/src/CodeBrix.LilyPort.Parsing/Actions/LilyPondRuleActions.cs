@@ -17,12 +17,12 @@ namespace CodeBrix.LilyPort.Parsing.Actions;
 /// <c>CodeBrix.LilyPort.Engine/Scheme/lily/</c> and needs no porting at all.
 /// </para>
 /// <para>
-/// This is a PARTIAL class, one file per RULE ACTION GROUP — the session-sized,
-/// disjoint groups the porting effort is organized by. <c>LilyPondRuleActions.Rag1.cs</c>
-/// holds the top-level and header rules, <c>LilyPondRuleActions.Rag13.cs</c> the
-/// strings, scalars and numbers, and so on; each file's <c>RegisterRagN</c> is called
+/// This is a PARTIAL class, one file per functional group of the grammar's rule
+/// actions. <c>LilyPondRuleActions.TopLevel.cs</c>
+/// holds the top-level and header rules, <c>LilyPondRuleActions.StringsAndNumbers.cs</c> the
+/// strings, scalars and numbers, and so on; each file's <c>Register*</c> method is called
 /// from <see cref="Create"/> here. New groups add a file and a call, nothing else, so
-/// parallel porting sessions do not touch each other's files.
+/// work on one group's file does not touch another's.
 /// </para>
 /// <para>
 /// THE VALUE MODEL, which every action follows. <c>SCM</c> is <see cref="object"/>:
@@ -58,25 +58,25 @@ public static partial class LilyPondRuleActions
     {
         RuleActionTable table = new RuleActionTable();
 
-        RegisterRag1(table);
-        RegisterRag2(table);
-        RegisterRag3(table);
-        RegisterRag4(table);
-        RegisterRag5(table);
-        RegisterRag6(table);
-        RegisterRag7(table);
-        RegisterRag8(table);
-        RegisterRag9(table);
-        RegisterRag10(table);
-        RegisterRag11(table);
-        RegisterRag12(table);
-        RegisterRag13(table);
-        RegisterRag14(table);
-        RegisterRag15(table);
-        RegisterRag16(table);
-        RegisterRag17(table);
-        RegisterRag18(table);
-        RegisterRag19(table);
+        RegisterTopLevel(table);
+        RegisterEmbeddedScheme(table);
+        RegisterBookBlocks(table);
+        RegisterOutputDefinitions(table);
+        RegisterContextDefinitions(table);
+        RegisterMusicAssembly(table);
+        RegisterPropertyPaths(table);
+        RegisterArglistNonBackup(table);
+        RegisterArglistBackup(table);
+        RegisterArglistCommon(table);
+        RegisterPartialFunctions(table);
+        RegisterLyricMode(table);
+        RegisterStringsAndNumbers(table);
+        RegisterChords(table);
+        RegisterPostEvents(table);
+        RegisterPitchesAndDurations(table);
+        RegisterFiguredBass(table);
+        RegisterMarkupStructure(table);
+        RegisterMarkupCommands(table);
 
         return table;
     }

@@ -24,9 +24,9 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Translation; //was previously: lily/include/span-event-listener.hh;
 
-// Modified by Jeremy Ellis on 2026-08-08 as part of the CodeBrix port:
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port:
 //   - upstream is a HEADER-ONLY file, so it has no row in lily-cc-ledger.tsv and rides
-//     with whichever group first needs it (EPG14: Text_spanner_engraver and
+//     with whichever group first needs it (scripts/dynamics: Text_spanner_engraver and
 //     Dynamic_engraver).
 //   - upstream's `once` is a template parameter, which exists only to make the choice
 //     free at run time; a bool field costs one branch per event and reads the same.
@@ -81,7 +81,7 @@ public class SpanEventListener
         }
         else
         {
-            Epg8Support.EventProgrammingError(ev, "event span-direction is not set");
+            TranslatorSchemeHelpers.EventProgrammingError(ev, "event span-direction is not set");
         }
     }
 }

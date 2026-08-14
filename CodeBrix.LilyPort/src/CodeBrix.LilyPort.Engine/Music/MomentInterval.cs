@@ -21,7 +21,7 @@ using System;
 
 namespace CodeBrix.LilyPort.Engine.Music; //was previously: flower/include/interval.hh (the Interval_t<Moment> instantiation);
 
-// Modified by Jeremy Ellis on 2026-08-07 as part of the CodeBrix port:
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port:
 //   - the THIRD concrete instantiation of the C++ template Interval_t<T>. Flower's
 //     Interval.cs realises the other two, Interval (over Real) and Slice (over int),
 //     and its own note explains why the template is not carried across generically:

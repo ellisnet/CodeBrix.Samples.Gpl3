@@ -29,7 +29,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Objects; //was previously: lily/slur-scoring.cc, lily/include/slur-scoring.hh;
 
-// Modified by Jeremy Ellis on 2026-08-08 as part of the CodeBrix port.
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port.
 //
 // SCORER — standing rule 2 applies to this whole file.
 //
@@ -495,7 +495,7 @@ public sealed class SlurScoreState
         Interval additionalYs = new Interval(0.0, 0.0);
 
         /*
-          THE TWO GUARDS EPG12 PUT HERE ARE GONE (EPG15 close-out, 2026-08-08) and this
+          THE TWO GUARDS THE FIRST SLUR PASS PUT HERE ARE GONE and this
           loop is upstream's expression, character for character.
 
           They were put in because the port scored slurs while horizontal spacing was
@@ -507,9 +507,9 @@ public sealed class SlurScoreState
           reads as a hang rather than as an error. Upstream may divide unguarded because
           spacing has ALWAYS run by the time a slur is scored.
 
-          It runs here now too: EPG15 landed Paper_score::calc_breaking and
+          It runs here now too: line breaking landed Paper_score::calc_breaking and
           System::break_into_pieces, so columns hold real positions before any stencil is
-          asked for. Removing the guards is the re-measurement EPG12 asked for, and the
+          asked for. Removing the guards is the re-measurement the first slur pass asked for, and the
           sweep is what checks it -- a stall here would show up as a file that never
           finishes, not as a wrong page.
         */
@@ -546,7 +546,7 @@ public sealed class SlurScoreState
                                    + (Dir == Direction.Negative ? 0 : -1))));
 
                     // EPG12's second guard -- a finite-contribution test -- is gone with
-                    // the first (EPG15 close-out, 2026-08-08). See the comment above the
+                    // the first. See the comment above the
                     // loop: it existed only for a world in which the two base attachments
                     // could share a coordinate, which line breaking has ended.
                     additionalYs[d] = Direction.MinMax(Dir, additionalYs[d], contribution);

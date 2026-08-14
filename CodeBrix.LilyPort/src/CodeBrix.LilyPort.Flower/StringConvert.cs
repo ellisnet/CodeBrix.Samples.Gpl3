@@ -23,7 +23,7 @@ using System.Globalization;
 using System.Text;
 
 namespace CodeBrix.LilyPort.Flower; //was previously: flower/string-convert.cc, flower/include/string-convert.hh;
-// Modified by Jeremy Ellis on 2026-08-02 as part of the CodeBrix port:
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port:
 //   - translated from C++17 to C# targeting net10.0
 //   - form_string / vform_string are NOT ported: they are printf wrappers, and C#
 //     has string interpolation and composite formatting. Callers use those instead.
@@ -143,7 +143,7 @@ public static class StringConvert
 
     /*
       THE BYTE-RETURNING SIBLINGS BELOW EXIST BECAUSE std::string IS A BYTE CONTAINER AND
-      System.String IS NOT (added 2026-08-08, EPG19).
+      System.String IS NOT (added for the MIDI layer).
 
       Upstream's be_u16/be_u24/be_u32 answer a std::string that is then concatenated
       straight into the MIDI file alongside track names and lyrics, which are already

@@ -22,7 +22,7 @@ using CodeBrix.LilyPort.Flower;
 
 namespace CodeBrix.LilyPort.Engine.Layout; //was previously: lily/rod.cc, lily/include/rod.hh;
 
-// Modified by Jeremy Ellis on 2026-08-05 as part of the CodeBrix port.
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port.
 
 /// <summary>
 /// A hard minimum distance between two items, on its way to becoming a constraint

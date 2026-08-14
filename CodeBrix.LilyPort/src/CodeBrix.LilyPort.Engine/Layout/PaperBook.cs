@@ -26,7 +26,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Layout; //was previously: lily/paper-book.cc, lily/include/paper-book.hh;
 
-// Modified by Jeremy Ellis on 2026-08-08 as part of the CodeBrix port:
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port:
 //   - upstream keeps its lists as SCM with a tail pointer, appending in O(1) through
 //     SCM_CDRLOC. The port keeps a List<object> and converts at the boundary, which is
 //     the same order with the same complexity and no pointer into a cons cell.
@@ -35,7 +35,7 @@ namespace CodeBrix.LilyPort.Engine.Layout; //was previously: lily/paper-book.cc,
 //     `lily framework-<backend>' modules and act on the -dclip-systems / -dpreview /
 //     -dcrop / -daux-files program options, which are the CLI surface D14 replaced with
 //     Lily.Shell and the PS/Cairo backends D19 replaced. Page ASSEMBLY, which is what
-//     EPG16 is for and what every caller in this port needs, is Pages() and is here.
+//     page layout is for and what every caller in this port needs, is Pages() and is here.
 
 /// <summary>
 /// Collects a book's headers, scores and texts and turns them into PAGES.

@@ -26,7 +26,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Translation; //was previously: lily/cluster-engraver.cc;
 
-// Modified by Jeremy Ellis on 2026-08-08 as part of the CodeBrix port:
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port:
 //   - upstream's INT_MIN/INT_MAX seeds for the pitch scan become int.MinValue/MaxValue.
 //     They are seeds for a max/min fold over a list the caller has already checked is
 //     non-empty, so they can never be the answer.

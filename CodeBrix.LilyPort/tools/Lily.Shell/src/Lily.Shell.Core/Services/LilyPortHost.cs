@@ -149,9 +149,9 @@ public sealed class LilyPortHost
     /// include root, exactly as the regression driver treats it.
     /// </summary>
     /// <remarks>
-    /// Added 2026-08-08 for the standing keep-Lily.Shell-current expectation:
-    /// the engine has produced pages since EPG3 and <c>.midi</c> files since
-    /// EPG19, and <c>engrave</c> stopped at the parse step until now.
+    /// Added for the standing keep-Lily.Shell-current expectation:
+    /// the engine produces pages and <c>.midi</c> files, and
+    /// <c>engrave</c> once stopped at the parse step.
     /// </remarks>
     public Task<BatchRunResult> EngraveFileAsync(
         string path, string outputDirectory, CancellationToken cancellationToken) =>

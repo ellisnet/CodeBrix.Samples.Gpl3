@@ -25,7 +25,7 @@ using CodeBrix.LilyPort.Flower;
 
 namespace CodeBrix.LilyPort.Engine.Objects; //was previously: lily/dot-configuration.cc, lily/include/dot-configuration.hh, lily/dot-formatting-problem.cc, lily/include/dot-formatting-problem.hh;
 
-// Modified by Jeremy Ellis on 2026-08-07 as part of the CodeBrix port.
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port.
 
 /// <summary>
 /// One dot in a dot column: where it wants to sit, which way it prefers to move, and

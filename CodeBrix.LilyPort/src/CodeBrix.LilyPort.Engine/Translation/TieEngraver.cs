@@ -25,7 +25,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Translation; //was previously: lily/tie-engraver.cc;
 
-// Modified by Jeremy Ellis on 2026-08-08 as part of the CodeBrix port:
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port:
 //   - upstream declares acknowledge_note_head and lets the macro layer dispatch by
 //     interface; the port's single AcknowledgeGrob writes the interface test out.
 
@@ -266,9 +266,9 @@ public class TieEngraver : Engraver
     private void ListenTie(StreamEvent ev)
     {
         // Upstream tests skipTypesetting with from_scm<bool> — EXACTLY #t. This read
-        // used Scheme truthiness until 2026-08-08, under which the UNSET property
+        // once used Scheme truthiness, under which the UNSET property
         // ('()) counted as true — so every tie event was discarded on arrival, and
-        // `c4~ c4` engraved two untied notes with no diagnostic. EPG8's
+        // `c4~ c4` engraved two untied notes with no diagnostic. The bars/meter group's
         // TypeCheckAssignment finding, in the opposite direction.
         if (!SchemeUtilities.ToBool(GetProperty(SkipTypesettingSymbol)))
         {

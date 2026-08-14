@@ -21,7 +21,7 @@ using System;
 using System.Collections.Generic;
 
 namespace CodeBrix.LilyPort.Flower; //was previously: flower/interval-set.cc, flower/include/interval-set.hh;
-// Modified by Jeremy Ellis on 2026-08-02 as part of the CodeBrix port:
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port:
 //   - translated from C++17 to C# targeting net10.0
 //   - std::upper_bound over a sorted vector becomes an explicit binary search, so
 //     that the iterator arithmetic upstream relies on (i - 1, i != begin) maps onto

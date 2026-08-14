@@ -25,7 +25,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Objects; //was previously: lily/grid-line-interface.cc, lily/include/grid-line-interface.hh;
 
-// Modified by Jeremy Ellis on 2026-08-07 as part of the CodeBrix port.
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port.
 
 /// <summary>
 /// A line that is spanned between grid points.
@@ -65,7 +65,7 @@ public static class GridLineInterface
         double staffline = grob.Layout != null
             ? grob.Layout.GetDimension(LineThicknessSymbol)
             : 0.0;
-        double thick = Epg8Support.ToDouble(grob.GetProperty(ThicknessSymbol), 1.0)
+        double thick = TranslatorSchemeHelpers.ToDouble(grob.GetProperty(ThicknessSymbol), 1.0)
             * staffline;
 
         iv.Translate(-grob.RelativeCoordinate(refp, Axis.Y));
@@ -82,7 +82,7 @@ public static class GridLineInterface
         double staffline = grob.Layout != null
             ? grob.Layout.GetDimension(LineThicknessSymbol)
             : 0.0;
-        double thick = Epg8Support.ToDouble(grob.GetProperty(ThicknessSymbol), 1.0)
+        double thick = TranslatorSchemeHelpers.ToDouble(grob.GetProperty(ThicknessSymbol), 1.0)
             * staffline;
 
         return new Interval(0, thick);

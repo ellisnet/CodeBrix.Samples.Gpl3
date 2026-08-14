@@ -32,7 +32,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Translation; //was previously: lily/percent-repeat-engraver.cc, lily/double-percent-repeat-engraver.cc, lily/slash-repeat-engraver.cc, lily/repeat-acknowledge-engraver.cc;
 
-// Modified by Jeremy Ellis on 2026-08-07 as part of the CodeBrix port.
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port.
 
 /// <summary>Makes whole-measure repeats: the <c>PercentRepeat</c> spanner and its counter.</summary>
 public class PercentRepeatEngraver : Engraver
@@ -110,7 +110,7 @@ public class PercentRepeatEngraver : Engraver
         }
         else if (_percent != null && _percentEvent != null)
         {
-            Epg8Support.EventWarning(
+            TranslatorSchemeHelpers.EventWarning(
                 _percentEvent, "percent repeat started while another already in progress");
 
             _percent.Suicide();
@@ -309,7 +309,7 @@ public class SlashRepeatEngraver : Engraver
     {
         if (_slash != null)
         {
-            long count = Epg8Support.ToLong(_slash.GetProperty(SlashCountSymbol), 0);
+            long count = TranslatorSchemeHelpers.ToLong(_slash.GetProperty(SlashCountSymbol), 0);
             MakeItem(count == 0 ? "DoubleRepeatSlash" : "RepeatSlash", _slash);
             _slash = null;
         }
@@ -396,7 +396,7 @@ public class RepeatAcknowledgeEngraver : Engraver
             return;
         }
 
-        long count = Epg8Support.ToLong(ev.GetProperty(ReturnCountSymbol), 0);
+        long count = TranslatorSchemeHelpers.ToLong(ev.GetProperty(ReturnCountSymbol), 0);
         if (count >= 0)
         {
             _heardVoltaRepeatEnd = true;
@@ -411,7 +411,7 @@ public class RepeatAcknowledgeEngraver : Engraver
             return;
         }
 
-        long count = Epg8Support.ToLong(ev.GetProperty(RepeatCountSymbol), 0);
+        long count = TranslatorSchemeHelpers.ToLong(ev.GetProperty(RepeatCountSymbol), 0);
         if (count >= 1)
         {
             _heardVoltaRepeatStart = true;

@@ -24,7 +24,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Objects; //was previously: lily/prob.cc, lily/include/prob.hh;
 
-// Modified by Jeremy Ellis on 2026-08-03 as part of the CodeBrix port.
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port.
 
 /*
   A formatted "system" (A block of titling also is a Property_object)
@@ -206,7 +206,7 @@ public class Prob : ISchemeEqual
                 {
                     // Upstream reaches ly_transpose_key_alist here. A private identity
                     // stand-in sat in its place from before the real algorithm existed
-                    // — landed with EPG19 in MusicSequence — and it made every
+                    // — landed with the MIDI group in MusicSequence — and it made every
                     // `\key PITCH \SCALE' carry the UNTRANSPOSED scale pattern: d minor
                     // announced c minor's three flats to the MIDI key signature. The
                     // stale-stand-in pattern again: a recorded absence stops being true
@@ -272,9 +272,9 @@ public class Prob : ISchemeEqual
     /// Compares this prob with another for <c>equal?</c> — upstream's
     /// <c>Prob::equal_p</c>, reached through the <see cref="ISchemeEqual"/> dispatch.
     /// <para>
-    /// The eighth and last handler on the roster RATCHET-FIX read out of the pinned
-    /// source (2026-08-08); it was left OWED then because nothing demanded it, and it
-    /// is closed by the same session that closed the EPG19 carry-forwards. The
+    /// The eighth and last handler on the <see cref="ISchemeEqual"/> roster read out of
+    /// the pinned source; it was left OWED at first because nothing demanded it, and it
+    /// closed together with the MIDI group's carry-forwards. The
     /// algorithm itself was already here as <see cref="AreEqual"/>.
     /// </para>
     /// </summary>

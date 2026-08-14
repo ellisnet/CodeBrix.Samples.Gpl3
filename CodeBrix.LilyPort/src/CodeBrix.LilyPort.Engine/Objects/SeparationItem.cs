@@ -26,12 +26,12 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Objects; //was previously: lily/separation-item.cc, lily/include/separation-item.hh;
 
-// Modified by Jeremy Ellis on 2026-08-05 as part of the CodeBrix port.
-// Modified by Jeremy Ellis on 2026-08-11 as part of the CodeBrix port:
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port.
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port:
 //   - boxes reads each item's PURE Y extent, as upstream. The ordinary read it carried
 //     ran during horizontal spacing and CACHED stencils (the StaffSymbol's among them)
 //     computed over still-unplaced columns -- the root of the collapsed-staff-line
-//     defect. See PORT-COVERAGE, STAFF-LINES.
+//     defect. See PORT-COVERAGE.
 
 /// <summary>
 /// Collects the items a paper column has to keep clear of its neighbours.
@@ -181,13 +181,10 @@ public static class SeparationItem
     /// skipped — their members are already in the list on their own account.
     /// </para>
     /// <para>
-    /// DIVERGENCE, recorded in PORT-COVERAGE: with a non-null
-    /// <paramref name="left"/> upstream filters the accidentals through
-    /// <c>Accidental_placement::get_relevant_accidentals</c>. Accidental placement is
-    /// EPG9; until it lands no grob carries <c>accidental-placement-interface</c>, so
-    /// the split below sends everything down the unfiltered branch — the same answer
-    /// upstream gives when no accidentals are present, which is the port's current
-    /// state.
+    /// With a non-null <paramref name="left"/> upstream filters the accidentals
+    /// through <c>Accidental_placement::get_relevant_accidentals</c>. The split below
+    /// does the same: grobs carrying <c>accidental-placement-interface</c> go through
+    /// <see cref="RelevantAccidentals"/> and the rest take the unfiltered branch.
     /// </para>
     /// </summary>
     /// <param name="me">The separation item.</param>
@@ -309,7 +306,7 @@ public static class SeparationItem
 
     /// <summary>
     /// <c>Accidental_placement::get_relevant_accidentals</c> — the seam closed when
-    /// EPG9 landed (Wave A integration, 2026-08-07).
+    /// accidental placement landed.
     /// </summary>
     private static List<Grob> RelevantAccidentals(List<Grob> accidentals, Grob left)
         => AccidentalPlacement.GetRelevantAccidentals(accidentals, left);

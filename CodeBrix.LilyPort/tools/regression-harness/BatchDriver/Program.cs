@@ -28,7 +28,7 @@ namespace CodeBrix.LilyPort.BatchDriver;
 /// </para>
 /// <para>
 /// THE OUTPUT DIRECTORY IS EMPTIED OF <c>.svg</c> FILES BEFORE THE SWEEP RUNS, and
-/// that is load-bearing rather than tidiness. It was not, until 2026-08-07, and the
+/// that is load-bearing rather than tidiness. It once was not, and the
 /// consequence was that a sweep's output sat on top of every earlier run's: a file
 /// that STOPPED producing a page kept the stale one, `compare-output.py` graded the
 /// stale page, and the ratchet reported no regression for precisely the failure mode
@@ -117,7 +117,7 @@ public static class Program
             {
                 BatchRunResult result = BatchRunner.RunFile(file, outputDirectory);
 
-                // MIDI is reported on its own line and always (EPG19, 2026-08-08),
+                // MIDI is reported on its own line and always,
                 // because the sweep log IS this project's demand list: a performance that
                 // failed while the page succeeded would otherwise be invisible, which is
                 // exactly how the layout side's own silent gaps survived for sessions.
@@ -140,7 +140,7 @@ public static class Program
                 {
                     produced++;
 
-                    // EVERY page, not just the first: since EPG16 one input file may
+                    // EVERY page, not just the first: on the book path one input file may
                     // write several, and the self-check compares what is on disk against
                     // exactly this set.
                     foreach (string page in result.SvgPaths)

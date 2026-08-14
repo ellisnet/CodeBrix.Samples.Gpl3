@@ -151,8 +151,8 @@ public sealed class SvgBackend : IStencilSink
         // first document the port produced. LilyPond's own SVG binds it too.
         document.Append("<svg xmlns=\"http://www.w3.org/2000/svg\"");
         document.Append(" xmlns:xlink=\"http://www.w3.org/1999/xlink\" version=\"1.2\"\n");
-        // THE mm SIZE IS SCALED BY output-scale AND THE VIEW BOX IS NOT (EPG16,
-        // 2026-08-08). framework-svg.scm's output-stencil computes
+        // THE mm SIZE IS SCALED BY output-scale AND THE VIEW BOX IS NOT.
+        // framework-svg.scm's output-stencil computes
         // `svg-width = output-scale * device-width' for the width and height attributes
         // and passes the UNSCALED extents to the view box, so the document declares its
         // real millimetre size while its coordinates stay in staff spaces. The port

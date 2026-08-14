@@ -29,7 +29,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Objects; //was previously: lily/key-signature-interface.cc;
 
-// Modified by Jeremy Ellis on 2026-08-07 as part of the CodeBrix port.
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port.
 
 /// <summary>
 /// A group of accidentals, to be printed as signature sign.
@@ -99,7 +99,7 @@ public static class KeySignatureInterface
                 GrobWarning(
                     grob,
                     "No glyph found for alteration: "
-                    + Epg8Support.ToRational(alt, Rational.Zero));
+                    + TranslatorSchemeHelpers.ToRational(alt, Rational.Zero));
                 continue;
             }
 
@@ -118,7 +118,7 @@ public static class KeySignatureInterface
                 object posList = CallAlterationPositions(entry, c0s, grob);
                 for (; posList is Pair posPair; posList = posPair.Cdr)
                 {
-                    int p = (int)Epg8Support.ToLong(posPair.Car, 0);
+                    int p = (int)TranslatorSchemeHelpers.ToLong(posPair.Car, 0);
                     htRight.AddPoint(2 * p - 6); /* descender */
                     htRight.AddPoint(2 * p + 3); /* upper right corner */
                     column.AddStencil(acc.Translated(new Offset(0, p * inter)));
@@ -129,12 +129,12 @@ public static class KeySignatureInterface
                   has vertical edges on both sides. A little padding is
                   needed to prevent collisions.
                 */
-                double padding = Epg8Support.ToDouble(grob.GetProperty(PaddingSymbol), 0.0);
-                Pair handle = Epg8Support.Assoc(
+                double padding = TranslatorSchemeHelpers.ToDouble(grob.GetProperty(PaddingSymbol), 0.0);
+                Pair handle = TranslatorSchemeHelpers.Assoc(
                     new Pair(glyphNameScm, lastGlyphName), paddingPairs);
                 if (handle != null)
                 {
-                    padding = Epg8Support.ToDouble(handle.Cdr, 0.0);
+                    padding = TranslatorSchemeHelpers.ToDouble(handle.Cdr, 0.0);
                 }
                 else if (glyphName == "accidentals.natural")
                 {
@@ -176,7 +176,7 @@ public static class KeySignatureInterface
     // ly_assoc_get: assoc with equal?, answering the entry's cdr or #f.
     private static object AssocGet(object key, object alist)
     {
-        Pair entry = Epg8Support.Assoc(key, alist);
+        Pair entry = TranslatorSchemeHelpers.Assoc(key, alist);
         return entry != null ? entry.Cdr : false;
     }
 
@@ -186,7 +186,7 @@ public static class KeySignatureInterface
         StreamEvent cause = grob?.UltimateEventCause();
         if (cause != null)
         {
-            Epg8Support.EventWarning(cause, message);
+            TranslatorSchemeHelpers.EventWarning(cause, message);
         }
         else
         {

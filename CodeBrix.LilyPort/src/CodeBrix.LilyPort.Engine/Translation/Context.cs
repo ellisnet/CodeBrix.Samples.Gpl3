@@ -26,7 +26,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Translation; //was previously: lily/context.cc, lily/include/context.hh;
 
-// Modified by Jeremy Ellis on 2026-08-05 as part of the CodeBrix port.
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port.
 
 /// <summary>
 /// A node in the translation tree: Score, Staff, Voice and the rest.
@@ -481,7 +481,7 @@ public class Context
     {
         // The CHECKED symbol and value are what get written, not the ones passed in: a
         // deprecated property redirects to its replacement and converts its value on the
-        // way (EPG16, 2026-08-09).
+        // way.
         if (!SchemeUtilities.TypeCheckAssignment(
                 symbol, value, TranslationTypeSymbol,
                 out Symbol checkedSymbol, out object checkedValue))
@@ -718,7 +718,7 @@ public class Context
     /// <c>melismaBusyProperties</c> that reads true makes it busy.
     /// </para>
     /// <para>Upstream: the free function <c>melisma_busy</c> in <c>lily/context.cc</c>.
-    /// It was never carried when that file was ported; EPG18 is its first caller.</para>
+    /// It was never carried when that file was ported; the lyrics group is its first caller.</para>
     /// </summary>
     /// <param name="context">The context to test, which may be null.</param>
     /// <returns><see langword="true"/> when the context is in a melisma.</returns>

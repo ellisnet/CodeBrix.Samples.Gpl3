@@ -68,8 +68,8 @@ public static class LilyPondScheme
     /// <para>
     /// The startup loader deliberately RECORDS a file's failure instead of throwing, so
     /// that one bad file cannot abort the pass. Its hook then stays installed, which
-    /// means every ON-DEMAND load afterwards is recorded in the same report — and until
-    /// EPG24 nothing could read it, because <c>LilyPondInit</c> discards the returned
+    /// means every ON-DEMAND load afterwards is recorded in the same report — and at first
+    /// nothing could read it, because <c>LilyPondInit</c> discards the returned
     /// object. A documentation run loads sixteen files on demand; without this, one of
     /// them failing is invisible and shows up only as an unbound variable much later,
     /// with the real reason already thrown away.
@@ -417,74 +417,74 @@ public static class LilyPondScheme
         FontPrimitives.Install(interpreter);
         GrobCallbacks.Install(interpreter);
 
-        // The Wave A group installers (2026-08-07). Epg8Callbacks carries a few
+        // The parallel-group installers. MeterAndKeyCallbacks carries a few
         // demand-pulled bindings for files outside its group; the overlapping
-        // EPG7 stand-ins it shipped were removed at integration, so the order of
+        // vertical-organization stand-ins it shipped were removed at integration, so the order of
         // these five is not load-bearing.
-        Epg5Callbacks.Install(interpreter);
-        Epg6Callbacks.Install(interpreter);
-        Epg7Callbacks.Install(interpreter);
-        Epg8Callbacks.Install(interpreter);
-        Epg9Callbacks.Install(interpreter);
-        Epg17Callbacks.Install(interpreter);
-        Epg18Callbacks.Install(interpreter);
+        ColumnAndRestCallbacks.Install(interpreter);
+        StemAndFlagCallbacks.Install(interpreter);
+        VerticalLayoutCallbacks.Install(interpreter);
+        MeterAndKeyCallbacks.Install(interpreter);
+        AccidentalCallbacks.Install(interpreter);
+        VoltaAndTupletCallbacks.Install(interpreter);
+        LyricCallbacks.Install(interpreter);
 
-        // EPG10 (2026-08-07): the beam callbacks. Order-independent of the above —
+        // The beam callbacks. Order-independent of the above —
         // every ly:beam::* name is its own, and Beam reads Stem through C#, not Scheme.
-        Epg10Callbacks.Install(interpreter);
+        BeamCallbacks.Install(interpreter);
 
-        // EPG11/EPG12 (2026-08-08): the tie and slur callbacks. Order-independent of each
+        // The tie and slur callbacks. Order-independent of each
         // other and of everything above — no name is shared — but both must be installed,
         // because the slur's outside-slur trio is looked up BY NAME from C# when a dodging
         // grob is chained onto the slur, and an unregistered name would chain a stub.
-        Epg11Callbacks.Install(interpreter);
-        Epg12Callbacks.Install(interpreter);
+        TieCallbacks.Install(interpreter);
+        SlurCallbacks.Install(interpreter);
 
-        // EPG14 (2026-08-08): scripts, dynamics, brackets, pedals, fingering, ledger
+        // Scripts, dynamics, brackets, pedals, fingering, ledger
         // lines and the line spanner. Order-independent of everything above — every name
-        // is its own — and it must be installed for the same reason EPG12's trio must:
+        // is its own — and it must be installed for the same reason the slur trio must:
         // ly:script-column::row-before-line-breaking compares a grob's Y-offset AGAINST
         // ly:side-position-interface::y-aligned-side by identity, so both have to be the
         // registered procedure and not a stub.
-        Epg14Callbacks.Install(interpreter);
+        ScriptAndDynamicCallbacks.Install(interpreter);
 
-        // EPG20 (2026-08-08): the arpeggio/chord-bracket/chord-slur callbacks and the
+        // The arpeggio/chord-bracket/chord-slur callbacks and the
         // chord-name binding. Order-independent of everything above — every name is its
         // own — but it must be installed, because ly/property-init.ly's \arpeggioBracket
         // and \arpeggioParenthesis OVERRIDE Arpeggio.stencil with ly:chord-bracket::print
         // and ly:chord-slur::print BY NAME, so an unregistered name would install a stub
         // on a grob that is otherwise fully working.
-        Epg20Callbacks.Install(interpreter);
-        Epg15Callbacks.Install(interpreter);
+        TablatureAndChordCallbacks.Install(interpreter);
+        LineBreakingCallbacks.Install(interpreter);
 
-        // EPG16 (2026-08-08): the six page-breaking strategies, Paper_book's accessors and
-        // ly:book-process. These go in AFTER Epg15Callbacks because a page breaker calls
-        // straight into the line breaker EPG15 landed.
-        Epg16Callbacks.Install(interpreter);
+        // The six page-breaking strategies, Paper_book's accessors and
+        // ly:book-process. These go in AFTER LineBreakingCallbacks because a page breaker calls
+        // straight into the line breaker.
+        PageBreakingCallbacks.Install(interpreter);
 
-        // EPG21 (2026-08-09): the four ancient-notation ligature grobs. Order-independent
+        // The four ancient-notation ligature grobs. Order-independent
         // of everything above -- every name is its own -- but it must be installed BEFORE
         // any score runs, because the mensural and vaticana engravers look their
         // brew-ligature-primitive callbacks up BY NAME at construction time and install
         // them as the stencil of every head they collect.
-        Epg21Callbacks.Install(interpreter);
+        LigatureCallbacks.Install(interpreter);
 
-        // EPG22 (2026-08-07): dispatcher-scheme.cc, pulled forward from EPG23 because
-        // \addQuote cannot run without it. It must go in AFTER Epg8Callbacks, which is
+        // Dispatcher-scheme.cc, pulled forward from the long-tail pool because
+        // \addQuote cannot run without it. It must go in AFTER MeterAndKeyCallbacks, which is
         // where ly:broadcast used to live.
         DispatcherPrimitives.Install(interpreter);
         OriginPrimitives.Install(interpreter);
         ParserPrimitives.Install(interpreter);
         EngineSupport.Install(interpreter);
 
-        // EPG23 (2026-08-12): the leaf binding files the ledger still owed —
+        // The leaf binding files the ledger still owed —
         // simple-spacer-scheme.cc and spring-smob.cc here, lily-random.cc next. Both
         // groups' TYPES landed long ago; only the LY_DEFINE surface was missing.
         SpacingPrimitives.Install(interpreter);
         RandomPrimitives.Install(interpreter);
-        Epg23Callbacks.Install(interpreter);
+        AssortedGrobCallbacks.Install(interpreter);
 
-        // D25's N/A half, LAST among EPG23's installers so that anything above may still
+        // D25's N/A half, LAST among the long-tail installers so that anything above may still
         // claim a name for a real implementation instead.
         NotApplicableEntryPoints.Install(interpreter);
 

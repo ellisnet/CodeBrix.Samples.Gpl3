@@ -30,12 +30,12 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Audio; //was previously: lily/midi-item.cc, lily/include/midi-item.hh;
 
-// Modified by Jeremy Ellis on 2026-08-08 as part of the CodeBrix port:
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port:
 //   - to_string() BECOMES ToBytes(), RETURNING byte[]. Upstream's std::string is a byte
 //     container: a status byte of 0x90 and a UTF-8 lyric live in the same type and are
 //     concatenated without conversion. System.String is UTF-16 and cannot do that without
 //     picking an encoding, and no single encoding is right for both. The whole MIDI layer
-//     is therefore byte[] end to end. This is the one place in EPG19 where following the
+//     is therefore byte[] end to end. This is the one place in the MIDI layer where following the
 //     letter of upstream would have produced wrong FILES rather than merely different
 //     code — see the note on Midi_text below, where the length prefix must count UTF-8
 //     BYTES and would silently have counted UTF-16 chars.

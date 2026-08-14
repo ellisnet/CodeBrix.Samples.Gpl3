@@ -122,7 +122,7 @@ public static class GeneralPrimitives
         // ignored -- nothing in the port's load path reads them back, and rejecting them
         // would abort lily.scm outright.
         //
-        // #:accumulative? IS read, as of EPG23. It has to be: the vendored lily.scm asks
+        // #:accumulative? IS read. It has to be: the vendored lily.scm asks
         // `(object-property key 'program-option-accumulative?)' to decide between
         // ly:append-to-option and ly:set-option, so leaving the property unset routes
         // every accumulative option to the wrong binding. Upstream sets exactly this
@@ -274,9 +274,8 @@ public static class GeneralPrimitives
 
     private static void InstallGeneral(Interpreter interpreter, ProgramOptions options)
     {
-        // function-documentation.cc's table, now real: the port's bindings still carry
-        // no docstrings (EPG24 owes the content), so the table is honestly sparse —
-        // but it is THE table, and every Add lands in what this returns.
+        // function-documentation.cc's table, now real: every Add lands in what this
+        // returns, and the docs-parity run is what grades its content.
         interpreter.DefinePrimitive("ly:get-all-function-documentation", 0, 0, a =>
             FunctionDocumentation.Table);
 
@@ -304,7 +303,7 @@ public static class GeneralPrimitives
         // lily/module-scheme.cc: look SYM up across the list MODULES, answering the
         // first module's bound value, then DEF when given, else #f.
         //
-        // PULLED FORWARD FROM EPG23 by the 2026-08-08 carry-forward session's demand:
+        // PULLED FORWARD from the long-tail pool by the carry-forward demand:
         // performance naming goes through scm/midi.scm's performance-name-from-headers,
         // whose (or (ly:modules-lookup headers 'midititle) ...) chain treated the
         // polite unported stub's placeholder as a real value — so every performance
@@ -604,7 +603,7 @@ public static class GeneralPrimitives
         // This port read the argument as a SchemeChar and fell back to codepoint ZERO for
         // anything else, so it answered a NUL character to every real call. Nothing failed:
         // a NUL is a perfectly good string as far as the engine is concerned, and it only
-        // became visible when EPG17 (2026-08-07) made enough marks reach the page for the
+        // became visible when the volta/tuplet group made enough marks reach the page for the
         // SVG to stop being well-formed XML — NUL is not a legal XML character. Integers
         // are the contract; a character is tolerated rather than turned back into a NUL.
         interpreter.DefinePrimitive("ly:wide-char->utf-8", 1, 1, a =>

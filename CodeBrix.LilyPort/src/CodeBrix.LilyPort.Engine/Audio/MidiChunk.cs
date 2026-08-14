@@ -25,7 +25,7 @@ using CodeBrix.LilyPort.Flower;
 
 namespace CodeBrix.LilyPort.Engine.Audio; //was previously: lily/midi-chunk.cc, lily/include/midi-chunk.hh;
 
-// Modified by Jeremy Ellis on 2026-08-08 as part of the CodeBrix port:
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port:
 //   - to_string() becomes ToBytes() throughout, for the reason recorded at the top of
 //     MidiItem.cs: a std::string is a byte container and a System.String is not.
 

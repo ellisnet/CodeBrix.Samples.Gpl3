@@ -27,10 +27,10 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Layout; //was previously: lily/line-interface.cc, lily/include/line-interface.hh;
 
-// Modified by Jeremy Ellis on 2026-08-03 as part of the CodeBrix port.
-// Modified by Jeremy Ellis on 2026-08-07 as part of the CodeBrix port:
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port.
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port:
 //   - the property-driven half landed (line, arrows, make_arrow, make_zigzag_line,
-//     make_trill_line), pulled in by EPG17's demand loop: Bracket::make_bracket draws
+//     make_trill_line), pulled in by the volta/tuplet demand loop: Bracket::make_bracket draws
 //     every bracket edge through Line_interface::line, so a volta or tuplet bracket
 //     cannot exist without it. This CLOSES the divergence PORT-COVERAGE recorded under
 //     "lily/line-interface.cc arrows / make_arrow / the property-driven `line'".

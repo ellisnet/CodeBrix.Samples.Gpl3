@@ -29,7 +29,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Objects; //was previously: lily/grob.cc, lily/grob-property.cc, lily/include/grob.hh, lily/include/dimension-cache.hh;
 
-// Modified by Jeremy Ellis on 2026-08-03 as part of the CodeBrix port.
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port.
 
 /*
   XY offset/refpoint/extent structure.
@@ -178,8 +178,8 @@ public abstract class Grob : IDiagnostics
         }
 
         /*
-          EPG11/EPG12 (2026-08-08) carried these four. grob.cc's ledger row has said
-          `ported' since EPG0, but the constructor stopped after the meta block and never
+          The ties-and-slurs work carried these four. grob.cc's ledger row has said
+          `ported' from the start, but the constructor stopped after the meta block and never
           installed upstream's DEFAULT extent and skyline callbacks. The primitives
           themselves were all registered — only the defaulting was missing.
 
@@ -311,7 +311,7 @@ public abstract class Grob : IDiagnostics
     /// <returns>The piece, or <see langword="null"/> when there is none.</returns>
     /// <remarks>
     /// A bare grob has no pieces, so upstream's base answers null and only
-    /// <see cref="Item"/> and <see cref="Spanner"/> override it. Added 2026-08-08 by EPG14:
+    /// <see cref="Item"/> and <see cref="Spanner"/> override it. Added with scripts/dynamics:
     /// the method is declared in <c>grob.hh</c> and defined in all three files, every one of
     /// which the ledger already called <c>ported</c>, but it had never been carried — nothing
     /// asked until <c>Line_spanner::calc_bound_info</c> needed to follow a cross-staff
@@ -330,7 +330,7 @@ public abstract class Grob : IDiagnostics
     /// <returns>The extent, never empty.</returns>
     /// <remarks>
     /// The pure counterpart of <c>robust_relative_extent</c>; a free function in
-    /// <c>lily/grob.cc</c> like its sibling. Added 2026-08-08 by EPG14 for
+    /// <c>lily/grob.cc</c> like its sibling. Added for
     /// <c>Balloon_interface::pure_height</c>.
     /// </remarks>
     public static Interval RobustRelativePureYExtent(
@@ -598,7 +598,7 @@ public abstract class Grob : IDiagnostics
             SchemeUtilities.TypeCheckAssignment(symbol, value, BackendTypeSymbol);
         }
 
-        // grob-interface.cc's check, ported by EPG22. Upstream runs it beside the type
+        // grob-interface.cc's check, ported with the iterator group. Upstream runs it beside the type
         // check under do_internal_type_checking_global; the port keeps its own gate on
         // check-internal-types, because the check walks every interface of every grob on
         // every assignment. (That the TYPE check above is ungated where upstream gates
@@ -939,11 +939,11 @@ public abstract class Grob : IDiagnostics
     /// extent it would have if the line broke where the caller says.
     /// </summary>
     /// <remarks>
-    /// EPG12 (2026-08-08) carried this: <c>grob.cc</c>'s ledger row has said
-    /// <c>ported</c> since EPG0, but this function had never come across, because
+    /// The slur group carried this: <c>grob.cc</c>'s ledger row has said
+    /// <c>ported</c> from the start, but this function had never come across, because
     /// <c>Slur::pure_height</c> and <c>Slur::pure_outside_slur_callback</c> are the
     /// port's first callers. It reads <c>Y-extent</c> through
-    /// <see cref="CallPureFunction"/>, which is no longer a stand-in: EPG15 landed
+    /// <see cref="CallPureFunction"/>, which is no longer a stand-in: line breaking landed
     /// <c>unpure-pure-container.cc</c>, so a grob with a genuine pure callback is now
     /// measured by it rather than by its ordinary extent.
     /// </remarks>
@@ -988,7 +988,7 @@ public abstract class Grob : IDiagnostics
     /// </summary>
     /// <remarks>
     /// Another half of <c>grob-property.cc</c> that had never come across, found by
-    /// EPG15's close-out (2026-08-08) when the real pure path in
+    /// the line-breaking close-out when the real pure path in
     /// <c>Align_interface::get_skylines</c> started demanding
     /// <c>ly:grob-pure-property</c>. Nothing had asked for it while every pure read was
     /// answered by an ordinary extent.
@@ -1594,7 +1594,7 @@ public abstract class Grob : IDiagnostics
     /// so a grob IS one of these. The port grew Warning/ProgrammingError/Origin as
     /// members without ever declaring the interface, which meant a caller holding a Grob
     /// could not reach the diagnostic surface generically — and, worse, an
-    /// <c>(IDiagnostics)</c> cast on a grob COMPILED and threw at run time. EPG18 met
+    /// <c>(IDiagnostics)</c> cast on a grob COMPILED and threw at run time. The lyrics group met
     /// exactly that; the fix is to declare what upstream declares.
     /// </para>
     /// </summary>

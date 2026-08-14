@@ -29,7 +29,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Music; //was previously: lily/music.cc, lily/include/music.hh, lily/music-sequence.cc;
 
-// Modified by Jeremy Ellis on 2026-08-03 as part of the CodeBrix port.
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port.
 
 /*
   Music is anything that has (possibly zero) duration and supports
@@ -515,10 +515,10 @@ public static class MusicSequence
     /// <returns>The transposed alist, in the original order.</returns>
     /// <remarks>
     /// <para>
-    /// PULLED FORWARD FROM EPG23 (2026-08-08, EPG19), and forced rather than chosen:
+    /// PULLED FORWARD by the MIDI group, and forced rather than chosen:
     /// <c>ly_transpose_key_alist</c> is DECLARED in <c>lily/include/music-sequence.hh</c>
     /// — this file's header — but DEFINED in <c>music-scheme.cc</c>, which is a leaf
-    /// binding file EPG23 owns. <see cref="Translation.KeyPerformer"/> calls it twice and
+    /// long-tail binding file. <see cref="Translation.KeyPerformer"/> calls it twice and
     /// cannot emit a MIDI key signature without it.
     /// </para>
     /// <para>

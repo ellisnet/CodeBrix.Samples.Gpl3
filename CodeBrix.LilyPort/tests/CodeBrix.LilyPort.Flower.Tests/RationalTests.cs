@@ -18,7 +18,7 @@
 */
 
 // was previously: flower/test-rational.cc
-// Modified by Jeremy Ellis on 2026-08-02 as part of the CodeBrix port:
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port:
 //   - translated from C++/yaffut to C#/xUnit v3 with SilverAssertions
 //   - the assertions and the cases they cover are upstream's; testing this port
 //     against LilyPond's own test data is the point, since it verifies the

@@ -26,7 +26,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Translation; //was previously: lily/kievan-ligature-engraver.cc;
 
-// Modified by Jeremy Ellis on 2026-08-09 as part of the CodeBrix port:
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port:
 //   - fold_up_primitives returns the minimum length instead of writing through a Real&,
 //     which is what its single caller does with it.
 

@@ -34,8 +34,8 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Parsing.Session; //was previously: lily/lily-parser.cc, lily/lily-lexer.cc, lily/lexer.ll (the host halves);
 
-// Modified by Jeremy Ellis on 2026-08-03 as part of the CodeBrix port.
-// Modified by Jeremy Ellis on 2026-08-11 as part of the CodeBrix port:
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port.
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port:
 //   - SnapshotToplevelScope/RestoreToplevelScope give a shared batch session
 //     upstream's one-parser-per-file semantics for the base scope: bindings a file
 //     invents are removed and bindings it overwrites are reverted between files.
@@ -136,7 +136,7 @@ public sealed partial class LilyParserSession : IParserHost, ILexerHost
     /// Set for the duration of a parse. The lexer's mode stack is real state, and a
     /// rule action that pushes a mode is telling THIS scanner to change what it reads
     /// next — a session with no scanner attached records nothing and silently lexes
-    /// the whole file in one mode, which is the failure RAG16 recorded.
+    /// the whole file in one mode, which is the failure the PitchesAndDurations group recorded.
     /// </remarks>
     public ModalScanner Scanner { get; set; }
 
@@ -310,8 +310,7 @@ public sealed partial class LilyParserSession : IParserHost, ILexerHost
     /// it: a binding a file INVENTED is removed, and a binding a file overwrote gets
     /// its init-layer value back.
     /// <para>
-    /// The removal half is the one that bites — see the STAFF-LINES follow-up
-    /// (2026-08-11). The built-in vocal templates read OPTIONAL variables
+    /// The removal half is the one that bites. The built-in vocal templates read OPTIONAL variables
     /// (<c>Time</c>, <c>TwoVoicesPerStaff</c>, instrument names) with
     /// <c>ly:parser-lookup</c>, so one template file's leftovers changed what the
     /// next template file BUILT: a leaked <c>Time = { s1 \break s1 }</c> forced a

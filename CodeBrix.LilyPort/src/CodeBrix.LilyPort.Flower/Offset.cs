@@ -21,7 +21,7 @@ using System;
 using System.Globalization;
 
 namespace CodeBrix.LilyPort.Flower; //was previously: flower/offset.cc, flower/include/offset.hh, flower/include/axis.hh;
-// Modified by Jeremy Ellis on 2026-08-02 as part of the CodeBrix port:
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port:
 //   - translated from C++17 to C# targeting net10.0
 //   - class replaced by a readonly struct; Offset is a two-double value copied
 //     constantly through the geometry code

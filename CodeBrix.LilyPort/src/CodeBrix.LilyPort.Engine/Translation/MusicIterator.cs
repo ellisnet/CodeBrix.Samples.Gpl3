@@ -26,7 +26,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Translation; //was previously: lily/music-iterator.cc, lily/include/music-iterator.hh, lily/simple-music-iterator.cc, lily/event-iterator.cc;
 
-// Modified by Jeremy Ellis on 2026-08-03 as part of the CodeBrix port.
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port.
 
 /**
    ---
@@ -63,7 +63,7 @@ public class MusicIterator
     // (`Context_handle handle_;', with get_own_context/set_own_context going through it),
     // and that is LOAD-BEARING rather than bookkeeping: the handle's client count is what
     // makes Context::is_removable answer false for a context an iterator is still
-    // reporting to. The port kept a plain field here until EPG18, so EVERY context read as
+    // reporting to. The port kept a plain field here at first, so EVERY context read as
     // removable the moment it had no children, and any code asking is_removable about a
     // live context got the wrong answer -- which is how a whole \lyricsto branch was being
     // dropped at create_contexts time.

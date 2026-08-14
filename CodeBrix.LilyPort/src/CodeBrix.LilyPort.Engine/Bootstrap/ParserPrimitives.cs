@@ -270,7 +270,7 @@ public static class ParserPrimitives
     /// </summary>
     /// <param name="interpreter">The interpreter to extend.</param>
     /// <remarks>
-    /// These were the two entry points EPG23 was asked to rule N/A and did not, because
+    /// These were the two entry points the long-tail closure was asked to rule N/A and did not, because
     /// filing the session lifecycle as "not applicable" while
     /// <c>CodeBrix.LilyPort.BatchRunner</c> reimplements it is the stale-named-absence
     /// shape standing trap 8 records.

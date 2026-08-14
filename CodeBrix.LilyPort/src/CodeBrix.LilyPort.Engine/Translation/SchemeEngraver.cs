@@ -26,7 +26,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Translation; //was previously: lily/scheme-engraver.cc, lily/include/scheme-engraver.hh (and, for the interface-keyed acknowledger lookup, lily/translator-dispatch-list.cc);
 
-// Modified by Jeremy Ellis on 2026-08-05 as part of the CodeBrix port.
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port.
 
 /// <summary>
 /// An engraver whose whole behaviour is a Scheme alist: what

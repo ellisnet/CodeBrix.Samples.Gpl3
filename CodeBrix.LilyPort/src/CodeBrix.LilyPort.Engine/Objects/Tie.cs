@@ -26,8 +26,8 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Objects; //was previously: lily/tie.cc, lily/include/tie.hh;
 
-// Modified by Jeremy Ellis on 2026-08-08 as part of the CodeBrix port:
-//   - Tie::set_head and Tie::head lived in Objects/Epg5Seams.cs from EPG5 until now,
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port:
+//   - Tie::set_head and Tie::head first lived in a shared seam file, since dissolved,
 //     because Completion_heads_engraver needed them before this file existed. They come
 //     home here and the seam's tie section is deleted.
 

@@ -25,13 +25,13 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Translation; //was previously: lily/paper-column-engraver.cc, lily/include/paper-column-engraver.hh;
 
-// Modified by Jeremy Ellis on 2026-08-03 as part of the CodeBrix port.
-// Modified by Jeremy Ellis on 2026-08-11 as part of the CodeBrix port:
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port.
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port:
 //   - upstream's three specific acknowledgers are restored beside the plain item one:
 //     staff-spacing and note-spacing wishes go onto the columns' spacing-wishes, and
 //     the BreakAlignment is stored as the command column's break-alignment object.
-//     Without them, every wish-based spacing correction read empty sets since EPG4,
-//     and break_align_width answered points. See PORT-COVERAGE, STAFF-LINES.
+//     Without them, every wish-based spacing correction read empty sets from the start,
+//     and break_align_width answered points. See PORT-COVERAGE.
 
 /// <summary>
 /// Creates the paper columns: the horizontal positions everything else hangs off.
@@ -219,11 +219,11 @@ public class PaperColumnEngraver : Engraver
     /// <c>\pageTurn</c> and their no- and allow- siblings to the command column —
     /// <c>Paper_column_engraver::handle_manual_breaks</c>.
     /// <para>
-    /// NOT PORTED UNTIL EPG15's CLOSE-OUT (2026-08-08), and invisible before it: with no
+    /// LATE-PORTED at the line-breaking close-out, and invisible before it: with no
     /// permission-stripping block in <see cref="StopTranslationTimestep"/> every column
     /// was breakable anyway, so a score asking for a break got one by accident and a
-    /// score forbidding one was ignored. The strip landed with the CARRY-FORWARD
-    /// session's stall fix, which is what made the gap visible.
+    /// score forbidding one was ignored. The strip landed with the broken-spanner
+    /// carry-forward stall fix, which is what made the gap visible.
     /// </para>
     /// </summary>
     /// <param name="onlyDoPermissions">

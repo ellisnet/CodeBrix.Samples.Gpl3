@@ -26,7 +26,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Translation; //was previously: lily/key-engraver.cc;
 
-// Modified by Jeremy Ellis on 2026-08-07 as part of the CodeBrix port.
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port.
 
 /// <summary>
 /// Engraves a key signature.
@@ -117,7 +117,7 @@ public class KeyEngraver : Engraver
             object last = GetProperty(LastKeyAlterationsSymbol);
             object key = GetProperty(KeyAlterationsSymbol);
 
-            if ((Epg8Support.ToBool(GetProperty(PrintKeyCancellationSymbol)) || key is Nil)
+            if ((TranslatorSchemeHelpers.ToBool(GetProperty(PrintKeyCancellationSymbol)) || key is Nil)
                 && !ReferenceEquals(last, key))
             {
                 object restore = Nil.Instance;
@@ -126,10 +126,10 @@ public class KeyEngraver : Engraver
                 {
                     if (pair.Car is Pair entry)
                     {
-                        Pair newAlterPair = Epg8Support.Assoc(entry.Car, key);
-                        Rational oldAlter = Epg8Support.ToRational(entry.Cdr, Rational.Zero);
+                        Pair newAlterPair = TranslatorSchemeHelpers.Assoc(entry.Car, key);
+                        Rational oldAlter = TranslatorSchemeHelpers.ToRational(entry.Cdr, Rational.Zero);
                         if (newAlterPair == null
-                            || (Epg8Support.ToRational(newAlterPair.Cdr, Rational.Zero)
+                            || (TranslatorSchemeHelpers.ToRational(newAlterPair.Cdr, Rational.Zero)
                                 - oldAlter) * oldAlter < Rational.Zero)
                         {
                             restore = new Pair(entry, restore);
@@ -177,7 +177,7 @@ public class KeyEngraver : Engraver
     {
         if (info.Grob.HasInterface(ClefInterfaceSymbol))
         {
-            if (Epg8Support.ToBool(GetProperty(CreateKeyOnClefChangeSymbol)))
+            if (TranslatorSchemeHelpers.ToBool(GetProperty(CreateKeyOnClefChangeSymbol)))
             {
                 CreateKey(false);
             }
@@ -243,7 +243,7 @@ public class KeyEngraver : Engraver
             foreach (object entry in alist)
             {
                 if (entry is Pair pair
-                    && Epg8Support.ToRational(pair.Cdr, Rational.Zero).IsNonZero)
+                    && TranslatorSchemeHelpers.ToRational(pair.Cdr, Rational.Zero).IsNonZero)
                 {
                     warn = true;
                     accs = new Pair(entry, accs);
@@ -252,7 +252,7 @@ public class KeyEngraver : Engraver
 
             if (warn)
             {
-                Epg8Support.EventWarning(
+                TranslatorSchemeHelpers.EventWarning(
                     ev, "Incomplete keyAlterationOrder for key signature");
             }
         }

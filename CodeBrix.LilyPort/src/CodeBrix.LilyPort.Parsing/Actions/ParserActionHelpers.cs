@@ -25,7 +25,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Parsing.Actions; //was previously: lily/parser.yy (epilogue), lily/lily-parser.cc (get_header);
 
-// Modified by Jeremy Ellis on 2026-08-03 as part of the CodeBrix port.
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port.
 
 /// <summary>
 /// The helper functions <c>parser.yy</c> defines in its epilogue for the rule actions

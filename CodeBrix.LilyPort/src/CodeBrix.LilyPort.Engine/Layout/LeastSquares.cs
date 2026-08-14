@@ -22,7 +22,7 @@ using CodeBrix.LilyPort.Flower;
 
 namespace CodeBrix.LilyPort.Engine.Layout; //was previously: lily/least-squares.cc, lily/include/least-squares.hh;
 
-// Modified by Jeremy Ellis on 2026-08-07 as part of the CodeBrix port:
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port:
 //   - the two out-parameters replace upstream's Real* out-pointers
 //   - the degenerate branch keeps upstream's programming_error and its wording,
 //     because beam.cc relies on the zero-slope/mean-offset answer it leaves behind

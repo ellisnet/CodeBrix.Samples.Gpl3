@@ -26,7 +26,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Translation; //was previously: lily/template-engraver-for-beams.cc, lily/include/template-engraver-for-beams.hh, lily/beam-engraver.cc, lily/chord-tremolo-engraver.cc;
 
-// Modified by Jeremy Ellis on 2026-08-07 as part of the CodeBrix port:
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port:
 //   - derived_mark () is dropped, as everywhere else in this port
 //   - Moment is a readonly struct here, so begin_beam's "main_part_ = grace_part_"
 //     builds a new Moment rather than assigning through
@@ -211,7 +211,7 @@ public class BeamEngraver : TemplateEngraverForBeams
         {
             if (Beam_ != null)
             {
-                Epg8Support.EventWarning(_startEv, "already have a beam");
+                TranslatorSchemeHelpers.EventWarning(_startEv, "already have a beam");
                 return;
             }
 
@@ -290,7 +290,7 @@ public class BeamEngraver : TemplateEngraverForBeams
         TypesetBeam();
         if (Beam_ != null)
         {
-            Epg8Support.EventWarning(_prevStartEv, "unterminated beam");
+            TranslatorSchemeHelpers.EventWarning(_prevStartEv, "unterminated beam");
 
             /*
               we don't typeset it, (we used to, but it was commented
@@ -377,8 +377,8 @@ public class BeamEngraver : TemplateEngraverForBeams
         int durlog = stemDuration.DurationLog;
         if (durlog <= 2)
         {
-            Epg8Support.EventWarning(ev, "stem does not fit in beam");
-            Epg8Support.EventWarning(_prevStartEv, "beam was started here");
+            TranslatorSchemeHelpers.EventWarning(ev, "stem does not fit in beam");
+            TranslatorSchemeHelpers.EventWarning(_prevStartEv, "beam was started here");
 
             /*
               don't return, since
@@ -484,7 +484,7 @@ public sealed class ChordTremoloEngraver : Engraver
         {
             if (_repeat == null)
             {
-                Epg8Support.EventWarning(ev, "No tremolo to end");
+                TranslatorSchemeHelpers.EventWarning(ev, "No tremolo to end");
             }
 
             _repeat = null;
@@ -508,7 +508,7 @@ public sealed class ChordTremoloEngraver : Engraver
         base.FinalizeTranslation();
         if (_beam != null)
         {
-            Epg8Support.EventWarning(_repeat, "unterminated chord tremolo");
+            TranslatorSchemeHelpers.EventWarning(_repeat, "unterminated chord tremolo");
             AnnounceEndGrob(_beam, Nil.Instance);
             _beam.Suicide();
         }

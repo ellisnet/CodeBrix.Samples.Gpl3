@@ -25,7 +25,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Translation; //was previously: lily/translator-ctors.cc, lily/translator-group-ctors.cc, lily/include/translator.hh (Translator_creator);
 
-// Modified by Jeremy Ellis on 2026-08-05 as part of the CodeBrix port.
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port.
 
 /// <summary>
 /// What a translator's name resolves to: something that can make one translator for one
@@ -106,7 +106,7 @@ public static class TranslatorRegistry
         Add(registries, "Separating_line_group_engraver",
             c => new SeparatingLineGroupEngraver(c));
 
-        // EPG5 — columns, rests, dots, collisions.
+        // Columns, rests, dots, collisions.
         Add(registries, "Rest_engraver", c => new RestEngraver(c));
         Add(registries, "Rest_collision_engraver", c => new RestCollisionEngraver(c));
         Add(registries, "Rhythmic_column_engraver", c => new RhythmicColumnEngraver(c));
@@ -118,16 +118,16 @@ public static class TranslatorRegistry
         Add(registries, "Multi_measure_rest_engraver",
             c => new MultiMeasureRestEngraver(c));
 
-        // EPG6 — stems and flags.
+        // Stems and flags.
         Add(registries, "Stem_engraver", c => new StemEngraver(c));
 
-        // EPG7 — vertical organization.
+        // Vertical organization.
         Add(registries, "Vertical_align_engraver", c => new VerticalAlignEngraver(c));
         Add(registries, "System_start_delimiter_engraver",
             c => new SystemStartDelimiterEngraver(c));
         Add(registries, "Staff_collecting_engraver", c => new StaffCollectingEngraver(c));
 
-        // EPG8 — bars, meter, keys, marks.
+        // Bars, meter, keys, marks.
         Add(registries, "Bar_engraver", c => new BarEngraver(c));
         Add(registries, "Span_bar_engraver", c => new SpanBarEngraver(c));
         Add(registries, "Span_bar_stub_engraver", c => new SpanBarStubEngraver(c));
@@ -143,7 +143,7 @@ public static class TranslatorRegistry
         Add(registries, "Grid_line_span_engraver", c => new GridLineSpanEngraver(c));
         Add(registries, "Grid_point_engraver", c => new GridPointEngraver(c));
 
-        // EPG9 — accidentals and pitch machinery.
+        // Accidentals and pitch machinery.
         Add(registries, "Accidental_engraver", c => new AccidentalEngraver(c));
         Add(registries, "Ambitus_engraver", c => new AmbitusEngraver(c));
         Add(registries, "Pitched_trill_engraver", c => new PitchedTrillEngraver(c));
@@ -151,7 +151,7 @@ public static class TranslatorRegistry
         Add(registries, "Note_name_engraver", c => new NoteNameEngraver(c));
         Add(registries, "Cue_clef_engraver", c => new CueClefEngraver(c));
 
-        // EPG10 — beams.
+        // Beams.
         Add(registries, "Beam_engraver", c => new BeamEngraver(c));
         Add(registries, "Grace_beam_engraver", c => new GraceBeamEngraver(c));
         Add(registries, "Auto_beam_engraver", c => new AutoBeamEngraver(c));
@@ -159,10 +159,10 @@ public static class TranslatorRegistry
         Add(registries, "Beam_collision_engraver", c => new BeamCollisionEngraver(c));
         Add(registries, "Chord_tremolo_engraver", c => new ChordTremoloEngraver(c));
 
-        // EPG22 — iterators and music plumbing.
+        // Iterators and music plumbing.
         Add(registries, "Part_combine_engraver", c => new PartCombineEngraver(c));
 
-        // EPG17 — repeats, voltas, percent, tuplets, grace.
+        // Repeats, voltas, percent, tuplets, grace.
         Add(registries, "Volta_engraver", c => new VoltaEngraver(c));
         Add(registries, "Repeat_acknowledge_engraver",
             c => new RepeatAcknowledgeEngraver(c));
@@ -174,26 +174,26 @@ public static class TranslatorRegistry
         Add(registries, "Grace_engraver", c => new GraceEngraver(c));
         Add(registries, "Grace_spacing_engraver", c => new GraceSpacingEngraver(c));
 
-        // EPG10's grob-pq-engraver.cc, PULLED FORWARD by EPG18: busyGrobs has no other
+        // grob-pq-engraver.cc, pulled forward with the lyrics group: busyGrobs has no other
         // writer, and lyric extenders cannot find their note heads without it.
         Add(registries, "Grob_pq_engraver", c => new GrobPqEngraver(c));
 
-        // EPG18 — lyrics and melody.
+        // Lyrics and melody.
         Add(registries, "Lyric_engraver", c => new LyricEngraver(c));
         Add(registries, "Extender_engraver", c => new ExtenderEngraver(c));
         Add(registries, "Hyphen_engraver", c => new HyphenEngraver(c));
         Add(registries, "Melody_engraver", c => new MelodyEngraver(c));
 
-        // EPG11 (2026-08-08): ties.
+        // Ties.
         Add(registries, "Tie_engraver", c => new TieEngraver(c));
         Add(registries, "Laissez_vibrer_engraver", c => new LaissezVibrerEngraver(c));
         Add(registries, "Repeat_tie_engraver", c => new RepeatTieEngraver(c));
 
-        // EPG12 (2026-08-08): slurs.
+        // Slurs.
         Add(registries, "Slur_engraver", c => new SlurEngraver(c));
         Add(registries, "Phrasing_slur_engraver", c => new PhrasingSlurEngraver(c));
 
-        // EPG14 (2026-08-08): scripts, dynamics, brackets, pedals, fingering.
+        // Scripts, dynamics, brackets, pedals, fingering.
         Add(registries, "Script_engraver", c => new ScriptEngraver(c));
         Add(registries, "Script_column_engraver", c => new ScriptColumnEngraver(c));
         Add(registries, "Script_row_engraver", c => new ScriptRowEngraver(c));
@@ -223,7 +223,7 @@ public static class TranslatorRegistry
             c => new HorizontalBracketEngraver(c));
         Add(registries, "Ledger_line_engraver", c => new LedgerLineEngraver(c));
 
-        // EPG20 (2026-08-08): chords, frets, tab, drums, clusters, arpeggio, figured bass.
+        // Chords, frets, tab, drums, clusters, arpeggio, figured bass.
         Add(registries, "Arpeggio_engraver", c => new ArpeggioEngraver(c));
         Add(registries, "Span_arpeggio_engraver", c => new SpanArpeggioEngraver(c));
         Add(registries, "Cluster_spanner_engraver", c => new ClusterSpannerEngraver(c));
@@ -236,7 +236,7 @@ public static class TranslatorRegistry
         Add(registries, "Figured_bass_position_engraver",
             c => new FiguredBassPositionEngraver(c));
 
-        // EPG15 (2026-08-08) -- line breaking and broken spanners. The first two were the
+        // Line breaking and broken spanners. The first two were the
         // two MOST demanded unported translators in the sweep, at 4,156 and 4,150 "unknown
         // translator" warnings each.
         Add(registries, "Break_align_engraver", c => new BreakAlignEngraver(c));
@@ -247,14 +247,14 @@ public static class TranslatorRegistry
         Add(registries, "Keep_alive_together_engraver",
             c => new KeepAliveTogetherEngraver(c));
 
-        // EPG16 (2026-08-08) -- page breaking and page layout. Footnote_engraver led the
-        // sweep's unported-translator list among EPG16's names at 2,524 misses; both of
+        // Page breaking and page layout. Footnote_engraver led the
+        // sweep's unported-translator list among this group's names at 2,524 misses; both of
         // these carry no Scheme surface, so registering them here is the whole of how
         // ly/engraver-init.ly finds them.
         Add(registries, "Footnote_engraver", c => new FootnoteEngraver(c));
         Add(registries, "Page_turn_engraver", c => new PageTurnEngraver(c));
 
-        // EPG21 (2026-08-09) -- ancient notation. Ligature_bracket_engraver led the whole
+        // Ancient notation. Ligature_bracket_engraver led the whole
         // sweep's unported-translator list at 4,224 misses, and not because ancient music
         // is common: it is in the DEFAULT Voice context, so every score in the suite asked
         // for it. The other four are the ancient contexts' own, which \remove the bracket
@@ -265,7 +265,7 @@ public static class TranslatorRegistry
         Add(registries, "Kievan_ligature_engraver", c => new KievanLigatureEngraver(c));
         Add(registries, "Episema_engraver", c => new EpisemaEngraver(c));
 
-        // EPG19 (2026-08-08) -- the MIDI side. These are the fourteen concrete performers
+        // The MIDI side. These are the fourteen concrete performers
         // ly/performer-init.ly names; the two GROUPS (Performer_group, Score_performer)
         // are made by GetTranslatorGroup below, not here, exactly as the engraver groups
         // are.

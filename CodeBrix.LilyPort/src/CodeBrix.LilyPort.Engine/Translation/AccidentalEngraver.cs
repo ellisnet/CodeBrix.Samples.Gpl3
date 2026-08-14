@@ -29,7 +29,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Translation; //was previously: lily/accidental-engraver.cc;
 
-// Modified by Jeremy Ellis on 2026-08-07 as part of the CodeBrix port.
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port.
 
 /*
   localAlterations is changed at runtime, which means that references
@@ -587,8 +587,8 @@ public class AccidentalEngraver : Engraver
     }
 
     /// <summary>
-    /// <c>Tie::head</c>, carried forward from <c>lily/tie.cc</c> (EPG10-12's file): the
-    /// bound on one side, when it is a note head. Recorded in the EPG9 report so the
+    /// <c>Tie::head</c>, carried forward from <c>lily/tie.cc</c>: the
+    /// bound on one side, when it is a note head. Recorded in PORT-COVERAGE so the
     /// tie group knows the method exists here.
     /// </summary>
     private static Grob TieHead(Spanner me, Direction d)
@@ -628,8 +628,8 @@ public class AccidentalEngraver : Engraver
 /// <summary>
 /// The measure/clock helpers of <c>lily/context.cc</c> that its ported half
 /// (<c>Translation/Context.cs</c>) does not carry yet: <c>measure_number</c>,
-/// <c>note_end_mom</c> and <c>preorder_walk</c>. They live here because EPG9's
-/// engravers are their first port-side callers; the EPG9 report flags them for a move
+/// <c>note_end_mom</c> and <c>preorder_walk</c>. They live here because the accidental
+/// engravers are their first port-side callers; PORT-COVERAGE flags them for a move
 /// into <c>Context.cs</c> at integration.
 /// </summary>
 internal static class MeasureCounting

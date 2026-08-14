@@ -23,8 +23,8 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Objects; //was previously: lily/tie-column.cc, lily/include/tie-column.hh;
 
-// Modified by Jeremy Ellis on 2026-08-08 as part of the CodeBrix port:
-//   - Tie_column::add_tie lived in Objects/Epg5Seams.cs from EPG5 until now; it comes
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port:
+//   - Tie_column::add_tie first lived in a shared seam file, since dissolved; it comes
 //     home here and the seam's tie section is deleted.
 
 /// <summary>

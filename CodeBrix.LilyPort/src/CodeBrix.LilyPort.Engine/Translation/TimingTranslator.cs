@@ -27,7 +27,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Translation; //was previously: lily/timing-translator.cc, lily/include/timing-translator.hh;
 
-// Modified by Jeremy Ellis on 2026-08-07 as part of the CodeBrix port.
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port.
 
 /// <summary>
 /// The metric heartbeat: maintains <c>measurePosition</c>, <c>measureLength</c>,
@@ -156,7 +156,7 @@ public class TimingTranslator : Translator
     private void ListenAlternative(StreamEvent ev)
     {
         // Use alternative bar numbers for the outermost volta brackets.
-        long depth = Epg8Support.ToLong(ev.GetProperty(VoltaDepthSymbol), 0);
+        long depth = TranslatorSchemeHelpers.ToLong(ev.GetProperty(VoltaDepthSymbol), 0);
         if (depth != 1)
         {
             return;
@@ -192,10 +192,10 @@ public class TimingTranslator : Translator
         // properties occur before any translator's pre_process_music () is called.
         Moment now = NowMoment;
         if (now.MainPart != _measureStartMoment.MainPart
-            && Epg8Support.ToBool(GetProperty(DeprecatedBarCheckSynchronizeSymbol)))
+            && TranslatorSchemeHelpers.ToBool(GetProperty(DeprecatedBarCheckSynchronizeSymbol)))
         {
-            Moment mp = Epg8Support.ToMoment(GetProperty(MeasurePositionSymbol), Moment.Zero);
-            if (mp.MainPart.IsNonZero && !Epg8Support.ToBool(GetProperty(IgnoreBarChecksSymbol)))
+            Moment mp = TranslatorSchemeHelpers.ToMoment(GetProperty(MeasurePositionSymbol), Moment.Zero);
+            if (mp.MainPart.IsNonZero && !TranslatorSchemeHelpers.ToBool(GetProperty(IgnoreBarChecksSymbol)))
             {
                 Context?.SetProperty(MeasurePositionSymbol, Moment.Zero);
                 Context?.SetProperty(MeasureStartNowSymbol, true);
@@ -227,7 +227,7 @@ public class TimingTranslator : Translator
             _measureLengthChangeEvent = ev;
 
             // compute and set measureLength
-            Moment mp = Epg8Support.ToMoment(GetProperty(MeasurePositionSymbol), Moment.Zero);
+            Moment mp = TranslatorSchemeHelpers.ToMoment(GetProperty(MeasurePositionSymbol), Moment.Zero);
             Rational mlen = mp.MainPart + dur.ToWholeNotes();
             Context?.SetProperty(MeasureLengthSymbol, SchemeConvert.FromRational(mlen));
         }
@@ -238,11 +238,11 @@ public class TimingTranslator : Translator
 
             // measureLength <= measurePosition is a problem because the measure
             // should have ended before this point.
-            Moment mp = Epg8Support.ToMoment(GetProperty(MeasurePositionSymbol), Moment.Zero);
-            Rational mlen = Epg8Support.ToRational(mlenScm, Rational.Zero);
+            Moment mp = TranslatorSchemeHelpers.ToMoment(GetProperty(MeasurePositionSymbol), Moment.Zero);
+            Rational mlen = TranslatorSchemeHelpers.ToRational(mlenScm, Rational.Zero);
             if (mlen <= mp.MainPart)
             {
-                Epg8Support.EventWarning(
+                TranslatorSchemeHelpers.EventWarning(
                     ev,
                     "setting measureLength (" + mlen + ") ≤ measurePosition ("
                     + mp.MainPart + ")");
@@ -256,7 +256,7 @@ public class TimingTranslator : Translator
     {
         if (!(ev.GetProperty(DurationSymbol) is Duration dur))
         {
-            Epg8Support.EventProgrammingError(ev, "invalid duration in \\partial");
+            TranslatorSchemeHelpers.EventProgrammingError(ev, "invalid duration in \\partial");
             return;
         }
 
@@ -287,7 +287,7 @@ public class TimingTranslator : Translator
             // using measureLength as a modulus; however, even if we caught it here,
             // measureLength could be changed immediately afterward, so there is no
             // point in trying.  We will detect it and warn in pre_process_music().
-            Moment old = Epg8Support.ToMoment(GetProperty(MeasurePositionSymbol), Moment.Zero);
+            Moment old = TranslatorSchemeHelpers.ToMoment(GetProperty(MeasurePositionSymbol), Moment.Zero);
             Moment mp = new Moment(-dur.ToWholeNotes(), old.GracePart);
             Context?.SetProperty(MeasurePositionSymbol, mp);
             if (mp.IsNonZero)
@@ -314,7 +314,7 @@ public class TimingTranslator : Translator
 
             if (!mlen.IsFinite)
             {
-                Epg8Support.EventWarning(
+                TranslatorSchemeHelpers.EventWarning(
                     _partialEvent,
                     "cannot calculate a finite measurePosition from an infinite"
                     + " measureLength");
@@ -369,11 +369,11 @@ public class TimingTranslator : Translator
                         : new Duration(0, 0);
                     Rational factor = polyDur.Factor;
                     object scaled = SchemeConvert.FromRational(
-                        Epg8Support.ToRational(polyMlen, Rational.Zero) * factor);
+                        TranslatorSchemeHelpers.ToRational(polyMlen, Rational.Zero) * factor);
                     if (!CodeBrix.LilyScheme.Primitives.CorePrimitives.SchemeEqual(
                             scaled, refMlen))
                     {
-                        Epg8Support.EventWarning(
+                        TranslatorSchemeHelpers.EventWarning(
                             ev, "conflicting measure length: " + Printer.Write(scaled));
                         Warn.Warning(
                             "measure length in Timing context: " + Printer.Write(refMlen));
@@ -402,7 +402,7 @@ public class TimingTranslator : Translator
         // issue #34).  The measure starts with the earliest grace note, but we don't
         // want to fail later bar checks when the only difference is grace notes.
         bool barCheckOk = now.MainPart == _measureStartMoment.MainPart;
-        if (Epg8Support.ToBool(Context?.GetProperty(MeasureStartNowSymbol)))
+        if (TranslatorSchemeHelpers.ToBool(Context?.GetProperty(MeasureStartNowSymbol)))
         {
             _measureStartMoment = now;
             barCheckOk = true;
@@ -412,10 +412,10 @@ public class TimingTranslator : Translator
         // noisy to warn in every measure until the next mistake or change in timing,
         // so we suppress further warnings.
         if (!barCheckOk && _barCheckEvent != null && !_warnedForBarCheck
-            && !Epg8Support.ToBool(GetProperty(IgnoreBarChecksSymbol)))
+            && !TranslatorSchemeHelpers.ToBool(GetProperty(IgnoreBarChecksSymbol)))
         {
-            Moment mp = Epg8Support.ToMoment(GetProperty(MeasurePositionSymbol), Moment.Zero);
-            Epg8Support.EventWarning(_barCheckEvent, "bar check failed at: " + mp);
+            Moment mp = TranslatorSchemeHelpers.ToMoment(GetProperty(MeasurePositionSymbol), Moment.Zero);
+            TranslatorSchemeHelpers.EventWarning(_barCheckEvent, "bar check failed at: " + mp);
             _warnedForBarCheck = true;
         }
     }
@@ -432,7 +432,7 @@ public class TimingTranslator : Translator
         // LEFT: starting the first alternative
         // CENTER: starting a latter alternative
         // RIGHT: ending the last alternative
-        long altDir = Epg8Support.ToLong(_altEvent.GetProperty(AlternativeDirSymbol), 0);
+        long altDir = TranslatorSchemeHelpers.ToLong(_altEvent.GetProperty(AlternativeDirSymbol), 0);
 
         if (altDir == -1) // LEFT
         {
@@ -444,7 +444,7 @@ public class TimingTranslator : Translator
             if (_altResetEnabled)
             {
                 _altStartingBarNumber
-                    = Epg8Support.ToLong(GetProperty(CurrentBarNumberSymbol), 0);
+                    = TranslatorSchemeHelpers.ToLong(GetProperty(CurrentBarNumberSymbol), 0);
             }
         }
         else if (altDir == 0) // CENTER
@@ -499,10 +499,10 @@ public class TimingTranslator : Translator
     /// </summary>
     public override void StopTranslationTimestep()
     {
-        if (Epg8Support.ToBool(GetProperty(TimingPropertySymbol))
-            && !Epg8Support.ToBool(GetProperty(SkipBarsSymbol)))
+        if (TranslatorSchemeHelpers.ToBool(GetProperty(TimingPropertySymbol))
+            && !TranslatorSchemeHelpers.ToBool(GetProperty(SkipBarsSymbol)))
         {
-            Rational mp = Epg8Support
+            Rational mp = TranslatorSchemeHelpers
                 .ToMoment(GetProperty(MeasurePositionSymbol), Moment.Zero).MainPart;
 
             Rational barleft = mp < Rational.Zero
@@ -587,7 +587,7 @@ public class TimingTranslator : Translator
         Context?.SetProperty(BeamExceptionsSymbol, beamExceptions);
 
         object beatBase = GetProperty(BeatBaseSymbol);
-        if (!Epg8Support.IsExactRational(beatBase))
+        if (!TranslatorSchemeHelpers.IsExactRational(beatBase))
         {
             beatBase = CallScheme(BeatBaseProcSymbol, timeSignature, timeSignatureSettings);
         }
@@ -650,9 +650,9 @@ public class TimingTranslator : Translator
 
         if (_fineEvent != null)
         {
-            if (!Epg8Support.ToBool(_fineEvent.GetProperty(FineFoldedSymbol)))
+            if (!TranslatorSchemeHelpers.ToBool(_fineEvent.GetProperty(FineFoldedSymbol)))
             {
-                Epg8Support.EventWarning(_fineEvent, "found music after \\fine");
+                TranslatorSchemeHelpers.EventWarning(_fineEvent, "found music after \\fine");
             }
 
             _fineEvent = null;
@@ -666,12 +666,12 @@ public class TimingTranslator : Translator
             _partialEvent = null;
         }
 
-        Rational mp = Epg8Support
+        Rational mp = TranslatorSchemeHelpers
             .ToMoment(GetProperty(MeasurePositionSymbol), Moment.Zero).MainPart;
 
         object measureStartNow = Nil.Instance;
 
-        if (Epg8Support.ToBool(GetProperty(TimingPropertySymbol)))
+        if (TranslatorSchemeHelpers.ToBool(GetProperty(TimingPropertySymbol)))
         {
             Rational len = MeasureTiming.MeasureLength(Context);
 
@@ -679,8 +679,8 @@ public class TimingTranslator : Translator
 
             if (mp >= len)
             {
-                long cbn = Epg8Support.ToLong(GetProperty(CurrentBarNumberSymbol), 0);
-                long ibn = Epg8Support.ToLong(GetProperty(InternalBarNumberSymbol), 0);
+                long cbn = TranslatorSchemeHelpers.ToLong(GetProperty(CurrentBarNumberSymbol), 0);
+                long ibn = TranslatorSchemeHelpers.ToLong(GetProperty(InternalBarNumberSymbol), 0);
 
                 // Advance by just one measure.
                 mp -= len;

@@ -25,7 +25,7 @@ using CodeBrix.LilyPort.Flower;
 
 namespace CodeBrix.LilyPort.Engine.Audio; //was previously: lily/midi-walker.cc, lily/include/midi-walker.hh;
 
-// Modified by Jeremy Ellis on 2026-08-08 as part of the CodeBrix port:
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port:
 //   - operator++(int) becomes Advance(). C# can overload ++ but not meaningfully on a
 //     class used through a `for (; w.Ok (); w++)' idiom, and a named method is what the
 //     rest of the engine does for upstream's iterator-shaped types.

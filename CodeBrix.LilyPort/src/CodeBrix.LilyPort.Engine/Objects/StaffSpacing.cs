@@ -26,11 +26,11 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Objects; //was previously: lily/staff-spacing.cc, lily/include/staff-spacing.hh;
 
-// Modified by Jeremy Ellis on 2026-08-05 as part of the CodeBrix port.
-// Modified by Jeremy Ellis on 2026-08-11 as part of the CodeBrix port:
-//   - optical_correction is ported in full (it answered 0 behind a stale EPG5/EPG6
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port.
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port:
+//   - optical_correction is ported in full (it answered 0 behind a stale early
 //     absence note); its stem read is the PURE extent, as upstream. See
-//     PORT-COVERAGE, STAFF-LINES.
+//     PORT-COVERAGE.
 
 /// <summary>
 /// The spacing wish that runs from a prefatory symbol — a clef, a key signature, a bar
@@ -72,8 +72,8 @@ public static class StaffSpacing
     /// Returns how much extra space a down-stem needs after a bar line, so that the two
     /// verticals do not read as crowded.
     /// <para>
-    /// The EPG5/EPG6-era named absence here retired with the STAFF-LINES session
-    /// (2026-08-11): its callees had all long since landed, and it became reachable
+    /// The early named absence here retired with the stale-stand-in class
+    /// sweep: its callees had all long since landed, and it became reachable
     /// the moment <c>Paper_column_engraver</c> started acknowledging spacing wishes
     /// onto the columns. The stem read is PURE (upstream:
     /// <c>stem-&gt;pure_y_extent (stem, 0, INT_MAX)</c>) because this runs during

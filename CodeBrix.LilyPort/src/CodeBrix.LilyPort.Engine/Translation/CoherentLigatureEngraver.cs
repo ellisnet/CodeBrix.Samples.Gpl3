@@ -26,7 +26,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Translation; //was previously: lily/coherent-ligature-engraver.cc, lily/include/coherent-ligature-engraver.hh;
 
-// Modified by Jeremy Ellis on 2026-08-09 as part of the CodeBrix port:
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port:
 //   - upstream's free function calc_delta_pitches has a declaration in the header but no
 //     caller outside this file, so it is a private static here.
 //   - upstream's `if constexpr (false)' block inside move_related_items_to_column (an

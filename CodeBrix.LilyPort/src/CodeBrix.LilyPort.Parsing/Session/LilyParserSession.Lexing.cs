@@ -33,7 +33,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Parsing.Session; //was previously: lily/lily-lexer.cc, lily/lexer.ll (the lexer host half);
 
-// Modified by Jeremy Ellis on 2026-08-03 as part of the CodeBrix port.
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port.
 
 /// <content>
 /// The <c>Lily_lexer</c> half: the mode stack, the pitch-name tables, the keyword and

@@ -22,9 +22,9 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Objects; //was previously: lily/break-substitution.cc;
 
-// Modified by Jeremy Ellis on 2026-08-07 as part of the CodeBrix port.
-// Modified by Jeremy Ellis on 2026-08-08 as part of the CodeBrix port:
-//   - EPG15 completed the file. EPG22 had carried the Direction criterion alone; the
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port.
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port:
+//   - Line breaking completed the file. The iterator group had carried the Direction criterion alone; the
 //     SYSTEM criterion, which is what line breaking actually runs, is now here beside it.
 //   - The two criteria are written as readonly structs behind one interface so the walk
 //     itself exists ONCE, which is what upstream's template does. See ICriterion.
@@ -50,11 +50,11 @@ namespace CodeBrix.LilyPort.Engine.Objects; //was previously: lily/break-substit
 /// a configuration has been chosen; there, the criterion is living on the same SYSTEM.
 /// </para>
 /// <para>
-/// EPG22 pulled the Direction half forward on 2026-08-07 because the prebreak pass is
+/// The iterator group pulled the Direction half forward because the prebreak pass is
 /// not optional and never was: <c>ly:span-bar::before-line-breaking</c> reads a SpanBar's
 /// <c>elements</c> with no default, and a clone with an empty object alist answers
-/// <c>'()</c> and throws — 87 files in that day's sweep. EPG15 added the System half
-/// (2026-08-08) with the rest of line breaking.
+/// <c>'()</c> and throws — 87 files in that sweep. The System half arrived
+/// with the rest of line breaking.
 /// </para>
 /// </summary>
 public static class BreakSubstitution

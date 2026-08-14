@@ -23,7 +23,7 @@ using System.IO;
 using System.Text;
 
 namespace CodeBrix.LilyPort.Flower; //was previously: flower/file-name.cc, flower/include/file-name.hh, flower/file-path.cc, flower/include/file-path.hh;
-// Modified by Jeremy Ellis on 2026-08-02 as part of the CodeBrix port:
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port:
 //   - translated from C++17 to C# targeting net10.0
 //   - the Windows drive-letter handling that upstream guards with #ifdef __MINGW32__
 //     is compiled unconditionally here, since one managed binary serves every

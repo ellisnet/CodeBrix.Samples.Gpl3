@@ -30,7 +30,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Objects; //was previously: lily/breathing-sign.cc, lily/include/breathing-sign.hh;
 
-// Modified by Jeremy Ellis on 2026-08-07 as part of the CodeBrix port.
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port.
 
 /// <summary>
 /// A breathing sign: the divisiones of Gregorian chant, and the property plumbing the
@@ -132,7 +132,7 @@ public static class BreathingSign
         double staffSpace = StaffSymbolReferencer.StaffSpace(grob);
 
         double thickness = StaffSymbolReferencer.LineThickness(grob);
-        thickness *= Epg8Support.ToDouble(grob.GetProperty(ThicknessSymbol), 1.0);
+        thickness *= TranslatorSchemeHelpers.ToDouble(grob.GetProperty(ThicknessSymbol), 1.0);
 
         double blotdiameter = GetLayoutDimension(grob, BlotDiameterSymbol);
 
@@ -159,7 +159,7 @@ public static class BreathingSign
     public static Stencil DivisioMaior(Grob grob)
     {
         double thickness = StaffSymbolReferencer.LineThickness(grob);
-        thickness *= Epg8Support.ToDouble(grob.GetProperty(ThicknessSymbol), 1.0);
+        thickness *= TranslatorSchemeHelpers.ToDouble(grob.GetProperty(ThicknessSymbol), 1.0);
 
         double blotdiameter = GetLayoutDimension(grob, BlotDiameterSymbol);
 
@@ -256,7 +256,7 @@ public static class BreathingSign
     {
         double staffSpace = StaffSymbolReferencer.StaffSpace(grob);
         double thickness = StaffSymbolReferencer.LineThickness(grob);
-        thickness *= Epg8Support.ToDouble(grob.GetProperty(ThicknessSymbol), 1.0);
+        thickness *= TranslatorSchemeHelpers.ToDouble(grob.GetProperty(ThicknessSymbol), 1.0);
 
         double blotdiameter = GetLayoutDimension(grob, BlotDiameterSymbol);
 
@@ -279,7 +279,7 @@ public static class BreathingSign
     {
         double staffSpace = StaffSymbolReferencer.StaffSpace(grob);
         double thickness = StaffSymbolReferencer.LineThickness(grob);
-        thickness *= Epg8Support.ToDouble(grob.GetProperty(ThicknessSymbol), 1.0);
+        thickness *= TranslatorSchemeHelpers.ToDouble(grob.GetProperty(ThicknessSymbol), 1.0);
 
         double blotdiameter = GetLayoutDimension(grob, BlotDiameterSymbol);
 

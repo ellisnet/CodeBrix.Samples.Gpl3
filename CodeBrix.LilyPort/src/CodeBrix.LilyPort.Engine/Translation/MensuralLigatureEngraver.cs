@@ -29,7 +29,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Translation; //was previously: lily/mensural-ligature-engraver.cc;
 
-// Modified by Jeremy Ellis on 2026-08-09 as part of the CodeBrix port:
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port:
 //   - propagate_properties and fold_up_primitives return the minimum length instead of
 //     writing through a Real&; build_ligature accumulates the two the same way its
 //     upstream counterpart does, because fold_up_primitives ADDS to what
@@ -155,7 +155,7 @@ public sealed class MensuralLigatureEngraver : CoherentLigatureEngraver
             */
             if (nr == null || !nr.IsInEventClass(NoteEventSymbol))
             {
-                Epg8Support.EventWarning(
+                TranslatorSchemeHelpers.EventWarning(
                     nr, "cannot determine pitch of ligature primitive; skipping");
                 atBeginning = true;
                 continue;
@@ -170,7 +170,7 @@ public sealed class MensuralLigatureEngraver : CoherentLigatureEngraver
 
             if (!atBeginning && pitch == prevPitch)
             {
-                Epg8Support.EventWarning(nr, "unison within ligature");
+                TranslatorSchemeHelpers.EventWarning(nr, "unison within ligature");
             }
 
             bool generalCase = true;
@@ -181,7 +181,7 @@ public sealed class MensuralLigatureEngraver : CoherentLigatureEngraver
             if (durationLog < -3 // is this possible at all???
                 || durationLog > 0)
             {
-                Epg8Support.EventWarning(
+                TranslatorSchemeHelpers.EventWarning(
                     nr,
                     "mensural ligature:"
                     + " duration none of maxima, longa, breve, or semibreve");
@@ -189,7 +189,7 @@ public sealed class MensuralLigatureEngraver : CoherentLigatureEngraver
             }
             else if (atBeginning && isLast)
             {
-                Epg8Support.EventWarning(nr, "single note ligature");
+                TranslatorSchemeHelpers.EventWarning(nr, "single note ligature");
             }
 
             // check descending cases
@@ -239,7 +239,7 @@ public sealed class MensuralLigatureEngraver : CoherentLigatureEngraver
                 }
                 else
                 {
-                    Epg8Support.EventWarning(
+                    TranslatorSchemeHelpers.EventWarning(
                         nr,
                         "only a final longa higher at least by a third "
                         + "than the previous note\n"
@@ -262,7 +262,7 @@ public sealed class MensuralLigatureEngraver : CoherentLigatureEngraver
                 {
                     if (isBrevis)
                     {
-                        Epg8Support.EventWarning(
+                        TranslatorSchemeHelpers.EventWarning(
                             nr, "single semibreve must not be followed by a breve");
 
                         /*
@@ -294,7 +294,7 @@ public sealed class MensuralLigatureEngraver : CoherentLigatureEngraver
                 }
                 else
                 {
-                    Epg8Support.EventWarning(nr, "only a breve can have downward left stem");
+                    TranslatorSchemeHelpers.EventWarning(nr, "only a breve can have downward left stem");
                 }
             }
 
@@ -323,16 +323,16 @@ public sealed class MensuralLigatureEngraver : CoherentLigatureEngraver
             {
                 if (atBeginning)
                 {
-                    Epg8Support.EventWarning(
+                    TranslatorSchemeHelpers.EventWarning(
                         nr, "tweak ligature-flexa between the two required notes");
                 }
                 else if (((prevPrim | prim) & MensuralLigature.Maxima) != 0)
                 {
-                    Epg8Support.EventWarning(nr, "maxima cannot form part of a flexa");
+                    TranslatorSchemeHelpers.EventWarning(nr, "maxima cannot form part of a flexa");
                 }
                 else
                 {
-                    Epg8Support.EventWarning(nr, "flexa cannot have stem in the middle");
+                    TranslatorSchemeHelpers.EventWarning(nr, "flexa cannot have stem in the middle");
                 }
             }
 
@@ -352,7 +352,7 @@ public sealed class MensuralLigatureEngraver : CoherentLigatureEngraver
                         flexaPossible = false;
                         if (flexaRequested)
                         {
-                            Epg8Support.EventWarning(
+                            TranslatorSchemeHelpers.EventWarning(
                                 nr,
                                 "this note must form a flexa with the next note,\n"
                                 + "not the previous one");
@@ -417,7 +417,7 @@ public sealed class MensuralLigatureEngraver : CoherentLigatureEngraver
                 }
                 else
                 {
-                    Epg8Support.EventWarning(nr, "only longae and maximae may have right stem");
+                    TranslatorSchemeHelpers.EventWarning(nr, "only longae and maximae may have right stem");
                 }
             }
 
@@ -427,7 +427,7 @@ public sealed class MensuralLigatureEngraver : CoherentLigatureEngraver
                 {
                     if (i + 2 < s && nextDur > -2)
                     {
-                        Epg8Support.EventWarning(
+                        TranslatorSchemeHelpers.EventWarning(
                             nr,
                             "in the middle of the ligature an upward stem\n"
                             + "belongs more often to the next note");
@@ -438,7 +438,7 @@ public sealed class MensuralLigatureEngraver : CoherentLigatureEngraver
                 }
                 else
                 {
-                    Epg8Support.EventWarning(nr, "only longae and maximae may have right stem");
+                    TranslatorSchemeHelpers.EventWarning(nr, "only longae and maximae may have right stem");
                 }
             }
 

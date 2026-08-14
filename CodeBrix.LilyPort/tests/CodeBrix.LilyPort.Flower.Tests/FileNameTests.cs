@@ -19,7 +19,7 @@
 
 // was previously: flower/test-file-name.cc, flower/test-file-path.cc,
 //                 flower/test-string-convert.cc
-// Modified by Jeremy Ellis on 2026-08-02 as part of the CodeBrix port:
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port:
 //   - translated from C++/yaffut to C#/xUnit v3 with SilverAssertions
 
 using System.Collections.Generic;

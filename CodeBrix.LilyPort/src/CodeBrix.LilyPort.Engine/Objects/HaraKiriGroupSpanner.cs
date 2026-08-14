@@ -24,7 +24,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Objects; //was previously: lily/hara-kiri-group-spanner.cc, lily/include/hara-kiri-group-spanner.hh;
 
-// Modified by Jeremy Ellis on 2026-08-08 as part of the CodeBrix port:
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port:
 //   - find_in_range is a FREE function upstream, declared in no header and used only here;
 //     it is a private helper. Its recursion is kept rather than turned into a loop, because
 //     the comment above it ("there is probably a way that doesn't involve re-implementing a
@@ -85,8 +85,8 @@ public static class HaraKiriGroupSpanner
         // combine_skylines: upstream's own comment separates the two, and combine is for
         // an axis group whose only children are other axis groups, i.e. VerticalAlignment.
         //
-        // Both halves of this line were wrong when EPG15 first landed it (fixed at its
-        // close-out, 2026-08-08): it called combine, and it answered the SkylinePair
+        // Both halves of this line were wrong as first landed (fixed at the
+        // close-out): it called combine, and it answered the SkylinePair
         // OBJECT where the property holds a Scheme CONS of two skylines. There is no
         // skyline-pair type in Scheme -- ly:skyline-pair? is "a pair whose car and cdr are
         // skylines" -- so every answer failed its own property's type check and

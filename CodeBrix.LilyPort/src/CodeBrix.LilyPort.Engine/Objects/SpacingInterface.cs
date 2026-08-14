@@ -25,10 +25,10 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Objects; //was previously: lily/spacing-interface.cc, lily/include/spacing-interface.hh;
 
-// Modified by Jeremy Ellis on 2026-08-05 as part of the CodeBrix port.
-// Modified by Jeremy Ellis on 2026-08-11 as part of the CodeBrix port:
-//   - skylines shifts by the PURE relative Y coordinate, as upstream; EPG4's
-//     recorded re-check came true at scale. See PORT-COVERAGE, STAFF-LINES.
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port.
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port:
+//   - skylines shifts by the PURE relative Y coordinate, as upstream; the
+//     horizontal-spacing group's recorded re-check came true at scale. See PORT-COVERAGE.
 
 /// <summary>
 /// The shared half of the two spacing wishes: how far apart the columns a wish spans
@@ -69,7 +69,7 @@ public static class SpacingInterface
     /// </para>
     /// <para>
     /// DIVERGENCE, recorded in PORT-COVERAGE: upstream shifts by a PURE relative Y
-    /// coordinate. The pure/unpure machinery is EPG15's; the port uses the real
+    /// coordinate. The pure/unpure machinery is the line-breaking group's; the port uses the real
     /// coordinate, which agrees for every grob that has no separate pure callback — all
     /// of them, currently — but does compute and cache a Y offset earlier than upstream
     /// would.
@@ -135,9 +135,9 @@ public static class SpacingInterface
 
                     // The shift is a PURE coordinate upstream
                     // (`ycommon->pure_relative_y_coordinate (system, 0, INT_MAX)`):
-                    // this runs during horizontal spacing, and the EPG4-era
-                    // ordinary stand-in retired with the STAFF-LINES session
-                    // (2026-08-11) along with the rest of its class.
+                    // this runs during horizontal spacing, and the early
+                    // ordinary stand-in retired with the stale-stand-in
+                    // class sweep along with the rest of its class.
                     double shift = ycommon.PureRelativeYCoordinate(system, 0, int.MaxValue);
 
                     skylines[d].Shift(-shift);

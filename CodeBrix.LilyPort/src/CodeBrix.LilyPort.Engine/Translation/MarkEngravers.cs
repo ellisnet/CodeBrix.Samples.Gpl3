@@ -26,7 +26,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Translation; //was previously: lily/mark-tracking-translator.cc, lily/include/mark-tracking-translator.hh, lily/mark-engraver.cc, lily/include/mark-engraver.hh, lily/metronome-engraver.cc, lily/jump-engraver.cc;
 
-// Modified by Jeremy Ellis on 2026-08-07 as part of the CodeBrix port.
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port.
 
 /// <summary>
 /// Chooses which marks <c>Mark_engraver</c> should engrave.
@@ -234,10 +234,10 @@ public class MarkTrackingTranslator : Translator
     /// <returns>The label, or zero when there is none.</returns>
     public static long GetCodaMarkLabel(Context context, StreamEvent ev)
     {
-        long n = Epg8Support.ToLong(ev?.GetProperty(LabelSymbol), 0);
+        long n = TranslatorSchemeHelpers.ToLong(ev?.GetProperty(LabelSymbol), 0);
         if (n < 1)
         {
-            n = Epg8Support.ToLong(context?.GetProperty(CodaMarkCountSymbol), 0) + 1;
+            n = TranslatorSchemeHelpers.ToLong(context?.GetProperty(CodaMarkCountSymbol), 0) + 1;
         }
 
         return n;
@@ -252,10 +252,10 @@ public class MarkTrackingTranslator : Translator
     /// <returns>The label, or zero when there is none.</returns>
     public static long GetRehearsalMarkLabel(Context context, StreamEvent ev)
     {
-        long n = Epg8Support.ToLong(ev?.GetProperty(LabelSymbol), 0);
+        long n = TranslatorSchemeHelpers.ToLong(ev?.GetProperty(LabelSymbol), 0);
         if (n < 1)
         {
-            n = Epg8Support.ToLong(context?.GetProperty(RehearsalMarkSymbol), 0);
+            n = TranslatorSchemeHelpers.ToLong(context?.GetProperty(RehearsalMarkSymbol), 0);
         }
 
         return n;
@@ -270,10 +270,10 @@ public class MarkTrackingTranslator : Translator
     /// <returns>The label, or zero when there is none.</returns>
     public static long GetSegnoMarkLabel(Context context, StreamEvent ev)
     {
-        long n = Epg8Support.ToLong(ev?.GetProperty(LabelSymbol), 0);
+        long n = TranslatorSchemeHelpers.ToLong(ev?.GetProperty(LabelSymbol), 0);
         if (n < 1)
         {
-            n = Epg8Support.ToLong(context?.GetProperty(SegnoMarkCountSymbol), 0) + 1;
+            n = TranslatorSchemeHelpers.ToLong(context?.GetProperty(SegnoMarkCountSymbol), 0) + 1;
         }
 
         return n;
@@ -494,7 +494,7 @@ public class MarkEngraver : Engraver
 
                 mark.Text.SetObject(
                     SideSupportElementsSymbol,
-                    Epg8Support.GrobListToGrobArray(GetProperty(StavesFoundSymbol)));
+                    TranslatorSchemeHelpers.GrobListToGrobArray(GetProperty(StavesFoundSymbol)));
                 mark.FinalText = mark.Text;
                 mark.Text = null;
             }
@@ -656,7 +656,7 @@ public class MarkEngraver : Engraver
                     }
                     else
                     {
-                        Epg8Support.EventWarning(ev, "mark label must be a markup object");
+                        TranslatorSchemeHelpers.EventWarning(ev, "mark label must be a markup object");
                     }
                 }
             }
@@ -856,7 +856,7 @@ public class MetronomeMarkEngraver : Engraver
 
             _text.SetObject(
                 SideSupportElementsSymbol,
-                Epg8Support.GrobListToGrobArray(GetProperty(StavesFoundSymbol)));
+                TranslatorSchemeHelpers.GrobListToGrobArray(GetProperty(StavesFoundSymbol)));
             _text = null;
             _support = null;
             _bar = null;
@@ -971,7 +971,7 @@ public class JumpEngraver : Engraver
             }
             else
             {
-                Epg8Support.EventWarning(
+                TranslatorSchemeHelpers.EventWarning(
                     _adHocJumpEvent, "jump text must be a markup object");
             }
         }
@@ -983,7 +983,7 @@ public class JumpEngraver : Engraver
             // We indicate D.S. to the most recent segno mark.  This would not be
             // correct for nested segno repeats, but we don't care to support those.
             object bodyStartMarkup = false; // D.C.
-            long segnoCount = Epg8Support.ToLong(GetProperty(SegnoMarkCountSymbol), 0);
+            long segnoCount = TranslatorSchemeHelpers.ToLong(GetProperty(SegnoMarkCountSymbol), 0);
             if (segnoCount > 0)
             {
                 object proc = GetProperty(SegnoMarkFormatterSymbol);
@@ -995,12 +995,12 @@ public class JumpEngraver : Engraver
 
             object bodyEndMarkup = false;
             object nextMarkup = false;
-            long altNum = Epg8Support.ToLong(_dsEvent.GetProperty(AlternativeNumberSymbol), 0);
+            long altNum = TranslatorSchemeHelpers.ToLong(_dsEvent.GetProperty(AlternativeNumberSymbol), 0);
             if (altNum > 0)
             {
                 // Assuming that the coda marks of the current group of alternatives
                 // are sequential, we compute the sequence number of the first one.
-                long codaMarkCount = Epg8Support.ToLong(GetProperty(CodaMarkCountSymbol), 0);
+                long codaMarkCount = TranslatorSchemeHelpers.ToLong(GetProperty(CodaMarkCountSymbol), 0);
                 codaMarkCount -= altNum - 1;
                 object proc = GetProperty(CodaMarkFormatterSymbol);
                 if (SchemeUtilities.IsProcedure(proc))
@@ -1030,7 +1030,7 @@ public class JumpEngraver : Engraver
             object formatter = GetProperty(DalSegnoTextFormatterSymbol);
             if (SchemeUtilities.IsProcedure(formatter))
             {
-                long count = Epg8Support.ToLong(_dsEvent.GetProperty(ReturnCountSymbol), 1);
+                long count = TranslatorSchemeHelpers.ToLong(_dsEvent.GetProperty(ReturnCountSymbol), 1);
                 m = SchemeUtilities.CallCallback(
                     formatter,
                     Context,
@@ -1046,7 +1046,7 @@ public class JumpEngraver : Engraver
             }
             else
             {
-                Epg8Support.EventWarning(_dsEvent, "jump text must be a markup object");
+                TranslatorSchemeHelpers.EventWarning(_dsEvent, "jump text must be a markup object");
             }
         }
 
@@ -1061,13 +1061,13 @@ public class JumpEngraver : Engraver
             }
             else
             {
-                Epg8Support.EventWarning(_fineEvent, "jump text must be a markup object");
+                TranslatorSchemeHelpers.EventWarning(_fineEvent, "jump text must be a markup object");
             }
 
             // We don't know yet whether this is the last timestep, but if it is, we
             // will need to honor finalFineTextVisibility.
             _finalFineTextVisibility
-                = Epg8Support.ToBool(GetProperty(FinalFineTextVisibilitySymbol));
+                = TranslatorSchemeHelpers.ToBool(GetProperty(FinalFineTextVisibilitySymbol));
         }
     }
 
@@ -1086,7 +1086,7 @@ public class JumpEngraver : Engraver
 
                 text.SetObject(
                     SideSupportElementsSymbol,
-                    Epg8Support.GrobListToGrobArray(stavesFound));
+                    TranslatorSchemeHelpers.GrobListToGrobArray(stavesFound));
             }
         }
 

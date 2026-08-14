@@ -27,7 +27,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Audio; //was previously: lily/audio-item.cc, lily/include/audio-item.hh;
 
-// Modified by Jeremy Ellis on 2026-08-08 as part of the CodeBrix port:
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port:
 //   - NAMING: upstream nests `enum Type' inside Audio_text. `Type' is on the banned list
 //     (standing rule 6 — a root .NET name), so it is the top-level AudioTextType here.
 //     Its VALUES are upstream's and must stay so: they are written into the MIDI file as

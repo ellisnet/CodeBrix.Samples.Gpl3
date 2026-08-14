@@ -27,7 +27,7 @@ namespace CodeBrix.LilyPort.Engine.Bootstrap;
 /// <para>
 /// Jeremy rules on CATEGORIES, not on items. The categories used here are
 /// <c>ps-backend</c> (D15), <c>font-plumbing</c> (D13/D23), <c>guile-internals</c>, and
-/// <c>instrumentation</c> — the last ratified 2026-08-12 for EPG23. Every row is also
+/// <c>instrumentation</c> — the last ratified during the long-tail closure. Every row is also
 /// recorded in <c>entry-point-na-candidates.tsv</c>.
 /// </para>
 /// </summary>
@@ -153,7 +153,7 @@ public static class NotApplicableEntryPoints
         => interpreter.DefinePrimitive("ly:parsed-undead-list!", 0, 0, a => Nil.Instance);
 
     /// <summary>
-    /// Category <c>instrumentation</c> (ratified 2026-08-12, EPG23): machinery that
+    /// Category <c>instrumentation</c> (ratified during the long-tail closure): machinery that
     /// profiles LilyPond's OWN execution rather than doing anything to the music.
     /// </summary>
     /// <param name="interpreter">The interpreter to extend.</param>

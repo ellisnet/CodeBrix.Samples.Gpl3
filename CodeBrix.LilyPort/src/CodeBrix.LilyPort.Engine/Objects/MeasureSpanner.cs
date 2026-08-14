@@ -25,13 +25,13 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Objects; //was previously: lily/measure-spanner.cc, lily/include/measure-spanner.hh;
 
-// Modified by Jeremy Ellis on 2026-08-07 as part of the CodeBrix port.
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port.
 
 /// <summary>
 /// A bracket aligned to a measure or measures.
 /// <para>
 /// COMPLETE. The bracket half stood as a loud throw naming
-/// <c>Bracket::make_axis_constrained_bracket</c> as owed by EPG14; EPG17 landed
+/// <c>Bracket::make_axis_constrained_bracket</c> as owed elsewhere; the volta/tuplet group landed
 /// lily/bracket.cc WHOLE — including that function — while pulling it forward for its
 /// own two bracket grobs, and the throw was never taken back down. Nothing demanded it
 /// in between, because a toplevel <c>\layout</c> block's <c>\consists</c> was being

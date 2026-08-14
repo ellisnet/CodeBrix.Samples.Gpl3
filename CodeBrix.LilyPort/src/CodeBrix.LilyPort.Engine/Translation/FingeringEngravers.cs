@@ -27,7 +27,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Translation; //was previously: lily/fingering-engraver.cc, lily/new-fingering-engraver.cc, lily/fingering-column-engraver.cc;
 
-// Modified by Jeremy Ellis on 2026-08-08 as part of the CodeBrix port:
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port:
 //   - the three fingering engravers share a file.
 //   - upstream's Finger_tuple has an operator< on `position_`; the port sorts with an
 //     explicit stable insertion sort, because std::sort is unstable and equal staff
@@ -291,7 +291,7 @@ public class NewFingeringEngraver : Engraver
             }
             else if (ev.IsInEventClass(TextScriptEventSymbol))
             {
-                Epg8Support.EventWarning(
+                TranslatorSchemeHelpers.EventWarning(
                     ev, "cannot add text scripts to individual note heads");
             }
             else if (ev.IsInEventClass(ScriptEventSymbol))

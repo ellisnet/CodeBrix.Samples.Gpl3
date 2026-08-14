@@ -24,7 +24,7 @@ using CodeBrix.LilyPort.Flower;
 
 namespace CodeBrix.LilyPort.Engine.Audio; //was previously: lily/midi-stream.cc, lily/include/midi-stream.hh;
 
-// Modified by Jeremy Ellis on 2026-08-08 as part of the CodeBrix port:
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port:
 //   - Upstream opens a temp file with O_EXCL, retrying ten times against a random name,
 //     writes to the file descriptor as it goes, and RENAMES over the destination in its
 //     destructor. The port keeps the property that matters -- a reader never sees a

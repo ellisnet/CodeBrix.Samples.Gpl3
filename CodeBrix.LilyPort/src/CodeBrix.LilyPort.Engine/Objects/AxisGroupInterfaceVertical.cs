@@ -25,7 +25,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Objects; //was previously: lily/axis-group-interface.cc (the half not carried by Objects/AxisGroupInterface.cs);
 
-// Modified by Jeremy Ellis on 2026-08-07 as part of the CodeBrix port.
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port.
 
 /// <summary>
 /// The vertical-organization half of <c>lily/axis-group-interface.cc</c>: skyline
@@ -38,7 +38,7 @@ namespace CodeBrix.LilyPort.Engine.Objects; //was previously: lily/axis-group-in
 /// the split is recorded in PORT-COVERAGE. The pure-height family
 /// (<c>adjacent_pure_heights</c>, <c>pure_height</c>,
 /// <c>calc_pure_relevant_grobs</c>, <c>calc_pure_y_common</c>,
-/// <c>calc_pure_staff_staff_spacing</c>) is NOT here: it needs EPG15's pure/broken
+/// <c>calc_pure_staff_staff_spacing</c>) is NOT here: it needs the line-breaking group's pure/broken
 /// machinery, and its Scheme names deliberately stay stubs.
 /// </para>
 /// </summary>

@@ -23,7 +23,7 @@ using System.Collections.Generic;
 using System.IO;
 
 namespace CodeBrix.LilyPort.Flower; //was previously: flower/warn.cc, flower/include/warn.hh;
-// Modified by Jeremy Ellis on 2026-08-02 as part of the CodeBrix port:
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port:
 //   - translated from C++17 to C# targeting net10.0
 //   - the LOG_* preprocessor defines become a [Flags] enum
 //   - upstream calls exit() on a fatal error. A library must not terminate its host
@@ -265,7 +265,7 @@ public static class Warn
 /// not agree. <c>Midi_walker</c>'s stop-note queue reaches exact ties routinely (every
 /// chord ends its notes at the same tick), and the order they come out in is the order
 /// the note-off bytes are written to the file. A merely-correct binary heap, which is
-/// what stood here until 2026-08-08, produces a different MIDI file for the same music.
+/// what once stood here, produces a different MIDI file for the same music.
 /// </para>
 /// <para>
 /// Upstream's comparator is <c>compare (a, b) &gt; 0</c>, and <c>push_heap</c> with a

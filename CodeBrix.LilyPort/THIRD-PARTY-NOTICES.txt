@@ -29,7 +29,7 @@ HOW THIS FILE IS MAINTAINED
      exception list; it was found by auditing file headers directly.
 
   3. Section 2 records ly/articulate.ly, which is GPL-3.0-ONLY, not "or
-     later". It IS included (Jeremy, 2026-08-02), and as a direct result the
+     later". It IS included (Jeremy's ruling, 2026), and as a direct result the
      shipped NuGet package declares GPL-3.0-only. Our own sources remain
      GPL-3.0-or-later; only the aggregate is GPL-3-only. Flagged here rather
      than buried, because the two statements look contradictory and are not.
@@ -45,7 +45,7 @@ HOW THIS FILE IS MAINTAINED
 STATUS
 --------------------------------------------------------------------------------
 
-  INCORPORATED SO FAR (2026-08-02):
+  INCORPORATED SO FAR:
 
     mf/                            115 files, byte-identical mirror of
                                    lilypond/mf -- the Metafont font sources.
@@ -62,8 +62,8 @@ STATUS
                                    music-functions-init, the language files and
                                    the rest of what ly/init.ly pulls in).
                                    LilyPond, GPL-3.0-or-later, EXCEPT
-                                   articulate.ly above. Added 2026-08-03 with
-                                   Phase 3: these are read by the PARSER, so
+                                   articulate.ly above. Added with the real
+                                   parser host: these are read by the PARSER, so
                                    they could not be used until Track P was
                                    finished. Three files carry no per-file
                                    header of their own and are covered by the
@@ -84,11 +84,11 @@ STATUS
                                    Gyre) vendored byte-for-byte from the
                                    official LilyPond 2.27.2 binary
                                    distribution, plus their license texts.
-                                   Added 2026-08-05 (decision D13).
+                                   Added under decision D13.
                                    Section 10.
 
   NOT YET INCORPORATED: most of the C++ engine (lily/). The parser and lexer ARE
-  incorporated as of 2026-08-03 -- parser.yy and lexer.ll are mirrored under
+  incorporated -- parser.yy and lexer.ll are mirrored under
   parser-mirror/ and all 479 rule action bodies are ported (section 1.5) -- and
   so is the whole of ly/, above. The sections below record the upstream
   components pinned to the exact revision being ported from, so that provenance
@@ -98,7 +98,7 @@ STATUS
   vendored, so the shipped package declares GPL-3.0-only rather than -or-later.
   See section 2.
 
-  Audit date:                2026-08-02
+  Audit year:                2026
   LilyPond revision audited:  v2.27.2
                               (2d621459bd44cb1758f822a69757242eab843060)
 
@@ -111,7 +111,7 @@ Project:   GNU LilyPond -- the GNU music typesetter
 Source:    https://gitlab.com/lilypond/lilypond
            https://lilypond.org
 Version:   2.27.2 (git tag v2.27.2, commit
-           2d621459bd44cb1758f822a69757242eab843060, tagged 2026-08-02)
+           2d621459bd44cb1758f822a69757242eab843060)
 License:   GPL-3.0-or-later, WITH the exceptions enumerated in section 1.1.
            NOTE: the SHIPPED PACKAGE is GPL-3.0-ONLY, because it includes
            ly/articulate.ly. See section 2.
@@ -332,7 +332,7 @@ Copyright: Copyright (C) 1996--2026 Han-Wen Nienhuys <hanwen@xs4all.nl>
     src/CodeBrix.LilyPort.Engine/Layout/Stencil.cs
         <- lily/stencil.cc, lily/include/stencil.hh
            Copyright (C) 1997--2026 Han-Wen Nienhuys
-           2026-08-03: extended from the value type to the full API --
+           LATER EXTENDED from the value type to the full API --
            combining, translation, scaling, rotation, alignment, edge-adding,
            stacking, colour and outlines.
     src/CodeBrix.LilyPort.Engine/Bootstrap/ProgramOptions.cs
@@ -423,7 +423,7 @@ Copyright: Copyright (C) 1996--2026 Han-Wen Nienhuys <hanwen@xs4all.nl>
         <- lily/simple-spacer.cc  (get_line_forces, get_line_configuration)
            Copyright (C) 1999--2026 Han-Wen Nienhuys
 
-    EPG4 -- HORIZONTAL SPACING (2026-08-05)
+    HORIZONTAL SPACING
 
     src/CodeBrix.LilyPort.Engine/Layout/SpacingOptions.cs
         <- lily/spacing-options.cc, lily/include/spacing-options.hh
@@ -444,13 +444,13 @@ Copyright: Copyright (C) 1996--2026 Han-Wen Nienhuys <hanwen@xs4all.nl>
            Copyright (C) 2001--2026 Han-Wen Nienhuys
            stem_dir_correction is structurally complete; the branch that
            measures a note column's stem takes upstream's own
-           undeterminable-stem exit until EPG5/EPG6 land note columns and
-           stems.
+           undeterminable-stem exit until note columns and
+           stems land.
     src/CodeBrix.LilyPort.Engine/Objects/StaffSpacing.cs
         <- lily/staff-spacing.cc, lily/include/staff-spacing.hh
            Copyright (C) 2001--2026 Han-Wen Nienhuys
            optical_correction answers 0 -- upstream's own answer for a note
-           column without a stem -- until EPG6.
+           column without a stem -- until stems landed.
     src/CodeBrix.LilyPort.Engine/Objects/SpacingSpanner.cs
         <- lily/spacing-spanner.cc, lily/include/spacing-spanner.hh
            Copyright (C) 1999--2026 Han-Wen Nienhuys
@@ -538,8 +538,8 @@ Copyright: Copyright (C) 1996--2026 Han-Wen Nienhuys <hanwen@xs4all.nl>
         <- lily/output-def.cc, lily/include/output-def.hh
            Copyright (C) 1997--2026 Han-Wen Nienhuys
            The variable table and its parent chain, and normalize () -- the
-           horizontal page-geometry arithmetic, ported by EPG4 (2026-08-05)
-           because it is the only thing that computes line-width.
+           horizontal page-geometry arithmetic, ported with the horizontal-spacing
+           group because it is the only thing that computes line-width.
     src/CodeBrix.LilyPort.Engine/Objects/StaffSymbol.cs
         <- lily/staff-symbol.cc, lily/include/staff-symbol.hh
            Copyright (C) 1997--2026 Han-Wen Nienhuys
@@ -556,10 +556,10 @@ Copyright: Copyright (C) 1996--2026 Han-Wen Nienhuys <hanwen@xs4all.nl>
     src/CodeBrix.LilyPort.Engine/Objects/SeparationItem.cs
         <- lily/separation-item.cc, lily/include/separation-item.hh
            Copyright (C) 1998--2026 Han-Wen Nienhuys
-           COMPLETED by EPG4 (2026-08-05): add_item, add_conditional_item,
+           COMPLETED with the horizontal-spacing group: add_item, add_conditional_item,
            set_distance, is_empty, conditional_skyline, calc_skylines and
            boxes. The conditional-accidental filter inside boxes waits on
-           Accidental_placement (EPG9).
+           Accidental_placement (the accidentals group).
     src/CodeBrix.LilyPort.Engine/Objects/Book.cs
         <- lily/book.cc, lily/include/book.hh
            Copyright (C) 1997--2026 Han-Wen Nienhuys
@@ -577,7 +577,7 @@ Copyright: Copyright (C) 1996--2026 Han-Wen Nienhuys <hanwen@xs4all.nl>
         <- lily/acceptance-set.cc, lily/include/acceptance-set.hh
            (the AcceptanceSet type, hosted in the same file)
            Copyright (C) 2018--2026 Daniel Eble
-           EPG2 (2026-08-05) completed the file: path_to_acceptable_context,
+           The contexts group completed the file: path_to_acceptable_context,
            path_to_bottom_context, apply_default_property_operations and
            find_context_def now read definitions back out of an Output_def.
     src/CodeBrix.LilyPort.Engine/Translation/ContextMod.cs
@@ -601,7 +601,7 @@ Copyright: Copyright (C) 1996--2026 Han-Wen Nienhuys <hanwen@xs4all.nl>
         <- lily/deprecated-property.cc, lily/include/deprecated-property.hh
            Copyright (C) 2024 Daniel Eble
 
-    -- EPG22, the iterator layer and its plumbing (added 2026-08-07) --
+    -- the iterator layer and its plumbing --
 
     src/CodeBrix.LilyPort.Engine/Music/MusicWrapper.cs
         <- lily/music-wrapper.cc, lily/include/music-wrapper.hh
@@ -636,10 +636,10 @@ Copyright: Copyright (C) 1996--2026 Han-Wen Nienhuys <hanwen@xs4all.nl>
     src/CodeBrix.LilyPort.Engine/Objects/BreakSubstitution.cs
         <- lily/break-substitution.cc (the Direction criterion only)
            Copyright (C) 1998--2026 Han-Wen Nienhuys
-           EPG22 pulled the PREBREAK half forward from EPG15 because
+           The iterator group pulled the PREBREAK half forward because
            Grob::handle_prebroken_dependencies is not optional before line
-           breaking. The System criterion -- line breaking proper -- is not
-           ported and stays with EPG15.
+           breaking. The System criterion -- line breaking proper -- was left
+           to the line-breaking group.
     src/CodeBrix.LilyPort.Engine/Bootstrap/DispatcherPrimitives.cs
         New-in-family C# (no upstream header), Copyright (c) 2026 Jeremy Ellis
         and contributors -- the binding surface of lily/dispatcher-scheme.cc
@@ -648,14 +648,14 @@ Copyright: Copyright (C) 1996--2026 Han-Wen Nienhuys <hanwen@xs4all.nl>
         here under the same rule as the other *-scheme.cc binding files: the
         derivation is the LY_DEFINE contract, not copied code.
 
-    Four EPG22 ledger rows closed against files that already carried them, so
+    Four iterator-group ledger rows closed against files that already carried them, so
     they add no new derived file and are recorded on their host instead:
     lily/simple-music-iterator.cc and lily/event-iterator.cc ride
     Translation/MusicIterator.cs, lily/listener.cc rides
     Translation/Dispatcher.cs, and lily/includable-lexer.cc rides
     Parsing/Lexing/ModalScanner.cs.
 
-    -- EPG17, repeats / voltas / percent / tuplets / grace (added 2026-08-07) --
+    -- repeats / voltas / percent / tuplets / grace --
 
     src/CodeBrix.LilyPort.Engine/Translation/RepeatStyler.cs
         <- lily/repeat-styler.cc, lily/include/repeat-styler.hh
@@ -708,32 +708,35 @@ Copyright: Copyright (C) 1996--2026 Han-Wen Nienhuys <hanwen@xs4all.nl>
         <- lily/grace-spacing-engraver.cc
            Copyright (C) 2006--2026 Han-Wen
 
-    Three EPG17 pull-forwards, each recorded with the group it was taken from:
+    Three pull-forwards into this group, each recorded with the group it was
+    taken from:
 
     src/CodeBrix.LilyPort.Engine/Objects/Bracket.cs
         <- lily/bracket.cc, lily/include/bracket.hh
            Copyright (C) 1997--2026 Jan Nieuwenhuizen, Han-Wen Nienhuys
-           PULLED FORWARD FROM EPG14 WHOLE. Volta_bracket_interface::print and
+           PULLED FORWARD WHOLE from the scripts-and-dynamics group.
+           Volta_bracket_interface::print and
            Tuplet_bracket::print both draw through Bracket::make_bracket, and
-           the file declares no Scheme callbacks at all, so EPG14 keeps its own
-           bracket grobs and loses nothing.
+           the file declares no Scheme callbacks at all, so that group keeps its
+           own bracket grobs and loses nothing.
     src/CodeBrix.LilyPort.Engine/Layout/BezierBow.cs
         <- lily/bezier-bow.cc
            Copyright (C) 1998--2026 Jan Nieuwenhuizen
-           PULLED FORWARD FROM EPG12, for \tupletSlur. Recorded here in 2026-08
-           as "the closed-form SHAPE half only", on the understanding that EPG12
-           still owed Bezier_bow -- the curve fitting. CORRECTED 2026-08-08 by
-           EPG12: THERE IS NO SUCH CLASS in the pinned 2.27.2. There is no
+           PULLED FORWARD from the slurs group, for \tupletSlur. Recorded here
+           originally as "the closed-form SHAPE half only", on the understanding
+           that the slurs group still owed Bezier_bow -- the curve fitting.
+           CORRECTED by the slurs group: THERE IS NO SUCH CLASS in the pinned
+           2.27.2. There is no
            bezier-bow.hh, no definition anywhere in lily/, and no reference from
            scm/ or ly/. The file is slur_shape, get_slur_indent_height,
-           slur_height and F0_1 and nothing else, so what landed with EPG17 was
+           slur_height and F0_1 and nothing else, so what landed here was
            the WHOLE file, and the ledger row that stayed grouped had been
            overstating the remaining work ever since.
-    src/CodeBrix.LilyPort.Engine/Bootstrap/Epg17Callbacks.cs
+    src/CodeBrix.LilyPort.Engine/Bootstrap/VoltaAndTupletCallbacks.cs
         New-in-family C# (no upstream header), Copyright (c) 2026 Jeremy Ellis
-        and contributors -- the binding surface of the EPG17 grobs, plus all
+        and contributors -- the binding surface of this group's grobs, plus all
         five LY_DEFINEs of lily/spanner-scheme.cc (Copyright (C) 2005--2026
-        Han-Wen Nienhuys), PULLED FORWARD FROM EPG23 under the bindings rule.
+        Han-Wen Nienhuys), PULLED FORWARD from the long-tail closure under the bindings rule.
         Filed here under the same rule as the other *-scheme.cc binding files:
         the derivation is the LY_DEFINE contract, not copied code.
 
@@ -744,14 +747,14 @@ Copyright: Copyright (C) 1996--2026 Han-Wen Nienhuys <hanwen@xs4all.nl>
            Interval (over Real) and Slice (over int). It lives in the Engine
            rather than in Flower because Moment is an Engine type.
 
-    Two pieces of already-ported upstream files landed with EPG17 because it
+    Two pieces of already-ported upstream files landed with this group because it
     was the first group to reach them, and are recorded on their existing
     hosts: lily/line-interface.cc's property-driven half (line, arrows,
     make_arrow, make_zigzag_line, make_trill_line) rides Layout/LineInterface.cs
     and CLOSES that file's recorded divergence, and lily/grob.cc's
     Grob::check_cross_staff rides Objects/Grob.cs.
 
-    -- EPG18, lyrics and melody (added 2026-08-07) --
+    -- lyrics and melody --
 
     src/CodeBrix.LilyPort.Engine/Translation/LyricCombineIterator.cs
         <- lily/lyric-combine-music-iterator.cc
@@ -764,7 +767,7 @@ Copyright: Copyright (C) 1996--2026 Han-Wen Nienhuys <hanwen@xs4all.nl>
            Jan Nieuwenhuizen
            lyric-engraver.cc also DEFINES two free functions that context.hh
            declares -- get_voice_to_lyrics and get_current_note_head -- so they
-           are EPG18's to port and live here, on their upstream file, as
+           are this group's to port and live here, on their upstream file, as
            statics on LyricEngraver.
     src/CodeBrix.LilyPort.Engine/Translation/MelodyEngraver.cs
         <- lily/melody-engraver.cc
@@ -784,33 +787,33 @@ Copyright: Copyright (C) 1996--2026 Han-Wen Nienhuys <hanwen@xs4all.nl>
     src/CodeBrix.LilyPort.Engine/Translation/GrobPqEngraver.cs
         <- lily/grob-pq-engraver.cc
            Copyright (C) 2001--2026 Han-Wen Nienhuys
-           PULLED FORWARD FROM EPG10. It is the only writer of busyGrobs, which
+           PULLED FORWARD from the beams group. It is the only writer of busyGrobs, which
            lyric extenders read to find the note heads they cover, and it was
            also the second-most-demanded unported translator in the sweep. The
-           file contains no beam code; it was grouped with EPG10 only because
+           file contains no beam code; it was grouped with the beams only because
            Beam_engraver is its most conspicuous consumer.
-    src/CodeBrix.LilyPort.Engine/Bootstrap/Epg18Callbacks.cs
+    src/CodeBrix.LilyPort.Engine/Bootstrap/LyricCallbacks.cs
         New-in-family C# (no upstream header), Copyright (c) 2026 Jeremy Ellis
-        and contributors -- the binding surface of the EPG18 grobs, plus the
+        and contributors -- the binding surface of the lyric grobs, plus the
         whole of lily/lyric-combine-music.cc (Copyright (C) 1999--2026 Han-Wen
         Nienhuys), which is one length callback and nothing else, and
         lily/grob-pq-engraver.cc's single LY_DEFINE (ly:grob-pq<?), which comes
         with the engraver above under the bindings rule, and the whole of
         lily/bezier-scheme.cc -- ly:bezier-extent and ly:bezier-extract
-        (Copyright (C) 2005--2026 Han-Wen Nienhuys), PULLED FORWARD FROM EPG23
-        under that same rule, since Flower's Bezier was ported long ago and both
+        (Copyright (C) 2005--2026 Han-Wen Nienhuys), PULLED FORWARD from the
+        long-tail closure under that same rule, since Flower's Bezier was ported long ago and both
         are one-line wrappers over methods it already has. Filed here under the
         same rule as the other binding files: the derivation is the LY_DEFINE /
         MAKE_SCHEME_CALLBACK contract, not copied code.
 
-    Three free functions of already-ported upstream files landed with EPG18
+    Three free functions of already-ported upstream files landed with the lyrics group
     because it was the first group to NEED them, and are recorded on their
     existing hosts: lily/context.cc's melisma_busy and lily/context.hh's
     find_context_below ride Translation/Context.cs, and lily/item.cc's
     spanned_time_interval rides Objects/Item.cs. Their ledger rows stay
     `ported' -- the files were ported and these statics were the gap.
 
-    -- EPG10, beams (added 2026-08-07) --
+    -- beams --
 
     src/CodeBrix.LilyPort.Engine/Objects/Beam.cs
         <- lily/beam.cc, lily/include/beam.hh
@@ -847,14 +850,14 @@ Copyright: Copyright (C) 1996--2026 Han-Wen Nienhuys <hanwen@xs4all.nl>
     src/CodeBrix.LilyPort.Engine/Translation/BeamCollisionEngraver.cs
         <- lily/beam-collision-engraver.cc
            Copyright (C) 2011--2026 Mike Solomon
-    src/CodeBrix.LilyPort.Engine/Bootstrap/Epg10Callbacks.cs
+    src/CodeBrix.LilyPort.Engine/Bootstrap/BeamCallbacks.cs
         New-in-family C# (no upstream header), Copyright (c) 2026 Jeremy Ellis
         and contributors -- the binding surface of the Beam grob: every
         ly:beam::* name scm/define-grobs.scm puts on a Beam. Filed under the
         same rule as the other binding files: the derivation is the
         MAKE_SCHEME_CALLBACK contract, not copied code.
 
-    Four free functions of already-ported upstream files landed with EPG10
+    Four free functions of already-ported upstream files landed with the beams group
     because it was the first group to NEED them, and are recorded on their
     existing hosts: lily/grob.cc's pure_relative_y_coordinate and
     spanned_column_rank_interval and Grob::less, and lily/grob-property.cc's
@@ -864,16 +867,17 @@ Copyright: Copyright (C) 1996--2026 Han-Wen Nienhuys <hanwen@xs4all.nl>
     Translation/Engraver.cs. Their ledger rows stay `ported' -- the files were
     ported and these functions were the gap.
 
-    -- EPG11, ties, and EPG12, slurs (added 2026-08-08) --
+    -- ties and slurs --
 
     src/CodeBrix.LilyPort.Engine/Objects/Tie.cs
         <- lily/tie.cc, lily/include/tie.hh
            Copyright (C) 1997--2026 Han-Wen Nienhuys
-           Tie::set_head and Tie::head came home here from Objects/Epg5Seams.cs.
+           Tie::set_head and Tie::head came home here from a temporary seam
+           file, since deleted.
     src/CodeBrix.LilyPort.Engine/Objects/TieColumn.cs
         <- lily/tie-column.cc, lily/include/tie-column.hh
            Copyright (C) 2000--2026 Han-Wen Nienhuys
-           Tie_column::add_tie came home here from Objects/Epg5Seams.cs.
+           Tie_column::add_tie came home here from the same temporary seam file.
     src/CodeBrix.LilyPort.Engine/Objects/TieConfiguration.cs
         <- lily/tie-configuration.cc, lily/include/tie-configuration.hh
            Copyright (C) 2005--2026 Han-Wen Nienhuys
@@ -936,21 +940,21 @@ Copyright: Copyright (C) 1996--2026 Han-Wen Nienhuys <hanwen@xs4all.nl>
     src/CodeBrix.LilyPort.Flower/LibcExtension.cs
         <- flower/libc-extension.cc, flower/include/libc-extension.hh
            Copyright (C) 1997--2026 Han-Wen Nienhuys
-           round_halfway_up only. EPG10 had written it privately inside
+           round_halfway_up only. The beams group had written it privately inside
            BeamQuanting.cs; ties and slurs add three more callers, so it moved
            to the file upstream declares it in.
-    src/CodeBrix.LilyPort.Engine/Bootstrap/Epg11Callbacks.cs
-    src/CodeBrix.LilyPort.Engine/Bootstrap/Epg12Callbacks.cs
+    src/CodeBrix.LilyPort.Engine/Bootstrap/TieCallbacks.cs
+    src/CodeBrix.LilyPort.Engine/Bootstrap/SlurCallbacks.cs
     src/CodeBrix.LilyPort.Engine/Objects/ConfigurationHeap.cs
         New-in-family C# (no upstream header), Copyright (c) 2026 Jeremy Ellis
         and contributors. The two callback files are binding surfaces, filed
         under the same rule as the others: the derivation is the
         MAKE_SCHEME_CALLBACK contract, not copied code. ConfigurationHeap is a
         replica of libstdc++'s heap ALGORITHM, which is a documented interface
-        rather than copied source; it was EPG10's private class and is now
+        rather than copied source; it was the beam scorer's private class and is now
         shared, because the slur scorer runs the same queue.
 
-    -- EPG14, scripts, dynamics, brackets, pedals, fingering (added 2026-08-08) --
+    -- scripts, dynamics, brackets, pedals, fingering --
 
     src/CodeBrix.LilyPort.Engine/Objects/ScriptInterface.cs
         <- lily/script-interface.cc, lily/include/script-interface.hh,
@@ -989,9 +993,8 @@ Copyright: Copyright (C) 1996--2026 Han-Wen Nienhuys <hanwen@xs4all.nl>
            lily/script-row-engraver.cc,
            lily/non-musical-script-column-engraver.cc
            Copyright (C) 1997--2026 Han-Wen Nienhuys
-           make_script_from_event came home here from Objects/Epg5Seams.cs,
-           which was EPG5's seam for it and is now DELETED -- this was its last
-           method.
+           make_script_from_event came home here from a temporary seam file,
+           since deleted -- this was its last method.
     src/CodeBrix.LilyPort.Engine/Translation/TextEngravers.cs
         <- lily/text-engraver.cc, lily/text-spanner-engraver.cc,
            lily/ottava-engraver.cc
@@ -1022,16 +1025,16 @@ Copyright: Copyright (C) 1996--2026 Han-Wen Nienhuys <hanwen@xs4all.nl>
            Copyright (C) 2022--2026 Daniel Eble
            A HEADER-ONLY upstream file, so it has no ledger row and rides with
            the first group that needs it.
-    src/CodeBrix.LilyPort.Engine/Bootstrap/Epg14Callbacks.cs
+    src/CodeBrix.LilyPort.Engine/Bootstrap/ScriptAndDynamicCallbacks.cs
         New-in-family C# (no upstream header), Copyright (c) 2026 Jeremy Ellis
         and contributors, filed under the same rule as the other callback
         surfaces: the derivation is the MAKE_SCHEME_CALLBACK and LY_DEFINE
-        contract, not copied code. Besides EPG14's own twenty-eight names it
-        carries bindings PULLED FORWARD from EPG23 by the demand loop -- ALL of
+        contract, not copied code. Besides this group's own twenty-eight names it
+        carries bindings PULLED FORWARD from the long-tail closure by the demand loop -- ALL of
         lily/skyline-scheme.cc, lily/line-interface-scheme.cc's one binding, and
         five leaves of lily/stencil-scheme.cc.
 
-    SIX groups of already-ported upstream code landed with EPG14 and are
+    SIX groups of already-ported upstream code landed with scripts-and-dynamics and are
     recorded on their existing hosts. Their ledger rows stay `ported' -- the
     files were ported and these were the gap.
 
@@ -1047,7 +1050,7 @@ Copyright: Copyright (C) 1996--2026 Han-Wen Nienhuys <hanwen@xs4all.nl>
     Objects/SchemeUtilities.cs, along with two CORRECTIONS to that same file
     described in Engine/PORT-COVERAGE.txt.
 
-    FIVE groups of already-ported upstream code landed with EPG11/EPG12 and are
+    FIVE groups of already-ported upstream code landed with ties-and-slurs and are
     recorded on their existing hosts. Their ledger rows stay `ported' -- the
     files were ported and these were the gap.
 
@@ -1105,7 +1108,7 @@ Copyright: Copyright (C) 1996--2026 Han-Wen Nienhuys <hanwen@xs4all.nl>
     src/CodeBrix.LilyPort.Engine/Layout/StencilInterpreter.cs
         <- lily/stencil-interpret.cc, lily/include/stencil-interpret.hh
            Copyright (C) 2005--2026 Han-Wen Nienhuys
-           Moved from CodeBrix.LilyPort.Backends on 2026-08-05; the interpreter
+           Moved from CodeBrix.LilyPort.Backends; the interpreter
            is engine machinery and PaperOutputter sits below the backends.
 
     src/CodeBrix.LilyPort.Engine/Layout/PaperOutputter.cs
@@ -1115,7 +1118,7 @@ Copyright: Copyright (C) 1996--2026 Han-Wen Nienhuys <hanwen@xs4all.nl>
         <- lily/function-documentation.cc
            Copyright (C) 2004--2026 Han-Wen Nienhuys
            The table mechanism and the init_func_doc predicate descriptions;
-           docstring content arrives with EPG24.
+           docstring content arrived with the documentation-generation group.
     src/CodeBrix.LilyPort.Engine/Bootstrap/LilyVersion.cs
         <- lily/lily-version.cc, lily/include/lily-version.hh
            Copyright (C) 1999--2026 Jan Nieuwenhuizen
@@ -1129,74 +1132,74 @@ Copyright: Copyright (C) 1996--2026 Han-Wen Nienhuys <hanwen@xs4all.nl>
         code run through the real parser. Recorded here because the derivation
         is inside string literals where a header would not travel.
 
-    src/CodeBrix.LilyPort.Parsing/Actions/LilyPondRuleActions.Rag1.cs
-    src/CodeBrix.LilyPort.Parsing/Actions/LilyPondRuleActions.Rag2.cs
-    src/CodeBrix.LilyPort.Parsing/Actions/LilyPondRuleActions.Rag3.cs
-    src/CodeBrix.LilyPort.Parsing/Actions/LilyPondRuleActions.Rag4.cs
-    src/CodeBrix.LilyPort.Parsing/Actions/LilyPondRuleActions.Rag5.cs
-    src/CodeBrix.LilyPort.Parsing/Actions/LilyPondRuleActions.Rag6.cs
-    src/CodeBrix.LilyPort.Parsing/Actions/LilyPondRuleActions.Rag7.cs
-    src/CodeBrix.LilyPort.Parsing/Actions/LilyPondRuleActions.Rag8.cs
-    src/CodeBrix.LilyPort.Parsing/Actions/LilyPondRuleActions.Rag9.cs
-    src/CodeBrix.LilyPort.Parsing/Actions/LilyPondRuleActions.Rag10.cs
-    src/CodeBrix.LilyPort.Parsing/Actions/LilyPondRuleActions.Rag11.cs
-    src/CodeBrix.LilyPort.Parsing/Actions/LilyPondRuleActions.Rag12.cs
-    src/CodeBrix.LilyPort.Parsing/Actions/LilyPondRuleActions.Rag13.cs
-    src/CodeBrix.LilyPort.Parsing/Actions/LilyPondRuleActions.Rag14.cs
-    src/CodeBrix.LilyPort.Parsing/Actions/LilyPondRuleActions.Rag15.cs
-    src/CodeBrix.LilyPort.Parsing/Actions/LilyPondRuleActions.Rag16.cs
-    src/CodeBrix.LilyPort.Parsing/Actions/LilyPondRuleActions.Rag17.cs
-    src/CodeBrix.LilyPort.Parsing/Actions/LilyPondRuleActions.Rag18.cs
-    src/CodeBrix.LilyPort.Parsing/Actions/LilyPondRuleActions.Rag19.cs
+    src/CodeBrix.LilyPort.Parsing/Actions/LilyPondRuleActions.TopLevel.cs
+    src/CodeBrix.LilyPort.Parsing/Actions/LilyPondRuleActions.EmbeddedScheme.cs
+    src/CodeBrix.LilyPort.Parsing/Actions/LilyPondRuleActions.BookBlocks.cs
+    src/CodeBrix.LilyPort.Parsing/Actions/LilyPondRuleActions.OutputDefinitions.cs
+    src/CodeBrix.LilyPort.Parsing/Actions/LilyPondRuleActions.ContextDefinitions.cs
+    src/CodeBrix.LilyPort.Parsing/Actions/LilyPondRuleActions.MusicAssembly.cs
+    src/CodeBrix.LilyPort.Parsing/Actions/LilyPondRuleActions.PropertyPaths.cs
+    src/CodeBrix.LilyPort.Parsing/Actions/LilyPondRuleActions.ArglistNonBackup.cs
+    src/CodeBrix.LilyPort.Parsing/Actions/LilyPondRuleActions.ArglistBackup.cs
+    src/CodeBrix.LilyPort.Parsing/Actions/LilyPondRuleActions.ArglistCommon.cs
+    src/CodeBrix.LilyPort.Parsing/Actions/LilyPondRuleActions.PartialFunctions.cs
+    src/CodeBrix.LilyPort.Parsing/Actions/LilyPondRuleActions.LyricMode.cs
+    src/CodeBrix.LilyPort.Parsing/Actions/LilyPondRuleActions.StringsAndNumbers.cs
+    src/CodeBrix.LilyPort.Parsing/Actions/LilyPondRuleActions.Chords.cs
+    src/CodeBrix.LilyPort.Parsing/Actions/LilyPondRuleActions.PostEvents.cs
+    src/CodeBrix.LilyPort.Parsing/Actions/LilyPondRuleActions.PitchesAndDurations.cs
+    src/CodeBrix.LilyPort.Parsing/Actions/LilyPondRuleActions.FiguredBass.cs
+    src/CodeBrix.LilyPort.Parsing/Actions/LilyPondRuleActions.MarkupStructure.cs
+    src/CodeBrix.LilyPort.Parsing/Actions/LilyPondRuleActions.MarkupCommands.cs
         <- lily/parser.yy (rule action bodies)
            Copyright (C) 1997--2026 Han-Wen Nienhuys, Jan Nieuwenhuizen
-           The grammar's action bodies, hand-ported one RULE ACTION GROUP at a
+           The grammar's action bodies, hand-ported one grammar group at a
            time and keyed by rule identity; RuleActionFenceTests computes the
-           remainder from the committed manifest. Porting began 2026-08-03 with
-           the top-level/header group (RAG1) and the strings/scalars/numbers
-           group (RAG13) -- 62 of the 479 bodies -- and COMPLETED on 2026-08-03
-           with the two markup groups (RAG18, RAG19). All 479 action bodies of
+           remainder from the committed manifest. Porting began with
+           the top-level/header group and the strings/scalars/numbers
+           group -- 62 of the 479 bodies -- and COMPLETED
+           with the two markup groups. All 479 action bodies of
            lily/parser.yy are now incorporated, across the nineteen
-           LilyPondRuleActions.RagN.cs files listed here.
+           LilyPondRuleActions partial files listed here.
     src/CodeBrix.LilyPort.Parsing/Actions/ParserActionHelpers.cs
         <- lily/parser.yy (epilogue helpers: try_string_variants,
            is_regular_identifier, post_event_cons),
            lily/lily-parser.cc (get_header)
            Copyright (C) 1997--2026 Han-Wen Nienhuys, Jan Nieuwenhuizen
-    src/CodeBrix.LilyPort.Parsing/Actions/ParserActionHelpers.Rag2.cs
+    src/CodeBrix.LilyPort.Parsing/Actions/ParserActionHelpers.MusicLists.cs
         <- lily/parser.yy (epilogue helpers: add_post_events,
            reverse_music_list)
            Copyright (C) 1997--2026 Han-Wen Nienhuys, Jan Nieuwenhuizen
-    src/CodeBrix.LilyPort.Parsing/Actions/ParserActionHelpers.Rag3.cs
+    src/CodeBrix.LilyPort.Parsing/Actions/ParserActionHelpers.PaperStack.cs
         <- lily/lily-parser.cc (init_papers, push_paper, pop_paper, set_paper)
            Copyright (C) 1997--2026 Han-Wen Nienhuys, Jan Nieuwenhuizen
-    src/CodeBrix.LilyPort.Parsing/Actions/ParserActionHelpers.Rag4.cs
+    src/CodeBrix.LilyPort.Parsing/Actions/ParserActionHelpers.OutputDefConstructors.cs
         <- lily/lily-parser.cc (get_layout, get_midi, get_paper),
            lily/output-def.cc (assign_context_def)
            Copyright (C) 1997--2026 Han-Wen Nienhuys, Jan Nieuwenhuizen
-    src/CodeBrix.LilyPort.Parsing/Actions/ParserActionHelpers.Rag5.cs
+    src/CodeBrix.LilyPort.Parsing/Actions/ParserActionHelpers.ScmListOperations.cs
         <- lily/parser.yy (the scm_append_x list operation the
            optional_context_mods rule action needs)
            Copyright (C) 1997--2026 Han-Wen Nienhuys, Jan Nieuwenhuizen
-    src/CodeBrix.LilyPort.Parsing/Actions/ParserActionHelpers.Rag6.cs
+    src/CodeBrix.LilyPort.Parsing/Actions/ParserActionHelpers.MakeSyntax.cs
         <- lily/parser.yy (prologue: the FINISH_MAKE_SYNTAX macro; epilogue
            helpers: make_music_from_simple, make_duration,
            make_chord_elements)
            Copyright (C) 1997--2026 Han-Wen Nienhuys, Jan Nieuwenhuizen
-    src/CodeBrix.LilyPort.Parsing/Actions/ParserActionHelpers.Rag7.cs
+    src/CodeBrix.LilyPort.Parsing/Actions/ParserActionHelpers.PropertyPaths.cs
         <- lily/parser.yy (prologue: the MYBACKUP macro; epilogue helpers:
            try_word_variants, make_reverse_key_list,
            property_path_dot_warning),
            lily/lily-lexer.cc (push_extra_token)
            Copyright (C) 1997--2026 Han-Wen Nienhuys, Jan Nieuwenhuizen
-    src/CodeBrix.LilyPort.Parsing/Actions/ParserActionHelpers.Rag8.cs
+    src/CodeBrix.LilyPort.Parsing/Actions/ParserActionHelpers.ArglistHelpers.cs
         <- lily/parser.yy (prologue: the MYREPARSE macro; epilogue helper:
            check_scheme_arg)
            Copyright (C) 1997--2026 Han-Wen Nienhuys, Jan Nieuwenhuizen
-    src/CodeBrix.LilyPort.Parsing/Actions/ParserActionHelpers.Rag14.cs
+    src/CodeBrix.LilyPort.Parsing/Actions/ParserActionHelpers.Chords.cs
         <- lily/parser.yy (epilogue helper: make_chord_step)
            Copyright (C) 1997--2026 Han-Wen Nienhuys, Jan Nieuwenhuizen
-    src/CodeBrix.LilyPort.Parsing/Actions/ParserActionHelpers.Rag15.cs
+    src/CodeBrix.LilyPort.Parsing/Actions/ParserActionHelpers.PostEvents.cs
         <- lily/parser.yy (epilogue helper: make_simple_markup)
            Copyright (C) 1997--2026 Han-Wen Nienhuys, Jan Nieuwenhuizen
     src/CodeBrix.LilyPort.Parsing/Session/LilyKeywords.cs
@@ -1213,10 +1216,10 @@ Copyright: Copyright (C) 1996--2026 Han-Wen Nienhuys <hanwen@xs4all.nl>
            parse_string), lily/music.cc (make_music_with_input),
            lily/parser.yy (loc_on_copy)
            Copyright (C) 1997--2026 Han-Wen Nienhuys, Jan Nieuwenhuizen
-    src/CodeBrix.LilyPort.Parsing/Actions/ParserActionHelpers.Rag18.cs
+    src/CodeBrix.LilyPort.Parsing/Actions/ParserActionHelpers.ScoreInMarkup.cs
         <- lily/parser.yy (the shared opening of the two markup \score rules,
            lines 4160-4168 and 4330-4338),
-           lily/lily-parser.cc (get_layout, reached through Rag4)
+           lily/lily-parser.cc (get_layout, reached through the OutputDefConstructors file)
            Copyright (C) 1997--2026 Han-Wen Nienhuys, Jan Nieuwenhuizen
 
   NEW-IN-FAMILY C#, no upstream header, derivation recorded here only:
@@ -1270,7 +1273,8 @@ Copyright: Copyright (C) 1996--2026 Han-Wen Nienhuys <hanwen@xs4all.nl>
   lily/translator-scheme.cc, lily/global-context-scheme.cc,
   lily/score-scheme.cc, lily/book-scheme.cc, lily/paper-score-scheme.cc,
   lily/page-marker-scheme.cc, lily/paper-system-scheme.cc,
-  lily/item-scheme.cc (ly:item-break-dir only, pulled forward by EPG4),
+  lily/item-scheme.cc (ly:item-break-dir only, pulled forward by the
+  horizontal-spacing group),
   and the IMPLEMENT_CTOR_CALLBACK
   declarations across the lily/*-iterator.cc family. They carry no upstream
   copyright header because they are not literal translations, but the
@@ -1315,7 +1319,7 @@ Copyright: Copyright (C) 1996--2026 Han-Wen Nienhuys <hanwen@xs4all.nl>
            293 MAKE_SCHEME_CALLBACK / IMPLEMENT_CTOR_CALLBACK, 36 smob type
            predicates declared by a class's type_p_name_ member rather than by
            either macro -- the first extraction pass missed all 36 -- and, added
-           2026-08-03, the 6 entry points declared by LY_DEFINE_WITH_SETTER, a
+           later, the 6 entry points declared by LY_DEFINE_WITH_SETTER, a
            THIRD declaration macro the extraction also missed:
            ly:context-property, ly:grob-property, ly:grob-object,
            ly:grob-parent, ly:music-property and ly:prob-property), with their
@@ -1334,7 +1338,7 @@ Copyright: Copyright (C) 1996--2026 Han-Wen Nienhuys <hanwen@xs4all.nl>
            these files define things for one another.
 
     src/CodeBrix.LilyPort.Engine/Scheme/grob-interfaces.tsv
-           Added 2026-08-03. The 86 grob interfaces declared by the C++
+           The 86 grob interfaces declared by the C++
            ADD_INTERFACE macro across 77 lily/*.cc files: interface symbol, the
            C++ class name, the declaring file, the user-settable properties the
            interface owns, and the Texinfo description verbatim.
@@ -1359,7 +1363,7 @@ Copyright: Copyright (C) 1996--2026 Han-Wen Nienhuys <hanwen@xs4all.nl>
            non-CodeBrix checkout.
 
     src/CodeBrix.LilyPort.Engine/lily-cc-ledger.tsv
-           Added 2026-08-04 (EPG0). One row for each of the 448 files in
+           One row for each of the 448 files in
            lily/*.cc: the file name, what the port does with it (ported to named
            C# file(s), owed by a named engine port group, or deliberately not
            ported), and the reason where one is needed. The row set IS the
@@ -1375,7 +1379,7 @@ Copyright: Copyright (C) 1996--2026 Han-Wen Nienhuys <hanwen@xs4all.nl>
            build must never read a non-CodeBrix checkout.
 
     src/CodeBrix.LilyPort.Engine/Scheme/translators.tsv
-           Added 2026-08-04 (EPG0). Every translator upstream declares: 126 from
+           Every translator upstream declares: 126 from
            the C++ ADD_TRANSLATOR macro, 4 from ADD_TRANSLATOR_GROUP, and 37
            registered from Scheme by ly:register-translator (35 in
            scm/scheme-engravers.scm, 2 in scm/scheme-performers.scm), each with
@@ -1386,7 +1390,8 @@ Copyright: Copyright (C) 1996--2026 Han-Wen Nienhuys <hanwen@xs4all.nl>
            above.
 
     src/CodeBrix.LilyPort.Engine/Scheme/translator-descriptions.tsv
-           Added 2026-08-13 (EPG24). The Internals-Reference metadata of the 126
+           Added with the documentation-generation group. The Internals-Reference
+           metadata of the 126
            translators declared by the C++ ADD_TRANSLATOR macro: the description,
            the grobs created, the context properties read and written -- the
            macro's four text blocks, VERBATIM -- and the event classes the
@@ -1407,7 +1412,8 @@ Copyright: Copyright (C) 1996--2026 Han-Wen Nienhuys <hanwen@xs4all.nl>
            why it does not live in CodeBrix.LilyScheme.
 
     src/CodeBrix.LilyPort.Engine/Scheme/entry-point-docs.tsv
-           Added 2026-08-13 (EPG24). The docstring and stringified argument list
+           Added with the documentation-generation group. The docstring and
+           stringified argument list
            of the 448 entry points upstream documents: 402 from LY_DEFINE, 6 from
            LY_DEFINE_WITH_SETTER, 4 from the two MAKE_SCHEME_CALLBACK macros that
            take a docstring, and the 36 smob type predicates, whose text
@@ -1426,7 +1432,8 @@ Copyright: Copyright (C) 1996--2026 Han-Wen Nienhuys <hanwen@xs4all.nl>
            entry-points.tsv above.
 
     tools/table-extract/
-           Added 2026-08-13 (EPG24). The scripts that regenerate the two tables
+           Added with the documentation-generation group. The scripts that
+           regenerate the two tables
            above from the pinned reference checkout, plus the shared C++ scanner
            they read the registration macros with. New-in-family code, run BY
            HAND when the reference moves: no build step reads them, and no build
@@ -1496,7 +1503,7 @@ Copyright: Copyright (C) 1996--2026 Han-Wen Nienhuys <hanwen@xs4all.nl>
            test-warn.cc or test-pqueue.cc. These cases were written against the
            upstream implementation, read directly while porting.
 
-    -- EPG19, the MIDI subsystem (added 2026-08-08) --
+    -- the MIDI subsystem --
 
     All thirty files below are derived from LilyPond 2.27.2 and carry upstream's
     copyright header verbatim, per section 1.3.
@@ -1552,7 +1559,7 @@ Copyright: Copyright (C) 1996--2026 Han-Wen Nienhuys <hanwen@xs4all.nl>
     src/CodeBrix.LilyPort.Engine/Music/MusicObject.cs
            GAINED ly_transpose_key_alist, DECLARED in lily/include/music-sequence.hh
            and defined in lily/music-scheme.cc. One leaf only; the rest of that
-           file's surface is still owed by EPG23.
+           file's surface followed with the long-tail entry-point closure.
     src/CodeBrix.LilyPort.Flower/Rational.cs
            FromDouble CORRECTED to flower/rational.cc's own Rational (double)
            algorithm, which is deliberately lossy. See PORT-COVERAGE.
@@ -1575,8 +1582,7 @@ Copyright: Copyright (C) 1996--2026 Han-Wen Nienhuys <hanwen@xs4all.nl>
            measured against, and are covered by the same grant as the inputs.
 
 
-    -- EPG20, chords, frets, tab, drums, clusters, arpeggio, figured bass
-       (added 2026-08-08) --
+    -- chords, frets, tab, drums, clusters, arpeggio, figured bass --
 
     All fourteen files below are derived from LilyPond 2.27.2 and carry upstream's
     copyright header verbatim, per section 1.3.
@@ -1610,7 +1616,8 @@ Copyright: Copyright (C) 1996--2026 Han-Wen Nienhuys <hanwen@xs4all.nl>
     src/CodeBrix.LilyPort.Engine/Objects/FiguredBassContinuation.cs
            lily/figured-bass-continuation.cc
 
-    ONE group of already-ported upstream code gained a member with EPG20:
+    ONE group of already-ported upstream code gained a member with
+    tablature-and-chords:
 
     src/CodeBrix.LilyPort.Engine/Objects/SchemeUtilities.cs
            GAINED ly_assoc, an inline DECLARED in lily/include/lily-guile.hh and never
@@ -1623,7 +1630,7 @@ Copyright: Copyright (C) 1996--2026 Han-Wen Nienhuys <hanwen@xs4all.nl>
            the managed spelling of from_scm (value, Interval ()), beside the
            ToDrulDouble and ToDrulBool that were already there.
 
-    -- EPG15, line breaking and broken spanners (added 2026-08-08) --
+    -- line breaking and broken spanners --
 
     All twelve files below are derived from LilyPond 2.27.2 and carry upstream's
     copyright header verbatim, per section 1.3.
@@ -1640,8 +1647,8 @@ Copyright: Copyright (C) 1996--2026 Han-Wen Nienhuys <hanwen@xs4all.nl>
            naming rule and Line_details is a type in its own right.
     src/CodeBrix.LilyPort.Engine/Objects/BreakSubstitution.cs
            lily/break-substitution.cc
-           GAINED the System half at EPG15 (2026-08-08); EPG22 had carried the
-           Direction half on 2026-08-07.
+           GAINED the System half with the line-breaking group; the iterator
+           group had carried the Direction half.
     src/CodeBrix.LilyPort.Engine/Objects/BreakAlignInterface.cs
            lily/break-alignment-interface.cc
            + lily/include/break-alignment-interface.hh
@@ -1677,13 +1684,13 @@ Copyright: Copyright (C) 1996--2026 Han-Wen Nienhuys <hanwen@xs4all.nl>
            Unpure_pure_container and Unpure_pure_call types and their three
            bindings. call_pure_function itself is grob-property.cc's and lives on
            Grob.
-    src/CodeBrix.LilyPort.Engine/Bootstrap/Epg15Callbacks.cs
+    src/CodeBrix.LilyPort.Engine/Bootstrap/LineBreakingCallbacks.cs
            New-in-family binding code with no upstream analogue: the registrations
            for the group's Scheme-visible callbacks, plus three grob-scheme.cc
            leaves the demand loop forced forward (ly:grob-pure-height,
            ly:grob-pure-property, ly:grob-pure-relative-coordinate).
 
-  EPG16 CLOSE-OUT (2026-08-09) added NO new upstream files. Every change was a
+  THE PAGE-BREAKING CLOSE-OUT added NO new upstream files. Every change was a
   BINDING over a type this repository had already ported, so the derivation was
   already recorded above and no attribution moves:
 
@@ -1691,8 +1698,8 @@ Copyright: Copyright (C) 1996--2026 Han-Wen Nienhuys <hanwen@xs4all.nl>
            GAINED lily/context-def.cc's two LY_DEFINEs, ly:context-def-modify
            and ly:context-def-lookup. Both call methods that Translation/
            ContextDef.cs (already attributed to lily/context-def.cc) has carried
-           since EPG2; neither adds upstream code.
-    src/CodeBrix.LilyPort.Engine/Bootstrap/Epg16Callbacks.cs
+           since the contexts group; neither adds upstream code.
+    src/CodeBrix.LilyPort.Engine/Bootstrap/PageBreakingCallbacks.cs
            GAINED lily/system.cc's three staff accessors -- ly:system::get-staves,
            ly:system::get-spaceable-staves, ly:system::get-nonspaceable-staves --
            over SystemGrob.GetMaybeSpaceableStaves, which is the port of
@@ -1703,7 +1710,7 @@ Copyright: Copyright (C) 1996--2026 Han-Wen Nienhuys <hanwen@xs4all.nl>
            internal_type_check and its type_check_unset. That file is already
            attributed above.
 
-  EPG16 CLOSE-OUT II (2026-08-11) added NO new upstream files either. Both changes
+  THE SECOND PAGE-BREAKING CLOSE-OUT added NO new upstream files either. Both changes
   are inside files already attributed to LilyPond 2.27.2 above, and no attribution
   moves:
 
@@ -1716,10 +1723,10 @@ Copyright: Copyright (C) 1996--2026 Han-Wen Nienhuys <hanwen@xs4all.nl>
     src/CodeBrix.LilyPort.Engine/Objects/PaperColumn.cs
            GAINED the else branch of lily/paper-column.cc's break_align_width,
            which calls Break_alignment_interface::find_nonempty_break_align_group.
-           Both that file and lily/break-alignment-interface.cc (ported by EPG15
+           Both that file and lily/break-alignment-interface.cc (ported with the line-breaking group
            as Objects/BreakAlignInterface.cs) are already attributed above.
 
-    -- EPG21, ancient notation (added 2026-08-09) --
+    -- ancient notation --
 
     All eleven files below are derived from LilyPond 2.27.2 and carry upstream's
     copyright header verbatim, per section 1.3. Three of the four grob files also
@@ -1776,7 +1783,7 @@ Copyright: Copyright (C) 1996--2026 Han-Wen Nienhuys <hanwen@xs4all.nl>
            Copyright (C) 2013--2026 Aleksandr Andreev
                                     <aleksandr.andreev@gmail.com>
 
-    src/CodeBrix.LilyPort.Engine/Bootstrap/Epg21Callbacks.cs
+    src/CodeBrix.LilyPort.Engine/Bootstrap/LigatureCallbacks.cs
            New-in-family binding code with no upstream analogue: the
            registrations for the group's five Scheme-visible callbacks.
 
@@ -1833,7 +1840,7 @@ WHAT articulate.ly DOES
   It touches NOTHING in the engraving path: zero references to grobs, stencils
   or \layout across all 973 lines.
 
-DECISION (Jeremy, 2026-08-02): INCLUDE IT. THE PACKAGE IS GPL-3.0-ONLY.
+DECISION (Jeremy, 2026): INCLUDE IT. THE PACKAGE IS GPL-3.0-ONLY.
 
   GPL-3-only and GPL-3-or-later material combine legally, but the COMBINED work
   can then only be conveyed under GPL version 3 exactly: the "or later" option
@@ -1942,7 +1949,7 @@ WHY THE FONT IS A SEPARATE ENGINEERING PROBLEM, NOT JUST A SEPARATE LICENSE
   stem attachment points, and ledger shortening ranges, keyed by LilyPond
   glyph name as a Scheme symbol.
 
-DECIDED 2026-08-02: BUILD OUR OWN FONTS FROM THE METAFONT SOURCES
+DECIDED (Jeremy, 2026): BUILD OUR OWN FONTS FROM THE METAFONT SOURCES
 
   CodeBrix.LilyPort does NOT redistribute LilyPond's prebuilt MUSIC font
   binaries. (The prebuilt TEXT fonts ARE redistributed, by the separate
@@ -1994,7 +2001,7 @@ Font binaries produced from those sources (in this repository):
   assets/fonts/otf/       nine .otf files, 892,500 bytes
   assets/fonts/svg/       nine .svg files, 2,690,421 bytes
 
-                          18 files, 3,582,921 bytes total, built 2026-08-02 by
+                          18 files, 3,582,921 bytes total, built in 2026 by
                           tools/font-build/build-fonts.sh from the mf/ mirror
                           above, stamped version 2.27.2, in both formats:
 
@@ -2016,8 +2023,8 @@ Font binaries produced from those sources (in this repository):
                           font's actual designers rather than whoever ran the
                           build.
 
-  Verified against the official lilypond-2.27.2-linux-x86_64 release on
-  2026-08-02: LILC and LILY tables byte-identical on all nine fonts, glyph
+  Verified against the official lilypond-2.27.2-linux-x86_64 release:
+  LILC and LILY tables byte-identical on all nine fonts, glyph
   inventory identical (668 per design size, 577 brace), every advance width
   an exact match. Bounding boxes differ on ~18% of glyphs by 1-3 units of a
   1000-unit em -- a Metafont/FontForge version artifact that cannot affect
@@ -2299,7 +2306,7 @@ missed by a mirror of mf/ alone.
 10. TEXT FONTS -- URW BASE35 AND TEX GYRE (PREBUILT, REDISTRIBUTED)
 ================================================================================
 
-Vendored 2026-08-05 under decision D13 (Jeremy): assets/fonts/text/ carries
+Vendored under decision D13 (Jeremy, 2026): assets/fonts/text/ carries
 the 24 text faces LilyPond 2.27.2 ships -- copied BYTE-FOR-BYTE from the
 official GNU LilyPond 2.27.2 binary distribution (the same installation that
 generated the committed regression reference SVGs), together with the license
@@ -2352,7 +2359,7 @@ Files (12): C059-{Roman,Bold,Italic,BdIta}.otf  (Century Schoolbook clone --
       they came from), so the AGPL's source obligation is met by the files
       themselves plus this provenance record, and the section 13 network
       clause (which binds modified versions) is not in play.
-    * MEASURED 2026-08-05: LilyPond's SVG backend embeds NO font data --
+    * MEASURED: LilyPond's SVG backend embeds NO font data --
       text is emitted as <text font-family=...> elements. The port's
       parity output (SVG, decision D15) therefore never embeds these
       fonts. The PS/PDF embedding exception above becomes relevant -- and
@@ -2405,7 +2412,7 @@ Files (12): texgyreschola-{regular,bold,italic,bolditalic}.otf   (serif
   falls through to are NOT bundled by upstream and are NOT vendored here.
   The port's fallback face is Roboto, consumed as the OFL-licensed
   CodeBrix.Platform.Fonts.Roboto NuGet package, pinned at version
-  1.0.209.315 (decision D23, 2026-08-05; a version change is a deliberate
+  1.0.209.315 (decision D23; a version change is a deliberate
   re-baseline event)
   -- a package dependency, so nothing font-related beyond the 24 files
   above is vendored into this repository, and no further entry in this
@@ -2414,7 +2421,7 @@ Files (12): texgyreschola-{regular,bold,italic,bolditalic}.otf   (serif
   .notdef output by design.
 
 --------------------------------------------------------------------------------
-10.4  HOW THE FONT FILES ARE SHIPPED  (added 2026-08-05, EPG13)
+10.4  HOW THE FONT FILES ARE SHIPPED
 --------------------------------------------------------------------------------
 
   All of the font binaries this project vendors -- the nine Emmentaler
@@ -2480,7 +2487,7 @@ Files (12): texgyreschola-{regular,bold,italic,bolditalic}.otf   (serif
   answer key it is tested against is also material this document already
   covers, under section 3.
 
-  BOUNDARY, recorded 2026-08-05 because it moved: CharstringRun.cs gained an
+  BOUNDARY, recorded because it moved: CharstringRun.cs gained an
   IGlyphPathSink interface so a caller can receive the outline as drawing
   commands rather than as a string. That interface and its call sites are
   new-in-family like the rest of these two files. The CONSUMER that turns those
@@ -2634,7 +2641,7 @@ here, or if you believe that any third-party code has been included in
 CodeBrix.LilyPort in error, please open a new issue at:
 https://github.com/ellisnet/CodeBrix.Samples.Gpl3/issues
 
-    -- EPG16, page breaking and page layout (added 2026-08-08) --
+    -- page breaking and page layout --
 
     All nine files below are derived from LilyPond 2.27.2 and carry upstream's
     copyright header verbatim, per section 1.3.
@@ -2666,8 +2673,8 @@ https://github.com/ellisnet/CodeBrix.Samples.Gpl3/issues
            lily/page-layout-problem.cc
            Copyright (C) 2009--2026 Joe Neeman <joeneeman@gmail.com>
            The per-page vertical spacing solver. The spacing-spec readers of the
-           same upstream file live in Layout/PageLayoutSpacing.cs, where EPG7
-           pulled them forward.
+           same upstream file live in Layout/PageLayoutSpacing.cs, where the vertical-organization
+           group pulled them forward.
     src/CodeBrix.LilyPort.Engine/Layout/PaperBook.cs
            lily/paper-book.cc + lily/include/paper-book.hh
            Copyright (C) 2004--2026 Jan Nieuwenhuizen <janneke@gnu.org>
@@ -2680,7 +2687,7 @@ https://github.com/ellisnet/CodeBrix.Samples.Gpl3/issues
            Copyright (C) 2012--2026 Mike Solomon <mike@mikesolomon.org>
 
     New-in-family binding code for this group carries NO upstream header, per
-    section 1.3: src/CodeBrix.LilyPort.Engine/Bootstrap/Epg16Callbacks.cs holds
+    section 1.3: src/CodeBrix.LilyPort.Engine/Bootstrap/PageBreakingCallbacks.cs holds
     the six page-breaking strategies, the Paper_book accessors,
     ly:get-spacing-spec, ly:paper-get-number and the two ly:book-process entry
     points, all derived from lily/page-breaking-scheme.cc,

@@ -26,7 +26,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Translation; //was previously: lily/ligature-engraver.cc, lily/include/ligature-engraver.hh;
 
-// Modified by Jeremy Ellis on 2026-08-09 as part of the CodeBrix port:
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port:
 //   - upstream's two acknowledgers are separate virtuals reached by the ADD_ACKNOWLEDGER
 //     dispatcher; the port has ONE AcknowledgeGrob per engraver, so they are branches of
 //     it, selected by the same interfaces the macros name (`rest-interface',
@@ -183,13 +183,13 @@ public abstract class LigatureEngraver : Engraver
         {
             if (_ligature == null)
             {
-                Epg8Support.EventWarning(ender, "cannot find start of ligature");
+                TranslatorSchemeHelpers.EventWarning(ender, "cannot find start of ligature");
                 return;
             }
 
             if (_lastBound == null)
             {
-                Epg8Support.EventWarning(ender, "no right bound");
+                TranslatorSchemeHelpers.EventWarning(ender, "no right bound");
             }
             else
             {
@@ -210,7 +210,7 @@ public abstract class LigatureEngraver : Engraver
         {
             if (_ligature != null)
             {
-                Epg8Support.EventWarning(starter, "already have a ligature");
+                TranslatorSchemeHelpers.EventWarning(starter, "already have a ligature");
                 _ligature.Warning("ligature was started here");
                 return;
             }
@@ -220,7 +220,7 @@ public abstract class LigatureEngraver : Engraver
             Grob bound = GetProperty(CurrentMusicalColumnSymbol) as Grob;
             if (bound == null)
             {
-                Epg8Support.EventWarning(starter, "no left bound");
+                TranslatorSchemeHelpers.EventWarning(starter, "no left bound");
             }
             else
             {
@@ -332,7 +332,7 @@ public abstract class LigatureEngraver : Engraver
     {
         if (_ligature != null)
         {
-            Epg8Support.EventWarning(
+            TranslatorSchemeHelpers.EventWarning(
                 info.EventCause, "ignoring rest: ligature may not contain rest");
             _ligature.Warning("ligature was started here");
 

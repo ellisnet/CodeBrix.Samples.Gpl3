@@ -30,7 +30,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Objects; //was previously: lily/lily-guile.cc;
 
-// Modified by Jeremy Ellis on 2026-08-03 as part of the CodeBrix port.
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port.
 
 /// <summary>
 /// The association-list and type-checking operations the object model is built on.
@@ -53,7 +53,7 @@ public static class SchemeUtilities
     /// Identity is Guile's <c>eq?</c>, NOT raw reference equality, which is what
     /// <see cref="ReferenceComparer"/> implements: Guile fixnums, booleans and characters
     /// are IMMEDIATES rather than heap objects, so <c>(eq? 1 1)</c> is true there and
-    /// <c>(assq 1 '((1 . a)))</c> finds its entry. Corrected 2026-08-08 by EPG14 — this
+    /// <c>(assq 1 '((1 . a)))</c> finds its entry. Corrected here — this
     /// had compared with <c>ReferenceEquals</c>, under which a boxed number is never equal
     /// to another boxed number of the same value, so EVERY numerically-keyed alist lookup
     /// in the engine silently missed. <c>Ottava_spanner_engraver</c> reading
@@ -115,7 +115,7 @@ public static class SchemeUtilities
     /// <remarks>
     /// Goes through <see cref="LyAssoc"/>, exactly as upstream's <c>ly:assoc-get</c> does.
     /// It formerly went straight to <see cref="Assq"/> and carried a recorded NARROWING for
-    /// keys that are neither symbols nor immediates; EPG20 closed it when
+    /// keys that are neither symbols nor immediates; the tablature group closed it when
     /// <c>Drum_notes_engraver</c> became the engine's first caller to look a key up with
     /// upstream's own branch.
     /// </remarks>
@@ -237,7 +237,7 @@ public static class SchemeUtilities
     /// Scheme-defined closure (an <see cref="IApplicable"/>), which is how every
     /// toplevel <c>\markup \score</c> book rendered ZERO systems: the walk handed
     /// <c>interpret-markup-list</c> — a vendored Scheme lambda — to this method and got
-    /// <c>'()</c> back with no error. The EPG15 close-out recorded this exact asymmetry
+    /// <c>'()</c> back with no error. The line-breaking close-out recorded this exact asymmetry
     /// as a loose end.
     /// </para>
     /// </summary>
@@ -286,8 +286,8 @@ public static class SchemeUtilities
     /// The <c>equal?</c> comparison is not incidental. This is the SETTER half of
     /// <see cref="LyAssoc"/>, and pairing an <c>equal?</c> lookup with an <c>eq?</c>
     /// setter would insert a duplicate entry for any key that is not an immediate — the
-    /// same narrowing EPG20 found and closed in <c>LyAssocGet</c>. Added by EPG15
-    /// (2026-08-08) for <c>Break_align_engraver</c>, which is upstream's first caller in
+    /// same narrowing the tablature group found and closed in <c>LyAssocGet</c>. Added
+    /// for <c>Break_align_engraver</c>, which is upstream's first caller in
     /// this port.
     /// </para>
     /// </summary>
@@ -421,14 +421,14 @@ public static class SchemeUtilities
     /// </para>
     /// <para>
     /// HOST OBJECTS: <c>scm_equal_p</c> ends by dispatching to a smob's own equality
-    /// handler, which is exactly what RATCHET-FIX added as <c>ISchemeEqual</c> on
-    /// 2026-08-08 — and this copy never reached it, so the fix applied to Scheme-level
+    /// handler, which is exactly what the equality-roster fix added as <c>ISchemeEqual</c>
+    /// — and this copy never reached it, so the fix applied to Scheme-level
     /// <c>equal?</c> and not to the engine's. All eight types that declare a handler
     /// (Duration, Moment, Listener, Input, Pitch, Tuplet_description, Prob, Spring)
     /// compared by reference here. <c>Tie_engraver</c> compares PITCHES this way.
     /// </para>
     /// <para>
-    /// Found by EPG20 (2026-08-08) while porting <c>Drum_notes_engraver</c>, whose
+    /// Found while porting <c>Drum_notes_engraver</c>, whose
     /// <c>ly_assoc</c> lookup is the engine's first caller to need the <c>equal?</c>
     /// branch at all.
     /// </para>
@@ -552,7 +552,7 @@ public static class SchemeUtilities
             return;
         }
 
-        // THE DEPRECATED-PROPERTY PATH (EPG16, 2026-08-09). Until now the port stopped at
+        // THE DEPRECATED-PROPERTY PATH. The port once stopped at
         // the warning below, and the comment where this code goes said so: "until the
         // deprecation path is ported the property is simply unknown". The cost was not a
         // missing warning — `\unset Timing.<deprecated>' was DISCARDED, so a file that
@@ -616,7 +616,7 @@ public static class SchemeUtilities
         // three for four sessions, which is where the long-standing
         // pop-first/instrumentName/stencil "Type check failed" noise came from,
         // and — worse — a refused context write left the STALE value behind.
-        // Found by EPG8, fixed centrally 2026-08-07.
+        // Found by the bars/meter group, fixed centrally.
         if (value is Nil || value is bool b && !b || value is Unspecified)
         {
             return true;
@@ -627,7 +627,7 @@ public static class SchemeUtilities
         // grob property holding a callback is not the value the property will end up
         // with — it is the function that computes it — and it can only be checked once it
         // has run. An unpure-pure container is checked by recursing into BOTH halves, for
-        // the same reason. Found by EPG14, 2026-08-08: `\override Hairpin.stencil =
+        // the same reason. Found with scripts/dynamics: `\override Hairpin.stencil =
         // #flared-hairpin` is ordinary LilyPond and was being refused, which left the
         // override off the grob entirely.
         if (ReferenceEquals(typeSymbol, BackendTypeCheckSymbol))

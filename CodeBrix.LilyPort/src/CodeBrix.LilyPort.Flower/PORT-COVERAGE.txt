@@ -2,7 +2,7 @@
 CodeBrix.LilyPort.Flower -- PORT COVERAGE AGAINST UPSTREAM flower/
 ================================================================================
 
-Written 2026-08-02, against LilyPond v2.27.2
+Written against LilyPond v2.27.2
 (commit 2d621459bd44cb1758f822a69757242eab843060).
 
 This file records exactly what was ported, what was deliberately not ported and
@@ -147,7 +147,7 @@ END
 ================================================================================
 
 ================================================================================
-ADDED 2026-08-02 -- BEZIER, AND Offset.Directed
+ADDED -- BEZIER, AND Offset.Directed
 ================================================================================
 
   lily/bezier.cc, lily/include/bezier.hh  ->  Bezier.cs
@@ -155,7 +155,7 @@ ADDED 2026-08-02 -- BEZIER, AND Offset.Directed
     Ported: the cubic curve itself -- CurvePoint, DirectionAtPoint, Subdivide,
     Extract, Scale, Rotate, Translate, Reverse, ControlPointExtent.
 
-    2026-08-03: the previously deferred set is now ported --
+    LATER ADDITION: the previously deferred set is now ported --
     get_other_coordinate(s) -> GetOtherCoordinate(s), solve_point ->
     SolvePoint, solve_derivative -> SolveDerivative, minmax -> MinMax,
     extent -> Extent, polynomial -> ToPolynomial, curve_coordinate ->
@@ -189,7 +189,7 @@ ADDED 2026-08-02 -- BEZIER, AND Offset.Directed
     be wrong.
 
 
-  ADDED 2026-08-03 -- Polynomial and Offset
+  ADDED -- Polynomial and Offset
 
   flower/include/polynomial.hh operator+= / operator-=  ->  Polynomial.Add / .Subtract
 
@@ -210,11 +210,12 @@ ADDED 2026-08-02 -- BEZIER, AND Offset.Directed
 
 
 ================================================================================
-CORRECTED 2026-08-08 (EPG19) -- TWO TYPES THAT LOOKED PORTED AND WERE NOT
+CORRECTED BY THE MIDI GROUP -- TWO TYPES THAT LOOKED PORTED AND WERE NOT
 ================================================================================
 
   Both were found by the MIDI subsystem's demand loop, and both had been wrong
-  since the Flower pass. Neither had a production caller until EPG19, which is
+  since the Flower pass. Neither had a production caller until the MIDI
+  subsystem landed, which is
   why nothing had noticed.
 
   Rational.FromDouble

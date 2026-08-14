@@ -24,7 +24,7 @@ using CodeBrix.LilyPort.Flower;
 
 namespace CodeBrix.LilyPort.Engine.Origins; //was previously: lily/sources.cc, lily/include/sources.hh;
 
-// Modified by Jeremy Ellis on 2026-08-04 as part of the CodeBrix port.
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port.
 
 /// <summary>
 /// The set of source files opened so far, and the include path they are looked up on.

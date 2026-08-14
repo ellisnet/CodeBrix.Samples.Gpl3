@@ -26,7 +26,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Objects; //was previously: lily/stem-tremolo.cc;
 
-// Modified by Jeremy Ellis on 2026-08-07 as part of the CodeBrix port.
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port.
 
 /// <summary>
 /// The slashes across a stem that mean a tremolo: a stack of beam-like (or, against
@@ -452,9 +452,9 @@ public static class StemTremolo
     /*
       Note_collision_interface::note_head_positions, pulled forward from
       lily/note-collision.cc: every read in it is a generic grob read, and the
-      whole-note-tremolo direction decision above needs it. EPG5's port of
+      whole-note-tremolo direction decision above needs it. The port of
       note-collision.cc landed in the same wave, so the private copy was retired
-      at integration (2026-08-07) for a delegation to the canonical home.
+      at integration for a delegation to the canonical home.
     */
     private static List<int> NoteCollisionNoteHeadPositions(Grob me)
         => NoteCollisionInterface.NoteHeadPositions(me);

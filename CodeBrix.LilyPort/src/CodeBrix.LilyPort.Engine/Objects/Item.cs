@@ -23,8 +23,8 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Objects; //was previously: lily/item.cc, lily/include/item.hh;
 
-// Modified by Jeremy Ellis on 2026-08-03 as part of the CodeBrix port.
-// Modified by Jeremy Ellis on 2026-08-07 as part of the CodeBrix port:
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port.
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port:
 //   - spanned_time_interval added; it is upstream's own free function in this file and
 //     had never been carried.
 
@@ -147,7 +147,7 @@ public class Item : Grob
     /// <returns>The piece, or <see langword="null"/> when there is none.</returns>
     /// <remarks>
     /// An item has at most the two prebroken copies to offer, so the search is this item
-    /// and then its drul pair. Added 2026-08-08 by EPG14 — see <see cref="Grob"/>.
+    /// and then its drul pair. Added with scripts/dynamics — see <see cref="Grob"/>.
     /// </remarks>
     public override Grob FindBrokenPiece(SystemGrob system)
     {
@@ -327,7 +327,7 @@ public class Item : Grob
     /// a zero-length one means the two ends sit at the same moment.
     /// </para>
     /// <para>Upstream: the free function <c>spanned_time_interval</c> in
-    /// <c>lily/item.cc</c>. It was never carried when that file was ported; EPG18's
+    /// <c>lily/item.cc</c>. It was never carried when that file was ported; the lyrics group's
     /// <c>Vowel_transition</c> is its first caller.</para>
     /// </summary>
     /// <param name="left">The earlier item, which may be null.</param>

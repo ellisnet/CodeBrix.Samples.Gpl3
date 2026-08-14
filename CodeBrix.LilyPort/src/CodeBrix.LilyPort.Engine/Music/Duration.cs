@@ -25,7 +25,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Music; //was previously: lily/duration.cc, lily/include/duration.hh;
 
-// Modified by Jeremy Ellis on 2026-08-02 as part of the CodeBrix port.
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port.
 
 /// <summary>
 /// A musical duration: a base duration expressed as a power of two, a number of

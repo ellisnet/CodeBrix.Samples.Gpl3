@@ -23,11 +23,11 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Objects; //was previously: lily/system.cc (get_vertical_alignment and vertical_skyline_elements only);
 
-// Modified by Jeremy Ellis on 2026-08-07 as part of the CodeBrix port.
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port.
 
 /// <summary>
 /// The two vertical-organization object callbacks of <c>lily/system.cc</c>, carried
-/// beside EPG7's alignment work because <c>Objects/SystemGrob.cs</c> — the file's main
+/// beside the vertical-organization alignment work because <c>Objects/SystemGrob.cs</c> — the file's main
 /// port — predates them and stays closed in this pass. The System grob definition
 /// names both in its <c>object-callbacks</c>, so they must answer the moment a
 /// <c>VerticalAlignment</c> can exist at all.
@@ -131,12 +131,12 @@ public static class SystemGrobVertical
     /// <returns>The neighbouring staff, or <see langword="null"/>.</returns>
     /// <remarks>
     /// <para>
-    /// Added 2026-08-08 by EPG14 for <c>Hairpin::broken_bound_padding</c>. Like
+    /// Added for <c>Hairpin::broken_bound_padding</c>. Like
     /// <see cref="GetVerticalAlignment"/> it lives here rather than in
     /// <c>Objects/SystemGrob.cs</c>, which stays closed.
     /// </para>
     /// <para>
-    /// The omission EPG14 recorded here is DISCHARGED (EPG15 close-out, 2026-08-08):
+    /// The omission first recorded here is DISCHARGED:
     /// upstream's <c>Hara_kiri_group_spanner::consider_suicide</c> call on each candidate
     /// was skipped only because that file was unported, and it is ported now. Without it
     /// this answered a staff upstream would have killed first.

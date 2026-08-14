@@ -29,7 +29,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Parsing.Session; //was previously: lily/lily-parser.cc (parse_file, parse_string);
 
-// Modified by Jeremy Ellis on 2026-08-03 as part of the CodeBrix port.
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port.
 
 /// <content>
 /// Running a parse: the tables, the scanner, the driver and the <c>ly/</c> init layer.

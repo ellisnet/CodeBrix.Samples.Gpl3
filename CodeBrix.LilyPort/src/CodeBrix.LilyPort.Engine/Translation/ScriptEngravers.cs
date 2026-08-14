@@ -26,10 +26,10 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Translation; //was previously: lily/script-engraver.cc, lily/script-column-engraver.cc, lily/script-row-engraver.cc, lily/non-musical-script-column-engraver.cc;
 
-// Modified by Jeremy Ellis on 2026-08-08 as part of the CodeBrix port:
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port:
 //   - the four script engravers share a file: three of them are the same twenty-line
 //     collect-and-column shape differing only in which grobs they collect.
-//   - make_script_from_event comes HOME here from Objects/Epg5Seams.cs, which EPG5 created
+//   - make_script_from_event comes HOME here from the early shared seam file, which was created
 //     for it while script-engraver.cc was unported. That seam file is now DELETED — this
 //     was its last method — and Multi_measure_rest_engraver calls it here instead.
 //   - upstream registers one acknowledger per interface; the port's single AcknowledgeGrob

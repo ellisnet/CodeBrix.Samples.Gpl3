@@ -26,7 +26,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Bootstrap; //was previously: lily/open-type-font-scheme.cc, lily/otf-scheme.cc, lily/all-font-metrics-scheme.cc, lily/font-metric-scheme.cc;
 
-// Modified by Jeremy Ellis on 2026-08-05 as part of the CodeBrix port.
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port.
 
 /// <summary>
 /// The font entry points the Scheme layer reads metadata through.
@@ -141,7 +141,7 @@ public static class FontPrimitives
     /// predicates, so <see cref="EnginePrimitives.InstallStubs"/> does NOT give them the
     /// type-predicate stub that answers <see langword="false"/> — they got the ordinary
     /// stub, which answers the inert <see cref="UnportedValue"/>, and an
-    /// <c>UnportedValue</c> is TRUTHY in Scheme. So until EPG23 both of these answered
+    /// <c>UnportedValue</c> is TRUTHY in Scheme. So until the long-tail closure both of these answered
     /// YES to every value they were handed, including each other's.
     /// <para>
     /// <c>ly:pango-font?</c> is a constant <see langword="false"/> and that is its real

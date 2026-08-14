@@ -26,7 +26,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Translation; //was previously: lily/laissez-vibrer-engraver.cc, lily/repeat-tie-engraver.cc, lily/include/laissez-vibrer-engraver.hh;
 
-// Modified by Jeremy Ellis on 2026-08-08 as part of the CodeBrix port:
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port:
 //   - the two engravers share a file because upstream's repeat-tie-engraver.cc is nothing
 //     but a three-method subclass of the laissez-vibrer one; splitting them would put a
 //     30-line file beside its own base class.

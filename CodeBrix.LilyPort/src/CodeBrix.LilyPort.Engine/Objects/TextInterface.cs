@@ -30,7 +30,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Objects; //was previously: lily/text-interface.cc, lily/include/text-interface.hh;
 
-// Modified by Jeremy Ellis on 2026-08-05 as part of the CodeBrix port.
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port.
 
 /// <summary>
 /// How a markup becomes a stencil.
@@ -182,7 +182,7 @@ public static class TextInterface
             // letters and figured-bass punctuation. Upstream sets these through Pango
             // over the SAME font; the port composes the run itself from the font's own
             // cmap and hmtx, which is all Pango's shaping amounts to for a font with
-            // no kerning in this range. Until 2026-08-08 this branch answered an EMPTY
+            // no kerning in this range. This branch once answered an EMPTY
             // stencil (the divergence was recorded in PORT-COVERAGE) — which made
             // \number, \dynamic and every figured-bass digit silently invisible.
             return MusicFontTextStencil(font, cleaned);
@@ -329,7 +329,7 @@ public static class TextInterface
         // Scheme truth, not the C# boolean: a command's markup-command-signature is
         // a LIST, and filtering it through ToBool read every non-string markup as
         // "not a markup" — MetronomeMark and RehearsalMark texts never drew. Found
-        // by EPG8, fixed centrally 2026-08-07.
+        // by the bars/meter/keys/marks group, fixed centrally.
         return SchemeUtilities.IsSchemeTrue(CallLily(MarkupCommandSignatureSymbol, pair.Car))
                && !SchemeUtilities.IsSchemeTrue(CallLily(MarkupListFunctionSymbol, pair.Car));
     }

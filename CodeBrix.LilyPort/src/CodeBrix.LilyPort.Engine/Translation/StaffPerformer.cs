@@ -29,11 +29,11 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Translation; //was previously: lily/staff-performer.cc;
 
-// Modified by Jeremy Ellis on 2026-08-08 as part of the CodeBrix port:
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port:
 //   - THE THREE STATIC MEMBERS ARE UPSTREAM'S AND SO IS THE MECHANISM THAT CLEARS THEM,
 //     but the port is exposed to them in a way upstream is not. Upstream gets one process
 //     per input file; this port sweeps 2,146 files in ONE process, and per-file state that
-//     is not restored is the exact leak class RATCHET-FIX chased three times over (\paper,
+//     is not restored is the exact per-file leak class chased three times over (\paper,
 //     $defaultlayout, \language). Upstream's own guard -- the last Staff_performer to
 //     finalize clears them -- is reproduced faithfully AND ResetStaticChannelState is
 //     added for LilyPondInit.RestoreDefaults to call, because a score that dies before

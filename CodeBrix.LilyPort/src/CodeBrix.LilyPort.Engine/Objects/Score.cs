@@ -25,7 +25,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Objects; //was previously: lily/score.cc, lily/include/score.hh;
 
-// Modified by Jeremy Ellis on 2026-08-03 as part of the CodeBrix port.
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port.
 
 /// <summary>
 /// What a <c>\score</c> block becomes: one music expression, its output definitions
@@ -178,8 +178,8 @@ public class Score
     /// <c>paper</c> block.
     /// </para>
     /// <para>
-    /// Landed with EPG16 (2026-08-08), and its absence is why this file's ledger row read
-    /// <c>ported</c> while the rendering half was hollow — the same shape EPG15 found in
+    /// Landed with the page-layout group, and its absence is why this file's ledger row read
+    /// <c>ported</c> while the rendering half was hollow — the same shape line breaking found in
     /// five files at once.
     /// </para>
     /// </summary>

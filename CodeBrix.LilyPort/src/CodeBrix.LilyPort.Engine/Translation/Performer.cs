@@ -23,7 +23,7 @@ using CodeBrix.LilyPort.Engine.Music;
 
 namespace CodeBrix.LilyPort.Engine.Translation; //was previously: lily/performer.cc, lily/include/performer.hh, lily/performer-group.cc, lily/include/performer-group.hh;
 
-// Modified by Jeremy Ellis on 2026-08-08 as part of the CodeBrix port:
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port:
 //   - Upstream's `template <typename T, typename... Args> T *announce (...)' builds the
 //     element and announces it in one call. C# generics cannot express "construct T from
 //     these arbitrary arguments", so Announce<T> here takes an ALREADY-CONSTRUCTED

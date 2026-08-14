@@ -28,7 +28,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Layout; //was previously: lily/performance.cc, lily/include/performance.hh;
 
-// Modified by Jeremy Ellis on 2026-08-08 as part of the CodeBrix port:
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port:
 //   - derived_mark() is not carried, for the reason recorded on AudioElement: reachability
 //     IS the mark here.
 //   - The destructor's `delete element' loop has no analogue.

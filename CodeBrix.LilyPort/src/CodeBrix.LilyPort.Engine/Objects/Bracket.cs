@@ -26,11 +26,11 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Objects; //was previously: lily/bracket.cc, lily/include/bracket.hh;
 
-// Modified by Jeremy Ellis on 2026-08-07 as part of the CodeBrix port:
-//   - PULLED FORWARD FROM EPG14 by EPG17's demand loop. Volta_bracket_interface::print
-//     and Tuplet_bracket::print both draw through make_bracket, so neither of EPG17's
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port:
+//   - PULLED FORWARD by the volta/tuplet demand loop. Volta_bracket_interface::print
+//     and Tuplet_bracket::print both draw through make_bracket, so neither of that group's
 //     bracket grobs can exist without this file. It declares no Scheme callbacks at all
-//     — it is pure static drawing helpers — so pulling it forward costs EPG14 nothing
+//     — it is pure static drawing helpers — so pulling it forward costs its owner nothing
 //     and leaves its own grobs (HorizontalBracket, BassFigureBracket, ottava, piano
 //     pedal) exactly where they were.
 
@@ -80,13 +80,13 @@ public static class Bracket
 
         DrulArray<Offset> straightCorners = corners;
 
-        // EPG17's zero-length guard is GONE (EPG15 close-out, 2026-08-08) and this is
+        // The original zero-length guard is GONE and this is
         // upstream's own division again. It existed because the port drew brackets while
         // horizontal spacing was incomplete, so a spanner's two bounds could share a
         // coordinate, dz was (0, 0), and upstream's expression evaluated 0/0 -- the NaN
         // reaching the stencil's extent box and killing the file later in skyline
-        // building with "slope is not finite" (volta-multi-staff-inner-staff.ly,
-        // 2026-08-07). EPG15's line breaking places the columns before any stencil is
+        // building with "slope is not finite" (volta-multi-staff-inner-staff.ly).
+        // Line breaking places the columns before any stencil is
         // asked for, which is the condition upstream relies on.
         double inverseLength = 1.0 / length;
 

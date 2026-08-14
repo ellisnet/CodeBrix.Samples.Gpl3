@@ -27,7 +27,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Translation; //was previously: lily/vaticana-ligature-engraver.cc;
 
-// Modified by Jeremy Ellis on 2026-08-09 as part of the CodeBrix port:
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port:
 //   - align_heads returns the ligature width, which upstream computes and then DISCARDS at
 //     its single call site. The return is kept because the value is the function's whole
 //     result and dropping it would hide that; nothing reads it, exactly as upstream.

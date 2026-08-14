@@ -25,7 +25,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Objects; //was previously: lily/book.cc, lily/include/book.hh;
 
-// Modified by Jeremy Ellis on 2026-08-03 as part of the CodeBrix port.
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port.
 
 /// <summary>
 /// What a <c>\book</c> or a <c>\bookpart</c> block becomes: a header, an optional
@@ -123,8 +123,8 @@ public class Book
     /// definitions win while everything the parent defined shows through. This is how a
     /// score in a headerless <c>\bookpart</c> gets titled by its enclosing
     /// <c>\book</c>'s header — the <c>sequence-name-scoping</c> MIDI names. Setting the
-    /// bare <see cref="Parent"/> property (which both bookpart paths did until
-    /// 2026-08-12) skipped the merge and those names came out empty.
+    /// bare <see cref="Parent"/> property (which both bookpart paths once
+    /// did) skipped the merge and those names came out empty.
     /// </summary>
     /// <param name="parent">The enclosing book.</param>
     /// <remarks>
@@ -160,7 +160,7 @@ public class Book
     /// Adds a bookpart, consing it onto the FRONT of <see cref="Bookparts"/> — after
     /// FIRST wrapping any scores collected so far into an implicit bookpart, exactly as
     /// upstream's <c>Book::add_bookpart</c> does. Deferring that wrap to process time
-    /// (which this method did until 2026-08-12) put the implicit part on the WRONG side
+    /// (which this method once did) put the implicit part on the WRONG side
     /// of the cons: scores written before a <c>\bookpart</c> came out after it, which
     /// is how the sequence-name* books shuffled their MIDI sequence names.
     /// </summary>
@@ -179,7 +179,7 @@ public class Book
     /// <summary>
     /// Concatenates every score's and bookpart's output into one <see cref="PaperBook"/>.
     /// <para>
-    /// Landed with EPG16 (2026-08-08) — the rendering half this file's ledger row said was
+    /// Landed with the page-layout group — the rendering half this file's ledger row said was
     /// absent. This is what <c>ly:book-process</c> calls and therefore what the whole page
     /// path hangs off.
     /// </para>
@@ -294,7 +294,7 @@ public class Book
                     // output in the caller (the batch runner, Lily.Shell), which reads
                     // ONLY the top book's performances. Hoisting here, in bookpart
                     // order, is that recursion — without it every \bookpart's MIDI
-                    // vanished (the sequence-name* rows, 2026-08-12).
+                    // vanished (the sequence-name* rows).
                     foreach (object performance in Pair.ToList(paperBookPart.Performances()))
                     {
                         outputPaperBook.AddPerformance(performance);

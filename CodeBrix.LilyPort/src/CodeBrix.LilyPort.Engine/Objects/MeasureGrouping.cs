@@ -24,7 +24,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Objects; //was previously: lily/measure-grouping-spanner.cc, lily/include/measure-grouping-spanner.hh;
 
-// Modified by Jeremy Ellis on 2026-08-07 as part of the CodeBrix port.
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port.
 
 /// <summary>
 /// An object indicating groups of beats. Valid choices for <c>style</c> are
@@ -47,10 +47,10 @@ public static class MeasureGrouping
     public static Stencil Print(Spanner grob)
     {
         object which = grob.GetProperty(StyleSymbol);
-        double height = Epg8Support.ToDouble(grob.GetProperty(HeightSymbol), 1.0);
+        double height = TranslatorSchemeHelpers.ToDouble(grob.GetProperty(HeightSymbol), 1.0);
 
         double t = StaffSymbolReferencer.LineThickness(grob)
-            * Epg8Support.ToDouble(grob.GetProperty(ThicknessSymbol), 1.0);
+            * TranslatorSchemeHelpers.ToDouble(grob.GetProperty(ThicknessSymbol), 1.0);
 
         Item lb = grob.GetBound(Direction.Negative);
         Item rb = grob.GetBound(Direction.Positive);

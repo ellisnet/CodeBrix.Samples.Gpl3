@@ -23,7 +23,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Objects; //was previously: lily/directional-element-interface.cc, lily/include/directional-element-interface.hh;
 
-// Modified by Jeremy Ellis on 2026-08-07 as part of the CodeBrix port.
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port.
 
 /// <summary>
 /// Reads and writes a grob's <c>direction</c> property.
@@ -84,7 +84,7 @@ public static class DirectionalElementInterface
         if (strict && dir == Direction.Center)
         {
             // Upstream reports this through me->warning (), so it carries the grob's
-            // origin. Reporting it bare -- as this did until EPG22 -- names no file and
+            // origin. Reporting it bare -- as this once did -- names no file and
             // no bar, which is the difference between a usable diagnostic and noise.
             me.Warning(
                 "direction of grob " + me.Name + " must be UP or DOWN; using UP");

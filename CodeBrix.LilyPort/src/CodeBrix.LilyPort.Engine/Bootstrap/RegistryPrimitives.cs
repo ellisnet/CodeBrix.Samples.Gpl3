@@ -507,7 +507,7 @@ public sealed class UnpurePureContainer : ISchemePrintable
     /// wrong arity. Answering the unpure part bare would put that error one call further
     /// away from its cause.
     /// </para>
-    /// <para>Added by EPG15 (2026-08-08) with the rest of unpure-pure-container.cc.</para>
+    /// <para>Added with the rest of unpure-pure-container.cc.</para>
     /// </summary>
     /// <returns>The pure part, or a call wrapper around the unpure one.</returns>
     public object PurePart() => IsPureOmitted ? new UnpurePureCall(Unpure) : Pure;

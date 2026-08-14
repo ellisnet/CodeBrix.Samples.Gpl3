@@ -12,7 +12,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Bootstrap; //was previously: scm/parser-ly-from-scheme.scm;
 
-// Modified by Jeremy Ellis on 2026-08-02 as part of the CodeBrix port.
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port.
 
 /// <summary>
 /// The <c>#{ ... #}</c> reader extension, which embeds LilyPond syntax inside Scheme.

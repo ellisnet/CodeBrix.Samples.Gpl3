@@ -26,7 +26,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Layout; //was previously: lily/constrained-breaking.cc, lily/include/constrained-breaking.hh (Line_shape and Line_details);
 
-// Modified by Jeremy Ellis on 2026-08-08 as part of the CodeBrix port:
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port:
 //   - Line_shape and Line_details are STRUCTS upstream and CLASSES here, deliberately.
 //     Line_details is thirty-odd fields and is copied into and out of a dynamic-programming
 //     table by value in C++; the port stores references in that table instead and never

@@ -94,7 +94,7 @@ public class KeyEngraverTests : IDisposable
         Pair entry = (Pair)((Pair)alterations).Car;
         CodeBrix.LilyScheme.Primitives.CorePrimitives.SchemeEqual(entry.Car, 3L)
             .Should().BeTrue();
-        Epg8Support.ToRational(entry.Cdr, Rational.Zero).Should().Be(new Rational(1, 2));
+        TranslatorSchemeHelpers.ToRational(entry.Cdr, Rational.Zero).Should().Be(new Rational(1, 2));
 
         // The tonic travels with it.
         (staff.GetProperty("tonic") is Pitch).Should().BeTrue();

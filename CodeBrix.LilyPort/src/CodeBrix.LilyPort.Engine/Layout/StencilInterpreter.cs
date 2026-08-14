@@ -23,9 +23,9 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Layout; //was previously: lily/stencil-interpret.cc, lily/include/stencil-interpret.hh;
 
-// Modified by Jeremy Ellis on 2026-08-03 as part of the CodeBrix port.
-// Moved from CodeBrix.LilyPort.Backends on 2026-08-05: the interpreter is engine
-// machinery (upstream lily/), and EPG3's PaperOutputter needs it below the
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port.
+// Moved from CodeBrix.LilyPort.Backends: the interpreter is engine
+// machinery (upstream lily/), and the output pipeline's PaperOutputter needs it below the
 // backends in the project graph.
 
 /// <summary>

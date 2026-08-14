@@ -11,8 +11,8 @@ using System.Collections.Generic;
 namespace CodeBrix.LilyPort.Engine.Objects;
 
 // NEW IN FAMILY — no upstream file. This is a replica of libstdc++'s heap algorithm, which
-// is what std::priority_queue is built on. EPG10 wrote it privately inside BeamQuanting for
-// beam configurations; EPG11/EPG12 (2026-08-08) generalized it in place rather than
+// is what std::priority_queue is built on. It was first written privately inside BeamQuanting for
+// beam configurations; the ties-and-slurs work generalized it in place rather than
 // re-deriving it, because Slur_score_state::get_best_curve runs the identical pattern over
 // Slur_configuration with the identical inverting comparator.
 

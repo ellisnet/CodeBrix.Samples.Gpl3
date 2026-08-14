@@ -27,7 +27,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Objects; //was previously: lily/mensural-ligature.cc, lily/include/mensural-ligature.hh;
 
-// Modified by Jeremy Ellis on 2026-08-09 as part of the CodeBrix port:
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port:
 //   - upstream's MLP_* primitive codes are preprocessor #defines in the header; they are
 //     public consts here, renamed from MACRO_CASE to PascalCase. The VALUES may not
 //     change: `primitive' is a grob property holding this bit set, written by the

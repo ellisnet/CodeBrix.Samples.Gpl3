@@ -26,7 +26,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Objects; //was previously: lily/line-spanner.cc;
 
-// Modified by Jeremy Ellis on 2026-08-08 as part of the CodeBrix port:
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port:
 //   - Line_spanner and Horizontal_line_spanner share a file upstream and share one here.
 //     The horizontal one is nothing but three thin callbacks that pass horizontal = true.
 //   - the two `unbroken-or-*-broken-spanner?` predicates are Scheme (scm/lily-library.scm),

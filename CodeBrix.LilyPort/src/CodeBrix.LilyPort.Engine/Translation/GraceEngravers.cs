@@ -26,7 +26,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Translation; //was previously: lily/grace-engraver.cc, lily/grace-spacing-engraver.cc;
 
-// Modified by Jeremy Ellis on 2026-08-07 as part of the CodeBrix port:
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port:
 //   - Grace_engraver registers its GraceChange listener on the context's EVENT SOURCE,
 //     by hand in Initialize and removed in FinalizeTranslation, exactly as upstream
 //     does. It deliberately does NOT use Translator.ListenTo, which registers on

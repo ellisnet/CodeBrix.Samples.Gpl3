@@ -27,7 +27,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Music; //was previously: lily/pitch.cc, lily/include/pitch.hh;
 
-// Modified by Jeremy Ellis on 2026-08-02 as part of the CodeBrix port.
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port.
 
 /// <summary>
 /// A "tonal" pitch: a pitch used in diatonic western music (24 quartertones in an
@@ -114,7 +114,7 @@ public sealed class Pitch : IEquatable<Pitch>, IComparable<Pitch>, ISchemeEqual,
     /// <summary>Gets the alteration, in 200-cent tones.</summary>
     public Rational Alteration => _alteration;
 
-    // EPG12 (2026-08-08) carried these: pitch.cc defines them as file-scope globals and
+    // The slur group carried these: pitch.cc defines them as file-scope globals and
     // pitch.hh externs them, but nothing in the port had asked for one until
     // Slur_score_state::get_extra_encompass_infos, which shifts an accidental's collision
     // box by a different amount for each. Their absence was silent, not diagnosed.
@@ -410,8 +410,8 @@ public sealed class Pitch : IEquatable<Pitch>, IComparable<Pitch>, ISchemeEqual,
     /// <param name="c">The context to update.</param>
     /// <remarks>
     /// A free function in <c>lily/pitch.cc</c>, carried here as a static because that is
-    /// the file's class in this port. Added 2026-08-08 by EPG14: <c>pitch.cc</c> has read
-    /// <c>ported</c> since EPG0, but this function had never come across — nothing asked
+    /// the file's class in this port. Added later: <c>pitch.cc</c> has read
+    /// <c>ported</c> from the start, but this function had never come across — nothing asked
     /// until <c>Ottava_spanner_engraver</c> needed to shift middle C by an octave.
     /// </remarks>
     public static void SetMiddleC(Translation.Context c)

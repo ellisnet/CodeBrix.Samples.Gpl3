@@ -25,7 +25,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Music; //was previously: lily/music-function.cc, lily/include/music-function.hh;
 
-// Modified by Jeremy Ellis on 2026-08-04 as part of the CodeBrix port.
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port.
 
 /// <summary>
 /// A LilyPond music function: a Scheme procedure plus the call signature that says what

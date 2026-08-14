@@ -23,11 +23,11 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Objects; //was previously: lily/grob-closure.cc, lily/grob.cc (x_parent_positioning / y_parent_positioning only);
 
-// Modified by Jeremy Ellis on 2026-08-07 as part of the CodeBrix port.
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port.
 
 /// <summary>
 /// The offset-callback chaining helpers of <c>lily/grob-closure.cc</c>, pulled forward
-/// out of EPG15 because EPG7's alignment interfaces are their first port-side callers:
+/// ahead of line breaking because the alignment interfaces are their first port-side callers:
 /// <c>Side_position_interface::set_axis</c> chains an offset callback and
 /// <c>Align_interface::add_element</c> plants a parent-positioning procedure.
 /// <para>

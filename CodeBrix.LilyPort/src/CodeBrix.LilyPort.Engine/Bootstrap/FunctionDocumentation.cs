@@ -25,18 +25,18 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Bootstrap; //was previously: lily/function-documentation.cc;
 
-// Modified by Jeremy Ellis on 2026-08-05 as part of the CodeBrix port.
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port.
 
 /// <summary>
 /// The registry behind <c>ly:get-all-function-documentation</c>: every documented
 /// entry point's argument list and docstring, keyed by name.
 /// <para>
 /// Upstream populates this table from the <c>LY_DEFINE</c> macro at registration
-/// time, so it is exactly as complete as the binding set. The port's bindings carry
-/// no docstrings yet — EPG24 owes them, because <c>documentation-generate.scm</c>'s
-/// output can only match the oracle's when every entry documents itself the way
-/// upstream does. Until then the table is honestly sparse rather than absent: the
-/// MECHANISM is ported, the CONTENT arrives with the bindings that declare it.
+/// time, so it is exactly as complete as the binding set. The port's bindings take
+/// their docstrings from the vendored entry-point table, because
+/// <c>documentation-generate.scm</c>'s output can only match the oracle's when every
+/// entry documents itself the way upstream does; the docs-parity run grades the
+/// result byte for byte.
 /// </para>
 /// <para>
 /// Upstream also stores each docstring as the procedure's <c>documentation</c>
@@ -56,7 +56,7 @@ public static class FunctionDocumentation
     /// <summary>
     /// The predicate descriptions upstream's <c>init_func_doc</c> registers — the
     /// human-readable type names the generated Internals Reference prints for
-    /// documented predicates. Data, kept verbatim for EPG24.
+    /// documented predicates. Data, kept verbatim for the documentation run.
     /// </summary>
     private static readonly Dictionary<string, string> PredicateDescriptions
         = new Dictionary<string, string>

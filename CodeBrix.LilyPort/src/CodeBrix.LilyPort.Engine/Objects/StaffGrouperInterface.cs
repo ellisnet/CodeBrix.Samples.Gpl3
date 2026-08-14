@@ -24,7 +24,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Objects; //was previously: lily/staff-grouper-interface.cc, lily/include/staff-grouper-interface.hh;
 
-// Modified by Jeremy Ellis on 2026-08-07 as part of the CodeBrix port.
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port.
 
 /// <summary>
 /// Queries over a <c>StaffGrouper</c> — the spanner a nested
@@ -33,7 +33,7 @@ namespace CodeBrix.LilyPort.Engine.Objects; //was previously: lily/staff-grouper
 /// <para>
 /// The hara-kiri calls both methods make upstream — <c>consider_suicide</c> before
 /// measuring a staff, <c>request_suicide</c> in the pure branch — are the deliberately
-/// unported staff-removal machinery (the EPG3 note): no staff ever vanishes here, so
+/// unported staff-removal machinery (the output-pipeline note): no staff ever vanishes here, so
 /// the first is skipped and the second answers "no". Recorded in PORT-COVERAGE.
 /// </para>
 /// </summary>

@@ -31,7 +31,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Fonts; //was previously: lily/open-type-font.cc, lily/include/open-type-font.hh;
 
-// Modified by Jeremy Ellis on 2026-08-03 as part of the CodeBrix port.
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port.
 
 /// <summary>
 /// An Emmentaler font, read for the engraver-critical metadata LilyPond stores in two

@@ -90,7 +90,7 @@ public static class LilyPondInit
     /// </para>
     /// <para>
     /// The old LIMIT here — "a variable a file INVENTS is left in place, because the
-    /// scope has no unbind" — RETIRED on 2026-08-11 (the STAFF-LINES follow-up):
+    /// scope has no unbind" — RETIRED:
     /// <see cref="Parsing.Session.LilyParserSession.RestoreToplevelScope"/> now removes
     /// invented bindings and reverts overwritten ones, which is upstream's
     /// one-parser-per-file semantics. The ssaattbb templates were the measured victim.
@@ -123,14 +123,14 @@ public static class LilyPondInit
                 }
 
                 // THE SEVENTH LEAK, same shape as $defaultpaper and $defaultlayout
-                // (found 2026-08-08 through the MIDI comparator): a TOPLEVEL \midi
+                // (found through the MIDI comparator): a TOPLEVEL \midi
                 // block REBINDS the $defaultmidi identifier to its clone, and nothing
                 // put the original back. midi2ly-generated regression files set
                 // midiChannelMapping = #'instrument in exactly such a block, so every
                 // file swept after the first of them performed under 'instrument
                 // mapping instead of performer-init.ly's 'staff — visible as every
                 // staff landing on MIDI channel 0. Run alone, the same file is
-                // correct: the EPG4 trap, MIDI edition.
+                // correct: the full-sweep-only trap, MIDI edition.
                 if (_defaultMidi != null)
                 {
                     _session.SetIdentifier(DefaultMidiSymbol, _defaultMidi);
@@ -149,8 +149,8 @@ public static class LilyPondInit
                 }
             }
 
-            // THE FIFTH LEAK, AND IT IS THE OLDEST AND WIDEST OF THEM (found 2026-08-08,
-            // EPG19). Lily_parser::default_duration_ is what a note with NO written
+            // THE FIFTH LEAK, AND IT IS THE OLDEST AND WIDEST OF THEM (found through the
+            // MIDI comparator). Lily_parser::default_duration_ is what a note with NO written
             // duration inherits, and upstream makes ONE PARSER PER FILE, so it starts
             // every file at a quarter note. The port has one session for the whole sweep,
             // so file N's last written duration became file N+1's default -- and since a
@@ -162,7 +162,7 @@ public static class LilyPondInit
             // the SAME glyphs in the same order. The MIDI comparator grades TICKS, and a
             // note-off at 192 where the oracle says 384 is not a near miss. Measured both
             // ways: crescendo-return-crescendo.ly run ALONE is correct, and inside the
-            // sweep it is halved -- the EPG4 trap in reverse.
+            // sweep it is halved -- the full-sweep-only trap in reverse.
             //
             // DefaultTremoloType is restored beside it: same member class, same lifetime,
             // and nothing had put it back either.
@@ -172,7 +172,7 @@ public static class LilyPondInit
                 _session.DefaultTremoloType = 8;
             }
 
-            // THE SIXTH LEAK, and EPG19 added the state that could leak (2026-08-08).
+            // THE SIXTH LEAK, and the MIDI layer added the state that could leak.
             // Staff_performer keeps its instrument-to-channel map in STATIC members,
             // because upstream gets one process per file and clears them when the last
             // Staff_performer finalizes. A score that dies before finalize would hand its
@@ -182,16 +182,15 @@ public static class LilyPondInit
             Engine.Translation.StaffPerformer.ResetStaticChannelState();
 
             // THE EIGHTH LEAK, and unlike the others it points at a MECHANISM rather
-            // than a variable (found 2026-08-08 through the MIDI comparator). Upstream
+            // than a variable (found through the MIDI comparator). Upstream
             // re-initializes every `define-session' variable per file — scm/lily.scm's
             // session machinery exists precisely for multi-file invocations — and the
-            // port does not yet drive that machinery; it belongs to EPG16 with the
-            // real book path. Until then, the one session variable MEASURED to leak
+            // port does not drive that machinery. The one session variable MEASURED to leak
             // is put back by hand: `unique-counter' names the voices \addlyrics
             // generates (uniqueContext0, 1, ...), so a counter that keeps climbing
             // across the sweep names every file's contexts after the first
             // differently from the oracle. Run alone the same file is correct — the
-            // EPG4 trap again.
+            // full-sweep-only trap again.
             CodeBrix.LilyScheme.Interpreter interpreter = Engine.Bootstrap.LilyPondScheme.Current;
             CodeBrix.LilyScheme.Runtime.SchemeModule lilyModule = interpreter?.Modules?.Resolve(
                 CodeBrix.LilyScheme.Values.Pair.List(Symbol.Intern("lily")));
@@ -376,7 +375,7 @@ public static class LilyPondInit
         // of the suite. See RestoreDefaults.
         _noteNamesSnapshot = _session.NoteNames();
 
-        // THE NINTH LEAK (found 2026-08-11, the STAFF-LINES follow-up, by bisecting
+        // THE NINTH LEAK (found by bisecting
         // the sweep against ssaattbb-template-with-all-staves): the parser's BASE
         // SCOPE. Upstream makes one parser per file, so a file's toplevel
         // assignments die with it; this shared session kept every one of them, and
@@ -386,8 +385,8 @@ public static class LilyPondInit
         // RestoreDefaults plays it back per file. See LilyParserSession.
         _session.SnapshotToplevelScope();
 
-        // ly:parse-file and ly:parse-init were EPG1 bindings deferred "to EPG3's
-        // batch runner by decision"; the runner exists, so every real session gets
+        // ly:parse-file and ly:parse-init were early bindings deferred to the
+        // batch runner by decision; the runner exists, so every real session gets
         // them the moment the layers are up.
         BatchRunner.InstallSessionBindings(LilyPondScheme.Current);
         return layout;

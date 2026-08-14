@@ -21,7 +21,7 @@ using CodeBrix.LilyPort.Flower;
 
 namespace CodeBrix.LilyPort.Engine.Origins; //was previously: lily/diagnostics.cc, lily/include/diagnostics.hh;
 
-// Modified by Jeremy Ellis on 2026-08-04 as part of the CodeBrix port.
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port.
 
 /// <summary>
 /// Gives anything that can say where it came from a full set of diagnostic calls, each

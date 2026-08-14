@@ -12,7 +12,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Bootstrap; //was previously: lily/program-option.cc;
 
-// Modified by Jeremy Ellis on 2026-08-02 as part of the CodeBrix port.
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port.
 
 /// <summary>How severe a diagnostic message is.</summary>
 public enum MessageSeverity
@@ -45,7 +45,7 @@ public enum MessageSeverity
 /// that file is carried in full by <c>CodeBrix.LilyPort.Flower</c>'s <c>Warn</c>. This one
 /// exists because the <c>ly:message</c> family is bound over program options rather than
 /// over Flower's static writer. The upstream bindings themselves
-/// (<c>lily/warn-scheme.cc</c>) are still owed, and the ledger routes them to EPG23.
+/// (<c>lily/warn-scheme.cc</c>) are registered with the general primitives.
 /// </para>
 /// </summary>
 public sealed class ProgramOptions

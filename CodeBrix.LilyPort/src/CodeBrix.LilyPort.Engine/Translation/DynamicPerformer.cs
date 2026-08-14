@@ -28,7 +28,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Translation; //was previously: lily/dynamic-performer.cc;
 
-// Modified by Jeremy Ellis on 2026-08-08 as part of the CodeBrix port:
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port:
 //   - THE FAITHFULNESS RULE APPLIES HERE. This is not a scorer, but calc_departure_volume
 //     is the same kind of thing: a decades-tuned heuristic with two magic paddings whose
 //     values upstream justifies at length in a comment. Both the comment and the numbers

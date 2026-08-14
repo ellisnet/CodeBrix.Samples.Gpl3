@@ -26,7 +26,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Objects; //was previously: lily/vowel-transition.cc, lily/include/vowel-transition.hh;
 
-// Modified by Jeremy Ellis on 2026-08-07 as part of the CodeBrix port:
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port:
 //   - ly_assoc_get is read through SchemeUtilities.Assq. Every key this file looks up in
 //     bound-details is a SYMBOL, for which upstream's assoc and assq agree exactly.
 //   - Interval_t<Moment>::length () has no counterpart on MomentInterval, so the one call

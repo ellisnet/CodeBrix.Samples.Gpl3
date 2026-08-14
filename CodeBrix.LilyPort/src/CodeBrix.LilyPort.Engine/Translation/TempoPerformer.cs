@@ -27,7 +27,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Translation; //was previously: lily/tempo-performer.cc;
 
-// Modified by Jeremy Ellis on 2026-08-08 as part of the CodeBrix port:
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port:
 //   - derived_mark() is not carried; see the note on AudioElement.
 
 /// <summary>
@@ -116,7 +116,7 @@ public sealed class TempoPerformer : Performer
             }
             else
             {
-                Epg8Support.EventWarning(
+                TranslatorSchemeHelpers.EventWarning(
                     _accelEvent, "tempo change already in progress; ignoring");
                 _accelEvent = null;
             }

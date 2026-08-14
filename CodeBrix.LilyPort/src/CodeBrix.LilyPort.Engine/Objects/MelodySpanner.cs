@@ -24,7 +24,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Objects; //was previously: lily/melody-spanner.cc, lily/include/melody-spanner.hh;
 
-// Modified by Jeremy Ellis on 2026-08-07 as part of the CodeBrix port:
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port:
 //   - vsize is unsigned upstream and VPOS is its largest value, which is what makes
 //     `last_nonneutral + 1' wrap to 0 on the first pass and `last_nonneutral--' step back
 //     to VPOS. The port keeps the same algorithm on a SIGNED index with -1 standing in for

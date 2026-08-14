@@ -25,7 +25,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Translation; //was previously: lily/slur-engraver.cc, lily/phrasing-slur-engraver.cc, lily/include/slur-engraver.hh;
 
-// Modified by Jeremy Ellis on 2026-08-08 as part of the CodeBrix port:
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port:
 //   - the two engravers share a file because upstream's phrasing-slur-engraver.cc is
 //     nothing but a five-method subclass of the slur one.
 //   - upstream registers one acknowledger per interface and lets the macro layer dispatch;
@@ -35,7 +35,7 @@ namespace CodeBrix.LilyPort.Engine.Translation; //was previously: lily/slur-engr
 //   - `fingering-interface` is registered because upstream registers it. NOTHING DECLARES
 //     THAT INTERFACE — not scm/, not lily/ — so the acknowledger is dead upstream and dead
 //     here. It is kept rather than dropped so the registration stays a faithful record;
-//     if EPG14 gives Fingering that interface, this starts working with no change here.
+//     if Fingering ever gains that interface, this starts working with no change here.
 
 /// <summary>
 /// Builds slur grobs from slur events, and collects everything the slur must be shaped
@@ -133,7 +133,7 @@ public class SlurEngraver : Engraver
             }
             else
             {
-                Epg8Support.EventWarning(_stopEvents[i].Slur, "cannot end " + ObjectName);
+                TranslatorSchemeHelpers.EventWarning(_stopEvents[i].Slur, "cannot end " + ObjectName);
             }
         }
 
@@ -307,7 +307,7 @@ public class SlurEngraver : Engraver
         }
         else
         {
-            Epg8Support.EventWarning(
+            TranslatorSchemeHelpers.EventWarning(
                 ev, "direction of " + ev.Name + " invalid: " + (int)d);
         }
     }
@@ -423,7 +423,7 @@ public class SlurEngraver : Engraver
                 {
                     // We already have an old slur, so give a warning
                     // and completely ignore the new slur.
-                    Epg8Support.EventWarning(ev, "already have " + ObjectName);
+                    TranslatorSchemeHelpers.EventWarning(ev, "already have " + ObjectName);
                     _startEvents.RemoveAt(eventIdx);
                     return false;
                 }

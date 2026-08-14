@@ -25,7 +25,7 @@ using System.Text;
 
 namespace CodeBrix.LilyPort.Engine.Origins; //was previously: lily/source-file.cc, lily/include/source-file.hh;
 
-// Modified by Jeremy Ellis on 2026-08-04 as part of the CodeBrix port.
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port.
 
 /// <summary>
 /// One file of LilyPond input, holding its text and the index of its line breaks so any

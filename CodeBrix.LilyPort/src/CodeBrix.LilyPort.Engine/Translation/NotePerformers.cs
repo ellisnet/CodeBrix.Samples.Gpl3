@@ -28,10 +28,10 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Translation; //was previously: lily/note-performer.cc, lily/drum-note-performer.cc;
 
-// Modified by Jeremy Ellis on 2026-08-08 as part of the CodeBrix port:
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port:
 //   - The two performers share the articulation walk verbatim upstream (it is copied and
 //     pasted between the files). The port factors it into PerformerArticulations rather
-//     than duplicating it, which is the one place EPG19 does not reproduce a duplication:
+//     than duplicating it, which is the one place the MIDI layer does not reproduce a duplication:
 //     the two copies are identical line for line, so a single implementation cannot drift
 //     from either. Recorded in PORT-COVERAGE.
 

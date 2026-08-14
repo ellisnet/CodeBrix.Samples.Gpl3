@@ -29,7 +29,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Translation; //was previously: lily/piano-pedal-performer.cc, lily/midi-cc-performer.cc, lily/control-track-performer.cc;
 
-// Modified by Jeremy Ellis on 2026-08-08 as part of the CodeBrix port.
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port.
 
 /// <summary>Turns pedal events into MIDI pedal control changes.</summary>
 public sealed class PianoPedalPerformer : Performer
@@ -105,7 +105,7 @@ public sealed class PianoPedalPerformer : Performer
             {
                 if (info.StartEvent == null)
                 {
-                    Epg8Support.EventWarning(stop, "cannot find start of piano pedal");
+                    TranslatorSchemeHelpers.EventWarning(stop, "cannot find start of piano pedal");
                 }
                 else
                 {

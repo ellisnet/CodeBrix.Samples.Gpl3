@@ -26,7 +26,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Translation; //was previously: lily/rest-engraver.cc, lily/rest-collision-engraver.cc;
 
-// Modified by Jeremy Ellis on 2026-08-07 as part of the CodeBrix port.
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port.
 
 /*
   Should merge with Note_head_engraver
@@ -109,9 +109,9 @@ public class RestEngraver : Engraver
 /// them holds a rest, puts them under a <c>RestCollision</c>.
 /// <para>
 /// The <c>busyGrobs</c> queue this engraver reads is maintained by
-/// <c>Grob_pq_engraver</c> (lily/grob-pq-engraver.cc, EPG10). Until that lands, the
+/// <c>Grob_pq_engraver</c> (lily/grob-pq-engraver.cc). For an empty queue the
 /// property answers the empty list and no collision object is made — which is
-/// upstream's own behaviour for an empty queue, not a stub.
+/// upstream's own behaviour, not a stub.
 /// </para>
 /// </summary>
 public class RestCollisionEngraver : Engraver

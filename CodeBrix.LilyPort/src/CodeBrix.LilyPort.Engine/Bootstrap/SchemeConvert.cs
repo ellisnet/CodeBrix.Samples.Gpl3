@@ -58,7 +58,7 @@ public static class SchemeConvert
     /// <param name="result">The rational, when the value was numeric.</param>
     /// <returns><see langword="true"/> when the value was a number.</returns>
     /// <remarks>
-    /// ADDED 2026-08-08 (EPG19), AFTER A SILENT DEFECT THIS EXACT SHAPE. The MIDI
+    /// ADDED AFTER A SILENT DEFECT THIS EXACT SHAPE. The MIDI
     /// performers read numeric context properties whose upstream type is
     /// <c>from_scm&lt;Rational&gt;</c>, and a C# <c>is Rational</c> test looks like it
     /// says the same thing but does not: an exact Scheme ratio such as
@@ -175,7 +175,7 @@ public static class SchemeConvert
     /// This is the shape output-definition variables need: <c>c_variable</c> answers the
     /// unbound object for a paper variable nobody set, and every caller wants a default
     /// rather than an exception. Two ad-hoc copies of this had already grown in the engine
-    /// (in <c>Stem</c> and in <c>Epg8Support</c>) before it was given a home here; EPG20
+    /// (in <c>Stem</c> and in <c>TranslatorSchemeHelpers</c>) before it was given a home here; the tablature group
     /// found what a second copy of a conversion costs when it discovered a whole separate
     /// <c>equal?</c>.
     /// </para>
@@ -326,7 +326,7 @@ public static class SchemeErrors
     /// <param name="message">The message, already formatted.</param>
     /// <returns>The exception to throw.</returns>
     /// <remarks>
-    /// Added 2026-08-08 by EPG14 for <c>skyline-scheme.cc</c>, which rejects a mismatched
+    /// Added for <c>skyline-scheme.cc</c>, which rejects a mismatched
     /// skyline direction and an infinite non-horizontal building this way rather than as a
     /// type error.
     /// </remarks>

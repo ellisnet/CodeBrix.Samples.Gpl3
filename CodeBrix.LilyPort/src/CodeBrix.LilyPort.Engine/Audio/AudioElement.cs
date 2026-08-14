@@ -24,7 +24,7 @@ using CodeBrix.LilyPort.Engine.Translation;
 
 namespace CodeBrix.LilyPort.Engine.Audio; //was previously: lily/audio-element.cc, lily/include/audio-element.hh, lily/audio-element-info.cc, lily/include/audio-element-info.hh;
 
-// Modified by Jeremy Ellis on 2026-08-08 as part of the CodeBrix port:
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port:
 //   - gc_mark() is NOT carried and has no analogue. Upstream's Performance keeps every
 //     Audio_element alive and marks each one's causing Stream_event so Guile's collector
 //     does not reclaim an event the performance still points at. In this port the

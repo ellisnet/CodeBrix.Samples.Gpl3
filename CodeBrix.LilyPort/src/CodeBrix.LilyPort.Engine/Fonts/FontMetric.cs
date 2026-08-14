@@ -24,8 +24,8 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Fonts; //was previously: lily/font-metric.cc, lily/include/font-metric.hh, lily/modified-font-metric.cc, lily/include/modified-font-metric.hh;
 
-// Modified by Jeremy Ellis on 2026-08-03 as part of the CodeBrix port.
-// Modified by Jeremy Ellis on 2026-08-11 as part of the CodeBrix port:
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port.
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port:
 //   - OpenTypeFontMetric.IndexedAdvance scales the raw hmtx value by FontScaling over
 //     the em, the same factor the SVG backend draws outlines with. It multiplied by
 //     the POINT constant before — a unit from a different domain — so every composed
@@ -260,7 +260,7 @@ public sealed class OpenTypeFontMetric : FontMetric
     /// <c>FontScaling / units-per-em</c> factor the SVG backend draws those outlines
     /// with, so a composed run's pen positions live in the same space as its glyphs.
     /// <para>
-    /// Until the STAFF-LINES follow-up (2026-08-11) this multiplied by the POINT
+    /// This once multiplied by the POINT
     /// constant instead, which is a unit from a different domain entirely: every
     /// advance came out exactly 50× the glyph's width, and a time signature whose
     /// spec makes the numerals a STRING (`(1/2 . 3/4)` prints "1/2" over "3/4")

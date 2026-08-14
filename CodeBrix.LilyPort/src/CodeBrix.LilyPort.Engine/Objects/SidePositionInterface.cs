@@ -26,12 +26,12 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Objects; //was previously: lily/side-position-interface.cc, lily/include/side-position-interface.hh, lily/grob.cc (get_vertical_axis_group only), lily/misc.cc (directed_round only);
 
-// Modified by Jeremy Ellis on 2026-08-07 as part of the CodeBrix port.
-// Modified by Jeremy Ellis on 2026-08-11 as part of the CodeBrix port:
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port.
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port:
 //   - aligned_side's SUPPORT loop reads each support's skylines, Y coordinate and
 //     add-stem-support maybe-pure, as upstream; and BOTH ReadSkylinePair
 //     constructor-default stand-ins are ordinary-branch only, because taking them in
-//     the pure branch asks for a stencil. See PORT-COVERAGE, STAFF-LINES.
+//     the pure branch asks for a stencil. See PORT-COVERAGE.
 
 /// <summary>
 /// Positions a victim grob NEXT TO a set of support grobs: above or below them
@@ -40,7 +40,7 @@ namespace CodeBrix.LilyPort.Engine.Objects; //was previously: lily/side-position
 /// fingerings and the system-start delimiters all sit on this.
 /// <para>
 /// PURE lookups — pure properties, pure coordinates, pure extents — take the ordinary
-/// answers throughout, the same EPG15 stand-in the rest of the port uses and records
+/// answers throughout, the same recorded stand-in the rest of the port uses and records
 /// in PORT-COVERAGE. The <c>pure</c> flag's CONTROL-FLOW effects (which stems are
 /// skipped, which X coordinate is used) are kept exactly.
 /// </para>
@@ -183,7 +183,7 @@ public static class SidePositionInterface
     /// Upstream's comment: because horizontal skylines need vertical heights, an
     /// unpure call before line breaking would trigger too much, so X positioning
     /// always asks PURE. The pure flag's property lookups fall back to the unpure
-    /// answers here (EPG15 stand-in), but its control flow is kept.
+    /// answers here (the recorded stand-in), but its control flow is kept.
     /// </para>
     /// </summary>
     /// <param name="me">The grob to position.</param>
@@ -321,7 +321,7 @@ public static class SidePositionInterface
         // axis the pair wanted is the horizontal one, which is what the helper's
         // axis argument selects.
         //
-        // THE READ IS MAYBE-PURE (EPG15 close-out, 2026-08-08). Upstream takes it through
+        // THE READ IS MAYBE-PURE. Upstream takes it through
         // get_maybe_pure_property, and reading it ORDINARILY in the pure branch is not a
         // rounding difference: an ordinary skyline read asks for a STENCIL, so a
         // MeasureSpanner was drawn while its two bounds still sat on unplaced columns and
@@ -403,7 +403,7 @@ public static class SidePositionInterface
                 }
             }
 
-            // THE READ IS MAYBE-PURE HERE TOO (STAFF-LINES session, 2026-08-11).
+            // THE READ IS MAYBE-PURE HERE TOO.
             // Upstream takes every support grob's skyline through
             // get_maybe_pure_property; reading it ORDINARILY in the pure branch asks
             // the support's axis group for a STENCIL during horizontal spacing, and

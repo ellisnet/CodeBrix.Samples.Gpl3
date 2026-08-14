@@ -27,7 +27,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Translation; //was previously: lily/font-size-engraver.cc, lily/tweak-engraver.cc, lily/balloon-engraver.cc, lily/parenthesis-engraver.cc, lily/instrument-name-engraver.cc, lily/instrument-switch-engraver.cc, lily/horizontal-bracket-engraver.cc, lily/ledger-line-engraver.cc;
 
-// Modified by Jeremy Ellis on 2026-08-08 as part of the CodeBrix port:
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port:
 //   - eight small engravers that annotate or decorate what other engravers made share a
 //     file; none is larger than a screen.
 //   - the derived_mark overrides on Parenthesis_engraver and Instrument_switch_engraver
@@ -640,7 +640,7 @@ public class HorizontalBracketEngraver : Engraver
             _popCount++;
             if (_popCount > _bracketStack.Count)
             {
-                Epg8Support.EventWarning(ev, "do not have that many brackets");
+                TranslatorSchemeHelpers.EventWarning(ev, "do not have that many brackets");
             }
         }
         else
@@ -651,7 +651,7 @@ public class HorizontalBracketEngraver : Engraver
 
         if (_popCount != 0 && _pushCount != 0)
         {
-            Epg8Support.EventWarning(ev, "conflicting note group events");
+            TranslatorSchemeHelpers.EventWarning(ev, "conflicting note group events");
         }
     }
 }

@@ -25,7 +25,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Objects; //was previously: lily/spanner.cc, lily/include/spanner.hh;
 
-// Modified by Jeremy Ellis on 2026-08-03 as part of the CodeBrix port.
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port.
 
 /** A symbol which is attached between two columns. A spanner is a
     symbol which spans across several columns, so its final appearance
@@ -248,7 +248,7 @@ public class Spanner : Grob
     /// <returns>The piece, or <see langword="null"/> when there is none.</returns>
     /// <remarks>
     /// The pieces are contiguous by system rank, so the system's rank minus the first
-    /// piece's indexes straight into the list. Added 2026-08-08 by EPG14 — see
+    /// piece's indexes straight into the list. Added for the scripts/dynamics group — see
     /// <see cref="Grob"/>.
     /// </remarks>
     public override Grob FindBrokenPiece(SystemGrob system)
@@ -261,10 +261,10 @@ public class Spanner : Grob
         int rank = system.Rank;
         Spanner first = BrokenIntos[0];
 
-        // EPG14 answered null here rather than dereferencing a first piece with no
+        // The first version answered null here rather than dereferencing a first piece with no
         // system, because the port asked this question before line breaking had run.
-        // Upstream dereferences unconditionally, and the guard is GONE (EPG15 close-out,
-        // 2026-08-08): break_into_pieces gives every piece its system before anything
+        // Upstream dereferences unconditionally, and the guard is
+        // GONE: break_into_pieces gives every piece its system before anything
         // can ask for one.
         int delta = rank - first.GetSystem().Rank;
         return delta >= 0 && delta < BrokenIntos.Count ? BrokenIntos[delta] : null;
@@ -314,7 +314,7 @@ public class Spanner : Grob
     /// configuration, and after line breaking a grob exists in only one of the two forms.
     /// </para>
     /// <para>
-    /// Was a returns-nothing seam from EPG10 until EPG15 (2026-08-08); it was the
+    /// Was a returns-nothing seam until line breaking landed; it was the
     /// SECOND most demanded unported entry point in the sweep, at 961 calls.
     /// </para>
     /// </summary>
@@ -620,7 +620,7 @@ public class Spanner : Grob
         // only had its bounds resolved carries it in the bound-info alists, and only a
         // spanner with neither falls back on the bounds' own coordinates.
         //
-        // The port had ONLY a variant of the third tier until EPG17 (2026-08-07), and
+        // The port had ONLY a variant of the third tier at first, and
         // that variant referenced each bound to ITS OWN X parent rather than absolutely,
         // so two bounds under different parents produced a meaningless difference and two
         // bounds at the same in-parent offset produced ZERO. VoltaBracket is the first
@@ -687,7 +687,7 @@ public class Spanner : Grob
     /// </para>
     /// <para>
     /// It was the MOST demanded unported entry point in the project, at 2,991 calls per
-    /// sweep, until EPG15 (2026-08-08).
+    /// sweep, until line breaking landed.
     /// </para>
     /// </summary>
     /// <param name="me">The spanner.</param>

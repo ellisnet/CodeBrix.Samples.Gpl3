@@ -23,7 +23,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Objects; //was previously: lily/axis-group-interface.cc, lily/include/axis-group-interface.hh;
 
-// Modified by Jeremy Ellis on 2026-08-03 as part of the CodeBrix port.
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port.
 
 /// <summary>
 /// Groups grobs so that they move together on one or both axes.
@@ -195,8 +195,8 @@ public static class AxisGroupInterface
     /// Returns the extent of just the part of a group that belongs to one staff.
     /// </summary>
     /// <remarks>
-    /// EPG11 (2026-08-08) carried this: <c>axis-group-interface.cc</c>'s ledger row has
-    /// said <c>ported</c> since EPG0, but this function had never come across, because
+    /// The tie group carried this: <c>axis-group-interface.cc</c>'s ledger row has
+    /// said <c>ported</c> from the start, but this function had never come across, because
     /// <c>Tie_formatting_problem::set_column_chord_outline</c> is its only caller in the
     /// whole engine and no tie had ever been formatted.
     /// </remarks>
@@ -232,7 +232,7 @@ public static class AxisGroupInterface
     /// answer. Recursion stops at any grob that is not itself an axis group.
     /// </para>
     /// <para>
-    /// Carried by EPG15 (2026-08-08): another member of this already-<c>ported</c> file
+    /// Carried with line breaking: another member of this already-<c>ported</c> file
     /// that had never come across, found because hara-kiri is its only caller.
     /// </para>
     /// </summary>

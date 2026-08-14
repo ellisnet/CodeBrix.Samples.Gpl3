@@ -242,7 +242,7 @@ public static class TranslationPrimitives
         // score then had no context to engrave into and the file produced NO PAGES AT ALL,
         // reported only as "cannot create default child context". PORT-COVERAGE had
         // recorded the risk in as many words: these stubs were "one Scheme call away from
-        // being actively wrong". Found by EPG16, 2026-08-09.
+        // being actively wrong". Found by the page-layout group.
         interpreter.DefinePrimitive("ly:context-def-lookup", 2, 3, a =>
         {
             ContextDef definition = AsContextDef(a[0], "ly:context-def-lookup");

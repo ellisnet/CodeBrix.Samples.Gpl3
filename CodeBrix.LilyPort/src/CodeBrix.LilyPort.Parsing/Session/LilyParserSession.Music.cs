@@ -28,7 +28,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Parsing.Session; //was previously: lily/music.cc (make_music_with_input), lily/lily-parser.cc, lily/parser.yy (loc_on_copy);
 
-// Modified by Jeremy Ellis on 2026-08-03 as part of the CodeBrix port.
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port.
 
 /// <content>
 /// The music, predicate and output-definition halves of the host: everything that
@@ -81,7 +81,7 @@ public sealed partial class LilyParserSession
         // itself looked identical until the first ly:input-location? type check ran
         // against an 'origin property and answered #f on every note the parser had
         // built — the silent-defect shape exactly: nothing failed until the real
-        // consumer arrived (found by the batch runner's first sweep, 2026-08-05).
+        // consumer arrived (found by the batch runner's first sweep).
         switch (music)
         {
             case MusicObject m:

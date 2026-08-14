@@ -23,7 +23,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Translation; //was previously: lily/context.cc (the measure_length / measure_position / scaled_measure_position free functions only);
 
-// Modified by Jeremy Ellis on 2026-08-07 as part of the CodeBrix port.
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port.
 
 /// <summary>
 /// The timing readers upstream keeps as free functions beside <c>Context</c>: measure
@@ -43,7 +43,7 @@ public static class MeasureTiming
     public static Rational MeasureLength(Context context)
     {
         // TODO: Consider changing the default to Moment::infinity().
-        return Epg8Support.ToRational(context?.GetProperty(MeasureLengthSymbol), Rational.One);
+        return TranslatorSchemeHelpers.ToRational(context?.GetProperty(MeasureLengthSymbol), Rational.One);
     }
 
     /// <summary>
@@ -102,7 +102,7 @@ public static class MeasureTiming
     public static Moment MeasurePosition(Context context, Rational length)
         => MeasurePosition(
             context,
-            Epg8Support.ToMoment(context?.GetProperty(MeasurePositionSymbol), Moment.Zero),
+            TranslatorSchemeHelpers.ToMoment(context?.GetProperty(MeasurePositionSymbol), Moment.Zero),
             length);
 
     /// <summary>
@@ -125,7 +125,7 @@ public static class MeasureTiming
     /// <returns>The position in terms of the nominal meter.</returns>
     public static Moment ScaledMeasurePosition(Context context, Rational scaledMeasureLength)
     {
-        Rational factor = Epg8Support.ToRational(
+        Rational factor = TranslatorSchemeHelpers.ToRational(
             context?.GetProperty(MeterScalingFactorSymbol), Rational.One);
         Rational actualLength = scaledMeasureLength * factor;
         Moment actualPosition = MeasurePosition(context, actualLength);

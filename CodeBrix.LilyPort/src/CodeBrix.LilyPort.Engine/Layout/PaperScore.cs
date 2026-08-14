@@ -24,7 +24,7 @@ using CodeBrix.LilyPort.Flower;
 
 namespace CodeBrix.LilyPort.Engine.Layout; //was previously: lily/paper-score.cc, lily/include/paper-score.hh;
 
-// Modified by Jeremy Ellis on 2026-08-03 as part of the CodeBrix port.
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port.
 
 /// <summary>
 /// What a score becomes once it is being laid out on paper: the root system, the
@@ -184,7 +184,7 @@ public class PaperScore : MusicOutput
     /// every parent at the piece on the same line.
     /// </para>
     /// <para>
-    /// EPG15 replaced <c>PlaceColumnsOnOneLine</c> here on 2026-08-08. That stand-in
+    /// Line breaking replaced <c>PlaceColumnsOnOneLine</c> here. That stand-in
     /// spaced the whole score as a single unbroken line — right for music that fits on
     /// one, visibly wrong for anything longer — and its recorded divergence in
     /// PORT-COVERAGE is retired with it.

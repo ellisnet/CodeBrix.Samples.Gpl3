@@ -26,7 +26,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Objects; //was previously: lily/note-head.cc, lily/include/note-head.hh;
 
-// Modified by Jeremy Ellis on 2026-08-03 as part of the CodeBrix port.
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port.
 
 /// <summary>
 /// A note head, and the choosing of the glyph that draws it.
@@ -306,7 +306,7 @@ public static class NoteHead
     // it: the private strict copy warned with its own text and did NOT store the
     // direction, where upstream's get_strict_grob_direction warns "direction of
     // grob %s must be UP or DOWN; using UP" and SETS the property. Found
-    // independently by EPG5 and EPG6, reconciled at Wave A integration 2026-08-07.
+    // independently by the column and stem groups, reconciled at integration.
     private static Direction GrobDirection(Grob grob)
         => grob == null ? Direction.Center : DirectionalElementInterface.GetGrobDirection(grob);
 

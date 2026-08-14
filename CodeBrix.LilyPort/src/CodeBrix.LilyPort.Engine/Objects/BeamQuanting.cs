@@ -28,7 +28,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Objects; //was previously: lily/beam-quanting.cc, lily/include/beam-scoring-problem.hh;
 
-// Modified by Jeremy Ellis on 2026-08-07 as part of the CodeBrix port.
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port.
 //
 // THIS FILE IS A SCORER. It is a decades-tuned heuristic and it is translated
 // LITERALLY — every demerit, constant, comparison and loop bound is upstream's.
@@ -318,7 +318,7 @@ internal sealed class BeamScoringProblem
     private static double MyModf(double x) => x - Math.Floor(x);
 
     // Upstream's libc-extension.cc: floor (x - 0.5) + 1.0, NOT floor (x + 0.5).
-    // EPG11/EPG12 (2026-08-08) moved the arithmetic to Flower's LibcExtension, which is
+    // The ties-and-slurs work moved the arithmetic to Flower's LibcExtension, which is
     // the file upstream declares it in, once ties and slurs became callers too.
     private static double RoundHalfwayUp(double x) => LibcExtension.RoundHalfwayUp(x);
 
@@ -1719,7 +1719,7 @@ internal sealed class BeamScoringProblem
         return new Interval(drul[Direction.Negative], drul[Direction.Positive]);
     }
 
-    // EPG11/EPG12 (2026-08-08): the libstdc++ heap replica this file used to define
+    // The libstdc++ heap replica this file used to define
     // privately now lives in Objects/ConfigurationHeap.cs, because Slur_score_state runs the
     // identical pattern with the identical inverting comparator. The algorithm is unchanged
     // and beams still break equal-demerit ties exactly as before; only its home moved.

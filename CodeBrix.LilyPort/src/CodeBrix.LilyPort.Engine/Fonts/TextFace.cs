@@ -94,8 +94,8 @@ public sealed class TextFace
 
     /// <summary>Gets the face's charstring interpreter, or <see langword="null"/>.</summary>
     /// <remarks>
-    /// EPG14 needs it to trace a text run's real outlines into a skyline, which is what
-    /// closed EPG13's carried-forward text divergence.
+    /// The script machinery needs it to trace a text run's real outlines into a skyline,
+    /// which is what closed the carried-forward text divergence.
     /// </remarks>
     public CffFont Cff => _cff;
 }

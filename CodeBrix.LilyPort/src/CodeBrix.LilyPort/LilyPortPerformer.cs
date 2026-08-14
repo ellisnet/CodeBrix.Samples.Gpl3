@@ -16,9 +16,9 @@ namespace CodeBrix.LilyPort;
 // NEW IN FAMILY — no upstream file. This is the MIDI-side twin of LilyPortEngraver, and it
 // exists for the same reason that one does: upstream reaches performance through
 // Score::book_rendering -> Paper_book::output -> write-performances-midis, and the port's
-// batch runner takes D20's score-level short-circuit instead. When EPG16 moves the runner
-// onto the real ly:book-process path, this collapses into that path exactly as
-// LilyPortEngraver does.
+// batch runner originally took D20's score-level short-circuit instead. With the runner
+// now on the real ly:book-process path, that path subsumes this for batch work, exactly
+// as it does LilyPortEngraver; this remains the direct score-level surface.
 
 /// <summary>
 /// Performs music end to end: a music tree in, a <see cref="Performance"/> out.

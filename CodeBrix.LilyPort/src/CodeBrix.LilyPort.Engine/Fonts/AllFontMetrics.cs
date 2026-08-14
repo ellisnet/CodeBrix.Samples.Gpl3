@@ -23,7 +23,7 @@ using CodeBrix.LilyPort.Flower;
 
 namespace CodeBrix.LilyPort.Engine.Fonts; //was previously: lily/all-font-metrics.cc, lily/include/all-font-metrics.hh;
 
-// Modified by Jeremy Ellis on 2026-08-03 as part of the CodeBrix port.
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port.
 
 /// <summary>
 /// The font cache: loads an Emmentaler by name and hands out the same instance every

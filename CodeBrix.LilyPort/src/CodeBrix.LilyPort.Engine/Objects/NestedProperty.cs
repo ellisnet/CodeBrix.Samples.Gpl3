@@ -23,7 +23,7 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Objects; //was previously: lily/nested-property.cc;
 
-// Modified by Jeremy Ellis on 2026-08-03 as part of the CodeBrix port.
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port.
 
 /// <summary>
 /// Alist surgery for nested grob properties — the operations
@@ -209,7 +209,7 @@ public static class NestedProperty
     /// </param>
     /// <param name="value">The value to write.</param>
     /// <remarks>
-    /// Added 2026-08-08 by EPG14 for <c>Tweak_engraver</c>. The body was already present,
+    /// Added for <c>Tweak_engraver</c>. The body was already present,
     /// written out inline inside <c>ly:grob-set-nested-property!</c>; that binding now
     /// calls this, so there is one implementation rather than two.
     /// </remarks>

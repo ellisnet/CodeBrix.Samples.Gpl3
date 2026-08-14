@@ -23,12 +23,12 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Objects; //was previously: lily/figured-bass-continuation.cc;
 
-// Modified by Jeremy Ellis on 2026-08-08 as part of the CodeBrix port:
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port:
 //   - upstream DECLARES Figured_bass_continuation::print and never DEFINES it anywhere in
 //     the tree, so it is NOT an entry point and no binding is made for it. The stencil
 //     comes from Scheme: define-grobs.scm names `figured-bass-continuation::print`, with
 //     no `ly:` prefix, which output-lib.scm defines. Same shape as the
-//     `Slur::vertical_skylines` declaration EPG12 recorded.
+//     `Slur::vertical_skylines` declaration the slur port recorded.
 
 /// <summary>Simple extender line between bounds.</summary>
 public static class FiguredBassContinuation
