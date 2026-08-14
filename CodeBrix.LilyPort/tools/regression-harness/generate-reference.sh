@@ -35,6 +35,27 @@ JOBS="${JOBS:-$(nproc)}"
 LIMIT="${LIMIT:-0}"
 PER_FILE_TIMEOUT="${PER_FILE_TIMEOUT:-60}"
 
+# MODE=svg          the pinned parity corpus: --silent, SVGs copied out, manifest
+#                   written. This is the D30 corpus and its contract is fixed.
+# MODE=diagnostics  the oracle's DIAGNOSTICS for the same inputs: --silent
+#                   DROPPED, nothing copied out, no manifest. Writes only
+#                   ${OUT_DIR}/diagnostics/<name>.log.
+#
+# Two modes in ONE script rather than two scripts, and the reason is D30: the
+# font pinning below has to be identical on both runs, and a second script would
+# be a second copy of it to keep in step. Font resolution failures ARE
+# diagnostics ("cannot find font"), so a diagnostics run made without the pinning
+# would record the host's font situation as though it were the oracle's.
+#
+# Diagnostics mode CANNOT disturb the parity corpus: it writes to a different
+# directory, copies no SVG, and rewrites no manifest -- and the manifest hashes
+# `.svg` only, so nothing it produces is part of what parity is measured against.
+MODE="${MODE:-svg}"
+case "${MODE}" in
+    svg|diagnostics) ;;
+    *) printf '\nERROR: MODE must be svg or diagnostics, got %s\n' "${MODE}" >&2; exit 1 ;;
+esac
+
 say() { printf '\n\033[1m==> %s\033[0m\n' "$*"; }
 note() { printf '    %s\n' "$*"; }
 die() { printf '\nERROR: %s\n' "$*" >&2; exit 1; }
@@ -61,6 +82,7 @@ note "         ${VERSION}"
 note "suite:   ${SUITE_DIR} ($(ls "${SUITE_DIR}"/*.ly 2>/dev/null | wc -l) files)"
 note "output:  ${OUT_DIR}"
 note "jobs:    ${JOBS}"
+note "mode:    ${MODE}"
 
 case "${VERSION}" in
     *2.27.2*) ;;
@@ -68,7 +90,11 @@ case "${VERSION}" in
        note "         version measures version drift, not port fidelity." ;;
 esac
 
-mkdir -p "${OUT_DIR}/svg" "${OUT_DIR}/logs"
+if [ "${MODE}" = "diagnostics" ]; then
+    mkdir -p "${OUT_DIR}/diagnostics"
+else
+    mkdir -p "${OUT_DIR}/svg" "${OUT_DIR}/logs"
+fi
 
 # ----------------------------------------------------------------------------
 # PIN THE FONTS.  Under -dbackend=svg, ly/paper-defaults-init.ly makes LilyPond
@@ -106,16 +132,40 @@ WORKER="${OUT_DIR}/.render-one.sh"
 cat > "${WORKER}" <<'WORKER_EOF'
 #!/bin/bash
 set -uo pipefail
-ly="$1"; out_dir="$2"; lilypond="$3"; timeout_s="$4"
+ly="$1"; out_dir="$2"; lilypond="$3"; timeout_s="$4"; mode="$5"
 name="$(basename "${ly}" .ly)"
 work="$(mktemp -d)"
 trap 'rm -rf "${work}"' EXIT
 
+# The two modes differ in exactly two things: whether --silent is passed, and
+# where the captured output lands. Everything else -- the temp working
+# directory, the timeout, the flags that decide what is DRAWN -- is deliberately
+# identical, so a diagnostics run describes the same rendering the parity corpus
+# was made from.
+#
+# The working directory is a fresh mktemp per file in BOTH modes. That is not
+# tidiness: a .ly file may WRITE, and giving each its own directory is what stops
+# one input's output being visible to the next (the same isolation BatchDriver
+# arranges on the port side).
+if [ "${mode}" = "diagnostics" ]; then
+    silent_flag=""
+    capture="${out_dir}/diagnostics/${name}.log"
+else
+    silent_flag="--silent"
+    capture="${out_dir}/logs/${name}.log"
+fi
+
 # A per-file timeout matters: a handful of regression inputs are deliberately
 # pathological, and one hang would stall the whole run.
 if timeout "${timeout_s}" "${lilypond}" \
-        --formats=svg -dbackend=svg -dno-point-and-click --silent \
-        -o "${work}/${name}" "${ly}" > "${out_dir}/logs/${name}.log" 2>&1; then
+        --formats=svg -dbackend=svg -dno-point-and-click ${silent_flag} \
+        -o "${work}/${name}" "${ly}" > "${capture}" 2>&1; then
+    # Diagnostics mode copies NOTHING out. The parity corpus is not its business
+    # and must not be touched by it.
+    if [ "${mode}" = "diagnostics" ]; then
+        echo "OK ${name}"
+        exit 0
+    fi
     produced=0
     for svg in "${work}/${name}"*.svg; do
         [ -e "${svg}" ] || continue
@@ -144,14 +194,37 @@ fi
 TOTAL="$(echo "${FILES}" | wc -l)"
 note "${TOTAL} file(s), ${PER_FILE_TIMEOUT}s timeout each"
 
-echo "${FILES}" \
-    | xargs -P "${JOBS}" -I@ "${WORKER}" @ "${OUT_DIR}" "${LILYPOND_BIN}" "${PER_FILE_TIMEOUT}" \
-    > "${OUT_DIR}/render-status.txt" || true
+STATUS_FILE="${OUT_DIR}/render-status.txt"
+[ "${MODE}" = "diagnostics" ] && STATUS_FILE="${OUT_DIR}/diagnostics-status.txt"
 
-OK="$(grep -c '^OK ' "${OUT_DIR}/render-status.txt" || true)"
-FAILED="$(grep -c '^FAIL ' "${OUT_DIR}/render-status.txt" || true)"
-NOOUT="$(grep -c '^NOOUT ' "${OUT_DIR}/render-status.txt" || true)"
-TIMEDOUT="$(grep -c '^TIMEOUT ' "${OUT_DIR}/render-status.txt" || true)"
+echo "${FILES}" \
+    | xargs -P "${JOBS}" -I@ "${WORKER}" @ "${OUT_DIR}" "${LILYPOND_BIN}" "${PER_FILE_TIMEOUT}" "${MODE}" \
+    > "${STATUS_FILE}" || true
+
+OK="$(grep -c '^OK ' "${STATUS_FILE}" || true)"
+FAILED="$(grep -c '^FAIL ' "${STATUS_FILE}" || true)"
+NOOUT="$(grep -c '^NOOUT ' "${STATUS_FILE}" || true)"
+TIMEDOUT="$(grep -c '^TIMEOUT ' "${STATUS_FILE}" || true)"
+
+# Diagnostics mode stops here. No manifest, because there is nothing to pin: the
+# logs are regenerable in minutes and are compared per-file by
+# compare-diagnostics.py, not hashed as a corpus.
+if [ "${MODE}" = "diagnostics" ]; then
+    # `|| true` is load-bearing under `set -euo pipefail`: grep exits 1 when it
+    # matches nothing, which is the NORMAL case for a clean corpus, and that
+    # would abort the script silently right before its summary -- the same trap
+    # this file already documents for `head` in the LIMIT branch.
+    WITH_DIAG="$( { grep -rlE '(^|:[0-9]+:[0-9]+: )(warning|error|programming error|fatal error):' "${OUT_DIR}/diagnostics" 2>/dev/null || true; } | wc -l)"
+    say "Done (diagnostics)"
+    note "rendered ok    : ${OK}"
+    note "failed         : ${FAILED}"
+    note "timed out      : ${TIMEDOUT}"
+    note "logs           : ${OUT_DIR}/diagnostics ($(ls "${OUT_DIR}/diagnostics" | wc -l) files, $(du -sh "${OUT_DIR}/diagnostics" | cut -f1))"
+    note "with diagnostics: ${WITH_DIAG} file(s) carry at least one warning/error line"
+    note ""
+    note "Next: python3 compare-diagnostics.py ${OUT_DIR}/diagnostics <merged-sweep.log>"
+    exit 0
+fi
 
 say "Building the manifest"
 

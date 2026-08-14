@@ -177,6 +177,17 @@ public sealed class SkylinePair
     /// The two sides must face the right ways round — down/left first, up/right second —
     /// which upstream enforces by raising rather than by silently swapping them.
     /// </para>
+    /// <para>
+    /// THE RESULT IS A COPY, and that is load-bearing. Upstream's conversion ends
+    /// <c>return Skyline_pair (*left, *right);</c> — it dereferences both smobs into a
+    /// BY-VALUE <c>Skyline_pair</c>, so nothing a caller does to what it reads can reach
+    /// the grob's stored skylines. <see cref="Skyline"/> is a CLASS here, so handing the
+    /// stored instances straight back aliased them: every read-shift-measure site in the
+    /// engine — side-position, axis-group skyline combination and outside-staff
+    /// placement, alignment, horizontal spacing — translates what it reads into a common
+    /// refpoint before measuring, and each one was permanently moving the grob's own
+    /// skylines by that offset.
+    /// </para>
     /// </summary>
     /// <param name="value">The Scheme value.</param>
     /// <returns>The pair, or <see langword="null"/> when the value is not one.</returns>
@@ -199,6 +210,7 @@ public sealed class SkylinePair
                 "direction of second skyline in skyline pair must be UP/RIGHT");
         }
 
-        return new SkylinePair(left, right);
+        //was previously: return new SkylinePair(left, right);
+        return new SkylinePair(left.Copy(), right.Copy());
     }
 }

@@ -61,8 +61,18 @@ public static class GeneralPrimitives
         DefineUnit(interpreter, "ly:inch", Dimensions.Inch);
         DefineUnit(interpreter, "ly:bp", Dimensions.BigPoint);
 
-        interpreter.DefinePrimitive("ly:dimension?", 1, 1, a =>
-            a[0] is double || a[0] is long || a[0] is int);
+        // Upstream is `return scm_number_p (d);` and nothing else — ANY Scheme number is
+        // a dimension. A C# type pattern is not that test (trap 10): it silently rejected
+        // exact rationals, bignums and complex. Everything declared `,ly:dimension?` in
+        // define-grob-properties.scm went through here, so `\magnifyStaff #3/4` — which
+        // scales every grob's baseline-skip, word-space and space-alist by its factor,
+        // making 3 x 3/4 = 9/4 — had its scaled values REFUSED, and each property kept
+        // its UNSCALED default with only a programming error to show for it. 2,243
+        // refusals across the regression suite, on baseline-skip and staff-space.
+        // Proved against the ORACLE before it was changed (rule 35): upstream renders
+        // `baseline-skip = #9/4` byte-identically to `#2.25` and both differently from
+        // the default, while the port rendered 9/4 identically to the DEFAULT.
+        interpreter.DefinePrimitive("ly:dimension?", 1, 1, a => SchemeNumber.IsNumber(a[0]));
     }
 
     private static void DefineUnit(Interpreter interpreter, string name, double factor)

@@ -280,11 +280,17 @@ public static class SpacingInterface
 
             if (col == null)
             {
+                // NO null guard here, deliberately: upstream writes this as one
+                // unchecked chain and hands whatever falls out — including a null —
+                // straight to extent () below. At a line start every element has
+                // ALREADY been substituted to its prebroken piece, so the column is
+                // itself a prebroken piece and has no prebroken piece of its own;
+                // upstream's find_prebroken_piece answers null and the extent is then
+                // read against the ROOT. Grob::relative_coordinate is written to
+                // tolerate exactly that and says so (upstream issue #6149). An early
+                // `continue' here instead threw the whole line-start away, which cost
+                // every system its prefatory spacing. See PORT-COVERAGE.
                 col = (elts[0] as Item)?.GetColumn()?.FindPrebrokenPiece(breakDir);
-                if (col == null)
-                {
-                    continue;
-                }
             }
 
             Interval ext = breakItem.Extent(col, Axis.X);

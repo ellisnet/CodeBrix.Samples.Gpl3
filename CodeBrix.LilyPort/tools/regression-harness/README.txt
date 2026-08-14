@@ -21,6 +21,8 @@ CONTENTS
   5.  Comparing the port against the reference
   6.  How the comparison works, and why it is not a byte diff
   7.  Results from the initial baseline run
+      (later sections, unnumbered: the stale-output fix, the per-file scratch
+       working directory, THE DIAGNOSTICS GATE, lowering a floor)
   8.  Licensing of the vendored suite
   9.  Troubleshooting
 
@@ -77,6 +79,9 @@ Environment variables:
     JOBS                parallel renders (default: nproc)
     LIMIT               render only the first N inputs (default: 0, meaning all)
     PER_FILE_TIMEOUT    seconds per input (default: 60)
+    MODE                svg (default, the pinned parity corpus) or diagnostics
+                        (the oracle's warnings, for compare-diagnostics.py --
+                        touches neither reference/svg nor the manifest)
 
 Expect roughly four minutes for the full suite at JOBS=10.
 
@@ -95,6 +100,12 @@ Rendering flags, and why each is there:
                             PATHS, which would make the reference specific to the
                             machine that generated it.
     --silent                Keep the logs to real diagnostics.
+                            ⚠ AND THAT IS WHY reference/logs/ IS USELESS FOR
+                            GRADING DIAGNOSTICS: --silent suppresses the warning
+                            lines too, so only 10 of 2,146 logs carry any. The
+                            diagnostics gate uses MODE=diagnostics, which drops
+                            this flag and writes reference/diagnostics/ instead
+                            -- see "THE DIAGNOSTICS GATE" below.
 
 THE FONTS ARE PINNED, AND THEY HAVE TO BE
 --------------------------------------------------------------------------------
@@ -416,6 +427,132 @@ that had no candidate page and now has one, which stale files cannot fake. What
 is NOT trustworthy in the record is any earlier "0 regressions" claim. Every
 floor that could not be met against a clean directory has since been lowered,
 with its reason, in pass-manifest-decisions.tsv.
+
+-------------------------------------------------------------------------------
+THE PER-FILE SCRATCH WORKING DIRECTORY
+-------------------------------------------------------------------------------
+
+A .ly file may WRITE, and what it writes is named RELATIVE to the process
+working directory. Upstream never has to think about this: it runs one process
+per file, so the writes land wherever the user was standing and are that run's
+alone. A batch runner has to arrange the same isolation deliberately, exactly as
+it already has to arrange LilyPondInit.RestoreDefaults for the interpreter.
+
+WHAT WENT WRONG. The sweep ran from wherever it was launched, which the
+documented command makes the repo root. event-listener-output.ly writes
+`-violin-1.notes' there -- and opens it for APPEND, so each sweep added to the
+previous one's file instead of replacing it: 6,295 bytes of one run read as
+18,885 bytes of three. Two consequences, and the second is the one that matters.
+The repository gets littered with files that are not output anybody asked for.
+And one input file's writes become readable by every file engraved after it,
+which is the cross-file leak class that has already produced nine separate
+defects in this port. A .gitignore entry would have hidden the first and left
+the second exactly where it was.
+
+WHAT THE FIX IS. Each input file runs from its own EMPTY directory:
+
+  * The scratch root is <temp>/codebrix-lilyport-batch-scratch-<pid>, outside
+    the repository, so an unexpected file name cannot reach the working tree.
+  * PER PROCESS, not one shared root. A shared root has to be emptied at startup
+    to stop side files accumulating across sweeps, and that wipe deletes the
+    scratch directories of any sweep already running -- a probe run started
+    alongside a sweep killed it on its first file. Naming the root after the
+    process removes the shared resource rather than scheduling access to it.
+  * The per-file directory is emptied immediately before the file runs, so a
+    file never sees an earlier run's leftovers, and nothing can append across
+    sweeps.
+  * SUITE_DIR and OUT_DIR are resolved to full paths BEFORE the first chdir,
+    because the documented command passes both as relative paths.
+  * A relative LILYPORT_EXPANSION_CACHE_DIR is pinned to a full path at startup.
+    That override is read fresh on every access, so left relative it would mean
+    a different, cold cache in each of 2,146 scratch directories.
+
+WHAT IT REPORTS. Isolating writes must not become a way to LOSE them, so
+anything a file wrote is named on a SIDE-FILE line with its size, and empty
+scratch directories are removed -- a directory left behind is evidence, not
+leftovers. Over the full suite exactly two files write:
+
+    event-listener-output   SIDE-FILE   -violin-1.notes   6295 bytes
+    markup-eps              SIDE-FILE   box.eps            205 bytes
+
+The second had been landing in the repo root all along and nobody had noticed;
+it took the reporting to see it. That is the argument for the SIDE-FILE line in
+one example.
+
+COST: none measurable. The sweep that introduced it ran 595.2s against the
+immediately preceding run's 600.4s, produced the same 2,113 SVG / 32 NOOUT /
+1 ERROR / 2,311 pages, and its comparator verdicts were identical to the
+previous run's ROW FOR ROW.
+
+-------------------------------------------------------------------------------
+THE DIAGNOSTICS GATE: compare-diagnostics.py
+-------------------------------------------------------------------------------
+
+THE GAP IT CLOSES. Until this existed, nothing here read a DIAGNOSTIC.
+compare-output.py grades SVG geometry; the docs run grades the 19 generated
+documentation files; ratchet.py grades compare-output.py's verdicts;
+compare-midi.py grades .midi bytes. Text printed to stderr was scored by none of
+them. That is how the port's type-check message came to differ from upstream's
+in both wording AND severity for the life of the project, found only by accident
+while chasing something else -- and why four defect classes had to be found by
+reading the sweep's stderr by hand.
+
+BUILDING THE REFERENCE. The parity corpus's own logs are useless for this: they
+are made with --silent and contain no warning line at all. So the SAME script
+grows a second mode:
+
+    LILYPOND_BIN=... MODE=diagnostics ./generate-reference.sh
+
+which drops --silent, copies NO svg, writes NO manifest, and puts one log per
+input in reference/diagnostics/. It cannot disturb the parity corpus: different
+directory, nothing copied, and the manifest hashes `.svg` only. ~97 seconds for
+2,146 files. One script rather than two because D30's font pinning has to be
+IDENTICAL on both runs, and a second script would be a second copy to keep in
+step -- font resolution failures are themselves diagnostics.
+
+RUNNING IT. The two sides take different artifacts, deliberately: the oracle is
+one process per file so per-file logs are its natural output, while the port is
+one process for the whole suite so a MERGED stream is its natural output.
+
+    dotnet run --project tools/regression-harness/BatchDriver -c Release -- \
+        tests/regression tools/regression-harness/candidate/svg > /tmp/sweep.log 2>&1
+    python3 compare-diagnostics.py reference/diagnostics /tmp/sweep.log
+
+THE STREAMS MUST BE MERGED. Attribution works because BatchDriver prints a
+file's result line AFTER running it, so everything since the previous result
+line belongs to the file named next. Run it as `> log 2> err` and that
+interleaving is gone and nothing can be attributed.
+
+    python3 compare-diagnostics.py reference/diagnostics --selftest
+
+is the standing check, and it earns its keep here more than elsewhere: the
+asymmetry above means the candidate path has to parse a merged stream AND
+attribute it, neither of which the reference path does. The self-test re-emits
+the reference in the port's own merged format and demands 100% MATCH back.
+
+FIRST READING (2026-08-14, against the post-4a sweep):
+
+    MATCH         1825   85.0%
+    EXTRA          290   13.5%    the port says what the oracle does not
+    MISSING         23    1.1%    the oracle says what the port does not
+    BOTH             6    0.3%
+    TEXT-DIFFERS     2    0.1%
+    diagnostic lines: 414 reference / 4741 candidate
+
+The port says ELEVEN TIMES as much as the oracle. EXTRA is dominated by the
+already-known D1/D2. MISSING was entirely unmeasured before this gate and is the
+more interesting half -- see the plan's D9.
+
+TWO KNOWN LOOSENESSES, both deliberate and both recorded in the script's header:
+location is not part of the match key (the oracle names its input by absolute
+path, the port by bare filename -- an invocation difference), and order is not
+graded (multiset comparison; counts ARE compared exactly). Tighten both once the
+verdict is clean enough for the noise to be legible.
+
+⚠ TEXT-DIFFERS IS NOT PURELY A WORDING BUCKET. The first run caught
+`compressing over-full page by 4.3 staff-spaces` against the oracle's own
+figure -- the same sentence carrying a DIFFERENT NUMBER, which is a layout
+difference wearing a wording verdict. Read them before assuming.
 
 -------------------------------------------------------------------------------
 LOWERING A FLOOR: pass-manifest-decisions.tsv

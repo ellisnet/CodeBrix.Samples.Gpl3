@@ -355,6 +355,10 @@ Copyright: Copyright (C) 1996--2026 Han-Wen Nienhuys <hanwen@xs4all.nl>
     src/CodeBrix.LilyPort.Engine/Layout/SkylinePair.cs
         <- lily/skyline-pair.cc, lily/include/skyline-pair.hh
            Copyright (C) 2008--2026 Han-Wen Nienhuys
+        <- lily/lily-guile.cc
+           Copyright (C) 1998--2026 Jan Nieuwenhuizen, Han-Wen Nienhuys
+           The scm_conversions<Skyline_pair> operations only, which are where
+           ToScheme and FromScheme come from.
     src/CodeBrix.LilyPort.Engine/Layout/LazySkylinePair.cs
         <- lily/include/lazy-skyline-pair.hh
            Copyright (C) 2020--2026 Han-Wen Nienhuys

@@ -38,6 +38,24 @@ namespace CodeBrix.LilyPort.BatchDriver;
 /// the directory contents equal the set of pages this run reported writing, so the
 /// mistake cannot come back silently by another route.
 /// </para>
+/// <para>
+/// EACH FILE RUNS FROM ITS OWN SCRATCH WORKING DIRECTORY, for the same reason the
+/// docs driver changes into its output directory: a <c>.ly</c> file may WRITE, and
+/// what it writes is named RELATIVE to the process working directory. Upstream gets
+/// per-file isolation for free by running one process per file; a batch runner has to
+/// arrange it, exactly as it already has to arrange <c>RestoreDefaults</c> for the
+/// interpreter. Without it the sweep wrote into whatever directory it was launched
+/// from — in practice the repo root, where <c>event-listener-output.ly</c> dropped
+/// <c>-violin-1.notes</c> and, because the script opens for APPEND, every later sweep
+/// added to the same file rather than replacing it (18,885 bytes after three runs).
+/// Two consequences, and the second is the one that matters: the repo gets littered,
+/// and one file's output becomes readable by every file engraved after it — the
+/// cross-file leak class that has already produced nine separate defects here
+/// (PORT-COVERAGE's per-file session leaks). The scratch directory is emptied before
+/// each file, so nothing survives a run, let alone a sweep; anything a file DID write
+/// is named on a <c>SIDE-FILE</c> line, because the sweep log is this project's demand
+/// list and a silently discarded write would be worse than the litter it replaces.
+/// </para>
 /// </summary>
 public static class Program
 {
@@ -55,8 +73,11 @@ public static class Program
             return 2;
         }
 
-        string suiteDirectory = args[0];
-        string outputDirectory = args[1];
+        // Resolved BEFORE anything can change the working directory, and that is the
+        // whole point: the sweep is invoked with RELATIVE paths, and the per-file scratch
+        // directory below moves the ground they would be resolved against.
+        string suiteDirectory = Path.GetFullPath(args[0]);
+        string outputDirectory = Path.GetFullPath(args[1]);
         int limit = int.MaxValue;
         HashSet<string> only = null;
         bool keepExisting = false;
@@ -104,17 +125,36 @@ public static class Program
             ClearStalePages(outputDirectory);
         }
 
+        // The boot-expansion cache reads its override fresh on every access, so a RELATIVE
+        // value stops meaning one directory the moment the sweep starts changing into
+        // scratch directories — it would mean 2,146 of them, each cold, each paying the
+        // ~28-second record. Pinned once here rather than left to be discovered as a
+        // mysteriously slow sweep.
+        string cacheOverride = Environment.GetEnvironmentVariable(CacheDirectoryVariable);
+        if (!string.IsNullOrEmpty(cacheOverride) && !Path.IsPathRooted(cacheOverride))
+        {
+            Environment.SetEnvironmentVariable(
+                CacheDirectoryVariable, Path.GetFullPath(cacheOverride));
+        }
+
+        string home = Directory.GetCurrentDirectory();
+        string scratchRoot = PrepareScratchRoot();
+
         int produced = 0;
         int errored = 0;
         int empty = 0;
+        int sideFiles = 0;
+        int sideRuns = 0;
         HashSet<string> written = new HashSet<string>(StringComparer.Ordinal);
         Stopwatch clock = Stopwatch.StartNew();
 
         foreach (string file in files)
         {
             string name = Path.GetFileNameWithoutExtension(file);
+            string scratch = OpenScratch(scratchRoot, name);
             try
             {
+                Directory.SetCurrentDirectory(scratch);
                 BatchRunResult result = BatchRunner.RunFile(file, outputDirectory);
 
                 // MIDI is reported on its own line and always,
@@ -161,6 +201,20 @@ public static class Program
                 errored++;
                 Console.WriteLine(name + "\tERROR\t" + Describe(exception));
             }
+            finally
+            {
+                // Restored before the scratch directory is read or removed, and before the
+                // next file opens its own: a driver that left the process sitting in a
+                // directory it then deletes would fail in a way that has nothing to do
+                // with engraving.
+                Directory.SetCurrentDirectory(home);
+                int wrote = CloseScratch(name, scratch);
+                if (wrote > 0)
+                {
+                    sideFiles += wrote;
+                    sideRuns++;
+                }
+            }
         }
 
         Console.WriteLine();
@@ -172,8 +226,117 @@ public static class Program
             empty,
             errored,
             clock.Elapsed.TotalSeconds));
+        Console.WriteLine(string.Format(
+            System.Globalization.CultureInfo.InvariantCulture,
+            "# side files: {0} written by {1} input file(s), under {2}",
+            sideFiles,
+            sideRuns,
+            scratchRoot));
 
         return keepExisting ? 0 : SelfCheck(outputDirectory, written);
+    }
+
+    /// <summary>
+    /// The environment variable naming the boot-expansion cache directory
+    /// (<c>BootExpansionCache.DirectoryVariable</c>). Spelled here rather than
+    /// referenced, because the driver has no dependency on the engine's bootstrap
+    /// namespace and should not grow one to read one string.
+    /// </summary>
+    private const string CacheDirectoryVariable = "LILYPORT_EXPANSION_CACHE_DIR";
+
+    /// <summary>
+    /// Creates the root the per-file scratch working directories live under: one root
+    /// PER PROCESS, in the system temporary directory.
+    /// <para>
+    /// Outside the repository, so that a file writing an unexpected name cannot litter
+    /// the working tree no matter what it writes. Per process, because the alternative
+    /// was tried and failed inside one session: a single shared root has to be emptied at
+    /// startup to stop side files ACCUMULATING across sweeps — the defect being fixed was
+    /// not only that <c>-violin-1.notes</c> appeared in the repo root but that each sweep
+    /// APPENDED to it, so 6,295 bytes of one run read as 18,885 bytes of three — and that
+    /// startup wipe deletes the scratch directories of any sweep already running. A probe
+    /// run started alongside a sweep killed it on its first file. Naming the root after
+    /// the process removes the shared resource instead of trying to schedule access to
+    /// it, and each run is isolated for the same reason each FILE is.
+    /// </para>
+    /// <para>
+    /// Nothing is deleted at startup, because a fresh process has nothing of its own to
+    /// delete; the per-file clean in <see cref="OpenScratch"/> is what guarantees a file
+    /// never sees an earlier run's leftovers. A crashed run leaves its root behind, which
+    /// is evidence rather than litter — and in the temporary directory, which the system
+    /// reclaims.
+    /// </para>
+    /// </summary>
+    /// <returns>The scratch root, which exists when this returns.</returns>
+    private static string PrepareScratchRoot()
+    {
+        string scratchRoot = Path.Combine(
+            Path.GetTempPath(),
+            "codebrix-lilyport-batch-scratch-"
+                + Environment.ProcessId.ToString(
+                    System.Globalization.CultureInfo.InvariantCulture));
+
+        Directory.CreateDirectory(scratchRoot);
+        Console.WriteLine("# per-file scratch working directories under " + scratchRoot);
+        return scratchRoot;
+    }
+
+    /// <summary>
+    /// Gives one input file an EMPTY working directory of its own.
+    /// </summary>
+    /// <param name="scratchRoot">The root the scratch directories live under.</param>
+    /// <param name="name">The input file's base name.</param>
+    /// <returns>The directory the file will run from.</returns>
+    private static string OpenScratch(string scratchRoot, string name)
+    {
+        string scratch = Path.Combine(scratchRoot, name);
+        if (Directory.Exists(scratch))
+        {
+            Directory.Delete(scratch, true);
+        }
+
+        Directory.CreateDirectory(scratch);
+        return scratch;
+    }
+
+    /// <summary>
+    /// Reports whatever a file wrote into its scratch directory, and removes the
+    /// directory when it wrote nothing.
+    /// <para>
+    /// The reporting is the half that keeps this fix from being a way to LOSE
+    /// information. Isolating the writes stops them polluting the tree; naming them on
+    /// the sweep log keeps the fact that a file writes — and how much — in the record
+    /// the project actually reads. A directory left behind is therefore evidence, not
+    /// leftovers, and it is the only kind of directory left behind.
+    /// </para>
+    /// </summary>
+    /// <param name="name">The input file's base name.</param>
+    /// <param name="scratch">The directory the file ran from.</param>
+    /// <returns>How many files it wrote.</returns>
+    private static int CloseScratch(string name, string scratch)
+    {
+        List<string> artifacts = Directory
+            .GetFiles(scratch, "*", SearchOption.AllDirectories)
+            .OrderBy(path => path, StringComparer.Ordinal)
+            .ToList();
+
+        if (artifacts.Count == 0)
+        {
+            Directory.Delete(scratch, true);
+            return 0;
+        }
+
+        foreach (string artifact in artifacts)
+        {
+            Console.WriteLine(string.Format(
+                System.Globalization.CultureInfo.InvariantCulture,
+                "{0}\tSIDE-FILE\t{1}\t{2} bytes",
+                name,
+                Path.GetRelativePath(scratch, artifact),
+                new FileInfo(artifact).Length));
+        }
+
+        return artifacts.Count;
     }
 
     /// <summary>

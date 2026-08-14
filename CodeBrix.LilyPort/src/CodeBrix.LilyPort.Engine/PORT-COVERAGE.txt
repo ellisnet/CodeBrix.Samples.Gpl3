@@ -45,6 +45,32 @@ VALUE-TYPE SEMANTICS
     Interval::is_empty() calls it empty. Skyline construction depends on the
     distinction. There is a test for it.
 
+  lily/lily-guile.cc scm_conversions<Skyline_pair>  ->  Layout/SkylinePair.cs
+
+    SkylinePair.FromScheme COPIES both halves. Skyline is a class here, so the
+    copy has to be spelled out; upstream gets it for free, because its
+    conversion ends `return Skyline_pair (*left, *right);' -- both smobs are
+    dereferenced, and Skyline_pair (Skyline, Skyline) takes its arguments by
+    value.
+
+    This is not a nicety. Every reader of a stored skyline in the engine
+    translates what it reads into a common refpoint before measuring it --
+    side-position-interface's aligned_side, axis-group-interface's skyline
+    combination and outside-staff placement, align-interface, and the horizontal
+    spacing that reads a column's horizontal-skylines. While the read aliased
+    the stored object, each of those was permanently MOVING the skylines it had
+    only meant to measure, so the next reader measured against an outline that
+    had wandered off its own grob. PARITY 4 (2026-08-14) found it through the
+    bar number: by the time aligned_side read one, its skyline had already been
+    translated by its own X coordinate, no longer overlapped the staff it was
+    positioned against, Skyline::distance answered -infinity, and aligned_side's
+    !isinf guard dropped the support term to zero -- so the number kept only its
+    padding and sat 2.05 staff spaces low, INSIDE the staff. 227 pages of the
+    regression corpus carried one of the two constants that produces.
+
+    Fenced by SkylinePairTests (the copying) and by
+    SidePositionStaffSupportEndToEndTests (the placement it decides).
+
 
 -------------------------------------------------------------------------------
 NAMING
@@ -5696,6 +5722,35 @@ STICKY SPANNER BOUNDS.  THE LONG TAIL'S TWO RED RATCHET ROWS, CLOSED.
   and plausibly -- it answers "no offset", which is a legal state.  Sweep for
   the pattern when reading any numeric grob property.
 
+  (3) THE SAME PATTERN IN A PREDICATE, WHICH IS WORSE (2026-08-14, PARITY 3).
+  ly:dimension? had been ported as `a[0] is double || a[0] is long || a[0] is
+  int' where upstream's ENTIRE body is `return scm_number_p (d);'
+  (lily/general-scheme.cc).  A reader that mistypes a value gets one value
+  wrong; a PREDICATE that mistypes gates the type check for every property
+  declared with it, and define-grob-properties.scm declares a long list that
+  way -- baseline-skip, staff-space, beam-thickness, beam-width,
+  auto-knee-gap, collapse-height, gap, height, height-limit, kern,
+  ledger-extra and more.  Exact rationals, bignums and complex were all
+  refused, the assignment was DROPPED, and the property silently kept its
+  previous value.
+
+  What made it visible at all was \magnifyStaff, which scales every grob's
+  baseline-skip, word-space and space-alist by its factor: the suite calls it
+  with #3/4, #5/4 and #1/2, so 3 x 3/4 = 9/4 -- an exact rational -- and the
+  scaling was discarded on 2,243 assignments across the regression suite.  The
+  feature was partly dead and the only evidence was a programming error.
+
+  Read off the ORACLE before the change (rule 35): pinned 2.27.2 renders
+  baseline-skip = #9/4 byte-identically to #2.25 and both differently from the
+  unoverridden default, while the port rendered #9/4 identically to the
+  DEFAULT.  Now `SchemeNumber.IsNumber', which is scm_number_p's exact
+  analogue (fixnum, bignum, ratio, real, complex).
+
+  Fences: GeneralPrimitivesTests (Engine -- ly:dimension? must agree with
+  number? across the whole tower AND on non-numbers, the second half being the
+  control), DimensionPropertyEndToEndTests (LilyPort -- the three-way render
+  relationship read off the oracle above).
+
   WHY THE SIBLING FILES' GREEN WAS NOT EVIDENCE.  The long-tail close recorded
   that
   footnote-auto-numbering and footnote-auto-numbering-page-reset "now render
@@ -6220,3 +6275,146 @@ TWO GUILE NAMES THE ERROR/NOOUT BUCKET NAMED (landed in CodeBrix.LilyScheme)
   SELECTION defect, not a numeric-tower one, and it is a different class from
   anything in this session.  It stays NOOUT.
 
+
+
+ADDED IN PARITY 2 -- THE TWO RED ROWS, AND WHAT THEY WERE ACTUALLY POINTING AT
+
+PARITY 1 left two rows regressed and put them to Jeremy; the ruling was to fix
+them as ordinary Phase-4 work rather than rebaseline. Neither turned out to be a
+glissando defect or a beaming defect. Both were the same defect, one layer down,
+and it was costing EVERY SYSTEM IN THE CORPUS its prefatory spacing.
+
+HOW THE TWO ROWS READ, AND WHY THEY MISLED
+
+  glissando.svg    "extra line:0.1000 x2".  Line_spanner::print returns SCM_EOL
+                   when gaps[LEFT] + gaps[RIGHT] > dz.length (), and Glissando
+                   pads 0.5 on each side -- so any glissando spanning less than
+                   1.0 draws NOTHING AT ALL.  Measured against the oracle with a
+                   stencil-callback probe: the fifth glissando spans 0.835 there
+                   and drew nothing; it spanned 1.07 here, leaving ~0.07 after
+                   the gaps, which make_zigzag_line's ceil() turns into one tooth
+                   = two lines.  make_zigzag_line was faithful all along.
+
+  beamlet-test.svg "missing text 4, extra text 3".  A BAR NUMBER, not a tuplet
+                   number: the line break had moved one measure.
+
+  The probe that named the real defect compared the X SPAN of all eight
+  glissando pieces on both sides.  Every span was too wide by a CONSTANT --
+  0.25 on the first system, 0.28088 on the second -- while the note-head widths
+  agreed exactly (1.3042 both sides).  A constant is not accumulated drift.
+  Reading the glyph positions straight out of both SVGs finished it: the clef
+  and the time signature sat at IDENTICAL x on both sides, and the FIRST NOTE
+  was 1.0 staff space too far left here (2.135 on a clef-only system).  The
+  music was starting too early and stretching to fill the line.
+
+THE DEFECT: A DEFENSIVE NULL CHECK THAT UPSTREAM DELIBERATELY DOES NOT HAVE
+
+  Spacing_interface::extremal_break_aligned_grob resolves the column it measures
+  extents against as ONE UNCHECKED CHAIN:
+
+      col = dynamic_cast<Item *> (elts[0])->get_column ()
+              ->find_prebroken_piece (break_dir);
+
+  At a LINE START every element the wish names has already been substituted to
+  its prebroken piece, so elts[0] is itself broken, the column reached through
+  it is itself a prebroken piece, and find_prebroken_piece answers NULL --
+  upstream then hands that null straight to extent (), which reads the extent
+  against the ROOT.  Grob::relative_coordinate is written to tolerate exactly
+  that and says so in a comment citing upstream issue #6149.  For a line-start
+  column, root-relative and column-relative agree, so upstream gets the right
+  answer out of what looks like an accident.
+
+  The port had added `if (col == null) continue;'.  That threw the whole line
+  start away: every break-aligned symbol was skipped, extremal_break_aligned_grob
+  returned null, and Staff_spacing::get_spacing took its `we used to have a
+  warning here' early return and answered a DEFAULT SPRING.  So Clef's
+  (first-note . (minimum-fixed-space . 5.0)) and TimeSignature's
+  (first-note . (semi-shrink-space . 2.0)) were never applied ANYWHERE, and the
+  space they had asked for was handed to the musical springs instead.
+
+  ⚠ NOTHING REPORTED THIS.  No programming error, no unknown-prefatory-spacing,
+  no empty wish list -- the wish was found and the spring was merged; it was
+  simply the wrong spring.  The whole space-alist type dispatch below it
+  (fixed-space, extra-space, semi-fixed-space, minimum-space, minimum-fixed-space,
+  shrink-space, semi-shrink-space) was correct, complete and UNREACHABLE.
+
+  The guard is removed and the comment at the site now says why there is no
+  guard, so it does not get "fixed" back.
+
+HOW IT WAS PROVED BEFORE IT WAS CHANGED (rule 35: check the oracle first)
+
+  Three files rendered through BOTH engines: a plain two-system score, and the
+  same score with Clef.space-alist.first-note overridden to
+  (minimum-fixed-space . 15.0) and to (extra-space . 15.0).  The oracle moved
+  its second-system first note 14.3358 -> 24.3358 -> 25.6243.  The port did not
+  move at all -- identical output in all three cases, which is what a dead
+  space-alist looks like.  After the change the port reproduces all three oracle
+  positions EXACTLY, on both systems.
+
+MEASURED
+
+    verdicts    MATCH             85 -> 693
+                PLACEMENT-DIFFERS 1448 -> 874
+                GLYPHS-DIFFER     758 -> 727
+                MISSING           25 -> 22
+    ratchet     796 improvements, ZERO regressions
+    rows        glissando.svg and beamlet-test.svg both back to
+                PLACEMENT-DIFFERS -- the two red rows are closed
+    sweep       2113 svg / 32 no output / 1 errored, 2311 pages (was 2308)
+    G8          19 of 19 still byte-identical
+    G2          90 of 90 MIDI, from a freshly generated candidate
+
+  One fix, one file, four lines removed.  It is the largest single parity move
+  the project has recorded, and it is worth remembering WHY it hid so long: the
+  machinery it disabled was fully ported, fully correct, and fully tested at the
+  unit level.  Registered != behaving != reachable, one more time -- and this
+  time the unreachable thing was reached through a guard that looked like
+  ordinary defensive hygiene.
+
+===============================================================================
+ACCEPTED DIVERGENCES MOVED OUT OF THE PLAN (2026-08-14, PARITY 3 bookkeeping)
+===============================================================================
+
+  Both of these had been riding the Phase-4 plan's "known loose ends" list as
+  though they were unfinished work.  They are not: they are decisions.  Rule 5
+  puts a deliberate divergence here with its reason, so here they are, and the
+  plan's list is now open defects only.
+
+  (1) GrobCallbacks' PURE SKYLINE VARIANTS ANSWER ORDINARY EXTENTS.
+
+  The pure variants of the skyline callbacks return the ordinary extent rather
+  than a genuinely pure one.  This was correct when it was written -- the
+  pure-property machinery did not exist yet -- and it has NOT been revisited
+  since that machinery landed.
+
+  Kept deliberately for now, and the reason is trap 24: the pure reader's
+  contract is that a bare procedure answers #f and is never called, so a pure
+  path that answers an ORDINARY extent is wrong in a way that is invisible
+  until something depends on the difference.  Nothing in the corpus currently
+  does.  Revisit when a residue cluster points at pure-height estimation
+  (vertical spacing before line breaking); until then, changing it would be an
+  unmeasured edit to a decades-tuned estimate.
+
+  (2) `No spacing entry from Clef to `custos'' IS UPSTREAM'S OWN.
+
+  Break_alignment_interface::calc_positioning_done issues a programming error
+  when the left group's space-alist has no entry for the right group's
+  break-align symbol.  Clef's space-alist (scm/define-grobs.scm) has no `custos'
+  entry, and `clef' precedes `custos' in ALL THREE break-align-orders, so
+  upstream reaches that pair itself.
+
+  CONFIRMED against the pinned oracle rather than reasoned about: 2.27.2 run
+  NON-SILENT on mensural-ligature-citations.ly emits
+  "No spacing entry from Clef to `custos'" ten times, and emits no other
+  programming error anywhere in the regression suite.  REPRODUCE, do not chase.
+
+  ⚠ The count is not yet equal -- the port emits 13 on that file where the
+  oracle emits 10.  That difference is NOT this divergence; it belongs to the
+  file's already-recorded page-count divergence (it writes FEWER pages than the
+  oracle).  Do not "fix" the message.
+
+  ⚠ Nor does this cover the OTHER pairs in the same message class.  118
+  occurrences name adjacencies that break-align-orders makes impossible
+  (BarLine -> breathing-sign, BarLine -> signum-repetitionis,
+  TimeSignature -> key-signature and four more, every one order-REVERSED).
+  Those are an open defect, not a divergence, and stay on the plan.

@@ -205,15 +205,34 @@ public class Epg15Tests
     {
         //Arrange
         // FromScheme (ToScheme (x)) has to give the two sides back the right way round.
-        // The down/left skyline is the CAR, the up/right one the CDR.
-        SkylinePair original = new SkylinePair();
+        // The down/left skyline is the CAR, the up/right one the CDR. The two halves are
+        // given different roofs so that a swap could not pass.
+        //
+        //was previously: the two halves were asserted BeSameAs the original's, which
+        // recorded the port's own aliasing as the contract. Upstream's round trip is BY
+        // VALUE -- scm_conversions<Skyline_pair>::from_scm ends
+        // "return Skyline_pair (*left, *right);" -- so what must survive is the CONTENT
+        // and the orientation, and what must NOT survive is the identity. PARITY 4
+        // (2026-08-14) restated it; SkylinePairTests fences the copying itself.
+        SkylinePair original = new SkylinePair(
+            new Box(new Interval(0.0, 1.0), new Interval(-2.0, 3.0)), Axis.X);
 
         //Act
         SkylinePair read = SkylinePair.FromScheme(original.ToScheme());
 
         //Assert
         read.Should().NotBeNull();
-        read.Down.Should().BeSameAs(original.Down);
-        read.Up.Should().BeSameAs(original.Up);
+        read.Down.Sky.Should().Be(Direction.Negative);
+        read.Up.Sky.Should().Be(Direction.Positive);
+        read.Down.Height(0.5).Should().Be(original.Down.Height(0.5));
+        read.Up.Height(0.5).Should().Be(original.Up.Height(0.5));
+
+        // The halves really are distinguishable, so the two facts above are not one fact
+        // written twice, and a swapped round trip could not satisfy them.
+        read.Down.Height(0.5).Should().NotBe(read.Up.Height(0.5));
+
+        // And the read is a copy, not the stored object.
+        read.Down.Should().NotBeSameAs(original.Down);
+        read.Up.Should().NotBeSameAs(original.Up);
     }
 }
