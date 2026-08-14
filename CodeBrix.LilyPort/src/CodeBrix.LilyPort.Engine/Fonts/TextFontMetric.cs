@@ -44,11 +44,13 @@ namespace CodeBrix.LilyPort.Engine.Fonts; //was previously: lily/pango-font.cc, 
 /// <c>font-weight</c>, <c>font-style</c> and <c>font-size</c> attributes by pattern
 /// matching. Upstream builds that string with Pango; here it is built directly, in the
 /// same shape, because the backend on the far side is upstream's own algorithm.</item>
-/// <item>The EXTENTS decide layout. Horizontal extent is the advance sum, which comes
-/// out of <c>hmtx</c>; vertical extent is the INK extent, which is recorded nowhere and
-/// has to be computed by running the glyphs' charstrings. Upstream takes exactly this
-/// split — logical rectangle for X, ink rectangle for Y — in
-/// <c>pango_item_string_stencil</c>.</item>
+/// <item>The EXTENTS decide layout. Horizontal extent is the SHAPED advance sum —
+/// <c>hmtx</c> advances plus the kern feature's pair adjustments between adjacent
+/// glyphs of a run (<see cref="KerningTable"/>), because upstream's logical rectangle
+/// is Pango's for a run it has already shaped; vertical extent is the INK extent,
+/// which is recorded nowhere and has to be computed by running the glyphs'
+/// charstrings. Upstream takes exactly this split — logical rectangle for X, ink
+/// rectangle for Y — in <c>pango_item_string_stencil</c>.</item>
 /// </list>
 /// <para>
 /// The size arrives in LilyPond's internal length unit and the metrics come out in
@@ -230,6 +232,9 @@ public sealed class TextFontMetric : FontMetric
         // what lets a text stencil contribute its REAL outlines instead of its box.
         List<object> run = new List<object>();
 
+        TextFace previousFace = null;
+        int previousGlyph = 0;
+
         for (int i = 0; i < text.Length;)
         {
             int codePoint = char.ConvertToUtf32(text, i);
@@ -247,6 +252,17 @@ public sealed class TextFontMetric : FontMetric
             int glyph = face.GlyphIndex(codePoint);
             double scale = Scale(face);
 
+            // Upstream's X extent is Pango's logical rectangle for a SHAPED run, and
+            // shaping applies the font's kerning to the advances — a raw hmtx sum is
+            // never larger by accident, it is larger by exactly the kerning (trap 6f).
+            // The pair adjustment belongs to the FIRST glyph's advance, so it lands
+            // before the second glyph is placed; a face change ends the run, because
+            // Pango itemizes runs per font and never kerns across two of them.
+            if (ReferenceEquals(previousFace, face))
+            {
+                advance += face.Kerning(previousGlyph, glyph) * scale;
+            }
+
             if (face.Cff != null)
             {
                 run.Add(Pair.List(
@@ -256,6 +272,8 @@ public sealed class TextFontMetric : FontMetric
             }
 
             advance += face.Advance(glyph) * scale;
+            previousFace = face;
+            previousGlyph = glyph;
 
             Box ink = face.GlyphBox(glyph);
             if (!ink.Y.IsEmpty)

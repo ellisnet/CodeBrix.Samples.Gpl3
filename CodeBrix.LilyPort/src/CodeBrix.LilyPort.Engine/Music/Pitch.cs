@@ -36,7 +36,7 @@ namespace CodeBrix.LilyPort.Engine.Music; //was previously: lily/pitch.cc, lily/
 /// Pitch is lexicographically ordered by octave, note name, alteration.
 /// </para>
 /// </summary>
-public sealed class Pitch : IEquatable<Pitch>, IComparable<Pitch>, ISchemeEqual
+public sealed class Pitch : IEquatable<Pitch>, IComparable<Pitch>, ISchemeEqual, ISchemePrintable
 {
     /// <summary>The alteration of a double flat, in quarter tones.</summary>
     public const int DoubleFlat = -4;
@@ -291,6 +291,22 @@ public sealed class Pitch : IEquatable<Pitch>, IComparable<Pitch>, ISchemeEqual
 
         return builder.ToString();
     }
+
+    /// <summary>
+    /// Returns the smob's external representation, <c>#&lt;Pitch e' &gt;</c>.
+    /// <para>
+    /// Upstream: <c>Pitch::print_smob</c> (<c>lily/pitch.cc</c>), which writes
+    /// <c>"#&lt;Pitch "</c>, DISPLAYS <c>to_string ()</c> — so the name is unquoted — and
+    /// closes with <c>" &gt;"</c>. The SPACE BEFORE the angle bracket is upstream's and is
+    /// load-bearing for byte parity with the generated manual; it is not a typo here.
+    /// </para>
+    /// <para>
+    /// This is deliberately separate from <see cref="ToString"/>, which stays the bare
+    /// <c>to_string ()</c> content that <c>ly:pitch-&gt;string</c> and error messages read.
+    /// </para>
+    /// </summary>
+    /// <returns>The external representation.</returns>
+    public string PrintRepresentation() => "#<Pitch " + ToString() + " >";
 
     /// <summary>Compares this pitch with another.</summary>
     /// <param name="other">The pitch to compare with.</param>

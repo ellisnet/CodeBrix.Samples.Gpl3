@@ -31,7 +31,7 @@ namespace CodeBrix.LilyPort.Engine.Music; //was previously: lily/duration.cc, li
 /// A musical duration: a base duration expressed as a power of two, a number of
 /// augmentation dots, and a scale factor.
 /// </summary>
-public readonly struct Duration : IEquatable<Duration>, IComparable<Duration>, ISchemeEqual
+public readonly struct Duration : IEquatable<Duration>, IComparable<Duration>, ISchemeEqual, ISchemePrintable
 {
     private readonly int _durationLog;
     private readonly int _dotCount;
@@ -256,6 +256,18 @@ public readonly struct Duration : IEquatable<Duration>, IComparable<Duration>, I
 
         return text;
     }
+
+    /// <summary>
+    /// Returns the smob's external representation, <c>#&lt;Duration 1 &gt;</c>.
+    /// <para>
+    /// Upstream: <c>Duration::print_smob</c> (<c>lily/duration.cc</c>), which DISPLAYS
+    /// <c>to_string ()</c> and closes with <c>" &gt;"</c>. The SPACE before the angle
+    /// bracket is upstream's own and is reproduced deliberately — it is what makes
+    /// <c>#&lt;Duration 1 &gt;</c> compare byte for byte against the generated manual.
+    /// </para>
+    /// </summary>
+    /// <returns>The external representation.</returns>
+    public string PrintRepresentation() => "#<Duration " + ToString() + " >";
 
     // Upstream's intlog2 asserts on a non-positive argument; BigInteger.Log2 has the
     // same domain, so the guard is kept rather than silently returning zero.

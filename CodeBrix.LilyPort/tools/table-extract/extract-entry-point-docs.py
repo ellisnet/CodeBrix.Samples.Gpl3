@@ -68,6 +68,77 @@ MACRO_RE = re.compile(
 SMOB_PREDICATE_RE = re.compile(
     r"^const char \*const (\w+)::type_p_name_\s*=\s*\"([^\"]+)\"", re.MULTILINE)
 
+# ⚠ DECLARING type_p_name_ IS NOT THE SAME AS BEING A SMOB. The predicate is
+# defined by Smob_base<T>::init(), which only runs for a class that actually
+# derives from one of the smob bases, so a class that declares the name without
+# deriving never gets a predicate at all. lily/include/box.hh:31-34 is exactly
+# that -- `class Box' with no base and a leftover type_p_name_ -- and the oracle
+# answers #f to (defined? 'ly:box?). Taking the declaration at face value put a
+# procedure in the manual that upstream does not have.
+# Both spellings: Duration and Tuplet_description are STRUCTs, and taking only
+# `class' silently drops two live predicates.
+SMOB_BASE_RE = re.compile(
+    r"\b(?:class|struct)\s+(\w+)\s*:\s*([^{;]*)", re.MULTILINE)
+
+# The oracle build has GhostScript's API off, so the two entry points behind
+# #if GS_API (lily/general-scheme.cc:556) do not exist in it -- (defined?
+# 'ly:gs-api) answers #f. It is the only build flag guarding an LY_DEFINE in the
+# pinned tree, so it is skipped by name rather than by evaluating conditionals.
+INACTIVE_GUARDS = ("GS_API",)
+
+
+def guarded_spans(text):
+    """Returns the [start, end) spans of #if blocks the oracle build leaves out."""
+    spans = []
+    depth_stack = []
+    for match in re.finditer(r"^\s*#\s*(if|ifdef|ifndef|else|elif|endif)\b(.*)$",
+                             text, re.MULTILINE):
+        directive = match.group(1)
+        if directive in ("if", "ifdef", "ifndef"):
+            inactive = any(flag in match.group(2) and not match.group(2).strip().startswith("!")
+                           for flag in INACTIVE_GUARDS)
+            depth_stack.append(match.start() if inactive else None)
+        elif directive in ("else", "elif"):
+            if depth_stack and depth_stack[-1] is not None:
+                spans.append((depth_stack[-1], match.start()))
+                depth_stack[-1] = None
+        elif directive == "endif":
+            if depth_stack:
+                start = depth_stack.pop()
+                if start is not None:
+                    spans.append((start, match.end()))
+
+    return spans
+
+
+def is_guarded(spans, index):
+    """Whether an index falls inside a block the oracle build leaves out."""
+    return any(start <= index < end for start, end in spans)
+
+
+def smob_class_names(source_root):
+    """The classes that actually DERIVE from a smob base, across headers and sources."""
+    names = set()
+    for folder in (os.path.join(source_root, "lily"),
+                   os.path.join(source_root, "lily", "include")):
+        if not os.path.isdir(folder):
+            continue
+
+        for entry in sorted(os.listdir(folder)):
+            if not entry.endswith((".hh", ".cc", ".tcc")):
+                continue
+
+            with open(os.path.join(folder, entry), "r", encoding="utf-8") as handle:
+                text = handle.read()
+
+            for match in SMOB_BASE_RE.finditer(text):
+                # Case-insensitively: the bases are spelled Smob<T>, Smob_base<T> and
+                # Simple_smob<T>, and the last one has a LOWERCASE s.
+                if "smob" in match.group(2).lower():
+                    names.add(match.group(1))
+
+    return names
+
 
 def upstream_commit(source_root):
     """The reference checkout's HEAD, for the provenance header."""
@@ -99,6 +170,9 @@ def main(argv):
     rows = []
     failures = []
     undocumented = 0
+    smob_classes = smob_class_names(source_root)
+    skipped_not_a_smob = []
+    skipped_guarded = []
     for name in sorted(os.listdir(lily)):
         if not name.endswith(".cc"):
             continue
@@ -107,8 +181,14 @@ def main(argv):
         with open(path, "r", encoding="utf-8") as handle:
             text = handle.read()
 
+        spans = guarded_spans(text)
+
         # smobs.tcc:141-145 -- the predicate's docstring, composed from the class name.
         for match in SMOB_PREDICATE_RE.finditer(text):
+            if match.group(1) not in smob_classes:
+                skipped_not_a_smob.append(match.group(2))
+                continue
+
             rows.append((
                 match.group(2),
                 name,
@@ -117,6 +197,10 @@ def main(argv):
             ))
 
         for match in MACRO_RE.finditer(text):
+            if is_guarded(spans, match.start()):
+                skipped_guarded.append(name)
+                continue
+
             expected, name_index, arglist_index, doc_index = MACROS[match.group(1)]
             arguments, _ = split_macro_arguments(text, match.end() - 1)
             if len(arguments) != expected:
@@ -165,7 +249,11 @@ def main(argv):
     sys.stderr.write(
         str(len(rows)) + " documented entry points written to " + out_path
         + " (" + str(undocumented) + " carry no docstring and are omitted, as"
-        " upstream omits them)\n")
+        " upstream omits them; " + str(len(skipped_not_a_smob))
+        + " type_p_name_ declaration(s) skipped for classes that derive from no smob"
+        " base: " + ", ".join(sorted(skipped_not_a_smob))
+        + "; " + str(len(skipped_guarded))
+        + " entry point(s) skipped as build-guarded)\n")
 
     if failures:
         sys.stderr.write(

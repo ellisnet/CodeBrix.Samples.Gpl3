@@ -11,6 +11,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using CodeBrix.LilyPort.Engine.Bootstrap;
 using CodeBrix.LilyScheme;
 using CodeBrix.LilyScheme.Runtime;
 using CodeBrix.LilyScheme.Values;
@@ -337,7 +338,7 @@ public static class EnginePrimitives
         {
             try
             {
-                SchemeBootstrap.LoadExpanded(interpreter, file.Value, file.Key);
+                SchemeBootstrap.LoadExpanded(interpreter, file.Value, LilyPondScheme.SourceNameFor(file.Key));
                 report.Loaded.Add(file.Key);
             }
             catch (Exception ex)

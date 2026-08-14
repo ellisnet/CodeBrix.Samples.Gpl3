@@ -195,6 +195,34 @@ public static class LilyPondScheme
         }
     }
 
+    /// <summary>
+    /// Returns the SOURCE NAME a vendored <c>scm/</c> file is read under — the name that
+    /// ends up in its source properties, in every Tree-IL node's <c>src</c>, and therefore
+    /// in every procedure representation and error message.
+    /// <para>
+    /// It is <c>lily/<em>name</em>.scm</c> because that is the tail of upstream's own
+    /// path, <c>…/share/lilypond/current/scm/lily/<em>name</em>.scm</c>, and because
+    /// LilyPond shortens a location to exactly that tail before printing it:
+    /// <c>scm-&gt;string</c>'s regex (<c>scm/lily-library.scm:1626-1627</c>) keeps the last
+    /// TWO path components, "shortening the path to only show the file name and its
+    /// containing directory". A bare <c>name.scm</c> has no containing directory, so the
+    /// regex would not match and the raw form would survive into the manual.
+    /// </para>
+    /// </summary>
+    /// <param name="name">The file name, with or without the <c>.scm</c> suffix.</param>
+    /// <returns>The source name to read the file under.</returns>
+    public static string SourceNameFor(string name)
+    {
+        if (name == null)
+        {
+            throw new ArgumentNullException(nameof(name));
+        }
+
+        return name.EndsWith(".scm", StringComparison.Ordinal)
+            ? "lily/" + name
+            : "lily/" + name + ".scm";
+    }
+
     /// <summary>Reads one vendored <c>scm/</c> file.</summary>
     /// <param name="name">The file name, with or without the <c>.scm</c> suffix.</param>
     /// <returns>The Scheme source text, or <see langword="null"/> when there is no such file.</returns>
@@ -290,7 +318,7 @@ public static class LilyPondScheme
         SchemeModule saved = interpreter.CurrentModule;
         try
         {
-            SchemeBootstrap.LoadExpanded(interpreter, source, second.Name + ".scm");
+            SchemeBootstrap.LoadExpanded(interpreter, source, SourceNameFor(second.Name));
         }
         finally
         {
@@ -538,7 +566,7 @@ public static class LilyPondScheme
 
             try
             {
-                SchemeBootstrap.LoadExpanded(interpreter, source, name);
+                SchemeBootstrap.LoadExpanded(interpreter, source, SourceNameFor(name));
                 report.Loaded.Add(name);
             }
             catch (Exception ex)
@@ -551,7 +579,7 @@ public static class LilyPondScheme
 
         try
         {
-            SchemeBootstrap.LoadExpanded(interpreter, ReadSource("lily"), "lily.scm");
+            SchemeBootstrap.LoadExpanded(interpreter, ReadSource("lily"), SourceNameFor("lily"));
             report.Loaded.Add("lily");
         }
         catch (Exception ex)

@@ -5606,47 +5606,75 @@ A HOST-DEPENDENCE IN THE ORACLE, NOT A PORT DEFECT (measured, no code change).
   yardstick question, not an engine one.
 
 ================================================================================
-TEXT ADVANCES IGNORE KERNING (2026-08-13, found by REF-PIN)
+TEXT ADVANCES ARE KERNED (2026-08-13; the gap was found by REF-PIN and closed
+by the SS3.9 KERNING session the same week, Jeremy's GO)
 ================================================================================
 
-NOT FIXED.  Recorded here because it is now the measured text blocker, and
-because it was invisible until the reference corpus stopped carrying host fonts.
+FIXED.  TextFontMetric.TextStencil now measures the SHAPED advance sum: the raw
+hmtx advance of each glyph plus the GPOS kern feature's pair adjustment between
+adjacent glyphs of a run.  Upstream takes the X extent from Pango's LOGICAL rect
+(lily/pango-font.cc's pango_item_string_stencil), and Pango has SHAPED the run
+by then -- so that width includes the font's kerning; summing raw advances was
+never larger by accident, it was larger by exactly the kerning (trap 6f).
 
-TextFontMetric.TextStencil sums each glyph's raw hmtx advance:
+The reader is Fonts/KerningTable.cs (new-in-family), and it mirrors HarfBuzz's
+behaviour rather than an arithmetic that looks equivalent:
 
-    advance += face.Advance(glyph) * scale;
+  * The lookups applied are the ones the GPOS kern FEATURE names for the
+    default script (DFLT, then latn, then the first declared), in lookup-list
+    order; adjustments ACCUMULATE across lookups.
+  * Within a lookup, subtables are tried in order and the FIRST that applies
+    wins.  A PairPos Format 1 subtable applies when its coverage holds the left
+    glyph AND its pair set holds the right glyph; a Format 2 subtable applies
+    whenever its coverage holds the left glyph, EVEN when the class pair's
+    value is zero -- HarfBuzz stops there, and so does the reader.
+  * Extension lookups (type 9) are unwrapped.
+  * The legacy kern table (format 0, horizontal, non-cross-stream) is read ONLY
+    when GPOS names no kern feature -- HarfBuzz's own gate.
+  * Device-table adjustments are not applied: they are per-ppem hinting data,
+    and the backend's output is scalable SVG where Pango applies none either.
+  * A face change ends the run -- Pango itemizes runs per font and never kerns
+    across two of them (TextStencil's previousFace check).
 
-Upstream takes the X extent from Pango's LOGICAL rect
-(lily/pango-font.cc's pango_item_string_stencil, PANGO_LBEARING/PANGO_RBEARING
-of logical_rect), and Pango has SHAPED the run by then -- so that width includes
-the font's GPOS kerning.  The port applies none.
+MEASURED across the 24 vendored faces (independently, fontTools 4.57.0,
+2026-08-13): every face that kerns at all does it with ONE plain type-2 lookup
+of PairPos FORMAT 1 subtables, ValueFormat1=XAdvance, ValueFormat2=0, flag 0,
+and names the SAME lookups from every script it declares.  The monospace
+quartets (NimbusMonoPS, TeX Gyre Cursor) carry no kerning; NO vendored face
+carries a legacy kern table.  The wider surface (Format 2, Extension, legacy
+kern) is for faces the D23 chain may grow, parsed by the spec.
 
-MEASURED against the pinned oracle at font-size 24 in C059-Roman, oracle width
-against the raw advance sum, in em:
+HAND-CHECKED against the pinned oracle at font-size 24 in C059-Roman -- the
+shaped sum lands inside the same size-quantum band as the no-kern-pairs
+control, where the raw sum missed by up to 0.48 em:
 
-    "iiiiii"             1.8915  vs  1.8900   +0.0015   (no kern pairs)
-    "AVAVAV"             3.8499  vs  4.3320   -0.4821
-    "To Wo Yo"           4.2360  vs  4.4080   -0.1720
-    "LilyPond v2.27.2"   7.7299  vs  7.7810   -0.0511
+    "iiiiii"             oracle 1.8915  raw 1.8900  shaped 1.8900  (control)
+    "AVAVAV"             oracle 3.8499  raw 4.3320  shaped 3.8520
+    "To Wo Yo"           oracle 4.2360  raw 4.4080  shaped 4.2370
+    "LilyPond v2.27.2"   oracle 7.7299  raw 7.7810  shaped 7.7280
 
-A string with no kern pairs agrees to the size quantum; every string with them
-is WIDER in the port.  The engraving tagline carries one on nearly every page,
-which is why its hot-zone rect is the visible instance: with fonts pinned the
-Y extents now agree EXACTLY (both -0.4532, height 2.0746) and only the width
-differs (reference 17.0034, port 17.1189).
+Fences: KerningTableTests (6) -- pair values hand-read from the font's own GPOS
+bytes (kern(A,V)=-96, kern(L,i)=+4 -- positive pairs exist), the monospace and
+no-kern-pairs controls, and the tagline's oracle-side relationship.  The A/B
+was run both ways: with the application disabled exactly the two metric-level
+fences fail and every control holds.
 
-Fixing it means shaping, not arithmetic: the port would have to read GPOS pair
-adjustments (and the legacy kern table) and apply them between adjacent glyphs.
-That is its own work item and its own GO.
+KNOWN REMAINING DIVERGENCE, deliberate: kerning only, NOT full shaping.  No
+GSUB substitution (ligatures), no mark attachment, no per-script feature
+selection beyond the default LangSys.  If ligature substitution ever matters it
+shows as a glyph-inventory difference and gets its own ruling (the SS3.9 GO's
+scope note).
 
-A SECOND DIVERGENCE FOUND THE SAME WAY, ALSO NOT FIXED.  When no available face
-covers a code point, the two sides disagree about what to emit.  The port always
-writes the <text> element and draws .notdef -- D23's tofu.  Pango drops the run
-entirely, so the pinned oracle emits NOTHING.  Two regression files turn on it
+A SECOND DIVERGENCE FOUND THE SAME WAY -- RULED, 2026-08-13 (D31): when no
+available face covers a code point, the port always writes the <text> element
+and draws .notdef -- D23's tofu -- while Pango drops the run entirely, so the
+pinned oracle emits NOTHING.  Two regression files turn on it
 (markup-diacritic-marks asks for "Linux Libertine O, serif" and Hebrew;
 pdf-copy-paste asks for "Noto Serif JP" and Japanese), and under the pinned
-corpus neither font is reachable by design.  Which side is right is a ruling,
-not a defect: D23 says tofu, the yardstick says nothing.
+corpus neither font is reachable by design.  JEREMY RULED TOFU STANDS: the port
+keeps its provided fonts and makes a coverage gap OBVIOUS.  The two pages are a
+permanent, documented divergence, rebaselined with the ruling recorded in
+pass-manifest-decisions.tsv; they cannot reach MATCH while the ruling stands.
 
 
 ===============================================================================
@@ -5731,3 +5759,125 @@ DEFECTS THIS RUN SURFACED IN THE ENGINE (all fixed, all silent)
   files resolved, and five paper variables documented their type as "index"
   instead of "non-negative, exact integer".  The duplicate is removed; the file
   records why at the point where it stood.
+
+================================================================================
+G8 CLOSED -- generate-documentation.ly IS BYTE-IDENTICAL, ALL 19 FILES
+(2026-08-13, the §3.10 session)
+================================================================================
+
+internals.texi went 496 hunks -> 0.  The three classes the EPG24 close recorded
+were the right three NAMES, and two of them were the wrong SIZE and the wrong
+mechanism; two more classes existed that nothing had measured.  What each turned
+out to be:
+
+  1. PROCEDURE PRINTING -- recorded as "source locations, 213 hunks".  Source
+     locations were real and are now carried (reader -> source-properties ->
+     psyntax -> Tree-IL src -> closure, all in CodeBrix.LilyScheme), and the
+     port now emits the oracle's five locations to the character.  But they
+     account for EIGHT of the occurrences.  The dominant form is
+     "#<program ADDR CODE>", which the oracle emits 206 times against 29
+     ordinary ones -- and that is not a location question at all:
+
+     ⚠ IT IS AN UPSTREAM BUG, AND PARITY REQUIRES REPRODUCING IT.
+     libguile/programs.c:108-143 sets a file-static print_error flag, calls
+     (system vm program)'s write-program, and clears the flag after.  The flag
+     guards against a printer that errors.  ice-9/pretty-print.scm's truncating
+     soft port abort-to-prompts from inside write-string, and an abort that
+     lands inside write-program leaves the flag SET FOR THE REST OF THE PROCESS
+     -- after which every procedure prints in the low-level form.  Verified
+     directly against the oracle: print a procedure (nice), pretty-print a wide
+     alist, print the same procedure again (#<program ...>).  LilyPond knows and
+     works around the symptom rather than the cause -- scm->string
+     (scm/lily-library.scm:1628-1629) carries a regex whose only purpose is to
+     normalise "#<program HEX HEX>" to "#<program>".
+
+     Two consequences that are easy to miss:
+
+       * THE ADDRESS WIDTH IS LOAD-BEARING even though the address is stripped.
+         scm->string strips it AFTER pretty-print has chosen its line breaks,
+         and pretty-print measures the text it actually wrote.  Guile prints a
+         64-bit heap pointer, so twelve hex digits; emitting eight moved line
+         breaks on entries that contain no address at all.
+
+       * THE SOFT PORT'S BUFFERING DECIDES WHEN THE LATCH FIRES.  An unbuffered
+         port aborts on the first oversized write, which is almost always inside
+         a procedure, so the port latched far earlier than the oracle.  Guile's
+         soft port buffers 1024 bytes and transfers whole 252-byte quanta;
+         CodeBrix.LilyScheme now does the same, measured against the oracle and
+         confirmed by prediction.  With buffering, a structure that fits in the
+         buffer never flushes mid-print and never latches -- which is exactly why
+         '(Staff #<procedure at ...>) prints normally and the wide
+         breathMarkDefinitions alist does not.
+
+  2. module-public-interface -- recorded at 126 hunks, measured at 82.  Exports
+     are now tracked per module (define-public, `export', and the #:export /
+     #:re-export / #:export-syntax / #:replace keywords) and the interface holds
+     exactly those, sharing variables rather than copying values.  ⚠ THE IMPORT
+     SIDE IS UNCHANGED: a use-modules without #:select still puts the whole
+     module on the use list, so visible scope stays WIDER than Guile's and never
+     narrower.  The recorded danger was about narrowing IMPORTS; narrowing the
+     interface removes nothing from anyone's scope, and the full sweep behind
+     this session confirms it.
+
+  3. SMOB PRINT REPRESENTATIONS -- recorded at 7 hunks; the real population is
+     334 occurrences across FOUR types, not one.  Pitch (108), Moment (6) and
+     Duration (1) now print through ISchemePrintable, and so does
+     Unpure_pure_container (219), whose printer shows each part by its PROCEDURE
+     NAME when it has one.  Note the inconsistent spacing is upstream's and is
+     reproduced: "#<Pitch e' >" and "#<Duration 1 >" close with a space,
+     "#<Mom 0>" does not.  ToString() is deliberately NOT the print
+     representation on any of the four -- upstream keeps to_string() (the bare
+     content, which ly:pitch->string and error messages read) separate from
+     print_smob, and the port had conflated them.
+
+  4. NEW: MACRO DOCSTRINGS WERE BEING DROPPED -- 8 hunks, 15 @defmac entries.
+     A docstring on a macro belongs on the TRANSFORMER, not on the procedure the
+     user wrote: documentation generators ask procedure-documentation of
+     (macro-transformer m) and skip any macro that answers #f.  The prelude's
+     define-syntax-rule discarded the string outright, and defmacro / defmacro*
+     left it on the inner lambda.  All three now match Guile.  Invisible to every
+     ordinary use of the macros.
+
+  5. NEW: THE ENTRY-POINT DOCSTRING TABLE WAS MIS-EXTRACTED -- 5 entry points.
+     Three separate faults in tools/table-extract/, all now fixed and the table
+     regenerated:
+
+       * C++ RAW STRING LITERALS WITH A NON-EMPTY DELIMITER.  cxxscan.py read
+         only R"( ... )" and LilyPond writes every docstring containing a quote
+         as R"delim( ... )delim" -- so four entry points kept a literal "delim("
+         in their text, lost every embedded quoted string as if it were a
+         literal boundary, and trailed ")delim".
+
+       * DECLARING type_p_name_ IS NOT BEING A SMOB.  The predicate is defined by
+         Smob_base<T>::init(), which only runs for a class that derives from a
+         smob base.  lily/include/box.hh declares the name with no base at all,
+         and the oracle answers #f to (defined? 'ly:box?).  The extractor now
+         requires the derivation (class OR struct -- Duration and
+         Tuplet_description are structs, and taking only `class' drops two live
+         predicates).
+
+       * BUILD-GUARDED ENTRY POINTS.  ly:gs-api and ly:shutdown-gs sit behind
+         #if GS_API, which the oracle build has off; both are unbound there.
+
+     ⚠ RELATED DIVERGENCE, RECORDED NOT FIXED: the port BINDS ly:box? as a type
+     predicate where the oracle has no such name.  Only the documentation table
+     was corrected here; whether the entry point should exist is an
+     entry-point-closure question, not a documentation one.
+
+ALSO RECORDED, NOT CHASED (found while reading unpure-pure-container.cc):
+  UnpurePureContainer.PurePart() wraps the unpure part in an Unpure_pure_call
+  whenever the pure part was omitted.  Upstream wraps only when the second smob
+  slot is UNBOUND, and make_smob leaves it bound -- to the first argument -- when
+  the pure part is omitted AND the unpure part is not a procedure
+  (lily/include/unpure-pure-container.hh:36-41, whose comment reads "Avoid
+  gratuitous creation of an Unpure_pure_call").  The port therefore answers a
+  wrapper where upstream answers the value.  It does not affect printing, which
+  reads the raw parts.  Phase 4's.
+
+SOURCE NAMES CHANGED: the vendored scm/ layer is now read under
+"lily/<name>.scm" rather than "<name>.scm" (LilyPondScheme.SourceNameFor).  That
+is the tail of upstream's own path, and it is load-bearing rather than cosmetic:
+scm->string shortens a location to its last TWO path components before printing
+it, so a one-component name does not match its regex and the raw form would
+survive into the manual.
+

@@ -34,7 +34,7 @@ namespace CodeBrix.LilyPort.Engine.Music; //was previously: lily/moment.cc, lily
 /// single rational.
 /// </para>
 /// </summary>
-public readonly struct Moment : IEquatable<Moment>, IComparable<Moment>, ISchemeEqual
+public readonly struct Moment : IEquatable<Moment>, IComparable<Moment>, ISchemeEqual, ISchemePrintable
 {
     /// <summary>Initializes a moment from a main and a grace part.</summary>
     /// <param name="mainPart">The main timing.</param>
@@ -178,6 +178,19 @@ public readonly struct Moment : IEquatable<Moment>, IComparable<Moment>, IScheme
         => GracePart.IsNonZero
             ? MainPart.ToString() + "G" + GracePart
             : MainPart.ToString();
+
+    /// <summary>
+    /// Returns the smob's external representation, <c>#&lt;Mom 0&gt;</c>.
+    /// <para>
+    /// Upstream: <c>Moment::print_smob</c> (<c>lily/moment.cc</c>). Note that it writes
+    /// <c>to_string ()</c> and then <c>"&gt;"</c> with NO space, unlike
+    /// <c>Pitch::print_smob</c> and <c>Duration::print_smob</c>, which both emit
+    /// <c>" &gt;"</c>. The inconsistency is upstream's; reproducing it is what makes the
+    /// generated manual compare byte for byte.
+    /// </para>
+    /// </summary>
+    /// <returns>The external representation.</returns>
+    public string PrintRepresentation() => "#<Mom " + ToString() + ">";
 
     /// <summary>
     /// Compares by VALUE for Scheme's <c>equal?</c>.

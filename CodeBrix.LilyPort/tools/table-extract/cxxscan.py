@@ -23,11 +23,54 @@ parser: it knows literals, comments and parentheses, and nothing else.
 """
 
 
+def raw_literal_delimiter(text, start):
+    """Returns the d-char-sequence of the raw string literal at start, or None.
+
+    A C++ raw string literal is R"<d-chars>( ... )<d-chars>", and the d-char
+    sequence is very often EMPTY -- R"(...)" -- but is not always. LilyPond writes
+    every docstring that contains a quotation mark with a non-empty one, because
+    the quote would otherwise end the literal:
+
+        LY_DEFINE (ly_regex_quote, "ly:regex-quote", 1, 0, 0, (SCM string),
+                   R"delim(
+        ... (ly:regex-quote "$2") ...
+                   )delim")
+
+    Reading only the empty form leaves "delim(" in the text, drops every embedded
+    quoted string as if it were a literal boundary, and trails ")delim" -- which is
+    exactly what the generated manual showed for five entry points. Returns "" for
+    the empty delimiter, so callers must test `is not None`.
+    """
+    if not text.startswith('R"', start):
+        return None
+
+    index = start + 2
+    delimiter = []
+
+    # A d-char is any character except a parenthesis, a backslash or whitespace,
+    # and the sequence is at most 16 long.
+    while index < len(text) and len(delimiter) <= 16:
+        char = text[index]
+        if char == "(":
+            return "".join(delimiter)
+
+        if char in '()\\ \t\n\r\v\f':
+            return None
+
+        delimiter.append(char)
+        index += 1
+
+    return None
+
+
 def skip_string_literal(text, start):
     """Returns (contents, index just past the literal) for the literal at start."""
-    if text.startswith('R"(', start):
-        end = text.index(')"', start + 3)
-        return text[start + 3:end], end + 2
+    delimiter = raw_literal_delimiter(text, start)
+    if delimiter is not None:
+        opening = len('R"') + len(delimiter) + len("(")
+        closing = ")" + delimiter + '"'
+        end = text.index(closing, start + opening)
+        return text[start + opening:end], end + len(closing)
 
     if text[start] != '"':
         raise ValueError("not a string literal at " + str(start))
@@ -74,7 +117,7 @@ def split_macro_arguments(text, start):
 
     while index < len(text):
         char = text[index]
-        if char == '"' or text.startswith('R"(', index):
+        if char == '"' or raw_literal_delimiter(text, index) is not None:
             contents, index = skip_string_literal(text, index)
             literals.append(contents)
             continue

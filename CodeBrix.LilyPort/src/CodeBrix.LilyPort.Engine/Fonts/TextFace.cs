@@ -27,6 +27,7 @@ public sealed class TextFace
     private readonly CffFont _cff;
     private readonly Dictionary<int, int> _cmap;
     private readonly double[] _advances;
+    private readonly KerningTable _kerning;
 
     private TextFace(string fileName, SfntReader reader)
     {
@@ -35,6 +36,7 @@ public sealed class TextFace
         UnitsPerEm = reader.UnitsPerEm;
         _cmap = reader.ReadCmap();
         _advances = reader.ReadAdvances();
+        _kerning = KerningTable.Read(reader);
 
         byte[] cff = reader.GetTable("CFF ");
         _cff = cff == null ? null : new CffFont(cff);
@@ -74,6 +76,16 @@ public sealed class TextFace
     /// <returns>The advance.</returns>
     public double Advance(int glyph)
         => glyph >= 0 && glyph < _advances.Length ? _advances[glyph] : 0.0;
+
+    /// <summary>
+    /// Returns the kerning advance adjustment between two adjacent glyphs of one run,
+    /// in design units. Zero when the face carries no kerning or the pair none.
+    /// </summary>
+    /// <param name="leftGlyph">The earlier glyph's index.</param>
+    /// <param name="rightGlyph">The later glyph's index.</param>
+    /// <returns>The adjustment; most kern pairs are negative.</returns>
+    public double Kerning(int leftGlyph, int rightGlyph)
+        => _kerning == null ? 0.0 : _kerning.Adjustment(leftGlyph, rightGlyph);
 
     /// <summary>Returns a glyph's ink bounding box, in design units.</summary>
     /// <param name="glyph">The glyph index.</param>

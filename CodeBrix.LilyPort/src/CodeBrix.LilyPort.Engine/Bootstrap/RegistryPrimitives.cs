@@ -7,12 +7,14 @@
 
 using System;
 using System.Collections.Generic;
+using System.Text;
 using System.Text.RegularExpressions;
 using CodeBrix.LilyPort.Engine.Layout;
 using CodeBrix.LilyPort.Engine.Objects;
 using CodeBrix.LilyPort.Flower;
 using CodeBrix.LilyScheme;
 using CodeBrix.LilyScheme.Primitives;
+using CodeBrix.LilyScheme.Runtime;
 using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Bootstrap;
@@ -467,7 +469,7 @@ public sealed class EngineRegistries
 /// may depend on the break. The pure callback answers without triggering that dependency.
 /// </para>
 /// </summary>
-public sealed class UnpurePureContainer
+public sealed class UnpurePureContainer : ISchemePrintable
 {
     /// <summary>Initializes a container.</summary>
     /// <param name="unpure">The unpure expression.</param>
@@ -510,9 +512,60 @@ public sealed class UnpurePureContainer
     /// <returns>The pure part, or a call wrapper around the unpure one.</returns>
     public object PurePart() => IsPureOmitted ? new UnpurePureCall(Unpure) : Pure;
 
+    /// <summary>
+    /// Gets a value indicating whether both lookups answer the same way — upstream's
+    /// <c>is_unchanging ()</c>, which is <c>SCM_UNBNDP (scm2 ())</c>.
+    /// <para>
+    /// ⚠ It is NOT the same question as <see cref="IsPureOmitted"/>.
+    /// <c>make_smob</c> (<c>lily/include/unpure-pure-container.hh:36-41</c>) fills the
+    /// second slot with the first when the pure part is omitted AND the unpure part is not
+    /// a procedure, so a one-argument container over a NON-procedure is "changing" and
+    /// prints BOTH parts. Only a one-argument container over a procedure leaves the slot
+    /// unbound.
+    /// </para>
+    /// </summary>
+    public bool IsUnchanging => IsPureOmitted && SchemeUtilities.IsProcedure(Unpure);
+
+    /// <summary>
+    /// Returns the smob's external representation, for example
+    /// <c>#&lt;unpure-pure-container ly:grob::stencil-height &gt;</c>.
+    /// <para>
+    /// Upstream: <c>Unpure_pure_container::print_smob</c>
+    /// (<c>lily/unpure-pure-container.cc:88-109</c>). Each part is shown by its PROCEDURE
+    /// NAME when it has one — upstream's own <c>display_part</c> lambda, whose comment
+    /// reads "One common type are procedures. If it has a name, print that" — and is
+    /// otherwise displayed. The pure part is emitted only when the container is not
+    /// unchanging, and the closing <c>" &gt;"</c> carries upstream's space.
+    /// </para>
+    /// </summary>
+    /// <returns>The external representation.</returns>
+    public string PrintRepresentation()
+    {
+        StringBuilder builder = new StringBuilder("#<unpure-pure-container ");
+        AppendPart(builder, Unpure);
+        if (!IsUnchanging)
+        {
+            builder.Append(' ');
+            AppendPart(builder, Pure);
+        }
+
+        return builder.Append(" >").ToString();
+    }
+
+    private static void AppendPart(StringBuilder builder, object part)
+    {
+        if (SchemeUtilities.IsProcedure(part) && part is Procedure procedure && procedure.EffectiveName != null)
+        {
+            builder.Append(procedure.EffectiveName);
+            return;
+        }
+
+        builder.Append(Printer.Display(part));
+    }
+
     /// <summary>Returns the external representation.</summary>
     /// <returns>A description of the container.</returns>
-    public override string ToString() => "#<unpure-pure-container>";
+    public override string ToString() => PrintRepresentation();
 }
 
 /// <summary>
