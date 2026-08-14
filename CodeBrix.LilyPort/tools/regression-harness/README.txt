@@ -679,3 +679,66 @@ WHAT LANDING THIS ACTUALLY BOUGHT, AND WHAT IT DID NOT (2026-08-12, measured)
   differences. A cheap high-signal probe for the text gap, needing no sweep: on any
   page with a tagline, compare the hot-zone rect's width and height against the
   oracle's.
+
+
+================================================================================
+DOCUMENTATION PARITY -- THE DOCS RUN (G8, closed 2026-08-13)
+================================================================================
+
+  ly/generate-documentation.ly is the port's other oracle comparison, and it is
+  the ONLY one that grades how values PRINT. It is separate from the sweep, and
+  it is cheap.
+
+RUNNING IT
+
+    dotnet run --project tools/regression-harness/DocsDriver -c Release -- /tmp/port-docs
+    mkdir -p /tmp/oracle-docs && cd /tmp/oracle-docs \
+        && ~/ClaudeHome/oracle/lilypond-2.27.2/bin/lilypond \
+           ~/ClaudeHome/oracle/lilypond-2.27.2/share/lilypond/2.27.2/ly/generate-documentation.ly
+    for f in /tmp/oracle-docs/*; do cmp -s "$f" "/tmp/port-docs/$(basename $f)" \
+        || echo "DIFFER $(basename $f)"; done
+
+  EXPECT NO OUTPUT AT ALL. All nineteen files match byte for byte, internals.texi
+  at 2,619,154 bytes. The oracle takes 1.5 s and the port about 40 s, so the
+  references are regenerated rather than committed.
+
+  ⚠ THE OUTPUT DIRECTORY IS THE PROCESS WORKING DIRECTORY, NOT AN ARGUMENT. The
+  script writes through open-output-file with RELATIVE names, which is why both
+  sides are invoked by changing into the target directory.
+
+WHY IT BELONGS BESIDE THE SWEEP
+
+  The layout comparator grades glyph INVENTORY and POSITION and nothing else
+  (see THE COMPARATOR above). It is structurally blind to every one of:
+
+    * how a procedure prints -- its name, its formals, its source location;
+    * how a smob prints -- #<Pitch e' >, #<Mom 0>, #<Duration 1 >,
+      #<unpure-pure-container ... >;
+    * what a module reports as its public interface;
+    * whether a docstring reached the thing that documents it.
+
+  A defect in any of those is invisible to the ratchet no matter how green it is.
+  The session that closed G8 found FIVE separate classes this way, three of which
+  nothing else in the harness could have seen -- and two of those five were
+  general engine/interpreter defects that the manual merely happened to be the
+  first thing to show.
+
+  So: run the docs comparison whenever the Scheme layer, an entry point, a print
+  representation or anything in the module system moves. It costs forty seconds.
+
+A SHARP EDGE WORTH KNOWING BEFORE READING A DIFF
+
+  Upstream's own procedure printer has a re-entry latch it never clears
+  (libguile/programs.c:108-143): once pretty-print's truncating port aborts from
+  inside it, EVERY procedure in that process prints as #<program ADDR CODE>
+  instead of #<procedure ...>. The oracle's manual therefore carries 206 of the
+  degraded form against 29 ordinary ones, and the port reproduces the latch
+  deliberately (standing rule 2). Two things follow for anyone debugging a diff
+  here:
+
+    * the hexadecimal address is stripped by scm->string but its WIDTH is not --
+      it is stripped AFTER pretty-print has chosen line breaks, so an address of
+      the wrong length moves breaks on lines containing no address; and
+    * the soft port's BUFFERING decides whether an abort lands inside the printer
+      at all, so a change to port buffering changes which procedures print which
+      way. CodeBrix.LilyScheme's SoftPortBufferingTests fences the model.

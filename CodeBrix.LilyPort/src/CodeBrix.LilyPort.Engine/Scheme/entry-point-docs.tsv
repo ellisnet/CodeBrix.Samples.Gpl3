@@ -12,6 +12,25 @@
 # The arglist is stringified as the C preprocessor would leave #ARGLIST:
 # every run of whitespace collapsed to one space. \n is a newline.
 #
+# THREE RULES DECIDE WHAT IS IN HERE, and each was added because taking the
+# source at face value put something in the generated manual that the oracle
+# does not have:
+#
+#   * A docstring may be a C++ RAW STRING LITERAL WITH A NON-EMPTY DELIMITER,
+#     R"delim( ... )delim", which is how LilyPond writes any docstring that
+#     contains a quotation mark. Reading only R"( ... )" leaves 'delim(' in
+#     the text and drops every embedded quoted string.
+#
+#   * A SMOB TYPE PREDICATE is included only when its class actually derives
+#     from a smob base (class OR struct -- Duration and Tuplet_description are
+#     structs). Smob_base<T>::init() defines the predicate, so a class that
+#     merely declares type_p_name_ never gets one: lily/include/box.hh does
+#     exactly that, and the oracle answers #f to (defined? 'ly:box?).
+#
+#   * An entry point behind a build flag the oracle build does not set is
+#     skipped -- #if GS_API, which is why ly:gs-api and ly:shutdown-gs are
+#     absent here and unbound there.
+#
 # Regenerate with tools/table-extract/extract-entry-point-docs.py.
 ly:add-context-mod	context-mod-scheme.cc	(SCM contextmods, SCM modification)	\nAdds the given context @var{modification} to the list @var{contextmods} of\ncontext modifications.\n           
 ly:add-interface	grob-interface-scheme.cc	(SCM iface, SCM desc, SCM props)	\nAdd a new grob interface.  @var{iface} is the interface name, @var{desc} is the\ninterface description, and @var{props} is the list of user-settable properties\nfor the interface.\n           
