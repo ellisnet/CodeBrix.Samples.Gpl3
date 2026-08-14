@@ -25,7 +25,10 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Objects; //was previously: lily/spacing-determine-loose-columns.cc;
 
-// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port.
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port:
+//   - the do-not-float-a-bar-line guard's stand-in is RETIRED and the call routes to
+//     BreakAlignmentInterface.FindNonemptyBreakAlignGroup, which had landed long
+//     before and which nothing re-checked against this site. See PORT-COVERAGE.
 
 /// <summary>
 /// The half of the spacing spanner that decides which columns are LOOSE — attached to
@@ -45,8 +48,7 @@ public static partial class SpacingSpanner
     private static readonly Symbol LabelsSymbol = Symbol.Intern("labels");
     private static readonly Symbol ElementsSymbol = Symbol.Intern("elements");
     private static readonly Symbol BreakAlignmentSymbol = Symbol.Intern("break-alignment");
-
-    private static bool _breakAlignGroupAbsenceReported;
+    private static readonly Symbol StaffBarSymbol = Symbol.Intern("staff-bar");
 
     /*
       Return whether COL is fixed to its neighbors by some kind of spacing
@@ -137,7 +139,8 @@ public static partial class SpacingSpanner
         */
         if (col.GetObject(BreakAlignmentSymbol) is Item breakAlignment)
         {
-            Grob staffBarGroup = FindNonemptyStaffBarGroup(breakAlignment);
+            Grob staffBarGroup = BreakAlignmentInterface.FindNonemptyBreakAlignGroup(
+                breakAlignment, StaffBarSymbol);
             if (staffBarGroup != null && staffBarGroup.Extent(staffBarGroup, Axis.X).Length > 0)
             {
                 return false;
@@ -391,27 +394,4 @@ public static partial class SpacingSpanner
         }
     }
 
-    /// <summary>
-    /// The seam for <c>Break_alignment_interface::find_nonempty_break_align_group</c>.
-    /// ⚠ This stand-in predates the later port of
-    /// <c>BreakAlignInterface.FindNonemptyBreakAlignGroup</c>; whether this call site
-    /// should now route through it has not been re-measured. Until it does the bar-line
-    /// guard below cannot fire, so a
-    /// bar-line column that upstream would refuse to float may be declared loose here.
-    /// The guard above it — a column with real width and both neighbours in series — is
-    /// ported and catches the ordinary bar line.
-    /// </summary>
-    private static Grob FindNonemptyStaffBarGroup(Item breakAlignment)
-    {
-        if (!_breakAlignGroupAbsenceReported)
-        {
-            _breakAlignGroupAbsenceReported = true;
-            Warn.ProgrammingError(
-                "Break_alignment_interface::find_nonempty_break_align_group is not ported"
-                + " here; the do-not-float-a-bar-line guard in Spacing_spanner cannot"
-                + " fire, so a bar-line column may be declared loose");
-        }
-
-        return null;
-    }
 }

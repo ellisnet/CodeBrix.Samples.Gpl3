@@ -88,7 +88,7 @@ break-align-engraver.cc	ported	src/CodeBrix.LilyPort.Engine/Translation/BreakAli
 break-alignment-interface.cc	ported	src/CodeBrix.LilyPort.Engine/Objects/BreakAlignInterface.cs	NAMING: BreakAlignInterface, because the file declares Break_alignment_interface, Break_aligned_interface and Break_alignable_interface and the port carries all three together
 break-substitution.cc	ported	src/CodeBrix.LilyPort.Engine/Objects/BreakSubstitution.cs	EPG22 pulled the DIRECTION half forward for handle_prebroken_dependencies; EPG15 (2026-08-08) landed the System half — the substitution driver and fast_substitute_grob_array
 breathing-sign.cc	ported	src/CodeBrix.LilyPort.Engine/Objects/BreathingSign.cs	
-caesura-engraver.cc	ported	src/CodeBrix.LilyPort.Engine/Translation/CaesuraEngraver.cs	make_script_from_event is EPG14 (script-interface.cc); CaesuraScript grobs are created but left unconfigured, with a loud programming error per script
+caesura-engraver.cc	ported	src/CodeBrix.LilyPort.Engine/Translation/CaesuraEngraver.cs	make_script_from_event landed with the script engravers; both call sites here route to ScriptEngraver.MakeScriptFromEvent, so a CaesuraScript is configured from scriptDefinitions like any other script
 cairo.cc	no-port	D15 — SVG is the parity yardstick; no Cairo backend	
 calculated-sequential-music.cc	ported	src/CodeBrix.LilyPort.Engine/Translation/SequentialIterator.cs	
 change-iterator.cc	ported	src/CodeBrix.LilyPort.Engine/Translation/ContextIterators.cs	

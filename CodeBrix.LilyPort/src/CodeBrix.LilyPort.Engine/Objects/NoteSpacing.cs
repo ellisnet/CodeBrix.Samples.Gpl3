@@ -32,6 +32,11 @@ namespace CodeBrix.LilyPort.Engine.Objects; //was previously: lily/note-spacing.
 //     It had been hollow behind a stale absence note, and became reachable
 //     when Paper_column_engraver started acknowledging spacing wishes onto the
 //     columns. See PORT-COVERAGE.
+//   - get_spacing's two stand-ins are RETIRED and both calls route to the real
+//     ported functions: Note_column::first_head to NoteColumn.FirstHead, and
+//     Break_alignment_interface::find_nonempty_break_align_group to
+//     BreakAlignmentInterface.FindNonemptyBreakAlignGroup. Both targets had
+//     landed long before and nothing re-checked the stand-ins. See PORT-COVERAGE.
 
 /*
   Adjust the ideal and minimum distance between note columns,
@@ -67,8 +72,7 @@ public static class NoteSpacing
     private static readonly Symbol KneeSpacingCorrection
         = Symbol.Intern("knee-spacing-correction");
 
-    private static bool _headAbsenceReported;
-    private static bool _staffBarGroupAbsenceReported;
+    private static readonly Symbol StaffBar = Symbol.Intern("staff-bar");
 
     /// <summary>
     /// Adjusts a duration-based spring for what the two columns actually contain.
@@ -90,7 +94,7 @@ public static class NoteSpacing
 
             if (g == null)
             {
-                g = FirstHead(noteColumns[i]);
+                g = NoteColumn.FirstHead(noteColumns[i]);
             }
 
             /*
@@ -133,7 +137,8 @@ public static class NoteSpacing
             Grob staffBarGroup = null;
             if (rightCol.GetObject(BreakAlignment) is Item breakAlignment)
             {
-                staffBarGroup = FindStaffBarGroup(breakAlignment);
+                staffBarGroup = BreakAlignmentInterface.FindNonemptyBreakAlignGroup(
+                    breakAlignment, StaffBar);
             }
 
             if (staffBarGroup != null)
@@ -397,47 +402,6 @@ public static class NoteSpacing
         double corr = RobustDouble(noteSpacing.GetProperty(SameDirectionCorrection), 0);
 
         return delta > 1 ? -lowest * corr : 0;
-    }
-
-    /// <summary>
-    /// The seam for <c>Note_column::first_head</c>. ⚠ This stand-in answers null and
-    /// predates the later port of <c>NoteColumn.FirstHead</c>; whether this call site
-    /// should now route through it has not been re-measured. Its own note — that nothing
-    /// carries <c>note-column-interface</c> here — dates from the same era.
-    /// </summary>
-    private static Grob FirstHead(Item noteColumn)
-    {
-        if (!_headAbsenceReported)
-        {
-            _headAbsenceReported = true;
-            Warn.ProgrammingError(
-                "Note_column::first_head is not routed here; the left head end stays 0,"
-                + " which is upstream's answer when the first head cannot be determined");
-        }
-
-        return null;
-    }
-
-    /// <summary>
-    /// The seam for <c>Break_alignment_interface::find_nonempty_break_align_group</c>,
-    /// ⚠ This stand-in answers null and predates the later port of
-    /// <c>BreakAlignInterface.FindNonemptyBreakAlignGroup</c>; whether this call site
-    /// should now route through it has not been re-measured. Until it does, the spacing
-    /// measures to the right side of the non-musical column instead — upstream's own
-    /// fallback when no staff-bar group is found.
-    /// </summary>
-    private static Grob FindStaffBarGroup(Item breakAlignment)
-    {
-        if (!_staffBarGroupAbsenceReported)
-        {
-            _staffBarGroupAbsenceReported = true;
-            Warn.ProgrammingError(
-                "Break_alignment_interface::find_nonempty_break_align_group is not routed"
-                + " here; measuring to the right side of the non-musical column, which is"
-                + " upstream's own no-staff-bar-group fallback");
-        }
-
-        return null;
     }
 
     private static double RobustDouble(object value, double fallback)

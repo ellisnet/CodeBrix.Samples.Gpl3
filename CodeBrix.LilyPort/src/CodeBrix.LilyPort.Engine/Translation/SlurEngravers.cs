@@ -36,6 +36,9 @@ namespace CodeBrix.LilyPort.Engine.Translation; //was previously: lily/slur-engr
 //     THAT INTERFACE — not scm/, not lily/ — so the acknowledger is dead upstream and dead
 //     here. It is kept rather than dropped so the registration stays a faithful record;
 //     if Fingering ever gains that interface, this starts working with no change here.
+//   - doubleSlurs is read EXACTLY-#t, as upstream's from_scm<bool> reads it. It had been
+//     read with Scheme truthiness, under which an unset property reads TRUE. See
+//     PORT-COVERAGE.
 
 /// <summary>
 /// Builds slur grobs from slur events, and collects everything the slur must be shaped
@@ -254,8 +257,14 @@ public class SlurEngraver : Engraver
     protected virtual Symbol EventSymbol => SlurEventSymbol;
 
     /// <summary>Gets whether <c>doubleSlurs</c> applies to this engraver.</summary>
+    /// <remarks>
+    /// Upstream spells this <c>from_scm&lt;bool&gt;</c>, which is EXACTLY-<c>#t</c>, not
+    /// <c>scm_is_true</c>. The distinction is not cosmetic: read with Scheme truthiness,
+    /// every value that is not literally <c>#f</c> — an unset property included — turns
+    /// double slurs on.
+    /// </remarks>
     protected virtual bool DoubleProperty
-        => SchemeUtilities.IsSchemeTrue(GetProperty(DoubleSlursSymbol));
+        => SchemeUtilities.ToBool(GetProperty(DoubleSlursSymbol));
 
     /// <summary>Gets the grob name this engraver creates.</summary>
     protected virtual string GrobSymbol => "Slur";

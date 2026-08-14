@@ -6080,3 +6080,143 @@ scm->string shortens a location to its last TWO path components before printing
 it, so a one-component name does not match its regex and the raw form would
 survive into the manual.
 
+PARITY GRIND -- THE FOUR STALE SEAMS, RETIRED
+
+  All four stand-ins flagged at the cleanup were still standing in live code, and
+  the sweep log proved it: the first two fire on the FIRST FILE of the corpus.
+  Each target had been ported long before, each stand-in was written while it did
+  not exist, and NOTHING RE-CHECKED THEM once it did.  This is trap 18 (a named
+  absence stops being true the moment its owner lands) meeting trap 17 (a ported
+  type with a missing call is worse than an unported one), four times over.
+
+  Nothing here is a new translation.  The surrounding code in all four files is
+  already upstream verbatim; only the call was going to a stub.
+
+    1. Note_spacing::get_spacing -> Note_column::first_head.  The stand-in
+       answered null, so left_head_end stayed 0 and the ideal distance of EVERY
+       note-column spacing wish was short by one note head's right extent.
+       Routed to NoteColumn.FirstHead; the whole chain below it
+       (Note_column::get_stem, Stem::first_head, Stem::extremal_heads_if) was
+       re-read against upstream and is faithful.
+
+    2. Note_spacing::get_spacing -> find_nonempty_break_align_group ('staff-bar).
+       Without it the space-to-barline branch always took upstream's
+       no-staff-bar-group fallback and measured to the right side of the
+       non-musical column.
+
+    3. Spacing_spanner's do-not-float-a-bar-line guard -> the same function.
+       Until it fired, a bar-line column upstream refuses to float could be
+       declared loose.  The five "Loose column does not have right side to
+       attach to" errors in the opening sweep are gone with it.
+
+    4. Caesura_engraver -> make_script_from_event.  513 occurrences in the
+       opening sweep: every CaesuraScript was created and then left
+       UNCONFIGURED.  Both call sites now route to
+       ScriptEngraver.MakeScriptFromEvent, and the articulation site is
+       UNCONDITIONAL as upstream's is -- make_script_from_event does the
+       articulation-type-must-be-a-symbol check itself, so the port's `is Symbol'
+       guard was swallowing that report as well as leaving the grob bare.
+
+  MEASURED, WHOLE CORPUS, AGAINST A VERIFIED BASELINE (the opening sweep
+  reproduced the recorded figures exactly -- 2112/32/2, 2301 pages, and
+  61/1293/929/33 verdicts -- before anything was touched):
+
+      pages     2301 -> 2307        (line and page breaking moved)
+      MATCH       61 -> 85          (+24)
+      PLACEMENT 1293 -> 1447
+      GLYPHS     929 -> 758         (-171)
+      MISSING     33 -> 26          (-7)
+      ratchet   203 rows improved, 2 REGRESSED
+
+  ⚠ TWO ROWS WENT DOWN A RUNG, AND THEY ARE NOT A DEFECT IN THE CHANGE.
+  Attributed honestly per trap 32, by DISABLING the routing and re-rendering:
+  both reproduce standalone, and both revert to PLACEMENT-DIFFERS with seam 1
+  disabled alone.  They are trap 28 -- removing the blocker exposed the next
+  defect -- and each is fine geometry that a discrete decision amplifies:
+
+    * glissando.svg, "extra line:0.1000 x2".  Line_interface::make_zigzag_line
+      takes count = ceil (dz.length () / w), so a span of EXACTLY zero draws no
+      teeth and any nonzero span draws one tooth = two lines.  The broken
+      glissando piece spans ~0.07 staff space here and 0 in the oracle.  The
+      zigzag teeth that ARE drawn match 18 for 18 on both sides.
+
+    * beamlet-test.svg, "missing text 4, extra text 3".  The eight italic tuplet
+      numbers are the SAME MULTISET on both sides (two 3s, six 5s); the one
+      non-italic number is a bar number, and it reads 3 where the oracle reads 4.
+      The line break moved by one measure.  Both sides still render 2 systems.
+
+  The floor was therefore NOT advanced and NOT rebaselined -- ratchet.py update
+  refuses while any row regresses, --force is never the fix, and a rebaseline is
+  Jeremy's ruling (pass-manifest-decisions.tsv, --only to keep the two causes
+  separately reversible).  The 203 improvements are real and unrecorded until
+  that ruling.
+
+THE from_scm<bool> DEFECT CLASS -- SWEPT, NOT SAMPLED
+
+  Trap 14 stood recorded as a live class with only Tie_engraver audited.  It is
+  now swept end to end and it is CLEAN but for one site.
+
+  Method, so it can be re-run: every SchemeUtilities.ToBool / IsSchemeTrue applied
+  to a GetProperty read (193 sites) was extracted, its C# Symbol constant resolved
+  to the Scheme property name in its own file, and that name matched against
+  upstream's spelling for the same property -- from_scm<bool> is EXACTLY-#t and
+  maps to ToBool; scm_is_true / scm_is_false are truthiness and map to
+  IsSchemeTrue.
+
+    ONE MISMATCH.  Slur_engraver::double_property reads doubleSlurs with
+    from_scm<bool> (lily/slur-engraver.cc:42); the port read it with Scheme
+    truthiness, under which an UNSET property reads TRUE.  Fixed.
+
+    The other five IsSchemeTrue sites are CORRECT and were left alone --
+    circled-tip, tuplet-slur, centerBarNumbers and stencil are scm_is_true
+    upstream, and suspendMelodyDecisions is scm_is_false read as !IsSchemeTrue.
+    The six the script could not resolve automatically (breakable, create-new,
+    ignore-ambitus, pop-first, first-markup-line, last-markup-line -- missed for
+    a leading `!' or a multi-line call) were read by hand: all six are
+    from_scm<bool> upstream and ToBool here.
+
+  ⚠ THE CLASS IS CLOSED FOR PROPERTY READS ONLY.  A truth test on something that
+  is not a property read was not in scope of this sweep.
+
+TWO GUILE NAMES THE ERROR/NOOUT BUCKET NAMED (landed in CodeBrix.LilyScheme)
+
+  Worked the other end of the residue -- the files that produce NO OUTPUT AT ALL,
+  where the demand is a name rather than a geometry.  Two were unbound:
+
+    open-file   libguile/fports.c's scm_open_file, the MODE-STRING opener.  It
+                is a different procedure from open-input-file / open-output-file
+                rather than a spelling of them: scm/backend-library.scm reaches
+                for it four times and scm/framework-ps.scm twice, with "w",
+                "rb" and "wb".  Direction characters select an input or an
+                output port; "+" is refused loudly rather than half-served.
+
+    file-port?  libguile/fports.c's scm_file_port_p.  ⚠ IT IS NOT "HAS A NAME":
+                a string port carries the name <string> in Guile too.
+                scm/graphviz.scm's graph-write gates a port-filename call on it
+                and its regression file hands it (current-error-port), so
+                answering by name takes the WRONG branch and prints the
+                destination as #f.  Both port types now carry the distinction
+                explicitly and port-filename answers for an output file port.
+
+  Found on the way, and fixed with them: close-port handled only the INPUT side,
+  so an output file port was never flushed.  backend-library.scm's output-scope
+  opens a header field's file, displays to it, calls close-port and never calls
+  flush-all-ports -- the file was created and left EMPTY.  close-port is now
+  Guile's any-port close and, for a FILE port only, disposes the writer as
+  scm_close_port releases the descriptor; the current output and error ports are
+  deliberately exempt, because those writers belong to the host and must survive
+  being closed from Scheme.  flush-all-ports skips an already-closed port.
+
+  MEASURED: graphviz.svg went ERROR -> rendered (the sweep's error bucket 2 -> 1,
+  SVG 2112 -> 2113), MISSING 26 -> 25.  Six tests, each paired with a control
+  that must come out differently.
+
+  ⚠ THE NEXT DEMAND IN THAT CHAIN IS NAMED AND NOT FIXED.
+  event-listener-output moved PAST open-file and now fails on
+  ly:moment-mul receiving 1/2 as its first argument.  scm/operators.scm defines
+  both (* (a <Moment>) (b <number>)) and (* (a <number>) (b <Moment>)), and the
+  second passes (b a); receiving (ratio, moment) means the port's GOOPS dispatch
+  selected the MOMENT-FIRST method for a number-first call.  That is a method
+  SELECTION defect, not a numeric-tower one, and it is a different class from
+  anything in this session.  It stays NOOUT.
+

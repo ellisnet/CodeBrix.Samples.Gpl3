@@ -28,7 +28,11 @@ using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Translation; //was previously: lily/caesura-engraver.cc;
 
-// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port.
+// Modified by Jeremy Ellis - 2026 - as part of the CodeBrix.LilyPort port:
+//   - the make_script_from_event stand-in is RETIRED and both call sites route to
+//     ScriptEngraver.MakeScriptFromEvent, which had landed with the script engravers
+//     long before and which nothing re-checked against this file. Until it did, every
+//     CaesuraScript was created and then left unconfigured. See PORT-COVERAGE.
 
 /// <summary>
 /// Notates a short break in sound that does not shorten the previous note.
@@ -296,7 +300,7 @@ public class CaesuraEngraver : Engraver
             }
 
             Item scr = MakeItem("CaesuraScript", ev);
-            MakeScriptFromEvent(scr, scriptType, scrIndex);
+            ScriptEngraver.MakeScriptFromEvent(scr, Context, scriptType, scrIndex);
             if (_xParent != null)
             {
                 scr.XParent = _xParent;
@@ -327,10 +331,11 @@ public class CaesuraEngraver : Engraver
             }
 
             Item scr = MakeItem("CaesuraScript", art);
-            if (aType is Symbol articSymbol)
-            {
-                MakeScriptFromEvent(scr, articSymbol, scrIndex);
-            }
+
+            // Unconditional, as upstream is: make_script_from_event does the
+            // articulation-type-must-be-a-symbol check itself and reports it, so guarding
+            // the call here would swallow that report AND leave the grob unconfigured.
+            ScriptEngraver.MakeScriptFromEvent(scr, Context, aType, scrIndex);
 
             if (_xParent != null)
             {
@@ -405,18 +410,6 @@ public class CaesuraEngraver : Engraver
         _confArticTypes = Undefined;
 
         _userArticTypes = Nil.Instance;
-    }
-
-    // make_script_from_event lives in lily/script-interface.cc. ⚠ This seam predates
-    // its port (the function now lives with the script engravers) and has not been
-    // re-routed or re-measured: a CaesuraScript is created but not configured from
-    // scriptDefinitions, and the gap is reported LOUDLY on every occurrence rather
-    // than silently producing a bare grob.
-    private static void MakeScriptFromEvent(Item script, Symbol type, int index)
-    {
-        Warn.ProgrammingError(
-            "Caesura_engraver: make_script_from_event (lily/script-interface.cc) is "
-            + "not routed here; CaesuraScript `" + type.Name + "' left unconfigured");
     }
 
     private static object AssqRef(object alist, Symbol key)
