@@ -275,25 +275,26 @@ public class SystemGrob : Spanner
     }
 
     /// <summary>
-    /// Accepts only paper columns as bounds. A system spans from one column to
-    /// another, never from an arbitrary item.
-    /// <para>
-    /// The base implementation is what refuses to make the bound this system's
-    /// horizontal parent — see <see cref="Spanner.SetBound"/> for why that matters.
-    /// </para>
+    /// Refuses a plain item as a bound. A system spans from one COLUMN to another, never
+    /// from an arbitrary item.
     /// </summary>
-    /// <param name="direction">Which end.</param>
-    /// <param name="grob">The grob to attach to.</param>
-    public override void SetBound(Direction direction, Grob grob)
-    {
-        if (!(grob is PaperColumn))
-        {
-            Warn.ProgrammingError("system bound must be a paper column");
-            return;
-        }
+    /// <param name="item">The candidate bound.</param>
+    /// <returns><see langword="false"/>, always.</returns>
+    /// <remarks>
+    /// //was previously: an override of <see cref="Spanner.SetBound"/> that tested
+    /// <c>grob is PaperColumn</c> and reported "system bound must be a paper column".
+    /// The test was right and the mechanism was not: upstream expresses the same rule
+    /// through this pair of acceptance predicates, so the refusal travels through
+    /// <c>Spanner::set_bound</c>'s own dispatch and reports upstream's wording,
+    /// "cannot set X as bound of Y" (ruling R1, rule 15). Routing it through the base
+    /// also means a refusal can no longer skip the <c>bounded-by-me</c> handshake.
+    /// </remarks>
+    public override bool AcceptsAsBoundItem(Item item) => false;
 
-        base.SetBound(direction, grob);
-    }
+    /// <summary>Accepts a paper column as a bound.</summary>
+    /// <param name="column">The candidate bound.</param>
+    /// <returns><see langword="true"/>, always.</returns>
+    public override bool AcceptsAsBoundPaperColumn(PaperColumn column) => true;
 
     /// <summary>Returns the paper column bounding this system on one side.</summary>
     /// <param name="direction">Which end.</param>

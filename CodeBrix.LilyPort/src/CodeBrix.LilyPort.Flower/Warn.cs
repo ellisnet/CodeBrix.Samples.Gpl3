@@ -112,6 +112,8 @@ public static class Warn
     private static readonly HashSet<string> LoggedDeprecations
         = new HashSet<string>(StringComparer.Ordinal);
 
+    private static readonly List<string> ExpectedWarnings = new List<string>();
+
     /// <summary>Gets or sets the active log level mask.</summary>
     public static LogLevel Level { get; set; } = LogLevel.LevelWarn;
 
@@ -147,6 +149,76 @@ public static class Warn
     {
         RecordedMessages.Clear();
         LoggedDeprecations.Clear();
+        ExpectedWarnings.Clear();
+    }
+
+    /// <summary>
+    /// Registers a message that this run EXPECTS, so that its output is suppressed when
+    /// it arrives and reported when it does not.
+    /// <para>
+    /// This is what a regression file asks for with <c>ly:expect-warning</c>. Upstream's
+    /// regression suite uses it to assert that a diagnostic HAPPENS without the log
+    /// filling up with deliberate warnings, so the reference log of such a file is
+    /// silent — which means a port that ignores the registration prints a warning the
+    /// oracle does not.
+    /// </para>
+    /// </summary>
+    /// <param name="message">The expected message text, already formatted.</param>
+    public static void ExpectWarning(string message) => ExpectedWarnings.Add(message);
+
+    /// <summary>
+    /// Reports any expected message that never arrived, and forgets the list.
+    /// <para>
+    /// Called once per input file, where upstream calls it — <c>lily.scm</c> runs it
+    /// between <c>lilypond-file</c> and <c>session-terminate</c>. The list is cleared
+    /// either way, so an expectation cannot leak into the next file of a batch run
+    /// (trap 16).
+    /// </para>
+    /// </summary>
+    public static void CheckExpectedWarnings()
+    {
+        if (ExpectedWarnings.Count > 0)
+        {
+            /* Some expected warning was not triggered, so print out a warning. */
+            string message = ExpectedWarnings.Count.ToString(
+                                 System.Globalization.CultureInfo.InvariantCulture)
+                             + " expected warning(s) not encountered: ";
+            for (int i = 0; i < ExpectedWarnings.Count; i++)
+            {
+                message += "\n        " + ExpectedWarnings[i];
+            }
+
+            Warning(message);
+        }
+
+        ExpectedWarnings.Clear();
+    }
+
+    /// <summary>
+    /// Determines whether a message was expected, and CONSUMES the expectation when it
+    /// was.
+    /// </summary>
+    /// <param name="message">The message about to be printed.</param>
+    /// <returns><see langword="true"/> when the message should be suppressed.</returns>
+    private static bool IsExpected(string message)
+    {
+        for (int i = 0; i < ExpectedWarnings.Count; i++)
+        {
+            // Compare the msg with the suppressed string; If the beginning matches,
+            // i.e. the msg can have additional content AFTER the full (exact)
+            // suppressed message, suppress the warning.
+            // This is needed for the Input class, where the message contains
+            // the input file contents after the real message.
+            string expected = ExpectedWarnings[i];
+            if (message.Length >= expected.Length
+                && string.CompareOrdinal(message, 0, expected, 0, expected.Length) == 0)
+            {
+                ExpectedWarnings.RemoveAt(i);
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /// <summary>Determines whether a severity would be emitted at the current level.</summary>
@@ -159,6 +231,15 @@ public static class Warn
     /// <param name="location">Where the problem was found, or <see langword="null"/>.</param>
     public static void Warning(string message, string location = null)
     {
+        //was previously: the WarningAsError test came first and there was no
+        // expectation test at all. Upstream asks is_expected FIRST, so a REGISTERED
+        // message stays suppressed even under warning-as-error.
+        if (IsExpected(message))
+        {
+            Emit(LogLevel.Debug, "suppressed warning: ", message, location);
+            return;
+        }
+
         if (WarningAsError)
         {
             Error(message, location);
@@ -202,6 +283,14 @@ public static class Warn
     public static void Progress(string message)
         => Emit(LogLevel.Progress, string.Empty, message, null);
 
+    /// <summary>
+    /// Emits a success message — <c>basic_progress</c>, which upstream logs one level
+    /// above ordinary progress.
+    /// </summary>
+    /// <param name="message">The message text.</param>
+    public static void BasicProgress(string message)
+        => Emit(LogLevel.Basic, string.Empty, message, null);
+
     /// <summary>Emits a debug message.</summary>
     /// <param name="message">The message text.</param>
     public static void Debug(string message)
@@ -214,7 +303,28 @@ public static class Warn
     /// <param name="message">The message text.</param>
     /// <param name="location">Where the problem was found, or <see langword="null"/>.</param>
     public static void ProgrammingError(string message, string location = null)
-        => Emit(LogLevel.Warn, "programming error: ", message, location);
+    {
+        if (IsExpected(message))
+        {
+            Emit(LogLevel.Debug, "suppressed programming error: ", message, location);
+            return;
+        }
+
+        //was previously: Emit(LogLevel.Warn, "programming error: ", message, location);
+        // TWO changes, both faithfulness (rule 15). The severity is LOG_ERROR upstream,
+        // not LOG_WARN — invisible at the default log level, where both are on, and not
+        // invisible at --loglevel=ERROR. And upstream prints a SECOND line after every
+        // programming error; the port printed only the first.
+        //
+        // ⚠ What is deliberately NOT here: upstream routes a programming_error through
+        // deferrable_error when warning-as-error is set, which prints `fatal error: ' and
+        // stops the run. The port must not do that yet — it still REACHES programming
+        // errors upstream does not (defect D2), so honouring warning-as-error would turn
+        // those into lost output rather than a noisy log. Recorded in PORT-COVERAGE with
+        // its revisit condition: when D2's residue is zero.
+        Emit(LogLevel.Error, "programming error: ", message, location);
+        Emit(LogLevel.Error, string.Empty, "continuing, cross fingers", location);
+    }
 
     /// <summary>
     /// Reports a fatal error. Upstream calls <c>exit()</c>; a library cannot, so this
@@ -239,7 +349,15 @@ public static class Warn
     /// <param name="message">The error text.</param>
     /// <param name="location">Where the problem was found, or <see langword="null"/>.</param>
     public static void NonFatalError(string message, string location = null)
-        => Emit(LogLevel.Error, "error: ", message, location);
+    {
+        if (IsExpected(message))
+        {
+            Emit(LogLevel.Debug, "suppressed error: ", message, location);
+            return;
+        }
+
+        Emit(LogLevel.Error, "error: ", message, location);
+    }
 
     private static void Emit(LogLevel severity, string prefix, string message, string location)
     {

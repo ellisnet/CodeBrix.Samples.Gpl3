@@ -230,6 +230,20 @@ public sealed class ModalScanner : IParserInput, CodeBrix.LilyPort.Engine.Origin
     public string LastVersionString { get; set; }
 
     /// <summary>
+    /// The <c>\version</c> string of the MAIN input, ignoring any an included file
+    /// declares.
+    /// <para>
+    /// Upstream records <c>version-seen</c> only when
+    /// <c>is_main_input_ &amp;&amp; include_stack_.size () == main_input_level_</c>
+    /// (<c>lexer.ll:255</c>) — an included file's version says nothing about whether the
+    /// file the user asked for declared one. This is the value the run's version check
+    /// is answered from; <see cref="LastVersionString"/> is whichever came last from
+    /// anywhere and is NOT that question's answer.
+    /// </para>
+    /// </summary>
+    public string MainInputVersionString { get; set; }
+
+    /// <summary>
     /// Switches start condition without stacking, which is flex's <c>BEGIN</c>.
     /// </summary>
     /// <param name="state">The state to switch to.</param>

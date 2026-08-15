@@ -6647,3 +6647,159 @@ Written at PARITY 6 (2026-08-14).
   engraver was registered, reached, and drawing -- it simply drew one sixth of
   what it owed, and nothing anywhere said so.  `registered != behaving' has a
   quieter form than a missing binding, and this is it.
+
+================================================================================
+PARITY GRIND -- THE SPANNER-BOUND HANDSHAKE, AND THE DIAGNOSTIC SINK
+================================================================================
+
+PARITY 7.  Six defects, and the first two of them are ONE defect seen from two
+sides -- D11 (staff-span segments after the first were never drawn) and D2
+(`bounds of spanner are invalid', 403 occurrences).
+
+  (1) Spanner::set_bound's DOUBLE DISPATCH WAS MISSING, AND WITH IT THE
+      `bounded-by-me' HANDSHAKE THAT KEEPS A PAPER COLUMN ALIVE.
+
+  Upstream's Spanner::set_bound begins by asking the GROB whether it accepts
+  being a bound (spanner.cc:245):
+
+      if (!g->internal_set_as_bound_of_spanner (this, d))
+        { programming_error (...); return; }
+
+  Grob answers #f, Item forwards to Spanner::accepts_as_bound_item, and
+  Paper_column forwards to Spanner::accepts_as_bound_paper_column AND, when the
+  answer is yes, ADDS THE SPANNER TO ITS `bounded-by-me' ARRAY.  Upstream's own
+  comment at paper-column.cc:50 says what that is for: "Signal that this column
+  needs to be kept alive.  They need to be kept alive to have meaningful position
+  and linebreaking."  Paper_column::is_used returns TRUE for a column that has
+  one, and System::used_columns keeps only used columns.
+
+  The port had the READ side and not the WRITE side.  PaperColumn.IsUsed
+  consulted `bounded-by-me' faithfully; nothing ever put anything in it, because
+  SetBound never made the dispatch call at all.  So a column whose only reason to
+  exist was being some spanner's bound counted as UNUSED, was dropped from the
+  system's column list, never had a system assigned, and DoBreakProcessing then
+  found bounds with no system, reported "bounds of spanner are invalid" and
+  SUICIDED the piece.
+
+  MEASURED, not reasoned (trap 8a).  A synthetic staff of N
+  \stopStaff...\startStaff segments produced exactly N-1 of the message, and
+  instrumenting the failing branch printed the reason in one line:
+
+      preR=NonMusicalPaperColumn rank=6 sys=NULL
+           [used=False breakable=False elts=0 bbm=0]
+
+  elts=0 and bbm=0 is the whole defect.  The column carried nothing and bounded
+  nothing, so nothing kept it.
+
+  ONE call restored.  bounds of spanner are invalid 403 -> 0; bounds of this
+  piece aren't breakable 228 -> 3; MATCH 1,416 -> 1,450 with 50 ratchet
+  improvements and no regression.  D2 had been open since PARITY 3 and had been
+  read as a defect in Spanner::BreakIntoPieces, which PARITY 5 verified line by
+  line and correctly found FAITHFUL.  It was faithful.  What fed it was not.
+
+  NAMING NOTE.  SystemGrob's own SetBound override, which tested `grob is
+  PaperColumn' and reported "system bound must be a paper column", is RETIRED.
+  Upstream expresses that rule as System::accepts_as_bound_item -> false plus
+  accepts_as_bound_paper_column -> true, so the refusal now travels through the
+  base dispatch and reports upstream's wording, "cannot set X as bound of Y"
+  (ruling R1, rule 15).
+
+  (2) ly:expect-warning AND ly:check-expected-warnings WERE NO-OP STUBS.
+
+  flower/warn.cc:105-148 holds a three-part mechanism the port did not have at
+  all: expect_warning registers a message, is_expected SUPPRESSES it when it
+  arrives (printing `suppressed warning: ...' at LOG_DEBUG) and CONSUMES the
+  registration, and check_expected_warnings reports whatever was registered and
+  never arrived.  122 regression files call it, 298 times.
+
+  The consequence was one-sided and invisible: the ORACLE's log for such a file
+  is silent, so every one of those warnings the port emitted was an EXTRA graded
+  against nothing.  The matching is a PREFIX match, deliberately -- upstream's
+  comment says it is "needed for the Input class, where the message contains the
+  input file contents after the real message".
+
+  ly:check-expected-warnings is called from the VENDORED lily.scm:1191, between
+  (lilypond-file) and (session-terminate).  The batch runner's equivalent point
+  is the END of the file's work, NOT after the parse: placed after the parse it
+  fired before engraving and reported tie-unterminated's expected warning missing
+  one line before emitting it.
+
+  (3) THE ly: MESSAGE FAMILY WAS WRITING INTO A NULL SINK.
+
+  ProgramOptions.Output is `TextWriter.Null' and NOTHING EVER ASSIGNED IT.  Every
+  ly:message, ly:warning, ly:programming-error, ly:non-fatal-error, ly:progress
+  and ly:debug had therefore been discarded for the life of the port: no
+  diagnostic raised by the vendored Scheme layer had ever been seen.
+
+  They now go where upstream's go -- ly:warning to warning(), ly:programming-error
+  to programming_error(), and so on -- with Report kept for its bookkeeping.  This
+  also makes the SEVERITIES real: ly:programming-error had shared
+  MessageSeverity.Warning with ly:warning.  Warn.Level is LevelWarn by default, so
+  message/progress/debug stay unprinted exactly as before; the difference is that
+  the LOG LEVEL now decides rather than the sink being dead.
+
+  This is what beam-quant-standard was waiting for.  Its expected output is an
+  ly:warning from layout-beam.scm's check-beam-quant, and the port now prints the
+  oracle's five lines with the oracle's five pairs of numbers.
+
+  (4) THE ly: MESSAGE FORMATTER APPENDED ITS ARGUMENTS INSTEAD OF SUBSTITUTING.
+
+  Every ly: message entry point upstream runs
+  scm_simple_format (SCM_BOOL_F, str, rest) first.  The port appended the
+  arguments to the template separated by spaces, so
+  (ly:warning (G_ "Bar number is ~a; expected ~a") 3 15) printed the escapes
+  intact with "3 15" on the end.  Rule 15 applied to the message BODY rather than
+  its prefix -- and a precondition for (2), because an expectation and the
+  warning it suppresses must be built by the same rule.  56 of the 298
+  expectations pass format arguments.
+
+  (5) version-seen WAS NEVER DEFINED, SO EVERY FILE WAS REPORTED AS HAVING NO
+      \version.
+
+  lexer.ll:243-264 defines version-seen in the top scope the moment the MAIN
+  input's \version string is read: #f none, #t found-but-unparseable, otherwise
+  the parsed version.  The port's lexer recorded the STRING and stopped, so
+  version-seen kept ly/init.ly's initial #f and the epilogue announced "no
+  \version statement found" for every file in the suite -- including files whose
+  first line is a \version.
+
+  Nothing had ever noticed, because that message goes through
+  ly:warning-located, which is (3)'s null sink.  This is what (3) exposed: a
+  defect can hide behind another defect's silence.  Upstream's main-input test is
+  `is_main_input_ && include_stack_.size () == main_input_level_'; the port's
+  runner parses the user's file in a ParseText call of its own and never uses
+  \maininput, so the equivalent test is the include depth alone.
+
+  (6) THE CYCLIC-DEPENDENCY READ ANSWERED '() WHERE UPSTREAM ANSWERS THE SENTINEL.
+
+  Grob::internal_get_property reports the cycle and FALLS THROUGH
+  (grob-property.cc:195-210), so `calculation-in-progress' itself is what the
+  caller receives and what try_callback_on_alist then STORES as the property's
+  value -- internal_set_value_on_alist lets it past the type check for exactly
+  that reason.  The property stays poisoned and every later read reports the cycle
+  again.  The port returned the empty list, which quietly healed the grob, so
+  debug-property-callbacks reported its cycle ONCE where the oracle reports it
+  five times.
+
+  ⚠ NOT CLOSED, AND REPORTED AS NOT CLOSED.  With the sentinel restored the port
+  reports the cycle EIGHT times: NoteHead.stencil four times, which is the
+  oracle's count, and NoteHead.layer four times where the oracle reports it once.
+  The file grades EXTRA +3 where it graded MISSING before -- a different wrong
+  answer, not a right one.  The change is kept because it is what upstream does
+  (rule 2); the residue is the plan's own carry-forward.
+
+  The `debug-property-callbacks' BACKTRACE is implemented (the callback stack,
+  pushed and popped only while the option is set, exactly as upstream guards it)
+  but does not appear in the sweep log: upstream prints it through ::message at
+  LOG_INFO and the port's default log level is LevelWarn where upstream's is INFO.
+  The diagnostics gate drops those lines on both sides anyway.
+
+  DELIBERATELY NOT DONE, WITH ITS REVISIT CONDITION.  Upstream routes a
+  programming_error and a non_fatal_error through deferrable_error when
+  warning-as-error is set, which prints `fatal error: ' and stops the run.  The
+  port must not do that yet: it still REACHES programming errors upstream does
+  not (the D2 residue, 3 occurrences of "bounds of this piece aren't breakable"),
+  and honouring warning-as-error would turn those into LOST OUTPUT rather than a
+  noisy log.  Revisit when that residue is zero.  Related and also left alone:
+  Warn.WarningAsError is assigned by nothing, so `ly:set-option 'warning-as-error'
+  is inert in the port.

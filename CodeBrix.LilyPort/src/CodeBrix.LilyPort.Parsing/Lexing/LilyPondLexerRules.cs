@@ -196,6 +196,24 @@ public static class LilyPondLexerRules
         {
             s.PopState();
             s.LastVersionString = t.Substring(1, t.Length - 2);
+
+            // lexer.ll:255 — only the MAIN input's own \version answers "was a version
+            // seen?". Without this the run's version check had no answer at all and
+            // ly/init.ly's epilogue reported "no \version statement found" for EVERY
+            // file, including the ones whose first line is a \version. Nothing noticed,
+            // because ly:warning-located was writing into a null sink.
+            //
+            // Upstream's test is `is_main_input_ && include_stack_.size () ==
+            // main_input_level_' because ONE lexer reads init.ly and, through
+            // \maininput, the user's file as well, so it has to know which it is in. The
+            // port's runner parses the user's file in a ParseText call of its own and
+            // never uses \maininput, so the equivalent test is the include depth alone —
+            // the prologue and epilogue it parses either side declare no \version.
+            if (s.IncludeDepth == 0)
+            {
+                s.MainInputVersionString = s.LastVersionString;
+            }
+
             return null;
         }));
 

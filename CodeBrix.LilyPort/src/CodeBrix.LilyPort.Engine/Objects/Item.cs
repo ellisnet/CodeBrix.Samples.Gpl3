@@ -140,6 +140,16 @@ public class Item : Grob
         => _brokenToDrul[direction] = piece;
 
     /// <summary>
+    /// Accepts being made a bound of <paramref name="spanner"/> — an ITEM asks the
+    /// spanner's item overload.
+    /// </summary>
+    /// <param name="spanner">The spanner asking.</param>
+    /// <param name="direction">Which end of the spanner.</param>
+    /// <returns><see langword="true"/> when the spanner takes items as bounds.</returns>
+    public override bool InternalSetAsBoundOfSpanner(Spanner spanner, Direction direction)
+        => spanner.AcceptsAsBoundItem(this);
+
+    /// <summary>
     /// Finds the piece of this item that lives on a given system —
     /// <c>Item::find_broken_piece</c>.
     /// </summary>

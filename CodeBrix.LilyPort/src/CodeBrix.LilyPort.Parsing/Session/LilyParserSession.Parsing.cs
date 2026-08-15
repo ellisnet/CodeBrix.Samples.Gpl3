@@ -169,6 +169,15 @@ public sealed partial class LilyParserSession
         }
         finally
         {
+            // Carried off the scanner before it goes out of scope: the scanner is
+            // per-ParseText and Scanner is restored to the caller's below, so a version
+            // read here would otherwise be unreachable by the time the run's version
+            // check needs it.
+            if (scanner.MainInputVersionString != null)
+            {
+                MainInputVersionString = scanner.MainInputVersionString;
+            }
+
             PopLexerState();
             Scanner = previous;
         }

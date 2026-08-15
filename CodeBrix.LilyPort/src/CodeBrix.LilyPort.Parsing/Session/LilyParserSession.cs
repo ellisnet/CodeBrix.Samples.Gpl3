@@ -140,6 +140,19 @@ public sealed partial class LilyParserSession : IParserHost, ILexerHost
     /// </remarks>
     public ModalScanner Scanner { get; set; }
 
+    /// <summary>
+    /// The <c>\version</c> string the most recent top-level parse declared, or
+    /// <see langword="null"/> when it declared none.
+    /// <para>
+    /// This is what <c>version-seen</c> is answered from. It lives on the session rather
+    /// than the scanner because a scanner is per-parse: it is created for one
+    /// <c>ParseText</c> and <see cref="Scanner"/> is restored to the caller's when that
+    /// call returns. A batch runner processes many files in one session, so it CLEARS
+    /// this before each file (trap 16).
+    /// </para>
+    /// </summary>
+    public string MainInputVersionString { get; set; }
+
     /// <summary>Gets the diagnostics this session produced, in order.</summary>
     public List<string> Diagnostics { get; } = new List<string>();
 

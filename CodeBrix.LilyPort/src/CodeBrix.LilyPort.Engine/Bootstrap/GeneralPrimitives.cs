@@ -81,14 +81,39 @@ public static class GeneralPrimitives
 
     private static void InstallDiagnostics(Interpreter interpreter, ProgramOptions options)
     {
-        DefineMessage(interpreter, "ly:message", options, MessageSeverity.Message);
-        DefineMessage(interpreter, "ly:progress", options, MessageSeverity.Progress);
-        DefineMessage(interpreter, "ly:basic-progress", options, MessageSeverity.Progress);
-        DefineMessage(interpreter, "ly:debug", options, MessageSeverity.Debug);
-        DefineMessage(interpreter, "ly:warning", options, MessageSeverity.Warning);
-        DefineMessage(interpreter, "ly:deprecation-warning", options, MessageSeverity.Warning);
-        DefineMessage(interpreter, "ly:programming-error", options, MessageSeverity.Warning);
-        DefineMessage(interpreter, "ly:non-fatal-error", options, MessageSeverity.Error);
+        // EACH ENTRY POINT NAMES THE flower/warn.cc FUNCTION UPSTREAM GIVES IT.
+        //
+        //was previously: every one of these reported ONLY through options.Report, whose
+        // writer is TextWriter.Null and is assigned by nothing — so the whole ly: message
+        // family had been writing into a null sink for the life of the port, and no
+        // diagnostic raised by the vendored Scheme layer had ever been seen. It is why
+        // beam-quant-standard printed nothing at all: its expected output is an
+        // ly:warning from layout-beam.scm's check-beam-quant.
+        //
+        // Report is KEPT for its bookkeeping — WarningCount and the recorded list — and
+        // its own writer stays null, so nothing is printed twice.
+        //
+        // ⚠ Routing these through Warn is what makes the SEVERITIES real: upstream's
+        // ly:programming-error is programming_error(), not a warning, and it shared
+        // MessageSeverity.Warning with ly:warning here. Progress, message and debug reach
+        // Warn too, and Warn.Level is LevelWarn by default, so they stay unprinted
+        // exactly as they were — the log level decides, rather than the sink being dead.
+        DefineMessage(interpreter, "ly:message", options, MessageSeverity.Message,
+            m => Warn.Message(m));
+        DefineMessage(interpreter, "ly:progress", options, MessageSeverity.Progress,
+            m => Warn.Progress(m));
+        DefineMessage(interpreter, "ly:basic-progress", options, MessageSeverity.Progress,
+            m => Warn.BasicProgress(m));
+        DefineMessage(interpreter, "ly:debug", options, MessageSeverity.Debug,
+            m => Warn.Debug(m));
+        DefineMessage(interpreter, "ly:warning", options, MessageSeverity.Warning,
+            m => Warn.Warning(m));
+        DefineMessage(interpreter, "ly:deprecation-warning", options, MessageSeverity.Warning,
+            m => Warn.DeprecationWarning(m));
+        DefineMessage(interpreter, "ly:programming-error", options, MessageSeverity.Warning,
+            m => Warn.ProgrammingError(m));
+        DefineMessage(interpreter, "ly:non-fatal-error", options, MessageSeverity.Error,
+            m => Warn.NonFatalError(m));
 
         // ly:error aborts, exactly as upstream does: it is how LilyPond's Scheme reports
         // a condition it cannot continue past, and swallowing it would let a broken load
@@ -98,7 +123,7 @@ public static class GeneralPrimitives
                 Symbol.Intern("lilypond-error"),
                 Pair.List(
                     new MutableString("ly:error"),
-                    new MutableString(FormatMessage(a)),
+                    new MutableString(FormatMessage(interpreter, a)),
                     Nil.Instance,
                     false)));
 
@@ -106,22 +131,42 @@ public static class GeneralPrimitives
         {
             object[] rest = new object[Math.Max(0, a.Length - 1)];
             Array.Copy(a, 1, rest, 0, rest.Length);
-            options.Report(MessageSeverity.Warning, FormatMessage(rest));
+            string text = FormatMessage(interpreter, rest);
+            options.Report(MessageSeverity.Warning, text);
+            Warn.Warning(text, TextOf(a[0]));
             return Unspecified.Instance;
         });
 
-        interpreter.DefinePrimitive("ly:expect-warning", 1, -1, a => Unspecified.Instance);
-        interpreter.DefinePrimitive("ly:check-expected-warnings", 0, 0, a => Unspecified.Instance);
+        //was previously: both of these were no-op stubs returning *unspecified*, so
+        // ly:expect-warning registered nothing and ly:check-expected-warnings checked
+        // nothing. 122 regression files call the first one, and upstream SUPPRESSES the
+        // warning each one names — so every one of those warnings the port emitted was an
+        // EXTRA against a reference log that is silent, and the file whose whole subject
+        // is the missing-warning report produced nothing at all.
+        interpreter.DefinePrimitive("ly:expect-warning", 1, -1, a =>
+        {
+            Warn.ExpectWarning(FormatMessage(interpreter, a));
+            return Unspecified.Instance;
+        });
+
+        interpreter.DefinePrimitive("ly:check-expected-warnings", 0, 0, a =>
+        {
+            Warn.CheckExpectedWarnings();
+            return Unspecified.Instance;
+        });
     }
 
     private static void DefineMessage(
         Interpreter interpreter,
         string name,
         ProgramOptions options,
-        MessageSeverity severity)
+        MessageSeverity severity,
+        Action<string> emit)
         => interpreter.DefinePrimitive(name, 1, -1, a =>
         {
-            options.Report(severity, FormatMessage(a));
+            string text = FormatMessage(interpreter, a);
+            options.Report(severity, text);
+            emit(text);
             return Unspecified.Instance;
         });
 
@@ -924,7 +969,25 @@ public static class GeneralPrimitives
         return Printer.Display(value);
     }
 
-    private static string FormatMessage(object[] arguments)
+    /// <summary>
+    /// Builds a diagnostic's text the way upstream builds it, with
+    /// <c>simple-format</c>.
+    /// </summary>
+    /// <param name="interpreter">The interpreter holding the formatter.</param>
+    /// <param name="arguments">The template followed by its format arguments.</param>
+    /// <returns>The formatted message.</returns>
+    /// <remarks>
+    /// //was previously: the arguments were APPENDED to the template separated by
+    /// spaces, so <c>(ly:warning (G_ "Bar number is ~a; expected ~a") 3 15)</c> printed
+    /// the template with its escapes intact and "3 15" stuck on the end. Every
+    /// <c>ly:</c> message entry point upstream runs
+    /// <c>scm_simple_format (SCM_BOOL_F, str, rest)</c> first, so the escapes are
+    /// SUBSTITUTED. This is rule 15 applied to the message body rather than its prefix,
+    /// and it is also what lets <c>ly:expect-warning</c> match: an expectation and the
+    /// warning it suppresses have to be built by the same rule, and 56 of the 298
+    /// expectations in the suite pass format arguments.
+    /// </remarks>
+    private static string FormatMessage(Interpreter interpreter, object[] arguments)
     {
         if (arguments.Length == 0)
         {
@@ -937,13 +1000,19 @@ public static class GeneralPrimitives
             return template;
         }
 
-        System.Text.StringBuilder builder = new System.Text.StringBuilder(template);
-        for (int i = 1; i < arguments.Length; i++)
+        object[] formatArguments = new object[arguments.Length + 1];
+        formatArguments[0] = false;
+        Array.Copy(arguments, 0, formatArguments, 1, arguments.Length);
+
+        object formatter = interpreter.GuileModule
+            .Lookup(Symbol.Intern("simple-format"))?.GetValue();
+        if (!(formatter is Procedure))
         {
-            builder.Append(' ').Append(Printer.Display(arguments[i]));
+            return template;
         }
 
-        return builder.ToString();
+        object result = interpreter.Evaluator.Apply(formatter, formatArguments);
+        return result is MutableString text ? text.ToString() : template;
     }
 
     private static string AsSymbolName(object value)

@@ -25,6 +25,7 @@ using CodeBrix.LilyPort.Engine.Music;
 using CodeBrix.LilyPort.Engine.Origins;
 using CodeBrix.LilyPort.Flower;
 using CodeBrix.LilyScheme;
+using CodeBrix.LilyScheme.Runtime;
 using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Objects; //was previously: lily/grob.cc, lily/grob-property.cc, lily/include/grob.hh, lily/include/dimension-cache.hh;
@@ -109,6 +110,9 @@ public abstract class Grob : IDiagnostics
     private static readonly Symbol BackendTypeSymbol = Symbol.Intern("backend-type?");
     private static readonly Symbol ElementsSymbol = Symbol.Intern("elements");
     private static readonly Symbol CalculationInProgress = Symbol.Intern("calculation-in-progress");
+
+    private static readonly Symbol DebugPropertyCallbacksOption
+        = Symbol.Intern("debug-property-callbacks");
     private static readonly Symbol VerticalSkylinesSymbol = Symbol.Intern("vertical-skylines");
     private static readonly Symbol HorizontalSkylinesSymbol
         = Symbol.Intern("horizontal-skylines");
@@ -542,7 +546,22 @@ public abstract class Grob : IDiagnostics
                 + Name
                 + "."
                 + symbol.Name);
-            return Nil.Instance;
+
+            if (DebugPropertyCallbacks)
+            {
+                Warn.Message("backtrace: ");
+                PrintPropertyCallbackStack();
+            }
+
+            //was previously: return Nil.Instance;
+            // Upstream does NOT return here — it reports and falls through, so the
+            // sentinel itself is what the caller receives and, through the enclosing
+            // TryCallbackOnAlist, what gets STORED as the property's value.
+            // internal_set_value_on_alist lets it past the type check for exactly that
+            // reason. The consequence is that the property stays poisoned and every
+            // later read reports the cycle again, which is why the oracle reports
+            // debug-property-callbacks' cycle FIVE times where the port reported it once:
+            // answering '() quietly healed the grob and hid the remaining four.
         }
 
         if (value is UnpurePureContainer container)
@@ -1370,6 +1389,26 @@ public abstract class Grob : IDiagnostics
     public abstract Grob PureFindVisiblePrebrokenPiece(int start, int end);
 
     /// <summary>
+    /// Accepts, or refuses, being made a bound of <paramref name="spanner"/>.
+    /// <para>
+    /// Whether a grob and a spanner can be linked depends on the specific type of EACH,
+    /// so upstream resolves it with two virtual calls: the spanner asks the grob here,
+    /// and the grob calls back to whichever <c>AcceptsAsBound…</c> overload fits its own
+    /// type. A plain grob is never a bound and answers <see langword="false"/>.
+    /// </para>
+    /// <para>
+    /// It is not a pure query — <see cref="PaperColumn"/> uses its side of the handshake
+    /// to record the spanner in <c>bounded-by-me</c>, which is what KEEPS THE COLUMN
+    /// ALIVE through <c>Paper_column::is_used</c>.
+    /// </para>
+    /// </summary>
+    /// <param name="spanner">The spanner asking.</param>
+    /// <param name="direction">Which end of the spanner.</param>
+    /// <returns><see langword="true"/> when the link is allowed.</returns>
+    public virtual bool InternalSetAsBoundOfSpanner(Spanner spanner, Direction direction)
+        => false;
+
+    /// <summary>
     /// Breaks this grob into the pieces line breaking asks for.
     /// <para>
     /// Empty on <see cref="Grob"/>, exactly as upstream: an ITEM is broken before line
@@ -1642,10 +1681,61 @@ public abstract class Grob : IDiagnostics
         */
         _mutablePropertyAlist = SchemeUtilities.AssqSet(_mutablePropertyAlist, symbol, CalculationInProgress);
 
+        bool tracing = DebugPropertyCallbacks;
+        if (tracing)
+        {
+            PropertyCallbackStack.Add((this, symbol, procedure));
+        }
+
         object value = CallProcedure(procedure);
+
+        if (tracing && PropertyCallbackStack.Count > 0)
+        {
+            PropertyCallbackStack.RemoveAt(PropertyCallbackStack.Count - 1);
+        }
 
         SetProperty(symbol, value);
         return value;
+    }
+
+    /// <summary>
+    /// The chain of property callbacks currently being evaluated, innermost LAST.
+    /// <para>
+    /// Maintained only while <c>debug-property-callbacks</c> is set, exactly as
+    /// upstream's <c>grob_property_callback_stack</c> is: it exists to say WHICH chain of
+    /// callbacks reached a cyclic dependency, and paying for it on every property read
+    /// would be absurd.
+    /// </para>
+    /// </summary>
+    private static readonly List<(Grob Grob, Symbol Property, object Callback)>
+        PropertyCallbackStack = new List<(Grob, Symbol, object)>();
+
+    private static bool DebugPropertyCallbacks
+    {
+        get
+        {
+            ProgramOptions options = LilyPondScheme.Options;
+            return options != null
+                && SchemeUtilities.ToBool(options.Get(DebugPropertyCallbacksOption.Name));
+        }
+    }
+
+    /// <summary>
+    /// Prints the callback chain that reached a cyclic dependency, outermost frame
+    /// numbered 0.
+    /// </summary>
+    private static void PrintPropertyCallbackStack()
+    {
+        int frame = 0;
+        for (int i = PropertyCallbackStack.Count - 1; i >= 0; i--)
+        {
+            (Grob grob, Symbol property, object callback) = PropertyCallbackStack[i];
+            Warn.Message(
+                "  " + frame.ToString(System.Globalization.CultureInfo.InvariantCulture)
+                + ": " + grob.Name + "." + property.Name
+                + " (" + Printer.Write(callback) + ")");
+            frame++;
+        }
     }
 
     private object TryCallbackOnObjectAlist(Symbol symbol, object procedure)

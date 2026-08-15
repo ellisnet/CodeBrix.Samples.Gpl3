@@ -196,6 +196,26 @@ public class Spanner : Grob
             return;
         }
 
+        // Whether an Item and a Spanner can be linked depends on the specific type of
+        // each, which upstream settles with two virtual calls: this one asks the GROB,
+        // and the grob calls back to the most specific AcceptsAsBound... that fits its
+        // own type.
+        //
+        //was previously: (no call at all — the whole double dispatch was missing.)
+        // Dropping it dropped its SIDE EFFECT, which is the load-bearing half:
+        // Paper_column's side records the spanner in `bounded-by-me', and
+        // Paper_column::is_used answers TRUE for a column that has one. Without it a
+        // column whose only reason to exist is being some spanner's bound counts as
+        // UNUSED, System::used_columns drops it, so it never gets a system, and
+        // DoBreakProcessing then finds "bounds of spanner are invalid" and suicides the
+        // piece. That is why \startStaff/\stopStaff segments after the first were
+        // created and then silently killed.
+        if (!grob.InternalSetAsBoundOfSpanner(this, direction))
+        {
+            Warn.ProgrammingError("cannot set " + grob.Name + " as bound of " + Name);
+            return;
+        }
+
         _spannedDrul[direction] = item;
 
         /*
@@ -216,6 +236,35 @@ public class Spanner : Grob
             }
         }
     }
+
+    /// <summary>
+    /// Determines whether this spanner takes a plain item as a bound. Spanners in
+    /// general do.
+    /// </summary>
+    /// <param name="item">The candidate bound.</param>
+    /// <returns><see langword="true"/>.</returns>
+    public virtual bool AcceptsAsBoundItem(Item item) => true;
+
+    /// <summary>
+    /// Determines whether this spanner takes a paper column as a bound. Spanners in
+    /// general do not treat paper columns specially.
+    /// </summary>
+    /// <param name="column">The candidate bound.</param>
+    /// <returns><see langword="true"/>.</returns>
+    /// <remarks>
+    /// Upstream's body is the QUALIFIED call <c>Spanner::accepts_as_bound_item (col)</c>,
+    /// so it deliberately reaches this class's answer rather than an override's. The only
+    /// subclass that overrides either is <see cref="SystemGrob"/>, which overrides BOTH,
+    /// so the distinction is currently unobservable — it is written this way so the two
+    /// stay in step if that ever stops being true.
+    /// </remarks>
+    public virtual bool AcceptsAsBoundPaperColumn(PaperColumn column)
+        => AcceptsAsBoundItemBase(column);
+
+    /// <summary>The non-virtual answer <see cref="AcceptsAsBoundItem"/> gives here.</summary>
+    /// <param name="item">The candidate bound.</param>
+    /// <returns><see langword="true"/>.</returns>
+    private static bool AcceptsAsBoundItemBase(Item item) => true;
 
     /// <summary>
     /// Returns the neighbouring broken piece on one side, or <see langword="null"/>

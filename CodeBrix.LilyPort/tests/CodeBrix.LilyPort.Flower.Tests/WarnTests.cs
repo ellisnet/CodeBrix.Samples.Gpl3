@@ -80,7 +80,78 @@ public class WarnTests : IDisposable
         Warn.ProgrammingError("grob has no parent");
 
         //Assert
+        // RESTATED at PARITY 7: upstream's programming_error prints TWO lines
+        // (warn.cc:234-238) and the port printed one. The second is the message's own
+        // punctuation, so it is asserted here as a PAIR — a fence on the first line alone
+        // would not notice the second going missing again.
+        Warn.Messages.Count.Should().Be(2);
         Warn.Messages[0].Should().Be("programming error: grob has no parent");
+        Warn.Messages[1].Should().Be("continuing, cross fingers");
+    }
+
+    [Fact]
+    public void an_expected_warning_is_suppressed_and_consumed_once()
+    {
+        //Arrange -- ly:expect-warning's contract, read off flower/warn.cc:105-148:
+        // a registered message is suppressed, the registration is CONSUMED, and a second
+        // occurrence of the same message is therefore printed normally.
+        Warn.ExpectWarning("unterminated tie");
+
+        //Act
+        Warn.Warning("unterminated tie");
+        Warn.Warning("unterminated tie");
+
+        //Assert
+        Warn.Messages[0].Should().Be("suppressed warning: unterminated tie");
+        // THE CONTROL: the second one is not suppressed, which is what "must be called
+        // multiple times" in the upstream docstring means.
+        Warn.Messages[1].Should().Be("warning: unterminated tie");
+    }
+
+    [Fact]
+    public void an_expectation_matches_on_the_leading_text_only()
+    {
+        //Arrange
+        // Upstream compares only the expectation's own length, deliberately, "needed for
+        // the Input class, where the message contains the input file contents after the
+        // real message" (warn.cc:133-137).
+        Warn.ExpectWarning("cannot find file");
+
+        //Act
+        Warn.Warning("cannot find file: `nope.ly'\n\n  \\include \"nope.ly\"");
+        // THE CONTROL: a message that merely CONTAINS the text, rather than starting
+        // with it, is a different message and is not suppressed.
+        Warn.Warning("I really cannot find file");
+
+        //Assert
+        Warn.Messages[0].Should().StartWith("suppressed warning: cannot find file:");
+        Warn.Messages[1].Should().Be("warning: I really cannot find file");
+    }
+
+    [Fact]
+    public void an_expectation_that_never_arrives_is_reported_and_the_list_is_cleared()
+    {
+        //Arrange -- this is warn-expected-warning-missing.ly's whole subject. Read off
+        // the ORACLE first (rule 35): pinned LilyPond 2.27.2 prints
+        //   warning: 1 expected warning(s) not encountered:
+        //           this is a warning that won't be triggered
+        // with the listed message indented by eight spaces on its own line.
+        Warn.ExpectWarning("this is a warning that won't be triggered");
+
+        //Act
+        Warn.CheckExpectedWarnings();
+
+        //Assert
+        Warn.Messages[0].Should().Be(
+            "warning: 1 expected warning(s) not encountered: "
+            + "\n        this is a warning that won't be triggered");
+
+        //Act -- THE CONTROL: the list is cleared, so a second check says nothing at all.
+        int after = Warn.Messages.Count;
+        Warn.CheckExpectedWarnings();
+
+        //Assert
+        Warn.Messages.Count.Should().Be(after);
     }
 
     [Fact]
@@ -114,6 +185,9 @@ public class WarnTests : IDisposable
         Warn.Messages[0].Should().Be("fatal error: stopped here");
         Warn.Messages[1].Should().Be("error: carried on");
         Warn.Messages[2].Should().Be("programming error: should not happen");
+        // RESTATED at PARITY 7 — the programming error's second line, so that this fence
+        // still covers the whole of what the third severity prints.
+        Warn.Messages[3].Should().Be("continuing, cross fingers");
     }
 
     [Fact]

@@ -127,6 +127,35 @@ public class PaperColumn : Item
     /// <returns>The system, or <see langword="null"/>.</returns>
     public override SystemGrob GetSystem() => _system;
 
+    /// <summary>
+    /// Accepts being made a bound of <paramref name="spanner"/>, and RECORDS the spanner
+    /// in <c>bounded-by-me</c> when it does.
+    /// <para>
+    /// The record is the point of the override, not a bookkeeping extra. Upstream's own
+    /// comment calls it signalling "that this column needs to be kept alive" — columns
+    /// have to survive to have a meaningful position and to take part in line breaking,
+    /// and <see cref="IsUsed"/> keeps exactly those that hold something, bound something,
+    /// or are breakable.
+    /// </para>
+    /// </summary>
+    /// <param name="spanner">The spanner asking.</param>
+    /// <param name="direction">Which end of the spanner.</param>
+    /// <returns><see langword="true"/> when the spanner takes columns as bounds.</returns>
+    public override bool InternalSetAsBoundOfSpanner(Spanner spanner, Direction direction)
+    {
+        bool ok = spanner.AcceptsAsBoundPaperColumn(this);
+        if (ok)
+        {
+            // Signal that this column needs to be kept alive. They need to be kept
+            // alive to have meaningful position and linebreaking.  [maybe we should
+            // try keeping all columns alive?, and perhaps inherit position from
+            // their (non-)musical brother]
+            PointerGroupInterface.AddGrob(this, BoundedByMe, spanner);
+        }
+
+        return ok;
+    }
+
     /// <summary>Returns the prebroken piece for one side.</summary>
     /// <param name="direction">The side to select.</param>
     /// <returns>The piece, or <see langword="null"/>.</returns>

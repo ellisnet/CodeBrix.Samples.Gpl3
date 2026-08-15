@@ -563,6 +563,20 @@ public static class BatchRunner
             }
         }
 
+        // Where upstream calls it: lily.scm runs (ly:check-expected-warnings) between
+        // (lilypond-file handler x) and (session-terminate). A file that registered an
+        // expectation with ly:expect-warning and never triggered it says so HERE, and the
+        // list is cleared either way — which is also what keeps one file's expectation
+        // from suppressing the NEXT file's warning in a batch run (trap 16).
+        //
+        // ⚠ IT BELONGS AT THE END OF THE FILE'S WORK, NOT AFTER THE PARSE. Placed
+        // straight after RunLifecycle it fired before engraving had run, so
+        // tie-unterminated reported its expected warning MISSING and then emitted it one
+        // line later. Upstream's lilypond-file parses AND engraves AND writes before the
+        // check is reached; this runner collects books during the parse and processes
+        // them afterwards, so the equivalent point is here.
+        Flower.Warn.CheckExpectedWarnings();
+
         return new BatchRunResult(
             svgPath,
             books.Count,
@@ -645,6 +659,35 @@ public static class BatchRunner
     /// to whichever toplevel book handler is bound when the epilogue runs.
     /// </summary>
     /// <returns>The parse error count of the file and epilogue together.</returns>
+    /// <summary>
+    /// The <c>version-seen</c> definition for a run whose main input declared
+    /// <paramref name="version"/>.
+    /// </summary>
+    /// <param name="version">The <c>\version</c> string the lexer read.</param>
+    /// <returns>Scheme that defines <c>version-seen</c> the way the lexer does.</returns>
+    /// <remarks>
+    /// <c>parse-and-check-version</c> is a plain <c>define</c> in
+    /// <c>lily-library.scm</c> rather than a <c>define-public</c>, so it is reached
+    /// through a <c>defined?</c> test rather than assumed: when it cannot be reached the
+    /// answer falls back to <see langword="true"/>, which is upstream's own value for
+    /// "a version was found but could not be parsed" and suppresses the same messages.
+    /// A version string carrying a quote or a backslash cannot be embedded, and takes
+    /// the same fallback — which is also what upstream answers for an unparseable one.
+    /// </remarks>
+    private static string VersionSeenLy(string version)
+    {
+        if (version.IndexOf('"') >= 0 || version.IndexOf('\\') >= 0)
+        {
+            return "#(define version-seen #t)";
+        }
+
+        return "#(define version-seen"
+            + " (let ((v (if (defined? 'parse-and-check-version)"
+            + " (parse-and-check-version \"" + version + "\")"
+            + " #f)))"
+            + " (if v v #t)))";
+    }
+
     private static int RunLifecycle(
         LilyParserSession session,
         string text,
@@ -661,11 +704,32 @@ public static class BatchRunner
         {
             session.SetIdentifier("input-file-name", new MutableString(baseName + ".ly"));
 
+            // One file's \version must not answer the next file's version check.
+            session.MainInputVersionString = null;
+
             ParseOutcome prologue = session.ParseText(ProloguelLy, "<batch-prologue>");
             diagnostics.AddRange(prologue.AllDiagnostics());
 
             ParseOutcome parsed = session.ParseText(text, baseName + ".ly");
             diagnostics.AddRange(parsed.AllDiagnostics());
+
+            // WHAT THE LEXER RECORDED, HANDED TO THE EPILOGUE'S VERSION CHECK.
+            //
+            // Upstream's lexer defines `version-seen' itself, in the (lily) top scope,
+            // the moment it reads the main input's \version string (lexer.ll:243-264):
+            // #f means none was found, #t means one was found but could not be parsed,
+            // and anything else is the parsed version as a list. The port's lexer only
+            // remembered the STRING, so version-seen kept the prologue's #f and
+            // ly/init.ly's epilogue announced "no \version statement found" for every
+            // file in the suite. The message went to ProgramOptions' null writer, so it
+            // had never been seen.
+            string mainVersion = session.MainInputVersionString;
+            if (!string.IsNullOrEmpty(mainVersion))
+            {
+                ParseOutcome versionSeen = session.ParseText(
+                    VersionSeenLy(mainVersion), "<batch-version-seen>");
+                diagnostics.AddRange(versionSeen.AllDiagnostics());
+            }
 
             ParseOutcome epilogue = session.ParseText(EpilogueLy, "<batch-epilogue>");
             diagnostics.AddRange(epilogue.AllDiagnostics());
