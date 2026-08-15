@@ -12,6 +12,7 @@ using CodeBrix.LilyPort.Engine.Music;
 using CodeBrix.LilyPort.Engine.Objects;
 using CodeBrix.LilyPort.Engine.Translation;
 using CodeBrix.LilyPort.Parsing.Actions;
+using CodeBrix.LilyPort.Engine.Origins;
 using CodeBrix.LilyPort.Parsing.Driver;
 using CodeBrix.LilyPort.Parsing.Lalr;
 using CodeBrix.LilyPort.Parsing.Lexing;
@@ -117,7 +118,10 @@ public class RuleActionRag4Tests
         parsed.Should().NotBeSameAs(defaultPaper);
         parsed.CVariable("output-def-kind").Should().BeSameAs(Symbol.Intern("paper"));
         parsed.CVariable("size").AsText().Should().Be("a4");
-        parsed.InputOrigin.Should().BeOfType<SourceSpan>();
+        // An origin is an Input. It used to be the Parsing layer's own SourceSpan,
+        // which ly:input-location? answered #f to on every object the parser built —
+        // this fence recorded that as the contract, and PARITY 5 restated it.
+        parsed.InputOrigin.Should().BeOfType<Input>();
 
         host.LexerModeOperations.AsText().Should().Equal("push-initial-state", "pop-state");
         host.Scopes.Should().BeEmpty();
@@ -295,7 +299,10 @@ public class RuleActionRag4Tests
         host.Globals.Bindings[Symbol.Intern("$defaultlayout")].Should().BeSameAs(supplied);
         host.Globals.Bindings.ContainsKey(Symbol.Intern("$defaultpaper")).Should().BeFalse();
 
-        supplied.InputOrigin.Should().BeOfType<SourceSpan>();
+        // An origin is an Input. It used to be the Parsing layer's own SourceSpan,
+        // which ly:input-location? answered #f to on every object the parser built —
+        // this fence recorded that as the contract, and PARITY 5 restated it.
+        supplied.InputOrigin.Should().BeOfType<Input>();
         host.OutputDefScopes.Should().HaveCount(2);
         host.OutputDefScopes[1].Definition.Should().BeSameAs(supplied);
         host.Scopes.Should().BeEmpty();

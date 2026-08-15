@@ -58,7 +58,8 @@ public static partial class LilyPondRuleActions
                     result = td;
                 }
 
-                td.SetSpot(location);
+                td.SetSpot(
+                    ParserActionHelpers.RequireHost(context).SchemeLocation(location));
                 return result;
             });
 

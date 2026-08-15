@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using CodeBrix.LilyPort.Engine.Layout;
 using CodeBrix.LilyPort.Engine.Music;
 using CodeBrix.LilyPort.Engine.Objects;
+using CodeBrix.LilyPort.Engine.Origins;
 using CodeBrix.LilyPort.Parsing.Driver;
 using CodeBrix.LilyScheme.Values;
 
@@ -32,6 +33,14 @@ internal sealed partial class ScriptedParserHost
     /// </remarks>
     public Dictionary<string, HashSet<object>> MusicTypes { get; }
         = new Dictionary<string, HashSet<object>>();
+
+    /// <summary>
+    /// Gets each span handed to <see cref="SchemeLocation"/> paired with the origin it
+    /// answered, in order — so a test can assert WHICH origin a grob was stamped with,
+    /// not merely that one was.
+    /// </summary>
+    public List<(SourceSpan Span, Input Origin)> SchemeLocations { get; }
+        = new List<(SourceSpan, Input)>();
 
     /// <summary>Gets the spots stamped by <see cref="SetMusicSpot"/>, in order.</summary>
     public List<(object Music, SourceSpan Location)> MusicSpots { get; }
@@ -79,6 +88,19 @@ internal sealed partial class ScriptedParserHost
         }
 
         return copy;
+    }
+
+    /// <inheritdoc/>
+    public Input SchemeLocation(SourceSpan location)
+    {
+        // The REAL session resolves the span against the Sources it opened; this
+        // scripted double has none, so every span becomes the location-less Input that
+        // reports "position unknown" — which is what upstream's dummy_input_global is.
+        // It still answers ly:input-location?, which is the property the rule actions
+        // depend on.
+        Input origin = new Input();
+        SchemeLocations.Add((location, origin));
+        return origin;
     }
 
     /// <inheritdoc/>

@@ -75,6 +75,12 @@ public sealed class TextFontMetric : FontMetric
     // PORT-COVERAGE under THE STENCIL EXPRESSION WALK.
     private static readonly Symbol GlyphOutlineSymbol = Symbol.Intern("glyph-outline");
 
+    // lily/include/pango-font.hh:75 — const int PANGO_RESOLUTION = 1200. Upstream never
+    // renders to a device, but every text metric it takes still travels through Pango at
+    // this notional resolution, and one dot of it is the grid a shaped advance lands on
+    // (see DevicePixel).
+    private const double PangoResolution = 1200.0;
+
     private readonly IReadOnlyList<TextFace> _chain;
 
     /// <summary>Initializes a text font.</summary>
@@ -121,6 +127,19 @@ public sealed class TextFontMetric : FontMetric
 
     /// <summary>Gets the faces this font draws from, in fallback order.</summary>
     public IReadOnlyList<TextFace> Chain => _chain;
+
+    /// <summary>
+    /// Gets one of Pango's device dots, expressed in OUTPUT units — the grid every
+    /// shaped advance is rounded to.
+    /// <para>
+    /// Upstream's <c>scale_</c> is <c>INCH_TO_BP / (PANGO_SCALE * PANGO_RESOLUTION *
+    /// output_scale)</c> and turns ONE Pango unit into output units; a device dot is
+    /// <c>PANGO_SCALE</c> of them, so the <c>PANGO_SCALE</c> cancels and a dot is just
+    /// <c>INCH_TO_BP / (PANGO_RESOLUTION * output_scale)</c>. At the default
+    /// <c>output-scale</c> that is 0.0341433 staff spaces.
+    /// </para>
+    /// </summary>
+    public double DevicePixel => Dimensions.InchToBigPoint / (PangoResolution * OutputScale);
 
     /// <summary>
     /// Gets the Pango-style description string the stencil expression carries, such as
@@ -232,9 +251,11 @@ public sealed class TextFontMetric : FontMetric
         // what lets a text stencil contribute its REAL outlines instead of its box.
         List<object> run = new List<object>();
 
-        TextFace previousFace = null;
-        int previousGlyph = 0;
-
+        // Resolve the whole string FIRST. Upstream itemizes into per-font runs and then
+        // shapes each run, and a glyph's step along the line is not known until the NEXT
+        // glyph is, because the kern belongs to the pair; a single forward pass cannot
+        // round the step at the moment it places the glyph.
+        List<ShapedGlyph> shaped = new List<ShapedGlyph>();
         for (int i = 0; i < text.Length;)
         {
             int codePoint = char.ConvertToUtf32(text, i);
@@ -249,37 +270,51 @@ public sealed class TextFontMetric : FontMetric
             // A code point no face in the chain covers deliberately draws .notdef —
             // D23's tofu — and .notdef still occupies its own advance, so it is
             // measured like any other glyph rather than skipped.
-            int glyph = face.GlyphIndex(codePoint);
-            double scale = Scale(face);
+            shaped.Add(new ShapedGlyph(face, face.GlyphIndex(codePoint), Scale(face)));
+        }
 
-            // Upstream's X extent is Pango's logical rectangle for a SHAPED run, and
-            // shaping applies the font's kerning to the advances — a raw hmtx sum is
-            // never larger by accident, it is larger by exactly the kerning (trap 6f).
-            // The pair adjustment belongs to the FIRST glyph's advance, so it lands
-            // before the second glyph is placed; a face change ends the run, because
-            // Pango itemizes runs per font and never kerns across two of them.
-            if (ReferenceEquals(previousFace, face))
-            {
-                advance += face.Kerning(previousGlyph, glyph) * scale;
-            }
+        double pixel = DevicePixel;
 
-            if (face.Cff != null)
+        for (int i = 0; i < shaped.Count; i++)
+        {
+            ShapedGlyph current = shaped[i];
+
+            if (current.Face.Cff != null)
             {
                 run.Add(Pair.List(
                     TranslateSymbol,
                     new Pair(advance, 0.0),
-                    Pair.List(GlyphOutlineSymbol, face, (long)glyph, scale)));
+                    Pair.List(
+                        GlyphOutlineSymbol, current.Face, (long)current.Glyph, current.Scale)));
             }
 
-            advance += face.Advance(glyph) * scale;
-            previousFace = face;
-            previousGlyph = glyph;
+            // Upstream's X extent is Pango's logical rectangle for a SHAPED run, and
+            // shaping applies the font's kerning to the advances — a raw hmtx sum is
+            // never larger by accident, it is larger by exactly the kerning (trap 6f).
+            // The pair adjustment belongs to the FIRST glyph of the pair, and a face
+            // change ends the run, because Pango itemizes runs per font and never kerns
+            // across two of them.
+            double step = current.Face.Advance(current.Glyph) * current.Scale;
+            if (i + 1 < shaped.Count && ReferenceEquals(shaped[i + 1].Face, current.Face))
+            {
+                step += current.Face.Kerning(current.Glyph, shaped[i + 1].Glyph) * current.Scale;
+            }
 
-            Box ink = face.GlyphBox(glyph);
+            // ROUND THE STEP TO A WHOLE DEVICE DOT. Pango rounds each shaped glyph's
+            // advance with PANGO_UNITS_ROUND before anything reads the run, so upstream's
+            // logical rectangle is a sum of WHOLE dots and never of exact real advances —
+            // measured on the pinned oracle, whose every single-glyph advance in C059 is
+            // an exact integer number of dots (H 54, x 35, o 32, i 20, "." 18). The kern
+            // is inside the rounding, not outside it: "AV" comes out 87 dots where
+            // 47 + 47 - round(6.186) would be 88, and "AVAVAVAV" 327 where the other
+            // grouping gives 333.
+            advance += Math.Floor(step / pixel + 0.5) * pixel;
+
+            Box ink = current.Face.GlyphBox(current.Glyph);
             if (!ink.Y.IsEmpty)
             {
-                double low = ink.Y.Left * scale;
-                double high = ink.Y.Right * scale;
+                double low = ink.Y.Left * current.Scale;
+                double high = ink.Y.Right * current.Scale;
                 bottom = haveInk ? Math.Min(bottom, low) : low;
                 top = haveInk ? Math.Max(top, high) : high;
                 haveInk = true;
@@ -314,6 +349,25 @@ public sealed class TextFontMetric : FontMetric
     {
         int unitsPerEm = face.UnitsPerEm > 0 ? face.UnitsPerEm : 1000;
         return Size / (unitsPerEm * OutputScale);
+    }
+
+    // One resolved glyph of a run: which face answered for the code point, the glyph it
+    // maps to, and that face's design-units-to-output-units factor. Upstream's
+    // PangoGlyphInfo, minus the geometry, which is computed in the second pass.
+    private readonly struct ShapedGlyph
+    {
+        public ShapedGlyph(TextFace face, int glyph, double scale)
+        {
+            Face = face;
+            Glyph = glyph;
+            Scale = scale;
+        }
+
+        public TextFace Face { get; }
+
+        public int Glyph { get; }
+
+        public double Scale { get; }
     }
 
     private TextFace Resolve(int codePoint)

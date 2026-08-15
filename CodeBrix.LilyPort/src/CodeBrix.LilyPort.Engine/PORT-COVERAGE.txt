@@ -5861,6 +5861,47 @@ A HOST-DEPENDENCE IN THE ORACLE, NOT A PORT DEFECT (measured, no code change).
   yardstick question, not an engine one.
 
 ================================================================================
+AN ORIGIN IS AN Input, NOT THE PARSER'S OWN SourceSpan
+================================================================================
+
+FIXED at PARITY 5 (2026-08-14).  Upstream has exactly ONE location type: `@$` is
+an Input, set_spot takes an Input, Music::origin answers one, and origin is
+DECLARED `,ly:input-location?` in define-music-properties.scm.  Here the parser's
+location is Parsing/Driver/SourceSpan, a struct the Engine has never heard of, so
+the two are different types and every grammar action that stamps an origin owes
+the conversion.
+
+Eight actions stamped the RAW span: construct-chord-elements' per-element stamp
+(parser.yy:4752), the \context block (954), both \book forms (1027, 1122),
+\score (1205) and three \paper / \layout rules (1389, 1408).  The type check
+then failed on every music object the parser built and the property was
+DISCARDED, so Music::origin answered nothing and a diagnostic about a note could
+not say where the note was.
+
+MEASURED: 3,263 of the port's 4,065 diagnostic lines across the regression suite
+were this one defect -- 80% of "the port says many times more than the oracle".
+The diagnostics gate went 1,830 -> 1,876 of 2,146 MATCH and EXTRA 287 -> 241,
+and the port's own diagnostic output fell 4,065 -> 802 lines.  It moved ZERO
+comparator rows, measured by a sweep of its own (point-and-click is off in the
+corpus), which is exactly why it survived this long: trap 1a, the ungraded gap.
+
+The seam is IParserHost.SchemeLocation, deliberately NOT SetMusicSpot -- the
+grammar BODY rules write set_spot (@$) with no override_input indirection, and
+only the epilogue's loc_on_copy forms take the override.  Two readers that had
+been written against the raw span were converted with it
+(ParserActionHelpers.OriginSpan, which now reads the Input back into a span for
+MakeSyntax, and MusicWarning, which now warns THROUGH the Input so the offending
+line is quoted).
+
+Fences: OriginIsAnInputEndToEndTests -- ly:input-location? is asked about the
+sequential music, the note inside it, an event chord and the chord's own notes,
+with a bare ly:make-music as the control that must answer #f (trap 9: a stub
+predicate answering #t to everything would pass every other row).  Four
+rule-action fences that had asserted BeOfType<SourceSpan>() -- the defect
+recorded as the contract -- were restated, and RuleActionRag6's chord-element
+fence now asserts the IDENTITY of the origin the conversion returned.
+
+================================================================================
 TEXT ADVANCES ARE KERNED
 ================================================================================
 
@@ -5929,6 +5970,82 @@ corpus neither font is reachable by design.  JEREMY RULED TOFU STANDS: the port
 keeps its provided fonts and makes a coverage gap OBVIOUS.  The two pages are a
 permanent, documented divergence, rebaselined with the ruling recorded in
 pass-manifest-decisions.tsv; they cannot reach MATCH while the ruling stands.
+
+
+================================================================================
+TEXT ADVANCES LAND ON PANGO'S DEVICE-DOT GRID
+================================================================================
+
+FIXED at PARITY 5 (2026-08-14), ruling R5.  TextFontMetric.TextStencil rounds
+each SHAPED glyph advance to a whole device dot before accumulating it, which
+is what Pango does to a glyph string before anything reads it.
+
+Upstream never renders to a device, but every text metric it takes still travels
+through Pango at PANGO_RESOLUTION dots per inch (lily/include/pango-font.hh:75 --
+1200), and Pango's shaping rounds each glyph's geometry.width to a whole dot.
+One dot, expressed in output units, is Pango_font::scale_ multiplied by
+PANGO_SCALE, so the PANGO_SCALE cancels:
+
+    dot = INCH_TO_BP / (PANGO_RESOLUTION * output_scale)
+
+which at the default staff size (output-scale = 20pt / 72.27 * 25.4 / 4 mm =
+1.7572990176) is 0.0341433 staff spaces, and about 15.5 design units of a
+1000-unit em at the default text size.  TextFontMetric.DevicePixel answers it.
+
+MEASURED on the pinned oracle, one glyph at a time, in C059-Roman
+(~/ClaudeHome/lilyport-probe-barnumber/probe-text-perglyph.ly, which runs
+UNCHANGED on both engines and prints its measurements).  Every single-glyph
+advance the oracle reports is an EXACT integer number of dots, and the port's
+exact real advance rounds to precisely that integer:
+
+    glyph            oracle (dots)   port exact   round
+    H                     54           53.676      54
+    x, g                  35           34.603      35
+    1, 7                  36           35.827      36
+    o                     32           32.218      32
+    .                     18           17.913      18
+    i                     20           20.298      20
+    \small H              48           47.819      48
+    \huge  H              68           67.628      68
+
+TWO GROUPING QUESTIONS, both settled by measurement rather than by argument, and
+both now fenced because either answer looks equally plausible on paper:
+
+  * PER GLYPH, not per run.  "HH" is 108 dots, which is 2 * 54; rounding the
+    RUN's exact total instead would give round(107.35) = 107.
+  * THE KERN IS INSIDE THE ROUNDING.  "AV" is 87 dots.  A and V are 47 each and
+    the A,V pair adjustment is -96 design units = -6.186 dots, so
+    round(46.523 - 6.186) + 47 = 40 + 47 = 87, where rounding the advance and
+    the kern separately gives 47 - 6 + 47 = 88.  "AVAVAVAV" is 327, which is
+    7 * 40 + 47 and not any other grouping's answer.
+
+ROW IMPACT: MATCH 778 -> 1249 of 2316, PLACEMENT-DIFFERS 791 -> 320, zero
+regressions.  The residue's largest cluster went with it: 158 pages differed by
+exactly 0.0148 at a single-digit bar number -- half one digit's width error,
+because a bar number is centred on its bar line, and every digit shares an
+advance in this face -- and 47 more by exactly twice that.
+
+⚠ WHAT THIS CORRECTS.  PARITY 4 measured the same divergence with the oracle run
+WITHOUT the corpus's font pinning, so its numbers compared Noto Serif against
+C059 and showed an error on BOTH axes that grew with the string.  That reading
+was an artifact of the yardstick: re-measured under the pinning, the port's INK
+extents already agreed with the oracle to 2.4e-05 over 28 runs, the Y axis was
+never wrong, and the whole divergence was the X advance grid.  Trap 8, from the
+side that bites hardest -- the pinning has to be applied to a PROBE as well as
+to a corpus.
+
+Fences: KerningTableTests' dot-grid fences (the dot's own definition against a
+doubled output-scale control, the per-glyph grouping, the kern grouping, and a
+glyph that already sits ON the grid so rounding must leave it alone) and
+TextAdvanceGridEndToEndTests (the same three facts read back out of the SVG
+through a \box markup's edge rect, whose width is the run's width plus twice
+box-padding and nothing else).
+
+KNOWN REMAINING: the INK (Y) extent is the charstring CONTROL box, unrounded,
+where Pango takes FreeType's grid-fitted ink rect.  Measured agreement over the
+28 probe runs is 2.4e-05 worst case, 400x under the comparator's 0.01 tolerance,
+so nothing in the corpus turns on it; if a residue cluster ever points at text
+HEIGHT, this is the place to look.
 
 
 ===============================================================================
@@ -6417,4 +6534,116 @@ ACCEPTED DIVERGENCES MOVED OUT OF THE PLAN (2026-08-14, PARITY 3 bookkeeping)
   occurrences name adjacencies that break-align-orders makes impossible
   (BarLine -> breathing-sign, BarLine -> signum-repetitionis,
   TimeSignature -> key-signature and four more, every one order-REVERSED).
-  Those are an open defect, not a divergence, and stay on the plan.
+
+  FIXED at PARITY 5 (2026-08-14), and "every one order-REVERSED" was the whole
+  tell: Break_alignment_interface::ordered_elements never reordered anything.
+  Upstream guards the reordering with `if (scm_is_false (order)) return elts;`
+  -- proceed unless the order is #f -- and the port had written that as
+  `if (!SchemeUtilities.ToBool (order))`.  ToBool is from_scm<bool>, i.e.
+  EXACTLY-#t, and an order is a LIST, so the guard answered "no order" for every
+  real order and the elements came back in `elements` order on every alignment
+  in the corpus.  Trap 14, in the half PARITY 1 left unswept (the test is on a
+  local, not on a property read -- D7), and trap 30b's shape for the third time:
+  the reordering below it is a faithful translation that had never run.
+
+-------------------------------------------------------------------------------
+PARITY GRIND -- THE BRACE FONT'S SCALE, AND THREE DIAGNOSTIC SEVERITIES
+-------------------------------------------------------------------------------
+
+Written at PARITY 6 (2026-08-14).
+
+  (1) THE fetaBraces SCALE, AND WHY IT LOOKED RIGHT ON THE PAGE.
+
+  lily/font-select.cc:160-184 runs fetaMusic, fetaBraces and fetaText through
+  ONE call to best_rounded_design_size.  The three differ only in the file-name
+  SUFFIX -- a rounded size for fetaMusic and fetaText, the literal "brace" for
+  fetaBraces -- and fetaMusic and fetaBraces then BOTH end
+
+      return find_scaled_font (layout, fm, requested_size / actual_size);
+
+  The port's brace branch had instead divided by the brace OTF's own design
+  size, on the strength of upstream's comment "This font has the design size of
+  the OTF file".  That comment says why find_otf_font supplies the METRIC; it
+  does not say what divides the scale.  emmentaler-brace records its design size
+  in MILLIMETRES, so the port's braces measured 2.84528x too tall -- which is
+  exactly 1/ly:pt(1), and that constant is what named the cause.
+
+  THE REASON IT SURVIVED THIS LONG is worth keeping.  \left-brace does not ask
+  for a brace of a given size; it BINARY-SEARCHES the font's glyphs by Y extent
+  (scm/define-markup-commands.scm:5213-5240).  A font scaled wrongly by a
+  constant therefore self-compensates: the search picks a proportionally smaller
+  glyph, the transform comes out proportionally larger, and the brace is drawn
+  at about the right height.  Nothing about the PAGE looked wrong.  It showed up
+  only as a glyph-NAME difference -- the oracle's brace177@0.0040 against the
+  port's brace49@0.0114 -- on 136 pages, and NAMED-GLYPH identity (D29) is the
+  only reason it was visible at all.  Anything that selects a glyph BY MEASURING
+  IT can hide a scale error this way.
+
+  (2) Open_type_font::count IS NOT THE CHARSET SIZE.
+
+  Found by the same probe, in its own output.  Upstream's count() answers
+  index_to_charcode_map_.size (), i.e. the glyphs a CHARCODE reaches; the port
+  answered the CFF charset size, which also carries .notdef at index 0.  One too
+  many -- and \left-brace uses (1- (ly:otf-glyph-count font)) as the TOP of its
+  binary search, so the search was handed a glyph that does not exist, whose
+  extent printed as (+inf.0 . -inf.0).
+
+  Verified against the pinned oracle for both feta fonts rather than reasoned
+  about: 2.27.2 answers ly:otf-glyph-count 667 for emmentaler-20 and 576 for
+  emmentaler-brace, and the port now answers both exactly.
+
+  ⚠ The port has no index_to_charcode map of its own; GlyphCount counts the
+  DISTINCT glyph indices in the cmap, and falls back to "charset less .notdef"
+  for a font with no cmap at all.  That fallback is a stand-in, not a port of
+  upstream's mechanism, and it is the thing to revisit if a font ever arrives
+  whose charset and cmap disagree by more than .notdef.
+
+  (3) THE THREE ERROR SEVERITIES, TWO OF THEM SWAPPED.
+
+  flower/warn.cc has three prefixes and they are not interchangeable:
+  print_error, which the FATAL error/1 goes through, prints "fatal error: "
+  (warn.cc:197); "error: " belongs to non_fatal_error (warn.cc:249), the one
+  that does NOT stop the run; programming_error prints "programming error: ".
+  The port's Warn.Error -- its fatal one, which throws -- printed "error: ", so
+  every stopped run reported a severity upstream reserves for runs that carry
+  on.  Ruling R1 is about severity as well as wording.  Fenced together in
+  WarnTests, deliberately: a future swap moves two of the three lines at once.
+
+  (4) ly:find-file's STRICT FLAG, AND ONE ACCEPTED VALUE DIVERGENCE.
+
+  Upstream's ly:find-file takes an optional strict argument and, when the file
+  is missing and strict is #t, raises a FATAL error naming the load path and the
+  cwd (general-scheme.cc:55-77).  The port had dropped the argument entirely and
+  always answered #f, so \markup \image and \verbatim-file produced nothing
+  where the oracle stops the run.
+
+  ACCEPTED DIVERGENCE, and it cannot be closed: the message embeds the load path
+  and the working directory, which are properties of the MACHINE and of how each
+  engine was invoked.  The port's include path is not upstream's global_path and
+  never will be -- upstream's carries its own installed ly/, ps/, scm/ and font
+  directories.  The SENTENCE is upstream's verbatim; the two VALUES inside it
+  differ, exactly as the "compressing over-full page by N staff-spaces" pair
+  does.  The diagnostics gate therefore grades these four files (markup-image,
+  markup-image-file-extension-uppercase, markup-verbatim-file-utf8,
+  clip-systems) as BOTH rather than MATCH, and that is the correct resting
+  state, not a defect to chase.
+
+  (5) \startStaff AND \stopStaff WERE INERT.
+
+  Staff_symbol_engraver holds a Unique_span_event_listener on staff_span and its
+  whole process_music is written in terms of it (staff-symbol-engraver.cc:66-78):
+  a stop closes the open spanner, a start opens a new one, and first_start_ only
+  covers the implicit spanner a staff gets when the music never asks.  The port
+  had NO listener registered at all -- it opened one spanner on the first
+  timestep and closed it at finalize -- so both commands did nothing and a staff
+  had exactly ONE StaffSymbol however many times the music restarted it.
+
+  Found by arithmetic on the residue, not by reading the file: the sixteen
+  bar-line-placement-* files drive six \stopStaff ... \startStaff segments per
+  staff through one include, and the port drew 21 staff lines where the oracle
+  drew 126.  One sixth, on every file in the family.  The ratio is what named it.
+
+  Recorded because of what it says about the SILENT-DEFECT POSTURE (rule 4): the
+  engraver was registered, reached, and drawing -- it simply drew one sixth of
+  what it owed, and nothing anywhere said so.  `registered != behaving' has a
+  quieter form than a missing binding, and this is it.

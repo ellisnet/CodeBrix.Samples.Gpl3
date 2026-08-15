@@ -96,40 +96,78 @@ public class KerningTableTests
     }
 
     [Fact]
-    public void a_kerned_string_is_narrower_by_exactly_the_pair_values()
+    public void one_device_dot_is_pangos_resolution_over_the_output_scale()
     {
         //Arrange
-        // Size 1 at output-scale 1 makes the design-units-to-output factor exactly
-        // 1/1000, so every expected width is the hand summed table value over 1000.
-        TextFontMetric metric = new TextFontMetric("serif", false, false, false, 1.0, 1.0);
+        // The fixture every width fence below uses. Size 4 at output-scale 1 puts one
+        // device dot at exactly 15 design units, which is both a round number to hand
+        // compute with and close to the 15.5 the engine actually runs at (PARITY 5
+        // measured the default text size at 15.519 units per dot).
+        TextFontMetric fixture = new TextFontMetric("serif", false, false, false, 4.0, 1.0);
+        TextFontMetric halfScale = new TextFontMetric("serif", false, false, false, 4.0, 2.0);
+
+        //Act
+        double dot = fixture.DevicePixel;
+        double halved = halfScale.DevicePixel;
+
+        //Assert
+        // INCH_TO_BP / (PANGO_RESOLUTION * output_scale) = 72 / 1200 = 0.06 output
+        // units, and 15 design units at this size. The CONTROL doubles output-scale,
+        // which must HALVE the dot — a constant would pass the first and fail this.
+        dot.Should().BeApproximately(0.06, 1e-12);
+        (dot / (4.0 / 1000.0)).Should().BeApproximately(15.0, 1e-12);
+        halved.Should().BeApproximately(0.03, 1e-12);
+    }
+
+    [Fact]
+    public void a_kerned_string_is_narrower_by_the_pair_values_rounded_onto_the_dot_grid()
+    {
+        //Arrange
+        TextFontMetric metric = new TextFontMetric("serif", false, false, false, 4.0, 1.0);
 
         //Act
         Stencil kerned = metric.TextStencil("AVAVAV");
         Stencil single = metric.TextStencil("A");
 
         //Assert
-        // 3*722 + 3*722 + 5*(-96) = 3852. The single-glyph width pins the advance
-        // itself, so the string fence fails through the KERN term, not the advances.
-        single.XExtent.Right.Should().BeApproximately(0.722, 1e-12);
-        kerned.XExtent.Right.Should().BeApproximately(3.852, 1e-12);
+        // Pango rounds each SHAPED advance to a whole device dot, so a width is a
+        // count of dots and the kern is inside the rounding, not outside it. Hand
+        // computed at 15 units per dot: A alone is round(722/15) = 48 dots; each of
+        // the five kerned glyphs is round((722-96)/15) = round(41.73) = 42, and the
+        // last V has no pair to its right, so "AVAVAV" is 5*42 + 48 = 258 dots.
+        // 0.06 output units per dot gives 2.88 and 15.48.
+        single.XExtent.Right.Should().BeApproximately(48 * 0.06, 1e-12);
+        kerned.XExtent.Right.Should().BeApproximately(258 * 0.06, 1e-12);
+
+        // The RELATIONSHIP the literals exist to protect: kerning still narrows the
+        // run, and by more than one dot, so a shaping pass that quietly stopped
+        // kerning would reach 6*48 = 288 dots and fail here even if the grid arithmetic
+        // above were changed to match it.
+        kerned.XExtent.Right.Should().BeLessThan(6 * single.XExtent.Right - metric.DevicePixel);
     }
 
     [Fact]
-    public void a_string_without_kern_pairs_equals_its_raw_advance_sum()
+    public void a_string_without_kern_pairs_sums_its_advances_dot_by_dot()
     {
         //Arrange
-        TextFontMetric metric = new TextFontMetric("serif", false, false, false, 1.0, 1.0);
+        TextFontMetric metric = new TextFontMetric("serif", false, false, false, 4.0, 1.0);
 
         //Act
         Stencil run = metric.TextStencil("iiiiii");
         Stencil single = metric.TextStencil("i");
 
         //Assert
-        // The CONTROL: i,i carries no kern record, so shaping must change NOTHING —
-        // 6*315 = 1890 exactly. A kerning pass that adjusted every pair would fail
-        // here while the kerned fence above still passed.
-        single.XExtent.Right.Should().BeApproximately(0.315, 1e-12);
-        run.XExtent.Right.Should().BeApproximately(1.890, 1e-12);
+        // The CONTROL: i,i carries no kern record, so shaping must change NOTHING, and
+        // 315 design units is exactly 21 dots at this size — a glyph already ON the
+        // grid, which the rounding must leave alone. 6 * 21 = 126 dots.
+        single.XExtent.Right.Should().BeApproximately(21 * 0.06, 1e-12);
+        run.XExtent.Right.Should().BeApproximately(126 * 0.06, 1e-12);
+
+        // ...and because this glyph sits on the grid, its run is ALSO the raw advance
+        // sum. That equality is what separates "the grid is being applied" from "the
+        // grid is eating advances": a kerning pass that adjusted every pair, or a
+        // rounding that biased in one direction, breaks it while the fence above holds.
+        run.XExtent.Right.Should().BeApproximately(6 * 315 * (4.0 / 1000.0), 1e-12);
     }
 
     [Fact]
@@ -138,23 +176,29 @@ public class KerningTableTests
         //Arrange
         // Rule 18b: the oracle was read FIRST. REF-PIN measured the tagline at
         // 7.7299 em against the port's then-raw 7.7810 (STATUS §4); the hand-shaped
-        // sum is 7781 + (Li +4) + (ly -28) + (Po -29) = 7728 design units.
-        TextFontMetric metric = new TextFontMetric("serif", false, false, false, 1.0, 1.0);
+        // sum is 7781 + (Li +4) + (ly -28) + (Po -29) = 7728 design units, and that
+        // sum then lands on the dot grid glyph by glyph.
+        TextFontMetric metric = new TextFontMetric("serif", false, false, false, 4.0, 1.0);
         const double OracleEm = 7.7299;
         const double RawSumEm = 7.7810;
 
         //Act
         Stencil tagline = metric.TextStencil("LilyPond v2.27.2");
         double width = tagline.XExtent.Right;
+        double widthEm = width / (4.0 / 1000.0) / 1000.0;
 
         //Assert
-        // The width is the hand-computed shaped sum exactly, and it sits inside the
-        // oracle's size-quantum band (the no-kern control string differs from the
-        // oracle by 0.0015 em, so ±0.0025 is the honest tolerance) where the raw sum
-        // missed by 0.0511 — the relationship that makes this a kerning fence rather
-        // than a recorded literal.
-        width.Should().BeApproximately(7.728, 1e-12);
-        System.Math.Abs(width - OracleEm).Should().BeLessThan(0.0025);
-        System.Math.Abs(RawSumEm - OracleEm).Should().BeGreaterThan(0.05);
+        // Hand computed at 15 units per dot over L i l y P o n d _ v 2 . 2 7 . 2, with
+        // the three kern pairs folded into their first glyph's step before rounding:
+        // 517 dots.
+        width.Should().BeApproximately(517 * 0.06, 1e-12);
+
+        // The relationship, which is what this fence is for: the shaped width sits on
+        // the ORACLE's side of the raw sum, twice as close to it. It is deliberately
+        // NOT a tight band any more — PARITY 5 measured the dot grid, and a width in
+        // EM is therefore size dependent, so comparing this fixture's em figure with an
+        // em figure the oracle produced at its own size is indicative, not exact.
+        System.Math.Abs(widthEm - OracleEm)
+            .Should().BeLessThan(System.Math.Abs(RawSumEm - OracleEm) / 2.0);
     }
 }

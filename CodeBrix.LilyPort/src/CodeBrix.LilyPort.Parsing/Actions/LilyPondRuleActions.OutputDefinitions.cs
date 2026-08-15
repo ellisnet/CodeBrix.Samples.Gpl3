@@ -118,7 +118,7 @@ public static partial class LilyPondRuleActions
             {
                 IParserHost host = ParserActionHelpers.RequireHost(context);
                 OutputDef p = ParserActionHelpers.GetPaper(host);
-                p.SetSpot(location);
+                p.SetSpot(host.SchemeLocation(location));
                 host.AddOutputDefScope(p);
                 return p;
             });
@@ -183,7 +183,8 @@ public static partial class LilyPondRuleActions
             "output_def_body: output_def_head_with_mode_switch '{'",
             (context, values, locations, location) =>
             {
-                ((OutputDef)values[0]).SetSpot(location);
+                ((OutputDef)values[0]).SetSpot(
+                    ParserActionHelpers.RequireHost(context).SchemeLocation(location));
                 return new Pair(values[0], Nil.Instance);
             });
 
@@ -241,7 +242,7 @@ public static partial class LilyPondRuleActions
                     OutputDef o = value as OutputDef;
                     if (o != null)
                     {
-                        o.SetSpot(location);
+                        o.SetSpot(host.SchemeLocation(location));
                         body = o;
                         host.RemoveScope();
                         host.AddOutputDefScope(o);

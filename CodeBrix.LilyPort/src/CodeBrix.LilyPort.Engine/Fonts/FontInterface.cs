@@ -219,20 +219,33 @@ public static class FontInterface
             name = "emmentaler";
         }
 
-        double actualSize = requestedSize;
+        // Upstream runs fetaMusic, fetaBraces and fetaText through ONE call to
+        // best_rounded_design_size (font-select.cc:164): the encodings differ only in the
+        // file-name suffix — a rounded size for fetaMusic/fetaText, the literal "brace"
+        // for fetaBraces — and fetaMusic and fetaBraces then BOTH scale by
+        // requested_size / actual_size. "This font has the design size of the OTF file"
+        // is upstream's note about why find_otf_font is used for the metric, not about
+        // what divides the scale.
+        double actualSize;
+        int roundedSize = BestRoundedDesignSize(requestedSize, out actualSize);
+
+        //was previously: the brace branch scaled by requestedSize / braceFont.DesignSize
+        // and never called BestRoundedDesignSize at all. emmentaler-brace's own design
+        // size is not 20, so every brace glyph measured ~2.85x too tall; \left-brace
+        // binary-searches the font by Y extent, so it settled on a far smaller glyph and
+        // drew it at a correspondingly larger transform — brace49@0.0114 where the oracle
+        // draws brace177@0.0040. The drawn height stayed about right, which is why this
+        // read as GLYPHS-DIFFER on 136 pages and never as a placement error.
         if (ReferenceEquals(encoding, FetaBracesSymbol))
         {
             name += "-brace";
 
-            // The brace font is drawn at one size; upstream still scales it against the
-            // requested size through the same path, using its own design size.
             OpenTypeFontMetric braceFont = AllFontMetrics.FindOtfFont(name);
             return braceFont == null
                 ? null
-                : FindScaledFont(layout, braceFont, requestedSize / braceFont.DesignSize);
+                : FindScaledFont(layout, braceFont, requestedSize / actualSize);
         }
 
-        int roundedSize = BestRoundedDesignSize(requestedSize, out actualSize);
         name += "-" + roundedSize.ToString(CultureInfo.InvariantCulture);
 
         OpenTypeFontMetric font = AllFontMetrics.FindOtfFont(name);

@@ -54,7 +54,7 @@ public static partial class LilyPondRuleActions
             (context, values, locations, location) =>
             {
                 IParserHost host = ParserActionHelpers.RequireHost(context);
-                ((Book)values[2]).SetSpot(location);
+                ((Book)values[2]).SetSpot(host.SchemeLocation(location));
                 ParserActionHelpers.PopPaper(host);
                 host.SetIdentifier(Symbol.Intern("$current-book"), false);
                 return values[2];
@@ -270,7 +270,8 @@ public static partial class LilyPondRuleActions
             "bookpart_block: BOOKPART '{' bookpart_body '}'",
             (context, values, locations, location) =>
             {
-                ((Book)values[2]).SetSpot(location);
+                ((Book)values[2]).SetSpot(
+                    ParserActionHelpers.RequireHost(context).SchemeLocation(location));
                 ParserActionHelpers.RequireHost(context)
                     .SetIdentifier(Symbol.Intern("$current-bookpart"), false);
                 return values[2];
@@ -467,7 +468,8 @@ public static partial class LilyPondRuleActions
             "score_block: SCORE '{' score_body '}'",
             (context, values, locations, location) =>
             {
-                ((Score)values[2]).SetSpot(location);
+                ((Score)values[2]).SetSpot(
+                    ParserActionHelpers.RequireHost(context).SchemeLocation(location));
                 return values[2];
             });
 

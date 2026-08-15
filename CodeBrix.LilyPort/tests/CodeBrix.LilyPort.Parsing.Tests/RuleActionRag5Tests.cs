@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using CodeBrix.LilyPort.Engine.Music;
 using CodeBrix.LilyPort.Engine.Translation;
 using CodeBrix.LilyPort.Parsing.Actions;
+using CodeBrix.LilyPort.Engine.Origins;
 using CodeBrix.LilyPort.Parsing.Driver;
 using CodeBrix.LilyPort.Parsing.Lalr;
 using CodeBrix.LilyPort.Parsing.Lexing;
@@ -148,7 +149,10 @@ public class RuleActionRag5Tests
             .AsText().Should().Equal(Symbol.Intern("Bar_engraver"));
         Pair.ToList(def.Acceptance.GetList()).AsText().Should().Equal(Symbol.Intern("Voice"));
         def.Acceptance.GetDefault().Should().BeSameAs(Symbol.Intern("Voice"));
-        def.Origin.Should().BeOfType<SourceSpan>();
+        // An origin is an Input. It used to be the Parsing layer's own SourceSpan,
+        // which ly:input-location? answered #f to on every object the parser built —
+        // this fence recorded that as the contract, and PARITY 5 restated it.
+        def.Origin.Should().BeOfType<Input>();
     }
 
     [Fact]
@@ -172,7 +176,10 @@ public class RuleActionRag5Tests
         //Assert
         body.Should().BeSameAs(Unspecified.Instance);
         ContextDef def = (ContextDef)result;
-        def.Origin.Should().BeOfType<SourceSpan>();
+        // An origin is an Input. It used to be the Parsing layer's own SourceSpan,
+        // which ly:input-location? answered #f to on every object the parser built —
+        // this fence recorded that as the contract, and PARITY 5 restated it.
+        def.Origin.Should().BeOfType<Input>();
     }
 
     [Fact]

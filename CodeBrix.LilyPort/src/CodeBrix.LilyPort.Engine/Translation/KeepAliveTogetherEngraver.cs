@@ -84,7 +84,15 @@ public class KeepAliveTogetherEngraver : Engraver
         for (int i = 0; i < _groupSpanners.Count; ++i)
         {
             object thisLayer = _groupSpanners[i].GetProperty(RemoveLayerSymbol);
-            if (!SchemeUtilities.ToBool(thisLayer))
+
+            // Upstream guards with scm_is_false, NOT from_scm<bool>: remove-layer is a
+            // key? property, so its real values are integers and the symbols any/above/
+            // below, and an unset one reads '(). Exactly-#t is not even a documented
+            // value, so `!ToBool` skipped EVERY spanner and this engraver had never
+            // written keep-alive-with or make-dead-when at all. Trap 14's second half,
+            // the same shape as D1.
+            //was previously: if (!SchemeUtilities.ToBool(thisLayer))
+            if (!SchemeUtilities.IsSchemeTrue(thisLayer))
             {
                 continue;
             }
@@ -137,7 +145,8 @@ public class KeepAliveTogetherEngraver : Engraver
 
                 object thatLayer = _groupSpanners[j].GetProperty(RemoveLayerSymbol);
 
-                if (!SchemeUtilities.ToBool(thatLayer))
+                //was previously: if (!SchemeUtilities.ToBool(thatLayer))
+                if (!SchemeUtilities.IsSchemeTrue(thatLayer))
                 {
                     continue;
                 }

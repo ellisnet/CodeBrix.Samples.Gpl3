@@ -519,10 +519,31 @@ public static class GeneralPrimitives
             return direction >= -1 && direction <= 1;
         });
 
+        // Upstream's ly:find-file takes an optional STRICT flag, and when the file is
+        // missing and strict is #t it raises a FATAL error naming the load path and the
+        // cwd. The port had dropped the flag entirely and always answered #f, so
+        // \markup \image and \verbatim-file silently produced nothing where the oracle
+        // stops the run — the whole of D9's MISSING (ii). The load path and cwd are
+        // machine-specific VALUES, not wording, so they legitimately differ between the
+        // two engines; the sentence is upstream's verbatim.
+        //was previously: return File.Exists(name) ? (object)new MutableString(name) : false;
         interpreter.DefinePrimitive("ly:find-file", 1, 2, a =>
         {
             string name = TextOf(a[0]);
-            return File.Exists(name) ? (object)new MutableString(name) : false;
+            string resolved = FindOnLoadPath(interpreter, name, out string loadPath);
+            if (resolved != null)
+            {
+                return new MutableString(resolved);
+            }
+
+            if (a.Length < 2 || !Objects.SchemeUtilities.IsSchemeTrue(a[1]))
+            {
+                return false;
+            }
+
+            Warn.Error("cannot find file '" + name + "' (load path: '" + loadPath
+                       + "', cwd: '" + Directory.GetCurrentDirectory() + "')");
+            return false;
         });
 
         interpreter.DefinePrimitive("ly:effective-prefix", 0, 0, a => new MutableString(string.Empty));
@@ -932,4 +953,36 @@ public static class GeneralPrimitives
         => value is MutableString || value is string
             ? StringPrimitives.Text(value, "lilypond")
             : Printer.Display(value);
+
+    /// <summary>
+    /// Resolves a file the way upstream's <c>global_path.find</c> does — the working
+    /// directory first, then the current parser's include path — and reports the path
+    /// that was searched so a failure can name it, as upstream's message does.
+    /// </summary>
+    /// <param name="interpreter">The interpreter whose parser supplies the path.</param>
+    /// <param name="name">The file name to resolve.</param>
+    /// <param name="loadPath">Receives the searched path, colon-separated.</param>
+    /// <returns>The resolved name, or <see langword="null"/> when nothing matched.</returns>
+    private static string FindOnLoadPath(Interpreter interpreter, string name, out string loadPath)
+    {
+        IList<string> directories = ParserPrimitives.Current(interpreter)?.IncludePath
+                                    ?? (IList<string>)Array.Empty<string>();
+        loadPath = string.Join(":", directories);
+
+        if (File.Exists(name))
+        {
+            return name;
+        }
+
+        foreach (string directory in directories)
+        {
+            string candidate = Path.Combine(directory, name);
+            if (File.Exists(candidate))
+            {
+                return candidate;
+            }
+        }
+
+        return null;
+    }
 }

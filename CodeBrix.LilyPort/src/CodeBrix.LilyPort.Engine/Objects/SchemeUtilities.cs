@@ -44,6 +44,7 @@ public static class SchemeUtilities
 {
     private static readonly Symbol OriginSymbol = Symbol.Intern("origin");
     private static readonly Symbol BackendTypeCheckSymbol = Symbol.Intern("backend-type?");
+    private static readonly Symbol TypeNameSymbol = Symbol.Intern("type-name");
 
     /// <summary>Looks a key up in an association list by identity — <c>assq</c>.</summary>
     /// <param name="key">The key to find.</param>
@@ -655,8 +656,47 @@ public static class SchemeUtilities
             return true;
         }
 
-        Warn.ProgrammingError("Type check for `" + symbol.Name + "' failed; value found: " + Describe(value));
+        //was previously: Warn.ProgrammingError("Type check for `" + symbol.Name
+        //     + "' failed; value found: " + Describe(value));
+        // Ruling R1: a diagnostic with an upstream counterpart reproduces upstream's
+        // WORDING and SEVERITY verbatim. Upstream's value_type_check ends with a
+        // `warning`, not a programming_error, and names the expected TYPE — which the
+        // port's text never did, because it printed a C# type name instead of asking
+        // Scheme. type-name is vendored (c++.scm); print_scm_val was simply unported.
+        // type-name answers a STRING (c++.scm returns the alist's cdr, or the predicate's
+        // own name with the trailing `?' trimmed), so Display renders it unquoted.
+        Warn.Warning(
+            "the property '" + symbol.Name + "' must be of type '"
+            + Printer.Display(TypeName(predicate))
+            + "', ignoring invalid value '" + PrintScmVal(value) + "'");
         return false;
+    }
+
+    /// <summary>
+    /// Answers the human-readable name of a type predicate, through the vendored
+    /// <c>type-name</c> (<c>c++.scm</c>) that upstream calls as <c>Lily::type_name</c>.
+    /// </summary>
+    /// <param name="predicate">The type predicate.</param>
+    /// <returns>The type's name, or the empty string when Scheme cannot answer.</returns>
+    private static object TypeName(object predicate)
+    {
+        object procedure = LilyPondScheme.LookupProcedure(TypeNameSymbol);
+        return procedure == null ? string.Empty : CallCallback(procedure, predicate);
+    }
+
+    /// <summary>
+    /// Renders a Scheme value for a diagnostic, as upstream's <c>print_scm_val</c> does:
+    /// the written form, elided in the middle once it passes 200 characters so that one
+    /// enormous value cannot bury the rest of the log.
+    /// </summary>
+    /// <param name="value">The value to render.</param>
+    /// <returns>The rendered, possibly elided, text.</returns>
+    public static string PrintScmVal(object value)
+    {
+        string written = Printer.Write(value);
+        return written.Length > 200
+            ? written.Substring(0, 100) + "\n :\n :\n" + written.Substring(written.Length - 100)
+            : written;
     }
 
     private static object Nth(object list, int index)

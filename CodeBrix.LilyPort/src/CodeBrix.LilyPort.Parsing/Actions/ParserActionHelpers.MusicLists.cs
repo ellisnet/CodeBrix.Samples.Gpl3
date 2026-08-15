@@ -19,6 +19,7 @@
 */
 
 using CodeBrix.LilyPort.Engine.Music;
+using CodeBrix.LilyPort.Engine.Origins;
 using CodeBrix.LilyPort.Flower;
 using CodeBrix.LilyPort.Parsing.Driver;
 using CodeBrix.LilyScheme.Values;
@@ -243,7 +244,26 @@ internal static partial class ParserActionHelpers
     /// <param name="music">The music object.</param>
     /// <returns>The origin span, or the default span.</returns>
     internal static SourceSpan OriginSpan(MusicObject music)
-        => music.Origin is SourceSpan span ? span : default;
+    {
+        // An origin is an Input, the way it is upstream — see IParserHost.SchemeLocation
+        // for why the port has two location types at all. This reads one BACK into the
+        // parser's own span so it can be handed to MakeSyntax, which takes the location
+        // the grammar would have written. An Input with no source file is upstream's
+        // dummy_input_global and answers the empty span, exactly as before.
+        if (!(music.Origin is Input origin) || origin.SourceFile == null)
+        {
+            return default;
+        }
+
+        return new SourceSpan(
+            origin.SourceFile.NameString(),
+            origin.LineNumber(),
+            origin.ColumnNumber(),
+            origin.EndLineNumber(),
+            origin.EndColumnNumber(),
+            origin.Start,
+            origin.End);
+    }
 
     /// <summary>
     /// Issues a warning at a music object's origin, which is <c>Music::warning</c> —
@@ -255,9 +275,13 @@ internal static partial class ParserActionHelpers
     /// <param name="message">The warning text.</param>
     internal static void MusicWarning(MusicObject music, string message)
     {
-        if (music.Origin is SourceSpan span)
+        // Music::warning reaches Input::warning when a location is stamped, and the
+        // location IS the Input, so the warning is issued THROUGH it — that is what
+        // quotes the offending line and points a caret at it, which formatting a span
+        // into a string could not do.
+        if (music.Origin is Input origin && origin.SourceFile != null)
         {
-            Warn.Warning(message, span.ToString());
+            origin.Warning(message);
         }
         else
         {

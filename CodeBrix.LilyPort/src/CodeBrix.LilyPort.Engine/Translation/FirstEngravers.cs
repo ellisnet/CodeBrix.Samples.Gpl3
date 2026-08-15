@@ -42,6 +42,9 @@ public class StaffSymbolEngraver : Engraver
 {
     private static readonly Symbol StaffSymbolSymbol = Symbol.Intern("staff-symbol");
     private static readonly Symbol CurrentCommandColumnSymbol = Symbol.Intern("currentCommandColumn");
+    private static readonly Symbol StaffSpanEventSymbol = Symbol.Intern("staff-span-event");
+
+    private readonly UniqueSpanEventListener _staffSpanListener = new UniqueSpanEventListener();
 
     private Spanner _span;
     private Spanner _finishedSpan;
@@ -60,10 +63,45 @@ public class StaffSymbolEngraver : Engraver
     /// <summary>Gets the staff symbol currently open, if any.</summary>
     public Spanner Span => _span;
 
-    /// <summary>Opens the staff symbol on the first timestep.</summary>
+    /// <summary>Starts listening for <c>\startStaff</c> and <c>\stopStaff</c>.</summary>
+    public override void ConnectToContext()
+    {
+        base.ConnectToContext();
+        ListenTo(StaffSpanEventSymbol, _staffSpanListener.Listen);
+    }
+
+    /// <summary>Stops listening.</summary>
+    public override void DisconnectFromContext()
+    {
+        RemoveListeners();
+        base.DisconnectFromContext();
+    }
+
+    /// <summary>
+    /// Opens and closes staff symbols as <c>\startStaff</c> and <c>\stopStaff</c> ask.
+    /// <para>
+    /// //was previously: <c>if (_firstStart) { StartSpanner(); }</c> and nothing else —
+    /// the engraver had NO staff-span listener at all, so <c>\stopStaff</c> and
+    /// <c>\startStaff</c> did nothing and a staff got exactly ONE StaffSymbol, opened at
+    /// the first timestep and closed at finalize. The tell was arithmetic: the
+    /// bar-line-placement family draws six <c>\stopStaff … \startStaff</c> segments per
+    /// staff and the port drew 21 staff lines where the oracle drew 126.
+    /// </para>
+    /// </summary>
     public override void ProcessMusic()
     {
-        if (_firstStart)
+        if (_staffSpanListener.Stop != null)
+        {
+            _finishedSpan = _span;
+            _span = null;
+            if (_firstStart)
+            {
+                _firstStart = false;
+            }
+        }
+
+        if (_staffSpanListener.Start != null
+            || (_firstStart && _staffSpanListener.Stop == null))
         {
             StartSpanner();
         }
@@ -86,11 +124,15 @@ public class StaffSymbolEngraver : Engraver
     /// <summary>Closes any staff symbol that ended this timestep.</summary>
     public override void StopTranslationTimestep()
     {
-        if (_firstStart && _span != null)
+        //was previously: if (_firstStart && _span != null)
+        // Upstream's condition is (get_start () || first_start_) && span_, and the
+        // listener is RESET here, between the two halves.
+        if ((_staffSpanListener.Start != null || _firstStart) && _span != null)
         {
             _firstStart = false;
         }
 
+        _staffSpanListener.Reset();
         StopSpanner();
     }
 
@@ -137,7 +179,13 @@ public class StaffSymbolEngraver : Engraver
             _finishedSpan.SetBound(Direction.Positive, column);
         }
 
-        AnnounceEndGrob(_finishedSpan, Nil.Instance);
+        // Upstream announces with the stop event as the cause. Both callers reset the
+        // listener FIRST, so in practice the cause is always '() — an upstream quirk
+        // reproduced as written (rule 2) rather than simplified away, so that the two
+        // move together if the reset order ever changes.
+        //was previously: AnnounceEndGrob(_finishedSpan, Nil.Instance);
+        AnnounceEndGrob(
+            _finishedSpan, (object)_staffSpanListener.Stop ?? Nil.Instance);
         _finishedSpan = null;
     }
 }

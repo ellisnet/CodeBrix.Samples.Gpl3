@@ -102,7 +102,10 @@ public sealed class SchemeEngraver : Engraver
         // The default for is-layout is the NEGATION of is-midi, which is the one place
         // the two flags are not independent: a translator that says nothing at all is a
         // layout translator, and one that declares itself MIDI is not.
-        _isLayout = SchemeUtilities.IsSchemeTrue(
+        //was previously: _isLayout = SchemeUtilities.IsSchemeTrue(
+        // Upstream reads is-layout with from_scm<bool>, exactly as it reads is-midi two
+        // lines up; truthiness here would accept any non-#f value the two flags do not.
+        _isLayout = SchemeUtilities.ToBool(
             AssocGet(IsLayoutSymbol, definition, !_isMidi));
 
         _mustBeLast = SchemeUtilities.ToBool(AssocGet(MustBeLastSymbol, definition, false));

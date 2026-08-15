@@ -95,6 +95,28 @@ public class WarnTests : IDisposable
     }
 
     [Fact]
+    public void the_three_error_severities_print_under_the_three_upstream_names()
+    {
+        //Arrange
+        // ADDED at PARITY 6 (ruling R1, severity). flower/warn.cc has three distinct
+        // prefixes and the port had two of them swapped: print_error, which the FATAL
+        // error/1 goes through, prints "fatal error: " (warn.cc:197), while "error: "
+        // belongs to non_fatal_error (warn.cc:249) — the one that does NOT stop the run.
+        // Asserting all three together is the point: any future swap moves two of these
+        // lines at once, where a single assertion on one of them would not notice.
+
+        //Act
+        Assert.Throws<LilyPondErrorException>(() => Warn.Error("stopped here"));
+        Warn.NonFatalError("carried on");
+        Warn.ProgrammingError("should not happen");
+
+        //Assert
+        Warn.Messages[0].Should().Be("fatal error: stopped here");
+        Warn.Messages[1].Should().Be("error: carried on");
+        Warn.Messages[2].Should().Be("programming error: should not happen");
+    }
+
+    [Fact]
     public void warning_as_error_promotes_a_warning()
     {
         //Arrange

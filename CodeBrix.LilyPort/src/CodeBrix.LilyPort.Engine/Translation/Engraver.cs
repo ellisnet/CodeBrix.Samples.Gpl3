@@ -395,7 +395,11 @@ public abstract class Engraver : Translator
         List<object> declared = Pair.ToList(classes);
         if (declared.Count == 0)
         {
-            Warn.Error("meta.classes must be non-empty list for " + grobName.Name);
+            //was previously: Warn.Error("meta.classes must be non-empty list for " + grobName.Name);
+            // Ruling R1: upstream's engraver.cc names the offending VALUE through
+            // print_scm_val, not the grob. Reproduced verbatim.
+            Warn.Error("meta.classes must be non-empty list, found "
+                       + SchemeUtilities.PrintScmVal(classes));
             return null;
         }
 

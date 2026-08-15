@@ -337,8 +337,12 @@ public static class TextInterface
     /// <summary>Determines whether a value is a markup list.</summary>
     /// <param name="value">The value.</param>
     /// <returns><see langword="true"/> when it is a markup list.</returns>
+    //was previously: => SchemeUtilities.ToBool(CallLily(MarkupListPredicateSymbol, value));
+    // Upstream is `return scm_is_true (Lily::markup_list_p (x));` — the same Scheme truth
+    // the two lines above already use for is_markup. This one was missed when that pair
+    // was corrected.
     public static bool IsMarkupList(object value)
-        => SchemeUtilities.ToBool(CallLily(MarkupListPredicateSymbol, value));
+        => SchemeUtilities.IsSchemeTrue(CallLily(MarkupListPredicateSymbol, value));
 
     /// <summary>
     /// Determines whether a property chain asks for a MUSIC font, which is what decides

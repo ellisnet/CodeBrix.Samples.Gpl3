@@ -225,7 +225,13 @@ public static class Warn
     /// <exception cref="LilyPondErrorException">Always thrown.</exception>
     public static void Error(string message, string location = null)
     {
-        Emit(LogLevel.Error, "error: ", message, location);
+        //was previously: Emit(LogLevel.Error, "error: ", message, location);
+        // Ruling R1, severity. flower/warn.cc has THREE prefixes and the port had two of
+        // them on the wrong functions: the FATAL error/1 prints `fatal error: ' through
+        // print_error (warn.cc:197), and it is non_fatal_error that prints `error: '
+        // (warn.cc:249). Emitting the fatal one under the non-fatal one's name made every
+        // stopped run report a severity upstream reserves for runs that continue.
+        Emit(LogLevel.Error, "fatal error: ", message, location);
         throw new LilyPondErrorException(message, location);
     }
 

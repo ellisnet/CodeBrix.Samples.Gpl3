@@ -282,10 +282,25 @@ public class OpenTypeFontTests
         OpenTypeFont font = new OpenTypeFont(FontPath("emmentaler-20.otf"), null);
 
         //Act
+        int names = font.GlyphNames.Count;
         int glyphs = font.GlyphCount;
 
         //Assert
-        glyphs.Should().Be(668);
+        //was previously: font.GlyphCount.Should().Be(668);
+        // RESTATED at PARITY 6 (rule 33). The old assertion used GlyphCount to stand for
+        // "the names were read", and its 668 was RECORDED FROM THE PORT — the CFF charset
+        // size, .notdef included. GlyphCount is now upstream's Open_type_font::count,
+        // which answers index_to_charcode_map_.size (), so the two are different numbers
+        // and each is asserted for what it actually means.
+        names.Should().Be(668);
+
+        // Read off the ORACLE (rule 35): pinned LilyPond 2.27.2 under the corpus's font
+        // pinning answers `ly:otf-glyph-count' 667 for fetaMusic and 576 for fetaBraces.
+        // The one-glyph gap between the two numbers here is .notdef, which sits at index
+        // 0 and carries no charcode.
+        glyphs.Should().Be(667);
+        (names - glyphs).Should().Be(1);
+
         font.CharacterTable.Count.Should().Be(0);
     }
 

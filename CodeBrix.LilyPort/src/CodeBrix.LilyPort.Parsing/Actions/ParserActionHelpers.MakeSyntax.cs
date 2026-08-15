@@ -232,7 +232,7 @@ internal static partial class ParserActionHelpers
             // upstream: unsmob<Music> (scm_car (s))->set_spot (loc) — a non-music
             // element would be a null dereference there and an InvalidCastException
             // here: same failure, new spelling.
-            ((MusicObject)pair.Car).SetSpot(location);
+            ((MusicObject)pair.Car).SetSpot(host.SchemeLocation(location));
         }
 
         return result;

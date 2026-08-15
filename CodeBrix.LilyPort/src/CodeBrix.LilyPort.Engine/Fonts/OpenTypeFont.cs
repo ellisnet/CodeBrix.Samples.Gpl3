@@ -198,8 +198,39 @@ public sealed class OpenTypeFont
     /// <summary>Gets the font's design units per em.</summary>
     public int UnitsPerEm { get; }
 
-    /// <summary>Gets the number of glyphs the font defines.</summary>
-    public int GlyphCount => _glyphNames.Count;
+    /// <summary>
+    /// Gets the number of glyphs the font MAPS — upstream's <c>Open_type_font::count</c>,
+    /// which answers <c>index_to_charcode_map_.size ()</c> and so counts only the glyphs a
+    /// charcode reaches.
+    /// <para>
+    /// //was previously: <c>=> _glyphNames.Count</c>, the size of the CFF charset, which
+    /// also counts <c>.notdef</c> — one too many. The vendored <c>\left-brace</c> uses
+    /// <c>(1- (ly:otf-glyph-count font))</c> as the top of a binary search over glyph Y
+    /// extents, so the extra index handed the search a glyph that does not exist and whose
+    /// extent is empty.
+    /// </para>
+    /// </summary>
+    public int GlyphCount
+    {
+        get
+        {
+            _cmap ??= Reader?.ReadCmap() ?? new Dictionary<int, int>();
+            if (_cmap.Count == 0)
+            {
+                // No cmap to count: fall back to the charset less .notdef, which is at
+                // index 0 and never carries a charcode (SfntReader records this).
+                return Math.Max(0, _glyphNames.Count - 1);
+            }
+
+            HashSet<int> mapped = new HashSet<int>();
+            foreach (KeyValuePair<int, int> entry in _cmap)
+            {
+                mapped.Add(entry.Value);
+            }
+
+            return mapped.Count;
+        }
+    }
 
     /// <summary>Gets the glyph names, in glyph-index order.</summary>
     public IReadOnlyList<string> GlyphNames => _glyphNames;

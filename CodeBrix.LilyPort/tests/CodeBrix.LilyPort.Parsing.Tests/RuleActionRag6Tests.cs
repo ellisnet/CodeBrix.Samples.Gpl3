@@ -802,8 +802,14 @@ public class RuleActionRag6Tests
         host.ChordElementCalls[0].Duration.Should().Be(new Duration(2, 0));
         host.ChordElementCalls[0].Modifications.Should().BeSameAs(Nil.Instance);
 
-        // make_chord_elements stamps every element with the location.
-        ((SourceSpan)element.Origin).StartColumn.Should().Be(5);
+        // make_chord_elements stamps every element with the location — and an origin is
+        // an Input, the type ly:input-location? answers on, converted from the parser's
+        // own span. Asserting the IDENTITY of the origin the conversion returned is a
+        // stronger fence than a column number: it fails if the stamp is dropped, if it
+        // is taken from a different location, or if the raw span is stamped instead.
+        host.SchemeLocations.Should().HaveCount(1);
+        host.SchemeLocations[0].Span.StartColumn.Should().Be(5);
+        element.Origin.Should().BeSameAs(host.SchemeLocations[0].Origin);
     }
 
     [Fact]

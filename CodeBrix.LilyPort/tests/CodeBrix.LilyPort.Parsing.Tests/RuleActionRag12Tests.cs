@@ -729,5 +729,8 @@ public class RuleActionRag12Tests
 
         public void SetMusicSpot(object music, SourceSpan location)
             => throw new NotSupportedException();
+
+        public CodeBrix.LilyPort.Engine.Origins.Input SchemeLocation(SourceSpan location)
+            => new CodeBrix.LilyPort.Engine.Origins.Input();
     }
 }

@@ -102,7 +102,13 @@ public static class BreakAlignmentInterface
 
         object order = BreakAlignOrder(me);
 
-        if (!SchemeUtilities.ToBool(order))
+        // scm_is_false, NOT from_scm<bool>. Upstream asks whether the order is #f; the
+        // order is a LIST, so an exactly-#t test (SchemeUtilities.ToBool) answers false
+        // for every real order and the whole reordering below never ran — trap 14 in the
+        // half trap 14 says is unswept, because the truth test is on a local rather than
+        // on a property read, and trap 30b's shape again: a faithful, complete,
+        // unit-tested subsystem that nothing reached.
+        if (!SchemeUtilities.IsSchemeTrue(order))
         {
             return new List<Grob>(elts);
         }

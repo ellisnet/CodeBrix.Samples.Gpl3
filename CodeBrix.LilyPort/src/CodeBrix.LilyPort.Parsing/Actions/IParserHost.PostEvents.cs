@@ -5,6 +5,7 @@
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
+using CodeBrix.LilyPort.Engine.Origins;
 using CodeBrix.LilyPort.Parsing.Driver;
 
 namespace CodeBrix.LilyPort.Parsing.Actions;
@@ -61,4 +62,28 @@ public partial interface IParserHost
     /// <param name="music">The music object.</param>
     /// <param name="location">The span to stamp.</param>
     void SetMusicSpot(object music, SourceSpan location);
+
+    /// <summary>
+    /// Turns a parse location into the <see cref="Input"/> an <c>origin</c> property
+    /// carries.
+    /// <para>
+    /// Upstream has ONE location type: <c>@$</c> is an <c>Input</c>, <c>set_spot</c>
+    /// takes an <c>Input</c>, and <c>ly:input-location?</c> answers on an
+    /// <c>Input</c>. Here the parser's own location is a <see cref="SourceSpan"/>, a
+    /// Parsing-layer struct the Engine has never heard of, so the two are DIFFERENT
+    /// types and every grammar action that stamps an origin owes the conversion.
+    /// </para>
+    /// <para>
+    /// This is the seam for the rules that stamp something OTHER than music —
+    /// <c>ContextDef</c>, <c>Book</c>, <c>Score</c>, <c>Output_def</c> — and for
+    /// <c>construct-chord-elements</c>. It is deliberately NOT
+    /// <see cref="SetMusicSpot"/>: the grammar body rules at <c>parser.yy</c> 954,
+    /// 1027, 1122, 1205, 1389, 1408 and 4752 write <c>set_spot (@$)</c> with no
+    /// <c>override_input</c> indirection, and only the epilogue's <c>loc_on_copy</c>
+    /// forms take the override.
+    /// </para>
+    /// </summary>
+    /// <param name="location">The span.</param>
+    /// <returns>The origin.</returns>
+    Input SchemeLocation(SourceSpan location);
 }

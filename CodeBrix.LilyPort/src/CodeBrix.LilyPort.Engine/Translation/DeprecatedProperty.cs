@@ -134,7 +134,11 @@ public static class DeprecatedProperty
 
         object warned = SchemeUtilities.ObjectProperty(
             LilyPondScheme.Current, oldSymbol, WarnedSymbol);
-        if (SchemeUtilities.ToBool(warned))
+        //was previously: if (SchemeUtilities.ToBool(warned))
+        // Upstream's guard is `if (!scm_is_true (warned))` around the warning block, so
+        // the already-warned path is Scheme truth. The property only ever holds #t or #f,
+        // so the two spellings agree; this is faithfulness, not a behaviour change.
+        if (SchemeUtilities.IsSchemeTrue(warned))
         {
             return description;
         }

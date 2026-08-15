@@ -226,8 +226,12 @@ public abstract class PageBreaking
         Book = book;
         _systemCount = 0;
         PaperHeight = SchemeConvert.ToDouble(book.Paper.CVariable("paper-height"), 1.0);
-        Ragged = SchemeUtilities.IsSchemeTrue(book.Paper.CVariable("ragged-bottom"));
-        RaggedLast = SchemeUtilities.IsSchemeTrue(book.Paper.CVariable("ragged-last-bottom"));
+        //was previously: Ragged = SchemeUtilities.IsSchemeTrue(...); RaggedLast = ...IsSchemeTrue(...);
+        // Upstream reads both with from_scm<bool>. The paper defaults always define them
+        // as booleans, so the two spellings agree today — but an undefined variable reads
+        // '(), which truthiness would answer TRUE and upstream answers FALSE.
+        Ragged = SchemeUtilities.ToBool(book.Paper.CVariable("ragged-bottom"));
+        RaggedLast = SchemeUtilities.ToBool(book.Paper.CVariable("ragged-last-bottom"));
         _systemsPerPage = Math.Max(0, SchemeConvert.ToInt(book.Paper.CVariable("systems-per-page"), 0));
         _maxSystemsPerPage
             = Math.Max(0, SchemeConvert.ToInt(book.Paper.CVariable("max-systems-per-page"), 0));
