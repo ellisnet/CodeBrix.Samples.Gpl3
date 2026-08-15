@@ -44,6 +44,9 @@ public static class AxisGroupInterface
     private static readonly Symbol AxisGroupInterfaceSymbol
         = Symbol.Intern("axis-group-interface");
 
+    private static readonly Symbol StemInterfaceSymbol = Symbol.Intern("stem-interface");
+    private static readonly Symbol VerticalSkylinesSymbol = Symbol.Intern("vertical-skylines");
+
     /// <summary>Adds a grob to an axis group.</summary>
     /// <param name="group">The group.</param>
     /// <param name="element">The grob to add.</param>
@@ -150,6 +153,29 @@ public static class AxisGroupInterface
     public static Interval GenericGroupExtent(Grob group, Axis axis)
     {
         IReadOnlyList<Grob> elements = Elements(group);
+
+        // Trigger the callback to do skyline-spacing on the children -- upstream's own
+        // comment, and the READ IS THE POINT: asking a child axis group for its
+        // vertical-skylines runs Axis_group_interface::skyline_spacing, which is what
+        // MOVES that group's outside-staff grobs. Measure the group before that has run
+        // and the extent describes a staff whose outside-staff furniture is still at the
+        // origin. The answer is discarded here exactly as upstream discards it; a
+        // discarded return value is usually a side effect (trap 17a).
+        //
+        // The guard is upstream's and is narrow: a CROSS-STAFF STEM is skipped, because
+        // its skyline cannot be computed until the staves it spans have been placed,
+        // which is the very thing being computed.
+        if (axis == Axis.Y)
+        {
+            foreach (Grob element in elements)
+            {
+                if (!(element.HasInterface(StemInterfaceSymbol)
+                      && SchemeUtilities.ToBool(element.GetProperty(CrossStaffSymbol))))
+                {
+                    element.GetProperty(VerticalSkylinesSymbol);
+                }
+            }
+        }
 
         Grob common = CommonRefpointOfArray(elements, group, axis);
 

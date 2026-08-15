@@ -445,6 +445,13 @@ public static class BatchRunner
                     continue;
                 }
 
+                // Paper_book::output's own first step, and it must run BEFORE the pages
+                // are forced: it walks the bookparts telling each where its page numbers
+                // start and whether it is the last, and page.scm reads both off the paper
+                // while it is BUILDING each page. Asking for Pages() first bakes in the
+                // unset values.
+                paperBook.Output();
+
                 unitLength = paperBook.Paper.GetDimension("output-scale");
 
                 List<Stencil> bookPages = new List<Stencil>();

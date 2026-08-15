@@ -127,6 +127,26 @@ public interface ILexerHost
     /// <returns>The token it names, or <see cref="LexerLookup.None"/>.</returns>
     LexerLookup LookupIdentifier(string word);
 
+    /// <summary>
+    /// Stamps a music identifier's value with WHERE THE <c>\word</c> WAS WRITTEN.
+    /// <para>
+    /// Upstream does this in the lexer, not the grammar:
+    /// <c>Lily_lexer::scan_escaped_word</c> and <c>::scan_shorthand</c> both open with
+    /// <c>if (Music *m = unsmob&lt;Music&gt; (sid)) m-&gt;set_spot (override_input (here_input ()))</c>,
+    /// and it is the ONLY thing that gives a music identifier a use-site origin — a
+    /// bare <c>\glide</c> comes from <c>(make-music 'FingerGlideEvent)</c>, which sets
+    /// none. Without it every use of one identifier carries the same (absent) origin,
+    /// and code that tells two post-events apart by origin — <c>finger-key-glide</c>
+    /// partitions the glide stream events that way — takes them all for the first one.
+    /// Only MUSIC is stamped: upstream's test is <c>unsmob&lt;Music&gt;</c>, so a score,
+    /// book or output definition bound to an identifier keeps the origin it was
+    /// defined with.
+    /// </para>
+    /// </summary>
+    /// <param name="value">The identifier's value; anything but music is left alone.</param>
+    /// <param name="location">Where the word was written.</param>
+    void SetMusicIdentifierSpot(object value, SourceSpan location);
+
     /// <summary>Looks a word up as a markup command.</summary>
     /// <param name="word">The word, without its backslash.</param>
     /// <param name="predicates">Receives the command's argument predicates.</param>
@@ -226,6 +246,13 @@ public sealed class UnresolvedLexerHost : ILexerHost
     /// <param name="word">The word.</param>
     /// <returns>Always <see cref="LexerLookup.None"/>.</returns>
     public LexerLookup LookupIdentifier(string word) => LexerLookup.None;
+
+    /// <summary>Answers no identifier table, so there is never a value to stamp.</summary>
+    /// <param name="value">The identifier's value.</param>
+    /// <param name="location">Where the word was written.</param>
+    public void SetMusicIdentifierSpot(object value, SourceSpan location)
+    {
+    }
 
     /// <summary>Answers no markup command table.</summary>
     /// <param name="word">The word.</param>

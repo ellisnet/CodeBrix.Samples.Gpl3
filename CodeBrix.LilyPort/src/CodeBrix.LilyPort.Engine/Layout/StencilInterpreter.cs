@@ -101,8 +101,14 @@ public static class StencilInterpreter
 
             if (ReferenceEquals(head, DelayStencilEvaluation))
             {
-                // The promise is forced upstream; the port carries the value directly.
-                Interpret(Second(parts), sink, o);
+                // FORCED, as upstream's `scm_force (scm_cadr (expr))' does. The comment
+                // that used to stand here said the port "carries the value directly" —
+                // it does not, and could not: `delay-stencil-evaluation' is built by
+                // VENDORED Scheme (page-ref, tocItem, on-the-fly page predicates), and
+                // vendored Scheme writes a real `(delay ...)'. Interpreting the promise
+                // OBJECT as an expression matches no head and draws nothing, which is
+                // why \page-ref printed its trailing text and no page number at all.
+                Interpret(Objects.SchemeUtilities.Force(Second(parts)), sink, o);
                 return;
             }
 

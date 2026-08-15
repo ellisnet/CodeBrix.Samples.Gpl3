@@ -257,6 +257,52 @@ public static class SchemeUtilities
     }
 
     /// <summary>
+    /// Forces a promise, answering anything else unchanged — <c>scm_force</c>.
+    /// <para>
+    /// The value is CACHED on the promise, so forcing the same one twice runs the thunk
+    /// once. That is not an optimisation: a <c>delay-stencil-evaluation</c> expression is
+    /// walked by the drawing pass, by the skyline pass and by the footnote collector, and
+    /// a promise that recomputed each time would be free to answer differently.
+    /// </para>
+    /// </summary>
+    /// <param name="value">The promise, or any other value.</param>
+    /// <returns>The forced value.</returns>
+    public static object Force(object value)
+    {
+        Interpreter interpreter = LilyPondScheme.Current;
+        if (interpreter == null)
+        {
+            return value;
+        }
+
+        switch (value)
+        {
+            case LazyPromise lazy:
+                if (!lazy.IsForced)
+                {
+                    lazy.Value = interpreter.Evaluator.Apply(
+                        lazy.Thunk, Array.Empty<object>());
+                    lazy.IsForced = true;
+                }
+
+                return lazy.Value;
+
+            case Promise promise:
+                if (!promise.IsForced)
+                {
+                    promise.Value = interpreter.Evaluator.Apply(
+                        promise.Thunk, Array.Empty<object>());
+                    promise.IsForced = true;
+                }
+
+                return promise.Value;
+
+            default:
+                return value;
+        }
+    }
+
+    /// <summary>
     /// Sets a key in an association list, returning the possibly-extended list.
     /// <para>
     /// Upstream's <c>scm_assq_set_x</c> mutates the existing pair when the key is
@@ -399,6 +445,27 @@ public static class SchemeUtilities
     /// <param name="value">The Scheme value.</param>
     /// <returns><see langword="true"/> for anything but <c>#f</c>.</returns>
     public static bool IsSchemeTrue(object value) => !(value is bool flag) || flag;
+
+    /// <summary>
+    /// Answers <c>scm_is_string</c> over the port's TWO string shapes.
+    /// <para>
+    /// A Scheme string read from a property is a <see cref="MutableString"/>; a string a
+    /// C# call site put there is a CLR <see cref="string"/>. A bare <c>is string</c>
+    /// pattern therefore looks exactly like <c>scm_is_string</c> and answers <c>#f</c>
+    /// for the ordinary case — which is how the ledger-line shortening range and the
+    /// sustain-pedal sign both came to be computed from a glyph name nothing ever
+    /// supplied. Use this wherever upstream writes <c>scm_is_string</c>.
+    /// </para>
+    /// </summary>
+    /// <param name="value">The Scheme value.</param>
+    /// <returns><see langword="true"/> when the value is a string.</returns>
+    public static bool IsString(object value) => value is string || value is MutableString;
+
+    /// <summary>Returns a Scheme string's text, over both string shapes.</summary>
+    /// <param name="value">The Scheme value.</param>
+    /// <returns>The text, or <see langword="null"/> when the value is not a string.</returns>
+    public static string StringText(object value)
+        => value is MutableString mutableString ? mutableString.ToString() : value as string;
 
     /// <summary>
     /// Determines whether two Scheme values are <c>equal?</c> — <c>ly_is_equal</c>, which

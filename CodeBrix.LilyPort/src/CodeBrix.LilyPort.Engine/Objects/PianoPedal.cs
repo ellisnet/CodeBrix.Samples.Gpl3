@@ -173,7 +173,12 @@ public static class SustainPedal
     {
         Stencil mol = Stencil.Empty;
         object glyph = e.GetProperty(TextSymbol);
-        if (!(glyph is string text))
+
+        //was previously: `!(glyph is string text)`, which is not scm_is_string here -- the
+        // property holds a MutableString, so every sustain-pedal sign returned the empty
+        // stencil and no pedal.Ped / pedal.* glyph was ever drawn.
+        string text = SchemeUtilities.StringText(glyph);
+        if (text == null)
         {
             return mol;
         }

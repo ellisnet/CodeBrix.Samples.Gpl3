@@ -2160,7 +2160,10 @@ ADDED WITH THE TEXT-INTERFACE FOLLOW-UP -- THE STENCIL EXPRESSION WALK
   box when it finds one. That is exactly the pre-walk behaviour, preserved for
   this one case: conservative, never a collision.
 
-  glyph-string itself is NOT handled, because the port never emits it.
+  glyph-string IS handled, as of PARITY 11 -- and the note that used to stand
+  here ("NOT handled, because the port never emits it") is the exact shape of
+  trap 18, a named absence that stopped being true and that nothing re-checked.
+  See THE MUSIC-FONT RUN IS A glyph-string (D36) below.
 
   WHEN TO CLOSE IT: text does not reach a swept page yet -- in-score text needs
   Text_engraver (scripts/dynamics group) and the tagline needs page layout.
@@ -6841,19 +6844,34 @@ GLYPH SUBSTITUTION -- THE GSUB SURFACE (2026-08-15, PARITY 9, D33)
   less substitution than Pango gives it, so re-measure if the D23 fallback chain
   grows a face.
 
-  ⚠ AN OPEN DIVERGENCE, RECORDED RATHER THAN FIXED (PARITY 9).  The script
-  chosen for the feature lookup is DFLT, then latn, then whatever comes first --
-  the same choice Fonts/KerningTable.cs makes.  KerningTable's comment records
-  that every vendored face names the SAME kern lookups from every script it
-  declares, so the choice cannot change a GPOS answer.  THAT MEASUREMENT DOES NOT
-  CARRY OVER TO GSUB, and PARITY 9 measured the counterexample: C059-Roman's DFLT
+  ✅ RESOLVED AT PARITY 10 (2026-08-15).  The script chosen for the feature
+  lookup is now latn, then DFLT, then whatever comes first.
+
+  What PARITY 9 recorded, and why it was right to record rather than fix: the
+  choice had been DFLT-first, copied from Fonts/KerningTable.cs, whose comment
+  records that every vendored face names the SAME kern lookups from every script
+  it declares, so the choice cannot change a GPOS answer.  THAT MEASUREMENT DOES
+  NOT CARRY OVER TO GSUB, and the counterexample was measured: C059-Roman's DFLT
   language system names aalt/dnom/fina/frac/hist/numr/ordn/sups and NOT `liga',
-  which only the `latn' script names.  Pango itemizes Latin text under latn and
-  would therefore form C059's f-ligatures; the port, preferring DFLT, forms none,
-  so `liga' is currently inert for every text run and `\typewriter's "-liga" is
-  inert with it.  NOT chased at PARITY 9: it was outside that session's GO, and
-  turning it on changes the shaped advance of every Latin text run in the corpus,
-  which needs its own sweep and ratchet rather than a ride-along.
+  which only the `latn' script names.  Pango itemizes Latin text under latn, so
+  the oracle formed C059's f-ligatures and the port formed none -- `liga' inert
+  for every text run, and `\typewriter's "-liga" inert with it.
+
+  THE BLAST RADIUS WAS MEASURED BEFORE THE CHANGE, across every vendored face
+  rather than the one that named the defect:
+
+    - the twelve URW faces (C059, NimbusSans, NimbusMonoPS) name `liga' from
+      `latn' and from no other script -- these are the faces that move;
+    - the twelve TeX Gyre faces name the same features from every script they
+      declare, so they cannot move;
+    - all nine Emmentaler faces declare ONLY `DFLT', so the music font cannot
+      move either, and with it the ss01/cv47/tnum composition D33 landed.
+
+  So the change is exactly "turn `liga' on for the twelve URW text faces", which
+  is what Pango does, and `-liga' now has something to turn off.  Fenced in
+  SubstitutionTableTests against C059-Roman's own GSUB table: its `liga' lookups
+  are ligature substitutions over the glyphs for f, i and l, so f+f and f+i each
+  become ONE glyph and the two are different glyphs, with "-liga" as the control.
 
   MUSIC-FONT KERNING, added in the same pass.  Emmentaler ships a GPOS `kern'
   feature built specifically for the digits (mf/emmentaler_kerning.py, including
@@ -6881,3 +6899,209 @@ ly:message IS NOT PRINTED (2026-08-15, PARITY 9, observed while probing)
   rather than a comparator one.  The practical consequence to remember is for
   PROBES: a probe that reports through ly:message is readable on the oracle only
   and cannot be diffed, so probes report through ly:warning.
+
+--------------------------------------------------------------------------------
+GLYPH-OUTLINE SKYLINES ARE SAMPLED SLIGHTLY DIFFERENTLY (2026-08-15, PARITY 10)
+--------------------------------------------------------------------------------
+
+  A grob's vertical-skylines are built from its stencil, and for a music glyph
+  that means walking the FONT OUTLINE.  Upstream does it in
+  lily/freetype.cc's Path_interpreter, driven by FT_Outline_Decompose: each cubic
+  is cut into max(2, int(chord_length / 0.2)) segments and each segment is added
+  as a contour segment.  Fonts/GlyphOutlineSkyline.cs uses the SAME formula and
+  the same 0.2, over the port's own CFF charstring interpreter rather than
+  FreeType's decomposition.
+
+  MEASURED DIVERGENCE, small and real.  With the skyline debug drawing in place
+  (PARITY 10 ported Grob::get_print_stencil's add_skylines block), show-skylines
+  renders the accidental's horizontal skyline as 203 segments against the
+  oracle's 211, with the shared points agreeing to about 0.005-0.05.  So the port
+  approximates a curved outline with slightly different buildings, which feeds
+  every collision computation that measures against a glyph skyline -- not only
+  the debug drawing that made it visible.
+
+  NOT CHASED at PARITY 10: outside that session's GO, and the debug-drawing rows
+  it shows up on are worth about six.  REVISIT CONDITION: any residue that
+  survives with a sub-0.05 signature on a glyph edge, and the show-skylines /
+  skyline-debug / skyline-boxes-ellipses family, which cannot reach MATCH until
+  the two decompositions agree.
+
+--------------------------------------------------------------------------------
+THE MUSIC-FONT RUN IS A glyph-string (2026-08-15, PARITY 11 -- D36)
+--------------------------------------------------------------------------------
+
+  lily/pango-font.cc pango_item_string_stencil  ->  Objects/TextInterface.cs
+  scm/output-svg.scm glyph-string/extract-glyph/dump-path
+                                                ->  Backends/SvgBackend.cs
+  lily/stencil-integral.cc add_glyph_string_segments
+                                                ->  Layout/StencilIntegral.cs
+
+  WHAT WAS WRONG.  A run of text set in the MUSIC font (fetaText: \number,
+  \dynamic, figured bass, time signatures, volta numbers, cue-clef digits) left
+  TextInterface.MusicFontTextStencil as a PILE of separately translated
+  named-glyph stencils.  Upstream's is ONE glyph-string expression, and the SVG
+  backend draws it by placing each glyph on the PATH's own transform at the
+  cumulative advance of the glyphs before it:
+
+      translate(dx + next-horiz-adv, dy) scale(s, -s)
+
+  falling back to a bare scale() when both terms are zero, which is why the
+  FIRST glyph of every run is written exactly as a lone named-glyph is.  The
+  global's own comment says it carries "the *cumulative* horizontal advance for
+  glyph strings, but only if there is more than one glyph".
+
+  The marks landed in the same places -- the geometry AGREED, to about 0.0125 --
+  so nothing looked wrong.  What differed was the DOCUMENT: the port emitted the
+  compound transform ZERO times across the 2,316-page corpus against the
+  oracle's 3,019 on 179 pages, putting the translate on a parent group instead.
+  compare-output.py counts a <path> as a font glyph only when its transform is a
+  PURE scale(), so the same mark was graded as an engraver-drawn path on the
+  reference side and as a named glyph on the candidate side, and 171 rows across
+  seven unrelated-looking families read "missing path:Mcsssz / extra
+  glyph:period".
+
+  WHAT THE PORT'S glyph-string CARRIES, and where it diverges.  The shape is
+  upstream's nine elements -- FONT, PostScript name, size, CID flag, the glyph
+  list, file name, face index, the original text, the cluster map -- and the
+  glyph list holds upstream's own per-glyph tuple,
+
+      (width (down . up) x-offset y-offset glyph-index glyph-name)
+
+  in run order.  Four fields hold what the port can say rather than what Pango
+  would:
+
+    * SIZE is the metric's own FontScaling, where upstream's is a Pango point
+      size that output-svg divides by lily-unit-length.  The backend takes the
+      drawing scale from the FONT, exactly as it does for a named-glyph, so the
+      field is carried for shape and is not read.
+    * FILE NAME, FACE INDEX and CLUSTERS are "", 0 and #f -- the values upstream
+      itself writes when it has none.  They exist for PostScript/PDF font
+      embedding and for PDF copy-and-paste; the SVG backend reads none of them.
+    * A glyph the font can INDEX but cannot NAME stays in the list with a #f
+      name, where upstream drops it.  Dropping it would drop its ADVANCE with it
+      and move every glyph after it; upstream can afford to because its extent
+      came from Pango, and the port's comes from the glyphs.
+
+  WIDTH is the font's own advance with the kern to the next glyph folded in,
+  which is what Pango's per-glyph geometry width already is (HarfBuzz applies a
+  kern by adjusting the LEFT glyph's advance).  That is the same sum the pile of
+  translated stencils used, so the run's EXTENT BOX is computed exactly as it
+  was and only the expression changed -- which is what made the change
+  attributable.
+
+  THE SKYLINE WALK follows add_glyph_string_segments: cumulative_x over the
+  widths, each glyph offset by its own (x-offset, y-offset) on top of it, then
+  the font scale, then the real outline.  Upstream's fallback to the glyph's
+  KERNED BOUNDING BOX -- taken when the ratio of its two metric sources is not
+  finite -- has no case to serve here for the same reason DIVERGENCE 1 of THE
+  STENCIL EXPRESSION WALK records: the port has ONE source for both.
+
+  FENCED by SvgGlyphTests (the cumulative placement over three glyphs, the
+  wrapped/bare split, and a glyph with no outline that still advances) and by
+  MusicFontRunEndToEndTests (\time 12/8 draws one compound transform and one
+  group; \time 3/4 draws none of either -- both read off the pinned oracle
+  before they were asserted).
+
+--------------------------------------------------------------------------------
+A SHAPED RUN'S EXTENT COMES FROM TWO RECTANGLES (2026-08-15, PARITY 11)
+--------------------------------------------------------------------------------
+
+  lily/pango-font.cc pango_item_string_stencil  ->  Objects/TextInterface.cs
+  lily/include/pango-font.hh PANGO_RESOLUTION   ->  Objects/TextInterface.cs
+
+  Upstream builds a shaped run's box in ONE expression out of TWO sources:
+
+      Box (Interval (PANGO_LBEARING (logical_rect), PANGO_RBEARING (logical_rect)),
+           Interval (-PANGO_DESCENT (ink_rect),     PANGO_ASCENT (ink_rect)))
+
+  X from the LOGICAL rectangle -- where the pen starts and stops -- and Y from
+  the INK rectangle, what the outlines actually cover.  TextFontMetric has done
+  this since the text-interface group; MusicFontTextStencil used the union of the
+  DECLARED per-glyph boxes (the LILC table) for BOTH axes.
+
+  WHY THAT IS NOT THE SAME NUMBER.  Emmentaler's LILC table declares ONE height
+  for every digit and the font DRAWS them a few units apart -- `fattened.one' is
+  about five thousandths of an em taller than `fattened.two'.  A run of digits
+  therefore reported the same height whichever digits it held, and
+  Volta_bracket_interface::print's `num.align_to (Y_AXIS, UP)' put two runs of
+  "different" height at the same baseline.  0.0125 staff spaces at a default
+  staff size, on 46 comparator rows -- the largest constant cluster since D0's
+  227.
+
+  FontMetric.GetIndexedInkDimensions is new for this and runs the glyph's
+  charstring (Fonts/CffFont.GlyphBox).  A LONE named-glyph is still measured by
+  the DECLARED box, because that is what upstream's Font_metric does for one --
+  the asymmetry is upstream's and is deliberate.
+
+  AND THE ADVANCES NEEDED D10's DEVICE-DOT GRID.  Upstream shapes a music-font
+  run through Pango exactly as it shapes a text one, so Pango rounds each shaped
+  advance with PANGO_UNITS_ROUND and the logical rectangle is a sum of WHOLE dots.
+  TextFontMetric has rounded since PARITY 5; this path summed exact reals.  The
+  kern is INSIDE the rounding, as it is there, and for the same reason: the
+  shaper had already folded the kern into the pair's first advance.
+
+  MEASURED.  `\markup \box \number \fontsize #6' over "1.", "2.", "1", "2" now
+  reproduces the pinned oracle's four boxes EXACTLY on both axes -- tops
+  -4.3240 / -4.3000 / -4.3240 / -4.3000 and widths 4.0826 / 4.4923 / 2.9559 /
+  3.4680.  MATCH 1,871 -> 2,015 with 146 improvements and no regressions; the
+  whole sub-0.02 near-miss tail went with it.
+
+  ⚠ THE PORT'S FONTS ARE NOT BYTE-IDENTICAL TO THE ORACLE'S (the md5 of both the
+  OTF and the SVG font differ), and the note under THE STENCIL EXPRESSION WALK
+  records that the port's own build's outline bounding boxes can differ from the
+  official release by one to three units of a thousand-unit em.  That is the same
+  order as the defect being fixed, so the fix was VERIFIED against the oracle's
+  own numbers rather than reasoned about.  Fenced by
+  MusicFontRunEndToEndTests.a_music_font_run_is_measured_by_its_ink_and_its_whole_device_dots,
+  which carries those eight numbers with the two controls that make them mean
+  something.
+
+--------------------------------------------------------------------------------
+THE ELEVENTH PER-FILE LEAK: after-session-hook (2026-08-15, PARITY 11)
+--------------------------------------------------------------------------------
+
+  scm/lily.scm session-terminate  ->  CodeBrix.LilyPort/LilyPondInit.cs
+
+  Upstream's per-file cleanup is `session-terminate', and it does three things:
+  restore the modules recorded at session-init, restore every recorded
+  declaration, and RUN `after-session-hook'.  The port drives its own
+  RestoreDefaults for the first two and ran nothing for the third, so five resets
+  the vendored layer registers with `call-after-session' had never fired:
+
+      ly/toc-init.ly              toc-hashtab, toc-alist, toc-name-id-hashtab
+      scm/music-functions.scm     reset-tag-groups
+      scm/define-event-classes.scm  ancestor-lookup-initialize
+      ly/declarations-init.ly     default-fret-table, chord-shape-table,
+                                  musicQuotes
+
+  The visible cost was a table of contents that accumulated every earlier file's
+  entries: page-label-loose-column listed a "Second part" and a "Third part" that
+  belong to a different regression file entirely.
+
+  Registering a reset and never calling it is trap 17a's shape one more time --
+  the write side is faithful, complete and greppable, and the CALLER is missing.
+  Recorded as trap 16b: when the port replaces an upstream lifecycle function
+  with its own, enumerate what the original did LAST as carefully as what it did
+  first.
+
+--------------------------------------------------------------------------------
+delay-stencil-evaluation IS FORCED (2026-08-15, PARITY 11)
+--------------------------------------------------------------------------------
+
+  lily/stencil-interpret.cc:35  ->  Layout/StencilInterpreter.cs
+
+  Upstream: `interpret_stencil_expression (scm_force (scm_cadr (expr)), ...)'.
+  The port interpreted the second element AS IS, under a comment saying "the
+  promise is forced upstream; the port carries the value directly".  It does not
+  and could not: `delay-stencil-evaluation' is built by VENDORED Scheme --
+  \page-ref, \tocItem, the \on-the-fly page predicates -- and vendored Scheme
+  writes a real `(delay ...)'.  Interpreting the promise OBJECT as an expression
+  matches no head and draws NOTHING, so \page-ref printed its trailing text and
+  no page number at all.
+
+  SchemeUtilities.Force is new for it and caches on the promise, which is not an
+  optimisation: the same expression is walked by the drawing pass, the skyline
+  pass and the footnote collector, and a promise that recomputed would be free to
+  answer differently each time.  paper-system.cc's own get_footnotes deliberately
+  does NOT force -- its "we likely need to do something here...just don't know
+  what..." comment is upstream's and is reproduced verbatim.

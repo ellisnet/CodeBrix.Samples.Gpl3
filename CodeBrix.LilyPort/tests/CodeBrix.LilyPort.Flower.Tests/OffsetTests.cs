@@ -345,4 +345,37 @@ public class PolynomialTests
         sum.Coefficients[2].Should().Be(3.0);
         difference.Coefficients[0].Should().Be(-9.0);
     }
+
+    // Offset::is_sane rejects NaN AND infinity -- four tests, not two. Expected values
+    // read off flower/offset.cc:124-129, not off this port. The finite case is the
+    // CONTROL: without it "everything is insane" would pass every infinity case here.
+    [Fact]
+    public void is_sane_accepts_a_finite_offset()
+    {
+        //Arrange / Act
+        Offset finite = new Offset(-3.5, 1e9);
+
+        //Assert
+        finite.IsSane.Should().BeTrue();
+    }
+
+    [Fact]
+    public void is_sane_rejects_a_not_a_number_coordinate_on_either_axis()
+    {
+        //Arrange / Act / Assert
+        new Offset(double.NaN, 0.0).IsSane.Should().BeFalse();
+        new Offset(0.0, double.NaN).IsSane.Should().BeFalse();
+    }
+
+    [Fact]
+    public void is_sane_rejects_an_infinite_coordinate_on_either_axis()
+    {
+        //Arrange / Act / Assert
+        // A skyline's outermost buildings run to infinity by construction, so this is
+        // the half that decides whether they reach the output as line ends.
+        new Offset(double.PositiveInfinity, 0.0).IsSane.Should().BeFalse();
+        new Offset(double.NegativeInfinity, 0.0).IsSane.Should().BeFalse();
+        new Offset(0.0, double.PositiveInfinity).IsSane.Should().BeFalse();
+        new Offset(0.0, double.NegativeInfinity).IsSane.Should().BeFalse();
+    }
 }

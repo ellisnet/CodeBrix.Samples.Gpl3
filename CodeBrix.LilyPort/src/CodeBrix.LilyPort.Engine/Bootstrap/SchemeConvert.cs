@@ -221,6 +221,35 @@ public static class SchemeConvert
            || value is double || value is Ratio;
 
     /// <summary>
+    /// Determines whether a value is what upstream's <c>is_scm&lt;Rational&gt;</c> accepts:
+    /// a real that is EXACT or INFINITE.
+    /// <para>
+    /// An inexact finite real is deliberately excluded, and the exclusion is
+    /// load-bearing rather than pedantic — it is what tells a pinned staff-position that
+    /// is a whole step (exact) from one that is a fine offset (inexact), and it is the
+    /// type check <c>ly:moment-mul</c> and <c>ly:moment-div</c> apply to a second
+    /// argument that is not a moment.
+    /// </para>
+    /// </summary>
+    /// <param name="value">The Scheme value.</param>
+    /// <returns><see langword="true"/> when the value is an exact or infinite real.</returns>
+    public static bool IsExactOrInfiniteReal(object value)
+    {
+        switch (value)
+        {
+            case long _:
+            case int _:
+            case BigInteger _:
+            case Ratio _:
+                return true;
+            case double real:
+                return double.IsInfinity(real);
+            default:
+                return false;
+        }
+    }
+
+    /// <summary>
     /// Reads a pair of reals into a <see cref="DrulArray{T}"/>, the way
     /// <c>from_scm (value, Drul_array&lt;Real&gt; {...})</c> does — LEFT from the car,
     /// RIGHT from the cdr.

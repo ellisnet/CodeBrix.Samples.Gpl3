@@ -17,10 +17,8 @@
   along with LilyPond.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-using System.Numerics;
 using CodeBrix.LilyPort.Engine.Bootstrap;
 using CodeBrix.LilyPort.Flower;
-using CodeBrix.LilyScheme.Numeric;
 using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Objects; //was previously: lily/tie-specification.cc, lily/include/tie-specification.hh;
@@ -110,7 +108,7 @@ public sealed class TieSpecification
         object posScm = tie.GetProperty(StaffPositionSymbol);
         if (SchemeConvert.IsNumber(posScm))
         {
-            HasManualDeltaY = !IsExactOrInfiniteReal(posScm);
+            HasManualDeltaY = !SchemeConvert.IsExactOrInfiniteReal(posScm);
             ManualPosition = SchemeConvert.ToDouble(
                 tie.GetProperty(StaffPositionSymbol), "staff-position");
             HasManualPosition = true;
@@ -121,23 +119,9 @@ public sealed class TieSpecification
     /// <returns>The span, zero for a semi-tie.</returns>
     public int ColumnSpan() => ColumnRanks[Direction.Positive] - ColumnRanks[Direction.Negative];
 
-    // upstream's is_scm<Rational> (lily-guile.cc): real AND (exact OR infinite). It is
-    // what decides whether a pinned staff-position is a WHOLE step (exact — the tie moves
-    // to that position) or a fine offset (inexact — the tie keeps its position and takes
-    // the difference as delta_y). An exact/inexact distinction the port must not flatten.
-    private static bool IsExactOrInfiniteReal(object value)
-    {
-        switch (value)
-        {
-            case long _:
-            case int _:
-            case BigInteger _:
-            case Ratio _:
-                return true;
-            case double real:
-                return double.IsInfinity(real);
-            default:
-                return false;
-        }
-    }
+    //was previously: a private copy of upstream's is_scm<Rational>, which decides whether
+    // a pinned staff-position is a WHOLE step (exact — the tie moves to that position) or
+    // a fine offset (inexact — the tie keeps its position and takes the difference as
+    // delta_y). The rule now lives once, in SchemeConvert, because ly:moment-mul and
+    // ly:moment-div apply the same check and two copies of one rule drift apart.
 }

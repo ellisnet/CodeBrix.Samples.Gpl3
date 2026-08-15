@@ -48,6 +48,7 @@ public static class LilyPondInit
     private static IReadOnlyList<string> _diagnostics = Array.Empty<string>();
 
     private static object _noteNamesSnapshot;
+    private static IReadOnlyDictionary<string, object> _optionsSnapshot;
 
     private static Dictionary<Symbol, object> _layoutSnapshot;
     private static Dictionary<Symbol, object> _paperSnapshot;
@@ -149,6 +150,23 @@ public static class LilyPondInit
                 }
             }
 
+            // THE TENTH LEAK: the PROGRAM OPTIONS. `ly:set-option' writes a
+            // process-global store, and upstream engraves one file per process, so an
+            // option a file sets cannot outlive it there. Here it did:
+            // skyline-debug.ly opens with (ly:set-option 'debug-skylines #t), and
+            // System and VerticalAxisGroup default show-vertical-skylines to
+            // grob::show-skylines-if-debug-skylines-set, which reads that option AT
+            // STENCIL TIME — so every one of the 376 files swept after it drew the
+            // debug skyline outlines over its own music.
+            //
+            // INVISIBLE UNTIL THE DRAWING EXISTED. The option leaked for the life of
+            // the port and cost nothing, because Grob::get_print_stencil's
+            // add_skylines block had never been ported and there was nothing for the
+            // flag to switch on. Porting the block is what turned a dormant leak into
+            // 376 regressed pages in one sweep — trap 28 exactly, and the reason the
+            // ratchet is read before the floor is advanced.
+            LilyPondScheme.Options?.RestoreValues(_optionsSnapshot);
+
             // THE FIFTH LEAK, AND IT IS THE OLDEST AND WIDEST OF THEM (found through the
             // MIDI comparator). Lily_parser::default_duration_ is what a note with NO written
             // duration inherits, and upstream makes ONE PARSER PER FILE, so it starts
@@ -200,7 +218,55 @@ public static class LilyPondInit
             {
                 uniqueCounter.SetValue(-1L);
             }
+
+            // THE ELEVENTH LEAK, and it is the OTHER half of the eighth: upstream's
+            // `session-terminate' ends with `(run-hook after-session-hook)', and the
+            // port ran nothing. `call-after-session' is how the vendored layer registers
+            // its own per-file resets, and five of them were registered and never fired:
+            // toc-init.ly's THREE tables (which is why a table of contents accumulated
+            // every earlier file's entries — page-label-loose-column listed a "Second
+            // part" and a "Third part" that belong to another file entirely),
+            // music-functions.scm's `reset-tag-groups', define-event-classes.scm's
+            // `ancestor-lookup-initialize', and declarations-init.ly's fret, chord-shape
+            // and music-quote hash tables.
+            //
+            // Registering a reset and never calling it is trap 17a's shape once more:
+            // the WRITE side is faithful, complete and visible to a grep, and the thing
+            // that was supposed to call it is missing.
+            RunAfterSessionHook(interpreter, lilyModule);
         }
+    }
+
+    /// <summary>
+    /// Runs the vendored layer's <c>after-session-hook</c>, which is the last thing
+    /// <c>scm/lily.scm</c>'s <c>session-terminate</c> does.
+    /// </summary>
+    /// <param name="interpreter">The interpreter, or <see langword="null"/>.</param>
+    /// <param name="lilyModule">The <c>(lily)</c> module, or <see langword="null"/>.</param>
+    private static void RunAfterSessionHook(
+        CodeBrix.LilyScheme.Interpreter interpreter,
+        CodeBrix.LilyScheme.Runtime.SchemeModule lilyModule)
+    {
+        if (interpreter == null || lilyModule == null)
+        {
+            return;
+        }
+
+        CodeBrix.LilyScheme.Values.Variable hook
+            = lilyModule.Lookup(Symbol.Intern("after-session-hook"));
+        if (hook == null || !hook.IsBound)
+        {
+            return;
+        }
+
+        CodeBrix.LilyScheme.Values.Variable runHook
+            = lilyModule.Lookup(Symbol.Intern("run-hook"));
+        if (runHook == null || !runHook.IsBound)
+        {
+            return;
+        }
+
+        interpreter.Evaluator.Apply(runHook.GetValue(), new object[] { hook.GetValue() });
     }
 
     private static void Restore(OutputDef definition, Dictionary<Symbol, object> snapshot)
@@ -374,6 +440,9 @@ public static class LilyPondInit
         // \language (or includes one that does) cannot rename the notes for the rest
         // of the suite. See RestoreDefaults.
         _noteNamesSnapshot = _session.NoteNames();
+
+        // THE TENTH LEAK: the PROGRAM OPTIONS. See RestoreDefaults.
+        _optionsSnapshot = LilyPondScheme.Options?.SnapshotValues();
 
         // THE NINTH LEAK (found by bisecting
         // the sweep against ssaattbb-template-with-all-staves): the parser's BASE

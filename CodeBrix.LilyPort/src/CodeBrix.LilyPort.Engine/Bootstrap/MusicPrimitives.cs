@@ -159,10 +159,10 @@ public static class MusicPrimitives
             AsMoment(a[0], "ly:moment-sub") - AsMoment(a[1], "ly:moment-sub"));
 
         interpreter.DefinePrimitive("ly:moment-mul", 2, 2, a =>
-            AsMoment(a[0], "ly:moment-mul") * AsMoment(a[1], "ly:moment-mul").MainPart);
+            AsMoment(a[0], "ly:moment-mul") * AsMomentFactor(a[1], "ly:moment-mul"));
 
         interpreter.DefinePrimitive("ly:moment-div", 2, 2, a =>
-            AsMoment(a[0], "ly:moment-div") / AsMoment(a[1], "ly:moment-div").MainPart);
+            AsMoment(a[0], "ly:moment-div") / AsMomentFactor(a[1], "ly:moment-div"));
 
         interpreter.DefinePrimitive("ly:moment-mod", 2, 2, a =>
         {
@@ -623,6 +623,29 @@ public static class MusicPrimitives
 
     private static Moment AsMoment(object value, string procedureName)
         => value is Moment moment ? moment : throw SchemeErrors.WrongType(procedureName, "moment", value);
+
+    // The SECOND argument of ly:moment-mul and ly:moment-div. Upstream takes a moment's
+    // main part when it is handed a moment, and OTHERWISE a plain rational --
+    // `LY_ASSERT_TYPE (is_scm<Rational>, b, 2)`, with a comment recording that the type
+    // error names Rational rather than Moment because "logically that makes better
+    // sense". Reading the argument as moment-only made operators.scm's
+    // `(define-method (* (a <number>) (b <Moment>)) (ly:moment-mul b a))` a type error on
+    // every call, which is what stopped mozart-hrn-3 and event-listener-output producing
+    // any output at all.
+    private static Rational AsMomentFactor(object value, string procedureName)
+    {
+        if (value is Moment moment)
+        {
+            return moment.MainPart;
+        }
+
+        if (SchemeConvert.IsExactOrInfiniteReal(value))
+        {
+            return SchemeConvert.ToRational(value, procedureName);
+        }
+
+        throw SchemeErrors.WrongType(procedureName, "rational", value);
+    }
 
     private static Duration AsDuration(object value, string procedureName)
         => value is Duration duration

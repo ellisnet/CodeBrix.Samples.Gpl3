@@ -220,6 +220,15 @@ public sealed partial class LilyParserSession
     }
 
     /// <inheritdoc/>
+    void ILexerHost.SetMusicIdentifierSpot(object value, SourceSpan location)
+    {
+        if (value is MusicObject music)
+        {
+            music.SetSpot(SchemeLocation(location));
+        }
+    }
+
+    /// <inheritdoc/>
     public LexerLookup ScanSchemeValue(object value)
         => value is DefaultArgument ? LexerLookup.None : IdentifierToken(value);
 

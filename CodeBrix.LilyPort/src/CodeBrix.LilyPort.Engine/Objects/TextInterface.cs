@@ -66,6 +66,11 @@ public static class TextInterface
     private static readonly Symbol AllMusicFontEncodingsSymbol
         = Symbol.Intern("all-music-font-encodings");
     private static readonly Symbol MakeConcatMarkupSymbol = Symbol.Intern("make-concat-markup");
+    private static readonly Symbol GlyphStringSymbol = Symbol.Intern("glyph-string");
+    private static readonly Symbol OutputScaleSymbol = Symbol.Intern("output-scale");
+
+    // lily/include/pango-font.hh:75 — const int PANGO_RESOLUTION = 1200.
+    private const double PangoResolution = 1200.0;
 
     [ThreadStatic]
     private static int _depth;
@@ -189,7 +194,7 @@ public static class TextInterface
             // once answered an EMPTY stencil (the divergence was recorded in
             // PORT-COVERAGE) — which made \number, \dynamic and every figured-bass
             // digit silently invisible.
-            return MusicFontTextStencil(font, cleaned, features);
+            return MusicFontTextStencil(layout, font, cleaned, features);
         }
 
         return textFont.TextStencil(cleaned, features);
@@ -248,12 +253,38 @@ public static class TextInterface
     /// <c>hmtx</c> advance. A code point the font does not map draws nothing and the
     /// run continues — the same silence the empty-stencil era produced, now confined
     /// to genuinely unmapped characters.
+    /// <para>
+    /// The run leaves here as ONE <c>glyph-string</c> expression, which is the shape
+    /// <c>Pango_font::pango_item_string_stencil</c> produces: the font, its name, its
+    /// size, the CID flag, a list of
+    /// <c>(width (down . up) x-offset y-offset glyph-index glyph-name)</c> — one entry
+    /// per glyph of the run, in order — the file name, the face index, the original
+    /// text and the cluster map. The backend places each glyph by the CUMULATIVE
+    /// advance of the entries before it, which is what
+    /// <c>output-svg.scm</c>'s <c>next-horiz-adv</c> carries. Composing the run as a
+    /// pile of separately translated <c>named-glyph</c> stencils draws the same marks
+    /// in the same places, but it is not the same document.
+    /// </para>
+    /// <para>
+    /// DIVERGENCES from upstream's expression, recorded in PORT-COVERAGE. The size is
+    /// the metric's own scaling rather than a Pango point size (the port has no Pango
+    /// and no <c>lily-unit-length</c> in the Engine — the backend takes the drawing
+    /// scale from the FONT, exactly as it does for a <c>named-glyph</c>). The file
+    /// name, face index and cluster map are the values upstream itself writes when it
+    /// has none: the empty string, zero, and <c>#f</c> — they exist for PostScript and
+    /// PDF embedding and for PDF copy-and-paste, neither of which the SVG backend
+    /// reads. And a glyph the font can index but cannot NAME stays in the list with a
+    /// <c>#f</c> name, where upstream drops it: dropping it would drop its advance
+    /// with it and move every glyph after it.
+    /// </para>
     /// </summary>
+    /// <param name="layout">The output definition, for the device-dot grid.</param>
     /// <param name="font">The music font metric, possibly scaled.</param>
     /// <param name="text">The cleaned text.</param>
     /// <param name="features">The comma-joined <c>font-features</c> string.</param>
     /// <returns>The composed stencil.</returns>
-    private static Stencil MusicFontTextStencil(FontMetric font, string text, string features)
+    private static Stencil MusicFontTextStencil(
+        OutputDef layout, FontMetric font, string text, string features)
     {
         // The whole run is mapped through the cmap FIRST, because a substitution reads
         // more than one glyph: Emmentaler's dlig feature turns a digit followed by a
@@ -285,10 +316,32 @@ public static class TextInterface
 
         Stencil result = Stencil.Empty;
         double x = 0;
+        Interval ink = Interval.Empty;
+        List<object> descriptions = new List<object>(glyphs.Count);
+
+        // THE DEVICE-DOT GRID, which is D10 one font class over. Upstream shapes a
+        // music-font run through Pango exactly as it shapes a text one, and Pango rounds
+        // each shaped glyph's advance with PANGO_UNITS_ROUND before anything reads the
+        // run — so the logical rectangle is a sum of WHOLE dots and never of exact real
+        // advances. TextFontMetric has rounded since D10; this path summed exact reals,
+        // which is what left a music-font run's width out by up to a third of a dot.
+        double pixel = DeviceDot(layout);
 
         for (int i = 0; i < glyphs.Count; i++)
         {
             int index = glyphs[i];
+
+            // The kern belongs to the PAIR, so it rides on the first glyph of it — and
+            // it is applied AFTER substitution, because the pair it applies to is the
+            // one substitution left behind. Emmentaler kerns its digits on purpose.
+            // This sum is upstream's per-glyph WIDTH, which is Pango's own kern-adjusted
+            // advance and is what the cumulative placement accumulates.
+            double advance = font.IndexedAdvance(index);
+            if (i + 1 < glyphs.Count)
+            {
+                advance += font.IndexedKerning(index, glyphs[i + 1]);
+            }
+
             string name = font.IndexToName(index);
             if (name != null)
             {
@@ -300,17 +353,99 @@ public static class TextInterface
                 }
             }
 
-            // The kern belongs to the PAIR, so it rides on the first glyph of it — and
-            // it is applied AFTER substitution, because the pair it applies to is the
-            // one substitution left behind. Emmentaler kerns its digits on purpose.
-            x += font.IndexedAdvance(index);
-            if (i + 1 < glyphs.Count)
+            // The glyph's INK height, which is what Pango's ink rectangle reports and
+            // what upstream puts in the description. NOT the declared box: Emmentaler
+            // declares one height for all its digits and draws them a few units apart.
+            Interval height = font.GetIndexedInkDimensions(index)[Axis.Y];
+            if (!height.IsEmpty)
             {
-                x += font.IndexedKerning(index, glyphs[i + 1]);
+                ink.Unite(height);
             }
+
+            // The kern is INSIDE the rounding, not outside it — settled by measurement
+            // for the text faces at PARITY 5 and reproduced here for the same reason:
+            // Pango rounds what the shaper produced, and the shaper had already applied
+            // the kern to the pair's first advance.
+            double stepped = pixel > 0.0
+                ? Math.Floor((advance / pixel) + 0.5) * pixel
+                : advance;
+
+            descriptions.Add(Pair.List(
+                stepped,
+                new Pair(height.Left, height.Right),
+                0.0,
+                0.0,
+                (long)index,
+                name == null ? (object)false : new MutableString(name)));
+
+            x += stepped;
         }
 
-        return result;
+        // A run in which nothing drew keeps answering the empty stencil.
+        if (Stencil.IsNullExpression(result.Expression))
+        {
+            return result;
+        }
+
+        // THE RUN'S EXTENT IS UPSTREAM'S, AND IT IS NOT ONE BOX FROM ONE SOURCE.
+        // Pango_font::pango_item_string_stencil builds it as
+        //   Box (Interval (PANGO_LBEARING (logical_rect), PANGO_RBEARING (logical_rect)),
+        //        Interval (-PANGO_DESCENT (ink_rect),     PANGO_ASCENT (ink_rect)))
+        // — X from the LOGICAL rectangle, which is where the pen starts and stops, and Y
+        // from the INK rectangle, which is what the outlines actually cover. The port
+        // used the union of the DECLARED glyph boxes for both axes, so a run of digits
+        // reported the same height whichever digits it held.
+        Box box = default;
+        box.X = new Interval(0.0, x);
+        box.Y = ink;
+
+        return new Stencil(
+            box,
+            Pair.List(
+                GlyphStringSymbol,
+                font,
+                new MutableString(font.FontName),
+                font.FontScaling,
+                false,
+                Pair.ListFrom(descriptions),
+                new MutableString(string.Empty),
+                0L,
+                new MutableString(text),
+                false));
+    }
+
+    /// <summary>
+    /// One Pango device dot in output units — the grid a shaped advance lands on.
+    /// <para>
+    /// The same quantity <see cref="Fonts.TextFontMetric.DevicePixel"/> answers, computed
+    /// from the same two numbers: <c>PANGO_RESOLUTION</c> (1200, from
+    /// <c>lily/include/pango-font.hh</c>) and the TOP output definition's
+    /// <c>output-scale</c>. It is read off the top definition rather than the one in hand
+    /// because a score's layout is a scaled child and the scale is the book's.
+    /// </para>
+    /// </summary>
+    /// <param name="layout">The output definition.</param>
+    /// <returns>The dot, or zero when there is no layout to ask.</returns>
+    private static double DeviceDot(OutputDef layout)
+    {
+        if (layout == null)
+        {
+            return 0.0;
+        }
+
+        OutputDef top = layout;
+        while (top.Parent != null)
+        {
+            top = top.Parent;
+        }
+
+        double outputScale = top.GetDimension(OutputScaleSymbol);
+        if (outputScale <= 0.0)
+        {
+            outputScale = 1.0;
+        }
+
+        return Dimensions.InchToBigPoint / (PangoResolution * outputScale);
     }
 
     /// <summary>

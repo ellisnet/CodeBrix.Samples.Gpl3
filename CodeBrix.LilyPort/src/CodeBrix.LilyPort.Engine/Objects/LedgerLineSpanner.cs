@@ -318,9 +318,13 @@ public static class LedgerLineSpanner
                     {
                         glyph = "accidentals.rightparen";
                     }
-                    else if (g.GetProperty(GlyphNameSymbol) is string glyphName)
+                    else
                     {
-                        glyph = glyphName;
+                        //was previously: `is string`, which is not scm_is_string here --
+                        // a property's string is a MutableString, so the test never
+                        // matched, the shortening range stayed EMPTY and no ledger line
+                        // was ever shortened for an accidental.
+                        glyph = SchemeUtilities.StringText(g.GetProperty(GlyphNameSymbol));
                     }
 
                     if (!string.IsNullOrEmpty(glyph))

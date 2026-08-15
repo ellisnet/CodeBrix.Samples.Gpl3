@@ -38,9 +38,10 @@ namespace CodeBrix.LilyPort.Engine.Fonts;
 /// What is implemented is the part of HarfBuzz's behaviour these fonts reach:
 /// </para>
 /// <list type="bullet">
-/// <item>The features of the DEFAULT language system of the chosen script, chosen the
-/// same way <see cref="KerningTable"/> chooses it — <c>DFLT</c>, then <c>latn</c>, then
-/// whatever comes first.</item>
+/// <item>The features of the DEFAULT language system of the chosen script — <c>latn</c>,
+/// then <c>DFLT</c>, then whatever comes first. NOT the order <see cref="KerningTable"/>
+/// uses: every vendored face names the same <c>kern</c> lookups from every script, and
+/// twelve of them name <c>liga</c> from <c>latn</c> alone.</item>
 /// <item>The enabled set is HarfBuzz's default-on GSUB features, plus the tags the run
 /// names, minus the tags it names with a leading <c>-</c>. LilyPond writes both:
 /// <c>\typewriter</c> asks for <c>-liga</c>.</item>
@@ -292,10 +293,22 @@ public sealed class SubstitutionTable
 
     private static List<int> DefaultLangSysFeatures(byte[] gsub, int scriptList)
     {
-        // The script: DFLT when present, then latn, then whatever comes first — and its
-        // default LangSys, falling back to the first LangSys record. The same choice
-        // KerningTable makes, for the same reason, and it matters slightly more here:
-        // a text face can name DIFFERENT liga lookups from different scripts.
+        // The script: latn when present, then DFLT, then whatever comes first — and its
+        // default LangSys, falling back to the first LangSys record.
+        //
+        //was previously: DFLT first, copied from KerningTable, whose comment records
+        // that every vendored face names the SAME kern lookups from every script. That
+        // measurement does NOT carry over to GSUB, and the counterexample is measured:
+        // across the 24 vendored text faces, the twelve URW ones (C059, NimbusSans,
+        // NimbusMonoPS) name `liga' from `latn' AND FROM NO OTHER SCRIPT, so preferring
+        // DFLT left it inert for every Latin text run in the corpus -- no f-ligature
+        // ever formed, and \typewriter's `-liga' was inert with it. Pango itemizes
+        // Latin text under `latn', which is the script HarfBuzz then selects.
+        //
+        // The blast radius is measured rather than assumed: the twelve TeX Gyre faces
+        // name the same features from every script, so they cannot move, and all nine
+        // Emmentaler faces declare ONLY `DFLT', so the music font -- and with it the
+        // `ss01'/`cv47'/`tnum' composition -- cannot move either.
         List<int> result = new List<int>();
         if (scriptList + 2 > gsub.Length)
         {
@@ -314,7 +327,7 @@ public sealed class SubstitutionTable
             }
 
             string tag = ReadTag(gsub, record);
-            int rank = tag == "DFLT" ? 2 : tag == "latn" ? 1 : 0;
+            int rank = tag == "latn" ? 2 : tag == "DFLT" ? 1 : 0;
             if (rank > chosenRank)
             {
                 chosenRank = rank;

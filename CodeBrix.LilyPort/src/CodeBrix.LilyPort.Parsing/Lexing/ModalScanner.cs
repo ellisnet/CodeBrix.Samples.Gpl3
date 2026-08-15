@@ -531,6 +531,12 @@ public sealed class ModalScanner : IParserInput, CodeBrix.LilyPort.Engine.Origin
         LexerLookup identifier = host.LookupIdentifier(word);
         if (identifier.Found)
         {
+            // scan_escaped_word stamps a music identifier's value with HERE, before
+            // scan_scm_id ever sees it. Upstream stamps the stored value and clones
+            // afterwards; the port's lookup has already cloned, so the clone is what
+            // gets stamped -- the same answer at every use site, which is the point.
+            host.SetMusicIdentifierSpot(identifier.Value, CurrentLocation);
+
             // Upstream this branch is scan_scm_id: a music, event or Scheme function
             // announces its signature before its own token is delivered.
             if (identifier.FunctionSignature != null)
@@ -554,6 +560,9 @@ public sealed class ModalScanner : IParserInput, CodeBrix.LilyPort.Engine.Origin
         LexerLookup found = host.LookupIdentifier(text);
         if (found.Found)
         {
+            // scan_shorthand carries the same music spot stamping as scan_escaped_word.
+            host.SetMusicIdentifierSpot(found.Value, CurrentLocation);
+
             // scan_shorthand routes through scan_scm_id upstream, exactly like the
             // escaped words, so a shorthand bound to a function announces its
             // signature the same way.

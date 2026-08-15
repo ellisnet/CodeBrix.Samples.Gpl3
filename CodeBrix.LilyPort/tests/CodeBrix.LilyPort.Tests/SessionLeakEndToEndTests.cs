@@ -101,4 +101,88 @@ public class SessionLeakEndToEndTests
         result.SvgPath.Should().NotBeNull();
         result.SystemCount.Should().Be(2);
     }
+
+    /// <summary>
+    /// The TENTH per-file leak (PARITY 10, 2026-08-15): a PROGRAM OPTION one file sets
+    /// with <c>ly:set-option</c> must not still be set when the next file parses.
+    /// <para>
+    /// <c>debug-skylines</c> is the one that bit: <c>System</c> and
+    /// <c>VerticalAxisGroup</c> default <c>show-vertical-skylines</c> to
+    /// <c>grob::show-skylines-if-debug-skylines-set</c>, which reads the option at
+    /// STENCIL time, so <c>skyline-debug.ly</c> setting it drew the debug outlines over
+    /// all 376 files swept after it. The leak had been there for the life of the port
+    /// and cost nothing, because the drawing block itself was missing.
+    /// </para>
+    /// <para>
+    /// The reader counts <c>&lt;line&gt;</c> elements, which is what the debug drawing
+    /// adds; the CONTROL below sets the option in the reader's OWN file, so the count
+    /// cannot pass by the drawing being broken.
+    /// </para>
+    /// </summary>
+    [Fact]
+    public void a_program_option_one_file_sets_is_back_to_its_default_for_the_next_file()
+    {
+        //Arrange
+        string setter =
+            Version
+            + "#(ly:set-option 'debug-skylines #t)\n"
+            + "\\score { \\new Staff { c'1 } }\n";
+        string reader = Version + "\\score { \\new Staff { c'1 } }\n";
+
+        //Act
+        BatchRunner.RunText(setter, "option-leak-writer", null, ScratchDirectory())
+            .SvgPath.Should().NotBeNull();
+        BatchRunResult second = BatchRunner.RunText(
+            reader, "option-leak-reader", null, ScratchDirectory());
+
+        string plain = Version + "\\score { \\new Staff { c'1 } }\n";
+        BatchRunResult baseline = BatchRunner.RunText(
+            plain, "option-leak-baseline", null, ScratchDirectory());
+
+        //Assert
+        second.SvgPath.Should().NotBeNull();
+        baseline.SvgPath.Should().NotBeNull();
+        LineCount(second.SvgPath).Should().Be(LineCount(baseline.SvgPath));
+    }
+
+    /// <summary>
+    /// The CONTROL for the above: setting the option in the reader's own file DOES draw
+    /// the skyline outlines, so an equal count there cannot pass on the drawing being
+    /// absent.
+    /// </summary>
+    [Fact]
+    public void the_same_option_set_in_the_same_file_does_draw_its_skylines()
+    {
+        //Arrange
+        string selfContained =
+            Version
+            + "#(ly:set-option 'debug-skylines #t)\n"
+            + "\\score { \\new Staff { c'1 } }\n";
+        string plain = Version + "\\score { \\new Staff { c'1 } }\n";
+
+        //Act
+        BatchRunResult shown = BatchRunner.RunText(
+            selfContained, "option-control-shown", null, ScratchDirectory());
+        BatchRunResult baseline = BatchRunner.RunText(
+            plain, "option-control-plain", null, ScratchDirectory());
+
+        //Assert
+        shown.SvgPath.Should().NotBeNull();
+        baseline.SvgPath.Should().NotBeNull();
+        LineCount(shown.SvgPath).Should().BeGreaterThan(LineCount(baseline.SvgPath));
+    }
+
+    private static int LineCount(string svgPath)
+    {
+        string svg = File.ReadAllText(svgPath);
+        int count = 0;
+        int at = 0;
+        while ((at = svg.IndexOf("<line", at, StringComparison.Ordinal)) >= 0)
+        {
+            count++;
+            at += 5;
+        }
+
+        return count;
+    }
 }

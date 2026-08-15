@@ -107,6 +107,56 @@ public sealed class ProgramOptions
     /// <param name="name">The option name.</param>
     public void MarkAccumulative(string name) => _accumulative.Add(name);
 
+    /// <summary>
+    /// Takes a snapshot of every option's VALUE, for a host that runs many input files
+    /// through one process.
+    /// <para>
+    /// Upstream engraves one file per process, so an option a file sets with
+    /// <c>ly:set-option</c> cannot outlive it. The port's batch runner has one session
+    /// for a whole sweep, which makes the option store the same kind of per-file leak
+    /// as the default duration and the note names — see
+    /// <c>LilyPondInit.RestoreDefaults</c>, where the other nine live.
+    /// </para>
+    /// </summary>
+    /// <returns>The snapshot, to be handed back to <see cref="RestoreValues"/>.</returns>
+    public IReadOnlyDictionary<string, object> SnapshotValues()
+        => new Dictionary<string, object>(_values, StringComparer.Ordinal);
+
+    /// <summary>
+    /// Puts every snapshotted option value back, and REMOVES any option a file declared
+    /// that the snapshot does not know about.
+    /// </summary>
+    /// <param name="snapshot">A snapshot from <see cref="SnapshotValues"/>.</param>
+    public void RestoreValues(IReadOnlyDictionary<string, object> snapshot)
+    {
+        if (snapshot == null)
+        {
+            return;
+        }
+
+        foreach (KeyValuePair<string, object> entry in snapshot)
+        {
+            _values[entry.Key] = entry.Value;
+        }
+
+        List<string> invented = new List<string>();
+        foreach (string name in _values.Keys)
+        {
+            if (!snapshot.ContainsKey(name))
+            {
+                invented.Add(name);
+            }
+        }
+
+        foreach (string name in invented)
+        {
+            _values.Remove(name);
+            _order.Remove(name);
+            _documentation.Remove(name);
+            _accumulative.Remove(name);
+        }
+    }
+
     /// <summary>Returns whether an option accumulates its values.</summary>
     /// <param name="name">The option name.</param>
     /// <returns><see langword="true"/> when the option is accumulative.</returns>

@@ -204,9 +204,11 @@ public static partial class Slur
             dashDefinition);
 
         object annotation = me.GetProperty(AnnotationSymbol);
-        if (annotation is string annotationText)
+
+        //was previously: `annotation is string`, which is not scm_is_string here.
+        if (SchemeUtilities.IsString(annotation))
         {
-            Stencil tm = TextInterface.GrobInterpretMarkup(me, annotationText);
+            Stencil tm = TextInterface.GrobInterpretMarkup(me, annotation);
             a.AddAtEdge(Axis.Y, DirectionalElementInterface.GetGrobDirection(me), tm, 1.0);
         }
 

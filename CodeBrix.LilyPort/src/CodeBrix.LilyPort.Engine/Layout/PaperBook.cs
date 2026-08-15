@@ -56,6 +56,12 @@ public sealed class PaperBook
 
     private static readonly Symbol BreakBeforeSymbol = Symbol.Intern("breakbefore");
     private static readonly Symbol AllowSymbol = Symbol.Intern("allow");
+    private static readonly Symbol FirstPageNumberSymbol = Symbol.Intern("first-page-number");
+    private static readonly Symbol IsLastBookpartSymbol = Symbol.Intern("is-last-bookpart");
+
+    private static readonly Symbol BookpartLevelPageNumberingSymbol
+        = Symbol.Intern("bookpart-level-page-numbering");
+
     private static readonly string[] LilyModule = { "lily" };
     private static readonly string[] PageModule = { "lily", "page" };
 
@@ -144,6 +150,101 @@ public sealed class PaperBook
 
     /// <summary>Gets whether this book holds bookparts rather than scores directly.</summary>
     public bool PrintBookparts => _printBookparts;
+
+    /// <summary>
+    /// Walks the book and its bookparts in output order, telling each part WHERE its
+    /// pages start and WHETHER it is the last one, then forces its pages.
+    /// <para>
+    /// This is <c>Paper_book::output_aux</c>, and it is the step that makes a book of
+    /// several bookparts one book rather than several. Two paper variables are written
+    /// here and NOWHERE ELSE, and both are read back through the page's property chain by
+    /// <c>ly/titling-init.ly</c> and <c>scm/page.scm</c>:
+    /// </para>
+    /// <list type="bullet">
+    /// <item><c>first-page-number</c> — carried FORWARD across parts, so the second part
+    /// goes on numbering where the first stopped. Skipped when the paper asks for
+    /// <c>bookpart-level-page-numbering</c>, which is the whole point of that
+    /// variable.</item>
+    /// <item><c>is-last-bookpart</c> — <see langword="true"/> only for the last part of
+    /// the last book, which is what <c>on-last-page</c> tests before printing the
+    /// tagline.</item>
+    /// </list>
+    /// <para>
+    /// Leaving them unwritten is not a quiet no-op, and that is worth stating: an unset
+    /// paper variable answers the UNSET marker, <c>page.scm</c> puts it on the page's
+    /// property alist regardless, and <c>chain-assoc-get</c> then finds a key whose value
+    /// is TRUTHY. So <c>on-last-page</c> was true on the last page of EVERY bookpart, and
+    /// the port printed a tagline the oracle prints once per book.
+    /// </para>
+    /// <para>
+    /// DIVERGENCE: upstream also writes the performances' MIDI from here, threading a
+    /// <c>first-performance-number</c> alongside. The port's MIDI half is driven
+    /// separately and is closed (G2), so this carries the page half only.
+    /// </para>
+    /// </summary>
+    /// <param name="isLast">Whether this book is the last part of the last book.</param>
+    /// <param name="firstPageNumber">
+    /// The number the next page gets, advanced past the pages this book produces.
+    /// </param>
+    /// <returns>The number of pages this book produced.</returns>
+    public int OutputAux(bool isLast, ref int firstPageNumber)
+    {
+        int pageNumber = 0;
+
+        if (_printBookparts)
+        {
+            for (int i = 0; i < _printElements.Count; i++)
+            {
+                if (_printElements[i] is PaperBook bookpart)
+                {
+                    // Upstream tests the raw list tail, so the LAST ELEMENT is what
+                    // carries is_last -- not the last bookpart, which is the same thing
+                    // only while the list holds nothing else.
+                    bool isLastPart = isLast && i == _printElements.Count - 1;
+                    pageNumber += bookpart.OutputAux(isLastPart, ref firstPageNumber);
+                }
+            }
+
+            return pageNumber;
+        }
+
+        if (_printElements.Count == 0)
+        {
+            return 0;
+        }
+
+        bool numberPerBookpart = SchemeUtilities.ToBool(
+            Paper.LookupVariable(BookpartLevelPageNumberingSymbol));
+
+        if (!numberPerBookpart)
+        {
+            Paper.SetVariable(FirstPageNumberSymbol, (long)firstPageNumber);
+        }
+
+        Paper.SetVariable(IsLastBookpartSymbol, isLast);
+
+        // Generate all stencils to trigger font loads -- upstream's comment, and the
+        // reason this counts pages rather than asking for a count.
+        pageNumber = Pair.ToList(Pages()).Count;
+
+        if (!numberPerBookpart)
+        {
+            firstPageNumber += pageNumber;
+        }
+
+        return pageNumber;
+    }
+
+    /// <summary>
+    /// Runs <see cref="OutputAux"/> over a whole book, seeded from the paper's own
+    /// <c>first-page-number</c> — which is <c>Paper_book::output</c>'s opening step.
+    /// </summary>
+    public void Output()
+    {
+        int firstPageNumber = SchemeConvert.ToInt(Paper.CVariable("first-page-number"), 1);
+
+        OutputAux(true, ref firstPageNumber);
+    }
 
     /// <summary>
     /// Gets the header scopes, OUTERMOST FIRST — the parent's before this book's, so that a

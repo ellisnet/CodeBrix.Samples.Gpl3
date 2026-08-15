@@ -684,6 +684,14 @@ Copyright: Copyright (C) 1996--2026 Han-Wen Nienhuys <hanwen@xs4all.nl>
            Recorded at PARITY 6: the file has carried the upstream header and the
            `was previously' line since it was written, and had never had an entry
            here -- the same rule-5 gap PARITY 5 found on Fonts/TextFontMetric.cs.
+        <- lily/pango-font.cc  (Copyright (C) 2004--2026 Han-Wen Nienhuys)
+           The glyph-string EXPRESSION SHAPE only, taken at PARITY 11 for D36:
+           pango_item_string_stencil's nine-element list and its per-glyph
+           (width (down . up) x-offset y-offset glyph-index glyph-name) tuple.
+           None of the Pango, FontConfig or FreeType machinery that produces it
+           is here -- the run is composed from the font's own cmap, hmtx and
+           GSUB.  The divergences are in PORT-COVERAGE under THE MUSIC-FONT RUN
+           IS A glyph-string.
     src/CodeBrix.LilyPort.Engine/Objects/TupletBracket.cs
         <- lily/tuplet-bracket.cc, lily/include/tuplet-bracket.hh
            Copyright (C) 1997--2026 Jan Nieuwenhuizen, Han-Wen Nienhuys
@@ -1173,6 +1181,15 @@ Copyright: Copyright (C) 1996--2026 Han-Wen Nienhuys <hanwen@xs4all.nl>
         code run through the real parser. Recorded here because the derivation
         is inside string literals where a header would not travel.
 
+    src/CodeBrix.LilyPort/LilyPondInit.cs
+        New-in-family C# (no upstream header), Copyright (c) 2026 Jeremy Ellis
+        and contributors -- it stands in for scm/lily.scm's `session-terminate'
+        (GPL-3.0-or-later, Copyright (C) 1998--2026 Han-Wen Nienhuys, Jan
+        Nieuwenhuizen). No Scheme is copied: the per-file restore is the port's
+        own, and since PARITY 11 its last step is a CALL into the vendored
+        layer's own `after-session-hook', which is where upstream's third step
+        lives. Recorded because the SHAPE of that function is upstream's.
+
     src/CodeBrix.LilyPort.Parsing/Actions/LilyPondRuleActions.TopLevel.cs
     src/CodeBrix.LilyPort.Parsing/Actions/LilyPondRuleActions.EmbeddedScheme.cs
     src/CodeBrix.LilyPort.Parsing/Actions/LilyPondRuleActions.BookBlocks.cs
@@ -1290,6 +1307,11 @@ Copyright: Copyright (C) 1996--2026 Han-Wen Nienhuys <hanwen@xs4all.nl>
         scm/output-svg.scm so the output is comparable with LilyPond's own
         -dbackend=svg, but it is NOT a translation of that file: it is driven
         from C# rather than through Scheme's format.
+        Where a placement RULE of that file is load-bearing for parity it is
+        reproduced as behaviour: dump-path's choice between a compound
+        `translate(...) scale(...)' and a bare `scale(...)', and glyph-string's
+        rule that a run of more than one glyph is wrapped in its own
+        attribute-less group (PARITY 11, D36).  No Scheme was copied.
 
   The Scheme entry points of the ported types are bound in
   src/CodeBrix.LilyPort.Engine/Bootstrap/MusicPrimitives.cs,
@@ -2719,7 +2741,11 @@ https://github.com/ellisnet/CodeBrix.Samples.Gpl3/issues
     src/CodeBrix.LilyPort.Engine/Layout/PaperBook.cs
            lily/paper-book.cc + lily/include/paper-book.hh
            Copyright (C) 2004--2026 Jan Nieuwenhuizen <janneke@gnu.org>
-           Page assembly only; the output half is not ported (PORT-COVERAGE).
+           Page assembly, and since PARITY 11 the PAGE half of output ()/
+           output_aux () -- the bookpart walk that carries first-page-number
+           across parts and marks the last one.  The MIDI half of output_aux
+           and the file-writing half of output () are still not ported; the
+           port's MIDI is driven separately (PORT-COVERAGE).
     src/CodeBrix.LilyPort.Engine/Translation/PageTurnEngraver.cs
            lily/page-turn-engraver.cc
            Copyright (C) 2006--2026 Joe Neeman <joeneeman@gmail.com>

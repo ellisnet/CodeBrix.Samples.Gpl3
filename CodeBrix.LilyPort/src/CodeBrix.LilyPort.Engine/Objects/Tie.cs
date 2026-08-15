@@ -301,9 +301,11 @@ public static class Tie
             dashDefinition);
 
         object annotation = me.GetProperty(AnnotationSymbol);
-        if (annotation is string annotationText)
+
+        //was previously: `annotation is string`, which is not scm_is_string here.
+        if (SchemeUtilities.IsString(annotation))
         {
-            Stencil tm = TextInterface.GrobInterpretMarkup(me, annotationText);
+            Stencil tm = TextInterface.GrobInterpretMarkup(me, annotation);
             tm.Translate(new Offset(b[3][Axis.X] + 0.5, b[0][Axis.Y] * 2));
             tm = tm.InColor(1.0, 0.0, 0.0);
 

@@ -158,4 +158,60 @@ public class SubstitutionTableTests
         NameOf(font, plainOff[0]).Should().Be("three");
         NameOf(font, control[0]).Should().Be("fattened.three");
     }
+
+    private static TextFace C059()
+    {
+        TextFace face = TextFontChain.Face("C059-Roman.otf");
+        face.Should().NotBeNull();
+        return face;
+    }
+
+    /// <summary>
+    /// PARITY 10: the GSUB SCRIPT the features are read from is <c>latn</c>, not
+    /// <c>DFLT</c>.
+    /// <para>
+    /// Every expected value here is read off C059-Roman's own GSUB table (rule 35a),
+    /// not assumed: its <c>latn</c> language system names <c>liga</c> and its
+    /// <c>DFLT</c> one does not, and the <c>liga</c> lookups are ligature substitutions
+    /// whose components are the glyphs for <c>f</c>, <c>i</c> and <c>l</c> — so
+    /// <c>f</c>+<c>f</c> forms one glyph and <c>f</c>+<c>i</c> forms another. Preferring
+    /// <c>DFLT</c> left <c>liga</c> inert for every Latin run in the corpus.
+    /// </para>
+    /// <para>
+    /// The <c>-liga</c> case is the CONTROL and it is the point of the pair:
+    /// <c>\typewriter</c> writes exactly that, and until the feature was reachable the
+    /// switch had nothing to turn off, so a fence on the ligature alone would pass on a
+    /// port that ignored the tag.
+    /// </para>
+    /// </summary>
+    [Fact]
+    public void liga_is_reachable_because_the_latn_script_is_chosen_and_minus_liga_turns_it_off()
+    {
+        //Arrange
+        TextFace face = C059();
+        int f = face.GlyphIndex('f');
+        int i = face.GlyphIndex('i');
+
+        List<int> ff = new List<int> { f, f };
+        List<int> fi = new List<int> { f, i };
+        List<int> ffOff = new List<int> { f, f };
+
+        //Act
+        // liga is one of HarfBuzz's default-on features, so an empty request enables it.
+        face.Substitutions.Apply(ff, string.Empty);
+        face.Substitutions.Apply(fi, string.Empty);
+        face.Substitutions.Apply(ffOff, "-liga");
+
+        //Assert
+        // Two glyphs become one, and the two ligatures are DIFFERENT glyphs — which a
+        // substitution that collapsed anything to a constant could not manage.
+        ff.Should().HaveCount(1);
+        fi.Should().HaveCount(1);
+        (ff[0] == fi[0]).Should().BeFalse();
+
+        // The control: with liga off, the pair is left alone.
+        ffOff.Should().HaveCount(2);
+        ffOff[0].Should().Be(f);
+        ffOff[1].Should().Be(f);
+    }
 }

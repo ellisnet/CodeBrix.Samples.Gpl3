@@ -7,6 +7,7 @@
 
 using System;
 using System.Collections.Generic;
+using CodeBrix.LilyPort.Engine.Music;
 using CodeBrix.LilyPort.Parsing.Driver;
 using CodeBrix.LilyPort.Parsing.Lexing;
 using CodeBrix.LilyScheme.Values;
@@ -29,6 +30,60 @@ public class LexerTests
 {
     private static ModalScanner Scan(string input)
         => new ModalScanner(LilyPondLexerRules.Create(), input, "<test>");
+
+    /// <summary>
+    /// <c>Lily_lexer::scan_escaped_word</c> opens by giving a music identifier's value
+    /// the CURRENT input position, and <c>scan_shorthand</c> does the same.
+    /// <para>
+    /// It is the only thing that gives one identifier a per-use origin: a bare
+    /// <c>\glide</c> is <c>(make-music 'FingerGlideEvent)</c>, which sets none, so
+    /// without this every use shares one (absent) origin — and
+    /// <c>finger-key-glide</c>, which partitions glide events BY origin, then takes
+    /// them all for the first one and calls <c>car</c> on the empty list.
+    /// </para>
+    /// <para>
+    /// The fence is the RELATIONSHIP between two uses of ONE identifier: they must be
+    /// stamped with DIFFERENT locations. A single-use assertion would pass on a lexer
+    /// that stamped a constant.
+    /// </para>
+    /// </summary>
+    [Fact]
+    public void two_uses_of_one_music_identifier_are_stamped_with_different_positions()
+    {
+        //Arrange
+        ScriptedParserHost host = new ScriptedParserHost();
+        host.Identifiers["glide"] = new LexerLookup("EVENT_IDENTIFIER", new MusicObject(Nil.Instance));
+        ModalScanner scanner = new ModalScanner(
+            LilyPondLexerRules.Create(host), "\\glide \\glide", "<test>");
+
+        //Act
+        Drain(scanner);
+
+        //Assert
+        host.MusicIdentifierSpots.Should().HaveCount(2);
+        SourceSpan first = host.MusicIdentifierSpots[0].Value;
+        SourceSpan second = host.MusicIdentifierSpots[1].Value;
+        (first.StartColumn == second.StartColumn).Should().BeFalse();
+    }
+
+    /// <summary>
+    /// The CONTROL for the above: a word that resolves to NOTHING is never offered for
+    /// stamping, so "the scanner stamps every word it reads" cannot pass.
+    /// </summary>
+    [Fact]
+    public void an_unknown_escaped_word_is_never_offered_for_stamping()
+    {
+        //Arrange
+        ScriptedParserHost host = new ScriptedParserHost();
+        ModalScanner scanner = new ModalScanner(
+            LilyPondLexerRules.Create(host), "\\nosuchidentifier", "<test>");
+
+        //Act
+        Drain(scanner);
+
+        //Assert
+        host.MusicIdentifierSpots.Should().BeEmpty();
+    }
 
     private static void Drain(ModalScanner scanner)
     {

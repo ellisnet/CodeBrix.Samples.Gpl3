@@ -383,7 +383,10 @@ public class PianoPedalEngraver : Engraver
             s = stringList[0];
         }
 
-        if (s is string)
+        //was previously: `s is string`. The strings come out of pedalSustainStrings and
+        // friends as MutableStrings, so this never matched and no pedal item was made at
+        // all; the property still receives the ORIGINAL Scheme value, as upstream does.
+        if (SchemeUtilities.IsString(s))
         {
             p.Item = MakeItem(
                 p.Type.PedalString,

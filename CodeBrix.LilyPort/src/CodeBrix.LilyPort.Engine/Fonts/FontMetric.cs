@@ -142,6 +142,24 @@ public abstract class FontMetric
     public virtual double IndexedAdvance(int index) => 0.0;
 
     /// <summary>
+    /// Returns a glyph's INK bounding box — what the outline actually covers, as opposed
+    /// to the box the font's metadata DECLARES for it.
+    /// <para>
+    /// The two are different numbers and upstream uses both, in different places. A lone
+    /// <c>named-glyph</c> is measured by <see cref="GetIndexedCharDimensions"/>, which is
+    /// the declared box; a Pango-SHAPED RUN takes its Y extent from Pango's INK rectangle,
+    /// which is FreeType's rendering of the outline. Emmentaler declares one height for
+    /// every digit and draws them a few units apart, so the two answers differ — by
+    /// exactly 0.0125 staff spaces between <c>fattened.one</c> and <c>fattened.two</c> at
+    /// a default staff size, which is the constant 46 comparator rows carried.
+    /// </para>
+    /// <para>The base metric has no outline to run and falls back to the declared box.</para>
+    /// </summary>
+    /// <param name="index">The glyph index.</param>
+    /// <returns>The ink box, in this metric's stencil units.</returns>
+    public virtual Box GetIndexedInkDimensions(int index) => GetIndexedCharDimensions(index);
+
+    /// <summary>
     /// Returns a glyph's stencil, looked up by name.
     /// <para>
     /// Note the substitution of <c>M</c> for <c>-</c>. Glyph names in the font use
@@ -238,6 +256,29 @@ public sealed class OpenTypeFontMetric : FontMetric
     /// <returns>The box.</returns>
     public override Box GetIndexedCharDimensions(int index)
         => _font.GetIndexedGlyphDimensions(index);
+
+    /// <summary>Returns a glyph's INK box, run out of the charstrings.</summary>
+    /// <param name="index">The glyph index.</param>
+    /// <returns>The ink box, in stencil units.</returns>
+    public override Box GetIndexedInkDimensions(int index)
+    {
+        if (_font.Cff == null)
+        {
+            return GetIndexedCharDimensions(index);
+        }
+
+        Box box = _font.Cff.GlyphBox(index);
+        if (box.IsEmpty)
+        {
+            return box;
+        }
+
+        // The charstring runs in FONT DESIGN units; the same factor the SVG backend
+        // scales the same outline by puts it in stencil units.
+        int unitsPerEm = _font.UnitsPerEm > 0 ? _font.UnitsPerEm : 1000;
+        box.Scale(FontScaling / unitsPerEm);
+        return box;
+    }
 
     /// <summary>Returns a note head's stem attachment point.</summary>
     /// <param name="glyphName">The glyph name.</param>
@@ -376,6 +417,16 @@ public sealed class ModifiedFontMetric : FontMetric
     public override Box GetIndexedCharDimensions(int index)
     {
         Box box = _original.GetIndexedCharDimensions(index);
+        box.Scale(Magnification);
+        return box;
+    }
+
+    /// <summary>Returns a glyph's INK box, scaled.</summary>
+    /// <param name="index">The glyph index.</param>
+    /// <returns>The ink box.</returns>
+    public override Box GetIndexedInkDimensions(int index)
+    {
+        Box box = _original.GetIndexedInkDimensions(index);
         box.Scale(Magnification);
         return box;
     }

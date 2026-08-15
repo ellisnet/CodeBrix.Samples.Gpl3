@@ -121,6 +121,10 @@ public abstract class Grob : IDiagnostics
     private static readonly Symbol VerticalSkylinesSymbol = Symbol.Intern("vertical-skylines");
     private static readonly Symbol HorizontalSkylinesSymbol
         = Symbol.Intern("horizontal-skylines");
+    private static readonly Symbol ShowVerticalSkylinesSymbol
+        = Symbol.Intern("show-vertical-skylines");
+    private static readonly Symbol ShowHorizontalSkylinesSymbol
+        = Symbol.Intern("show-horizontal-skylines");
     private static readonly Symbol StencilWidthSymbol = Symbol.Intern("ly:grob::stencil-width");
     private static readonly Symbol StencilHeightSymbol
         = Symbol.Intern("ly:grob::stencil-height");
@@ -1257,12 +1261,68 @@ public abstract class Grob : IDiagnostics
         object stencilValue = GetProperty(StencilSymbol);
 
         Stencil result = Stencil.Empty;
-        if (!(stencilValue is Stencil stencil))
+
+        //was previously: an early `return result;` here. Upstream guards only the
+        // stencil-dependent body with `if (auto *m = unsmob<const Stencil> (stil))`; the
+        // skyline debug drawing below sits OUTSIDE that guard, so a grob with no stencil
+        // of its own still draws its skylines.
+        if (stencilValue is Stencil stencil)
         {
-            return result;
+            result = AssembleDrawnStencil(stencil);
         }
 
-        result = stencil;
+        if (SchemeUtilities.ToBool(GetProperty(ShowHorizontalSkylinesSymbol)))
+        {
+            AddDebugSkylines(ref result, Axis.X, GetProperty(HorizontalSkylinesSymbol));
+        }
+
+        if (SchemeUtilities.ToBool(GetProperty(ShowVerticalSkylinesSymbol)))
+        {
+            AddDebugSkylines(ref result, Axis.Y, GetProperty(VerticalSkylinesSymbol));
+        }
+
+        return result;
+    }
+
+    // upstream's add_skylines lambda inside Grob::get_print_stencil. The colours are
+    // upstream's, keyed on axis and side; the 0.1 is its line thickness.
+    private static void AddDebugSkylines(ref Stencil target, Axis axis, object skylines)
+    {
+        SkylinePair pair = SkylinePair.FromScheme(skylines);
+        if (pair == null || pair.IsEmpty)
+        {
+            return;
+        }
+
+        foreach (Direction d in new[] { Direction.Negative, Direction.Positive })
+        {
+            List<Offset> points = pair[d].ToPoints(axis == Axis.X ? Axis.Y : Axis.X);
+            Stencil line = Lookup.PointsToLineStencil(0.1, points);
+            Stencil colored;
+            if (axis == Axis.X && d == Direction.Negative)
+            {
+                colored = line.InColor(1.0, 1.0, 0.0);
+            }
+            else if (axis == Axis.X && d == Direction.Positive)
+            {
+                colored = line.InColor(0.0, 1.0, 0.0);
+            }
+            else if (axis == Axis.Y && d == Direction.Negative)
+            {
+                colored = line.InColor(0.0, 1.0, 1.0);
+            }
+            else
+            {
+                colored = line.InColor(1.0, 0.0, 1.0);
+            }
+
+            target.AddStencil(colored);
+        }
+    }
+
+    private Stencil AssembleDrawnStencil(Stencil stencil)
+    {
+        Stencil result = stencil;
         bool transparent = IsTransparent;
 
         /* Process whiteout before color and grob-cause to prevent colored */

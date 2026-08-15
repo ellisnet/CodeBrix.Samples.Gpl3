@@ -410,6 +410,9 @@ public class NoteHeadsEngraver : Engraver
     private static readonly Symbol PitchSymbol = Symbol.Intern("pitch");
     private static readonly Symbol PitchApproximateSymbol = Symbol.Intern("pitch-approximate");
     private static readonly Symbol StaffPositionSymbol = Symbol.Intern("staff-position");
+    private static readonly Symbol ShapeNoteStylesSymbol = Symbol.Intern("shapeNoteStyles");
+    private static readonly Symbol TonicSymbol = Symbol.Intern("tonic");
+    private static readonly Symbol StyleSymbol = Symbol.Intern("style");
 
     private readonly List<StreamEvent> _noteEvents = new List<StreamEvent>();
     private readonly List<Item> _heads = new List<Item>();
@@ -485,6 +488,21 @@ public class NoteHeadsEngraver : Engraver
             }
 
             note.SetProperty(StaffPositionSymbol, position);
+
+            /*
+              Shape note heads change on step of the scale.
+            */
+            object shapeVector = GetProperty(ShapeNoteStylesSymbol);
+            if (shapeVector is object[] shapes)
+            {
+                Pitch tonic = GetProperty(TonicSymbol) as Pitch ?? new Pitch();
+                int delta = (pitch.NoteName - tonic.NoteName + 7) % 7;
+                if (shapes.Length > delta && shapes[delta] is Symbol style)
+                {
+                    note.SetProperty(StyleSymbol, style);
+                }
+            }
+
             _heads.Add(note);
         }
     }

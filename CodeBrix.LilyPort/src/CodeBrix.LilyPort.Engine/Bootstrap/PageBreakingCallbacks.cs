@@ -162,6 +162,15 @@ public static class PageBreakingCallbacks
             return Unspecified.Instance;
         }
 
+        // Paper_book::output's own opening step, and only for `ly:book-process':
+        // `ly:book-process-to-systems' goes to classic_output, which forces the SYSTEMS
+        // and never touches the page-numbering variables. Walking the bookparts is what
+        // carries first-page-number across them and marks the last one.
+        if (procedureName == "ly:book-process")
+        {
+            paperBook.Output();
+        }
+
         paperBook.Pages();
 
         // The paper book is ANSWERED rather than discarded, which is the port's one

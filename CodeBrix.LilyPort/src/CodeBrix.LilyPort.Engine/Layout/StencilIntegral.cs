@@ -91,6 +91,7 @@ public static class StencilIntegral
     private static readonly Symbol PartialEllipseSymbol = Symbol.Intern("partial-ellipse");
     private static readonly Symbol RoundFilledBoxSymbol = Symbol.Intern("round-filled-box");
     private static readonly Symbol NamedGlyphSymbol = Symbol.Intern("named-glyph");
+    private static readonly Symbol GlyphStringSymbol = Symbol.Intern("glyph-string");
     private static readonly Symbol PolygonSymbol = Symbol.Intern("polygon");
     private static readonly Symbol PathSymbol = Symbol.Intern("path");
 
@@ -461,6 +462,10 @@ public static class StencilIntegral
         else if (ReferenceEquals(head, NamedGlyphSymbol))
         {
             AddNamedGlyphSegments(skyline, transform, rest);
+        }
+        else if (ReferenceEquals(head, GlyphStringSymbol))
+        {
+            AddGlyphStringSegments(skyline, transform, rest);
         }
         else if (ReferenceEquals(head, PolygonSymbol))
         {
@@ -912,6 +917,71 @@ public static class StencilIntegral
         local.Scale(scale, scale);
 
         openType.Font.Cff.AddOutlineToSkyline(skyline, local, index);
+    }
+
+    /// <summary>
+    /// <c>(glyph-string FONT NAME SIZE CID? GLYPHS FILE FACE TEXT CLUSTERS)</c>, with the
+    /// head already stripped: traces a whole MUSIC-font run, glyph by glyph, each placed
+    /// at the CUMULATIVE advance of the glyphs before it.
+    /// <para>
+    /// The placement arithmetic is <c>add_glyph_string_segments</c>'s: <c>cumulative_x</c>
+    /// runs over the per-glyph widths and each glyph is offset by its own
+    /// <c>(x-offset, y-offset)</c> on top of it — the same sum the SVG backend writes into
+    /// each path's transform, which is what keeps the outline the collision code measures
+    /// and the outline the document draws the same outline.
+    /// </para>
+    /// <para>
+    /// DIVERGENCE in mechanism, the same one <see cref="AddNamedGlyphSegments"/> records
+    /// and for the same reason: upstream falls back to the glyph's KERNED BOUNDING BOX
+    /// when the ratio of its two metric sources is not finite, because its sources are
+    /// FreeType's glyph metrics and FreeType's outline box and they round differently.
+    /// The port has one source for both — the charstring interpreter — so the ratio is the
+    /// scale factor itself and the fallback has no case to serve. The box arrives in the
+    /// expression regardless, because it is upstream's list shape.
+    /// </para>
+    /// </summary>
+    /// <param name="skyline">The collector.</param>
+    /// <param name="transform">The transform.</param>
+    /// <param name="arguments">The argument list.</param>
+    private static void AddGlyphStringSegments(
+        LazySkylinePair skyline, Transform transform, object arguments)
+    {
+        if (!(Car(arguments) is FontMetric metric))
+        {
+            return;
+        }
+
+        FontMetric original = metric is ModifiedFontMetric modified
+            ? modified.OriginalFont
+            : metric;
+
+        if (!(original is OpenTypeFontMetric openType) || openType.Font.Cff == null)
+        {
+            return;
+        }
+
+        int unitsPerEm = openType.Font.UnitsPerEm > 0 ? openType.Font.UnitsPerEm : 1000;
+        double scale = metric.FontScaling / unitsPerEm;
+
+        double cumulativeX = 0.0;
+
+        for (object cursor = Nth(arguments, 4); cursor is Pair pair; cursor = pair.Cdr)
+        {
+            object description = pair.Car;
+
+            double width = Real(Nth(description, 0));
+            double xOffset = Real(Nth(description, 2));
+            double yOffset = Real(Nth(description, 3));
+            int index = (int)Bootstrap.SchemeConvert.ToLong(Nth(description, 4), "glyph-string");
+
+            Transform local = transform;
+            local.Translate(new Offset(cumulativeX + xOffset, yOffset));
+            local.Scale(scale, scale);
+
+            openType.Font.Cff.AddOutlineToSkyline(skyline, local, index);
+
+            cumulativeX += width;
+        }
     }
 
     /// <summary>

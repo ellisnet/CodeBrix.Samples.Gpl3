@@ -431,10 +431,7 @@ public sealed class SvgBackend : IStencilSink
 
         if (ReferenceEquals(head, GlyphString))
         {
-            // Not handled here. Returning false lets the interpreter fall back to the
-            // stencil the expression carries alongside it.
-            UnhandledCommands.Add(head.Name);
-            return false;
+            return EmitGlyphString(args);
         }
 
         UnhandledCommands.Add(head.Name);
@@ -537,6 +534,113 @@ public sealed class SvgBackend : IStencilSink
             "<path transform=\"scale({0}, -{0})\" d=\"{1}\" fill=\"currentColor\"/>\n",
             scale,
             outline));
+        return true;
+    }
+
+    /// <summary>
+    /// Emits a whole run of MUSIC-font glyphs, which is what
+    /// <c>output-svg.scm</c>'s <c>glyph-string</c> does by way of
+    /// <c>music-string-to-path</c>, <c>extract-glyph</c> and <c>dump-path</c>.
+    /// <para>
+    /// The shape is upstream's and is the whole point of the command. Each glyph is
+    /// placed by the CUMULATIVE horizontal advance of the glyphs before it — the
+    /// <c>next-horiz-adv</c> global, whose comment says it exists "only if there is
+    /// more than one glyph" — and that placement rides on the PATH's own transform,
+    /// <c>translate(x, y) scale(s, -s)</c>, not on a wrapper. Upstream falls back to a
+    /// bare <c>scale()</c> when both terms are zero, which is why the FIRST glyph of
+    /// every run is written the same way a lone <c>named-glyph</c> is. A run of more
+    /// than one glyph is wrapped in its own attribute-less <c>&lt;g&gt;</c> and the
+    /// paths are joined with a newline; a run of exactly one is written bare.
+    /// </para>
+    /// <para>
+    /// A glyph the font has no outline for — a space — draws nothing and still
+    /// advances, which is upstream's "glyph-strings without path data" branch. Its
+    /// empty contribution still takes a separator from the join, so the blank line it
+    /// leaves behind is upstream's too.
+    /// </para>
+    /// <para>
+    /// The drawing scale comes from the FONT rather than from the expression's size
+    /// field, exactly as <see cref="EmitNamedGlyph"/> takes it: the port's size is the
+    /// metric's own scaling, where upstream's is a Pango point size it divides by
+    /// <c>lily-unit-length</c> on the way in. Both arrive at the same number and the
+    /// font is the one the port can ask.
+    /// </para>
+    /// </summary>
+    /// <param name="args">The command's arguments, with the head already stripped.</param>
+    /// <returns><see langword="true"/> when the run was emitted.</returns>
+    private bool EmitGlyphString(List<object> args)
+    {
+        if (args.Count < 5 || !(args[0] is FontMetric metric))
+        {
+            UnhandledCommands.Add(GlyphString.Name);
+            return false;
+        }
+
+        // TODO: not urgent, but do not hard-code this value. output-svg.scm's
+        // extract-glyph hard-codes 1000 with that same remark.
+        const double UnitsPerEm = 1000.0;
+
+        string scale = Format(metric.FontScaling / UnitsPerEm);
+
+        List<object> descriptions = Pair.ToList(args[4]);
+        List<string> paths = new List<string>(descriptions.Count);
+        double advance = 0.0;
+
+        foreach (object description in descriptions)
+        {
+            List<object> parts = Pair.ToList(description);
+
+            double width = parts.Count > 0 ? ToDouble(parts[0]) : 0.0;
+            double xOffset = parts.Count > 2 ? ToDouble(parts[2]) : 0.0;
+            double yOffset = parts.Count > 3 ? ToDouble(parts[3]) : 0.0;
+            // A glyph the font could index but not NAME carries #f here and draws
+            // nothing, exactly as a glyph with no outline does.
+            object named = parts.Count > 5 ? parts[5] : null;
+            string glyphName = named is MutableString || named is string
+                ? Text(named)
+                : null;
+
+            string outline = glyphName == null ? null : metric.GlyphOutline(glyphName);
+
+            if (string.IsNullOrEmpty(outline))
+            {
+                paths.Add(string.Empty);
+                advance += width;
+                continue;
+            }
+
+            double x = xOffset + advance;
+
+            // The Y offset is written RAW, not through FormatY: upstream stores it
+            // already negated (`-ggeo.y_offset * scale_'), and the outline is flipped by
+            // the transform's own negative Y scale.
+            string transform = x == 0.0 && yOffset == 0.0
+                ? string.Format(CultureInfo.InvariantCulture, "scale({0}, -{0})", scale)
+                : string.Format(
+                    CultureInfo.InvariantCulture,
+                    "translate({0}, {1}) scale({2}, -{2})",
+                    Format(x),
+                    Format(yOffset),
+                    scale);
+
+            paths.Add(string.Format(
+                CultureInfo.InvariantCulture,
+                "<path transform=\"{0}\" d=\"{1}\" fill=\"currentColor\"/>\n",
+                transform,
+                outline));
+
+            advance += width;
+        }
+
+        if (paths.Count == 1)
+        {
+            _body.Append(paths[0]);
+            return true;
+        }
+
+        _body.Append("<g>\n");
+        _body.Append(string.Join("\n", paths));
+        _body.Append("</g>\n");
         return true;
     }
 

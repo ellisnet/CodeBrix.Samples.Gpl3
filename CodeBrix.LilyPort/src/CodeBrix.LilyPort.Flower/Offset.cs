@@ -141,7 +141,16 @@ public readonly struct Offset : IEquatable<Offset>
     public double Length => Math.Sqrt((X * X) + (Y * Y));
 
     /// <summary>Gets a value indicating whether both coordinates are finite.</summary>
-    public bool IsSane => !double.IsNaN(X) && !double.IsNaN(Y);
+    /// <remarks>
+    /// //was previously: the two NaN tests only. Upstream's <c>Offset::is_sane</c> also
+    /// rejects an INFINITE coordinate, and dropping that half let a skyline's outer
+    /// buildings — which run to infinity by construction — through
+    /// <c>points_to_line_stencil</c>'s guard and into the output as literal
+    /// <c>x1="-Infinity"</c> line ends.
+    /// </remarks>
+    public bool IsSane
+        => !double.IsNaN(X) && !double.IsNaN(Y)
+           && !double.IsInfinity(X) && !double.IsInfinity(Y);
 
     /// <summary>Returns the offset with its coordinates exchanged.</summary>
     /// <returns>The swapped offset.</returns>

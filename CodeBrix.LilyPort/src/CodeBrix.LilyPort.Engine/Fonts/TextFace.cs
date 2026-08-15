@@ -62,6 +62,16 @@ public sealed class TextFace
     /// <summary>Gets the underlying container reader.</summary>
     public SfntReader Reader => _reader;
 
+    /// <summary>Gets the face's GSUB substitutions, as the shaper applies them.</summary>
+    /// <remarks>
+    /// Exposed for the same reason <see cref="OpenTypeFont.Substitutions"/> is: which
+    /// GSUB SCRIPT a face's features are read from is a decision the fences have to be
+    /// able to check against the font, and for a text face the answer differs from the
+    /// music font's — twelve of the vendored text faces name <c>liga</c> from
+    /// <c>latn</c> and from no other script.
+    /// </remarks>
+    public SubstitutionTable Substitutions => _substitutions;
+
     /// <summary>Determines whether the face can draw a code point.</summary>
     /// <param name="codePoint">The Unicode code point.</param>
     /// <returns><see langword="true"/> when it maps to a real glyph.</returns>

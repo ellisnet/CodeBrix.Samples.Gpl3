@@ -426,6 +426,14 @@ internal sealed partial class ScriptedParserHost : IParserHost, ILexerHost
     LexerLookup ILexerHost.LookupIdentifier(string word)
         => Identifiers.TryGetValue(word, out LexerLookup found) ? found : LexerLookup.None;
 
+    // Recorded rather than applied: the scripted host's identifier values are plain
+    // scripted objects, not MusicObjects, so a test asserts that the scanner ASKED.
+    internal List<KeyValuePair<object, SourceSpan>> MusicIdentifierSpots { get; }
+        = new List<KeyValuePair<object, SourceSpan>>();
+
+    void ILexerHost.SetMusicIdentifierSpot(object value, SourceSpan location)
+        => MusicIdentifierSpots.Add(new KeyValuePair<object, SourceSpan>(value, location));
+
     // The markup-command table the MARKUP lexer mode consults before falling back to
     // the ordinary escaped-word lookup. Scripted rather than empty as of RAG18/RAG19,
     // because a markup command's SIGNATURE is what the lexer announces as EXPECT_*
