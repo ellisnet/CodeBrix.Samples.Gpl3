@@ -6810,3 +6810,74 @@ sides -- D11 (staff-span segments after the first were never drawn) and D2
   noisy log.  Revisit when that residue is zero.  Related and also left alone:
   Warn.WarningAsError is assigned by nothing, so `ly:set-option 'warning-as-error'
   is inert in the port.
+
+--------------------------------------------------------------------------------
+GLYPH SUBSTITUTION -- THE GSUB SURFACE (2026-08-15, PARITY 9, D33)
+--------------------------------------------------------------------------------
+
+  Fonts/SubstitutionTable.cs is new-in-family.  Upstream reaches glyph
+  substitution through Pango: Text_interface::interpret_string reads the
+  `font-features' property chain, joins the list with commas
+  (text-interface.cc:207-238) and hands the string to
+  pango_attr_font_features_new (pango-font.cc:534), after which HarfBuzz applies
+  the named features while shaping.  The port owes the LIBRARY'S BEHAVIOUR here
+  (trap 15), and until PARITY 9 applied NONE of it.
+
+  WHAT IS IMPLEMENTED.  Lookup types 1 (single), 2 (multiple), 3 (alternate) and
+  4 (ligature), plus type 7 (extension) unwrapped to the type it carries; the
+  features of the chosen script's default language system; the enabled set being
+  HarfBuzz's default-on GSUB features plus the tags the run names minus the tags
+  it names with a leading `-'; and every enabled feature's lookups applied ONCE
+  EACH in ascending lookup-list index rather than once per feature.  The last of
+  those is not an optimisation -- it is what makes tnum, cv47 and ss01 COMPOSE
+  into `fattened.fixedwidth.four.alt' instead of one of them winning.
+
+  DELIBERATELY NOT IMPLEMENTED, MEASURED RATHER THAN ASSUMED.  The CONTEXTUAL
+  lookup types (5, 6 and 8) are absent.  Across all 24 vendored text faces and
+  all 9 Emmentaler faces, no feature that is default-on or that any LilyPond grob
+  or markup command asks for names a contextual lookup; the only contextual
+  lookups present at all belong to `ordn' and `frac', which nothing enables.
+  REVISIT CONDITION: a face whose enabled features need one would silently get
+  less substitution than Pango gives it, so re-measure if the D23 fallback chain
+  grows a face.
+
+  ⚠ AN OPEN DIVERGENCE, RECORDED RATHER THAN FIXED (PARITY 9).  The script
+  chosen for the feature lookup is DFLT, then latn, then whatever comes first --
+  the same choice Fonts/KerningTable.cs makes.  KerningTable's comment records
+  that every vendored face names the SAME kern lookups from every script it
+  declares, so the choice cannot change a GPOS answer.  THAT MEASUREMENT DOES NOT
+  CARRY OVER TO GSUB, and PARITY 9 measured the counterexample: C059-Roman's DFLT
+  language system names aalt/dnom/fina/frac/hist/numr/ordn/sups and NOT `liga',
+  which only the `latn' script names.  Pango itemizes Latin text under latn and
+  would therefore form C059's f-ligatures; the port, preferring DFLT, forms none,
+  so `liga' is currently inert for every text run and `\typewriter's "-liga" is
+  inert with it.  NOT chased at PARITY 9: it was outside that session's GO, and
+  turning it on changes the shaped advance of every Latin text run in the corpus,
+  which needs its own sweep and ratchet rather than a ride-along.
+
+  MUSIC-FONT KERNING, added in the same pass.  Emmentaler ships a GPOS `kern'
+  feature built specifically for the digits (mf/emmentaler_kerning.py, including
+  pairs for the fattened and fixedwidth variants; emmentaler-20 carries 1,061
+  pair values).  Upstream sets these runs through Pango like any other, so the
+  kerning is inside the advance it measures, and TextInterface's music-font path
+  now applies it AFTER substitution -- the pair a kern belongs to is the one
+  substitution left behind, which is the order HarfBuzz applies GSUB and GPOS in.
+
+--------------------------------------------------------------------------------
+ly:message IS NOT PRINTED (2026-08-15, PARITY 9, observed while probing)
+--------------------------------------------------------------------------------
+
+  PARITY 7 opened the Scheme-layer diagnostic sink for ly:warning and
+  ly:programming-error (ProgramOptions.Output had been TextWriter.Null and was
+  assigned by nothing -- trap 1b).  ly:message was NOT covered by that fix and
+  still prints nothing: a file whose only output is `#(ly:message "...")' is
+  silent on the port and prints on the oracle.
+
+  Found while writing a D6 probe, not by any gate, and it is exactly trap 1a's
+  shape -- the diagnostics gate grades the sweep log against the oracle's
+  reference logs, and the oracle's reference logs are generated `--silent', so a
+  message the oracle would print into a non-silent run is graded by nothing.
+  NOT FIXED at PARITY 9: outside that session's GO, and it is a diagnostics item
+  rather than a comparator one.  The practical consequence to remember is for
+  PROBES: a probe that reports through ly:message is readable on the oracle only
+  and cannot be diffed, so probes report through ly:warning.

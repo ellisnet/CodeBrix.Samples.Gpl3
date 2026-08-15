@@ -290,24 +290,34 @@ public static class GrobCallbacks
         interpreter.DefinePrimitive(
             "ly:grob::vertical-skylines-from-element-stencils", 1, 1, a =>
                 StencilIntegral.SkylinesFromElementStencils(
-                    AsGrob(a[0], "ly:grob::vertical-skylines-from-element-stencils"), Axis.X).ToScheme());
+                    AsGrob(a[0], "ly:grob::vertical-skylines-from-element-stencils"),
+                    Axis.X, false, 0, 0).ToScheme());
 
         interpreter.DefinePrimitive(
             "ly:grob::horizontal-skylines-from-element-stencils", 1, 1, a =>
                 StencilIntegral.SkylinesFromElementStencils(
-                    AsGrob(a[0], "ly:grob::horizontal-skylines-from-element-stencils"), Axis.Y).ToScheme());
+                    AsGrob(a[0], "ly:grob::horizontal-skylines-from-element-stencils"),
+                    Axis.Y, false, 0, 0).ToScheme());
 
         interpreter.DefinePrimitive(
             "ly:grob::pure-vertical-skylines-from-element-stencils", 3, 3, a =>
                 StencilIntegral.SkylinesFromElementStencils(
                     AsGrob(a[0], "ly:grob::pure-vertical-skylines-from-element-stencils"),
-                    Axis.X).ToScheme());
+                    Axis.X,
+                    true,
+                    SchemeConvert.ToInt(a[1], "ly:grob::pure-vertical-skylines-from-element-stencils"),
+                    SchemeConvert.ToInt(a[2], "ly:grob::pure-vertical-skylines-from-element-stencils"))
+                    .ToScheme());
 
         interpreter.DefinePrimitive(
             "ly:grob::pure-horizontal-skylines-from-element-stencils", 3, 3, a =>
                 StencilIntegral.SkylinesFromElementStencils(
                     AsGrob(a[0], "ly:grob::pure-horizontal-skylines-from-element-stencils"),
-                    Axis.Y).ToScheme());
+                    Axis.Y,
+                    true,
+                    SchemeConvert.ToInt(a[1], "ly:grob::pure-horizontal-skylines-from-element-stencils"),
+                    SchemeConvert.ToInt(a[2], "ly:grob::pure-horizontal-skylines-from-element-stencils"))
+                    .ToScheme());
     }
 
     /// <summary>

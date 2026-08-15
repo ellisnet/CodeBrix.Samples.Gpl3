@@ -279,8 +279,12 @@ public static class StencilIntegral
     /// </summary>
     /// <param name="grob">The grob.</param>
     /// <param name="axis">The horizon axis.</param>
+    /// <param name="pure">Whether this is the pure caller.</param>
+    /// <param name="start">The first column of the pure range.</param>
+    /// <param name="end">The last column of the pure range.</param>
     /// <returns>The merged skyline pair.</returns>
-    public static SkylinePair SkylinesFromElementStencils(Grob grob, Axis axis)
+    public static SkylinePair SkylinesFromElementStencils(
+        Grob grob, Axis axis, bool pure, int start, int end)
     {
         if (grob == null)
         {
@@ -288,24 +292,38 @@ public static class StencilIntegral
         }
 
         SkylinePair result = new SkylinePair();
-        if (!(grob.GetProperty(ElementsSymbol) is GrobArray array) || array.IsEmpty)
+
+        // `elements` is a grob OBJECT — a pointer link — and never a property, so it is
+        // read through ExtractGrobSet like every other link. Reading it out of the
+        // PROPERTY table answered nothing for every grob, which made this callback
+        // return an EMPTY skyline pair always. That is trap 17a at one remove: the write
+        // side (Axis_group_interface::add_element) was there and correct, and the read
+        // side consulted the wrong table, so nothing looked missing from either end.
+        // The cost was silent, because an empty skyline is a legal answer:
+        // add_grobs_of_one_priority skips an empty pair, so all six grobs that use this
+        // callback — VoltaBracketSpanner, DynamicLineSpanner, the three pedal line
+        // spanners and CenteredBarNumberLineSpanner — were never placed outside the
+        // staff and never entered the system's skyline at all.
+        IReadOnlyList<Grob> elements = PointerGroupInterface.ExtractGrobSet(grob, ElementsSymbol);
+        if (elements.Count == 0)
         {
             return result;
         }
-
-        IReadOnlyList<Grob> elements = array.Array;
 
         Grob xCommon = CommonRefpointOf(elements, grob, Axis.X);
         Grob yCommon = CommonRefpointOf(elements, grob, Axis.Y);
 
         double myX = grob.RelativeCoordinate(xCommon, Axis.X);
-        double myY = grob.RelativeCoordinate(yCommon, Axis.Y);
+        double myY = grob.MaybePureCoordinate(yCommon, Axis.Y, pure, start, end);
 
         Symbol property = axis == Axis.X ? VerticalSkylinesSymbol : HorizontalSkylinesSymbol;
 
+        // Only the Y coordinate and the child property are asked for PURELY; X is
+        // ordinary on both sides, because there is no such thing as a pure X.
         foreach (Grob element in elements)
         {
-            SkylinePair child = SkylinePair.FromScheme(element.GetProperty(property));
+            SkylinePair child = SkylinePair.FromScheme(
+                element.GetMaybePureProperty(property, pure, start, end));
             if (child == null)
             {
                 continue;
@@ -313,7 +331,7 @@ public static class StencilIntegral
 
             Offset offset = new Offset(
                 element.RelativeCoordinate(xCommon, Axis.X) - myX,
-                element.RelativeCoordinate(yCommon, Axis.Y) - myY);
+                element.MaybePureCoordinate(yCommon, Axis.Y, pure, start, end) - myY);
 
             child.Shift(offset[axis]);
             child.Raise(offset[axis == Axis.X ? Axis.Y : Axis.X]);

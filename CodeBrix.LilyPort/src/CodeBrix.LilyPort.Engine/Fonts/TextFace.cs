@@ -28,6 +28,7 @@ public sealed class TextFace
     private readonly Dictionary<int, int> _cmap;
     private readonly double[] _advances;
     private readonly KerningTable _kerning;
+    private readonly SubstitutionTable _substitutions;
 
     private TextFace(string fileName, SfntReader reader)
     {
@@ -37,6 +38,7 @@ public sealed class TextFace
         _cmap = reader.ReadCmap();
         _advances = reader.ReadAdvances();
         _kerning = KerningTable.Read(reader);
+        _substitutions = SubstitutionTable.Read(reader);
 
         byte[] cff = reader.GetTable("CFF ");
         _cff = cff == null ? null : new CffFont(cff);
@@ -86,6 +88,17 @@ public sealed class TextFace
     /// <returns>The adjustment; most kern pairs are negative.</returns>
     public double Kerning(int leftGlyph, int rightGlyph)
         => _kerning == null ? 0.0 : _kerning.Adjustment(leftGlyph, rightGlyph);
+
+    /// <summary>
+    /// Applies this face's GSUB substitutions to one run of its own glyphs, in place.
+    /// Substitution runs BEFORE kerning, because kerning belongs to the pair the
+    /// substituted run actually contains — the order HarfBuzz applies GSUB and GPOS in.
+    /// </summary>
+    /// <param name="glyphs">The run's glyph indices; rewritten in place.</param>
+    /// <param name="features">The comma-separated feature string, possibly empty.</param>
+    /// <returns>Whether anything changed.</returns>
+    public bool Substitute(List<int> glyphs, string features)
+        => _substitutions != null && _substitutions.Apply(glyphs, features);
 
     /// <summary>Returns a glyph's ink bounding box, in design units.</summary>
     /// <param name="glyph">The glyph index.</param>

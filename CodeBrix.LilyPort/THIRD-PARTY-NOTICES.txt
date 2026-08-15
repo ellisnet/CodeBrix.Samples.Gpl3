@@ -1117,9 +1117,14 @@ Copyright: Copyright (C) 1996--2026 Han-Wen Nienhuys <hanwen@xs4all.nl>
            ink-rectangle-for-Y split of pango_item_string_stencil, the scale_
            derivation, and PANGO_RESOLUTION (pango-font.hh:75), which is the
            grid a shaped advance is rounded onto.  The faces themselves are
-           resolved through the port's own D23 chain (Fonts/TextFace.cs and
-           Fonts/KerningTable.cs, both new-in-family and carrying no upstream
-           header).
+           resolved through the port's own D23 chain (Fonts/TextFace.cs,
+           Fonts/KerningTable.cs and Fonts/SubstitutionTable.cs, all
+           new-in-family and carrying no upstream header).  SubstitutionTable
+           reads the GSUB table and applies the features a run names -- the
+           behaviour upstream gets by handing font-features to
+           pango_attr_font_features_new and letting HarfBuzz shape -- and is
+           written from the OpenType specification, not derived from HarfBuzz
+           source.
 
     src/CodeBrix.LilyPort.Engine/Fonts/OpenTypeFont.cs
         <- lily/open-type-font.cc, lily/include/open-type-font.hh
@@ -1127,6 +1132,19 @@ Copyright: Copyright (C) 1996--2026 Han-Wen Nienhuys <hanwen@xs4all.nl>
            The metadata half only: the LILC and LILY tables, glyph dimensions,
            stem attachment points and ledger shortening ranges. Outlines are
            not read.
+
+    src/CodeBrix.LilyPort.Engine/Layout/StencilIntegral.cs
+        <- lily/stencil-integral.cc
+           Copyright (C) 2013--2026 Mike Solomon
+           The skyline half: what each drawing command traces out, and the
+           union of a grob's elements' skylines.  Entry added at PARITY 9,
+           a rule-5 gap that predated the session.
+
+    src/CodeBrix.LilyPort.Engine/Translation/MeasureControlIterators.cs
+        <- lily/fine-iterator.cc, lily/premeasure-iterator.cc,
+           lily/measure-remainder-iterator.cc
+           Copyright (C) 1997--2026 Han-Wen Nienhuys
+           Entry added at PARITY 9, a rule-5 gap that predated the session.
 
     src/CodeBrix.LilyPort.Engine/Layout/StencilInterpreter.cs
         <- lily/stencil-interpret.cc, lily/include/stencil-interpret.hh

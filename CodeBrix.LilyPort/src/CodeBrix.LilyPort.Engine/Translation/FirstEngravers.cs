@@ -19,6 +19,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using CodeBrix.LilyPort.Engine.Bootstrap;
 using CodeBrix.LilyPort.Engine.Music;
 using CodeBrix.LilyPort.Engine.Objects;
@@ -212,8 +213,15 @@ public class ClefEngraver : Engraver
     private static readonly Symbol FirstClefSymbol = Symbol.Intern("firstClef");
     private static readonly Symbol ForceClefSymbol = Symbol.Intern("forceClef");
     private static readonly Symbol ExplicitClefVisibilitySymbol = Symbol.Intern("explicitClefVisibility");
+    private static readonly Symbol ClefTranspositionStyleSymbol
+        = Symbol.Intern("clefTranspositionStyle");
+    private static readonly Symbol ClefTranspositionFormatterSymbol
+        = Symbol.Intern("clefTranspositionFormatter");
+    private static readonly Symbol TextSymbol = Symbol.Intern("text");
+    private static readonly Symbol DirectionSymbol = Symbol.Intern("direction");
 
     private Item _clef;
+    private Item _modifier;
 
     // Trigger a clef at the start, since #f is not '().
     private object _previousGlyph = false;
@@ -232,6 +240,9 @@ public class ClefEngraver : Engraver
 
     /// <summary>Gets the clef created this timestep, if any.</summary>
     public Item Clef => _clef;
+
+    /// <summary>Gets the transposition digit created this timestep, if any.</summary>
+    public Item Modifier => _modifier;
 
     /// <summary>Creates a clef when the clef properties have changed.</summary>
     public override void ProcessMusic()
@@ -266,6 +277,7 @@ public class ClefEngraver : Engraver
         }
 
         _clef = null;
+        _modifier = null;
     }
 
     private void SetGlyph()
@@ -295,6 +307,48 @@ public class ClefEngraver : Engraver
         {
             _clef.SetProperty(StaffPositionSymbol, position);
         }
+
+        // The transposition digit — the italic "8" under a `treble_8` clef. This block
+        // was absent, and the absence did not look like one: CueClefEngraver carries its
+        // own faithful copy of the same upstream code, so the port answered "yes" to
+        // every search for ClefModifier while no ORDINARY clef ever grew one (trap 17b).
+        object transposition = GetProperty(ClefTranspositionSymbol);
+        int transpose = SchemeConvert.IsNumber(transposition)
+            ? SchemeConvert.ToInt(transposition, "clefTransposition")
+            : 0;
+        if (transpose == 0)
+        {
+            return;
+        }
+
+        Item g = MakeItem("ClefModifier", Nil.Instance);
+        if (g == null)
+        {
+            return;
+        }
+
+        int direction = Math.Sign(transpose);
+
+        // The DIGIT is one more than the transposition: an octave down is written 8, two
+        // octaves 15. Upstream builds it with scm_number_to_string in base ten.
+        object text = new MutableString(
+            (Math.Abs(transpose) + 1).ToString(CultureInfo.InvariantCulture));
+
+        object formatter = GetProperty(ClefTranspositionFormatterSymbol);
+        if (SchemeUtilities.IsProcedure(formatter))
+        {
+            g.SetProperty(
+                TextSymbol,
+                SchemeUtilities.CallCallback(
+                    formatter, text, GetProperty(ClefTranspositionStyleSymbol)));
+        }
+
+        SidePositionInterface.AddSupport(g, _clef);
+
+        g.YParent = _clef;
+        g.XParent = _clef;
+        g.SetProperty(DirectionSymbol, (long)direction);
+        _modifier = g;
     }
 
     private void InspectClefProperties()

@@ -233,7 +233,23 @@ public sealed class TextFontMetric : FontMetric
     /// The stencil, whose expression is <c>(utf-8-string DESCRIPTION TEXT ())</c> and
     /// whose extents are the run's advance width and ink height.
     /// </returns>
-    public Stencil TextStencil(string text)
+    public Stencil TextStencil(string text) => TextStencil(text, string.Empty);
+
+    /// <summary>
+    /// Measures a string set with the features a run asks for, and returns the stencil
+    /// that draws it.
+    /// </summary>
+    /// <param name="text">The text to set.</param>
+    /// <param name="features">
+    /// The comma-joined <c>font-features</c> string. Empty still applies the features
+    /// HarfBuzz turns on unasked — <c>liga</c> above all — which is why
+    /// <c>\typewriter</c> has to ask for <c>-liga</c> to get them off.
+    /// </param>
+    /// <returns>
+    /// The stencil, whose expression is <c>(utf-8-string DESCRIPTION TEXT ())</c> and
+    /// whose extents are the run's advance width and ink height.
+    /// </returns>
+    public Stencil TextStencil(string text, string features)
     {
         if (string.IsNullOrEmpty(text))
         {
@@ -272,6 +288,8 @@ public sealed class TextFontMetric : FontMetric
             // measured like any other glyph rather than skipped.
             shaped.Add(new ShapedGlyph(face, face.GlyphIndex(codePoint), Scale(face)));
         }
+
+        shaped = Substitute(shaped, features);
 
         double pixel = DevicePixel;
 
@@ -338,6 +356,64 @@ public sealed class TextFontMetric : FontMetric
             inner);
 
         return new Stencil(box, expression);
+    }
+
+    /// <summary>
+    /// Applies each face's GSUB substitutions to the run, one contiguous same-face
+    /// stretch at a time.
+    /// <para>
+    /// The stretch is the unit because Pango itemizes a string into per-font runs and
+    /// shapes each one on its own: a ligature never spans two faces, and neither does a
+    /// substitution. A stretch whose face substitutes nothing is left alone rather than
+    /// rebuilt, which keeps the common case free.
+    /// </para>
+    /// </summary>
+    /// <param name="shaped">The resolved run.</param>
+    /// <param name="features">The comma-joined feature string.</param>
+    /// <returns>The run after substitution, which may be shorter or longer.</returns>
+    private List<ShapedGlyph> Substitute(List<ShapedGlyph> shaped, string features)
+    {
+        List<ShapedGlyph> result = null;
+        List<int> glyphs = new List<int>();
+
+        for (int start = 0; start < shaped.Count;)
+        {
+            TextFace face = shaped[start].Face;
+            int end = start + 1;
+            while (end < shaped.Count && ReferenceEquals(shaped[end].Face, face))
+            {
+                end++;
+            }
+
+            glyphs.Clear();
+            for (int i = start; i < end; i++)
+            {
+                glyphs.Add(shaped[i].Glyph);
+            }
+
+            if (face.Substitute(glyphs, features))
+            {
+                if (result == null)
+                {
+                    result = new List<ShapedGlyph>(shaped.Count);
+                    result.AddRange(shaped.GetRange(0, start));
+                }
+
+                double scale = shaped[start].Scale;
+                foreach (int glyph in glyphs)
+                {
+                    result.Add(new ShapedGlyph(face, glyph, scale));
+                }
+            }
+            else
+            {
+                result?.AddRange(shaped.GetRange(start, end - start));
+            }
+
+            start = end;
+        }
+
+        return result ?? shaped;
     }
 
     /// <summary>

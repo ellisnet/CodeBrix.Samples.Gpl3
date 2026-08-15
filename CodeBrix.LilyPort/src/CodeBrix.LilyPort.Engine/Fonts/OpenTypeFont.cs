@@ -80,6 +80,12 @@ public sealed class OpenTypeFont
     private CffFont _cff;
     private bool _cffLoaded;
 
+    private SubstitutionTable _substitutions;
+    private bool _substitutionsLoaded;
+
+    private KerningTable _kerning;
+    private bool _kerningLoaded;
+
     /// <summary>
     /// Initializes a font from its file, evaluating its metadata tables with the
     /// ambient interpreter.
@@ -189,6 +195,54 @@ public sealed class OpenTypeFont
             }
 
             return _cff;
+        }
+    }
+
+    /// <summary>
+    /// Gets the font's GSUB substitutions, or <see langword="null"/> when it declares
+    /// none this port can act on. Loaded on first ask.
+    /// <para>
+    /// This is what selects Emmentaler's <c>fattened</c>, <c>fixedwidth</c> and
+    /// <c>.alt</c> digit variants, which a grob asks for through <c>font-features</c>
+    /// and which upstream reaches through Pango.
+    /// </para>
+    /// </summary>
+    public SubstitutionTable Substitutions
+    {
+        get
+        {
+            if (!_substitutionsLoaded)
+            {
+                _substitutionsLoaded = true;
+                _substitutions = SubstitutionTable.Read(Reader);
+            }
+
+            return _substitutions;
+        }
+    }
+
+    /// <summary>
+    /// Gets the font's kerning, or <see langword="null"/> when it carries none. Loaded
+    /// on first ask.
+    /// <para>
+    /// A music font kerns: Emmentaler ships a GPOS <c>kern</c> feature whose whole
+    /// subject is the digits (<c>mf/emmentaler_kerning.py</c> computes it, including
+    /// pairs for the <c>fattened</c> and <c>fixedwidth</c> variants). Upstream sets
+    /// these runs through Pango like any other, so the kerning is part of the advance
+    /// it measures.
+    /// </para>
+    /// </summary>
+    public KerningTable Kerning
+    {
+        get
+        {
+            if (!_kerningLoaded)
+            {
+                _kerningLoaded = true;
+                _kerning = KerningTable.Read(Reader);
+            }
+
+            return _kerning;
         }
     }
 

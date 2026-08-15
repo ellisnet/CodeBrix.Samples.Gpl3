@@ -54,6 +54,7 @@ public static class TextInterface
 {
     private static readonly Symbol StringTransformersSymbol = Symbol.Intern("string-transformers");
     private static readonly Symbol FontEncodingSymbol = Symbol.Intern("font-encoding");
+    private static readonly Symbol FontFeaturesSymbol = Symbol.Intern("font-features");
     private static readonly Symbol ReplacementAlistSymbol = Symbol.Intern("replacement-alist");
     private static readonly Symbol MaxMarkupDepthSymbol = Symbol.Intern("max-markup-depth");
     private static readonly Symbol TextSymbol = Symbol.Intern("text");
@@ -176,19 +177,69 @@ public static class TextInterface
             return InterpretMarkup(layout, innerProps, transformed);
         }
 
+        string features = FontFeatures(props);
+
         if (!(font is TextFontMetric textFont))
         {
             // A music encoding reached the text interface: fetaText's digits, dynamic
             // letters and figured-bass punctuation. Upstream sets these through Pango
             // over the SAME font; the port composes the run itself from the font's own
-            // cmap and hmtx, which is all Pango's shaping amounts to for a font with
-            // no kerning in this range. This branch once answered an EMPTY
-            // stencil (the divergence was recorded in PORT-COVERAGE) — which made
-            // \number, \dynamic and every figured-bass digit silently invisible.
-            return MusicFontTextStencil(font, cleaned);
+            // cmap and hmtx, and applies the font's own GSUB substitutions, which
+            // together are what Pango's shaping amounts to for these runs. This branch
+            // once answered an EMPTY stencil (the divergence was recorded in
+            // PORT-COVERAGE) — which made \number, \dynamic and every figured-bass
+            // digit silently invisible.
+            return MusicFontTextStencil(font, cleaned, features);
         }
 
-        return textFont.TextStencil(cleaned);
+        return textFont.TextStencil(cleaned, features);
+    }
+
+    /// <summary>
+    /// Reads the <c>font-features</c> property chain and joins it for the shaper.
+    /// <para>
+    /// Upstream stores the value as a Scheme LIST and joins the entries with commas for
+    /// processing with Pango, which is the form
+    /// <c>pango_attr_font_features_new</c> takes; both of upstream's rejections are
+    /// reproduced verbatim, because a diagnostic with an upstream counterpart owes
+    /// upstream's wording (ruling R1).
+    /// </para>
+    /// </summary>
+    /// <param name="props">The property alist chain.</param>
+    /// <returns>The comma-joined feature string, empty when none is asked for.</returns>
+    private static string FontFeatures(object props)
+    {
+        object features = SchemeUtilities.ChainAssocGet(FontFeaturesSymbol, props, false);
+
+        if (!(features is Pair))
+        {
+            if (SchemeUtilities.IsSchemeTrue(features))
+            {
+                throw SchemeErrors.MiscError(
+                    "interpret_string", "Expecting a list for font-features value");
+            }
+
+            return string.Empty;
+        }
+
+        StringBuilder result = new StringBuilder();
+        for (object s = features; s is Pair pair; s = pair.Cdr)
+        {
+            if (!(pair.Car is MutableString || pair.Car is string))
+            {
+                throw SchemeErrors.MiscError(
+                    "interpret_string", "Found non-string in font-features list");
+            }
+
+            if (result.Length > 0)
+            {
+                result.Append(',');
+            }
+
+            result.Append(pair.Car.ToString());
+        }
+
+        return result.ToString();
     }
 
     /// <summary>
@@ -200,12 +251,15 @@ public static class TextInterface
     /// </summary>
     /// <param name="font">The music font metric, possibly scaled.</param>
     /// <param name="text">The cleaned text.</param>
+    /// <param name="features">The comma-joined <c>font-features</c> string.</param>
     /// <returns>The composed stencil.</returns>
-    private static Stencil MusicFontTextStencil(FontMetric font, string text)
+    private static Stencil MusicFontTextStencil(FontMetric font, string text, string features)
     {
-        Stencil result = Stencil.Empty;
-        double x = 0;
-
+        // The whole run is mapped through the cmap FIRST, because a substitution reads
+        // more than one glyph: Emmentaler's dlig feature turns a digit followed by a
+        // backslash into a single slashed figured-bass glyph, so the run cannot be
+        // composed one code point at a time.
+        List<int> glyphs = new List<int>(text.Length);
         for (int i = 0; i < text.Length; i++)
         {
             int codePoint = char.IsHighSurrogate(text[i]) && i + 1 < text.Length
@@ -217,25 +271,43 @@ public static class TextInterface
             }
 
             int index = font.CharToGlyphIndex(codePoint);
-            if (index == FontMetric.GlyphIndexInvalid)
+            if (index != FontMetric.GlyphIndexInvalid)
             {
-                continue;
+                glyphs.Add(index);
             }
+        }
 
+        // Upstream reaches this through Pango, which hands the feature string to
+        // HarfBuzz; the port applies the same features out of the font's own GSUB. This
+        // is what draws `fattened.three` where a Fingering asks for ss01 and
+        // `fixedwidth.four.alt` where a BassFigure asks for tnum and cv47.
+        font.Substitutions?.Apply(glyphs, features);
+
+        Stencil result = Stencil.Empty;
+        double x = 0;
+
+        for (int i = 0; i < glyphs.Count; i++)
+        {
+            int index = glyphs[i];
             string name = font.IndexToName(index);
-            if (name == null)
+            if (name != null)
             {
-                continue;
+                Stencil glyph = font.FindByName(name);
+                if (!Stencil.IsNullExpression(glyph.Expression))
+                {
+                    glyph.Translate(new Offset(x, 0));
+                    result.AddStencil(glyph);
+                }
             }
 
-            Stencil glyph = font.FindByName(name);
-            if (!Stencil.IsNullExpression(glyph.Expression))
-            {
-                glyph.Translate(new Offset(x, 0));
-                result.AddStencil(glyph);
-            }
-
+            // The kern belongs to the PAIR, so it rides on the first glyph of it — and
+            // it is applied AFTER substitution, because the pair it applies to is the
+            // one substitution left behind. Emmentaler kerns its digits on purpose.
             x += font.IndexedAdvance(index);
+            if (i + 1 < glyphs.Count)
+            {
+                x += font.IndexedKerning(index, glyphs[i + 1]);
+            }
         }
 
         return result;

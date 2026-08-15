@@ -118,6 +118,22 @@ public abstract class FontMetric
     public virtual string IndexToName(int index) => null;
 
     /// <summary>
+    /// Gets the font's glyph substitutions, or <see langword="null"/> when it has none.
+    /// The base metric has none.
+    /// </summary>
+    public virtual SubstitutionTable Substitutions => null;
+
+    /// <summary>
+    /// Returns the advance adjustment between two adjacent glyphs of one run, in the
+    /// same stencil units <see cref="IndexedAdvance"/> reports. The base metric kerns
+    /// nothing.
+    /// </summary>
+    /// <param name="leftGlyph">The earlier glyph's index.</param>
+    /// <param name="rightGlyph">The later glyph's index.</param>
+    /// <returns>The adjustment; most kern pairs are negative.</returns>
+    public virtual double IndexedKerning(int leftGlyph, int rightGlyph) => 0.0;
+
+    /// <summary>
     /// Returns a glyph's horizontal advance in this metric's stencil units — the same
     /// scale <see cref="GetIndexedCharDimensions"/> reports boxes in.
     /// </summary>
@@ -254,6 +270,21 @@ public sealed class OpenTypeFontMetric : FontMetric
     public override string IndexToName(int index)
         => index >= 0 && index < _font.GlyphNames.Count ? _font.GlyphNames[index] : null;
 
+    /// <summary>Gets the font's glyph substitutions.</summary>
+    public override SubstitutionTable Substitutions => _font.Substitutions;
+
+    /// <summary>
+    /// Returns a pair's kern, on the same <c>FontScaling / units-per-em</c> factor
+    /// <see cref="IndexedAdvance"/> uses, because a kern is an advance.
+    /// </summary>
+    /// <param name="leftGlyph">The earlier glyph's index.</param>
+    /// <param name="rightGlyph">The later glyph's index.</param>
+    /// <returns>The adjustment.</returns>
+    public override double IndexedKerning(int leftGlyph, int rightGlyph)
+        => _font.Kerning == null
+            ? 0.0
+            : _font.Kerning.Adjustment(leftGlyph, rightGlyph) * FontScaling / 1000.0;
+
     /// <summary>
     /// Returns a glyph's advance in the stencil's units: the raw <c>hmtx</c> value —
     /// which is in FONT units, on the same em as the outlines — times the same
@@ -364,6 +395,12 @@ public sealed class ModifiedFontMetric : FontMetric
         => _original.LedgerShorteningRange(glyphName) * Magnification;
 
     /// <summary>
+    /// Gets the original's glyph substitutions: substitution chooses a glyph, and the
+    /// magnification decides how big it is drawn, so the two do not interact.
+    /// </summary>
+    public override SubstitutionTable Substitutions => _original.Substitutions;
+
+    /// <summary>
     /// Returns a glyph's outline path data, which is the original's — outlines are in
     /// font units and the magnification reaches them through the drawing scale, not
     /// through the path.
@@ -387,4 +424,11 @@ public sealed class ModifiedFontMetric : FontMetric
     /// <returns>The advance.</returns>
     public override double IndexedAdvance(int index)
         => _original.IndexedAdvance(index) * Magnification;
+
+    /// <summary>Returns a pair's kern, scaled the same way the advance is.</summary>
+    /// <param name="leftGlyph">The earlier glyph's index.</param>
+    /// <param name="rightGlyph">The later glyph's index.</param>
+    /// <returns>The adjustment.</returns>
+    public override double IndexedKerning(int leftGlyph, int rightGlyph)
+        => _original.IndexedKerning(leftGlyph, rightGlyph) * Magnification;
 }

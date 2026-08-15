@@ -188,15 +188,30 @@ public sealed class MeasureRemainderIterator : MusicWrapperIterator
             return;
         }
 
-        StreamEvent change = Context.MakeEvent(MeasureLengthChangeEventSymbol, Music.Origin);
+        // Built through Scheme's make-music and SENT, exactly as the premeasure iterator
+        // above does and for the same reason. A stream event constructed here instead
+        // takes its class from ly:make-event-class, whose registry is keyed by EVENT
+        // CLASS (SetProperty, Override, Revert, ...) and not by music type; the music
+        // type MeasureLengthChangeEvent is not in it, so the lookup answered #f, the
+        // event carried no class, and no listener ever matched it. `\measureRemainder`
+        // therefore never changed a measure's length in any context — measured on a
+        // 2x2 matrix (Timing per staff or at Score, wrapped music changing context or
+        // not) where the oracle is silent in all four cases and the port warned in all
+        // four.
+        MusicObject change = MusicFactory.MakeMusic(MeasureLengthChangeEventSymbol);
+        change.SetSpot(Music.Origin);
         if (direction == Direction.Negative)
         {
             change.SetProperty(DurationSymbol, Duration.FromWholeNotes(MusicLength.MainPart, true));
         }
 
-        _eventHandler.SendStreamEvent(change);
+        change.SendToContext(_eventHandler);
     }
 
     private void SendCheckEvent()
-        => _eventHandler.SendStreamEvent(Context.MakeEvent(BarCheckEventSymbol, Music.Origin));
+    {
+        MusicObject check = MusicFactory.MakeMusic(BarCheckEventSymbol);
+        check.SetSpot(Music.Origin);
+        check.SendToContext(_eventHandler);
+    }
 }
