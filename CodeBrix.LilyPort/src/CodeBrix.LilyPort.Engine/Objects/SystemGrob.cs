@@ -75,6 +75,8 @@ public class SystemGrob : Spanner
     private static readonly Symbol PageTurnPenaltySymbol = Symbol.Intern("page-turn-penalty");
     private static readonly Symbol LastInScoreSymbol = Symbol.Intern("last-in-score");
     private static readonly Symbol SystemGrobSymbol = Symbol.Intern("system-grob");
+    private static readonly Symbol StaffRefpointExtentSymbol
+        = Symbol.Intern("staff-refpoint-extent");
     private static readonly Symbol BeforeLineBreakingSymbol
         = Symbol.Intern("before-line-breaking");
 
@@ -905,13 +907,27 @@ public class SystemGrob : Spanner
     {
         PostProcessing();
 
-        List<Grob> ordered = new List<Grob>();
+        // Upstream builds a vector of Layer_entry {grob, layer} and reads `layer` EXACTLY
+        // ONCE PER GROB, into the entry; operator< then compares the cached ints. Reading
+        // the property from inside the comparator instead is not merely slower, it is
+        // OBSERVABLE: a property that answers `calculation-in-progress` reports a cyclic
+        // dependency on EVERY read, so an O(n log n) comparator turns upstream's single
+        // report into one per comparison. `debug-property-callbacks` counts them.
+        // The sort call is unchanged, and the comparisons yield the same results, so the
+        // permutation is the same one the comparator produced before.
+        List<LayerEntry> entries = new List<LayerEntry>();
         foreach (Grob grob in AllElements)
         {
-            ordered.Add(grob);
+            entries.Add(new LayerEntry(grob, LayerOf(grob)));
         }
 
-        ordered.Sort((a, b) => LayerOf(a).CompareTo(LayerOf(b)));
+        entries.Sort((a, b) => a.Layer.CompareTo(b.Layer));
+
+        List<Grob> ordered = new List<Grob>();
+        foreach (LayerEntry entry in entries)
+        {
+            ordered.Add(entry.Grob);
+        }
 
         List<object> expressions = new List<object>();
         Box stencilBox = default;
@@ -982,11 +998,11 @@ public class SystemGrob : Spanner
     /// where it started, and whether a page may end after it is decided where it stops.
     /// </para>
     /// <para>
-    /// DIVERGENCE, recorded in PORT-COVERAGE: <c>staff-refpoint-extent</c> is left
-    /// unset. Upstream computes it from the vertical alignment's spaceable staves, which
-    /// is <c>Page_layout_problem::is_spaceable</c>. An absent property is
-    /// an honest "not computed"; a zero interval would read as "the staves are all at
-    /// the origin", which is a different and wrong claim.
+    /// <c>staff-refpoint-extent</c> carries the Y coordinates of the alignment's SPACEABLE
+    /// staves, relative to this system. It is what lets a reader ask where the music sits
+    /// inside a line rather than where the line's ink begins, which is why the system
+    /// separator centres itself on it and one-page breaking measures the last line's
+    /// bottom from it.
     /// </para>
     /// </summary>
     /// <returns>The paper system.</returns>
@@ -1025,8 +1041,52 @@ public class SystemGrob : Spanner
             }
         }
 
+        // An interval that collects no point stays EMPTY, and empty is what upstream
+        // stores — not zero. Both sides spell it (+inf . -inf), and both readers guard
+        // with "is it a pair whose car is a number", so an empty extent contributes
+        // -inf to the last line's bottom bound, which is the same "no constraint" the
+        // absent property used to give. Zero would have been the wrong claim; empty is
+        // not, so there is nothing here to diverge over.
+        Interval staffRefpoints = Interval.Empty;
+        if (GetObject(VerticalAlignmentSymbol) is Grob align)
+        {
+            IReadOnlyList<Grob> staves
+                = PointerGroupInterface.ExtractGrobSet(align, ElementsSymbol);
+            for (int i = 0; i < staves.Count; i++)
+            {
+                if (staves[i].IsLive
+                    && CodeBrix.LilyPort.Engine.Layout.PageLayoutSpacing.IsSpaceable(staves[i]))
+                {
+                    staffRefpoints.AddPoint(staves[i].RelativeCoordinate(this, Axis.Y));
+                }
+            }
+        }
+
+        paperSystem.SetProperty(
+            StaffRefpointExtentSymbol,
+            new Pair(staffRefpoints.Left, staffRefpoints.Right));
         paperSystem.SetProperty(SystemGrobSymbol, this);
         return paperSystem;
+    }
+
+    /// <summary>
+    /// A grob paired with the <c>layer</c> it was read as, which is upstream's
+    /// <c>Layer_entry</c>: the read happens once, when the entry is built, and the sort
+    /// compares what was read rather than reading again.
+    /// </summary>
+    private readonly struct LayerEntry
+    {
+        public LayerEntry(Grob grob, int layer)
+        {
+            Grob = grob;
+            Layer = layer;
+        }
+
+        /// <summary>Gets the grob this entry orders.</summary>
+        public Grob Grob { get; }
+
+        /// <summary>Gets the layer read from the grob when the entry was built.</summary>
+        public int Layer { get; }
     }
 
     private static int LayerOf(Grob grob)

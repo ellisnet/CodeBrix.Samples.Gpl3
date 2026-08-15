@@ -1755,31 +1755,30 @@ public static class Beam
     /// Folds one of the beam's bounds into the common horizontal reference point —
     /// upstream's <c>me->get_bound (d)->common_refpoint (commonx, X_AXIS)</c>.
     /// <para>
-    /// The original null-bound guard was REMOVED AND RE-MEASURED once line breaking
-    /// landed, which is what the inherit list asked for, and the measurement says
-    /// KEEP IT. Upstream writes this dereference with no null check because by the time
-    /// anything asks a beam to draw, the bound is guaranteed:
-    /// <c>Spanner::do_break_processing</c> walks away from a spanner missing either
-    /// bound, so it is never assigned to a system and never typeset. That function is
-    /// ported now — and an unbounded beam STILL reaches here, on exactly one file,
-    /// <c>whole-note-tremolo-direction.ly</c>, which dies with a null dereference
-    /// without this line and produces its page with it.
+    /// This carried a null-bound guard for several sessions, kept because an unbounded
+    /// beam really did reach here on exactly one file,
+    /// <c>whole-note-tremolo-direction.ly</c>, and only inside a full sweep. The guard is
+    /// GONE, and what removed it was not work on beams at all. Upstream dereferences
+    /// without a check because <c>Spanner::do_break_processing</c> walks away from a
+    /// spanner missing either bound, so an unbounded beam is never assigned to a system
+    /// and never typeset. That was ALREADY ported — but a paper column that existed only
+    /// as a spanner's bound was being dropped as unused, because
+    /// <c>Spanner::set_bound</c> never recorded the spanner in <c>bounded-by-me</c>, so
+    /// beams were arriving here stripped of the bounds they had been given. Fixing that
+    /// write removed the only case this guard ever caught.
     /// </para>
     /// <para>
-    /// The cause is NOT diagnosed and it is the one the beam port recorded and could not
-    /// chase: a chord-tremolo beam that reproduces only inside a FULL SWEEP and never when
-    /// the file is run alone (the full-sweep-only trap). So the guard stays, its reason is
-    /// now measured rather than assumed, and what it is waiting on is no longer line
-    /// breaking but that
-    /// diagnosis. A beam with no bounds has no stems either, so it yields no segments and
-    /// draws nothing, which is the page upstream produces after <c>calc_direction</c>
-    /// removes it.
+    /// Verified by A/B: with the guard removed the full sweep is unchanged — the file
+    /// renders its system, the comparator reads identically row for row, and the ratchet
+    /// reports no regression. A port-side null check upstream does not have is a defect
+    /// even when it looks like hygiene, so it does not stay on the strength of a symptom
+    /// that no longer occurs.
     /// </para>
     /// </summary>
     internal static Grob CommonWithBound(Spanner me, Grob commonx, Direction d)
     {
         Item bound = me.GetBound(d);
-        return bound != null ? bound.CommonRefpoint(commonx, Axis.X) : commonx;
+        return bound.CommonRefpoint(commonx, Axis.X);
     }
 
     // like abs(a - b) but works for both signed and unsigned

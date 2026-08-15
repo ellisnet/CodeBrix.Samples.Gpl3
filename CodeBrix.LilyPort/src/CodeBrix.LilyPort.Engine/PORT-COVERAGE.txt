@@ -1543,11 +1543,18 @@ DELIBERATE DIVERGENCES (output pipeline, first slice)
   what the regression ratchet will report by file rather than something
   silently plausible.
 
-  System::get_paper_system leaves staff-refpoint-extent unset. Upstream
-  computes it from the vertical alignment's spaceable staves, which is
-  Page_layout_problem::is_spaceable -- a page-layout file. An absent property is an
-  honest "not computed"; a zero interval would read as "the staves are all at
-  the origin", which is a different and wrong claim.
+  System::get_paper_system sets staff-refpoint-extent from the vertical
+  alignment's spaceable staves, as upstream does. This entry used to record the
+  opposite -- that the property was deliberately left unset, because computing it
+  needed Page_layout_problem::is_spaceable, "a page-layout file", and because the
+  only alternative to an absent property was a zero interval that would have
+  claimed the staves all sit at the origin. Both halves of that had stopped being
+  true. is_spaceable landed as PageLayoutSpacing.IsSpaceable, which SystemGrob
+  itself already called three times in PureRefpointExtent; and the choice was never
+  absent-or-zero, because an Interval that collects no point is EMPTY, which both
+  engines spell (+inf . -inf) and which every reader on both sides already guards
+  for. Upstream stores empty here and so does the port. Found by the trap-17a
+  read/write sweep, which is also how the stale wording came to light.
 
   scale_output_def calls scm/paper.scm's scale-layout when it is bound and
   falls back to a plain clone when it is not. A clone is the identity at

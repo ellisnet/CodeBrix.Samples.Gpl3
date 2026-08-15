@@ -103,6 +103,11 @@ public abstract class Grob : IDiagnostics
     private static readonly Symbol TransparentSymbol = Symbol.Intern("transparent");
     private static readonly Symbol RotationSymbol = Symbol.Intern("rotation");
     private static readonly Symbol ColorSymbol = Symbol.Intern("color");
+    private static readonly Symbol WhiteoutSymbol = Symbol.Intern("whiteout");
+    private static readonly Symbol WhiteoutStyleSymbol = Symbol.Intern("whiteout-style");
+    private static readonly Symbol WhiteoutColorSymbol = Symbol.Intern("whiteout-color");
+    private static readonly Symbol LineThicknessSymbol = Symbol.Intern("line-thickness");
+    private static readonly Symbol StencilWhiteoutSymbol = Symbol.Intern("stencil-whiteout");
     private static readonly Symbol OutputAttributesSymbol = Symbol.Intern("output-attributes");
     private static readonly Symbol GrobCauseSymbol = Symbol.Intern("grob-cause");
     private static readonly Symbol CauseSymbol = Symbol.Intern("cause");
@@ -1259,6 +1264,42 @@ public abstract class Grob : IDiagnostics
 
         result = stencil;
         bool transparent = IsTransparent;
+
+        /* Process whiteout before color and grob-cause to prevent colored */
+        /* whiteout background and larger file sizes with \pointAndClickOn. */
+        /* A grob has to be visible, otherwise the whiteout property has no effect. */
+        /* Calls the scheme procedure stencil-whiteout in scm/stencils.scm */
+        object whiteoutValue = GetProperty(WhiteoutSymbol);
+        if (!transparent
+            && (SchemeConvert.IsNumber(whiteoutValue) || SchemeUtilities.ToBool(whiteoutValue)))
+        {
+            double lineThickness = Layout.GetDimension(LineThicknessSymbol);
+            object whiteoutColor = GetProperty(WhiteoutColorSymbol);
+            if (!(whiteoutColor is MutableString || whiteoutColor is string
+                  || whiteoutColor is Pair))
+            {
+                whiteoutColor = new MutableString("white");
+            }
+
+            object whiteoutProc = LilyPondScheme.LookupProcedure(StencilWhiteoutSymbol);
+            if (whiteoutProc != null && LilyPondScheme.Current != null)
+            {
+                object whited = LilyPondScheme.Current.Evaluator.Apply(
+                    whiteoutProc,
+                    new object[]
+                    {
+                        result,
+                        GetProperty(WhiteoutStyleSymbol),
+                        whiteoutValue,
+                        lineThickness,
+                        whiteoutColor,
+                    });
+                if (whited is Stencil whitedStencil)
+                {
+                    result = whitedStencil;
+                }
+            }
+        }
 
         if (transparent)
         {

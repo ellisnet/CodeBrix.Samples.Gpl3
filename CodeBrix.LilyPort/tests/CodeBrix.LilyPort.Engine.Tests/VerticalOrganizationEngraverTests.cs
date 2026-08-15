@@ -416,6 +416,155 @@ public class VerticalOrganizationEngraverTests : IDisposable
         offset.Should().Be(0.0);
     }
 
+    [Fact]
+    public void staff_refpoint_extent_carries_the_spaceable_staff_offset()
+    {
+        //Arrange
+        EngraveRun run = EngraveOneNote();
+        run.ScoreEngraver.PaperScore.Process();
+        run.ScoreEngraver.PaperScore.GetPaperSystems();
+        SystemGrob line = run.EngravedLine;
+        Grob axisGroup = EngraveRun.FindOn(line, "VerticalAxisGroup");
+        axisGroup.Should().NotBeNull();
+
+        //Act
+        // Hand-computed from System::get_paper_system: the extent collects
+        // relative_coordinate(system, Y) for each LIVE SPACEABLE stave. One staff means
+        // one point, so upstream's interval is that offset on both ends.
+        double expected = 0;
+        Interpreter.RunWithLargeStack(() => expected = axisGroup.RelativeCoordinate(line, Axis.Y));
+        Prob paperSystem = null;
+        Interpreter.RunWithLargeStack(() => paperSystem = line.GetPaperSystem());
+
+        //Assert
+        object extent = paperSystem.GetProperty(Sym("staff-refpoint-extent"));
+        extent.Should().BeOfType<Pair>();
+        Pair pair = (Pair)extent;
+        ((double)pair.Car).Should().Be(expected);
+        ((double)pair.Cdr).Should().Be(expected);
+
+        // CONTROL. The divergence this replaced argued the only choices were "absent" or
+        // "a zero interval claiming the staves sit at the origin". Both are refuted by
+        // this same run: the property is present, and the offset it carries is not zero.
+        expected.Should().NotBe(0.0);
+    }
+
+    [Fact]
+    public void staff_refpoint_extent_is_empty_not_zero_without_spaceable_staves()
+    {
+        //Arrange
+        Loaded();
+        SystemGrob bare = new SystemGrob(TestAlist(
+            ("meta", TestAlist(("name", Sym("System")), ("interfaces", Nil.Instance))),
+            ("axes", Pair.List(0L, 1L))));
+
+        //Act
+        // No vertical-alignment object, so upstream's loop adds no point and the interval
+        // stays as Interval () left it: EMPTY.
+        Prob paperSystem = null;
+        Interpreter.RunWithLargeStack(() => paperSystem = bare.GetPaperSystem());
+
+        //Assert
+        // Empty is (+inf . -inf) on BOTH engines, which is what makes an unset extent
+        // read as "no constraint" rather than as a real position. This is the fence the
+        // old absent-or-zero reasoning needed and did not have.
+        object extent = paperSystem.GetProperty(Sym("staff-refpoint-extent"));
+        extent.Should().BeOfType<Pair>();
+        Pair pair = (Pair)extent;
+        ((double)pair.Car).Should().Be(double.PositiveInfinity);
+        ((double)pair.Cdr).Should().Be(double.NegativeInfinity);
+
+        // CONTROL: an empty interval is not the zero interval, and the difference is the
+        // whole point — a reader guarding on "is the car a number" treats these opposite ways.
+        ((double)pair.Car).Should().NotBe(0.0);
+        (pair.Car.Equals(pair.Cdr)).Should().BeFalse();
+    }
+
+    [Fact]
+    public void whiteout_puts_a_white_background_under_the_grob_and_transparent_suppresses_it()
+    {
+        //Arrange
+        // Grob::get_print_stencil processes whiteout BEFORE colour and grob-cause, and
+        // only when the grob is not transparent — upstream's own comment says an
+        // invisible grob's whiteout has no effect.
+        Loaded();
+        Item grob = new Item(TestAlist(
+            ("meta", TestAlist(("name", Sym("TestGrob")), ("interfaces", Nil.Instance)))));
+        grob.Layout = new OutputDef();
+        grob.Layout.SetVariable("line-thickness", 0.1);
+        Stencil shape = Lookup.FilledBox(new Box(new Interval(0, 1), new Interval(0, 1)));
+        grob.SetProperty("stencil", shape);
+        grob.SetProperty("whiteout", true);
+
+        //Act
+        Stencil printed = Stencil.Empty;
+        Interpreter.RunWithLargeStack(() => printed = grob.GetPrintStencil());
+
+        //Assert
+        // stencil-whiteout with no style is stencil-whiteout-box, which ADDS a
+        // round-filled-box under the original in the whiteout colour. Both must be in the
+        // expression: the background, and the shape it sits behind.
+        // COUNT, not presence: the grob's own stencil here IS a round-filled-box, so
+        // "contains one" is true either way. What whiteout adds is one MORE of them,
+        // wrapped in a colour.
+        int whiteoutBoxes = CountSymbol(printed.Expression, "round-filled-box");
+        MentionsSymbol(printed.Expression, "color").Should().BeTrue();
+
+        //Arrange — CONTROL. The same grob with whiteout off draws no background at all.
+        Item plain = new Item(TestAlist(("meta", TestAlist(("name", Sym("TestGrob")), ("interfaces", Nil.Instance)))));
+        plain.Layout = grob.Layout;
+        plain.SetProperty("stencil", shape);
+
+        //Act
+        Stencil plainPrinted = Stencil.Empty;
+        Interpreter.RunWithLargeStack(() => plainPrinted = plain.GetPrintStencil());
+
+        //Assert
+        int plainBoxes = CountSymbol(plainPrinted.Expression, "round-filled-box");
+        whiteoutBoxes.Should().Be(plainBoxes + 1);
+        MentionsSymbol(plainPrinted.Expression, "color").Should().BeFalse();
+
+        //Arrange — SECOND CONTROL: transparent wins, because the whiteout branch is
+        //guarded on visibility rather than applied and then thrown away.
+        Item invisible = new Item(TestAlist(("meta", TestAlist(("name", Sym("TestGrob")), ("interfaces", Nil.Instance)))));
+        invisible.Layout = grob.Layout;
+        invisible.SetProperty("stencil", shape);
+        invisible.SetProperty("whiteout", true);
+        invisible.SetProperty("transparent", true);
+
+        //Act
+        Stencil invisiblePrinted = Stencil.Empty;
+        Interpreter.RunWithLargeStack(() => invisiblePrinted = invisible.GetPrintStencil());
+
+        //Assert
+        CountSymbol(invisiblePrinted.Expression, "round-filled-box").Should().Be(0);
+    }
+
+    /// <summary>
+    /// Whether a stencil expression tree mentions the named symbol anywhere. Asks about
+    /// the TREE rather than a printed form, so it cannot be fooled by a symbol's name
+    /// appearing inside a string.
+    /// </summary>
+    private static int CountSymbol(object expression, string name)
+    {
+        if (expression is Pair pair)
+        {
+            return CountSymbol(pair.Car, name) + CountSymbol(pair.Cdr, name);
+        }
+
+        return ReferenceEquals(expression, Sym(name)) ? 1 : 0;
+    }
+
+    private static bool MentionsSymbol(object expression, string name)
+    {
+        if (expression is Pair pair)
+        {
+            return MentionsSymbol(pair.Car, name) || MentionsSymbol(pair.Cdr, name);
+        }
+
+        return ReferenceEquals(expression, Sym(name));
+    }
+
     private static object TestAlist(params (string Key, object Value)[] entries)
     {
         object result = Nil.Instance;
