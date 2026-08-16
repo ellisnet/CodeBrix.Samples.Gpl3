@@ -295,6 +295,24 @@ public static class BatchRunner
         List<string> diagnostics = new List<string>();
         List<Book> books = new List<Book>();
 
+        // The name each collected book prints under, captured AS IT IS COLLECTED.
+        // ⚠ Upstream calls get-outfile-name from print-book-with, at the moment the
+        // toplevel handler takes the book — DURING the parse — and the timing is
+        // load-bearing, because `output-suffix' is an ordinary toplevel variable that a
+        // file may set, print under, and reset. Naming the books after the parse reads
+        // whatever value the file happened to END on:
+        // book-change-global-staffsize-abs-fonts sets "standard-size", prints its first
+        // book, then sets #f and prints its second, so both would be named from #f.
+        List<string> bookNames = new List<string>();
+
+        // get-outfile-name's `counter-alist', keyed as upstream keys it: the base name
+        // concatenated with the suffix. The counter is per KEY, NOT a running book index.
+        Dictionary<string, int> outfileCounters = new Dictionary<string, int>();
+
+        // Assigned below, before anything can call the collector; captured here so the
+        // collector can do its own $defaultpaper and toplevel lookups at PRINT time.
+        LilyParserSession collectingSession = null;
+
         // init.ly's own escape hatch, and D20's interception point: when this name is
         // bound, init.ly's epilogue hands each finished book HERE instead of to
         // ly:book-process. Rebound per run so a stale capture list can never leak
@@ -304,6 +322,8 @@ public static class BatchRunner
             if (a[0] is Book book)
             {
                 books.Add(book);
+                bookNames.Add(
+                    GetOutfileName(collectingSession, book, baseName, outfileCounters));
             }
             else
             {
@@ -335,6 +355,8 @@ public static class BatchRunner
             if (a[0] is Book book)
             {
                 books.Add(book);
+                bookNames.Add(
+                    GetOutfileName(collectingSession, book, baseName, outfileCounters));
             }
             else
             {
@@ -349,6 +371,7 @@ public static class BatchRunner
         // trip the interpreter's call-after-session guards, exactly as a second
         // init.ly run would upstream.
         LilyParserSession session = LilyPondInit.Session();
+        collectingSession = session;
 
         // The parser half of the toplevel-book-handler rebind (see the note on the
         // collector above). RestoreDefaults ran at the top of this method, so this
@@ -363,12 +386,11 @@ public static class BatchRunner
         // oracle read as MISSING no matter how well the port engraved it.
         //
         // GROUPED PER BOOK: upstream names output PER
-        // TOPLEVEL BOOK — get-outfile-name's counter-alist gives the first printed book
-        // the bare base name and every further one `<base>-<n>' — and only within one
+        // TOPLEVEL BOOK — scm/lily-library.scm's get-outfile-name — and only within one
         // book's output does the SVG framework number the pages. Concatenating every
         // book's pages under one name mispaired a file holding both toplevel content
         // and an explicit \book against the oracle (header-book-multiplescores).
-        List<List<Stencil>> bookPageGroups = new List<List<Stencil>>();
+        List<BookOutput> bookOutputs = new List<BookOutput>();
 
         // How many LINES the scores broke into, which is not how many scores there are.
         // Until line breaking landed this figure was systems.Count -- one per
@@ -425,8 +447,10 @@ public static class BatchRunner
 
         session.AsCurrentParser(() =>
         {
-        foreach (Book book in books)
+        for (int bookIndex = 0; bookIndex < books.Count; bookIndex++)
         {
+            Book book = books[bookIndex];
+
             // THE REAL ly:book-process PATH. D20's score-level
             // short-circuit is RETIRED: this used to walk the book's scores and hand each
             // one to LilyPortEngraver, producing one stacked drawing per input file. It
@@ -463,7 +487,15 @@ public static class BatchRunner
                     }
                 }
 
-                bookPageGroups.Add(bookPages);
+                // Both figures are read AFTER Pages(): `first-page-number' is not
+                // necessarily the one the paper block asked for. Page_turn_page_breaking's
+                // make_pages WRITES it back, because with auto-first-page-number the
+                // breaker may start the book on page 2 to avoid a bad turn -- and
+                // output-stencils then names the FILES from it.
+                bookOutputs.Add(new BookOutput(
+                    bookIndex < bookNames.Count ? bookNames[bookIndex] : baseName,
+                    bookPages,
+                    SchemeConvert.ToInt(paperBook.Paper.CVariable("first-page-number"), 1)));
 
                 lines += CountLines(paperBook);
 
@@ -484,19 +516,21 @@ public static class BatchRunner
             return Unspecified.Instance;
         });
 
-        // ONE FILE PER PAGE, named the way scm/framework-svg.scm names them: a
-        // single-page book is `<base>.svg' and a multi-page one is `<base>-1.svg'
-        // upwards, counting from ONE. That naming is the ORACLE's, so the comparator
-        // pairs a candidate with a reference by name alone -- and before the book path
-        // landed the port
-        // wrote one stacked `<base>.svg' for every file, which meant every page of every
-        // multi-page reference was reported MISSING however well the music was engraved.
-        // The OUTPUT NAME is per book (see bookPageGroups above): the first book prints
-        // under the bare base name, the k-th under `<base>-<k>' — get-outfile-name's
-        // counter — and the page numbering applies within each book's name.
+        // ONE FILE PER PAGE, named the way scm/framework-svg.scm's output-stencils names
+        // them: a single-page book is `<base>.svg' and a multi-page one carries the
+        // PAGE NUMBER, not a running index. output-stencils seeds its counter at
+        // `(1- first-page-number)' and bumps it before each page, so a book whose first
+        // page number is 2 writes `<base>-2.svg' first and has no `-1' at all.
+        // ⚠ The port counted from ONE regardless, and its comment asserted that was the
+        // oracle's rule (trap 26). The whole page-turn-page-breaking family sets
+        // auto-first-page-number, which starts those books on page 2: every page of every
+        // one of them was therefore named one too low, so each family member's LAST page
+        // read MISSING and the five before it were graded against the oracle's next page.
+        // That naming is the ORACLE's, so the comparator pairs candidate with reference by
+        // name alone.
         string svgPath = null;
         List<string> svgPaths = new List<string>();
-        if (bookPageGroups.Exists(group => group.Count > 0))
+        if (bookOutputs.Exists(output => output.Pages.Count > 0))
         {
             Directory.CreateDirectory(outputDirectory);
 
@@ -508,16 +542,17 @@ public static class BatchRunner
                 backend.UnitLength = unitLength;
             }
 
-            for (int b = 0; b < bookPageGroups.Count; b++)
+            for (int b = 0; b < bookOutputs.Count; b++)
             {
-                List<Stencil> bookPages = bookPageGroups[b];
-                string bookName = b > 0 ? baseName + "-" + b : baseName;
-                for (int i = 0; i < bookPages.Count; i++)
+                List<Stencil> bookPages = bookOutputs[b].Pages;
+                string bookName = bookOutputs[b].Name;
+                int pageNumber = bookOutputs[b].FirstPageNumber;
+                for (int i = 0; i < bookPages.Count; i++, pageNumber++)
                 {
                     string pagePath = Path.Combine(
                         outputDirectory,
                         bookPages.Count > 1
-                            ? bookName + "-" + (i + 1) + ".svg"
+                            ? bookName + "-" + pageNumber + ".svg"
                             : bookName + ".svg");
 
                     try
@@ -818,6 +853,93 @@ public static class BatchRunner
         return total;
     }
 
+    /// <summary>
+    /// <c>scm/lily-library.scm</c>'s <c>get-outfile-name</c>: the file name one BOOK's
+    /// output prints under.
+    /// <para>
+    /// The base name, then <c>-&lt;output-suffix&gt;</c> when a suffix is set, then
+    /// <c>-&lt;n&gt;</c> for the n-th book already printed under the SAME key. ⚠ The
+    /// counter is keyed by base name AND suffix together, so it is NOT a running book
+    /// index: <c>book-change-global-staffsize-abs-fonts</c> prints two books, one under
+    /// the suffix "standard-size" and one under none, and upstream numbers NEITHER
+    /// because their keys differ. Numbering them 0 and 1 named both files wrongly.
+    /// </para>
+    /// </summary>
+    /// <param name="session">The parser session, for the toplevel <c>output-suffix</c>.</param>
+    /// <param name="book">The book being named.</param>
+    /// <param name="baseName">The input file's base name.</param>
+    /// <param name="counters">The run's <c>counter-alist</c>.</param>
+    /// <returns>The name, without extension.</returns>
+    private static string GetOutfileName(
+        LilyParserSession session,
+        Book book,
+        string baseName,
+        Dictionary<string, int> counters)
+    {
+        // get-current-suffix: `paper-variable book 'output-suffix' first -- which searches
+        // the book's own paper, then the enclosing \paper stack, then $defaultpaper, taking
+        // the first NON-#f -- and only when that is not a string does it fall back on the
+        // toplevel `output-suffix' identifier. The \paper STACK ($papers) has no port
+        // equivalent; it is non-empty only inside a bookpart, which cannot name a file.
+        // Everything here is read NOW, while the book is being printed, for the reason
+        // recorded where bookNames is declared.
+        object suffix = book.Paper != null ? book.Paper.CVariable("output-suffix") : null;
+        if (!SchemeUtilities.IsString(suffix) && session != null)
+        {
+            OutputDef defaultPaper = session.LookupIdentifier(DefaultPaperName) as OutputDef;
+            if (defaultPaper != null)
+            {
+                suffix = defaultPaper.CVariable("output-suffix");
+            }
+        }
+
+        if (!SchemeUtilities.IsString(suffix) && session != null)
+        {
+            suffix = session.LookupIdentifier("output-suffix");
+        }
+
+        string suffixText = SchemeUtilities.IsString(suffix)
+            ? SchemeUtilities.StringText(suffix)
+            : null;
+
+        // The KEY is the base name and the suffix concatenated, exactly as upstream builds
+        // it, and the RESULT joins them with a dash. The two are deliberately different.
+        string key = baseName + suffixText;
+        string result = suffixText != null ? baseName + "-" + suffixText : baseName;
+
+        counters.TryGetValue(key, out int count);
+        if (count > 0)
+        {
+            result = result + "-" + count;
+        }
+
+        counters[key] = count + 1;
+        return result;
+    }
+
+    /// <summary>One book's rendered pages, under the name and page numbering it prints at.</summary>
+    private sealed class BookOutput
+    {
+        /// <summary>Initializes a book's output.</summary>
+        /// <param name="name">The name <c>get-outfile-name</c> gave the book.</param>
+        /// <param name="pages">The book's pages, in order.</param>
+        /// <param name="firstPageNumber">The page number the first page prints at.</param>
+        public BookOutput(string name, List<Stencil> pages, int firstPageNumber)
+        {
+            Name = name;
+            Pages = pages;
+            FirstPageNumber = firstPageNumber;
+        }
+
+        /// <summary>Gets the name the book's files print under.</summary>
+        public string Name { get; }
+
+        /// <summary>Gets the book's pages, in order.</summary>
+        public List<Stencil> Pages { get; }
+
+        /// <summary>Gets the page number the first page prints at.</summary>
+        public int FirstPageNumber { get; }
+    }
 }
 
 /// <summary>What one batch run produced.</summary>

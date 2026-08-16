@@ -41,6 +41,35 @@ HOW THIS FILE IS MAINTAINED
   5. Nothing is summarised away. Where a notice must be reproduced in full,
      it is reproduced in full below, verbatim.
 
+  6. RULE 1 IS CHECKABLE, AND UNTIL 2026-08-15 NOTHING CHECKED IT. Sixty-one
+     derived files had accumulated with no entry -- not because anyone decided
+     they needed none, but because each session verified only the files it had
+     touched, so a file that landed without an entry was never looked at again.
+     Four checks find that class of drift, and all four pass as of this audit:
+
+       (a) EVERY DERIVED FILE HAS AN ENTRY. A file is derived if it carries
+           upstream's header (section 1.3) or a `//was previously:' provenance
+           note on its namespace line. Match entries BY PATH, never by base
+           name: "AlignInterface.cs" is a substring of the
+           BreakAlignInterface.cs entry, and that alone hid one file here.
+       (b) EVERY ENTRY POINTS AT A FILE THAT EXISTS, so renames and deletions
+           cannot leave a phantom attribution behind.
+       (c) EVERY UPSTREAM PATH NAMED EXISTS IN THE PINNED TREE. This audit
+           found three that did not: a dimensions.cc under lily/ (there is
+           none -- only the header), warn.cc attributed to lily/ when it lives
+           in flower/, and context.hh attributed to lily/ when it lives in
+           lily/include/. Note that the examples in this paragraph are
+           deliberately written WITHOUT a full path, so that running check (c)
+           over this document does not match its own description of the bug.
+       (d) EVERY COPYRIGHT YEAR RANGE MATCHES THE FILE IT DESCRIBES.
+
+     ⚠ Read a failing count from any such sweep as a statement about the SWEEP
+     first. The first run of check (a) reported 57 gaps by base name and the
+     corrected run reported 4 more that the base-name test had called covered;
+     a grouped entry -- one block covering nineteen parser files -- also reads
+     as "no copyright" to a checker that stops at the next path line. Verify
+     every survivor by hand before believing it.
+
 --------------------------------------------------------------------------------
 STATUS
 --------------------------------------------------------------------------------
@@ -87,12 +116,29 @@ STATUS
                                    Added under decision D13.
                                    Section 10.
 
-  NOT YET INCORPORATED: most of the C++ engine (lily/). The parser and lexer ARE
-  incorporated -- parser.yy and lexer.ll are mirrored under
-  parser-mirror/ and all 479 rule action bodies are ported (section 1.5) -- and
-  so is the whole of ly/, above. The sections below record the upstream
-  components pinned to the exact revision being ported from, so that provenance
-  is unambiguous from the first ported file.
+  THE C++ ENGINE IS INCORPORATED. ⚠ This paragraph used to read "NOT YET
+  INCORPORATED: most of the C++ engine (lily/)", which was written when that was
+  true and was never revised; it is corrected here because an attribution
+  document that UNDERSTATES what it incorporates understates the obligations
+  that travel with it, which is the one direction this file must never drift in.
+
+    lily/ (ported to C#)           419 of the 448 files in upstream lily/ are
+                                   ported, and the remaining 29 are recorded as
+                                   deliberate no-ports. The count is not
+                                   remembered: src/CodeBrix.LilyPort.Engine/
+                                   lily-cc-ledger.tsv carries one row per
+                                   upstream file with its disposition and the
+                                   C# file it landed in, and is read by
+                                   PortLedger and fenced by LedgerTests.
+                                   Every ported file carries upstream's
+                                   copyright header verbatim per section 1.3
+                                   and is listed individually in section 1.5.
+
+  The parser and lexer are likewise incorporated -- parser.yy and lexer.ll are
+  mirrored under parser-mirror/ and all 479 rule action bodies are ported
+  (section 1.5) -- as is the whole of ly/ and scm/, above. The sections below
+  record the upstream components pinned to the exact revision being ported from,
+  so that provenance is unambiguous for every derived file.
 
   INCLUDED WITH A LICENSING CONSEQUENCE: ly/articulate.ly is GPL-3-ONLY and IS
   vendored, so the shipped package declares GPL-3.0-only rather than -or-later.
@@ -327,7 +373,7 @@ Copyright: Copyright (C) 1996--2026 Han-Wen Nienhuys <hanwen@xs4all.nl>
         <- lily/duration.cc, lily/include/duration.hh
            Copyright (C) 1997--2026 Han-Wen Nienhuys
     src/CodeBrix.LilyPort.Engine/Layout/Dimensions.cs
-        <- lily/include/dimensions.hh, lily/dimensions.cc
+        <- lily/include/dimensions.hh
            Copyright (C) 1998--2026 Han-Wen Nienhuys
     src/CodeBrix.LilyPort.Engine/Layout/Stencil.cs
         <- lily/stencil.cc, lily/include/stencil.hh
@@ -336,7 +382,7 @@ Copyright: Copyright (C) 1996--2026 Han-Wen Nienhuys <hanwen@xs4all.nl>
            combining, translation, scaling, rotation, alignment, edge-adding,
            stacking, colour and outlines.
     src/CodeBrix.LilyPort.Engine/Bootstrap/ProgramOptions.cs
-        <- lily/program-option.cc, lily/warn.cc
+        <- lily/program-option.cc, flower/warn.cc
            Copyright (C) 2001--2026 Han-Wen Nienhuys
     src/CodeBrix.LilyPort.Engine/Bootstrap/EmbeddedLilyReader.cs
         <- scm/parser-ly-from-scheme.scm
@@ -412,14 +458,35 @@ Copyright: Copyright (C) 1996--2026 Han-Wen Nienhuys <hanwen@xs4all.nl>
         <- lily/axis-group-interface.cc, lily/include/axis-group-interface.hh
            Copyright (C) 2000--2026 Han-Wen Nienhuys
            add_element, has_axis and the group-extent calculation only.
+    src/CodeBrix.LilyPort.Engine/Objects/AlignInterface.cs
+        <- lily/align-interface.cc, lily/include/align-interface.hh
+           Copyright (C) 2000--2026 Han-Wen Nienhuys
+           The stacking of staves and other axis groups along one axis --
+           get_minimum_translations and the two align-to-distances callbacks.
+           Entry added at PARITY 12: the file carried the upstream header from
+           the day it landed and was never listed, and a basename check did not
+           catch it because "AlignInterface.cs" is a substring of the
+           BreakAlignInterface.cs entry below.
     src/CodeBrix.LilyPort.Engine/Objects/PaperColumn.cs
         <- lily/paper-column.cc, lily/include/paper-column.hh
            Copyright (C) 1997--2026 Han-Wen Nienhuys
     src/CodeBrix.LilyPort.Engine/Objects/SystemGrob.cs
         <- lily/system.cc, lily/include/system.hh
            Copyright (C) 1997--2026 Han-Wen Nienhuys
-           The element and column registries, prebreaking and post-processing;
-           break substitution and page layout are not yet ported.
+           The element and column registries, prebreaking and post-processing.
+           Since PARITY 12 it also carries internal_get_note_heights_in_range
+           and its two wrappers, which is what tells page breaking that a system
+           carries footnote and in-note height.  (This entry used to end "break
+           substitution and page layout are not yet ported"; both landed long
+           ago -- Objects/BreakSubstitution.cs and Layout/PageLayoutProblem.cs
+           are attributed below.)
+    src/CodeBrix.LilyPort.Engine/Objects/SystemGrobVertical.cs
+        <- lily/system.cc (get_vertical_alignment, vertical_skyline_elements
+           and get_neighboring_staff only)
+           Copyright (C) 1997--2026 Han-Wen Nienhuys
+           The vertical half of the same upstream file, carried separately.
+           Entry added at PARITY 12; the file was named only in the prose of
+           the vertical-organization group's note.
     src/CodeBrix.LilyPort.Engine/Objects/SpaceableGrob.cs
         <- lily/spaceable-grob.cc, lily/include/spaceable-grob.hh
            Copyright (C) 1999--2026 Han-Wen Nienhuys
@@ -551,6 +618,13 @@ Copyright: Copyright (C) 1996--2026 Han-Wen Nienhuys <hanwen@xs4all.nl>
         <- lily/staff-symbol-referencer.cc,
            lily/include/staff-symbol-referencer.hh
            Copyright (C) 1999--2026 Han-Wen Nienhuys
+    src/CodeBrix.LilyPort.Engine/Objects/Stem.cs
+        <- lily/stem.cc, lily/include/stem.hh
+           Copyright (C) 1996--2026 Han-Wen Nienhuys
+           Jan Nieuwenhuizen
+           Entry added at PARITY 12, a pre-existing rule-5 gap: the file
+           carried the upstream header from the day it landed and was never
+           listed here.
     src/CodeBrix.LilyPort.Engine/Objects/Clef.cs
         <- lily/clef.cc, lily/include/clef.hh
            Copyright (C) 1997--2026 Han-Wen Nienhuys
@@ -826,7 +900,7 @@ Copyright: Copyright (C) 1996--2026 Han-Wen Nienhuys <hanwen@xs4all.nl>
 
     Three free functions of already-ported upstream files landed with the lyrics group
     because it was the first group to NEED them, and are recorded on their
-    existing hosts: lily/context.cc's melisma_busy and lily/context.hh's
+    existing hosts: lily/context.cc's melisma_busy and lily/include/context.hh's
     find_context_below ride Translation/Context.cs, and lily/item.cc's
     spanned_time_interval rides Objects/Item.cs. Their ledger rows stay
     `ported' -- the files were ported and these statics were the gap.
@@ -1231,6 +1305,17 @@ Copyright: Copyright (C) 1996--2026 Han-Wen Nienhuys <hanwen@xs4all.nl>
     src/CodeBrix.LilyPort.Parsing/Actions/ParserActionHelpers.PaperStack.cs
         <- lily/lily-parser.cc (init_papers, push_paper, pop_paper, set_paper)
            Copyright (C) 1997--2026 Han-Wen Nienhuys, Jan Nieuwenhuizen
+    src/CodeBrix.LilyPort.Parsing/Lexing/ModalScanner.cs
+        <- lily/lexer.ll (the scanner), lily/includable-lexer.cc (the include
+           stack)
+           Copyright (C) 1996--2026 Han-Wen Nienhuys, Jan Nieuwenhuizen
+           New-in-family C# carrying NO upstream header, because lexer.ll is a
+           flex specification and this is a hand-written scanner rather than a
+           translation of generated code -- but the MODES, the token set and the
+           include-stack behaviour are upstream's, so the derivation is recorded
+           here per section 1.3.  Entry added at PARITY 12; the file was named
+           only in the prose of the iterator group's note, which recorded
+           includable-lexer.cc riding it and not lexer.ll.
     src/CodeBrix.LilyPort.Parsing/Actions/ParserActionHelpers.OutputDefConstructors.cs
         <- lily/lily-parser.cc (get_layout, get_midi, get_paper),
            lily/output-def.cc (assign_context_def)
@@ -1849,6 +1934,231 @@ Copyright: Copyright (C) 1996--2026 Han-Wen Nienhuys <hanwen@xs4all.nl>
     src/CodeBrix.LilyPort.Engine/Bootstrap/LigatureCallbacks.cs
            New-in-family binding code with no upstream analogue: the
            registrations for the group's five Scheme-visible callbacks.
+
+  PREVIOUSLY UNLISTED PORTED FILES, added at PARITY 12 (2026-08-15). Each one
+  carried the upstream copyright header verbatim from the day it landed, and
+  each was reached by the section 9.1 rule; none was listed here. The gap was
+  found by sweeping EVERY file whose header names LilyPond against this list,
+  rather than only the files a session happened to touch -- which is how the
+  three earlier instances (TextFontMetric.cs at PARITY 5, StencilIntegral.cs
+  and MeasureControlIterators.cs at PARITY 9, Stem.cs earlier this session)
+  were each found one at a time. The upstream source of every entry below is
+  the file's own `was previously' provenance line, and every path named was
+  checked to exist in the pinned 2.27.2 tree.
+
+    src/CodeBrix.LilyPort.Engine/Bootstrap/FontPrimitives.cs
+        <- lily/open-type-font-scheme.cc, lily/otf-scheme.cc,
+           lily/all-font-metrics-scheme.cc,
+           lily/font-metric-scheme.cc
+           Copyright (C) 2004--2026 Han-Wen Nienhuys
+    src/CodeBrix.LilyPort.Engine/Bootstrap/TransformPrimitives.cs
+        <- lily/transform-scheme.cc
+           Copyright (C) 2016--2026 David Kastrup
+    src/CodeBrix.LilyPort.Engine/Layout/Transform.cs
+        <- lily/transform.cc, lily/include/transform.hh
+           Copyright (C) 2016--2026 David Kastrup
+    src/CodeBrix.LilyPort.Engine/Music/MusicFunction.cs
+        <- lily/music-function.cc, lily/include/music-function.hh
+           Copyright (C) 2004--2026 Han-Wen Nienhuys
+    src/CodeBrix.LilyPort.Engine/Music/PitchInterval.cs
+        <- lily/pitch-interval.cc, lily/include/pitch-interval.hh
+           Copyright (C) 2004--2026 Han-Wen Nienhuys
+    src/CodeBrix.LilyPort.Engine/Music/RelativeOctaveMusic.cs
+        <- lily/relative-octave-music.cc,
+           lily/relative-octave-check.cc
+           Copyright (C) 1998--2026 Han-Wen Nienhuys
+    src/CodeBrix.LilyPort.Engine/Objects/AccidentalInterface.cs
+        <- lily/accidental.cc, lily/include/accidental-interface.hh
+           Copyright (C) 2001--2026 Han-Wen Nienhuys
+    src/CodeBrix.LilyPort.Engine/Objects/AccidentalPlacement.cs
+        <- lily/accidental-placement.cc,
+           lily/include/accidental-placement.hh
+           Copyright (C) 2002--2026 Han-Wen Nienhuys
+    src/CodeBrix.LilyPort.Engine/Objects/AxisGroupInterfaceVertical.cs
+        <- lily/axis-group-interface.cc (the half not carried by
+           Objects/AxisGroupInterface.cs)
+           Copyright (C) 2000--2026 Han-Wen Nienhuys
+    src/CodeBrix.LilyPort.Engine/Objects/BreathingSign.cs
+        <- lily/breathing-sign.cc, lily/include/breathing-sign.hh
+           Copyright (C) 1999--2026 Michael Krause
+    src/CodeBrix.LilyPort.Engine/Objects/ClefModifier.cs
+        <- lily/clef-modifier.cc
+           Copyright (C) 2014--2026 Janek Warchoł
+    src/CodeBrix.LilyPort.Engine/Objects/DirectionalElementInterface.cs
+        <- lily/directional-element-interface.cc,
+           lily/include/directional-element-interface.hh
+           Copyright (C) 1999--2026 Han-Wen Nienhuys
+    src/CodeBrix.LilyPort.Engine/Objects/DotColumn.cs
+        <- lily/dot-column.cc, lily/include/dot-column.hh
+           Copyright (C) 1997--2026 Han-Wen Nienhuys
+    src/CodeBrix.LilyPort.Engine/Objects/DotConfiguration.cs
+        <- lily/dot-configuration.cc,
+           lily/include/dot-configuration.hh,
+           lily/dot-formatting-problem.cc,
+           lily/include/dot-formatting-problem.hh
+           Copyright (C) 1997--2026 Han-Wen Nienhuys
+           Copyright (C) 2007--2026 Han-Wen Nienhuys
+    src/CodeBrix.LilyPort.Engine/Objects/Flag.cs
+        <- lily/flag.cc
+           Copyright (C) 1996--2026 Han-Wen Nienhuys
+           Jan Nieuwenhuizen
+    src/CodeBrix.LilyPort.Engine/Objects/GridLineInterface.cs
+        <- lily/grid-line-interface.cc,
+           lily/include/grid-line-interface.hh
+           Copyright (C) 2005--2026 Han-Wen Nienhuys
+    src/CodeBrix.LilyPort.Engine/Objects/KeySignatureInterface.cs
+        <- lily/key-signature-interface.cc
+           Copyright (C) 1996--2026 Han-Wen Nienhuys
+    src/CodeBrix.LilyPort.Engine/Objects/MeasureGrouping.cs
+        <- lily/measure-grouping-spanner.cc,
+           lily/include/measure-grouping-spanner.hh
+           Copyright (C) 2002--2026 Han-Wen Nienhuys
+    src/CodeBrix.LilyPort.Engine/Objects/MeasureSpanner.cs
+        <- lily/measure-spanner.cc, lily/include/measure-spanner.hh
+           Copyright (C) 2019--2026 David Nalesnik
+    src/CodeBrix.LilyPort.Engine/Objects/MultiMeasureRest.cs
+        <- lily/multi-measure-rest.cc,
+           lily/include/multi-measure-rest.hh
+           Copyright (C) 1998--2026 Jan Nieuwenhuizen
+    src/CodeBrix.LilyPort.Engine/Objects/NoteCollision.cs
+        <- lily/note-collision.cc, lily/include/note-collision.hh
+           Copyright (C) 1997--2026 Han-Wen Nienhuys
+    src/CodeBrix.LilyPort.Engine/Objects/NoteColumn.cs
+        <- lily/note-column.cc, lily/include/note-column.hh
+           Copyright (C) 1997--2026 Han-Wen Nienhuys
+    src/CodeBrix.LilyPort.Engine/Objects/Rest.cs
+        <- lily/rest.cc, lily/include/rest.hh
+           Copyright (C) 1997--2026 Han-Wen Nienhuys
+    src/CodeBrix.LilyPort.Engine/Objects/RestCollision.cs
+        <- lily/rest-collision.cc, lily/include/rest-collision.hh
+           Copyright (C) 1997--2026 Han-Wen Nienhuys
+    src/CodeBrix.LilyPort.Engine/Objects/RhythmicHead.cs
+        <- lily/rhythmic-head.cc, lily/include/rhythmic-head.hh
+           Copyright (C) 1997--2026 Han-Wen Nienhuys
+    src/CodeBrix.LilyPort.Engine/Objects/SelfAlignmentInterface.cs
+        <- lily/self-alignment-interface.cc,
+           lily/include/self-alignment-interface.hh,
+           lily/paper-column.cc (get_interface_extent only)
+           Copyright (C) 2004--2026 Han-Wen Nienhuys
+    src/CodeBrix.LilyPort.Engine/Objects/SidePositionInterface.cs
+        <- lily/side-position-interface.cc,
+           lily/include/side-position-interface.hh, lily/grob.cc
+           (get_vertical_axis_group only), lily/misc.cc
+           (directed_round only)
+           Copyright (C) 1998--2026 Han-Wen Nienhuys
+    src/CodeBrix.LilyPort.Engine/Objects/StaffGrouperInterface.cs
+        <- lily/staff-grouper-interface.cc,
+           lily/include/staff-grouper-interface.hh
+           Copyright (C) 2009--2026 Joe Neeman
+    src/CodeBrix.LilyPort.Engine/Objects/StemTremolo.cs
+        <- lily/stem-tremolo.cc
+           Copyright (C) 1997--2026 Han-Wen Nienhuys
+    src/CodeBrix.LilyPort.Engine/Objects/SystemStartDelimiter.cs
+        <- lily/system-start-delimiter.cc,
+           lily/include/system-start-delimiter.hh
+           Copyright (C) 2000--2026 Han-Wen Nienhuys
+    src/CodeBrix.LilyPort.Engine/Origins/IDiagnostics.cs
+        <- lily/diagnostics.cc, lily/include/diagnostics.hh
+           Copyright (C) 2020--2026 David Kastrup
+    src/CodeBrix.LilyPort.Engine/Origins/Input.cs
+        <- lily/input.cc, lily/include/input.hh
+           Copyright (C) 1997--2026 Han-Wen Nienhuys
+    src/CodeBrix.LilyPort.Engine/Origins/SourceFile.cs
+        <- lily/source-file.cc, lily/include/source-file.hh
+           Copyright (C) 1997--2026 Jan Nieuwenhuizen
+    src/CodeBrix.LilyPort.Engine/Origins/Sources.cs
+        <- lily/sources.cc, lily/include/sources.hh
+           Copyright (C) 1997--2026 Jan Nieuwenhuizen
+    src/CodeBrix.LilyPort.Engine/Translation/AccidentalEngraver.cs
+        <- lily/accidental-engraver.cc
+           Copyright (C) 1997--2026 Han-Wen Nienhuys
+    src/CodeBrix.LilyPort.Engine/Translation/AmbitusEngraver.cs
+        <- lily/ambitus-engraver.cc
+           Copyright (C) 2002--2026 Juergen Reuter
+    src/CodeBrix.LilyPort.Engine/Translation/BarEngravers.cs
+        <- lily/bar-engraver.cc, lily/span-bar-engraver.cc,
+           lily/span-bar-stub-engraver.cc,
+           lily/bar-number-engraver.cc
+           Copyright (C) 1997--2026 Han-Wen Nienhuys
+           Copyright (C) 2011--2026 Mike Solomon
+           Jan Nieuwenhuizen
+    src/CodeBrix.LilyPort.Engine/Translation/CaesuraEngraver.cs
+        <- lily/caesura-engraver.cc
+           Copyright (C) 2022--2026 Daniel Eble
+    src/CodeBrix.LilyPort.Engine/Translation/ColumnEngravers.cs
+        <- lily/rhythmic-column-engraver.cc,
+           lily/collision-engraver.cc
+           Copyright (C) 1997--2026 Han-Wen Nienhuys
+    src/CodeBrix.LilyPort.Engine/Translation/CompletionEngravers.cs
+        <- lily/completion-note-heads-engraver.cc,
+           lily/completion-rest-engraver.cc
+           Copyright (C) 1997--2026 Han-Wen Nienhuys
+           Jan Nieuwenhuizen
+    src/CodeBrix.LilyPort.Engine/Translation/CueClefEngraver.cs
+        <- lily/cue-clef-engraver.cc
+           Copyright (C) 1997--2026 Han-Wen Nienhuys
+           Copyright (C) 2010--2026 Reinhold Kainhofer
+           Mats Bengtsson
+    src/CodeBrix.LilyPort.Engine/Translation/DotEngravers.cs
+        <- lily/dot-column-engraver.cc, lily/dots-engraver.cc
+           Copyright (C) 1998--2026 Han-Wen Nienhuys
+           Copyright (C) 2006--2026 Han-Wen Nienhuys
+    src/CodeBrix.LilyPort.Engine/Translation/GraceIterators.cs
+        <- lily/grace-iterator.cc, lily/grace-music.cc
+           Copyright (C) 1998--2026 Han-Wen Nienhuys
+    src/CodeBrix.LilyPort.Engine/Translation/GridEngravers.cs
+        <- lily/grid-point-engraver.cc,
+           lily/grid-line-span-engraver.cc
+           Copyright (C) 2005--2026 Han-Wen Nienhuys
+    src/CodeBrix.LilyPort.Engine/Translation/KeyEngraver.cs
+        <- lily/key-engraver.cc
+           Copyright (C) 1997--2026 Han-Wen Nienhuys
+    src/CodeBrix.LilyPort.Engine/Translation/MarkEngravers.cs
+        <- lily/mark-tracking-translator.cc,
+           lily/include/mark-tracking-translator.hh,
+           lily/mark-engraver.cc, lily/include/mark-engraver.hh,
+           lily/metronome-engraver.cc, lily/jump-engraver.cc
+           Copyright (C) 1998--2026 Jan Nieuwenhuizen
+           Copyright (C) 2018--2026 Daniel Eble
+    src/CodeBrix.LilyPort.Engine/Translation/MeasureTiming.cs
+        <- lily/context.cc (the measure_length / measure_position /
+           scaled_measure_position free functions only)
+           Copyright (C) 1997--2026 Han-Wen Nienhuys
+    src/CodeBrix.LilyPort.Engine/Translation/MultiMeasureRestEngraver.cs
+        <- lily/multi-measure-rest-engraver.cc
+           Copyright (C) 1998--2026 Jan Nieuwenhuizen
+           Han-Wen Nienhuys
+    src/CodeBrix.LilyPort.Engine/Translation/NoteNameEngraver.cs
+        <- lily/note-name-engraver.cc
+           Copyright (C) 1999--2026 Han-Wen Nienhuys
+    src/CodeBrix.LilyPort.Engine/Translation/PitchSquashEngraver.cs
+        <- lily/pitch-squash-engraver.cc
+           Copyright (C) 1997--2026 Han-Wen Nienhuys
+    src/CodeBrix.LilyPort.Engine/Translation/PitchedTrillEngraver.cs
+        <- lily/pitched-trill-engraver.cc
+           Copyright (C) 2005--2026 Han-Wen Nienhuys
+    src/CodeBrix.LilyPort.Engine/Translation/RestEngravers.cs
+        <- lily/rest-engraver.cc, lily/rest-collision-engraver.cc
+           Copyright (C) 1997--2026 Han-Wen Nienhuys
+    src/CodeBrix.LilyPort.Engine/Translation/StemEngraver.cs
+        <- lily/stem-engraver.cc
+           Copyright (C) 1997--2026 Han-Wen Nienhuys
+    src/CodeBrix.LilyPort.Engine/Translation/TimeSignatureEngraver.cs
+        <- lily/time-signature-engraver.cc
+           Copyright (C) 1997--2026 Han-Wen Nienhuys
+    src/CodeBrix.LilyPort.Engine/Translation/TimingTranslator.cs
+        <- lily/timing-translator.cc,
+           lily/include/timing-translator.hh
+           Copyright (C) 1997--2026 Han-Wen Nienhuys
+    src/CodeBrix.LilyPort.Engine/Translation/VerticalOrganizationEngravers.cs
+        <- lily/vertical-align-engraver.cc,
+           lily/system-start-delimiter-engraver.cc,
+           lily/staff-collecting-engraver.cc
+           Copyright (C) 1997--2026 Han-Wen Nienhuys
+    src/CodeBrix.LilyPort.Parsing/Session/LilyParserSession.Parser.cs
+        <- lily/lily-parser.cc (the ly:parser-* surface)
+           Copyright (C) 1997--2026 Han-Wen Nienhuys
+           Jan Nieuwenhuizen
 
 --------------------------------------------------------------------------------
 1.6  LILYPOND LICENSE TEXT
@@ -2735,9 +3045,18 @@ https://github.com/ellisnet/CodeBrix.Samples.Gpl3/issues
     src/CodeBrix.LilyPort.Engine/Layout/PageLayoutProblem.cs
            lily/page-layout-problem.cc
            Copyright (C) 2009--2026 Joe Neeman <joeneeman@gmail.com>
-           The per-page vertical spacing solver. The spacing-spec readers of the
-           same upstream file live in Layout/PageLayoutSpacing.cs, where the vertical-organization
-           group pulled them forward.
+           The per-page vertical spacing solver.  The spacing-spec readers of
+           the same upstream file live in Layout/PageLayoutSpacing.cs, listed
+           next, where the vertical-organization group pulled them forward.
+    src/CodeBrix.LilyPort.Engine/Layout/PageLayoutSpacing.cs
+           lily/page-layout-problem.cc (is_spaceable, read_spacing_spec,
+           get_spacing_spec, get_fixed_spacing, add_stretchability)
+           Copyright (C) 2009--2026 Joe Neeman <joeneeman@gmail.com>
+           The spacing-spec readers of the same upstream file, in a file of
+           their own because Align_interface reads every adjacent pair of staves
+           through them.  Entry added at PARITY 12; the file was named only in
+           the prose of the entry above, which did not carry its copyright line
+           as an entry of its own.
     src/CodeBrix.LilyPort.Engine/Layout/PaperBook.cs
            lily/paper-book.cc + lily/include/paper-book.hh
            Copyright (C) 2004--2026 Jan Nieuwenhuizen <janneke@gnu.org>

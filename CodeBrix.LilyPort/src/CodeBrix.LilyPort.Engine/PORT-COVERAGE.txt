@@ -2380,9 +2380,24 @@ DELIBERATE DIVERGENCES (stems and flags)
     exist yet). pure_y_extent is the ordinary extent -- the same answer a grob
     with no pure callback gives, and the same fallback the text-interface
     skyline
-    callbacks take. pure_relative_y_coordinate in the beamed half of
-    internal_pure_height is the real coordinate, horizontal spacing's
-    recorded fallback.
+    callbacks take.
+
+    RESOLVED at PARITY 12 (2026-08-15): pure_relative_y_coordinate in the
+    beamed half of internal_pure_height had ALSO been taking the real
+    coordinate, on the recorded ground that it is the same answer a grob with
+    no pure callback gives. The ANSWER was never what differed. Reading an
+    ORDINARY Y offset forces Y-parent-positioning, which forces the
+    VerticalAlignment's positioning-done, which positions every staff in the
+    system -- from inside a pure callback, before line breaking. The staves
+    were then placed by the before-line-breaking stand-in below and translated
+    AGAIN by the real page layout, which uses translate_axis and so ADDS, so
+    every cross-staff score came out with its staves exactly one
+    staff-staff-spacing too far apart (21 comparator rows, the whole 12.8000
+    cluster among them). The call now reads
+    PureRelativeYCoordinate(common, 0, int.MaxValue), as upstream does. The
+    cost of an unpure read in a pure path can be a SIDE EFFECT rather than a
+    value -- trap 24 does not only mean "a different number".
+    Fenced by CrossStaffSpacingEndToEndTests.
 
   * Stem::cache_pure_height computes the clipped interval faithfully and then
     DROPS it: upstream stores it in the Item's pure-height cache, which is
@@ -2536,6 +2551,26 @@ THE PREMATURE ALIGNMENT TRIGGER, AND THE PURE STAND-IN THAT ABSORBS IT
   System::post_processing re-anchors), a RIGID vertical shift of the whole
   drawing relative to earlier output. The comparator's inventory verdicts do
   not move.
+
+  ⚠ WHAT THE STAND-IN COSTS WHEN IT FIRES, measured at PARITY 12 (2026-08-15),
+  and it is not an approximation cost. The stand-in TRANSLATES the staves. So
+  does page layout's find_system_offsets, later, with translate_axis -- which
+  ADDS. Any early trigger therefore does not merely position the staves
+  approximately; it makes the real solution land ON TOP of the stand-in's, and
+  the staves come out one whole staff-staff-spacing too far apart. The
+  separation was 18.0 where the oracle had 9.0, and every stage in between --
+  the alignment's dy, the spring's ideal and minimum, the solved length, the
+  applied translation -- reported the correct 9. Only the offset the staves
+  ALREADY carried was wrong.
+
+  The one trigger that existed was Stem::internal_pure_height reading an
+  ordinary relative coordinate (see DELIBERATE DIVERGENCES (stems and flags),
+  RESOLVED at PARITY 12); with it gone, nothing reaches the alignment early on
+  the corpus. THE STAND-IN ITSELF STAYS, because the reason it exists --
+  Spacing_interface::skylines reading early -- has not changed. If a
+  cross-staff or multi-staff score ever again shows a separation that is an
+  exact multiple of its spacing, look for a NEW early trigger first: the
+  symptom is the doubling, not the stand-in.
 
 -------------------------------------------------------------------------------
 ReadSkylinePair -- THE CONSTRUCTOR-DEFAULT STAND-IN
@@ -4303,6 +4338,79 @@ THE THREE ROWS THE SCRIPTS/DYNAMICS GROUP LEFT OPEN
   Fenced by ToplevelLayoutEndToEndTests, whose every case is paired against the
   same operation written in the music -- a path that never went through
   $defaultlayout and so always worked.
+
+-------------------------------------------------------------------------------
+OUTPUT FILE NAMING -- get-outfile-name AND output-stencils (PARITY 12)
+-------------------------------------------------------------------------------
+
+  The runner writes the files, so it owes both of upstream's naming rules. It
+  had neither, and the shortfall was invisible on ordinary files because the
+  two rules agree whenever a book starts on page 1 and carries no suffix.
+
+  1. PAGE NUMBER, not index. scm/framework-svg.scm's output-stencils seeds its
+     counter at (1- first-page-number) and bumps it BEFORE each page, so a
+     page's file suffix is its page number. The port counted from one, with a
+     comment asserting that was the oracle's rule -- trap 26, a port comment
+     about upstream is not evidence about upstream. Every file in the
+     page-turn-page-breaking family sets auto-first-page-number, and
+     Page_turn_page_breaking::make_pages writes the chosen number BACK into the
+     paper, so those books start on page 2: each family member's last page read
+     MISSING and the pages before it were graded against the oracle's next page.
+     The number is therefore read AFTER Pages(), not from the paper block.
+
+  2. get-outfile-name (scm/lily-library.scm) names the BOOK: base name, then
+     -<output-suffix> when one is set, then -<n> for the n-th book already
+     printed under the same KEY -- and the key is the base name and the suffix
+     CONCATENATED, not a running book index. book-change-global-staffsize-abs-
+     fonts prints two books, one under "standard-size" and one under none;
+     upstream numbers NEITHER, because their keys differ. The port numbered
+     them 0 and 1 and named both wrongly.
+
+     ⚠ AND IT IS CALLED DURING THE PARSE, from print-book-with, as each book is
+     printed. output-suffix is an ordinary toplevel variable that a file may
+     set, print under, and reset -- that file does exactly that -- so naming the
+     books after the parse reads whatever value the file ended on and gets both
+     halves wrong. The runner captures each book's name in the toplevel book
+     handler, which is where upstream's naming happens.
+
+  KNOWN OMISSIONS, both deliberate and neither reachable in the corpus:
+  get-current-filename's output-filename override (a book may rename itself
+  entirely) is not read -- the runner's base name always wins; and
+  paper-variable's $papers stack is not searched between the book's own paper
+  and $defaultpaper, that stack being non-empty only inside a bookpart, which
+  does not name a file. Revisit either if a file appears that sets them.
+
+  Fenced by OutputFileNamingEndToEndTests, each rule stated as a pair that must
+  come out differently.
+
+-------------------------------------------------------------------------------
+FOOTNOTE AND IN-NOTE HEIGHTS NEVER REACHED PAGE BREAKING (PARITY 12)
+-------------------------------------------------------------------------------
+
+  Line_details carries footnote_heights_ and in_note_heights_, and
+  Page_spacing::account_for_footnotes adds both to what a page demands.
+  Constrained_breaking's per-system fill is what puts them there:
+
+      out->footnote_heights_ = sys->get_footnote_heights_in_range (a, b);
+      out->in_note_heights_  = sys->get_in_note_heights_in_range  (a, b);
+
+  The port had NEITHER System method and made NEITHER assignment. Both lists
+  were constructed empty, copied faithfully by the line-compression path, and
+  read faithfully by the spacer -- trap 17a in full: a read side whose input
+  nothing produces leaves no stub, no throw and no ledger row. Grepping for
+  FootnoteHeights was actively reassuring, because the Line_details constructor
+  for a title PROB does fill it (trap 17b: one honoured site is not evidence
+  about the others).
+
+  A system's notes therefore cost the page breaker NOTHING, so a page could be
+  given music it has no room for: in-note-configuration came out on one page
+  where the oracle needs two. Porting System::internal_get_note_heights_in_range
+  and its two wrappers, and making the two assignments, took all six in-note
+  rows to MATCH and moved the corpus page total 2315 -> 2316, which is the
+  oracle's own count.
+
+  Fenced by InNotePageBreakingEndToEndTests, as a relationship (in-notes must
+  cost a page) with the bare music as the control.
 
 
   slashed-beam -- NOT FIXED, AND THE REASON IS UNPLACED COLUMNS

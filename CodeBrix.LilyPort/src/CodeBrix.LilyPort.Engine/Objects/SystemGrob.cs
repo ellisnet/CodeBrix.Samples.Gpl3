@@ -19,6 +19,7 @@
 
 using System;
 using System.Collections.Generic;
+using CodeBrix.LilyPort.Engine.Bootstrap;
 using CodeBrix.LilyPort.Engine.Layout;
 using CodeBrix.LilyPort.Flower;
 using CodeBrix.LilyScheme.Values;
@@ -1187,6 +1188,85 @@ public class SystemGrob : Spanner
     }
 
     /// <summary>
+    /// <c>System::get_footnote_heights_in_range</c>: how tall each FOOT-of-page footnote
+    /// in a column-rank range interprets to.
+    /// </summary>
+    /// <param name="start">The first column rank.</param>
+    /// <param name="end">The last column rank.</param>
+    /// <returns>One height per footnote, in reading order.</returns>
+    public List<double> GetFootnoteHeightsInRange(int start, int end)
+        => InternalGetNoteHeightsInRange(start, end, true);
+
+    /// <summary>
+    /// <c>System::get_in_note_heights_in_range</c>: how tall each IN-note in a column-rank
+    /// range interprets to.
+    /// </summary>
+    /// <param name="start">The first column rank.</param>
+    /// <param name="end">The last column rank.</param>
+    /// <returns>One height per in-note, in reading order.</returns>
+    public List<double> GetInNoteHeightsInRange(int start, int end)
+        => InternalGetNoteHeightsInRange(start, end, false);
+
+    /// <summary>
+    /// <c>System::internal_get_note_heights_in_range</c>: the interpreted heights of the
+    /// notes in a range, keeping the FOOT-of-page ones or the IN-line ones by the
+    /// <c>footnote</c> property.
+    /// <para>
+    /// These are what tell page breaking that a system carries more height than its own
+    /// music: <c>Page_spacing</c> adds them to the page's demand. Without them a page of
+    /// in-notes measures as if the notes were not there, which is why the port fitted
+    /// <c>in-note-configuration</c> onto ONE page where the oracle needs two.
+    /// </para>
+    /// </summary>
+    /// <param name="start">The first column rank.</param>
+    /// <param name="end">The last column rank.</param>
+    /// <param name="foot">Whether to keep the foot-of-page notes rather than the in-notes.</param>
+    /// <returns>One height per kept note, in reading order.</returns>
+    private List<double> InternalGetNoteHeightsInRange(int start, int end, bool foot)
+    {
+        List<Grob> footnoteGrobs = GetFootnoteGrobsInRange(start, end);
+        List<double> output = new List<double>();
+
+        // Upstream erases from the BACK of the vector; the surviving order is the same
+        // either way, and removing while walking forwards is what a reverse walk avoids.
+        for (int i = footnoteGrobs.Count; i-- > 0;)
+        {
+            bool isFootnote = SchemeUtilities.ToBool(
+                footnoteGrobs[i].GetProperty(FootnoteSymbol));
+            if (foot ? !isFootnote : isFootnote)
+            {
+                footnoteGrobs.RemoveAt(i);
+            }
+        }
+
+        OutputDef layout = PaperScore != null ? PaperScore.Layout : null;
+        if (layout == null)
+        {
+            return output;
+        }
+
+        foreach (Grob footnote in footnoteGrobs)
+        {
+            object footnoteMarkup = footnote.GetProperty(FootnoteTextSymbol);
+            if (!TextInterface.IsMarkup(footnoteMarkup))
+            {
+                continue;
+            }
+
+            object props = SchemeUtilities.CallCallback(
+                LilyPondScheme.PublicRef(LilyModule, "layout-extract-page-properties"),
+                layout);
+
+            if (TextInterface.InterpretMarkup(layout, props, footnoteMarkup) is Stencil sten)
+            {
+                output.Add(sten.Extent(Axis.Y).Length);
+            }
+        }
+
+        return output;
+    }
+
+    /// <summary>
     /// <c>System::get_footnote_grobs_in_range</c>: the footnotes whose position falls
     /// inside a column-rank range, with the end-of-line/beginning-of-line duplicates
     /// weeded out.
@@ -1358,6 +1438,9 @@ public class SystemGrob : Spanner
     private static readonly Symbol FootnotesBeforeLineBreakingSymbol
         = Symbol.Intern("footnotes-before-line-breaking");
     private static readonly Symbol SpannerPlacementSymbol = Symbol.Intern("spanner-placement");
+    private static readonly Symbol FootnoteSymbol = Symbol.Intern("footnote");
+    private static readonly Symbol FootnoteTextSymbol = Symbol.Intern("footnote-text");
+    private static readonly string[] LilyModule = { "lily" };
     private static readonly Symbol XOffsetPropertySymbol = Symbol.Intern("X-offset");
 }
 

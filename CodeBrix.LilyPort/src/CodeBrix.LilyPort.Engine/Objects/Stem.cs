@@ -606,11 +606,18 @@ public static class Stem
             double maxPos = double.NegativeInfinity;
             for (int i = 0; i < myStems.Count; i++)
             {
-                // Upstream reads the PURE relative Y coordinate. The pure machinery is
-                // unpure-pure-container.cc's; the real coordinate is the same
-                // answer for every grob with no separate pure callback, which is the
-                // recorded fallback. See PORT-COVERAGE.
-                coords.Add(myStems[i].RelativeCoordinate(common, Axis.Y));
+                // ⚠ THE PURE COORDINATE IS NOT AN OPTIMISATION HERE, IT IS THE WHOLE
+                // POINT. The port used to read the ORDINARY coordinate, on the recorded
+                // ground that it answers the same number for a grob with no separate pure
+                // callback. The NUMBER is not what differs: reading an ordinary Y offset
+                // forces `Y-parent-positioning', which forces the VerticalAlignment's
+                // `positioning-done', which POSITIONS EVERY STAFF IN THE SYSTEM -- and
+                // this runs from a pure callback, before line breaking, so the staves were
+                // placed by the before-line-breaking stand-in and then translated AGAIN by
+                // the real page layout, which uses translate_axis and therefore ADDS.
+                // Cross-staff scores came out with their staves exactly one
+                // staff-staff-spacing too far apart. Trap 24, with a side effect.
+                coords.Add(myStems[i].PureRelativeYCoordinate(common, 0, int.MaxValue));
                 minPos = Math.Min(minPos, coords[i]);
                 maxPos = Math.Max(maxPos, coords[i]);
             }

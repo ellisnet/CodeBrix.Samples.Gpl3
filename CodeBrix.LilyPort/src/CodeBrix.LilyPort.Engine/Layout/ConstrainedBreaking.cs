@@ -750,6 +750,18 @@ public sealed class ConstrainedBreaking
         outDetails.TitleSpace = _systemMarkupSpace;
         outDetails.InverseHooke = outDetails.FullHeight() + _systemSystemSpace;
 
+        // The two note-height vectors, which had never been filled for a SYSTEM: the
+        // LineDetails constructor fills FootnoteHeights for a title PROB, and nothing
+        // filled either of them here. PageSpacing reads both and adds them to the page's
+        // demand, so a system's footnotes and in-notes were costing the page breaker
+        // nothing at all -- trap 17a, a read side whose input nothing produces.
+        outDetails.FootnoteHeights.Clear();
+        outDetails.FootnoteHeights.AddRange(
+            sys.GetFootnoteHeightsInRange(startRank, endRank));
+        outDetails.InNoteHeights.Clear();
+        outDetails.InNoteHeights.AddRange(
+            sys.GetInNoteHeightsInRange(startRank, endRank));
+
         outDetails.RefpointExtent = sys.PureRefpointExtent(startRank, endRank);
         if (outDetails.RefpointExtent.IsEmpty)
         {
