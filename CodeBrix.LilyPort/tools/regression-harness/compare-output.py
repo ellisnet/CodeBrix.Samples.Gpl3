@@ -118,6 +118,36 @@
 # misses, fail-strict takes every path, and this whole mechanism becomes a silent
 # no-op that still passes the reference-against-reference self-check -- which is
 # why --selftest carries a canary that a real page must resolve a real glyph name.
+#
+# R10'S BOUNDED FONT-SIZE DELTA, AS A POST-PASS (added 2026-08-16, PARITY 15 --
+# ruling R12, which is option C of three that were put up)
+#
+# A text element's identity here is "text:<font-family>:<font-size>:<content>" built
+# from the RAW attribute string, so text:serif:2.2000:X and text:serif:2.1997:X are
+# two DIFFERENT elements: the multisets differ, the row returns GLYPHS-DIFFER, and
+# those elements never reach placement comparison at all. --tolerance cannot reach
+# this -- it applies to PLACEMENT, after the multisets have already matched exactly.
+#
+# Ruling R10 (2026-08-16) accepts a bounded delta of 0.0005 on FOUR named files and
+# four named values, whose cause is diagnosed but unmeasured (Engine PORT-COVERAGE,
+# "TEXT FONT SIZE, LAST DECIMAL"). D29 forbids tolerance comparison and says a page
+# ever blocked by micro-geometry "gets its own ruling that day"; R10 IS that ruling,
+# exercised through the mechanism D29 itself provides.
+#
+# So the identity function above is left BYTE-EXACT AND UNMODIFIED, and the ruling is
+# honoured afterwards: grade normally, and only where the result is GLYPHS-DIFFER on
+# one of R10's four files, ask whether the ENTIRE inventory difference is text
+# elements identical in family and content whose sizes differ by no more than 0.0005.
+# If it is -- and only then -- the reconciled inventory is graded again and the row
+# is upgraded, with the upgrade REPORTED per row and counted in the summary.
+#
+# WHY NOT REWRITE THE SIZE INSIDE THE NAME (options A and B, and the reason not to
+# "simplify" this into them later). An unconditional rewrite makes the row MATCH, and
+# if a SECOND, genuine divergence later lands on one of those four files the row is
+# already green and the new defect rides in unnoticed. Gating the upgrade on the size
+# difference being the ONLY difference is what stops the exception becoming a hiding
+# place -- and re-grading rather than asserting MATCH is what keeps a PLACEMENT
+# difference on those four files visible.
 # ----------------------------------------------------------------------------
 
 import argparse
@@ -142,6 +172,29 @@ WHITESPACE = re.compile(r"\s+")
 
 INDEX_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                           "glyph-identity.tsv")
+
+# R10's four files and its bound. The standing intent lives here, beside the code
+# that is its only consumer, rather than in a second auditable artifact: the G1 skip
+# list rules rows OUT of the gate, and these four are ruled IN and graded, with a
+# stated bound. The full account is in the Engine's PORT-COVERAGE under "TEXT FONT
+# SIZE, LAST DECIMAL".
+#
+#     file                         oracle    port      delta
+#     markup-note-sizes            1.1666    1.1668    0.0002
+#     page-layout-bottom-padding   1.7460    1.7465    0.0005
+#     fret-diagrams-size           1.9800    1.9797    0.0003
+#     tablature-full-notation      2.2000    2.1997    0.0003
+#
+# It is a BOUND, not a frozen pair: the port's value may move anywhere within it and
+# stay accepted; beyond it the row goes red by itself. Corpus-wide this would repeal
+# D29 by the back door, which R10 forbids in as many words -- hence the file list.
+R10_FILES = frozenset([
+    "markup-note-sizes.svg",
+    "page-layout-bottom-padding.svg",
+    "fret-diagrams-size.svg",
+    "tablature-full-notation.svg",
+])
+R10_SIZE_BOUND = 0.0005
 
 
 def load_glyph_index(path):
@@ -332,13 +385,114 @@ def _number(text):
     return float(match.group(1)) if match else 0.0
 
 
+def _text_fields(name):
+    """(family, size, content) for a text signature, or None for anything else.
+
+    Split with maxsplit rather than on every colon: a font-family list never carries
+    one, but page CONTENT is arbitrary and routinely does ("quavers:" is in the
+    corpus).
+    """
+    if not name.startswith("text:"):
+        return None
+
+    parts = name.split(":", 3)
+    if len(parts) != 4:
+        return None
+
+    try:
+        size = float(parts[2])
+    except ValueError:
+        return None
+
+    return parts[1], size, parts[3]
+
+
+def _sizes_are_separable(glyphs, bound):
+    """Whether every pair of DISTINCT text sizes on a page is further apart than bound.
+
+    The fence R10 owes. If two real sizes sat within the bound of each other the
+    reconciliation below could pair the wrong elements, so this is asserted rather
+    than assumed -- there is no live risk (markup-note-sizes carries sixteen sizes
+    whose closest pair is 0.0667 apart) but the file set is free to change.
+    """
+    sizes = sorted({fields[1] for fields in
+                    (_text_fields(name) for name in glyphs) if fields is not None})
+    return all(later - earlier > bound
+               for earlier, later in zip(sizes, sizes[1:]))
+
+
+def _r10_reconcile(reference_glyphs, candidate, bound):
+    """Candidate marks with R10's tolerated text sizes renamed, or None to decline.
+
+    Declines -- and the caller then keeps GLYPHS-DIFFER, unchanged -- unless the
+    WHOLE inventory difference is text elements identical in family and content whose
+    sizes differ by no more than `bound`. That gate is the point of the ruling: it is
+    what stops the exception becoming a place a second, genuine divergence could hide.
+
+    Returns (glyphs, placements, how many renames) or (None, None, reason).
+    """
+    candidate_glyphs = candidate["glyphs"]
+
+    if not _sizes_are_separable(reference_glyphs, bound) \
+            or not _sizes_are_separable(candidate_glyphs, bound):
+        return None, None, "two distinct text sizes on the page are within the bound"
+
+    missing = reference_glyphs - candidate_glyphs
+    extra = candidate_glyphs - reference_glyphs
+
+    # Group both halves by the fields that must AGREE, carrying each occurrence so a
+    # repeated element cannot be reconciled against a single one.
+    def grouped(counter):
+        groups = collections.defaultdict(list)
+        for name, count in counter.items():
+            fields = _text_fields(name)
+            if fields is None:
+                return None
+            family, size, content = fields
+            groups[(family, content)].extend([(size, name)] * count)
+        return groups
+
+    missing_groups = grouped(missing)
+    extra_groups = grouped(extra)
+    if missing_groups is None or extra_groups is None:
+        return None, None, "the difference is not text elements alone"
+    if set(missing_groups) != set(extra_groups):
+        return None, None, "the differing text elements disagree on family or content"
+
+    renames = {}
+    for key, wanted in missing_groups.items():
+        found = extra_groups[key]
+        if len(wanted) != len(found):
+            return None, None, "the differing text elements disagree in count"
+        for (reference_size, reference_name), (candidate_size, candidate_name) in \
+                zip(sorted(wanted), sorted(found)):
+            if abs(reference_size - candidate_size) > bound:
+                return None, None, ("a text size differs by more than %.4f" % bound)
+            renames[candidate_name] = reference_name
+
+    if not renames:
+        return None, None, "nothing to reconcile"
+
+    glyphs = collections.Counter()
+    for name, count in candidate_glyphs.items():
+        glyphs[renames.get(name, name)] += count
+
+    placements = [(renames.get(name, name), x, y)
+                  for name, x, y in candidate["placements"]]
+
+    return glyphs, placements, len(renames)
+
+
 def compare_one(reference_path, candidate_path, tolerance,
-                reference_names=None, candidate_names=None):
+                reference_names=None, candidate_names=None, name=None):
     """Compare one output file against its reference, returning a graded result.
 
     Each side is resolved against ITS OWN half of the glyph-identity index -- that
     is what D29's "byte-verified against each side's own font" means, and it is why
     the two halves are never merged into one lookup.
+
+    `name` is the page's file name, and is used for one thing only: deciding whether
+    R10's post-pass applies (see the header). Grading itself never depends on it.
     """
     if not os.path.exists(candidate_path):
         return "MISSING", "no output produced", None
@@ -352,9 +506,28 @@ def compare_one(reference_path, candidate_path, tolerance,
     if "error" in reference:
         return "REFERENCE-BAD", reference["error"], stats
 
-    reference_glyphs = reference["glyphs"]
-    candidate_glyphs = candidate["glyphs"]
+    verdict, detail = _grade(reference["glyphs"], reference["placements"],
+                             candidate["glyphs"], candidate["placements"], tolerance)
 
+    # THE POST-PASS. Everything above is untouched by R10; this runs only after a
+    # verdict is already in hand, only on GLYPHS-DIFFER, and only on R10's four files.
+    if verdict == "GLYPHS-DIFFER" and name in R10_FILES:
+        glyphs, placements, note = _r10_reconcile(
+            reference["glyphs"], candidate, R10_SIZE_BOUND)
+        if glyphs is not None:
+            upgraded, upgraded_detail = _grade(
+                reference["glyphs"], reference["placements"],
+                glyphs, placements, tolerance)
+            if upgraded != "GLYPHS-DIFFER":
+                return upgraded, ("R10: %d text size(s) within %.4f reconciled; %s"
+                                  % (note, R10_SIZE_BOUND, upgraded_detail)), stats
+
+    return verdict, detail, stats
+
+
+def _grade(reference_glyphs, reference_placements,
+           candidate_glyphs, candidate_placements, tolerance):
+    """The ladder itself: inventory first, then placement. Returns (verdict, detail)."""
     if reference_glyphs != candidate_glyphs:
         missing = reference_glyphs - candidate_glyphs
         extra = candidate_glyphs - reference_glyphs
@@ -365,20 +538,20 @@ def compare_one(reference_path, candidate_path, tolerance,
         if extra:
             detail.append("extra " + ", ".join(
                 "%s x%d" % (name, count) for name, count in extra.most_common(4)))
-        return "GLYPHS-DIFFER", "; ".join(detail), stats
+        return "GLYPHS-DIFFER", "; ".join(detail)
 
     # Same glyphs; now check where they sit.
-    reference_places = sorted(reference["placements"])
-    candidate_places = sorted(candidate["placements"])
+    reference_places = sorted(reference_placements)
+    candidate_places = sorted(candidate_placements)
     if len(reference_places) != len(candidate_places):
         return "PLACEMENT-COUNT", "%d vs %d placements" % (
-            len(reference_places), len(candidate_places)), stats
+            len(reference_places), len(candidate_places))
 
     worst = 0.0
     worst_name = None
     for (rname, rx, ry), (cname, cx, cy) in zip(reference_places, candidate_places):
         if rname != cname:
-            return "PLACEMENT-ORDER", "%s vs %s" % (rname, cname), stats
+            return "PLACEMENT-ORDER", "%s vs %s" % (rname, cname)
         delta = max(abs(rx - cx), abs(ry - cy))
         if delta > worst:
             worst = delta
@@ -386,9 +559,9 @@ def compare_one(reference_path, candidate_path, tolerance,
 
     if worst > tolerance:
         return "PLACEMENT-DIFFERS", "worst %.4f at %s (tolerance %.4f)" % (
-            worst, worst_name, tolerance), stats
+            worst, worst_name, tolerance)
 
-    return "MATCH", "worst placement delta %.4f" % worst, stats
+    return "MATCH", "worst placement delta %.4f" % worst
 
 
 SELFTEST_SCALE = "0.0040, -0.0040"
@@ -427,6 +600,83 @@ def _selftest_page(entries):
     return ('<?xml version="1.0" encoding="UTF-8"?>\n'
             '<svg xmlns="http://www.w3.org/2000/svg" version="1.2">'
             '<g transform="translate(10.0, 20.0)">%s</g></svg>' % body)
+
+
+def _selftest_text_page(entries):
+    """One miniature page of <text> runs: [(family, size, content)].
+
+    Written the way the SVG backend writes them -- the content in a <tspan>, the
+    family and size as attributes of the <text> -- because those three attributes are
+    exactly what the text signature is built from.
+    """
+    body = "".join(
+        '<text font-family="%s" font-size="%s"><tspan>%s</tspan></text>'
+        % (family, size, content)
+        for family, size, content in entries)
+    return ('<?xml version="1.0" encoding="UTF-8"?>\n'
+            '<svg xmlns="http://www.w3.org/2000/svg" version="1.2">'
+            '<g transform="translate(10.0, 20.0)">%s</g></svg>' % body)
+
+
+def _selftest_r10(arguments):
+    """Fence R10's post-pass: what it upgrades, and the three things it must not.
+
+    Every case is a RELATIONSHIP with a control. The one case that must upgrade is
+    paired with three that must not, so a post-pass that upgraded everything would
+    fail (x), (xi) and (xii), and one that upgraded nothing would fail (ix).
+
+    The expected values are read off the RULING, not off this comparator's output:
+    R10 accepts 0.0005 on four named files, and 1.1666 against 1.1668 is the
+    markup-note-sizes pair the ruling tabulates.
+    """
+    import tempfile
+
+    inside = ("serif", "1.1668", "quavers:")       # 0.0002 from the reference below
+    reference_run = ("serif", "1.1666", "quavers:")
+    outside = ("serif", "1.1673", "quavers:")      # 0.0007 -- beyond the bound
+    other = ("serif", "2.2000", "Coda")
+
+    # Two sizes 0.0004 apart: closer than the bound, so the page cannot be reconciled
+    # unambiguously and the rule must decline rather than pair the wrong elements.
+    crowded_reference = [("serif", "1.1666", "a"), ("serif", "1.1670", "b")]
+    crowded_candidate = [("serif", "1.1668", "a"), ("serif", "1.1672", "b")]
+
+    cases = [
+        ("(ix)   R10 file, size within the bound the ONLY difference -> upgraded",
+         "markup-note-sizes.svg", [reference_run], [inside], "MATCH"),
+        ("(x)    the same page on a file R10 does NOT name -> GLYPHS-DIFFER",
+         "markup-tag-recognized-in-lyrics.svg", [reference_run], [inside],
+         "GLYPHS-DIFFER"),
+        ("(xi)   R10 file, size beyond the bound -> GLYPHS-DIFFER",
+         "markup-note-sizes.svg", [reference_run], [outside], "GLYPHS-DIFFER"),
+        ("(xii)  R10 file, size within the bound but a SECOND difference too "
+         "-> GLYPHS-DIFFER",
+         "markup-note-sizes.svg", [reference_run, other], [inside], "GLYPHS-DIFFER"),
+        ("(xiii) R10 file whose own sizes sit within the bound -> declined",
+         "markup-note-sizes.svg", crowded_reference, crowded_candidate,
+         "GLYPHS-DIFFER"),
+    ]
+
+    failures = 0
+    with tempfile.TemporaryDirectory() as workdir:
+        for index_of_case, (title, name, reference_entries, candidate_entries,
+                            expected) in enumerate(cases):
+            reference_path = os.path.join(workdir, "r10ref%d.svg" % index_of_case)
+            candidate_path = os.path.join(workdir, "r10cand%d.svg" % index_of_case)
+            with open(reference_path, "w") as handle:
+                handle.write(_selftest_text_page(reference_entries))
+            with open(candidate_path, "w") as handle:
+                handle.write(_selftest_text_page(candidate_entries))
+
+            verdict, detail, _ = compare_one(
+                reference_path, candidate_path, arguments.tolerance, None, None, name)
+            ok = verdict == expected
+            failures += 0 if ok else 1
+            print("  %-4s %s" % ("ok" if ok else "FAIL", title))
+            if not ok:
+                print("       expected %s, got %s (%s)" % (expected, verdict, detail))
+
+    return failures
 
 
 def command_selftest(arguments):
@@ -505,6 +755,7 @@ def command_selftest(arguments):
             if not ok:
                 print("       expected %s, got %s (%s)" % (expected, verdict, detail))
 
+    failures += _selftest_r10(arguments)
     failures += _selftest_canary(arguments)
 
     if failures:
@@ -561,18 +812,27 @@ def _selftest_canary(arguments):
     return 0
 
 
-def resolve_sides(index_path, reference_dir, candidate_dir, raw_glyph_bytes):
+def resolve_sides(index_path, reference_dir, candidate_dir, raw_glyph_bytes,
+                  baseline=False):
     """Pick each side's half of the glyph-identity index.
 
     Normally the first directory is the oracle's corpus and the second is the port's,
     so they resolve against the "reference" and "candidate" halves respectively.
 
-    THE ONE EXCEPTION is the standing self-check, which compares the reference
+    THE FIRST EXCEPTION is the standing self-check, which compares the reference
     directory against ITSELF. Those bytes came out of the oracle's fonts on both
     sides, so both sides must resolve against the reference half; grading the second
     copy against the port's half would make every oracle glyph unresolvable, and the
     self-check would report thousands of differences between a directory and itself.
     Comparing a directory with itself is therefore detected, not configured.
+
+    THE SECOND is --baseline (R9, 2026-08-16), where the first directory holds
+    PORT-GENERATED output rather than the oracle's. Both sides' bytes then came out
+    of the PORT's fonts, so both resolve against the candidate half. This one is
+    configured rather than detected, because two different directories of port output
+    are indistinguishable from a corpus comparison by inspection -- and getting it
+    wrong would make every glyph on the baseline side unresolvable, which fail-strict
+    would report as a difference rather than as a mistake.
 
     Returns (reference_names, candidate_names, note).
     """
@@ -585,13 +845,20 @@ def resolve_sides(index_path, reference_dir, candidate_dir, raw_glyph_bytes):
                             % index_path)
 
     reference_names = index.get("reference")
+    candidate_names = index.get("candidate")
+
+    if baseline:
+        return (candidate_names, candidate_names,
+                "glyph identity: named-glyph (--baseline -- BOTH sides are port "
+                "output and resolve against the port's fonts)")
+
     same_corpus = os.path.realpath(reference_dir) == os.path.realpath(candidate_dir)
     if same_corpus:
         return (reference_names, reference_names,
                 "glyph identity: named-glyph (self-check -- both sides resolve "
                 "against the reference fonts)")
 
-    return (reference_names, index.get("candidate"),
+    return (reference_names, candidate_names,
             "glyph identity: named-glyph (reference and candidate each against "
             "their own fonts)")
 
@@ -615,6 +882,12 @@ def main():
                              "consumes; the human report above is not parseable.")
     parser.add_argument("--index", default=INDEX_PATH,
                         help="the committed glyph-identity index (default: %(default)s)")
+    parser.add_argument("--baseline", action="store_true",
+                        help="the reference directory holds PORT-GENERATED output "
+                             "(R9's D43 baseline), so BOTH sides resolve glyph names "
+                             "against the port's own fonts. A baseline claims NO "
+                             "DRIFT and nothing else -- it is a regression "
+                             "instrument, never a correctness result (rule 33).")
     parser.add_argument("--raw-glyph-bytes", action="store_true",
                         help="DIAGNOSTIC: identify glyphs by raw path bytes, the "
                              "pre-2026-08-12 rule. This is the A/B switch for the "
@@ -636,18 +909,21 @@ def main():
 
     reference_names, candidate_names, index_note = resolve_sides(
         arguments.index, arguments.reference_dir, arguments.candidate_dir,
-        arguments.raw_glyph_bytes)
+        arguments.raw_glyph_bytes, arguments.baseline)
 
     results = collections.defaultdict(list)
     # A whole-corpus resolution rate, so a normalization slip cannot hide: it would
     # read 0.0% here while every verdict count stayed superficially plausible.
     seen = {"reference": [0, 0], "candidate": [0, 0]}
+    upgraded = []
     for name in references:
         verdict, detail, stats = compare_one(
             os.path.join(arguments.reference_dir, name),
             os.path.join(arguments.candidate_dir, name),
-            arguments.tolerance, reference_names, candidate_names)
+            arguments.tolerance, reference_names, candidate_names, name)
         results[verdict].append((name, detail))
+        if detail.startswith("R10:"):
+            upgraded.append((name, verdict))
         if stats:
             for side, counts in zip(("reference", "candidate"), stats):
                 if counts:
@@ -690,6 +966,14 @@ def main():
     print("%-18s %7d  %5.1f%%" % ("TOTAL", total, 100.0))
     print()
     print("*** %d of %d match (%.2f%%) ***" % (matched, total, 100.0 * matched / total))
+
+    # The exception says so out loud. A silent upgrade would be the hiding place R12
+    # went out of its way to refuse.
+    print()
+    print("R10 post-pass: %d of %d eligible row(s) upgraded at a %.4f font-size bound"
+          % (len(upgraded), len(R10_FILES), R10_SIZE_BOUND))
+    for name, verdict in upgraded:
+        print("               %-46s -> %s" % (name, verdict))
 
     for verdict in order:
         entries = results.get(verdict)

@@ -1,0 +1,53 @@
+# CodeBrix.LilyPort -- THE D43 PORT-GENERATED BASELINE (ruling R9, Jeremy, 2026-08-16).
+#
+# WHAT THIS IS.  Six regression pages whose ONLY divergence from the oracle is the
+# glyph-outline skyline debug drawing, frozen from the port's own output and graded
+# against the port's own output thereafter:
+#
+#     python3 compare-output.py --baseline baseline/svg candidate/svg
+#
+# Expect 6 of 6 MATCH.  --baseline is load-bearing and is not a convenience: without
+# it the baseline side resolves its glyph paths against the ORACLE's half of
+# glyph-identity.tsv, 5 of 73 resolve, and all six rows read GLYPHS-DIFFER.  That is
+# the control, and it was run.
+#
+# WHAT IT CLAIMS -- NO DRIFT, AND NOTHING ELSE.  Rule 33 forbids an expected value
+# recorded from the port's own output, and this is exactly that, so it must never be
+# read as a correctness result.  The CORRECTNESS claim for this mechanism is carried
+# by GlyphOutlineSkylineTests in the Engine suite, whose expected segment counts are
+# computed from upstream's own max (2, chord / 0.2) with a scale control that a table
+# returning a constant cannot fake.  LANDING THE BASELINE WITHOUT THAT FENCE IS THE
+# FAILURE MODE; the two are not interchangeable.
+#
+# WHY THESE SIX CANNOT BE GRADED AGAINST THE ORACLE.  The port BUILDS Emmentaler from
+# the Metafont sources on purpose (D13/D23's neighbour, tools/font-build/).  That
+# build is not outline-identical to the oracle's: MEASURED from the committed
+# glyph-identity index on 2026-08-16, 277 of emmentaler-20's 662 glyph outlines
+# serialize identically between the two builds and 385 do not.  Every glyph DIMENSION
+# is read from the LILC table, which IS byte-identical -- which is why 2,208 rows
+# match and only the one mechanism that reads the OUTLINE does not.  Re-measured the
+# same day: accidentals.sharp, whose outline is IDENTICAL between the builds, is the
+# control and its skyline already agrees with the oracle exactly; clefs.G and
+# noteheads.s2 differ.  The divergence is confined to glyphs whose outlines differ.
+# Full account: Engine PORT-COVERAGE, "GLYPH-OUTLINE SKYLINES DIFFER BECAUSE THE TWO
+# EMMENTALER BUILDS DIFFER".
+#
+# /!\ RE-FREEZING.  Only from a FRESH full sweep, never from whatever candidate/svg
+# happens to be on disk, and only with a recorded reason -- a baseline re-frozen to
+# make a red row green has destroyed the only thing it was for.  These six rows STILL
+# grade GLYPHS-DIFFER against the oracle corpus in the ordinary sweep, and still floor
+# there; being graded here is a statement about G1, not about the measurement.
+#
+# /!\ NOT THE G1 SKIP LIST.  Nothing here is skipped.  g1-skip-list.tsv holds the eight
+# rows ruled OUT of G1 (R8(A)/D31); these six are ruled IN and graded, against this.
+#
+# frozen: 2026-08-16, PARITY 15, from the sweep of 2026-08-16 07:44-07:52
+#         (2,146 files: 2,121 svg, 25 no output, 0 errored; self-check 2,317 == 2,317)
+#
+# sha256	bytes	name
+a3de8ebfe64f62ade782b918e40c765c7984eec98d3e1061e63571ee5e8d54c8	43551	show-skylines.svg
+c016d11e0a700d67516d892bdd87d0506725200a7ddf5596060dea10379a0f10	147078	skyline-boxes-ellipses.svg
+68dbeb57aedce44d211baf2d7313471aebc52c1c8bec269dcf5170c3ad790116	106761	skyline-debug.svg
+861e7c277bdbf1f1a591660b992fbf9d0fbcb16c895282dab0a95a7d0a17ae2d	52893	skyline-embedded-ps.svg
+a8392fd35ac10bb943d91a2b27c0122f49c3425cb56db1f5197b0d8eeacb29ed	187686	skyline-grob-rotation.svg
+1c77e92ca46591077d52ae6bd0fa4e1850c3f5ada1c791a29d53a366d1e0f409	130344	skyline-slur-segments.svg

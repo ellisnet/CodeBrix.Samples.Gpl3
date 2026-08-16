@@ -91,6 +91,23 @@ public sealed class LazySkylinePair
            && _perDirection[Direction.Positive].Count == 0
            && _perDirection[Direction.Negative].Count == 0;
 
+    /// <summary>
+    /// Gets how many segments have been added since the last merge, counting a plain
+    /// segment once and a contour segment once.
+    /// </summary>
+    /// <remarks>
+    /// Reads the same three lists <see cref="IsEmpty"/> does, and exists for the same
+    /// kind of caller: the glyph-outline fence needs to know how many segments an
+    /// outline was flattened into, which is upstream's <c>max (2, chord / 0.2)</c>
+    /// answer and is not recoverable from the merged skyline, where the sweep has
+    /// already collapsed the buildings. Internal because it is a measurement of the
+    /// collector's state, not part of the skyline contract.
+    /// </remarks>
+    internal int PendingSegmentCount
+        => _todo.Count
+           + _perDirection[Direction.Positive].Count
+           + _perDirection[Direction.Negative].Count;
+
     /// <summary>Adds a segment that is solid on neither side, so it joins both skylines.</summary>
     /// <param name="transform">The transform to place the points with.</param>
     /// <param name="first">One end.</param>

@@ -327,7 +327,14 @@ public sealed class TextFontMetric : FontMetric
 
             // A code point no face in the chain covers deliberately draws .notdef —
             // D23's tofu — and .notdef still occupies its own advance, so it is
-            // measured like any other glyph rather than skipped.
+            // measured like any other glyph rather than skipped. Upstream cannot draw
+            // it either, and SAYS SO (Pango_font::get_glyph_desc), naming the face it
+            // asked: the tofu is the picture and this is the sentence.
+            if (!face.Covers(codePoint) && !MusicFontCovers(codePoint))
+            {
+                MissingGlyphWarning.Warn(codePoint, face.FileName);
+            }
+
             shaped.Add(new ShapedGlyph(face, face.GlyphIndex(codePoint), Scale(face)));
         }
 
@@ -519,6 +526,57 @@ public sealed class TextFontMetric : FontMetric
         public double SynthesizedAdvance { get; }
 
         public bool HasSynthesizedAdvance => !double.IsNaN(SynthesizedAdvance);
+    }
+
+    private static readonly object MusicCoverageGate = new object();
+    private static HashSet<int> _musicCoverage;
+
+    /// <summary>
+    /// Determines whether the MUSIC font can draw a code point, which decides only
+    /// whether a text run WARNS about it — never which glyph is drawn.
+    /// </summary>
+    /// <remarks>
+    /// Upstream's chain for a text run is fontconfig's, and under the corpus's own
+    /// pinning that chain does not stop at the two text faces: MEASURED with
+    /// <c>fc-match -s serif</c>, it continues into the Emmentaler faces. So a character
+    /// only the music font carries — a MUSIC FLAT SIGN in a custom note name is the
+    /// corpus's case — is one Pango finds and never warns about, while the port's D23
+    /// chain, which stops at two text faces on purpose, does not. Both engines then
+    /// emit the same <c>&lt;text&gt;</c> run and the page MATCHes; only the sentence
+    /// differed.
+    /// <para>
+    /// CONTROLLED, because a suppression rule is only as good as what it does NOT
+    /// suppress: of the 79 code points the oracle warns about across the whole
+    /// reference corpus, the only one any bundled face covers is U+0069, covered by the
+    /// TEXT faces — and its warning comes from the MUSIC path, which this does not
+    /// touch. No Emmentaler face covers any of the other 78.
+    /// </para>
+    /// <para>
+    /// One optical size is read because they share a character map; the size a run is
+    /// actually set at cannot change which characters exist.
+    /// </para>
+    /// </remarks>
+    /// <param name="codePoint">The Unicode code point.</param>
+    /// <returns><see langword="true"/> when a music font maps it.</returns>
+    private static bool MusicFontCovers(int codePoint)
+    {
+        lock (MusicCoverageGate)
+        {
+            if (_musicCoverage == null)
+            {
+                _musicCoverage = new HashSet<int>();
+                byte[] bytes = FontAssets.MusicFont("emmentaler-20");
+                if (bytes != null)
+                {
+                    foreach (int character in new SfntReader(bytes).ReadCmap().Keys)
+                    {
+                        _musicCoverage.Add(character);
+                    }
+                }
+            }
+
+            return _musicCoverage.Contains(codePoint);
+        }
     }
 
     private TextFace Resolve(int codePoint)

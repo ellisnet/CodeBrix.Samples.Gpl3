@@ -7073,8 +7073,75 @@ was wrong)
   surfacing in the one place D29 cannot reach: the debug drawing emits plain
   <line> elements, which carry no glyph identity to resolve by name.
 
-  REVISIT CONDITION: only a reversal of the own-build font decision (D13/D23's
-  neighbour), which would also change every drawn music glyph.
+  DISPOSITION -- RULED (Jeremy, 2026-08-16, ruling R9).  The six rows are NOT
+  skipped and they are NOT closed by reversing the font build.  They are to be
+  graded against a COMMITTED PORT-GENERATED BASELINE, and the mechanism is to be
+  fenced separately by a unit test.  G1's own definition already reserves this
+  shape -- it requires D23's fallback-dependent files to "match committed
+  PORT-GENERATED baselines" -- and that clause has never been exercised, so the
+  machinery does not exist yet and has to be built.
+
+  WHAT EACH HALF CLAIMS, because they are not interchangeable and the split is
+  what keeps this honest:
+
+    * THE BASELINE CLAIMS NO DRIFT, AND NOTHING ELSE.  It is a regression
+      instrument.  Rule 33 forbids an expected value recorded from the port's own
+      output, and this is exactly that -- so it must never be read as a
+      correctness result.  What the six rows stop doing is grading the port's
+      font BUILD against the oracle's, which is the one comparison that cannot
+      succeed and was never informative.  What they keep doing is turning red the
+      moment the skyline mechanism moves.
+    * THE FENCE CARRIES THE CORRECTNESS CLAIM, and it is the only thing that
+      does.  Expected segment counts are HAND-COMPUTED from upstream's own
+      expression -- max (2, chord_length / 0.2), the chord measured in OUTPUT
+      units after the transform -- with a control that must come out differently.
+      The scale dependence is the natural control: one glyph set at two sizes
+      must produce different counts in a known ratio, which a table returning a
+      constant cannot fake.  It survives a font rebuild; the corpus rows do not.
+
+  /!\ LANDING THE BASELINE WITHOUT THE FENCE IS THE FAILURE MODE.  Together they
+  cover R8(B)'s actual concern -- that a mechanism feeding every collision
+  computation not go ungraded -- better than the corpus rows ever did, because
+  those rows grade the code and the asset FUSED and cannot separate them.
+
+  PROVENANCE TO COMMIT WITH THE BASELINE, since it is the strongest thing that
+  can be said at the moment of recording: for every glyph whose outline is
+  IDENTICAL between the two builds, the port's skyline already matches the
+  oracle's exactly -- accidentals.sharp is the measured control.  The divergence
+  is confined to glyphs whose outlines differ.
+
+  /!\ AND THE BASELINE MUST BE FROZEN FROM A FRESH SWEEP, never from whatever
+  candidate/svg happens to be on disk (the MIDI scoreboard carries the same
+  warning for the same reason).
+
+  ✅ BUILT AT PARITY 15 (2026-08-16).  Both halves, and neither alone:
+
+    * tools/regression-harness/baseline/svg holds the six pages, frozen from the
+      full sweep of that morning, with baseline-manifest.tsv carrying the sha256s
+      and the provenance.  Graded by
+      `compare-output.py --baseline baseline/svg candidate/svg' -> 6 of 6 MATCH.
+      --baseline makes BOTH sides resolve against the port's own fonts, and the
+      control was run: WITHOUT it the baseline side resolves 5 of 73 glyph paths
+      and all six rows read GLYPHS-DIFFER.
+    * GlyphOutlineSkylineTests in the Engine suite carries the correctness claim
+      -- four cases, expectations computed from upstream's own
+      max (2, chord / 0.2) with the chord measured AFTER the transform, plus the
+      scale control and a curve-free glyph whose count must NOT move with scale.
+      ⚠ The curve-free glyph was MEASURED, and the first choice was wrong:
+      accidentals.sharp looks straight-edged and carries twenty curves.  Exactly
+      ten glyphs in emmentaler-20 have no curves; noteheads.sM1kievan is the one
+      with the most segments.  A/B'd two ways -- with the max(2,...) floor removed
+      and with the chord measured before the transform -- and three of the four
+      fail under each, the curve-free control correctly holding both times.
+
+  The provenance was re-measured the same day rather than quoted: from the
+  committed glyph-identity index, 277 of emmentaler-20's 662 outlines serialize
+  identically between the builds and 385 do not; accidentals.sharp is identical
+  (the control) while clefs.G and noteheads.s2 differ.
+
+  REVISIT CONDITION: a reversal of the own-build font decision (D13/D23's
+  neighbour) would close the rows against the oracle directly and retire the
+  baseline; it would also change every drawn music glyph, and is not planned.
 
 --------------------------------------------------------------------------------
 UNICODE SPACE FALLBACK: HARFBUZZ'S RULE, MEASURED (2026-08-15, PARITY 14 -- D38)
@@ -7289,3 +7356,251 @@ delay-stencil-evaluation IS FORCED (2026-08-15, PARITY 11)
   answer differently each time.  paper-system.cc's own get_footnotes deliberately
   does NOT force -- its "we likely need to do something here...just don't know
   what..." comment is upstream's and is reproduced verbatim.
+
+--------------------------------------------------------------------------------
+TEXT FONT SIZE, LAST DECIMAL: A BOUNDED DELTA IS ACCEPTED ON FOUR NAMED VALUES
+(2026-08-16, ruling R10 -- D39)
+--------------------------------------------------------------------------------
+
+  Fonts/FontInterface.cs (QuantizeToPangoUnits), Fonts/TextFontMetric.cs
+  (DescriptionString)  ->  the SVG `font-size' attribute.
+
+  ACCEPTED, BY RULING, ON THESE FOUR FILES AND THESE FOUR VALUES ONLY:
+
+      file                         oracle    port      delta
+      ---------------------------  --------  --------  ------
+      markup-note-sizes            1.1666    1.1668    0.0002
+      page-layout-bottom-padding   1.7460    1.7465    0.0005
+      fret-diagrams-size           1.9800    1.9797    0.0003
+      tablature-full-notation      2.2000    2.1997    0.0003
+
+  The acceptance is a BOUNDED DELTA of 0.0005, not a frozen pair: the port's
+  value may move within 0.0005 of the oracle's and remain accepted; beyond that
+  it is a regression and must be chased.
+
+  /!\ THIS IS NOT A GENERAL TOLERANCE, AND IT DOES NOT TOUCH D29.  D29 forbids
+  visual and tolerance comparison and states that "a page ever blocked by
+  micro-geometry gets its own ruling that day".  This IS that ruling, for four
+  named values, and it is the mechanism D29 provides rather than an exception to
+  it.  Any other size, any other file, any other element: D29 stands unchanged.
+  A future session must not read this entry as licence to widen it.
+
+  WHAT IS KNOWN.  Upstream's SVG backend harvests the font size out of the Pango
+  DESCRIPTION STRING -- scm/output-svg.scm:154-156 matches it with the regexp
+  `[ -]([0-9.]+)$' and divides by lily-unit-length, which framework-svg.scm:93
+  sets once per output FILE from the paper's output-scale.  The string round trip
+  is upstream's own construction, not a port shortcut, and SvgBackend.EmitText
+  reproduces it with the same expression.  The port's side is fully understood:
+  quantize to a whole number of 1/1024ths (PANGO_SCALE, away from zero), format
+  to three decimals, divide, print four.  That model reproduces all four of the
+  port's values exactly.
+
+  WHAT IS NOT KNOWN, AND WHY THE ROWS WERE RULED RATHER THAN FIXED.  The oracle's
+  printed sizes cannot be reproduced by ANY fixed-precision formatting rule over
+  that lattice -- tested two independent ways at PARITY 14 and again on
+  2026-08-16.  Three decimals, six significant digits (%g) and full precision
+  each reproduce SOME of the corpus values and not others; on
+  tablature-full-notation three of the four sizes match a three-decimal value and
+  are unreachable at six significant digits, while the fourth is the reverse.
+  Solving for the unit length from the oracle's own values, rather than assuming
+  the port's, leaves fret-diagrams-size and markup-note-sizes consistent with no
+  unit length at all.  The leading hypothesis is that
+  pango_font_description_to_string uses a SHORTEST-ROUND-TRIP formatter, which
+  emits a variable number of digits and would explain the whole pattern including
+  its signature -- exactly one size per file diverges while every other size in
+  the same file is exact.  That is a hypothesis and NOT a measurement.
+
+  /!\ AND ONE COMMENT IN THE PORT IS WRONG ABOUT THIS.  DescriptionString's
+  comment states that pango_font_description_to_string "formats the description's
+  size to three decimals" and that the format was "MEASURED against the pinned
+  oracle across 31 font sizes ... reproduces every one".  It cannot be right:
+  the corpus holds four counterexamples, and no three-decimal value divides to
+  the oracle's 2.2000 on tablature-full-notation at any plausible unit length.
+  Trap 26 -- a port comment about upstream is not evidence of what upstream does.
+  The comment is to be corrected whenever this area is next touched.
+
+  ✅ HONOURED BY THE COMPARATOR SINCE PARITY 15 (2026-08-16), as a POST-PASS --
+  ruling R12's shape, not a change to D29's identity function, which stays
+  byte-exact.  compare-output.py grades normally and then, on these four files
+  only, asks whether the ENTIRE inventory difference is text elements identical
+  in family and content whose sizes differ by no more than the bound; if so it
+  RE-GRADES the reconciled inventory and reports the upgrade per row and as a
+  count.  Re-grading rather than asserting MATCH is deliberate: a placement
+  difference on these four files still reads PLACEMENT-DIFFERS.  All four reached
+  MATCH, 0 regressions, one transition kind.  Fenced by --selftest (ix) through
+  (xiii) and A/B'd with the post-pass fully disabled, which returns all four to
+  GLYPHS-DIFFER and fails case (ix) while its four controls hold.
+
+  REVISIT CONDITION.  Measure what pango_font_description_to_string actually
+  emits, by driving the library rather than reasoning about it -- the technique
+  that settled D43 (~/ClaudeHome/lilyport-probe-glyph-skyline/ft_decompose.py
+  drives libfreetype the same way).  The oracle bundles Pango 1.57.0 and this
+  host carries 1.56.3, so rest STRUCTURAL claims on such a probe and not
+  last-digit numeric ones (the caveat D43's probe carries for FreeType).  If the
+  rule is measured and the four values can be made exact, make them exact and
+  retire this entry; it exists because the cause is unmeasured, not because the
+  divergence is desirable.
+
+--------------------------------------------------------------------------------
+A NEGATIVE ZERO COORDINATE IS ACCEPTED WHERE UPSTREAM REACHES AN EXACT ZERO
+(2026-08-16, ruled by Jeremy alongside R9)
+--------------------------------------------------------------------------------
+
+  Backends/SvgBackend.cs -- coordinate emission.
+
+  THE SHAPE, exactly as ruled.  Where BOTH engines print `-0.0000' for a
+  coordinate on one axis, and the port prints `-0.0000' on the other axis while
+  upstream prints `0', the port's `-0.0000' is ACCEPTED.
+
+  MEASURED on show-skylines.svg while diagnosing D43: five of the skyline debug
+  segments carry y1/y2 = "0" on the oracle and "-0.0000" on the port, and on the
+  SAME elements both engines print "-0.0000" for x1/x2 (7 occurrences each side)
+  and "0.0000" for one more.  So this is NOT a formatting-rule divergence -- the
+  two agree on how a signed near-zero is written.  Upstream simply arrives at an
+  exact zero on that axis where the port arrives at a tiny negative value.
+
+  IT COSTS NOTHING THE COMPARATOR GRADES, and that is verified rather than
+  assumed: compare-output.py reads every coordinate through `_number', which is
+  a plain `float()', so "0" and "-0.0000" both parse to 0.0 and compare equal.
+  The six skyline rows' verdicts turn on the NUMBER of <line> elements, not on
+  this.
+
+  /!\ SCOPE.  This was observed on ONE file, during an unrelated diagnosis, and
+  was NOT found by a sweep -- so it is an acceptance of the SHAPE described
+  above, not a measured count of how often the shape occurs.  A session that
+  wants the count must sweep for it.  It is also not licence to accept a signed
+  zero anywhere the two engines DISAGREE about how near-zero is formatted; that
+  would be a different divergence and is not covered here.
+
+  REVISIT CONDITION: if a residue cluster is ever attributed to a sign or a
+  near-zero coordinate, re-open this -- the acceptance is about the printed
+  representation, and says nothing about whether the port SHOULD be reaching a
+  negative value on that axis.
+
+--------------------------------------------------------------------------------
+THE MISSING-GLYPH WARNING, AND WHERE ITS UNICODE NAMES LIVE
+(2026-08-16, PARITY 15 -- D40)
+--------------------------------------------------------------------------------
+
+  Fonts/MissingGlyphWarning.cs, Fonts/TextFontMetric.cs (TextStencil),
+  Objects/TextInterface.cs (MusicFontTextStencil).
+
+  Upstream warns from Pango_font::get_glyph_desc (lily/pango-font.cc:253):
+
+      no glyph for character '%s' (U+%04X%s) in font `%s'
+
+  The port drew the tofu D23 asks for and said nothing, on BOTH paths -- the
+  text one, where a code point no face in the chain covers falls through to
+  .notdef, and the MUSIC one, where an unmapped code point was dropped from the
+  run without a word.  Both now warn.  The message is upstream's verbatim
+  (standing rule 15 / ruling R1), including the third field's leading SPACE
+  before the name and its complete absence when there is none.
+
+  THE NAMES COME FROM CodeBrix.LilyScheme, WHICH IS WHERE GUILE PUTS THEM.
+  char->formal-name is (ice-9 unicode), implemented in libguile/unicode.c over
+  GNU libunistring; LilyScheme now provides that module from C# for the same
+  reason it provides (ice-9 iconv) and (ice-9 soft-ports), and carries the
+  34,828-name table derived from UnicodeData.txt 15.1.0.  Both procedures are
+  bound, not just the one this warning needs.  See that repository's
+  THIRD-PARTY-NOTICES.txt section 6.
+
+  /!\ THE TABLE WAS BRIEFLY IN THE ENGINE AND WAS MOVED (2026-08-16, Jeremy).
+  The argument for the Engine was proportion -- one consumer, and LilyScheme's
+  whole package is smaller than the table.  The argument that won is that the
+  procedure is GUILE'S, not LilyPond's: upstream reaches it through
+  lily-imports.cc as an ordinary Scheme import, so an Engine-side copy is a
+  layering inversion, and it would collide with (ice-9 unicode) the moment
+  LilyScheme grew one (rule 13).  Proportion also stops applying once LilyScheme
+  is meant to be a general-purpose Scheme engine, which is the standing intent.
+
+  THE PORT CALLS THE MANAGED ACCESSOR, not the Scheme procedure.  Upstream goes
+  through Scheme because Guile's C API is what it has; the port's Engine already
+  links the library that owns the table, so it calls
+  UnicodeCharacterNames.Of directly.  That is the same table by a shorter road,
+  and it does not require an interpreter to be up at the moment a text metric is
+  taken.  The Scheme binding exists for Scheme callers, exactly as Guile's does.
+
+  WHAT STAYS IN THE ENGINE: the ZERO-WIDTH exclusion, because it is PANGO's
+  behaviour and not Guile's.  Upstream returns from get_glyph_desc before the
+  warning for anything Pango answers PANGO_GLYPH_EMPTY to -- "valid Unicode but
+  don't have associated glyphs", in its own comment -- and the port spells that
+  as Unicode's Default_Ignorable_Code_Point, seventeen merged ranges in
+  Fonts/MissingGlyphWarning.cs.  MEASURED IN BOTH DIRECTIONS, which is what makes
+  it a rule and not a patch for seven characters: all seven the port over-warned
+  about are default-ignorable, and NONE of the 79 the oracle warns about is.
+
+--------------------------------------------------------------------------------
+THE MISSING-GLYPH WARNING NAMES A DIFFERENT FACE ON pdf-copy-paste
+(2026-08-16, PARITY 15 -- D40's remainder, ACCEPTED)
+--------------------------------------------------------------------------------
+
+  Of the 316 occurrences in the reference logs, 310 name C059-Roman.otf and 4
+  name emmentaler-20.otf; the port reproduces both.  The remaining TWO, both in
+  pdf-copy-paste, name texgyreschola-regular.otf and the port names
+  C059-Roman.otf.
+
+  MEASURED rather than reasoned (fc-match under the corpus's own pinning, trap
+  8b): that file overrides fonts.serif to "Noto Serif JP", a family no bundled
+  face provides, and fontconfig's best match for an unknown family under
+  reference-fonts.conf is TeX Gyre Schola -- the SECOND face of the serif chain,
+  not the first.
+
+      "Noto Serif JP"            -> texgyreschola-regular.otf
+      "serif"                    -> C059-Roman.otf
+      "Linux Libertine O, serif" -> C059-Roman.otf
+
+  The port does not model fontconfig at all, by design: D23 fixes the text faces
+  to the 24 vendored ones and an unrecognised family resolves to the serif chain,
+  whose first face is C059-Roman.  So the port really does draw that text from
+  C059-Roman, and its message names the face it actually used.  Making it print
+  texgyreschola-regular would be naming a font the port never asked for.
+
+  This is the same root fact as D31, whose ruling already makes pdf-copy-paste a
+  permanent documented divergence on the SVG side.  REVISIT CONDITION: the
+  deferred optional-font-packages decision, or any decision to model fontconfig
+  family matching -- neither is planned.
+
+--------------------------------------------------------------------------------
+THREE FINDINGS MEASURED AT PARITY 15 AND DELIBERATELY NOT CHASED
+(2026-08-16 -- each has its entry point and its revisit condition)
+--------------------------------------------------------------------------------
+
+  None of these was in the GO'd scope with a measured row impact, so each is
+  recorded rather than fixed.  All three were found while working on something
+  else, which is the usual way (trap 28).
+
+  (1) Layout/PageLayoutSpacing.cs -- GetSpacingSpec IGNORES ITS pure/start/end
+      ARGUMENTS.  Upstream's Page_layout_problem::get_spacing_spec reads every
+      one of its twelve properties through get_maybe_pure_property (before,
+      "...", pure, start, end); the port reads all twelve with a plain
+      GetProperty, so the `pure' parameter is accepted and discarded.  This is
+      trap 24's family, and 24a is the reason it is worth writing down rather
+      than dismissing: an unpure read in a pure path can cost a SIDE EFFECT
+      rather than a wrong number.  UNMEASURED for row impact.  ⚠ It is NOT the
+      annotate-spacing divergence below -- paper-system-annotate calls
+      ly:get-spacing-spec with two arguments, so pure is #f on both engines
+      there.
+
+  (2) Objects/AccidentalInterface.cs -- the horizontal-skylines callback reads
+      `glyph-name' as `me.GetProperty (...) is MutableString', where upstream
+      writes from_scm<std::string>.  Trap 12a exactly: a property's string may be
+      a CLR string as well as a MutableString, and the type pattern silently
+      answers the empty string for one of the two shapes, which would skip the
+      flat/doubleflat stem-padding branch.  PARITY 10 swept the Engine for this
+      shape and found five sites; this one reads a property into a C# pattern
+      rather than comparing with `is string', which is why the sweep's scanner
+      did not name it.  Use SchemeUtilities.IsString/StringText.  UNMEASURED.
+
+  (3) annotate-spacing DRAWS FOUR STAFF-PADDING ANNOTATIONS THE ORACLE DOES NOT,
+      and the divergence is NARROWED to two candidates.  MEASURED on
+      page-spacing-nonstaff-lines-between: the oracle draws ZERO "padding"
+      annotations and the port draws four -- one per adjacent pair of the three
+      vertical groups, twice, once per system.  scm/paper-system.scm's
+      annotate-padding ends `(if (> padding 0.0) annotation empty-stencil)' and
+      is VENDORED, so the guard itself is faithful; what differs is its input.
+      Two candidates, both port-side and both cheap to separate by printing them:
+      ly:get-spacing-spec answering an alist whose `padding' is positive where
+      upstream's is absent or zero, or ly:system::get-staves answering a LONGER
+      list (the map is over adjacent pairs, so one extra staff is one extra
+      annotation).  Worth 2 rows -- page-spacing-nonstaff-lines-between and
+      page-spacing-nonstaff-lines-header-padding.

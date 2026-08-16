@@ -1,0 +1,798 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.2"
+     width="210.0000mm" height="297.0000mm"
+     viewBox="0.0000 -0.0000 119.5016 169.0094">
+<g fill="currentColor" color="black">
+<g transform="translate(51.2491, 162.8656)">
+<text font-family="serif" font-size="2.2000" text-anchor="start" fill="currentColor">
+<tspan>LilyPond v2.27.2</tspan>
+</text>
+</g>
+<g transform="translate(51.2491, 162.8656)">
+<a xlink:href="https://lilypond.org">
+<rect x="0.0000" y="-0.4532" width="17.0034" height="2.0747" fill="none" stroke="none" stroke-width="0.0"/>
+</a>
+</g>
+<g color="rgba(100.0000%, 0.0000%, 100.0000%, 100.0000%)">
+<g transform="translate(8.5358, 7.9146)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="27.0708" y1="8.3210" x2="27.1208" y2="8.3210"/>
+</g>
+<g transform="translate(8.5358, 7.9146)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="27.0708" y1="1.7260" x2="27.0708" y2="8.3210"/>
+</g>
+<g transform="translate(8.5358, 7.9146)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="11.3358" y1="1.7260" x2="27.0708" y2="1.7260"/>
+</g>
+<g transform="translate(8.5358, 7.9146)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="11.3358" y1="1.4440" x2="11.3358" y2="1.7260"/>
+</g>
+<g transform="translate(8.5358, 7.9146)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="11.3100" y1="1.1688" x2="11.3358" y2="1.4440"/>
+</g>
+<g transform="translate(8.5358, 7.9146)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="11.3100" y1="1.1688" x2="11.3100" y2="1.1688"/>
+</g>
+<g transform="translate(8.5358, 7.9146)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="11.2420" y1="0.8866" x2="11.3100" y2="1.1688"/>
+</g>
+<g transform="translate(8.5358, 7.9146)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="11.2420" y1="0.8866" x2="11.2420" y2="0.8866"/>
+</g>
+<g transform="translate(8.5358, 7.9146)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="11.1460" y1="0.6154" x2="11.2420" y2="0.8866"/>
+</g>
+<g transform="translate(8.5358, 7.9146)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="11.1460" y1="0.6154" x2="11.1460" y2="0.6154"/>
+</g>
+<g transform="translate(8.5358, 7.9146)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="11.0360" y1="0.3731" x2="11.1460" y2="0.6154"/>
+</g>
+<g transform="translate(8.5358, 7.9146)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="11.0360" y1="0.3731" x2="11.0360" y2="0.3731"/>
+</g>
+<g transform="translate(8.5358, 7.9146)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="10.9262" y1="0.1778" x2="11.0360" y2="0.3731"/>
+</g>
+<g transform="translate(8.5358, 7.9146)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="10.9262" y1="0.1778" x2="10.9262" y2="0.1778"/>
+</g>
+<g transform="translate(8.5358, 7.9146)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="10.8308" y1="0.0475" x2="10.9262" y2="0.1778"/>
+</g>
+<g transform="translate(8.5358, 7.9146)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="10.8308" y1="0.0475" x2="10.8308" y2="0.0475"/>
+</g>
+<g transform="translate(8.5358, 7.9146)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="10.7638" y1="-0.0000" x2="10.8308" y2="0.0475"/>
+</g>
+<g transform="translate(8.5358, 7.9146)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="10.7638" y1="0.0000" x2="10.7638" y2="-0.0000"/>
+</g>
+<g transform="translate(8.5358, 7.9146)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="10.6959" y1="0.0349" x2="10.7638" y2="0.0000"/>
+</g>
+<g transform="translate(8.5358, 7.9146)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="10.6959" y1="0.0349" x2="10.6959" y2="0.0349"/>
+</g>
+<g transform="translate(8.5358, 7.9146)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="10.5723" y1="0.1379" x2="10.6959" y2="0.0349"/>
+</g>
+<g transform="translate(8.5358, 7.9146)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="10.5723" y1="0.1379" x2="10.5723" y2="0.1379"/>
+</g>
+<g transform="translate(8.5358, 7.9146)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="10.4233" y1="0.3065" x2="10.5723" y2="0.1379"/>
+</g>
+<g transform="translate(8.5358, 7.9146)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="10.4233" y1="0.3065" x2="10.4233" y2="0.3065"/>
+</g>
+<g transform="translate(8.5358, 7.9146)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="10.2794" y1="0.5381" x2="10.4233" y2="0.3065"/>
+</g>
+<g transform="translate(8.5358, 7.9146)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="10.2794" y1="0.5381" x2="10.2794" y2="0.5381"/>
+</g>
+<g transform="translate(8.5358, 7.9146)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="10.1708" y1="0.8301" x2="10.2794" y2="0.5381"/>
+</g>
+<g transform="translate(8.5358, 7.9146)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="10.1708" y1="0.8301" x2="10.1708" y2="0.8301"/>
+</g>
+<g transform="translate(8.5358, 7.9146)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="10.1278" y1="1.1800" x2="10.1708" y2="0.8301"/>
+</g>
+<g transform="translate(8.5358, 7.9146)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="10.1278" y1="1.7260" x2="10.1278" y2="1.1800"/>
+</g>
+<g transform="translate(8.5358, 7.9146)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="8.6358" y1="1.7260" x2="10.1278" y2="1.7260"/>
+</g>
+<g transform="translate(8.5358, 7.9146)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="8.6358" y1="1.7260" x2="8.6358" y2="1.7260"/>
+</g>
+<g transform="translate(8.5358, 7.9146)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="8.4758" y1="1.7260" x2="8.6358" y2="1.7260"/>
+</g>
+</g>
+<g color="rgba(0.0000%, 100.0000%, 100.0000%, 100.0000%)">
+<g transform="translate(8.5358, 7.9146)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="27.0708" y1="18.3210" x2="27.1208" y2="18.3210"/>
+</g>
+<g transform="translate(8.5358, 7.9146)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="27.0708" y1="22.9210" x2="27.0708" y2="18.3210"/>
+</g>
+<g transform="translate(8.5358, 7.9146)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="18.7511" y1="22.9210" x2="27.0708" y2="22.9210"/>
+</g>
+<g transform="translate(8.5358, 7.9146)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="18.7511" y1="23.9710" x2="18.7511" y2="22.9210"/>
+</g>
+<g transform="translate(8.5358, 7.9146)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="18.4250" y1="23.9710" x2="18.7511" y2="23.9710"/>
+</g>
+<g transform="translate(8.5358, 7.9146)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="18.4250" y1="24.4160" x2="18.4250" y2="23.9710"/>
+</g>
+<g transform="translate(8.5358, 7.9146)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="17.1208" y1="24.4160" x2="18.4250" y2="24.4160"/>
+</g>
+<g transform="translate(8.5358, 7.9146)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="17.1208" y1="23.9710" x2="17.1208" y2="24.4160"/>
+</g>
+<g transform="translate(8.5358, 7.9146)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="16.7948" y1="23.9710" x2="17.1208" y2="23.9710"/>
+</g>
+<g transform="translate(8.5358, 7.9146)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="16.7948" y1="22.9210" x2="16.7948" y2="23.9710"/>
+</g>
+<g transform="translate(8.5358, 7.9146)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="11.2158" y1="22.9210" x2="16.7948" y2="22.9210"/>
+</g>
+<g transform="translate(8.5358, 7.9146)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="11.2158" y1="23.2670" x2="11.2158" y2="22.9210"/>
+</g>
+<g transform="translate(8.5358, 7.9146)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="11.2133" y1="23.3830" x2="11.2158" y2="23.2670"/>
+</g>
+<g transform="translate(8.5358, 7.9146)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="11.2133" y1="23.3830" x2="11.2133" y2="23.3830"/>
+</g>
+<g transform="translate(8.5358, 7.9146)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="11.2078" y1="23.4990" x2="11.2133" y2="23.3830"/>
+</g>
+<g transform="translate(8.5358, 7.9146)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="11.2078" y1="23.4990" x2="11.2078" y2="23.4990"/>
+</g>
+<g transform="translate(8.5358, 7.9146)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="11.1699" y1="23.7310" x2="11.2078" y2="23.4990"/>
+</g>
+<g transform="translate(8.5358, 7.9146)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="11.1699" y1="23.7310" x2="11.1699" y2="23.7310"/>
+</g>
+<g transform="translate(8.5358, 7.9146)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="11.0872" y1="23.9443" x2="11.1699" y2="23.7310"/>
+</g>
+<g transform="translate(8.5358, 7.9146)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="11.0872" y1="23.9443" x2="11.0872" y2="23.9443"/>
+</g>
+<g transform="translate(8.5358, 7.9146)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="10.9643" y1="24.1290" x2="11.0872" y2="23.9443"/>
+</g>
+<g transform="translate(8.5358, 7.9146)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="10.9643" y1="24.1290" x2="10.9643" y2="24.1290"/>
+</g>
+<g transform="translate(8.5358, 7.9146)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="10.8058" y1="24.2750" x2="10.9643" y2="24.1290"/>
+</g>
+<g transform="translate(8.5358, 7.9146)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="10.8058" y1="24.2750" x2="10.8058" y2="24.2750"/>
+</g>
+<g transform="translate(8.5358, 7.9146)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="10.6161" y1="24.3723" x2="10.8058" y2="24.2750"/>
+</g>
+<g transform="translate(8.5358, 7.9146)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="10.6161" y1="24.3723" x2="10.6161" y2="24.3723"/>
+</g>
+<g transform="translate(8.5358, 7.9146)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="10.3998" y1="24.4110" x2="10.6161" y2="24.3723"/>
+</g>
+<g transform="translate(8.5358, 7.9146)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="10.3998" y1="24.4110" x2="10.3998" y2="24.4110"/>
+</g>
+<g transform="translate(8.5358, 7.9146)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="10.3758" y1="24.4110" x2="10.3998" y2="24.4110"/>
+</g>
+<g transform="translate(8.5358, 7.9146)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="10.3758" y1="24.4110" x2="10.3758" y2="24.4110"/>
+</g>
+<g transform="translate(8.5358, 7.9146)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="10.1288" y1="24.3709" x2="10.3758" y2="24.4110"/>
+</g>
+<g transform="translate(8.5358, 7.9146)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="10.1288" y1="24.3709" x2="10.1288" y2="24.3709"/>
+</g>
+<g transform="translate(8.5358, 7.9146)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="9.9146" y1="24.2592" x2="10.1288" y2="24.3709"/>
+</g>
+<g transform="translate(8.5358, 7.9146)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="9.9146" y1="24.2592" x2="9.9146" y2="24.2592"/>
+</g>
+<g transform="translate(8.5358, 7.9146)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="9.7460" y1="24.0887" x2="9.9146" y2="24.2592"/>
+</g>
+<g transform="translate(8.5358, 7.9146)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="9.7460" y1="24.0887" x2="9.7460" y2="24.0887"/>
+</g>
+<g transform="translate(8.5358, 7.9146)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="9.6355" y1="23.8724" x2="9.7460" y2="24.0887"/>
+</g>
+<g transform="translate(8.5358, 7.9146)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="9.6355" y1="23.8724" x2="9.6355" y2="23.8724"/>
+</g>
+<g transform="translate(8.5358, 7.9146)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="9.5958" y1="23.6230" x2="9.6355" y2="23.8724"/>
+</g>
+<g transform="translate(8.5358, 7.9146)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="9.5958" y1="23.6230" x2="9.5958" y2="23.6230"/>
+</g>
+<g transform="translate(8.5358, 7.9146)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="9.5958" y1="23.6230" x2="9.5958" y2="23.6230"/>
+</g>
+<g transform="translate(8.5358, 7.9146)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="9.5958" y1="22.9210" x2="9.5958" y2="23.6230"/>
+</g>
+<g transform="translate(8.5358, 7.9146)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="8.6358" y1="22.9210" x2="9.5958" y2="22.9210"/>
+</g>
+<g transform="translate(8.5358, 7.9146)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="8.6358" y1="22.9210" x2="8.6358" y2="22.9210"/>
+</g>
+<g transform="translate(8.5358, 7.9146)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="8.4758" y1="22.9210" x2="8.6358" y2="22.9210"/>
+</g>
+</g>
+<g transform="translate(8.5358, 14.6906)">
+<rect x="16.7948" y="-0.1000" width="1.9563" height="0.2000" ry="0.1000" fill="currentColor"/>
+</g>
+<g transform="translate(17.0717, 13.6906)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="0.0500" y1="-0.0000" x2="18.5350" y2="-0.0000"/>
+</g>
+<g transform="translate(17.0717, 12.6906)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="0.0500" y1="-0.0000" x2="18.5350" y2="-0.0000"/>
+</g>
+<g transform="translate(17.0717, 11.6906)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="0.0500" y1="-0.0000" x2="18.5350" y2="-0.0000"/>
+</g>
+<g transform="translate(17.0717, 10.6906)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="0.0500" y1="-0.0000" x2="18.5350" y2="-0.0000"/>
+</g>
+<g transform="translate(17.0717, 9.6906)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="0.0500" y1="-0.0000" x2="18.5350" y2="-0.0000"/>
+</g>
+<g transform="translate(8.5358, 31.7856)">
+<rect x="16.7948" y="-0.1000" width="1.9563" height="0.2000" ry="0.1000" fill="currentColor"/>
+</g>
+<g transform="translate(17.0717, 30.7856)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="0.0500" y1="-0.0000" x2="18.5350" y2="-0.0000"/>
+</g>
+<g transform="translate(17.0717, 29.7856)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="0.0500" y1="-0.0000" x2="18.5350" y2="-0.0000"/>
+</g>
+<g transform="translate(17.0717, 28.7856)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="0.0500" y1="-0.0000" x2="18.5350" y2="-0.0000"/>
+</g>
+<g transform="translate(17.0717, 27.7856)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="0.0500" y1="-0.0000" x2="18.5350" y2="-0.0000"/>
+</g>
+<g transform="translate(17.0717, 26.7856)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="0.0500" y1="-0.0000" x2="18.5350" y2="-0.0000"/>
+</g>
+<g transform="translate(26.8959, 28.7856)">
+<rect x="-0.0650" y="-0.5000" width="0.1300" height="3.3138" ry="0.0400" fill="currentColor"/>
+</g>
+<g transform="translate(26.8959, 11.6906)">
+<rect x="-0.0650" y="-0.5000" width="0.1300" height="3.3138" ry="0.0400" fill="currentColor"/>
+</g>
+<g transform="translate(17.8717, 29.7856)">
+<path transform="scale(0.0040, -0.0040)" d="M266 -635h-6c-108 0 -195 88 -195 197c0 58 53 103 112 103c54 0 95 -47 95 -103c0 -52 -43 -95 -95 -95c-11 0 -21 2 -31 6c26 -39 68 -65 117 -65h4zM401 151c19 -89 48 -242 60 -354c76 27 112 94 112 163c0 89 -60 179 -172 191zM74 28c0 -112 98 -247 278 -247
+c21 0 44 2 68 6c-7 64 -29 203 -63 364c-79 -8 -124 -61 -124 -119c0 -44 25 -91 81 -123c5 -5 7 -10 7 -15c0 -11 -10 -22 -22 -22c-15 0 -126 62 -126 187c0 88 58 174 160 197c-14 58 -29 117 -46 175c-107 -121 -213 -243 -213 -403zM357 1194c28 0 143 -206 143 -361
+c0 -143 -86 -255 -180 -364c21 -68 39 -138 56 -207c5 0 10 1 14 1c155 0 255 -129 255 -262c0 -113 -74 -212 -180 -245c3 -35 5 -70 5 -105c0 -19 -1 -39 -2 -58c-7 -119 -88 -225 -202 -228l1 43c93 2 153 92 159 191c1 18 2 37 2 55c0 31 -1 61 -4 92
+c-28 -5 -55 -8 -80 -8c-239 0 -342 217 -342 374c0 177 131 306 248 441c-29 96 -52 170 -52 346c0 189 144 295 159 295zM247 782c0 -55 12 -115 35 -190c83 100 147 202 147 326c0 40 -6 82 -21 127c-49 -24 -161 -97 -161 -263z" fill="currentColor"/>
+</g>
+<g transform="translate(25.6567, 26.2356)">
+</g>
+<g transform="translate(25.6567, 31.7856)">
+<path transform="scale(0.0040, -0.0040)" d="M0 -46c0 91 116 182 217 182c63 0 109 -35 109 -90c0 -87 -110 -182 -220 -182c-67 0 -106 39 -106 90z" fill="currentColor"/>
+</g>
+<g transform="translate(21.9567, 11.6906)">
+<path transform="scale(0.0040, -0.0040)" d="M433 -89c0 -22 -50 -174 -183 -174c-59 0 -250 19 -250 263c0 62 18 262 250 262c116 0 176 -106 176 -163c0 -40 -30 -72 -67 -72c-31 0 -75 25 -75 75c0 38 27 77 72 77c4 0 9 0 14 -1c-28 37 -72 59 -120 59c-106 0 -113 -73 -113 -186v-51v-51
+c0 -113 7 -186 113 -186c80 0 139 69 158 150c2 7 7 10 12 10c6 0 13 -4 13 -12z" fill="currentColor"/>
+</g>
+<g transform="translate(17.8717, 12.6906)">
+<path transform="scale(0.0040, -0.0040)" d="M266 -635h-6c-108 0 -195 88 -195 197c0 58 53 103 112 103c54 0 95 -47 95 -103c0 -52 -43 -95 -95 -95c-11 0 -21 2 -31 6c26 -39 68 -65 117 -65h4zM401 151c19 -89 48 -242 60 -354c76 27 112 94 112 163c0 89 -60 179 -172 191zM74 28c0 -112 98 -247 278 -247
+c21 0 44 2 68 6c-7 64 -29 203 -63 364c-79 -8 -124 -61 -124 -119c0 -44 25 -91 81 -123c5 -5 7 -10 7 -15c0 -11 -10 -22 -22 -22c-15 0 -126 62 -126 187c0 88 58 174 160 197c-14 58 -29 117 -46 175c-107 -121 -213 -243 -213 -403zM357 1194c28 0 143 -206 143 -361
+c0 -143 -86 -255 -180 -364c21 -68 39 -138 56 -207c5 0 10 1 14 1c155 0 255 -129 255 -262c0 -113 -74 -212 -180 -245c3 -35 5 -70 5 -105c0 -19 -1 -39 -2 -58c-7 -119 -88 -225 -202 -228l1 43c93 2 153 92 159 191c1 18 2 37 2 55c0 31 -1 61 -4 92
+c-28 -5 -55 -8 -80 -8c-239 0 -342 217 -342 374c0 177 131 306 248 441c-29 96 -52 170 -52 346c0 189 144 295 159 295zM247 782c0 -55 12 -115 35 -190c83 100 147 202 147 326c0 40 -6 82 -21 127c-49 -24 -161 -97 -161 -263z" fill="currentColor"/>
+</g>
+<g transform="translate(25.6567, 14.6906)">
+<path transform="scale(0.0040, -0.0040)" d="M0 -46c0 91 116 182 217 182c63 0 109 -35 109 -90c0 -87 -110 -182 -220 -182c-67 0 -106 39 -106 90z" fill="currentColor"/>
+</g>
+<g transform="translate(17.0117, 20.2381)">
+<rect x="0.0000" y="-10.5975" width="0.1600" height="21.1950" ry="0.0500" fill="currentColor"/>
+</g>
+<g color="rgba(100.0000%, 0.0000%, 100.0000%, 100.0000%)">
+<g transform="translate(17.0717, 28.7856)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="8.5850" y1="-12.5500" x2="18.5850" y2="-12.5500"/>
+</g>
+<g transform="translate(17.0717, 28.7856)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="8.5850" y1="-2.0500" x2="8.5850" y2="-12.5500"/>
+</g>
+<g transform="translate(17.0717, 28.7856)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="2.8000" y1="-2.0500" x2="8.5850" y2="-2.0500"/>
+</g>
+<g transform="translate(17.0717, 28.7856)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="2.8000" y1="-2.3320" x2="2.8000" y2="-2.0500"/>
+</g>
+<g transform="translate(17.0717, 28.7856)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="2.7742" y1="-2.6072" x2="2.8000" y2="-2.3320"/>
+</g>
+<g transform="translate(17.0717, 28.7856)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="2.7742" y1="-2.6072" x2="2.7742" y2="-2.6072"/>
+</g>
+<g transform="translate(17.0717, 28.7856)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="2.7062" y1="-2.8894" x2="2.7742" y2="-2.6072"/>
+</g>
+<g transform="translate(17.0717, 28.7856)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="2.7062" y1="-2.8894" x2="2.7062" y2="-2.8894"/>
+</g>
+<g transform="translate(17.0717, 28.7856)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="2.6101" y1="-3.1606" x2="2.7062" y2="-2.8894"/>
+</g>
+<g transform="translate(17.0717, 28.7856)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="2.6101" y1="-3.1606" x2="2.6101" y2="-3.1606"/>
+</g>
+<g transform="translate(17.0717, 28.7856)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="2.5002" y1="-3.4029" x2="2.6101" y2="-3.1606"/>
+</g>
+<g transform="translate(17.0717, 28.7856)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="2.5002" y1="-3.4029" x2="2.5002" y2="-3.4029"/>
+</g>
+<g transform="translate(17.0717, 28.7856)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="2.3904" y1="-3.5982" x2="2.5002" y2="-3.4029"/>
+</g>
+<g transform="translate(17.0717, 28.7856)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="2.3904" y1="-3.5982" x2="2.3904" y2="-3.5982"/>
+</g>
+<g transform="translate(17.0717, 28.7856)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="2.2950" y1="-3.7285" x2="2.3904" y2="-3.5982"/>
+</g>
+<g transform="translate(17.0717, 28.7856)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="2.2950" y1="-3.7285" x2="2.2950" y2="-3.7285"/>
+</g>
+<g transform="translate(17.0717, 28.7856)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="2.2280" y1="-3.7760" x2="2.2950" y2="-3.7285"/>
+</g>
+<g transform="translate(17.0717, 28.7856)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="2.2280" y1="-3.7760" x2="2.2280" y2="-3.7760"/>
+</g>
+<g transform="translate(17.0717, 28.7856)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="2.1601" y1="-3.7411" x2="2.2280" y2="-3.7760"/>
+</g>
+<g transform="translate(17.0717, 28.7856)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="2.1601" y1="-3.7411" x2="2.1601" y2="-3.7411"/>
+</g>
+<g transform="translate(17.0717, 28.7856)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="2.0364" y1="-3.6381" x2="2.1601" y2="-3.7411"/>
+</g>
+<g transform="translate(17.0717, 28.7856)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="2.0364" y1="-3.6381" x2="2.0364" y2="-3.6381"/>
+</g>
+<g transform="translate(17.0717, 28.7856)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="1.8875" y1="-3.4695" x2="2.0364" y2="-3.6381"/>
+</g>
+<g transform="translate(17.0717, 28.7856)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="1.8875" y1="-3.4695" x2="1.8875" y2="-3.4695"/>
+</g>
+<g transform="translate(17.0717, 28.7856)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="1.7436" y1="-3.2379" x2="1.8875" y2="-3.4695"/>
+</g>
+<g transform="translate(17.0717, 28.7856)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="1.7436" y1="-3.2379" x2="1.7436" y2="-3.2379"/>
+</g>
+<g transform="translate(17.0717, 28.7856)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="1.6349" y1="-2.9459" x2="1.7436" y2="-3.2379"/>
+</g>
+<g transform="translate(17.0717, 28.7856)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="1.6349" y1="-2.9459" x2="1.6349" y2="-2.9459"/>
+</g>
+<g transform="translate(17.0717, 28.7856)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="1.5920" y1="-2.5960" x2="1.6349" y2="-2.9459"/>
+</g>
+<g transform="translate(17.0717, 28.7856)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="1.5920" y1="-2.0500" x2="1.5920" y2="-2.5960"/>
+</g>
+<g transform="translate(17.0717, 28.7856)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="0.0500" y1="-2.0500" x2="1.5920" y2="-2.0500"/>
+</g>
+</g>
+<g color="rgba(0.0000%, 100.0000%, 100.0000%, 100.0000%)">
+<g transform="translate(17.0717, 28.7856)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="18.5350" y1="-2.5500" x2="18.5850" y2="-2.5500"/>
+</g>
+<g transform="translate(17.0717, 28.7856)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="18.5350" y1="2.0500" x2="18.5350" y2="-2.5500"/>
+</g>
+<g transform="translate(17.0717, 28.7856)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="10.2153" y1="2.0500" x2="18.5350" y2="2.0500"/>
+</g>
+<g transform="translate(17.0717, 28.7856)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="10.2153" y1="3.1000" x2="10.2153" y2="2.0500"/>
+</g>
+<g transform="translate(17.0717, 28.7856)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="9.8892" y1="3.1000" x2="10.2153" y2="3.1000"/>
+</g>
+<g transform="translate(17.0717, 28.7856)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="9.8892" y1="3.5450" x2="9.8892" y2="3.1000"/>
+</g>
+<g transform="translate(17.0717, 28.7856)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="8.5850" y1="3.5450" x2="9.8892" y2="3.5450"/>
+</g>
+<g transform="translate(17.0717, 28.7856)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="8.5850" y1="3.1000" x2="8.5850" y2="3.5450"/>
+</g>
+<g transform="translate(17.0717, 28.7856)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="8.2589" y1="3.1000" x2="8.5850" y2="3.1000"/>
+</g>
+<g transform="translate(17.0717, 28.7856)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="8.2589" y1="2.0500" x2="8.2589" y2="3.1000"/>
+</g>
+<g transform="translate(17.0717, 28.7856)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="2.6800" y1="2.0500" x2="8.2589" y2="2.0500"/>
+</g>
+<g transform="translate(17.0717, 28.7856)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="2.6800" y1="2.3960" x2="2.6800" y2="2.0500"/>
+</g>
+<g transform="translate(17.0717, 28.7856)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="2.6775" y1="2.5120" x2="2.6800" y2="2.3960"/>
+</g>
+<g transform="translate(17.0717, 28.7856)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="2.6775" y1="2.5120" x2="2.6775" y2="2.5120"/>
+</g>
+<g transform="translate(17.0717, 28.7856)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="2.6720" y1="2.6280" x2="2.6775" y2="2.5120"/>
+</g>
+<g transform="translate(17.0717, 28.7856)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="2.6720" y1="2.6280" x2="2.6720" y2="2.6280"/>
+</g>
+<g transform="translate(17.0717, 28.7856)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="2.6341" y1="2.8600" x2="2.6720" y2="2.6280"/>
+</g>
+<g transform="translate(17.0717, 28.7856)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="2.6341" y1="2.8600" x2="2.6341" y2="2.8600"/>
+</g>
+<g transform="translate(17.0717, 28.7856)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="2.5514" y1="3.0733" x2="2.6341" y2="2.8600"/>
+</g>
+<g transform="translate(17.0717, 28.7856)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="2.5514" y1="3.0733" x2="2.5514" y2="3.0733"/>
+</g>
+<g transform="translate(17.0717, 28.7856)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="2.4285" y1="3.2580" x2="2.5514" y2="3.0733"/>
+</g>
+<g transform="translate(17.0717, 28.7856)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="2.4285" y1="3.2580" x2="2.4285" y2="3.2580"/>
+</g>
+<g transform="translate(17.0717, 28.7856)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="2.2699" y1="3.4040" x2="2.4285" y2="3.2580"/>
+</g>
+<g transform="translate(17.0717, 28.7856)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="2.2699" y1="3.4040" x2="2.2699" y2="3.4040"/>
+</g>
+<g transform="translate(17.0717, 28.7856)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="2.0802" y1="3.5013" x2="2.2699" y2="3.4040"/>
+</g>
+<g transform="translate(17.0717, 28.7856)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="2.0802" y1="3.5013" x2="2.0802" y2="3.5013"/>
+</g>
+<g transform="translate(17.0717, 28.7856)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="1.8640" y1="3.5400" x2="2.0802" y2="3.5013"/>
+</g>
+<g transform="translate(17.0717, 28.7856)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="1.8640" y1="3.5400" x2="1.8640" y2="3.5400"/>
+</g>
+<g transform="translate(17.0717, 28.7856)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="1.8400" y1="3.5400" x2="1.8640" y2="3.5400"/>
+</g>
+<g transform="translate(17.0717, 28.7856)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="1.8400" y1="3.5400" x2="1.8400" y2="3.5400"/>
+</g>
+<g transform="translate(17.0717, 28.7856)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="1.5930" y1="3.4999" x2="1.8400" y2="3.5400"/>
+</g>
+<g transform="translate(17.0717, 28.7856)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="1.5930" y1="3.4999" x2="1.5930" y2="3.4999"/>
+</g>
+<g transform="translate(17.0717, 28.7856)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="1.3788" y1="3.3882" x2="1.5930" y2="3.4999"/>
+</g>
+<g transform="translate(17.0717, 28.7856)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="1.3788" y1="3.3882" x2="1.3788" y2="3.3882"/>
+</g>
+<g transform="translate(17.0717, 28.7856)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="1.2101" y1="3.2177" x2="1.3788" y2="3.3882"/>
+</g>
+<g transform="translate(17.0717, 28.7856)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="1.2101" y1="3.2177" x2="1.2101" y2="3.2177"/>
+</g>
+<g transform="translate(17.0717, 28.7856)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="1.0996" y1="3.0014" x2="1.2101" y2="3.2177"/>
+</g>
+<g transform="translate(17.0717, 28.7856)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="1.0996" y1="3.0014" x2="1.0996" y2="3.0014"/>
+</g>
+<g transform="translate(17.0717, 28.7856)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="1.0600" y1="2.7520" x2="1.0996" y2="3.0014"/>
+</g>
+<g transform="translate(17.0717, 28.7856)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="1.0600" y1="2.7520" x2="1.0600" y2="2.7520"/>
+</g>
+<g transform="translate(17.0717, 28.7856)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="1.0600" y1="2.7520" x2="1.0600" y2="2.7520"/>
+</g>
+<g transform="translate(17.0717, 28.7856)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="1.0600" y1="2.0500" x2="1.0600" y2="2.7520"/>
+</g>
+<g transform="translate(17.0717, 28.7856)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="0.0500" y1="2.0500" x2="1.0600" y2="2.0500"/>
+</g>
+</g>
+<g color="rgba(100.0000%, 0.0000%, 100.0000%, 100.0000%)">
+<g transform="translate(17.0717, 11.6906)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="2.8000" y1="-2.0500" x2="18.5350" y2="-2.0500"/>
+</g>
+<g transform="translate(17.0717, 11.6906)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="2.8000" y1="-2.3320" x2="2.8000" y2="-2.0500"/>
+</g>
+<g transform="translate(17.0717, 11.6906)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="2.7742" y1="-2.6072" x2="2.8000" y2="-2.3320"/>
+</g>
+<g transform="translate(17.0717, 11.6906)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="2.7742" y1="-2.6072" x2="2.7742" y2="-2.6072"/>
+</g>
+<g transform="translate(17.0717, 11.6906)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="2.7062" y1="-2.8894" x2="2.7742" y2="-2.6072"/>
+</g>
+<g transform="translate(17.0717, 11.6906)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="2.7062" y1="-2.8894" x2="2.7062" y2="-2.8894"/>
+</g>
+<g transform="translate(17.0717, 11.6906)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="2.6101" y1="-3.1606" x2="2.7062" y2="-2.8894"/>
+</g>
+<g transform="translate(17.0717, 11.6906)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="2.6101" y1="-3.1606" x2="2.6101" y2="-3.1606"/>
+</g>
+<g transform="translate(17.0717, 11.6906)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="2.5002" y1="-3.4029" x2="2.6101" y2="-3.1606"/>
+</g>
+<g transform="translate(17.0717, 11.6906)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="2.5002" y1="-3.4029" x2="2.5002" y2="-3.4029"/>
+</g>
+<g transform="translate(17.0717, 11.6906)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="2.3904" y1="-3.5982" x2="2.5002" y2="-3.4029"/>
+</g>
+<g transform="translate(17.0717, 11.6906)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="2.3904" y1="-3.5982" x2="2.3904" y2="-3.5982"/>
+</g>
+<g transform="translate(17.0717, 11.6906)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="2.2950" y1="-3.7285" x2="2.3904" y2="-3.5982"/>
+</g>
+<g transform="translate(17.0717, 11.6906)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="2.2950" y1="-3.7285" x2="2.2950" y2="-3.7285"/>
+</g>
+<g transform="translate(17.0717, 11.6906)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="2.2280" y1="-3.7760" x2="2.2950" y2="-3.7285"/>
+</g>
+<g transform="translate(17.0717, 11.6906)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="2.2280" y1="-3.7760" x2="2.2280" y2="-3.7760"/>
+</g>
+<g transform="translate(17.0717, 11.6906)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="2.1601" y1="-3.7411" x2="2.2280" y2="-3.7760"/>
+</g>
+<g transform="translate(17.0717, 11.6906)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="2.1601" y1="-3.7411" x2="2.1601" y2="-3.7411"/>
+</g>
+<g transform="translate(17.0717, 11.6906)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="2.0364" y1="-3.6381" x2="2.1601" y2="-3.7411"/>
+</g>
+<g transform="translate(17.0717, 11.6906)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="2.0364" y1="-3.6381" x2="2.0364" y2="-3.6381"/>
+</g>
+<g transform="translate(17.0717, 11.6906)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="1.8875" y1="-3.4695" x2="2.0364" y2="-3.6381"/>
+</g>
+<g transform="translate(17.0717, 11.6906)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="1.8875" y1="-3.4695" x2="1.8875" y2="-3.4695"/>
+</g>
+<g transform="translate(17.0717, 11.6906)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="1.7436" y1="-3.2379" x2="1.8875" y2="-3.4695"/>
+</g>
+<g transform="translate(17.0717, 11.6906)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="1.7436" y1="-3.2379" x2="1.7436" y2="-3.2379"/>
+</g>
+<g transform="translate(17.0717, 11.6906)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="1.6349" y1="-2.9459" x2="1.7436" y2="-3.2379"/>
+</g>
+<g transform="translate(17.0717, 11.6906)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="1.6349" y1="-2.9459" x2="1.6349" y2="-2.9459"/>
+</g>
+<g transform="translate(17.0717, 11.6906)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="1.5920" y1="-2.5960" x2="1.6349" y2="-2.9459"/>
+</g>
+<g transform="translate(17.0717, 11.6906)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="1.5920" y1="-2.0500" x2="1.5920" y2="-2.5960"/>
+</g>
+<g transform="translate(17.0717, 11.6906)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="0.0500" y1="-2.0500" x2="1.5920" y2="-2.0500"/>
+</g>
+<g transform="translate(17.0717, 11.6906)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="0.0000" y1="-0.0000" x2="0.0000" y2="-0.0000"/>
+</g>
+<g transform="translate(17.0717, 11.6906)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="0.0000" y1="-0.0000" x2="0.0000" y2="-0.0000"/>
+</g>
+<g transform="translate(17.0717, 11.6906)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="0.0000" y1="-0.0000" x2="0.0000" y2="-0.0000"/>
+</g>
+<g transform="translate(17.0717, 11.6906)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="0.0000" y1="-0.0000" x2="0.0000" y2="-0.0000"/>
+</g>
+<g transform="translate(17.0717, 11.6906)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="0.0000" y1="-0.0000" x2="0.0000" y2="-0.0000"/>
+</g>
+</g>
+<g color="rgba(0.0000%, 100.0000%, 100.0000%, 100.0000%)">
+<g transform="translate(17.0717, 11.6906)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="10.2153" y1="2.0500" x2="18.5350" y2="2.0500"/>
+</g>
+<g transform="translate(17.0717, 11.6906)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="10.2153" y1="3.1000" x2="10.2153" y2="2.0500"/>
+</g>
+<g transform="translate(17.0717, 11.6906)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="9.8892" y1="3.1000" x2="10.2153" y2="3.1000"/>
+</g>
+<g transform="translate(17.0717, 11.6906)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="9.8892" y1="3.5450" x2="9.8892" y2="3.1000"/>
+</g>
+<g transform="translate(17.0717, 11.6906)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="8.5850" y1="3.5450" x2="9.8892" y2="3.5450"/>
+</g>
+<g transform="translate(17.0717, 11.6906)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="8.5850" y1="3.1000" x2="8.5850" y2="3.5450"/>
+</g>
+<g transform="translate(17.0717, 11.6906)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="8.2589" y1="3.1000" x2="8.5850" y2="3.1000"/>
+</g>
+<g transform="translate(17.0717, 11.6906)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="8.2589" y1="2.0500" x2="8.2589" y2="3.1000"/>
+</g>
+<g transform="translate(17.0717, 11.6906)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="2.6800" y1="2.0500" x2="8.2589" y2="2.0500"/>
+</g>
+<g transform="translate(17.0717, 11.6906)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="2.6800" y1="2.3960" x2="2.6800" y2="2.0500"/>
+</g>
+<g transform="translate(17.0717, 11.6906)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="2.6775" y1="2.5120" x2="2.6800" y2="2.3960"/>
+</g>
+<g transform="translate(17.0717, 11.6906)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="2.6775" y1="2.5120" x2="2.6775" y2="2.5120"/>
+</g>
+<g transform="translate(17.0717, 11.6906)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="2.6720" y1="2.6280" x2="2.6775" y2="2.5120"/>
+</g>
+<g transform="translate(17.0717, 11.6906)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="2.6720" y1="2.6280" x2="2.6720" y2="2.6280"/>
+</g>
+<g transform="translate(17.0717, 11.6906)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="2.6341" y1="2.8600" x2="2.6720" y2="2.6280"/>
+</g>
+<g transform="translate(17.0717, 11.6906)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="2.6341" y1="2.8600" x2="2.6341" y2="2.8600"/>
+</g>
+<g transform="translate(17.0717, 11.6906)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="2.5514" y1="3.0733" x2="2.6341" y2="2.8600"/>
+</g>
+<g transform="translate(17.0717, 11.6906)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="2.5514" y1="3.0733" x2="2.5514" y2="3.0733"/>
+</g>
+<g transform="translate(17.0717, 11.6906)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="2.4285" y1="3.2580" x2="2.5514" y2="3.0733"/>
+</g>
+<g transform="translate(17.0717, 11.6906)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="2.4285" y1="3.2580" x2="2.4285" y2="3.2580"/>
+</g>
+<g transform="translate(17.0717, 11.6906)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="2.2699" y1="3.4040" x2="2.4285" y2="3.2580"/>
+</g>
+<g transform="translate(17.0717, 11.6906)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="2.2699" y1="3.4040" x2="2.2699" y2="3.4040"/>
+</g>
+<g transform="translate(17.0717, 11.6906)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="2.0802" y1="3.5013" x2="2.2699" y2="3.4040"/>
+</g>
+<g transform="translate(17.0717, 11.6906)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="2.0802" y1="3.5013" x2="2.0802" y2="3.5013"/>
+</g>
+<g transform="translate(17.0717, 11.6906)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="1.8640" y1="3.5400" x2="2.0802" y2="3.5013"/>
+</g>
+<g transform="translate(17.0717, 11.6906)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="1.8640" y1="3.5400" x2="1.8640" y2="3.5400"/>
+</g>
+<g transform="translate(17.0717, 11.6906)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="1.8400" y1="3.5400" x2="1.8640" y2="3.5400"/>
+</g>
+<g transform="translate(17.0717, 11.6906)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="1.8400" y1="3.5400" x2="1.8400" y2="3.5400"/>
+</g>
+<g transform="translate(17.0717, 11.6906)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="1.5930" y1="3.4999" x2="1.8400" y2="3.5400"/>
+</g>
+<g transform="translate(17.0717, 11.6906)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="1.5930" y1="3.4999" x2="1.5930" y2="3.4999"/>
+</g>
+<g transform="translate(17.0717, 11.6906)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="1.3788" y1="3.3882" x2="1.5930" y2="3.4999"/>
+</g>
+<g transform="translate(17.0717, 11.6906)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="1.3788" y1="3.3882" x2="1.3788" y2="3.3882"/>
+</g>
+<g transform="translate(17.0717, 11.6906)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="1.2101" y1="3.2177" x2="1.3788" y2="3.3882"/>
+</g>
+<g transform="translate(17.0717, 11.6906)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="1.2101" y1="3.2177" x2="1.2101" y2="3.2177"/>
+</g>
+<g transform="translate(17.0717, 11.6906)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="1.0996" y1="3.0014" x2="1.2101" y2="3.2177"/>
+</g>
+<g transform="translate(17.0717, 11.6906)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="1.0996" y1="3.0014" x2="1.0996" y2="3.0014"/>
+</g>
+<g transform="translate(17.0717, 11.6906)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="1.0600" y1="2.7520" x2="1.0996" y2="3.0014"/>
+</g>
+<g transform="translate(17.0717, 11.6906)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="1.0600" y1="2.7520" x2="1.0600" y2="2.7520"/>
+</g>
+<g transform="translate(17.0717, 11.6906)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="1.0600" y1="2.7520" x2="1.0600" y2="2.7520"/>
+</g>
+<g transform="translate(17.0717, 11.6906)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="1.0600" y1="2.0500" x2="1.0600" y2="2.7520"/>
+</g>
+<g transform="translate(17.0717, 11.6906)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="0.0500" y1="2.0500" x2="1.0600" y2="2.0500"/>
+</g>
+<g transform="translate(17.0717, 11.6906)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="0.0000" y1="0.0000" x2="0.0000" y2="0.0000"/>
+</g>
+<g transform="translate(17.0717, 11.6906)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="0.0000" y1="0.0000" x2="0.0000" y2="0.0000"/>
+</g>
+<g transform="translate(17.0717, 11.6906)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="0.0000" y1="0.0000" x2="0.0000" y2="0.0000"/>
+</g>
+<g transform="translate(17.0717, 11.6906)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="0.0000" y1="0.0000" x2="0.0000" y2="0.0000"/>
+</g>
+<g transform="translate(17.0717, 11.6906)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="0.0000" y1="0.0000" x2="0.0000" y2="0.0000"/>
+</g>
+</g>
+<g transform="translate(21.9567, 28.7856)">
+<path transform="scale(0.0040, -0.0040)" d="M433 -89c0 -22 -50 -174 -183 -174c-59 0 -250 19 -250 263c0 62 18 262 250 262c116 0 176 -106 176 -163c0 -40 -30 -72 -67 -72c-31 0 -75 25 -75 75c0 38 27 77 72 77c4 0 9 0 14 -1c-28 37 -72 59 -120 59c-106 0 -113 -73 -113 -186v-51v-51
+c0 -113 7 -186 113 -186c80 0 139 69 158 150c2 7 7 10 12 10c6 0 13 -4 13 -12z" fill="currentColor"/>
+</g>
+</g>
+</svg>

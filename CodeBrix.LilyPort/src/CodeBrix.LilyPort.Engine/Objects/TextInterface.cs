@@ -253,6 +253,30 @@ public static class TextInterface
     }
 
     /// <summary>
+    /// The file a music font would have been read from, as upstream's warnings name it.
+    /// </summary>
+    /// <param name="font">The font metric, possibly a scaled wrapper.</param>
+    /// <returns>The file name, or the font's own name when it is not an OTF.</returns>
+    private static string MusicFontFileName(FontMetric font)
+    {
+        FontMetric unwrapped = font;
+        while (unwrapped is ModifiedFontMetric scaled)
+        {
+            unwrapped = scaled.OriginalFont;
+        }
+
+        if (unwrapped is OpenTypeFontMetric openType)
+        {
+            string name = openType.Font.FileName;
+            return name.EndsWith(".otf", StringComparison.OrdinalIgnoreCase)
+                ? System.IO.Path.GetFileName(name)
+                : name + ".otf";
+        }
+
+        return font.FontName;
+    }
+
+    /// <summary>
     /// Sets a string in the MUSIC font: each code point maps through the font's
     /// character map to a named glyph, and the pen advances by the glyph's own
     /// <c>hmtx</c> advance. A code point the font does not map draws nothing and the
@@ -310,6 +334,17 @@ public static class TextInterface
             if (index != FontMetric.GlyphIndexInvalid)
             {
                 glyphs.Add(index);
+            }
+            else
+            {
+                // Upstream reaches the MUSIC font through Pango too, so a character the
+                // music font cannot map produces the same warning a text one does —
+                // "inf" set as a compound-meter denominator is the corpus's case, and
+                // Emmentaler has no `i'. Dropping the glyph silently is what left it
+                // unsaid. Naming the font is the point of the message, so the file name
+                // is reconstructed here rather than read from FileName, which for an
+                // embedded font is the suffix-less asset name.
+                MissingGlyphWarning.Warn(codePoint, MusicFontFileName(font));
             }
         }
 

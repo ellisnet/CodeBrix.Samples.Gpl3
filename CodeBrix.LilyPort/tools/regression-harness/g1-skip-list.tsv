@@ -1,0 +1,37 @@
+# CodeBrix.LilyPort -- THE G1 SKIP LIST.
+#
+# G1's definition has always read "every root regression file + other/ MATCHes the
+# pinned reference corpus at NAMED-GLYPH identity, MINUS A COMMITTED, REASONED SKIP
+# LIST".  This is that file.  It exists for the CLAIM rather than for the rows: when
+# G1 goes green, "2,316 pages match except these eight, ruled out on this date for
+# this reason" has to be answerable from the REPOSITORY alone, and until this file
+# existed six of the eight were named nowhere in it.
+#
+# THE MECHANISM AND THE REASONING ARE NOT HERE.  They are in
+# src/CodeBrix.LilyPort.Engine/PORT-COVERAGE.txt, where D31 already holds them; this
+# file makes the exclusion auditable, not repeated.
+#
+# READ BY NOTHING AUTOMATICALLY.  There is no reporting script and compare-output.py
+# does not consult it.  A row here still grades, and still floors, exactly as any
+# other row does -- being ruled out of G1 is a statement about the GATE, not about
+# the measurement.
+#
+# NOT pass-manifest-decisions.tsv, deliberately.  That file's own header reads "every
+# time a floor came DOWN, and why".  Six of these eight never had a floor come down --
+# they have been GLYPHS-DIFFER throughout -- so listing them there would make that file
+# say something untrue about itself.  The two D31 originals keep their entries there,
+# because their floor genuinely did come down, AND appear here, so there is one place
+# to look.
+#
+# NOT D43's six skyline rows.  Those are ruled onto a committed PORT-GENERATED
+# BASELINE (R9, 2026-08-16) rather than skipped, and need no entry here.
+#
+# file	verdict-at-ruling	ruling	revisit-condition
+markup-diacritic-marks.svg	GLYPHS-DIFFER	D31 (Jeremy, 2026-08-13): tofu stands -- for a code point no bundled face covers the port emits the <text> run and draws .notdef while the D30-pinned oracle drops the run	the deferred optional-font-packages decision (would this port ever cover CJK/Hebrew/Arabic/Japanese) -- see PORT-COVERAGE D31
+pdf-copy-paste.svg	GLYPHS-DIFFER	D31 (Jeremy, 2026-08-13): tofu stands -- for a code point no bundled face covers the port emits the <text> run and draws .notdef while the D30-pinned oracle drops the run	the deferred optional-font-packages decision (would this port ever cover CJK/Hebrew/Arabic/Japanese) -- see PORT-COVERAGE D31
+one-line-auto-height-breaking.svg	GLYPHS-DIFFER	R8(A) (Jeremy, 2026-08-15): D31 extended by name -- measured at PARITY 13 as that mechanism and nothing else	SVG ROWS ONLY -- this file still owes the oracle's "no glyph for character" warnings, which are D40 and are FIX work; then the deferred optional-font-packages decision
+one-line-breaking.svg	GLYPHS-DIFFER	R8(A) (Jeremy, 2026-08-15): D31 extended by name -- measured at PARITY 13 as that mechanism and nothing else	SVG ROWS ONLY -- this file still owes the oracle's "no glyph for character" warnings, which are D40 and are FIX work; then the deferred optional-font-packages decision
+one-page-breaking.svg	GLYPHS-DIFFER	R8(A) (Jeremy, 2026-08-15): D31 extended by name -- measured at PARITY 13 as that mechanism and nothing else	SVG ROWS ONLY -- this file still owes the oracle's "no glyph for character" warnings, which are D40 and are FIX work; then the deferred optional-font-packages decision
+profile-property-access.svg	GLYPHS-DIFFER	R8(A) (Jeremy, 2026-08-15): D31 extended by name -- measured at PARITY 13 as that mechanism and nothing else	SVG ROWS ONLY -- this file still owes the oracle's "no glyph for character" warnings, which are D40 and are FIX work; then the deferred optional-font-packages decision
+typography-demo.svg	GLYPHS-DIFFER	R8(A) (Jeremy, 2026-08-15): D31 extended by name -- measured at PARITY 13 as that mechanism and nothing else	SVG ROWS ONLY -- this file still owes the oracle's "no glyph for character" warnings, which are D40 and are FIX work; then the deferred optional-font-packages decision
+utf-8.svg	GLYPHS-DIFFER	R8(A) (Jeremy, 2026-08-15): D31 extended by name -- measured at PARITY 13 as that mechanism and nothing else	SVG ROWS ONLY -- this file still owes the oracle's "no glyph for character" warnings, which are D40 and are FIX work; then the deferred optional-font-packages decision

@@ -1199,6 +1199,18 @@ Copyright: Copyright (C) 1996--2026 Han-Wen Nienhuys <hanwen@xs4all.nl>
         between two music glyphs and reading the two glyph origins out of the
         SVG.  The derivation is the observed BEHAVIOUR, not source.
 
+    src/CodeBrix.LilyPort.Engine/Fonts/MissingGlyphWarning.cs
+        New-in-family C# (no upstream header), Copyright (c) 2026 Jeremy Ellis
+        and contributors -- LilyPond's "no glyph for character" warning of
+        lily/pango-font.cc:253.  The WORDING is LilyPond's and is reproduced
+        verbatim under standing rule 15.  The FORMAL NAME in it comes from
+        CodeBrix.LilyScheme's (ice-9 unicode), which is where Guile puts
+        char->formal-name; the Unicode Character Database table behind it is
+        recorded in THAT repository's THIRD-PARTY-NOTICES.txt section 6, not
+        here.  What IS this file's own is the zero-width exclusion -- Unicode's
+        Default_Ignorable_Code_Point, which is what Pango's PANGO_GLYPH_EMPTY
+        amounts to -- because that is Pango's behaviour rather than Guile's.
+
     src/CodeBrix.LilyPort.Engine/Fonts/TextFontMetric.cs
         <- lily/pango-font.cc, lily/include/pango-font.hh
            Copyright (C) 2004--2026 Han-Wen Nienhuys
@@ -2999,7 +3011,11 @@ standard. This is recorded as a deliberate divergence in PORT-COVERAGE.txt.
 
 CodeBrix.LilyPort depends on CodeBrix.LilyScheme, a separate
 LGPL-3.0-or-later library that carries its own THIRD-PARTY-NOTICES.txt
-covering the GNU Guile material it incorporates.
+covering the GNU Guile material it incorporates -- and, since 2026-08-16,
+the Unicode Character Database table behind (ice-9 unicode)'s
+char->formal-name, which is section 6 there. LilyPond's "no glyph for
+character" warning prints a name from that table; the notice for it lives
+with the data, in the package that ships it.
 
 The separation is deliberate and is a licensing decision, not a filing
 convenience:

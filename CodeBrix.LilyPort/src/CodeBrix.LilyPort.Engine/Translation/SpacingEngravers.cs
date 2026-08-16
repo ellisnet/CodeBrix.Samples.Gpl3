@@ -205,9 +205,20 @@ public class SpacingEngraver : Engraver
             return;
         }
 
-        Rational proportional = GetProperty(ProportionalNotationDuration) is Moment moment
-            ? moment.MainPart
-            : -Rational.Infinity;
+        // from_scm (…, -Rational::infinity ()), and NOT a type test. The property's
+        // type predicate is musical-length-as-number?, so `proportionalNotationDuration
+        // = #1/4' arrives as an exact RATIO — `is Moment' answered false for every real
+        // value, the fallback won every time, and proportional notation had never once
+        // been switched on. (proportionalNotationDurationAsMoment is the DEPRECATED
+        // spelling and is converted by ly:moment-main before it ever reaches here; a
+        // Moment arriving directly is not accepted by upstream's is_scm<Rational>
+        // either, so nothing is lost by no longer looking for one.)
+        object proportionalProperty = GetProperty(ProportionalNotationDuration);
+        Rational proportional
+            = Bootstrap.SchemeConvert.IsExactOrInfiniteReal(proportionalProperty)
+                ? Bootstrap.SchemeConvert.ToRational(
+                    proportionalProperty, "proportionalNotationDuration")
+                : -Rational.Infinity;
         if (proportional >= Rational.Zero)
         {
             // The durations go in as SCHEME numbers, not as the port's Rational struct:

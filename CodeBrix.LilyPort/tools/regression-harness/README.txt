@@ -523,6 +523,15 @@ file's result line AFTER running it, so everything since the previous result
 line belongs to the file named next. Run it as `> log 2> err` and that
 interleaving is gone and nothing can be attributed.
 
+  /!\ AND A FILE MAY PRINT TWO RESULT LINES. A score that writes MIDI as well as
+  a page prints a MIDI line and then an SVG line, and this script used to clear
+  its pending list only on the TERMINAL one -- so such a file's diagnostics were
+  attributed to it TWICE. Latent for the life of the script: the five corpus files
+  it affects emitted no diagnostics at all until PARITY 15's missing-glyph warning
+  landed, at which point it read as the port saying everything twice, which is
+  exactly what a real defect would look like (trap 32a). Fixed 2026-08-16, and
+  --selftest now gives every other file a MIDI line so the case is under test.
+
     python3 compare-diagnostics.py reference/diagnostics --selftest
 
 is the standing check, and it earns its keep here more than elsewhere: the
@@ -878,3 +887,56 @@ A SHARP EDGE WORTH KNOWING BEFORE READING A DIFF
     * the soft port's BUFFERING decides whether an abort lands inside the printer
       at all, so a change to port buffering changes which procedures print which
       way. CodeBrix.LilyScheme's SoftPortBufferingTests fences the model.
+
+================================================================================
+THREE RULINGS THE HARNESS NOW CARRIES (2026-08-16, PARITY 15)
+================================================================================
+
+G1's definition has always read "every root regression file + other/ MATCHes the
+pinned corpus at NAMED-GLYPH identity, MINUS A COMMITTED, REASONED SKIP LIST;
+fallback-dependent files match committed PORT-GENERATED baselines". Both clauses
+existed only as sentences until now. Three rulings gave them artifacts.
+
+  g1-skip-list.tsv          R11 -- the rows ruled OUT of G1
+  baseline/svg + baseline-manifest.tsv
+                            R9  -- the rows graded against the PORT instead
+  compare-output.py's R10 post-pass
+                            R12 -- four rows graded WITH a stated bound
+
+THEY ARE THREE DIFFERENT THINGS AND MUST NOT BE MERGED.
+
+  * A SKIP-LIST row is not required to match at all. Eight of them, all one
+    mechanism (D31's tofu, extended by name in R8(A)). The file is read by
+    NOTHING automatically and has no reporting script: it exists so that
+    "2,316 pages match except these eight, ruled out on this date for this
+    reason" is answerable from the REPOSITORY, not from a plan document that
+    does not ship.
+
+  * A BASELINE row IS required to match -- the PORT's own frozen output rather
+    than the oracle's:
+
+        python3 compare-output.py --baseline baseline/svg candidate/svg
+
+    Expect 6 of 6 MATCH. --baseline makes BOTH sides resolve glyph names against
+    the PORT's half of glyph-identity.tsv, and it is load-bearing: without it the
+    baseline side resolves 5 of 73 paths and every row reads GLYPHS-DIFFER. A
+    baseline claims NO DRIFT and nothing else (rule 33 forbids reading a value
+    recorded from the port's own output as a correctness result); the
+    correctness claim for that mechanism is GlyphOutlineSkylineTests in the
+    Engine suite. Landing a baseline without its fence is the failure mode.
+    Provenance and the re-freezing rule are in baseline-manifest.tsv's header.
+
+  * The R10 POST-PASS grades normally and then, on four named files only, asks
+    whether the ENTIRE inventory difference is text elements identical in family
+    and content whose font-size differs by no more than 0.0005 -- and if so
+    re-grades the reconciled inventory and REPORTS the upgrade, per row and as a
+    count. It does not touch D29's identity function, which stays byte-exact, and
+    it does not assert MATCH: a placement difference on those four files still
+    reads PLACEMENT-DIFFERS. Fenced by --selftest cases (ix) through (xiii), whose
+    controls are a file R10 does not name, a size beyond the bound, a second
+    difference alongside the size, and a page whose own sizes sit within the
+    bound.
+
+WHY NOT ONE MECHANISM FOR ALL THREE. Because they make different claims, and a
+row that stops matching has to be distinguishable from a row that was never
+required to. Merging them would lose exactly that.

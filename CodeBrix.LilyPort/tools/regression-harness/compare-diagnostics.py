@@ -218,6 +218,16 @@ def read_candidate(path):
                 name = match.group("name")
                 if pending:
                     out[name].extend(pending)
+                # CLEARED ON EVERY RESULT LINE, NOT ONLY A TERMINAL ONE. A file that
+                # writes MIDI as well as a page prints TWO result lines, and clearing
+                # only on the terminal one left the pending list standing across the
+                # first -- so every diagnostic such a file emitted was attributed to it
+                # TWICE. Latent for the life of this script and invisible until PARITY
+                # 15, because the five corpus files it affects had emitted no
+                # diagnostics at all until the missing-glyph warning landed; it then
+                # read as the port saying everything twice, which is what a real defect
+                # would look like. Trap 32a: a tool's first answer is about the tool.
+                pending = []
                 if match.group("kind") in TERMINAL_KINDS:
                     # Register the file even when it said NOTHING. A file the
                     # sweep ran and that emitted no diagnostic is a file with an
@@ -226,7 +236,6 @@ def read_candidate(path):
                     # of the corpus read as UNGRADED on this comparator's first
                     # run, hiding the 12 files that genuinely agreed.
                     out.setdefault(name, [])
-                    pending = []
                 continue
             pending.extend(parse_diagnostics(raw))
     return dict(out)
@@ -368,8 +377,15 @@ def selftest(directory):
 
     synthetic = os.path.join(
         os.environ.get("TMPDIR", "/tmp"), "compare-diagnostics-selftest.log")
+    # Every OTHER file is given a MIDI result line before its SVG one, which is what
+    # BatchDriver really prints for a score that writes both. Alternating rather than
+    # doing it everywhere keeps the plain single-result-line path under test too.
+    # Before PARITY 15 this case DOUBLE-COUNTED such a file's diagnostics -- pending was
+    # cleared only on a terminal result line -- and nothing here would have caught it,
+    # because the five corpus files affected emitted no diagnostics at all until the
+    # missing-glyph warning landed.
     with open(synthetic, "w") as handle:
-        for name in sorted(reference):
+        for index, name in enumerate(sorted(reference)):
             for d in reference[name]:
                 prefix = ("%s: " % d.location) if d.location else ""
                 handle.write("%s%s: %s\n" % (prefix, d.severity, d.message))
@@ -377,6 +393,8 @@ def selftest(directory):
                 # self-test also proves that line is dropped rather than counted.
                 if d.severity == "programming error":
                     handle.write("continuing, cross fingers\n")
+            if index % 2:
+                handle.write("%s\tMIDI\t1 file(s)\n" % name)
             handle.write("%s\tSVG\t1 system(s), 0 parse error(s)\n" % name)
 
     candidate = read_candidate(synthetic)
