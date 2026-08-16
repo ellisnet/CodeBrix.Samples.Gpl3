@@ -684,6 +684,28 @@ public sealed class ModalScanner : IParserInput, CodeBrix.LilyPort.Engine.Origin
             _fileName + ":" + _line.ToString(CultureInfo.InvariantCulture)
             + ":" + _column.ToString(CultureInfo.InvariantCulture) + ": " + message);
 
+    /// <summary>
+    /// Reports a lexer WARNING — upstream's <c>Lily_lexer::LexerWarning</c>.
+    /// <para>
+    /// Not the same thing as <see cref="Warn"/>, which only appends to the parser's own
+    /// list. Upstream's goes through <c>Input::warning</c>, which is the one path
+    /// <c>ly:expect-warning</c> can intercept — so a rule that reported through
+    /// <see cref="Warn"/> fired correctly and was still invisible to the file that
+    /// expected it, and the run then reported the expectation as UNMET (trap 1b: the
+    /// diagnostic was computed and thrown away). The severity word is part of it: the
+    /// bare <see cref="Warn"/> line carries no <c>warning:</c> prefix and so is not even
+    /// a diagnostic by the comparator's grammar.
+    /// </para>
+    /// </summary>
+    /// <param name="message">The message.</param>
+    public void LexerWarning(string message)
+    {
+        string where = _fileName + ":" + _line.ToString(CultureInfo.InvariantCulture)
+            + ":" + _column.ToString(CultureInfo.InvariantCulture) + ": ";
+        Diagnostics.Add(where + "warning: " + message);
+        Flower.Warn.Warning(message, where);
+    }
+
     /// <summary>Builds a token at the location the current match started.</summary>
     /// <param name="symbol">The terminal's symbol number.</param>
     /// <param name="value">The semantic value.</param>

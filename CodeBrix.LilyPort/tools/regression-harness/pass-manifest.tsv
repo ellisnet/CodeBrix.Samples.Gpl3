@@ -54,7 +54,7 @@ alteration-glyphs.svg	MATCH
 alternating-time-beam-exceptions.svg	MATCH
 alternating-time-denominator-zero.svg	MATCH
 alternating-time-numerator-zero.svg	MATCH
-alternative-end-segno.svg	PLACEMENT-DIFFERS
+alternative-end-segno.svg	MATCH
 alternative-end.svg	MATCH
 alternative-middle-segno.svg	MATCH
 alternative-middle.svg	MATCH
@@ -254,7 +254,7 @@ bar-number-after-alternative-restore-cadenza.svg	MATCH
 bar-number-after-alternative-restore-grace.svg	MATCH
 bar-number-after-cadenza-with-grace.svg	MATCH
 bar-number-after-cadenza.svg	MATCH
-bar-number-alternative-number.svg	PLACEMENT-DIFFERS
+bar-number-alternative-number.svg	MATCH
 bar-number-alternative-style.svg	MATCH
 bar-number-break-alignment-list.svg	MATCH
 bar-number-check-warning.svg	MATCH
@@ -533,7 +533,7 @@ cluster.svg	MATCH
 coda-mark-begin-score-default.svg	MATCH
 coda-mark-begin-score-specific.svg	MATCH
 coda-mark-break.svg	MATCH
-coda-mark-formatters.svg	PLACEMENT-DIFFERS
+coda-mark-formatters.svg	MATCH
 coda-mark-unaligned.svg	MATCH
 collision-dots-invert.svg	MATCH
 collision-dots-move.svg	MATCH
@@ -1088,14 +1088,14 @@ mark-align-priority.svg	MATCH
 mark-align-staff-context.svg	MATCH
 mark-align-staff-group-context.svg	MATCH
 mark-length-direction.svg	MATCH
-mark-tracking-conflict-ad-hoc-mark.svg	PLACEMENT-DIFFERS
-mark-tracking-conflict-default-coda-mark.svg	PLACEMENT-DIFFERS
+mark-tracking-conflict-ad-hoc-mark.svg	MATCH
+mark-tracking-conflict-default-coda-mark.svg	MATCH
 mark-tracking-conflict-default-rehearsal-mark.svg	MATCH
-mark-tracking-conflict-default-segno-mark.svg	PLACEMENT-DIFFERS
+mark-tracking-conflict-default-segno-mark.svg	MATCH
 mark-tracking-conflict-section-label.svg	MATCH
-mark-tracking-conflict-specific-coda-mark.svg	PLACEMENT-DIFFERS
-mark-tracking-conflict-specific-rehearsal-mark.svg	PLACEMENT-DIFFERS
-mark-tracking-conflict-specific-segno-mark.svg	PLACEMENT-DIFFERS
+mark-tracking-conflict-specific-coda-mark.svg	MATCH
+mark-tracking-conflict-specific-rehearsal-mark.svg	MATCH
+mark-tracking-conflict-specific-segno-mark.svg	MATCH
 mark-tracking-context.svg	MATCH
 mark-tracking-sequence.svg	MATCH
 markup-accidentals.svg	PLACEMENT-DIFFERS
@@ -1819,7 +1819,7 @@ segno-mark-begin-score-default.svg	MATCH
 segno-mark-begin-score-specific.svg	MATCH
 segno-mark-break.svg	MATCH
 segno-mark-unaligned.svg	MATCH
-segno-style.svg	PLACEMENT-DIFFERS
+segno-style.svg	MATCH
 self-alignment-and-parent-alignment.svg	MATCH
 semi-tie-cross-staff.svg	MATCH
 semi-tie-manual-direction.svg	MATCH
@@ -2134,7 +2134,7 @@ time-beat-structure-triple.svg	MATCH
 time-denominator-breve.svg	MATCH
 time-denominator-zero.svg	MATCH
 time-numerator-zero.svg	MATCH
-time-signature-c.svg	PLACEMENT-DIFFERS
+time-signature-c.svg	MATCH
 time-signature-grob-nested-fraction-mixed-default.svg	MATCH
 time-signature-grob-nested-fraction-mixed-f.svg	MATCH
 time-signature-grob-nested-fraction-mixed-t.svg	MATCH

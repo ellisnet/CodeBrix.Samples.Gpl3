@@ -160,7 +160,14 @@ public static class LilyPondLexerRules
             MusicModes,
             (s, t) =>
             {
-                s.Warn("stray UTF-8 BOM encountered");
+                // lexer.ll:206 — a BOM at the very start of the file is SKIPPED in
+                // silence; only a stray one further in is reported. Upstream tests
+                // `lexloc_->line_number () != 1 || lexloc_->column_number () != 0'.
+                if (s.CurrentLocation.StartLine != 1 || s.CurrentLocation.StartColumn != 0)
+                {
+                    s.LexerWarning("stray UTF-8 BOM encountered");
+                }
+
                 return null;
             }));
 

@@ -746,6 +746,15 @@ public static class BatchRunner
         {
             session.SetIdentifier("input-file-name", new MutableString(baseName + ".ly"));
 
+            // ly:parser-output-name, which upstream's Lily_parser::parse_file sets from
+            // output_file_name_for_input_file_name. The port's ly:parse-file primitive
+            // assigns it and this driver does not go through that primitive (trap 17f),
+            // so it had kept its empty default for the life of the sweep. A `.ly' that
+            // builds its own file names from it — clip-systems.ly composes
+            // "~a-~a-~a" out of (ly:parser-output-name), a suffix and a tail — got a name
+            // missing its whole base.
+            session.OutputBaseName = baseName;
+
             // One file's \version must not answer the next file's version check.
             session.MainInputVersionString = null;
 

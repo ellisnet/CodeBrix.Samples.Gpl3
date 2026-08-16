@@ -81,6 +81,13 @@ public sealed class TextFontMetric : FontMetric
     // (see DevicePixel).
     private const double PangoResolution = 1200.0;
 
+    // The three characters HarfBuzz's space fallback measures AGAINST rather than
+    // synthesises: the substituted glyph itself, a digit for U+2007 FIGURE SPACE, and a
+    // period for U+2008 PUNCTUATION SPACE.
+    private const int Space = 0x0020;
+    private const int Zero = '0';
+    private const int Period = '.';
+
     private readonly IReadOnlyList<TextFace> _chain;
 
     /// <summary>Initializes a text font.</summary>
@@ -277,10 +284,45 @@ public sealed class TextFontMetric : FontMetric
             int codePoint = char.ConvertToUtf32(text, i);
             i += char.IsSurrogatePair(text, i) ? 2 : 1;
 
+            // HarfBuzz normalizes before it maps, and for two of the space characters
+            // that changes which glyph answers rather than merely which fallback rule
+            // applies. See UnicodeSpaceFallback.Canonicalize.
+            codePoint = UnicodeSpaceFallback.Canonicalize(codePoint);
+
             TextFace face = Resolve(codePoint);
             if (face == null)
             {
                 continue;
+            }
+
+            // A SPACE character no face covers is NOT tofu. HarfBuzz substitutes the
+            // ordinary space glyph for it and then rewrites the advance from the
+            // character's space type, so the port owes both halves — otherwise a hair
+            // space measures as .notdef, which in C059 is exactly as wide as an ordinary
+            // space, and the run comes out too long with a tofu box in the skyline.
+            if (!face.Covers(codePoint))
+            {
+                SpaceFallbackKind kind = UnicodeSpaceFallback.KindOf(codePoint);
+                if (kind != SpaceFallbackKind.None && face.Covers(Space))
+                {
+                    double scale = Scale(face);
+                    double advanceOf(int character) =>
+                        face.Covers(character)
+                            ? face.Advance(face.GlyphIndex(character)) * scale
+                            : 0.0;
+
+                    shaped.Add(new ShapedGlyph(
+                        face,
+                        face.GlyphIndex(Space),
+                        scale,
+                        UnicodeSpaceFallback.Advance(
+                            kind,
+                            face.UnitsPerEm * scale,
+                            advanceOf(Space),
+                            advanceOf(Zero),
+                            advanceOf(Period))));
+                    continue;
+                }
             }
 
             // A code point no face in the chain covers deliberately draws .notdef —
@@ -312,10 +354,22 @@ public sealed class TextFontMetric : FontMetric
             // The pair adjustment belongs to the FIRST glyph of the pair, and a face
             // change ends the run, because Pango itemizes runs per font and never kerns
             // across two of them.
-            double step = current.Face.Advance(current.Glyph) * current.Scale;
-            if (i + 1 < shaped.Count && ReferenceEquals(shaped[i + 1].Face, current.Face))
+            double step;
+            if (current.HasSynthesizedAdvance)
             {
-                step += current.Face.Kerning(current.Glyph, shaped[i + 1].Glyph) * current.Scale;
+                // HarfBuzz REPLACES the substituted glyph's advance rather than adjusting
+                // it, and it does so after shaping, so no kern applies to a synthesised
+                // space either.
+                step = current.SynthesizedAdvance;
+            }
+            else
+            {
+                step = current.Face.Advance(current.Glyph) * current.Scale;
+                if (i + 1 < shaped.Count && ReferenceEquals(shaped[i + 1].Face, current.Face))
+                {
+                    step += current.Face.Kerning(current.Glyph, shaped[i + 1].Glyph)
+                        * current.Scale;
+                }
             }
 
             // ROUND THE STEP TO A WHOLE DEVICE DOT. Pango rounds each shaped glyph's
@@ -400,9 +454,17 @@ public sealed class TextFontMetric : FontMetric
                 }
 
                 double scale = shaped[start].Scale;
-                foreach (int glyph in glyphs)
+
+                // HarfBuzz applies the space fallback AFTER substitution and skips any
+                // glyph a lookup LIGATED, so a synthesised advance survives a stretch
+                // that substituted one-for-one and is dropped by one that did not.
+                bool sameLength = glyphs.Count == end - start;
+                for (int i = 0; i < glyphs.Count; i++)
                 {
-                    result.Add(new ShapedGlyph(face, glyph, scale));
+                    result.Add(sameLength
+                        ? new ShapedGlyph(
+                            face, glyphs[i], scale, shaped[start + i].SynthesizedAdvance)
+                        : new ShapedGlyph(face, glyphs[i], scale));
                 }
             }
             else
@@ -433,10 +495,16 @@ public sealed class TextFontMetric : FontMetric
     private readonly struct ShapedGlyph
     {
         public ShapedGlyph(TextFace face, int glyph, double scale)
+            : this(face, glyph, scale, double.NaN)
+        {
+        }
+
+        public ShapedGlyph(TextFace face, int glyph, double scale, double synthesizedAdvance)
         {
             Face = face;
             Glyph = glyph;
             Scale = scale;
+            SynthesizedAdvance = synthesizedAdvance;
         }
 
         public TextFace Face { get; }
@@ -444,6 +512,13 @@ public sealed class TextFontMetric : FontMetric
         public int Glyph { get; }
 
         public double Scale { get; }
+
+        // NaN where the glyph's own advance is the answer. A space HarfBuzz synthesised
+        // for carries its width here instead, because the glyph it was substituted with
+        // is the ordinary space and that glyph's advance is the wrong number.
+        public double SynthesizedAdvance { get; }
+
+        public bool HasSynthesizedAdvance => !double.IsNaN(SynthesizedAdvance);
     }
 
     private TextFace Resolve(int codePoint)

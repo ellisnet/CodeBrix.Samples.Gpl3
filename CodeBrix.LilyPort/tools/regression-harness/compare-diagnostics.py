@@ -83,8 +83,21 @@ EVERYTHING else in both streams is dropped, and each drop is a decision:
      exactly -- a message emitted three times where the oracle emits it twice is
      a difference, and a real one.
 
-Normalisations 4 and 5 are the two places this script is deliberately looser
-than compare-output.py. Both are recorded as limitations to tighten once the
+  6. AN ABSOLUTE PATH INSIDE A MESSAGE IS REDUCED TO ITS BASENAME, and a load
+     path / cwd pair is replaced wholesale. This is normalisation 4 applied one
+     level in: the oracle reads its fonts out of an installed tree and the port
+     reads them out of its own assembly, and each file runs in a per-process
+     scratch cwd (PARITY 3) that the oracle's own temporary directory can never
+     equal. Two messages that differ ONLY in where a file lives differ about
+     invocation, not behaviour.
+
+     What survives is the part that carries the finding: WHICH font lacked the
+     glyph, and WHICH file could not be found. `cannot find file 'x.eps'` still
+     grades its file name exactly, which is what makes clip-systems' missing
+     base name (D41) a real difference rather than a normalised-away one.
+
+Normalisations 4, 5 and 6 are the places this script is deliberately looser
+than compare-output.py. All are recorded as limitations to tighten once the
 verdict it produces is clean enough for the noise to be legible.
 
 ------------------------------------------------------------------------------
@@ -219,9 +232,27 @@ def read_candidate(path):
     return dict(out)
 
 
+# Normalisation 6. Both sides are reduced, so neither engine's spelling wins.
+#
+#   in font `/some/where/C059-Roman.otf'  ->  in font `C059-Roman.otf'
+#   (load path: '...', cwd: '...')        ->  (load path: <PATH>, cwd: <PATH>)
+#
+# The quoted FILE NAME in "cannot find file '...'" is deliberately NOT touched:
+# it is the finding, and D41's missing base name has to stay visible.
+FONT_PATH = re.compile(r"(in font [`'\"])([^`'\"]*/)([^`'\"]+)")
+LOAD_PATH = re.compile(r"\(load path: '[^']*', cwd: '[^']*'\)")
+
+
+def normalize_message(message):
+    """Strips the parts of a message that describe invocation, not behaviour."""
+    message = FONT_PATH.sub(r"\1\3", message)
+    message = LOAD_PATH.sub("(load path: <PATH>, cwd: <PATH>)", message)
+    return message
+
+
 def key_of(diagnostic):
-    """What two diagnostics must agree on to be the same one (normalisation 4)."""
-    return (diagnostic.severity, diagnostic.message)
+    """What two diagnostics must agree on to be the same one (normalisations 4, 6)."""
+    return (diagnostic.severity, normalize_message(diagnostic.message))
 
 
 def grade(reference, candidate):
@@ -256,6 +287,63 @@ def grade(reference, candidate):
     return "BOTH", "+%d / -%d" % (sum(extra.values()), sum(missing.values()))
 
 
+def normalisation_selftest():
+    """Normalisation 6, each case paired with a CONTROL that must NOT collapse.
+
+    A symmetric normalisation is invisible to the round-trip below -- both sides
+    get it -- so it needs its own check, and each case needs a control, or a
+    normaliser that flattened everything to one string would pass.
+    """
+    ora = ("/home/jeremy/ClaudeHome/oracle/lilypond-2.27.2/share/lilypond/"
+           "2.27.2/fonts/otf/C059-Roman.otf")
+    cases = [
+        # (name, a, b, must_be_equal)
+        ("font path -> basename",
+         "no glyph for character 'x' (U+0078 LATIN SMALL LETTER X) in font `%s'" % ora,
+         "no glyph for character 'x' (U+0078 LATIN SMALL LETTER X) in font `C059-Roman.otf'",
+         True),
+        ("CONTROL: a different FONT still differs",
+         "no glyph for character 'x' (U+0078 LATIN SMALL LETTER X) in font `%s'" % ora,
+         "no glyph for character 'x' (U+0078 LATIN SMALL LETTER X) in font `NimbusSans-Regular.otf'",
+         False),
+        ("CONTROL: a different CHARACTER still differs",
+         "no glyph for character 'x' (U+0078 LATIN SMALL LETTER X) in font `%s'" % ora,
+         "no glyph for character 'y' (U+0079 LATIN SMALL LETTER Y) in font `%s'" % ora,
+         False),
+        ("load path and cwd -> placeholder",
+         "cannot find file 'a.eps' (load path: '/one:/two', cwd: '/tmp/tmp.AAA')",
+         "cannot find file 'a.eps' (load path: '', cwd: '/tmp/scratch-1')",
+         True),
+        ("CONTROL: the missing FILE NAME still differs (this is D41)",
+         "cannot find file 'clip-systems-clip-input-from-2.0.1-to-4.0.1-clip.eps' "
+         "(load path: '/one', cwd: '/tmp/a')",
+         "cannot find file '-clip-input-from-2.0.1-to-4.0.1-clip.eps' "
+         "(load path: '/one', cwd: '/tmp/a')",
+         False),
+        ("CONTROL: an ordinary message is untouched",
+         "unbound variable: foo",
+         "unbound variable: foo",
+         True),
+    ]
+
+    bad = []
+    for name, a, b, want_equal in cases:
+        same = normalize_message(a) == normalize_message(b)
+        if same != want_equal:
+            bad.append((name, normalize_message(a), normalize_message(b)))
+
+    if bad:
+        print("*** NORMALISATION SELF-TEST FAILED: %d case(s) ***" % len(bad))
+        for name, a, b in bad:
+            print("  %-46s" % name)
+            print("      %s" % a)
+            print("      %s" % b)
+    else:
+        print("normalisation self-test: %d case(s) pass (%d of them controls)"
+              % (len(cases), sum(1 for c in cases if c[0].startswith("CONTROL"))))
+    return bad
+
+
 def selftest(directory):
     """Round-trip the reference through the CANDIDATE path and demand 100% MATCH.
 
@@ -271,6 +359,8 @@ def selftest(directory):
     about the same bytes, and every verdict this script produces is worthless
     until that is fixed.
     """
+    failures = normalisation_selftest()
+
     reference = read_reference(directory)
     if not reference:
         print("no .log files in %s" % directory, file=sys.stderr)
@@ -310,6 +400,8 @@ def selftest(directory):
         print("*** SELF-TEST FAILED: %d file(s) did not round-trip ***" % len(bad))
         for name, verdict, detail in bad[:20]:
             print("  %-46s %-14s %s" % (name, verdict, detail))
+        return 3
+    if failures:
         return 3
     print("*** self-test passed: the merged-log path reproduces the reference exactly ***")
     return 0

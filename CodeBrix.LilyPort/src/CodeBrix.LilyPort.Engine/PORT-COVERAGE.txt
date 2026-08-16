@@ -7019,30 +7019,96 @@ ly:message IS NOT PRINTED (2026-08-15, PARITY 9, observed while probing)
   and cannot be diffed, so probes report through ly:warning.
 
 --------------------------------------------------------------------------------
-GLYPH-OUTLINE SKYLINES ARE SAMPLED SLIGHTLY DIFFERENTLY (2026-08-15, PARITY 10)
+GLYPH-OUTLINE SKYLINES DIFFER BECAUSE THE TWO EMMENTALER BUILDS DIFFER
+(2026-08-15, PARITY 10 -- RE-DIAGNOSED AT PARITY 14, and the first diagnosis
+was wrong)
 --------------------------------------------------------------------------------
 
   A grob's vertical-skylines are built from its stencil, and for a music glyph
-  that means walking the FONT OUTLINE.  Upstream does it in
-  lily/freetype.cc's Path_interpreter, driven by FT_Outline_Decompose: each cubic
-  is cut into max(2, int(chord_length / 0.2)) segments and each segment is added
-  as a contour segment.  Fonts/GlyphOutlineSkyline.cs uses the SAME formula and
-  the same 0.2, over the port's own CFF charstring interpreter rather than
-  FreeType's decomposition.
+  that means walking the FONT OUTLINE.  Upstream does it in lily/freetype.cc's
+  Path_interpreter, driven by FT_Outline_Decompose: each cubic is cut into
+  max(2, int(chord_length / 0.2)) segments and each segment is added as a
+  contour segment.  Fonts/GlyphOutlineSkyline.cs uses the SAME formula and the
+  same 0.2, over the port's own CFF charstring interpreter.
 
-  MEASURED DIVERGENCE, small and real.  With the skyline debug drawing in place
-  (PARITY 10 ported Grob::get_print_stencil's add_skylines block), show-skylines
-  renders the accidental's horizontal skyline as 203 segments against the
-  oracle's 211, with the shared points agreeing to about 0.005-0.05.  So the port
-  approximates a curved outline with slightly different buildings, which feeds
-  every collision computation that measures against a glyph skyline -- not only
-  the debug drawing that made it visible.
+  WHAT PARITY 10 RECORDED, AND WHY IT WAS WRONG.  This entry used to say the
+  port "approximates a curved outline with slightly different buildings",
+  naming the two WALKERS as the divergence -- 203 segments against 211 on
+  show-skylines.  PARITY 14 measured that claim and it does not hold:
 
-  NOT CHASED at PARITY 10: outside that session's GO, and the debug-drawing rows
-  it shows up on are worth about six.  REVISIT CONDITION: any residue that
-  survives with a sub-0.05 signature on a glyph edge, and the show-skylines /
-  skyline-debug / skyline-boxes-ellipses family, which cannot reach MATCH until
-  the two decompositions agree.
+    * Driving the SAME FreeType the oracle uses (ctypes on libfreetype,
+      FT_LOAD_NO_SCALE then FT_Outline_Decompose, self-checked against
+      fontTools on 663 glyphs) and comparing its command stream against a
+      plain charstring interpreter's gives 668 of 668 glyphs IDENTICAL.
+      FT_Outline_Decompose adds nothing a charstring walk does not.
+    * The port's closing-segment rule (emit only when the contour does not
+      already end at its start) matches FreeType's too: of 1219 contours in
+      emmentaler-20, 887 already close themselves.
+
+  THE ACTUAL CAUSE IS THE FONT, and it is a decision rather than a defect.
+  The port BUILDS Emmentaler from the Metafont sources (assets/fonts/README.txt,
+  tools/font-build/) instead of copying LilyPond's binaries, deliberately, for
+  end-to-end provenance.  The two builds are not outline-identical: of 668
+  glyphs in emmentaler-20, 288 have a different drawing-op sequence and 97
+  differ numerically.  Running upstream's own flattening formula over the two
+  fonts reproduces the reported symptom exactly -- clefs.G comes out SEVEN
+  segments longer on the oracle's build at every scale, while accidentals.sharp,
+  whose outline IS identical between the builds, comes out the same.
+  show-skylines draws the skylines of exactly those two glyphs.
+
+  THIS WAS PREDICTED IN WRITING ON 2026-08-02.  tools/font-build/README.txt
+  section 7 records the same font comparison (bounding boxes differ on ~18% of
+  glyphs, median 1 unit, max 3 -- re-verified at PARITY 14 as 123 of 668,
+  median 1, max 3, its numbers exactly) and names lily/stencil-integral.cc:555
+  get_glyph_outline_bbox, the skyline path, as the ONE place FreeType outline
+  data is consulted at all.  Every other glyph dimension comes from the LILC
+  table, which IS byte-identical between the builds -- which is why 2,204 rows
+  match and only the debug drawing of a skyline does not.
+
+  CONSEQUENCE FOR G1.  The six rows that grade the skyline debug drawing
+  (show-skylines, skyline-boxes-ellipses, skyline-debug, skyline-embedded-ps,
+  skyline-grob-rotation, skyline-slur-segments) CANNOT reach MATCH while the
+  port builds its own fonts.  No walker change closes them.  This is the same
+  root fact D29's named-glyph identity exists to neutralise for DRAWN glyphs,
+  surfacing in the one place D29 cannot reach: the debug drawing emits plain
+  <line> elements, which carry no glyph identity to resolve by name.
+
+  REVISIT CONDITION: only a reversal of the own-build font decision (D13/D23's
+  neighbour), which would also change every drawn music glyph.
+
+--------------------------------------------------------------------------------
+UNICODE SPACE FALLBACK: HARFBUZZ'S RULE, MEASURED (2026-08-15, PARITY 14 -- D38)
+--------------------------------------------------------------------------------
+
+  Fonts/UnicodeSpaceFallback.cs + Fonts/TextFontMetric.cs
+
+  Upstream measures text through Pango, and Pango through HarfBuzz, which does
+  NOT draw .notdef for a Unicode space character a font cannot map: it
+  substitutes the ordinary SPACE glyph and then REWRITES the advance from the
+  character's space type.  None of the 24 vendored text faces covers U+200A, so
+  before this the port measured a hair space as C059's .notdef -- 278 units,
+  exactly as wide as an ordinary space -- and format-sign-with-number, which
+  puts TWO hair spaces between the two signs of a numbered \segnoMark, set them
+  2 x 0.4780 too far apart.  Worth 11 comparator rows.
+
+  THE TABLE IS MEASURED, NOT COPIED.  No HarfBuzz source was read; each entry
+  was read off the pinned oracle (trap 8b) by setting the character between two
+  music glyphs and diffing the two glyph origins.  At the probe's size one em
+  was 64 device dots and the oracle answered: U+2003/U+3000 64, U+2004 21,
+  U+2005 16, U+2006 11, U+2009 13, U+200A 4, U+205F 14, U+2007 36 (a digit),
+  U+2008 18 (a period), U+202F 9 (half a space).  All 16 space characters now
+  agree with the oracle exactly.
+
+  DELIBERATE LIMIT, and it is the part a future session should know about.
+  UnicodeSpaceFallback.Canonicalize applies the canonical decompositions
+  U+2000 -> U+2002 and U+2001 -> U+2003 and NOTHING ELSE.  HarfBuzz normalizes
+  generally; the port normalizes the two characters it has MEASURED, because
+  those two change which GLYPH answers (C059 has a real uni2002 at 556 units,
+  wider than the half em the fallback rule alone would give, and the oracle
+  draws it for U+2000), while the rest of the corpus agrees without any
+  normalization.  A general normalizer would be reasoned rather than evidenced.
+  REVISIT CONDITION: a residue row whose text contains a composed character the
+  oracle appears to decompose.
 
 --------------------------------------------------------------------------------
 THE MUSIC-FONT RUN IS A glyph-string (2026-08-15, PARITY 11 -- D36)
