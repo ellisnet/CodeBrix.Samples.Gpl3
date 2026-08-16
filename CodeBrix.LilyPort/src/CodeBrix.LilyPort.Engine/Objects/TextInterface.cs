@@ -114,9 +114,14 @@ public static class TextInterface
         {
             if (_depth > maximum)
             {
+                // Upstream names the markup command through scm_procedure_name, so the
+                // message reads "Markup: cycle-markup". Printing the procedure ITSELF
+                // gave "#<procedure ...>" — which the file's own ly:expect-warning could
+                // never match, so a file that reproduces the defect on purpose reported
+                // the expectation as unmet AND the message as unexpected.
                 Warn.NonFatalError(
                     "Markup depth exceeds maximal value of " + maximum + "; Markup: "
-                    + Describe(function));
+                    + ProcedureName(function));
                 return Stencil.Empty;
             }
 
@@ -735,4 +740,10 @@ public static class TextInterface
     }
 
     private static string Describe(object value) => value == null ? "#f" : value.ToString();
+
+    // scm_procedure_name: the procedure's own name, not its printed representation.
+    // Upstream passes the result through ly_symbol2string, which answers the empty
+    // string for an anonymous procedure.
+    private static string ProcedureName(object function)
+        => (function as Procedure)?.EffectiveName ?? string.Empty;
 }

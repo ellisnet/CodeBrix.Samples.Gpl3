@@ -7,6 +7,7 @@
 
 using System.Collections.Generic;
 using System.Text;
+using CodeBrix.LilyPort.Parsing.Actions;
 using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Parsing.Lexing;
@@ -309,7 +310,13 @@ public static class LilyPondLexerRules
         rules.Add(new LexerRule(LexerPatterns.Command, new[] { LexerState.Include }, (s, t) =>
         {
             LexerLookup found = host.LookupIdentifier(t.Substring(1));
-            if (found.Found && found.Value is string name)
+
+            // scm_is_string, which is BOTH string shapes: a name assigned in a .ly
+            // arrives as a MutableString, and `is string` silently answered false for
+            // it -- so PopState never ran, the lexer stayed in Include state and ate
+            // the rest of the file.
+            string name = found.Found ? ParserActionHelpers.SchemeStringText(found.Value) : null;
+            if (name != null)
             {
                 s.RequestedInclude = name;
                 s.PopState();

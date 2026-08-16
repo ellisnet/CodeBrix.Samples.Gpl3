@@ -1396,7 +1396,17 @@ Copyright: Copyright (C) 1996--2026 Han-Wen Nienhuys <hanwen@xs4all.nl>
         reproduced as behaviour: dump-path's choice between a compound
         `translate(...) scale(...)' and a bare `scale(...)', and glyph-string's
         rule that a run of more than one glyph is wrapped in its own
-        attribute-less group (PARITY 11, D36).  No Scheme was copied.
+        attribute-less group (PARITY 11, D36).
+        ONE PROCEDURE OF THAT FILE IS TRANSLATED RATHER THAN REPRODUCED
+        (PARITY 13): `partial-ellipse', whose arithmetic is the drawing --
+        make-ellipse-radius, the 1.5e-3 epsilon that decides between an
+        <ellipse> and an elliptical-arc <path>, the large-arc flag, and the
+        optional closing line.  It is carried as a C# method
+        (EmitPartialEllipse / EllipseRadius / Angle0To360, the last being
+        lily-library.scm's cyclic-base-value at base 360).  Derived from
+        scm/output-svg.scm and scm/lily-library.scm, GPL-3.0-or-later, and
+        covered by the LilyPond notice above.  Nothing else in this file
+        copies Scheme.
 
   The Scheme entry points of the ported types are bound in
   src/CodeBrix.LilyPort.Engine/Bootstrap/MusicPrimitives.cs,

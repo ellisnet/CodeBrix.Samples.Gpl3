@@ -903,8 +903,16 @@ public class Context
     /// <param name="name">The context type.</param>
     /// <param name="id">The identifier, possibly empty.</param>
     /// <returns>The description.</returns>
+    /// <remarks>
+    /// The id is appended VERBATIM — upstream writes the NAME through
+    /// <c>ly_scm_write_string</c> (a symbol, so no quotes) and then concatenates the id,
+    /// which is already a <c>std::string</c>. Quoting it here made every message that
+    /// names a context read <c>Voice = "x"</c> where upstream reads <c>Voice = x</c>,
+    /// which is exactly the text a regression file's own <c>ly:expect-warning</c>
+    /// matches against.
+    /// </remarks>
     public static string DiagnosticId(Symbol name, string id)
-        => string.IsNullOrEmpty(id) ? name.Name : name.Name + " = \"" + id + "\"";
+        => string.IsNullOrEmpty(id) ? name.Name : name.Name + " = " + id;
 
     /// <summary>
     /// Broadcasts an event to this context and everything above it.

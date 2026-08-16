@@ -53,6 +53,7 @@ public sealed class SvgBackend : IStencilSink
     private static readonly Symbol PolygonHead = Symbol.Intern("polygon");
     private static readonly Symbol CircleHead = Symbol.Intern("circle");
     private static readonly Symbol EllipseHead = Symbol.Intern("ellipse");
+    private static readonly Symbol PartialEllipseHead = Symbol.Intern("partial-ellipse");
     private static readonly Symbol PathHead = Symbol.Intern("path");
     private static readonly Symbol NamedGlyph = Symbol.Intern("named-glyph");
     private static readonly Symbol GlyphString = Symbol.Intern("glyph-string");
@@ -69,6 +70,9 @@ public sealed class SvgBackend : IStencilSink
     private static readonly Regex PangoDescriptionNoComma = new Regex(
         "(?<bold> Bold)?(?<italic> Italic)?(?<smallcaps> Small-Caps)?[ -](?<size>[0-9.]+)$",
         RegexOptions.Compiled);
+
+    // lily-library.scm's PI-OVER-180.
+    private const double PiOver180 = Math.PI / 180.0;
 
     private readonly StringBuilder _body = new StringBuilder();
 
@@ -383,6 +387,12 @@ public sealed class SvgBackend : IStencilSink
                 Format(Number(args, 2)),
                 Format(Number(args, 0)),
                 Format(Number(args, 1))));
+            return true;
+        }
+
+        if (ReferenceEquals(head, PartialEllipseHead))
+        {
+            EmitPartialEllipse(args);
             return true;
         }
 
@@ -801,6 +811,109 @@ public sealed class SvgBackend : IStencilSink
         }
 
         return data.ToString();
+    }
+
+    /// <summary>
+    /// Draws an arc of an ellipse — <c>output-svg.scm</c>'s <c>partial-ellipse</c>.
+    /// <para>
+    /// The whole procedure is translated rather than reduced, including the branch that
+    /// answers a plain <c>&lt;ellipse&gt;</c>: when the two endpoints land within
+    /// 1.5e-3 of each other the arc has closed, and an SVG elliptical-arc command whose
+    /// endpoints coincide draws NOTHING at all, so upstream's epsilon is what puts the
+    /// full circle on the page. The woodwind diagrams are built out of these, which is
+    /// why sixteen arcs and ten ellipses were absent from one page.
+    /// </para>
+    /// </summary>
+    /// <param name="args">x-radius, y-radius, start-angle, end-angle, thickness, connect, fill.</param>
+    private void EmitPartialEllipse(List<object> args)
+    {
+        double xRadius = Number(args, 0);
+        double yRadius = Number(args, 1);
+        double thickness = Number(args, 4);
+        bool connect = args.Count > 5 && IsTrue(args[5]);
+        bool filled = args.Count > 6 && IsTrue(args[6]);
+
+        double startAngle = Angle0To360(Number(args, 2)) * PiOver180;
+        double endAngle = Angle0To360(Number(args, 3)) * PiOver180;
+        double startRadius = EllipseRadius(xRadius, yRadius, startAngle);
+        double endRadius = EllipseRadius(xRadius, yRadius, endAngle);
+
+        double startX = startRadius * Math.Cos(startAngle);
+        double startY = startRadius * Math.Sin(startAngle);
+        double finishX = endRadius * Math.Cos(endAngle);
+        double finishY = endRadius * Math.Sin(endAngle);
+
+        const double Epsilon = 1.5e-3;
+        if (Math.Abs(finishX - startX) < Epsilon
+            && Math.Abs(finishY - startY) < Epsilon)
+        {
+            _body.Append(string.Format(
+                CultureInfo.InvariantCulture,
+                "<ellipse fill=\"{0}\" stroke=\"currentColor\" stroke-width=\"{1}\""
+                + " stroke-linejoin=\"round\" stroke-linecap=\"round\" cx=\"0\" cy=\"0\""
+                + " rx=\"{2}\" ry=\"{3}\"/>\n",
+                filled ? "currentColor" : "none",
+                Format(thickness),
+                Format(xRadius),
+                Format(yRadius)));
+            return;
+        }
+
+        // The large-arc flag goes through upstream's ~4f like everything else — and comes
+        // out as "0" or "1" rather than "0.0000", because ly:format prints an EXACT
+        // integer with no decimals at all and the flag is the exact 0 or 1 that the
+        // Scheme `if` answers. Only the reals in this string get four places.
+        StringBuilder data = new StringBuilder();
+        data.Append(string.Format(
+            CultureInfo.InvariantCulture,
+            "M{0} {1}A{2} {3} 0 {4} 0 {5} {6}",
+            Format(startX),
+            FormatY(startY),
+            Format(xRadius),
+            Format(yRadius),
+            startAngle - endAngle < 0 ? "0" : "1",
+            Format(finishX),
+            FormatY(finishY)));
+
+        if (connect)
+        {
+            data.Append(string.Format(
+                CultureInfo.InvariantCulture,
+                "L{0},{1}",
+                Format(startX),
+                FormatY(startY)));
+        }
+
+        _body.Append(string.Format(
+            CultureInfo.InvariantCulture,
+            "<path fill=\"{0}\" stroke=\"currentColor\" stroke-width=\"{1}\""
+            + " stroke-linejoin=\"round\" stroke-linecap=\"round\" d=\"{2}\"/>\n",
+            filled ? "currentColor" : "none",
+            Format(thickness),
+            data));
+    }
+
+    // The radius of an ellipse at one angle, which is not the radius of a circle: an
+    // elliptical arc's endpoints sit on the ellipse, not on either axis.
+    private static double EllipseRadius(double xRadius, double yRadius, double angle)
+        => xRadius * yRadius
+            / Math.Sqrt((yRadius * yRadius * Math.Cos(angle) * Math.Cos(angle))
+                + (xRadius * xRadius * Math.Sin(angle) * Math.Sin(angle)));
+
+    // lily-library.scm's cyclic-base-value, at base 360.
+    private static double Angle0To360(double angle)
+    {
+        while (angle < 0.0)
+        {
+            angle += 360.0;
+        }
+
+        while (angle >= 360.0)
+        {
+            angle -= 360.0;
+        }
+
+        return angle;
     }
 
     private string Format(double value)

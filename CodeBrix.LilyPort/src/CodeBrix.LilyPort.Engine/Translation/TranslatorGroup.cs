@@ -324,12 +324,13 @@ public class TranslatorGroup
 
         if (creator is Symbol symbol)
         {
+            // ⚠ NO early return when the lookup fails. Upstream reports BOTH names for an
+            // unknown engraver — get_translator_creator's "unknown translator: `%s'" and
+            // then this function's own "cannot find: `%s'" — because the failed lookup
+            // simply leaves `trans' as something that is not a Translator and the code
+            // falls through. Returning here dropped the second report, which is what
+            // `invalid-engraver' expects by name.
             creator = TranslatorRegistry.GetTranslatorCreator(symbol);
-            if (creator == null)
-            {
-                // GetTranslatorCreator already named the unknown translator.
-                return null;
-            }
         }
 
         if (creator is TranslatorCreator translatorCreator)

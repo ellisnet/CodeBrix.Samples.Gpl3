@@ -85,6 +85,27 @@
 # identity -- exactly the behaviour of this file before 2026-08-12. Unresolvable can
 # only ever make the comparison STRICTER, never looser.
 #
+# A GLYPH IS NOT ALWAYS DRAWN UNDER A PURE scale() (found 2026-08-15, PARITY 13
+# PREP). `output-svg.scm` draws a multi-glyph run -- one `glyph-string` expression --
+# by placing each glyph on the PATH's own transform at the cumulative advance of the
+# glyphs before it, so the transform reads `translate(...) scale(...)` rather than a
+# bare `scale(...)`. Those paths are glyph outlines copied verbatim out of a font,
+# exactly like every other glyph; only their PLACEMENT arrived differently. Until this
+# was fixed, they fell to the DRAWN-path branch below and were graded by command-letter
+# signature across the two font builds -- which is precisely the substitution the
+# contract above exists to defeat, so identical named glyphs graded as different. 49 of
+# the 86 sole-kind `path` residue rows drew the same resolved glyph sequence on both
+# sides. Resolution is therefore attempted for EVERY path, and the scale string that
+# travels with a compound-transform name is the literal marker "compound".
+#
+# Two properties of that marker matter and are deliberate. It cannot collide with any
+# pure-scale identity (no scale string is ever the word "compound"), so a glyph drawn
+# at an optical size still cannot be confused with the same glyph drawn in a run; and
+# BOTH sides get the same marker, so it grades a difference rather than creating one.
+# This does not relax anything -- an unresolved drawn path (a slur, a tie, a beam)
+# keeps its command-letter signature EXACTLY as before, and a compound-transform glyph
+# is still identified by the bytes it is a verbatim copy of.
+#
 # Everything that is not a music-glyph path -- staff lines, beams, slurs, rects,
 # text, every attribute -- is compared byte-exact, unchanged. Position still comes
 # from the accumulated translate() of the enclosing <g> elements, which is where
@@ -155,6 +176,21 @@ def _normalize_outline(data):
     return WHITESPACE.sub(" ", (data or "").strip())
 
 
+def _resolve_outline(data, names_by_digest):
+    """The glyph name SET this path's bytes are a verbatim copy of, or None.
+
+    Split out of `_outline_key` because a compound-transform glyph needs the lookup
+    without the fail-strict fallback: it has to be able to decline, so an unresolved
+    path can fall through to the DRAWN-path signature instead.
+    """
+    if names_by_digest is None:
+        return None
+
+    normalized = _normalize_outline(data)
+    digest = hashlib.sha256(normalized.encode("utf-8")).hexdigest()
+    return names_by_digest.get(digest)
+
+
 def _outline_key(data, scale, names_by_digest):
     """Identify a music glyph: by NAME where its bytes resolve, by bytes where not.
 
@@ -166,16 +202,12 @@ def _outline_key(data, scale, names_by_digest):
     the same glyph only when the two sides wrote the same transform -- no rounding,
     no tolerance.
     """
-    normalized = _normalize_outline(data)
-
-    if names_by_digest is not None:
-        digest = hashlib.sha256(normalized.encode("utf-8")).hexdigest()
-        names = names_by_digest.get(digest)
-        if names is not None:
-            return "glyph:%s@%s" % ("+".join(sorted(names)), scale)
+    names = _resolve_outline(data, names_by_digest)
+    if names is not None:
+        return "glyph:%s@%s" % ("+".join(sorted(names)), scale)
 
     # Fail-strict: unresolved bytes keep the pre-2026-08-12 identity exactly.
-    digest = hashlib.sha1(normalized.encode("utf-8")).hexdigest()[:12]
+    digest = hashlib.sha1(_normalize_outline(data).encode("utf-8")).hexdigest()[:12]
     return "glyph:" + digest
 
 
@@ -237,7 +269,17 @@ def parse_svg(path, names_by_digest=None):
                 if "@" in name:
                     counts["resolved"] += 1
             else:
-                name = _path_signature(data)
+                # A glyph drawn inside a run carries a compound transform (see the
+                # contract above). Resolve it too; a path that declines is a DRAWN
+                # path and keeps its signature.
+                # The two counters deliberately stay on the pure-scale population:
+                # they are the canary's ratio, and every compound path that resolves
+                # would raise both halves of it, which is how a canary stops being one.
+                compound_names = _resolve_outline(data, names_by_digest)
+                if compound_names is not None:
+                    name = "glyph:%s@compound" % "+".join(sorted(compound_names))
+                else:
+                    name = _path_signature(data)
             glyphs[name] += 1
             placements.append((name, offset_x, offset_y))
         elif tag == SVG_NS + "use":
@@ -361,11 +403,26 @@ SELFTEST_HEAD_B = "M217 136c56 0 109 -27 109 -89z"
 SELFTEST_OTHER = "M5 5 L4 4 L3 9 z"
 SELFTEST_UNKNOWN = "M1 2 L3 4 L5 6 z"
 
+# A THIRD serialization of the same glyph, chosen so its COMMAND MIX differs from both
+# of the others (upper-case C, and no lower-case c). The compound-transform cases below
+# need that: two serializations that happen to share a command mix would pass even with
+# the resolution removed, because the drawn-path signature would agree by accident.
+SELFTEST_HEAD_C = "M0 -46C0 91 116 182 217 182z"
+
+# An unresolvable path drawn under a compound transform, and a second one with the SAME
+# command mix -- these fence that an unresolved compound path keeps signature identity.
+SELFTEST_UNKNOWN_SAME_MIX = "M9 8 L7 6 L5 4 z"
+
 
 def _selftest_page(entries):
-    """One miniature page: [(path-data, scale-string)] inside a translate()."""
+    """One miniature page: [(path-data, transform-tail)] inside a translate().
+
+    A tail of "s,s" is the ordinary glyph transform `scale(s, s)'; a tail starting with
+    "translate" is written verbatim, which is how the compound-transform cases are built.
+    """
     body = "".join(
-        '<path transform="scale(%s)" d="%s" fill="currentColor"/>' % (scale, data)
+        '<path transform="%s" d="%s" fill="currentColor"/>'
+        % (scale if scale.startswith("translate") else "scale(%s)" % scale, data)
         for data, scale in entries)
     return ('<?xml version="1.0" encoding="UTF-8"?>\n'
             '<svg xmlns="http://www.w3.org/2000/svg" version="1.2">'
@@ -390,9 +447,12 @@ def command_selftest(arguments):
         },
         "reference": {
             hashlib.sha256(SELFTEST_HEAD_B.encode()).hexdigest(): frozenset(["test.head"]),
+            hashlib.sha256(SELFTEST_HEAD_C.encode()).hexdigest(): frozenset(["test.head"]),
             hashlib.sha256(SELFTEST_OTHER.encode()).hexdigest(): frozenset(["test.other"]),
         },
     }
+
+    compound = "translate(1.5, 2.5) scale(%s)" % SELFTEST_SCALE
 
     cases = [
         ("(i)   same name, different serializations -> MATCH",
@@ -407,6 +467,22 @@ def command_selftest(arguments):
         ("(iv)  same name, different scale strings -> differ",
          [(SELFTEST_HEAD_B, SELFTEST_SCALE)], [(SELFTEST_HEAD_A, SELFTEST_OTHER_SCALE)],
          "GLYPHS-DIFFER"),
+        # (v)-(viii) fence the COMPOUND-transform resolution added at PARITY 13. Case (v)
+        # is the one that was failing: the same named glyph, serialized differently by
+        # the two font builds, drawn inside a glyph-string run. Note HEAD_C's command mix
+        # differs from HEAD_A's, so (v) cannot pass by signature agreement.
+        ("(v)   same name under a COMPOUND transform -> MATCH",
+         [(SELFTEST_HEAD_C, compound)], [(SELFTEST_HEAD_A, compound)],
+         "MATCH"),
+        ("(vi)  different names under a compound transform -> differ",
+         [(SELFTEST_HEAD_C, compound)], [(SELFTEST_OTHER, compound)],
+         "GLYPHS-DIFFER"),
+        ("(vii) compound vs pure scale, same name -> differ (no marker collision)",
+         [(SELFTEST_HEAD_B, SELFTEST_SCALE)], [(SELFTEST_HEAD_A, compound)],
+         "GLYPHS-DIFFER"),
+        ("(viii) UNRESOLVED compound paths keep signature identity -> MATCH",
+         [(SELFTEST_UNKNOWN, compound)], [(SELFTEST_UNKNOWN_SAME_MIX, compound)],
+         "MATCH"),
     ]
 
     failures = 0

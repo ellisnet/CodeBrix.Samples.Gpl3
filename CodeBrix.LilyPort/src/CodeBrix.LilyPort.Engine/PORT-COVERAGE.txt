@@ -3037,6 +3037,16 @@ REMAINING ITERATORS & MUSIC PLUMBING
     do_internal_type_checking_global. That is older than this group and
     untouched here;
     grob-interface.cc's own check keeps its faithful gate (check-internal-types).
+    ✅ CLOSED at PARITY 13. Both checks now sit under the one gate upstream puts
+    them under, which scm/lily.scm defaults to #f. It was not free: upstream
+    SETS grob properties it never DECLARES -- `in-note-padding' goes onto a
+    System grob from Page_layout_problem and appears in no
+    define-grob-properties.scm entry and in no interface list -- so the ungated
+    check made the port warn "the property 'in-note-padding' does not exist"
+    where the oracle is silent, and it did the same for every other undeclared
+    or mistyped grob write in the corpus. Neither check's RESULT is used on
+    either side (upstream discards the return value too), so gating them changes
+    diagnostics and nothing else; the full sweep confirmed no geometry moved.
 
 -------------------------------------------------------------------------------
 FOUR LilyScheme GAPS THE ITERATOR SWEEP MEASURED

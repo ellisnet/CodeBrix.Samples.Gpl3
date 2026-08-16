@@ -139,4 +139,65 @@ public class DiagnosticWordingEndToEndTests
         message.Should().Contain("load path: ");
         message.Should().Contain("cwd: ");
     }
+
+    [Fact]
+    public void a_context_is_named_in_a_diagnostic_the_way_upstream_names_it()
+    {
+        //Arrange
+        // Context::diagnostic_id writes the NAME through ly_scm_write_string -- a
+        // symbol, so bare -- and then CONCATENATES the id, which is already a string.
+        // The port quoted the id, so every message that named a context read
+        // `Voice = "x"' where upstream reads `Voice = x'. That is exactly the text a
+        // regression file's own ly:expect-warning matches against, which is how six
+        // files ended up reporting their expectation as unmet.
+        // The regression file's own material (rule 35b): lyrics assigned to a voice
+        // that does not exist, and lyrics that DO have syllables, because empty lyrics
+        // deliberately warn about nothing.
+        const string MissingVoice = Version
+            + "<<\n"
+            + "  \\new Staff \\new Voice = \"notes\" { c1 }\n"
+            + "  \\new Lyrics \\lyricsto \"not-existing-notes\" { Test }\n"
+            + ">>\n";
+
+        //Act
+        string[] messages = Recorded(
+            () => BatchRunner.RunText(
+                MissingVoice, "diagid-missing-voice", null, ScratchDirectory()));
+
+        //Assert
+        string message = messages.FirstOrDefault(d => d.Contains("cannot find context"));
+        message.Should().NotBeNull();
+        message.Should().Contain("cannot find context: Voice = not-existing-notes");
+        // Not merely "no quotes anywhere": upstream's origin->warning echoes the source
+        // LINE under the message, and that line quotes the name because the .ly does.
+        // What must not appear is the quoted form inside the diagnostic ID itself.
+        message.Should().NotContain("Voice = \"not-existing-notes\"");
+    }
+
+    [Fact]
+    public void a_markup_that_never_terminates_is_named_rather_than_printed()
+    {
+        //Arrange
+        // Upstream names the offending command with scm_procedure_name, so the report
+        // reads "Markup: recursive-markup". Printing the PROCEDURE gave
+        // "#<procedure ...>", which no ly:expect-warning could ever match.
+        // markup-depth-non-terminating.ly's own markup command, which is the one the
+        // file's ly:expect-warning names.
+        const string Runaway = Version
+            + "#(define-markup-command (recursive-explosion layout props nr)\n"
+            + "  (number?)\n"
+            + "  (interpret-markup layout props"
+            + " (make-recursive-explosion-markup (+ nr 1))))\n"
+            + "\\markup { Test: \\recursive-explosion #1 }\n";
+
+        //Act
+        string[] messages = Recorded(
+            () => BatchRunner.RunText(Runaway, "diagid-runaway", null, ScratchDirectory()));
+
+        //Assert
+        string message = messages.FirstOrDefault(d => d.Contains("Markup depth exceeds"));
+        message.Should().NotBeNull();
+        message.Should().Contain("Markup: recursive-explosion-markup");
+        message.Should().NotContain("#<procedure");
+    }
 }

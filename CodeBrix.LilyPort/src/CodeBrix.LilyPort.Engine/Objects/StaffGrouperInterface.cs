@@ -41,6 +41,8 @@ public static class StaffGrouperInterface
 {
     private static readonly Symbol ElementsSymbol = Symbol.Intern("elements");
     private static readonly Symbol StaffGrouperSymbol = Symbol.Intern("staff-grouper");
+    private static readonly Symbol HaraKiriGroupSpannerInterface
+        = Symbol.Intern("hara-kiri-group-spanner-interface");
 
     // Find the furthest staff in the given direction whose x-extent overlaps with
     // the given interval.
@@ -69,9 +71,22 @@ public static class StaffGrouperInterface
         int end = dir == Direction.Positive ? elts.Count : -1;
         for (int i = start; i != end; i += dir)
         {
-            // Upstream calls Hara_kiri_group_spanner::consider_suicide here, so a
-            // staff that turned out empty is skipped as dead. Suicide is unported;
-            // every staff stays live, which is visible rather than silent.
+            // The staff has to DECIDE before it can be asked whether it is alive: an
+            // undecided remove-empty group answers live, and the caller
+            // (Side_position_interface::move_to_extremal_staff) then reparents a bar
+            // number or a mark INTO a staff that kills itself moments later, taking
+            // the mark with it. When every staff on a system dies, upstream's loop
+            // finds nothing, move_to_extremal_staff declines, and the grob keeps the
+            // System as its parent — which is why upstream still prints the bar number
+            // on a line whose staves have all gone.
+            // ⚠ The note that used to stand here said suicide was unported and every
+            // staff stayed live. That stopped being true when line breaking landed
+            // (trap 18) and nothing re-checked it.
+            if (elts[i].HasInterface(HaraKiriGroupSpannerInterface))
+            {
+                HaraKiriGroupSpanner.ConsiderSuicide(elts[i]);
+            }
+
             Interval intersection = elts[i].Extent(refpoint, Axis.X);
             intersection.Intersect(iv);
             if (elts[i].IsLive && !intersection.IsEmpty)

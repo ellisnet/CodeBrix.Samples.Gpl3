@@ -188,7 +188,7 @@ public static class AssortedGrobCallbacks
             arrows++;
             rule.AddStencil(DistanceArrow(
                 grob, musicFont, spring.IdealDistance, arrows, -2.5, SmallPad, BigPad,
-                Direction.Negative, 0.2, 0.4, 1.0));
+                Direction.Negative, SmallPad, 0.2, 0.4, 1.0));
         }
 
         for (object cursor = grob.GetObject(MinimumDistancesSymbol);
@@ -208,7 +208,7 @@ public static class AssortedGrobCallbacks
             arrows++;
             rule.AddStencil(DistanceArrow(
                 grob, musicFont, SchemeConvert.ToDouble(entry.Cdr, "ly:paper-column::print"),
-                arrows, -3.0, SmallPad, BigPad, Direction.Positive, 1.0, 0.25, 0.25));
+                arrows, -3.0, SmallPad, BigPad, Direction.Positive, -SmallPad, 1.0, 0.25, 0.25));
         }
 
         text.AddStencil(rule);
@@ -226,6 +226,15 @@ public static class AssortedGrobCallbacks
     /// <param name="smallPad">The label's padding.</param>
     /// <param name="bigPad">The padding between stacked arrows.</param>
     /// <param name="labelAlignment">Which way the label aligns off its baseline.</param>
+    /// <param name="labelPad">
+    /// How far the label sits off the arrow's line — and it is INDEPENDENT of
+    /// <paramref name="labelAlignment"/>. Upstream aligns the ideal-distance label DOWN
+    /// and then puts it at <c>y + small_pad</c>, and aligns the minimum-distance label UP
+    /// and puts it at <c>y - small_pad</c>, so in both families the label is nudged
+    /// TOWARDS the line it labels rather than away from it. Deriving the pad's sign from
+    /// the alignment inverted it for both, and drew every label 2 × small_pad from where
+    /// upstream draws it.
+    /// </param>
     /// <param name="red">The red component of the arrow's colour.</param>
     /// <param name="green">The green component.</param>
     /// <param name="blue">The blue component.</param>
@@ -243,6 +252,7 @@ public static class AssortedGrobCallbacks
         double smallPad,
         double bigPad,
         Direction labelAlignment,
+        double labelPad,
         double red,
         double green,
         double blue)
@@ -267,7 +277,7 @@ public static class AssortedGrobCallbacks
         // Horizontally centre the number on the arrow, EXCLUDING the arrowhead.
         Offset numberOffset = new Offset(
             (distance - numberLength - headLength) / 2,
-            y + ((int)labelAlignment * smallPad));
+            y + labelPad);
 
         List<Offset> points = new List<Offset> { new Offset(0, y), new Offset(distance, y) };
         Stencil arrow = Lookup.PointsToLineStencil(0.1, points);

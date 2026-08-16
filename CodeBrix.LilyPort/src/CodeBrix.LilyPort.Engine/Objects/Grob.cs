@@ -619,20 +619,22 @@ public abstract class Grob : IDiagnostics
             return;
         }
 
-        if (!(value is Procedure)
-            && !(value is UnpurePureContainer)
-            && !ReferenceEquals(value, CalculationInProgress))
-        {
-            SchemeUtilities.TypeCheckAssignment(symbol, value, BackendTypeSymbol);
-        }
-
-        // grob-interface.cc's check, ported with the iterator group. Upstream runs it beside the type
-        // check under do_internal_type_checking_global; the port keeps its own gate on
-        // check-internal-types, because the check walks every interface of every grob on
-        // every assignment. (That the TYPE check above is ungated where upstream gates
-        // it is a separate, older divergence — see PORT-COVERAGE.)
+        // Both checks sit under upstream's ONE do_internal_type_checking_global gate,
+        // which scm/lily.scm defaults to #f. The type check used to run ungated here —
+        // recorded in PORT-COVERAGE as a knowing divergence, and it cost real
+        // diagnostics: the port warned "the property 'in-note-padding' does not exist"
+        // where the oracle is silent, because upstream sets that property on a System
+        // grob without declaring it and never looks. Neither check's result is used;
+        // the assignment below happens either way, upstream included.
         if (GrobInterface.IsCheckingEnabled())
         {
+            if (!(value is Procedure)
+                && !(value is UnpurePureContainer)
+                && !ReferenceEquals(value, CalculationInProgress))
+            {
+                SchemeUtilities.TypeCheckAssignment(symbol, value, BackendTypeSymbol);
+            }
+
             GrobInterface.CheckInterfacesForProperty(this, symbol);
         }
 
