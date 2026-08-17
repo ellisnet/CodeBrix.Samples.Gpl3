@@ -7604,3 +7604,243 @@ THREE FINDINGS MEASURED AT PARITY 15 AND DELIBERATELY NOT CHASED
       list (the map is over adjacent pairs, so one extra staff is one extra
       annotation).  Worth 2 rows -- page-spacing-nonstaff-lines-between and
       page-spacing-nonstaff-lines-header-padding.
+
+
+================================================================================
+PARITY GRIND -- CONDITIONAL ITEMS, ly:font-name's DEFAULT, AND A DEVICE-DOT TIE
+================================================================================
+
+PARITY 16 (2026-08-16).
+
+
+A TIED ACCIDENTAL IS A BREAK REMINDER AND RESERVES NO WIDTH -- FIXED
+--------------------------------------------------------------------------------
+
+Paper_column_engraver::stop_translation_timestep sorts each timestep's items
+THREE ways, and the port had only one of the three:
+
+    if (has_interface<Accidental_placement> (elem)
+        || has_interface<Arpeggio> (elem))
+      Separation_item::add_conditional_item (col, elem);
+    else if (!has_interface<Accidental_interface> (elem))
+      Separation_item::add_item (col, elem);
+
+An accidental placement and an arpeggio are CONDITIONAL: whether they occupy
+space depends on the column they are measured against, so they go on
+`conditional-elements', and Separation_item::boxes filters them through
+Accidental_placement::get_relevant_accidentals when it is given a left grob.
+That function splits on
+
+    unsmob<Grob> (get_object (a, "tie")) && !from_scm<bool> (get_property (a, "forced"))
+
+-- a tied, unforced accidental is a break REMINDER, and a reminder is only paid
+for when it starts a line, where it is actually shown.  An individual Accidental
+goes on NEITHER list, because the placement already accounts for it.
+
+The port put every item on `elements', so the filter was never reached and the
+width of an accidental that is never drawn was reserved in every column.
+
+WHY IT SURVIVED: the port's own comment at the call site said
+add_conditional_item was "not ported, and paired with the skyline half that
+Paper_column::minimum_distance also omits".  BOTH halves had landed in earlier
+sessions -- SeparationItem.AddConditionalItem exists and three other engravers
+already call it, and PaperColumn.MinimumDistance already merges
+SeparationItem.ConditionalSkyline -- and nothing re-checked the note.  Trap 18.
+
+MEASURED before the fix, by an A/B on the INPUT (trap 30b), three renders on
+each engine, music width of two bars of cis sixteenths in 1/4:
+
+    case                        oracle      port      delta
+    tied (unforced)            31.5204   32.6704    +1.1500
+    untied                     31.8204   31.8204     0.0000
+    tied but forced (cis!)     31.8204        --          --
+    tied, no accidental (c)    29.9204   29.9204     0.0000
+
+so the defect needed BOTH a tie and an accidental, and the port placed the tied
+note where it would go if its accidental were printed.  Worth 10 rows, all
+PLACEMENT-DIFFERS -> MATCH with no other transition: accidental-tie,
+accidental-unbroken-tie-spacing, spacing-accidental-tie,
+trill-spanner-pitched-consecutive, spacing-horizontal-skyline,
+mensural-ligatures, slur-scoring and the THREE arpeggio rows -- the arpeggio
+rows are the other half of the same upstream branch and are what confirms the
+attribution independently.
+
+Fenced by TiedAccidentalSpacingEndToEndTests, on the regression file's own
+material (rule 35b), asserting relationships read off the pinned oracle first.
+
+WARNING FOR ANYONE READING THE COMPARATOR ON THESE ROWS: their worst deltas were
+150.7218 and 152.6218, and NONE of that was the defect.  The drift is a flat
++1.1500 from one column onward; the 150 is the comparator pairing a staff mark
+with the TAGLINE at the bottom of the page once the drift re-sorts the list.
+Trap 7.  ~/ClaudeHome/lilyport-probe-parity16/drift.py pairs marks WITHIN a
+y-band and reports the honest per-column delta.
+
+
+ly:font-name ANSWERS "unknown" FOR A TEXT FONT -- FIXED
+--------------------------------------------------------------------------------
+
+Font_metric::font_name () has a BODY upstream -- it returns the literal string
+"unknown" -- and exactly one class overrides it, Open_type_font, with the face's
+PostScript name; Modified_font_metric forwards to what it wraps, and Pango_font
+does not override at all.
+
+The port declared FontMetric.FontName ABSTRACT, which threw the base body away
+and obliged each subclass to invent an answer.  TextFontMetric answered its own
+DESCRIPTION.  That is not a cosmetic difference: ly/property-init.ly's
+cross-style -- the callback behind \xNotesOn -- asks the layout for a latin1 font
+and tests
+
+    (string=? (ly:font-name font) "unknown")
+
+to find out whether it was handed a text font rather than a music one.  When it
+was, it clears font-name and sets font-family to `music', and that switch is the
+only reason a cross notehead is drawn at all.  In the port the comparison was
+false, the switch never ran, and dead-notes lost ten noteheads.s2cross glyphs.
+
+FontName is now virtual with upstream's default and TextFontMetric's override is
+gone.  It is deliberately NOT what a font PRINTS as -- upstream's print_smob
+writes description_, not font_name () -- and the docs run was checked before the
+change: the only "Font_metric" string in the 19 generated files is the predicate
+name in ly:font-metric?, so nothing graded moves.
+
+Fenced by FontNameDefaultTests, with the music font as the control.
+
+
+THE DEVICE-DOT GRID HAS A TIE, AND NEITHER NAIVE RULE RESOLVES IT -- OPEN
+--------------------------------------------------------------------------------
+
+NEW at PARITY 16, MEASURED, and deliberately NOT landed.  This is a real defect
+with a precisely located mechanism and no correct fix yet; it is D44 in the plan.
+
+TEXT ADVANCES LAND ON PANGO'S DEVICE-DOT GRID (above) is right about the grid and
+wrong about how the grid is REACHED.  The port rounds once, in floating point:
+
+    advance += Math.Floor (step / pixel + 0.5) * pixel;
+
+Pango rounds twice.  HarfBuzz hands Pango a glyph advance as an INTEGER in Pango
+units (PANGO_SCALE = 1024 to a device unit), computed by hb's own fixed-point
+scaling, and Pango then rounds that integer with
+
+    #define PANGO_UNITS_ROUND(d) (((d) + (PANGO_SCALE >> 1)) & ~(PANGO_SCALE - 1))
+
+read out of pango/pango-types.h on this machine, not recalled.
+
+THE DIVERGENCE IS EXACTLY ONE DOT AND IT IS ISOLATED TO A GLYPH AND A SIZE.  A
+prefix ladder -- every prefix of "Symbols" set as `\line { PREFIX "|" }' at three
+font sizes, run unchanged on both engines, 21 rows -- puts the whole difference
+on ONE cell: the glyph `m' (C059, 889/1000 em) at font size 1.5552, where the
+oracle gives 41 dots and the port gives 40.  Every other glyph and every other
+size agrees exactly.  The generator is
+~/ClaudeHome/lilyport-probe-parity16/ab/prefix-ladder.ly.
+
+TWO CANDIDATE RULES WERE IMPLEMENTED AND BOTH ARE REFUTED, by full sweep:
+
+ (1) Reproducing the two roundings literally -- quantize to integer Pango units
+     with round-half-up, then PANGO_UNITS_ROUND -- puts the carry boundary at
+     41471.5/1024 = 40.49951171875 dots, a little BELOW the half dot.  It fixes
+     eight rows (markup-finger-figuredbass-fontsize, midi-pedal, pedal-bracket,
+     repeat-dc-al-coda, repeat-ds-al-coda, repeat-ds-mark-override,
+     repeat-ds-return-count, repeat-ds-torture) and REGRESSES eight
+     (header-book-multiple, header-book-multiplescores, -1, header-bookpart-
+     multiple, header-score-multiple, header-score-reordered,
+     header-toplevel-multiple, lyric-repeat-count-format), each by the same one
+     dot in the other direction.  Net zero, so it was reverted; the ratchet
+     refused it and --force is never the fix.
+
+ (2) Keeping the single rounding but nudging the tie by 1e-9, on the theory that
+     the port only loses EXACT ties to floating-point representation error,
+     reproduces the pre-existing behaviour on all sixteen rows.  So the eight
+     improved rows are not ties: their exact values sit genuinely inside the
+     window (40.49951, 40.5), which is where rule (1) carries and rule (2) does
+     not.
+
+WHAT THAT PROVES, AND IT IS THE USEFUL PART: the two sets of eight sit in the
+SAME narrow window and need OPPOSITE answers, so no threshold on the exact real
+advance can separate them.  The rule is not a rounding boundary at all -- it is
+hb's INTEGER arithmetic, hb_font_t::em_mult, a 64-bit fixed-point multiply
+against a mult derived from the quantized em size:
+
+    x_mult = ((int64_t) x_scale << 16) / upem
+    advance = (v * x_mult + 0x8000) >> 16
+
+and the answer depends on the integer font-unit advance v and the integer scale,
+not on their real product.  Modelling that is the next attempt; the port already
+quantizes the requested SIZE to Pango units (FontInterface.QuantizeToPangoUnits),
+so that half is in place.
+
+REVISIT: worth 8 rows at least, and possibly the remaining sub-0.02 tail.  Do not
+attempt it without re-running the prefix ladder first -- it is the cheapest
+instrument this question has, and it names the failing cell in one run.
+
+
+THE annotate-spacing PADDING -- NARROWED AGAIN, ONE CANDIDATE ELIMINATED
+--------------------------------------------------------------------------------
+
+The previous entry offered two candidates.  MEASURED at PARITY 16, the second is
+ELIMINATED: ly:system::get-staves is NOT answering a longer list.  On
+page-spacing-nonstaff-lines-between the port draws exactly four extra "padding"
+annotations, which is two adjacent pairs of THREE vertical groups, twice, once
+per system -- the count upstream's own list length predicts.  The extra
+annotations read 0.50, and 0.50 is the Lyrics context's own
+nonstaff-relatedstaff-spacing padding (ly/engraver-init.ly), which is the alist
+the RELATED branch of Page_layout_problem::get_spacing_spec returns and the
+branch both engines should take for these pairs.
+
+So the port takes the right branch, reads the right alist, and the ORACLE somehow
+answers a padding of 0.0 for the same pair -- the oracle draws no padding
+annotation anywhere in either file, including for the two adjacent Staff groups
+in page-spacing-nonstaff-lines-header-padding, whose staff-staff-spacing carries
+a default padding of 1.  That is the shape to chase: something makes upstream's
+spec EMPTY (get_spacing_spec's own `!before || !after' arm returns a stretchability
+-only alist, whose padding is absent) rather than making its padding zero.
+
+Note also, and separately, that PageLayoutSpacing.GetSpacingSpec still accepts
+`pure'/`start'/`end' and DISCARDS them where upstream reads all twelve of its
+properties through get_maybe_pure_property.  That is NOT this defect -- the
+Scheme binding ly:get-spacing-spec passes pure = #f, so the two reads coincide on
+this path -- but it is live for the three PURE callers.
+
+
+A TIME SIGNATURE IN A TEXT FONT: THE `text' STENCIL HEAD IS UNPORTED -- OPEN
+--------------------------------------------------------------------------------
+
+NEW at PARITY 16, root-caused, not fixed.  font-name.ly overrides
+Staff.TimeSignature.font-name to "Linux Libertine O", and the row is a defect on
+BOTH gates at once: the SVG carries two extra text elements ("3" and "4") and the
+diagnostics gate is missing the oracle's two "cannot find SVG font #f" warnings.
+One defect, two symptoms, and the count matches exactly -- two digits.
+
+scm/output-svg.scm's `fontify' dispatches on the type of its first argument: a
+STRING is a Pango description and goes to pango-description-to-text, which sets
+real text; a font SMOB goes to font-smob-to-text, which builds a file name out of
+(font-name-style font) -- and font-name-style is (string-downcase (ly:font-name
+font)), which for a text font is now "unknown" -- then asks ly:find-file for
+"unknown.svg", fails, warns, and draws NOTHING.
+
+The port drives its own C# backend, which has heads for named-glyph, glyph-string,
+utf-8-string and url-link but none for `text', so whatever reaches it is emitted
+as ordinary text.  The fix is in which stencil expression the engine builds for a
+music grob whose font resolves to a text face, and then in the backend honouring
+it.  Worth 1 comparator row and 1 diagnostics row.
+
+
+A SHARED GLYPH-BOX CACHE WAS UNGUARDED -- FIXED
+--------------------------------------------------------------------------------
+
+CffFont.GlyphBox memoized into a plain Dictionary with no lock.  A face is parsed
+once and kept for the life of the process -- AllFontMetrics caches it behind a
+Gate, and every TextFace holds one -- so the memo is reachable from as many
+threads as touch the font.  The SWEEP never does (BatchDriver engraves one file
+at a time in one process, which is why this cost nothing for the life of the
+port), but the test suite does, because xUnit runs test classes in parallel, and
+a torn insert threw "Operations that change non-concurrent collections must have
+exclusive access" out of an unrelated font test.
+
+Guarded with the same idiom AllFontMetrics already used.  It cannot change any
+measurement: a glyph's box is a deterministic function of its index, so
+serializing the memo only serializes it, and computing one twice is harmless.
+_boxCache was the only state CffFont mutates after construction.
+
+Fenced by CffGlyphBoxCacheTests, which hammers a COLD cache from every core and
+requires every reader to agree with a single-threaded run.  A/B'd: the fence
+fails 3 of 3 runs with the lock removed and passes 3 of 3 with it.

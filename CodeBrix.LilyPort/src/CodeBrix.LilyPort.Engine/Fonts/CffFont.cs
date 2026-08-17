@@ -50,6 +50,13 @@ public sealed class CffFont
 
     private double[] _fontMatrix = { 0.001, 0, 0, 0.001, 0, 0 };
 
+    // A face is loaded once and shared for the life of the process (AllFontMetrics
+    // caches it), so this memo is reachable from more than one thread even though a
+    // sweep engraves one file at a time. It guards the cache only: a glyph's box is a
+    // deterministic function of its index, so serializing the memo cannot change any
+    // measurement, and computing one twice is harmless.
+    private readonly object _boxGate = new object();
+
     private readonly Dictionary<int, Box> _boxCache = new Dictionary<int, Box>();
 
     /// <summary>Initializes a font from a bare CFF table.</summary>
@@ -77,9 +84,12 @@ public sealed class CffFont
     /// <returns>The box, empty when the glyph draws nothing.</returns>
     public Box GlyphBox(int index)
     {
-        if (_boxCache.TryGetValue(index, out Box cached))
+        lock (_boxGate)
         {
-            return cached;
+            if (_boxCache.TryGetValue(index, out Box cached))
+            {
+                return cached;
+            }
         }
 
         Box box = default;
@@ -90,7 +100,11 @@ public sealed class CffFont
             box = run.Bounds;
         }
 
-        _boxCache[index] = box;
+        lock (_boxGate)
+        {
+            _boxCache[index] = box;
+        }
+
         return box;
     }
 

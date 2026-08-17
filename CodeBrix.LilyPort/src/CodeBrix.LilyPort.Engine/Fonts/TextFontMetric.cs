@@ -194,8 +194,10 @@ public sealed class TextFontMetric : FontMetric
         }
     }
 
-    /// <summary>Gets the font's name, which for a text font is its description.</summary>
-    public override string FontName => DescriptionString;
+    // NO FontName OVERRIDE, deliberately. Upstream's Pango font does not override
+    // Font_metric::font_name () either, so a text font answers "unknown" — which is
+    // exactly what cross-style tests for. See FontMetric.FontName. The description is
+    // still available as DescriptionString for the callers that genuinely want it.
 
     /// <summary>
     /// Gets the design size. Upstream's <c>Font_metric</c> answers 1 for anything that

@@ -44,10 +44,22 @@
 # frozen: 2026-08-16, PARITY 15, from the sweep of 2026-08-16 07:44-07:52
 #         (2,146 files: 2,121 svg, 25 no output, 0 errored; self-check 2,317 == 2,317)
 #
+#
+# RE-FROZEN 2026-08-16, PARITY 16 -- ONE FILE, skyline-grob-rotation.svg, and the
+# reason is recorded because a baseline that is re-frozen silently claims nothing.
+# PARITY 16 restored upstream's three-way item split in Paper_column_engraver, so a
+# tied unforced accidental -- a break reminder -- stopped reserving width it never
+# draws (see PORT-COVERAGE, CONDITIONAL ITEMS).  That is a deliberate, separately
+# fenced spacing fix worth 10 corpus rows, and moving the music necessarily reshapes
+# the DEBUG SKYLINE drawn over it: the page gained 20 line segments.  A/B'd -- with
+# the fix reverted the row returns to the old bytes exactly, and the other five
+# baseline pages are byte-identical either way, which is what makes this one file's
+# change attributable rather than drift.
+#
 # sha256	bytes	name
 a3de8ebfe64f62ade782b918e40c765c7984eec98d3e1061e63571ee5e8d54c8	43551	show-skylines.svg
 c016d11e0a700d67516d892bdd87d0506725200a7ddf5596060dea10379a0f10	147078	skyline-boxes-ellipses.svg
 68dbeb57aedce44d211baf2d7313471aebc52c1c8bec269dcf5170c3ad790116	106761	skyline-debug.svg
 861e7c277bdbf1f1a591660b992fbf9d0fbcb16c895282dab0a95a7d0a17ae2d	52893	skyline-embedded-ps.svg
-a8392fd35ac10bb943d91a2b27c0122f49c3425cb56db1f5197b0d8eeacb29ed	187686	skyline-grob-rotation.svg
+2b32cabb45d06791a49187c304f8bbf6708efcc450a037f35c0b75277db74ba5	191642	skyline-grob-rotation.svg
 1c77e92ca46591077d52ae6bd0fa4e1850c3f5ada1c791a29d53a366d1e0f409	130344	skyline-slur-segments.svg

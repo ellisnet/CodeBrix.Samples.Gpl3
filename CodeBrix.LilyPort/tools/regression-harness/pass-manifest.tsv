@@ -33,8 +33,8 @@ accidental-styles-1.svg	GLYPHS-DIFFER
 accidental-styles-2.svg	GLYPHS-DIFFER
 accidental-styles-3.svg	MATCH
 accidental-suggestions.svg	MATCH
-accidental-tie.svg	PLACEMENT-DIFFERS
-accidental-unbroken-tie-spacing.svg	PLACEMENT-DIFFERS
+accidental-tie.svg	MATCH
+accidental-unbroken-tie-spacing.svg	MATCH
 accidental-voice.svg	MATCH
 accidental.svg	MATCH
 accreg.svg	MATCH
@@ -90,9 +90,9 @@ approximate-pitch-tie.svg	MATCH
 approximate-pitch-var.svg	MATCH
 approximate-pitch.svg	MATCH
 arabic-accidental-glyphs.svg	MATCH
-arpeggio-at-right-bracket.svg	PLACEMENT-DIFFERS
-arpeggio-at-right-parenthesis-dashed.svg	PLACEMENT-DIFFERS
-arpeggio-at-right-parenthesis.svg	PLACEMENT-DIFFERS
+arpeggio-at-right-bracket.svg	MATCH
+arpeggio-at-right-parenthesis-dashed.svg	MATCH
+arpeggio-at-right-parenthesis.svg	MATCH
 arpeggio-collision.svg	MATCH
 arpeggio-no-overshoot.svg	MATCH
 arpeggio-no-staff-symbol.svg	MATCH
@@ -620,7 +620,7 @@ cue-clef-transposition.svg	MATCH
 cue-clef.svg	MATCH
 custos-unpitched.svg	MATCH
 custos.svg	MATCH
-dead-notes.svg	GLYPHS-DIFFER
+dead-notes.svg	PLACEMENT-DIFFERS
 debug-property-callbacks.svg	MATCH
 define-event-function.svg	MATCH
 divisi-staves.svg	MATCH
@@ -1211,7 +1211,7 @@ mensural-ligature-citations-1.svg	PLACEMENT-DIFFERS
 mensural-ligature-citations-2.svg	PLACEMENT-DIFFERS
 mensural-ligature-citations-3.svg	MATCH
 mensural-ligatures-invalid.svg	PLACEMENT-DIFFERS
-mensural-ligatures.svg	PLACEMENT-DIFFERS
+mensural-ligatures.svg	MATCH
 mensural.svg	MATCH
 merge-mmrest-numbers-engraver.svg	MATCH
 merge-rests-engraver.svg	PLACEMENT-DIFFERS
@@ -1892,7 +1892,7 @@ slur-nice.svg	MATCH
 slur-no-stem.svg	MATCH
 slur-rest-direction.svg	MATCH
 slur-rest.svg	MATCH
-slur-scoring.svg	PLACEMENT-DIFFERS
+slur-scoring.svg	MATCH
 slur-script-inside.svg	MATCH
 slur-script.svg	MATCH
 slur-shift-region.svg	MATCH
@@ -1908,7 +1908,7 @@ spacer-no-notes.svg	MATCH
 spacing-accidental-rest.svg	MATCH
 spacing-accidental-staffs.svg	MATCH
 spacing-accidental-stretch.svg	MATCH
-spacing-accidental-tie.svg	PLACEMENT-DIFFERS
+spacing-accidental-tie.svg	MATCH
 spacing-accidental.svg	MATCH
 spacing-bar-accidental.svg	MATCH
 spacing-bar-arpeggio.svg	MATCH
@@ -1926,7 +1926,7 @@ spacing-folded-clef3.svg	MATCH
 spacing-grace-duration.svg	MATCH
 spacing-grace.svg	MATCH
 spacing-horizontal-skyline-grace.svg	MATCH
-spacing-horizontal-skyline.svg	PLACEMENT-DIFFERS
+spacing-horizontal-skyline.svg	MATCH
 spacing-knee-compressed.svg	MATCH
 spacing-knee.svg	MATCH
 spacing-loose-grace-error.svg	MATCH
@@ -2183,7 +2183,7 @@ trill-spanner-consecutive.svg	MATCH
 trill-spanner-direction.svg	MATCH
 trill-spanner-grace.svg	MATCH
 trill-spanner-no-outside-staff-priority.svg	MATCH
-trill-spanner-pitched-consecutive.svg	PLACEMENT-DIFFERS
+trill-spanner-pitched-consecutive.svg	MATCH
 trill-spanner-pitched-forced.svg	MATCH
 trill-spanner-pitched.svg	MATCH
 trill-spanner-scaled.svg	MATCH

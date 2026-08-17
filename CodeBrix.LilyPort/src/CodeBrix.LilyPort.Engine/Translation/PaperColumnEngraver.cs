@@ -32,6 +32,14 @@ namespace CodeBrix.LilyPort.Engine.Translation; //was previously: lily/paper-col
 //     the BreakAlignment is stored as the command column's break-alignment object.
 //     Without them, every wish-based spacing correction read empty sets from the start,
 //     and break_align_width answered points. See PORT-COVERAGE.
+//   - upstream's three-way split in StopTranslationTimestep is restored: an accidental
+//     placement or an arpeggio is a CONDITIONAL item, an individual accidental goes on
+//     no list at all, and everything else is a plain item. The note that stood here
+//     said add_conditional_item was unported and that Paper_column::minimum_distance
+//     omitted the matching skyline half; both had since landed and nothing re-checked
+//     the note (trap 18). Its cost was that a tied, unforced accidental -- a break
+//     reminder, which upstream only charges for when it starts a line -- reserved its
+//     width in every column. See PORT-COVERAGE.
 
 /// <summary>
 /// Creates the paper columns: the horizontal positions everything else hangs off.
@@ -63,6 +71,11 @@ public class PaperColumnEngraver : Engraver
     private static readonly Symbol InternalBarNumberSymbol = Symbol.Intern("internalBarNumber");
     private static readonly Symbol RhythmicLocationSymbol = Symbol.Intern("rhythmic-location");
     private static readonly Symbol AxisGroupParentX = Symbol.Intern("axis-group-parent-X");
+    private static readonly Symbol AccidentalPlacementInterface
+        = Symbol.Intern("accidental-placement-interface");
+    private static readonly Symbol AccidentalInterfaceSymbol
+        = Symbol.Intern("accidental-interface");
+    private static readonly Symbol ArpeggioInterface = Symbol.Intern("arpeggio-interface");
     private static readonly Symbol PaperColumnSymbol = Symbol.Intern("Paper_column");
     private static readonly Symbol ForbidBreakSymbol = Symbol.Intern("forbidBreak");
     private static readonly Symbol ForceBreakSymbol = Symbol.Intern("forceBreak");
@@ -362,11 +375,26 @@ public class PaperColumnEngraver : Engraver
                 element.SetObject(AxisGroupParentX, column);
             }
 
-            // Upstream splits accidentals and arpeggios off as CONDITIONAL items, which
-            // needs Separation_item::add_conditional_item -- not ported, and paired with
-            // the skyline half that Paper_column::minimum_distance also omits. Every
-            // other item takes the same route it does upstream.
-            SeparationItem.AddItem(column, element);
+            // An accidental placement and an arpeggio are CONDITIONAL items: whether
+            // they occupy space depends on the column they are measured against, so
+            // they go on `conditional-elements` and Separation_item::boxes filters them
+            // through Accidental_placement::get_relevant_accidentals. A tied, unforced
+            // accidental is a break REMINDER -- it is only shown, and only costs width,
+            // when it starts a line -- and putting the placement on the ordinary
+            // `elements` list is what made the port reserve its width everywhere.
+            //
+            // An individual Accidental is added to NEITHER list, deliberately: the
+            // placement already accounts for it, and adding it here would count it
+            // twice.
+            if (element.HasInterface(AccidentalPlacementInterface)
+                || element.HasInterface(ArpeggioInterface))
+            {
+                SeparationItem.AddConditionalItem(column, element);
+            }
+            else if (!element.HasInterface(AccidentalInterfaceSymbol))
+            {
+                SeparationItem.AddItem(column, element);
+            }
         }
 
         _items.Clear();

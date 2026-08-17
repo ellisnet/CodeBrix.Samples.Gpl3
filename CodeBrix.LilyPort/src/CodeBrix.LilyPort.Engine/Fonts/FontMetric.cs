@@ -49,8 +49,26 @@ public abstract class FontMetric
     /// <summary>The value <see cref="NameToIndex"/> returns for an unknown name.</summary>
     public const int GlyphIndexInvalid = -1;
 
-    /// <summary>Gets the font's name, as the backend should refer to it.</summary>
-    public abstract string FontName { get; }
+    /// <summary>
+    /// Gets the font's name — upstream's <c>Font_metric::font_name()</c>, which answers
+    /// the literal string <c>"unknown"</c> and is overridden ONLY by
+    /// <c>Open_type_font</c>, with its PostScript name.
+    /// <para>
+    /// THE DEFAULT IS LOAD-BEARING AND IS NOT A PLACEHOLDER. <c>ly/property-init.ly</c>'s
+    /// <c>cross-style</c> asks for a latin1 font and tests
+    /// <c>(string=? (ly:font-name font) "unknown")</c> to find out whether it got a text
+    /// font rather than a music one; when it did, it clears <c>font-name</c> and sets
+    /// <c>font-family</c> to <c>music</c>, which is what makes <c>\xNotesOn</c> draw a
+    /// cross notehead at all. Declaring this <c>abstract</c> lost the default and made
+    /// each subclass invent one, and the text font answered its own DESCRIPTION — so the
+    /// test was false, the switch never happened, and the cross noteheads were absent.
+    /// </para>
+    /// <para>
+    /// It is deliberately NOT what a font prints as: upstream's <c>print_smob</c> writes
+    /// the <c>description_</c>, not this.
+    /// </para>
+    /// </summary>
+    public virtual string FontName => "unknown";
 
     /// <summary>Gets the font's design size, in points.</summary>
     public abstract double DesignSize { get; }
