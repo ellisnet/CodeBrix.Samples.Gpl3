@@ -305,9 +305,25 @@ public static class TranslationPrimitives
         interpreter.DefinePrimitive("ly:event-deep-copy", 1, 1, a =>
             StreamEvent.EventDeepCopy(a[0]));
 
+        //was previously: the MOMENT argument was accepted and DISCARDED, so the answer
+        //  was always the bare `length' property. Upstream's two-argument form
+        //  (translator.cc's get_event_length (e, now)) moves the whole length into the
+        //  GRACE part when `now' is an in-grace moment, and the port had that function --
+        //  Translator.GetEventLength (e, now), with eight C# callers -- while this, its
+        //  Scheme binding, never called it. The vendored `Bend_engraver' is the consumer
+        //  that shows it: a fall starting inside \grace computes its stop moment as
+        //  `(ly:moment-add now (ly:event-length (event-cause grob) now))', and with a
+        //  main-part length there the band is terminated at the wrong timestep and the
+        //  fall draws nothing at all.
         interpreter.DefinePrimitive("ly:event-length", 1, 2, a =>
         {
             StreamEvent streamEvent = AsEvent(a[0], "ly:event-length");
+
+            if (HasDefault(a, 1))
+            {
+                return Translator.GetEventLength(streamEvent, AsMoment(a[1], "ly:event-length"));
+            }
+
             object length = streamEvent.GetProperty(LengthSymbol);
             return length is Moment ? length : (object)Moment.Zero;
         });
@@ -538,6 +554,11 @@ public static class TranslationPrimitives
 
     private static Symbol AsSymbol(object value, string procedureName)
         => value as Symbol ?? throw SchemeErrors.WrongType(procedureName, "symbol", value);
+
+    private static Moment AsMoment(object value, string procedureName)
+        => value is Moment moment
+            ? moment
+            : throw SchemeErrors.WrongType(procedureName, "moment", value);
 
     private static StreamEvent AsEvent(object value, string procedureName)
         => value as StreamEvent ?? throw SchemeErrors.WrongType(procedureName, "stream event", value);

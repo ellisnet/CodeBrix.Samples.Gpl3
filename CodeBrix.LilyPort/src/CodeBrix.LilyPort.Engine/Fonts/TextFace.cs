@@ -130,10 +130,18 @@ public sealed class TextFace
 /// A chain is a family (serif, sans, typewriter) crossed with a style (bold, italic),
 /// and it runs: the URW face LilyPond defaults to, then the TeX Gyre face upstream's
 /// <c>00-lilypond-fonts.conf</c> names next, and then STOPS. Upstream continues into
-/// DejaVu and Noto CJK, which it does not ship; the port continues into the Roboto
-/// package instead and never into a system font, so what a score looks like does not
-/// depend on what happens to be installed on the machine that renders it. A code point
-/// no face in the chain covers deliberately draws missing-glyph tofu.
+/// DejaVu and Noto CJK, which it does not ship; the port stops at TeX Gyre and never
+/// continues into a system font, so what a score looks like does not depend on what
+/// happens to be installed on the machine that renders it. A code point no face in the
+/// chain covers deliberately draws missing-glyph tofu.
+/// </para>
+/// <para>
+/// A FAMILY NAME NOTHING ALIASES AND NO VENDORED FACE PROVIDES gets the <c>unknown</c>
+/// chain, TeX Gyre Schola — which is not a port-side choice but a measurement. Upstream
+/// asks fontconfig, and under the corpus's own pinning fontconfig best-matches such a
+/// name to TeX Gyre Schola Regular over the bundled directory. The names that DO resolve
+/// by category are enumerated in <see cref="Generics"/>, and they come from two
+/// configurations rather than one. See <see cref="Normalize"/> and ruling R14.
 /// </para>
 /// </summary>
 public static class TextFontChain
@@ -190,12 +198,68 @@ public static class TextFontChain
                     "texgyrecursor-italic.otf", "texgyrecursor-bolditalic.otf",
                 },
             },
+
+            // A family none of the 24 faces provides. ONE level, because this is not a
+            // fallback chain at all: it is the single face fontconfig answers with, and
+            // adding a second level would be inventing coverage upstream does not offer
+            // for the same request. Ruling R14, MEASURED with fc-match under the
+            // corpus's own pinning over eight unavailable names -- including "Arial" and
+            // "Foo Bar Baz" -- which all answer TeX Gyre Schola, and at every style:
+            // "DejaVu Sans:weight=bold" answers TeX Gyre Schola Bold.
+            ["unknown"] = new[]
+            {
+                new[]
+                {
+                    "texgyreschola-regular.otf", "texgyreschola-bold.otf",
+                    "texgyreschola-italic.otf", "texgyreschola-bolditalic.otf",
+                },
+            },
+        };
+
+    // The family names that resolve by CATEGORY rather than by best match, and the port
+    // chain each one means. There are two groups and they come from two different
+    // configurations, which is the whole reason this table is spelled out:
+    //
+    //   (1) THE CSS GENERICS. reference-fonts.conf.in aliases serif, sans, sans-serif
+    //       and monospace; ly/paper-defaults-init.ly:170-181 makes LilyPond ask for
+    //       "serif", "sans" and "monospace" under -dbackend=svg.
+    //
+    //   (2) LILYPOND'S OWN THREE VIRTUAL NAMES, which its shipped
+    //       fonts/00-lilypond-fonts.conf aliases -- "LilyPond Serif" to C059 then TeX
+    //       Gyre Schola, "LilyPond Sans Serif" to Nimbus Sans then TeX Gyre Heros,
+    //       "LilyPond Monospace" to Nimbus Mono PS then TeX Gyre Cursor. That is D23's
+    //       chain, face for face, because D23 was built from this file.
+    //
+    // /!\ GROUP (2) IS NOT REACHABLE ONLY THROUGH THE PAPER VARIABLE, and assuming it
+    // was cost a corpus row. `markup-music-glyph.ly' sets font-name to "LilyPond Sans
+    // Serif" DIRECTLY, which bypasses paper-defaults-init.ly's backend switch entirely.
+    //
+    // /!\ AND fc-match CANNOT MEASURE GROUP (2): LilyPond loads 00-lilypond-fonts.conf
+    // into its own FcConfig at startup (lily/font-config.cc), so those three names are
+    // aliased INSIDE the oracle's process even though FONTCONFIG_FILE has replaced the
+    // system configuration. A shell fc-match answers TeX Gyre Schola for "LilyPond
+    // Serif" and the oracle answers C059. Read group (2) off the conf, never off
+    // fc-match.
+    private static readonly Dictionary<string, string> Generics
+        = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["serif"] = "serif",
+            ["sans"] = "sans",
+            ["sans-serif"] = "sans",
+            ["monospace"] = "typewriter",
+            ["LilyPond Serif"] = "serif",
+            ["LilyPond Sans Serif"] = "sans",
+            ["LilyPond Monospace"] = "typewriter",
         };
 
     /// <summary>
     /// Returns the faces to try, in order, for a family and style.
     /// </summary>
-    /// <param name="family">The generic family: <c>serif</c>, <c>sans</c> or <c>typewriter</c>.</param>
+    /// <param name="family">
+    /// The family requested: a generic name (<c>serif</c>, <c>sans</c>,
+    /// <c>sans-serif</c>, <c>monospace</c>), a comma-separated list of names, or any
+    /// other family name — see <see cref="Normalize"/>.
+    /// </param>
     /// <param name="bold">Whether bold was asked for.</param>
     /// <param name="italic">Whether italic was asked for.</param>
     /// <returns>The loaded faces, in fallback order; empty when nothing resolved.</returns>
@@ -204,7 +268,7 @@ public static class TextFontChain
         string key = Normalize(family);
         if (!Families.TryGetValue(key, out string[][] levels))
         {
-            levels = Families["serif"];
+            levels = Families["unknown"];
         }
 
         int style = (bold ? 1 : 0) + (italic ? 2 : 0);
@@ -249,6 +313,36 @@ public static class TextFontChain
         }
     }
 
+    /// <summary>
+    /// Reduces a requested font family to the chain that serves it.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// A font family is a CSS family LIST, not one name — <c>kievan-notation.ly</c> asks
+    /// for <c>"Linux Libertine O,serif"</c> — and fontconfig walks it, taking the first
+    /// entry it can satisfy. So this walks it too, and matches a generic name EXACTLY
+    /// within an entry.
+    /// </para>
+    /// <para>
+    /// ⚠ IT USED TO SNIFF THE NAME instead: "contains mono" → typewriter, "contains
+    /// sans" → sans, else serif. That has no upstream counterpart — upstream asks
+    /// fontconfig and does not inspect family names anywhere — and it was wrong twice
+    /// over. It sent <c>"DejaVu Sans Mono"</c>, a family the port does not have, to
+    /// Nimbus Mono PS where the oracle answers TeX Gyre Schola; and a substring test
+    /// over the WHOLE string would send <c>"Linux Libertine O,serif"</c> to Schola,
+    /// where the oracle reaches C059 through the list's second entry. Ruling R14 (a),
+    /// worth seven corpus rows; both halves MEASURED with <c>fc-match</c> under the
+    /// corpus's own pinning (trap 8b).
+    /// </para>
+    /// <para>
+    /// An empty entry is skipped rather than defaulted, and there is a real one to skip:
+    /// <c>font-name = "Bitstream Vera Sans, Bold"</c> is a Pango description, so
+    /// <c>FontInterface.ParseDescription</c> takes " Bold" off as a STYLE word and hands
+    /// this the family <c>"Bitstream Vera Sans,"</c> — trailing comma included.
+    /// </para>
+    /// </remarks>
+    /// <param name="family">The family or comma-separated family list requested.</param>
+    /// <returns>The <see cref="Families"/> key to draw from.</returns>
     private static string Normalize(string family)
     {
         if (string.IsNullOrEmpty(family))
@@ -256,17 +350,15 @@ public static class TextFontChain
             return "serif";
         }
 
-        string lower = family.Trim().ToLowerInvariant();
-        if (lower.Contains("mono") || lower.Contains("typewriter") || lower.Contains("courier"))
+        foreach (string entry in family.Split(','))
         {
-            return "typewriter";
+            string name = entry.Trim();
+            if (name.Length != 0 && Generics.TryGetValue(name, out string generic))
+            {
+                return generic;
+            }
         }
 
-        if (lower.Contains("sans") && !lower.Contains("sans serif"))
-        {
-            return "sans";
-        }
-
-        return lower.Contains("sans") ? "sans" : "serif";
+        return "unknown";
     }
 }

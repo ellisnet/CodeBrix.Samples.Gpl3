@@ -56,6 +56,50 @@
 # baseline pages are byte-identical either way, which is what makes this one file's
 # change attributable rather than drift.
 #
+#
+#
+# EXTENDED 2026-08-17, PARITY 20 -- TWO ROWS, ruling R15 (Jeremy, 2026-08-17), option (a).
+# `accidental-ancient.svg' and `markup-with-true-dimensions.svg' are D43's class exactly:
+# their ONLY divergence from the oracle is our own Emmentaler build's outlines, and it is
+# measured to the FONT UNIT rather than merely bounded.  One font unit is 0.004 staff
+# spaces (upem 1000; emmentaler-20's em is the 20pt staff height = 4 staff spaces):
+#
+#   accidental-ancient          -0.0120 = 3 units, accidentals.hufnagelM1 (port 147, oracle 144)
+#   markup-with-true-dimensions +0.0127 = 1 unit x 2^(10/6), scripts.trill (port -323, oracle -322)
+#                               +0.0254 = the same, twice; the file is \fontsize #10 (x3.1748)
+#
+# The attribution is COMPLETE, not merely consistent: drift.py reports accidental-ancient
+# moving exactly ONE mark and markup-with-true-dimensions exactly TWELVE, and the
+# comparator names those same two glyphs.  Nothing else on either page moves.  Measured
+# with ft_decompose.py over both emmentaler-20 files, selfcheck run first.
+#
+# WHY ONLY THESE TWO ROWS OUT OF 2,316 -- and it is the same reason as the six above.
+# Every glyph DIMENSION comes from the LILC table, which is byte-identical between the
+# builds; the OUTLINE is consulted in one place (get_glyph_outline_bbox, feeding skylines)
+# plus `\with-true-dimensions', which reads it by definition.  These two rows are the two
+# pages that reach that path with a glyph whose outline differs.
+#
+# /!\ RECORDED IN 2026-08-02 AND IT NAMED ITS OWN SYMPTOM: tools/font-build/README.txt
+# section 7 measured the bbox differences, named accidentals.mensuralM1 as one of the two
+# largest, and named the one code path that would expose them.  Trap 27a.
+#
+# These two rows still read PLACEMENT-DIFFERS against the ORACLE corpus and floor there.
+# That is EXPECTED and is not work.
+#
+# frozen: 2026-08-17, PARITY 20, from the sweep of 2026-08-17 02:08-02:15
+#         (2,146 files: 2,121 svg, 25 no output, 0 errored; self-check 2,317 == 2,317).
+#         PROVEN CURRENT rather than assumed: both pages were re-rendered from the
+#         then-current binary into a scratch directory and compared byte for byte with
+#         the sweep's output -- identical.
+#
+# /!\ THE CORRECTNESS CLAIM FOR THESE TWO IS NOT HERE EITHER.  Rule 33: this file records
+# the port's own output.  GlyphOutlineSkylineTests gained
+# `a_glyphs_true_extent_is_read_from_its_outline_and_not_from_its_declared_box', which
+# asserts on BOTH of these rows' own glyphs that the true extent is the INK and that the
+# ordinary extent of the same stencil is the LILC-declared box -- two readings, two
+# tables -- with accidentals.sharp as the control, the glyph whose two sources agree.
+# A/B'd by making a named glyph contribute its declared box instead of tracing its
+# outline: the claim fails and the control still passes.
 # sha256	bytes	name
 a3de8ebfe64f62ade782b918e40c765c7984eec98d3e1061e63571ee5e8d54c8	43551	show-skylines.svg
 c016d11e0a700d67516d892bdd87d0506725200a7ddf5596060dea10379a0f10	147078	skyline-boxes-ellipses.svg
@@ -63,3 +107,5 @@ c016d11e0a700d67516d892bdd87d0506725200a7ddf5596060dea10379a0f10	147078	skyline-
 861e7c277bdbf1f1a591660b992fbf9d0fbcb16c895282dab0a95a7d0a17ae2d	52893	skyline-embedded-ps.svg
 2b32cabb45d06791a49187c304f8bbf6708efcc450a037f35c0b75277db74ba5	191642	skyline-grob-rotation.svg
 1c77e92ca46591077d52ae6bd0fa4e1850c3f5ada1c791a29d53a366d1e0f409	130344	skyline-slur-segments.svg
+d32cb573868a2f6f84d90fbd8d949872518c39d30f1220e9b930e8d6ffaac9ee	17285	accidental-ancient.svg
+62cb005ad71daa30372ddf1231fd5dec1ab85405b72fda1551f7ea7d42b52402	6241	markup-with-true-dimensions.svg

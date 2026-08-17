@@ -80,8 +80,10 @@ public static class NotApplicableEntryPoints
 
     /// <summary>
     /// Category <c>font-plumbing</c> (D13/D23): the port's font layer is the 24 vendored
-    /// faces plus the pinned Roboto fallback, with NO system-font fallback ever, so there
-    /// is no host font configuration to query or extend.
+    /// faces and nothing else — the chain ends at the TeX Gyre face and then at tofu, with
+    /// NO system-font fallback ever — so there is no host font configuration to query or
+    /// extend. (This said "plus the pinned Roboto fallback"; there has never been one, and
+    /// D23 was amended on 2026-08-17 to describe the chain the code actually has.)
     /// </summary>
     /// <param name="interpreter">The interpreter to extend.</param>
     private static void InstallFontPlumbing(Interpreter interpreter)

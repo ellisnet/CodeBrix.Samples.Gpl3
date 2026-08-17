@@ -203,8 +203,31 @@ public static class RegistryPrimitives
             return new Pair(extent.Left, extent.Right);
         });
 
+        //was previously: the AXIS argument was accepted and DISCARDED, so the answer was
+        //  always the whole-stencil one. `Stencil::is_empty (Axis)' had been ported
+        //  faithfully as Stencil.IsEmptyOn and this, its only Scheme consumer, never
+        //  called it. It matters because a stencil that is empty on ONE axis is the
+        //  ordinary case for spacing: `\hspace' is X-only and `\vspace' is Y-only, and
+        //  the vendored layer asks about a single axis at eight sites -- `stack-lines'
+        //  and `stack-titles' both promote a Y-empty, X-non-empty line to `(0 . 0)' so it
+        //  "registers as a line of its own", and the h-space?/v-space? tests in
+        //  stencil.scm and define-markup-commands.scm decide whether a spacer contributes
+        //  to a line at all. With the argument dropped, none of those rules had ever run.
         interpreter.DefinePrimitive("ly:stencil-empty?", 1, 2, a =>
-            !(a[0] is Stencil stencil) || stencil.IsEmpty);
+        {
+            if (!(a[0] is Stencil stencil))
+            {
+                return true;
+            }
+
+            if (a.Length <= 1 || a[1] is DefaultArgument)
+            {
+                return stencil.IsEmpty;
+            }
+
+            return stencil.IsEmptyOn(
+                SchemeConvert.ToLong(a[1], "ly:stencil-empty?") == 0 ? Axis.X : Axis.Y);
+        });
     }
 
     private static void InstallUnpurePure(Interpreter interpreter)

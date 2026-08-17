@@ -39,6 +39,30 @@ public class SessionLeakEndToEndTests
     private const string Version = "\\version \"2.27.2\"\n";
 
     /// <summary>
+    /// <c>volta-bracket-nest.ly</c>'s own music — the file that was the leak's VICTIM.
+    /// <para>
+    /// Rule 35b: invented material would not do. A two-alternative score is not enough,
+    /// because its brackets do not end on an ordinary <c>"|"</c> bar line and allowing a
+    /// hook there changes nothing at all; it was MEASURED to render identically with and
+    /// without. The nested alternatives are what put a bracket end on a plain bar line.
+    /// </para>
+    /// </summary>
+    private const string VoltaScore =
+        "\\fixed c' {\n"
+        + "  \\repeat volta 6 {\n"
+        + "    d1\n"
+        + "    \\alternative {\n"
+        + "      \\volta 1 e1\n"
+        + "      \\volta 2,3,4,5,6 {\n"
+        + "        f1\n"
+        + "        \\alternative { \\volta 2,3,4,5 g1 \\volta 6 a1 }\n"
+        + "      }\n"
+        + "    }\n"
+        + "  }\n"
+        + "  b1\n"
+        + "}\n";
+
+    /// <summary>
     /// A score whose system count doubles when <c>LeakCanaryTime</c> is visible: the
     /// injected music carries a forced <c>\break</c>, the exact shape the templates
     /// leaked.
@@ -170,6 +194,103 @@ public class SessionLeakEndToEndTests
         shown.SvgPath.Should().NotBeNull();
         baseline.SvgPath.Should().NotBeNull();
         LineCount(shown.SvgPath).Should().BeGreaterThan(LineCount(baseline.SvgPath));
+    }
+
+    /// <summary>
+    /// The TWELFTH per-file leak (PARITY 18, 2026-08-16): a <c>define-session</c> variable
+    /// one file mutates must be back to the value <c>session-save</c> recorded before the
+    /// next file parses.
+    /// <para>
+    /// <c>#(allow-volta-hook "|")</c> APPENDS to <c>bar-line.scm</c>'s
+    /// <c>volta-bracket-allow-volta-hook-list</c>, and
+    /// <c>volta-bracket-add-volta-hook.ly</c> does exactly that — so the file swept right
+    /// after it, <c>volta-bracket-nest.ly</c>, drew volta hooks on ordinary bar lines and
+    /// sat 2.0 staff spaces out. It MATCHED run alone: the full-sweep-only trap again, and
+    /// the reason the port now runs <c>session-terminate</c>'s declaration restore for
+    /// EVERY session variable rather than hand-restoring the ones already caught.
+    /// </para>
+    /// <para>
+    /// The baseline is rendered FIRST, before anything mutates the list — otherwise a
+    /// leak would reach the baseline too and the comparison would pass by both sides
+    /// being equally wrong.
+    /// </para>
+    /// </summary>
+    [Fact]
+    public void a_session_variable_one_file_mutates_is_restored_for_the_next_file()
+    {
+        //Arrange
+        string plain = Version + VoltaScore;
+        string setter = Version + "#(allow-volta-hook \"|\")\n" + VoltaScore;
+
+        //Act
+        BatchRunResult baseline = BatchRunner.RunText(
+            plain, "session-var-baseline", null, ScratchDirectory());
+        BatchRunner.RunText(setter, "session-var-writer", null, ScratchDirectory())
+            .SvgPath.Should().NotBeNull();
+        BatchRunResult reader = BatchRunner.RunText(
+            plain, "session-var-reader", null, ScratchDirectory());
+
+        //Assert
+        baseline.SvgPath.Should().NotBeNull();
+        reader.SvgPath.Should().NotBeNull();
+        Placements(reader.SvgPath).Should().Be(Placements(baseline.SvgPath));
+    }
+
+    /// <summary>
+    /// The CONTROL for the above, and it must come out DIFFERENTLY: allowing the hook in
+    /// a file's OWN source really does move this music, so equal placements in the test
+    /// above cannot pass on the hook doing nothing.
+    /// <para>
+    /// ⚠ The observable is a POSITION, not a count. The first draft of this control
+    /// counted <c>&lt;line&gt;</c> elements and FAILED — the hook adds no element, it
+    /// changes a bracket's extent, and the music below it moves by 2.0 staff spaces.
+    /// That is the same 2.0 the corpus row carried. Rule 35a: a fence that fails is as
+    /// likely to be reporting a bad expectation as a bad port.
+    /// </para>
+    /// </summary>
+    [Fact]
+    public void allowing_the_volta_hook_in_the_same_file_does_move_the_music()
+    {
+        //Arrange
+        string plain = Version + VoltaScore;
+        string selfContained = Version + "#(allow-volta-hook \"|\")\n" + VoltaScore;
+
+        //Act
+        BatchRunResult baseline = BatchRunner.RunText(
+            plain, "volta-control-plain", null, ScratchDirectory());
+        BatchRunResult hooked = BatchRunner.RunText(
+            selfContained, "volta-control-hooked", null, ScratchDirectory());
+
+        //Assert
+        baseline.SvgPath.Should().NotBeNull();
+        hooked.SvgPath.Should().NotBeNull();
+        Placements(hooked.SvgPath).Should().NotBe(Placements(baseline.SvgPath));
+    }
+
+    /// <summary>
+    /// Every <c>translate(...)</c> in a page, joined — the page's placements as one
+    /// comparable string.
+    /// </summary>
+    /// <param name="svgPath">The page to read.</param>
+    /// <returns>The joined placements.</returns>
+    private static string Placements(string svgPath)
+    {
+        string svg = File.ReadAllText(svgPath);
+        System.Text.StringBuilder joined = new System.Text.StringBuilder();
+        int at = 0;
+        while ((at = svg.IndexOf("translate(", at, StringComparison.Ordinal)) >= 0)
+        {
+            int close = svg.IndexOf(')', at);
+            if (close < 0)
+            {
+                break;
+            }
+
+            joined.Append(svg, at, close - at + 1).Append('|');
+            at = close + 1;
+        }
+
+        return joined.ToString();
     }
 
     private static int LineCount(string svgPath)

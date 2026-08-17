@@ -59,6 +59,7 @@ public sealed class SvgBackend : IStencilSink
     private static readonly Symbol GlyphString = Symbol.Intern("glyph-string");
     private static readonly Symbol Utf8String = Symbol.Intern("utf-8-string");
     private static readonly Symbol UrlLink = Symbol.Intern("url-link");
+    private static readonly Symbol GlyphOutline = Symbol.Intern("glyph-outline");
 
     // output-svg.scm's pango-description-regexp-comma / -nocomma. A Pango description
     // ends in its size, optionally preceded by style words; everything before the match
@@ -444,8 +445,40 @@ public sealed class SvgBackend : IStencilSink
             return EmitGlyphString(args);
         }
 
+        if (ReferenceEquals(head, GlyphOutline))
+        {
+            return EmitUndrawableMusicStringGlyph();
+        }
+
         UnhandledCommands.Add(head.Name);
         return false;
+    }
+
+    /// <summary>
+    /// Reproduces <c>output-svg.scm</c>'s <c>music-string-to-path</c> FAILING, which is
+    /// what a music string set in a TEXT face does: it warns once per glyph and draws
+    /// nothing.
+    /// <para>
+    /// A bare <c>glyph-outline</c> reaches a backend only for a music-encoded run over a
+    /// text font — <see cref="TextFontMetric"/> is the only producer of the head, and it
+    /// leaves the run unwrapped only when the run is a music string
+    /// (<c>pango-font.cc:574</c>). Upstream draws such a run by asking
+    /// <c>ly:find-file</c> for <c>&lt;font-name-style&gt;.svg</c>; LilyPond ships those
+    /// companions for the Emmentaler faces ALONE, so the lookup fails for every text
+    /// face and <c>music-string-to-path</c> falls to its warning arm. The run keeps its
+    /// shaped extents — only the drawing is lost.
+    /// </para>
+    /// <para>
+    /// The message prints <c>#f</c> rather than the name it looked for because upstream
+    /// passes the failed RESULT to the warning (<c>output-svg.scm:291</c>), not the file
+    /// name. That is upstream's, and rule 2 says a port reproduces it verbatim.
+    /// </para>
+    /// </summary>
+    /// <returns>Always <see langword="true"/>: the command was understood.</returns>
+    private static bool EmitUndrawableMusicStringGlyph()
+    {
+        Warn.Warning("cannot find SVG font #f");
+        return true;
     }
 
     /// <summary>

@@ -40,21 +40,37 @@ WHAT THEY ARE
   upstream distribution, e.g. LilyPond Serif -> C059 -> TeX Gyre Schola ->
   DejaVu Serif -> Noto CJK. DejaVu and Noto are NOT bundled by upstream and
   are not vendored here. The port's chain deliberately DIVERGES at that
-  point (decision D23, 2026-08-05): glyphs beyond the 24 faces fall through
-  to Roboto (the CodeBrix.Platform.Fonts.Roboto NuGet package -- OFL,
-  consumed as a dependency PINNED at version 1.0.209.315, nothing vendored;
-  a version change is a deliberate re-baseline event), and there is NO
-  system-font
-  fallback -- scripts the chain does not cover (CJK, Hebrew/Arabic, ...)
-  render missing-glyph tofu by design. CodeBrix.Platform never falls back
-  to system fonts: cross-platform behavior must not depend on what a host
-  happens to have installed. Regression files whose references bake in the
-  oracle's system-DejaVu metrics are handled by the D23 two-phase protocol:
-  validated against the oracle ONCE using a test-harness-only DejaVu mode
-  (on the machine whose DejaVu generated the references), then re-baselined
-  as committed PORT-GENERATED Roboto references -- clearly marked as such,
-  never mixed with oracle references -- so the suite passes on every
-  supported platform with no DejaVu anywhere.
+  point (decision D23, 2026-08-05): it STOPS at the TeX Gyre face, and a
+  code point no face in the chain covers renders missing-glyph tofu by
+  design. There is NO system-font fallback -- CodeBrix.Platform never falls
+  back to system fonts, because cross-platform behavior must not depend on
+  what a host happens to have installed.
+
+  A family name none of these 24 faces provides resolves to TeX Gyre
+  Schola, which is what upstream's fontconfig answers for such a name over
+  a directory holding exactly these files (ruling R14, 2026-08-17,
+  MEASURED with fc-match under the reference corpus's own pinning). The
+  three names upstream's own 00-lilypond-fonts.conf aliases -- LilyPond
+  Serif, LilyPond Sans Serif, LilyPond Monospace -- resolve by CATEGORY to
+  the three chains above, because LilyPond loads that conf into its own
+  fontconfig at startup.
+
+  CORRECTED 2026-08-17 (D23 amended, PARITY 20). This section used to say
+  the chain falls through "to Roboto (the CodeBrix.Platform.Fonts.Roboto
+  NuGet package ... PINNED at version 1.0.209.315)", and described a "D23
+  two-phase protocol" under which regression references baking in the
+  oracle's system-DejaVu metrics would be validated once through a
+  harness-only DejaVu mode and then re-baselined as PORT-GENERATED Roboto
+  references. NEITHER HAPPENED. There is no Roboto PackageReference and no
+  Roboto face in the Engine, so the chain always stopped at TeX Gyre; and
+  the reference-corpus problem was solved a different way entirely, by
+  decision D30 -- the corpus is generated with the SVG backend's generic
+  font families PINNED to these same faces, out of the oracle's own font
+  directory (tools/regression-harness/reference-fonts.conf.in), so no
+  DejaVu metrics are baked into any reference and there is nothing to
+  re-baseline. Where Roboto genuinely is used -- the Lily.Shell app's
+  chrome and terminal surface -- is recorded in THIRD-PARTY-NOTICES.txt
+  section 10.3.
 
 --------------------------------------------------------------------------------
 SHA256 MANIFEST (byte-identical to the oracle installation)

@@ -282,6 +282,46 @@ public class VerticalOrganizationEngraverTests : IDisposable
                 Sym("ly:grob::y-parent-positioning")));
     }
 
+    /// <summary>
+    /// <c>ly:system::get-staves</c> and its two siblings answer the EMPTY LIST — for
+    /// every system, always — because <c>get_maybe_spaceable_staves</c> looks the
+    /// alignment up under a name nothing declares.
+    /// <para>
+    /// <c>lily/system.cc</c> reads the alignment object at seven places. Six spell it
+    /// <c>vertical-alignment</c>; <c>system.cc:1023</c> spells it
+    /// <c>vertical_alignment</c>, with an underscore, and neither
+    /// <c>define-grob-properties.scm</c> nor <c>define-grobs.scm</c> knows that name. So
+    /// <c>align</c> is null and the loop never runs. Reproduced under rule 2, which
+    /// covers upstream's typos as well as its dead code.
+    /// </para>
+    /// <para>
+    /// Its one visible consequence is <c>annotate-spacing</c>: <c>paper-system.scm</c>
+    /// guards both of its staff maps with <c>(&lt; 1 (length ...))</c>, so no staff-level
+    /// spacing or padding annotation is ever drawn. MEASURED on the pinned oracle — zero
+    /// <c>padding</c> annotations across all 2,316 reference pages.
+    /// </para>
+    /// </summary>
+    [Fact]
+    public void the_staves_callbacks_answer_empty_under_upstreams_misspelled_object()
+    {
+        //Arrange
+        EngraveRun run = EngraveOneNote();
+        Grob alignment = run.Find("VerticalAlignment");
+        alignment.Should().NotBeNull("the fixture needs a real alignment to be meaningful");
+
+        //Act
+        object all = run.System.GetMaybeSpaceableStaves(StaffFilter.All);
+
+        //Assert
+        Pair.ToList(all).Should().BeEmpty();
+
+        // THE CONTROL, and it carries the whole claim: the alignment IS reachable under
+        // the declared, hyphenated name. Without it this test would pass just as well on
+        // a system that never grew an alignment at all, and would fence nothing.
+        run.System.GetObject(Sym("vertical-alignment")).Should().BeSameAs(alignment);
+        run.System.GetObject(Sym("vertical_alignment")).Should().NotBeSameAs(alignment);
+    }
+
     [Fact]
     public void the_system_start_bar_collects_the_staff_symbol()
     {

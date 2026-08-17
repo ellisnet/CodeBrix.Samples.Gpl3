@@ -2814,15 +2814,34 @@ Files (12): texgyreschola-{regular,bold,italic,bolditalic}.otf   (serif
 
   The alias-chain tails (DejaVu, Noto CJK) that upstream's fontconfig
   falls through to are NOT bundled by upstream and are NOT vendored here.
-  The port's fallback face is Roboto, consumed as the OFL-licensed
+  The port's chain therefore ENDS at the TeX Gyre face, and then at
+  missing-glyph .notdef output: there is deliberately NO fallback to
+  system fonts, so scripts the chain does not cover (CJK, Hebrew,
+  Arabic, ...) render as tofu by design (decision D23).
+
+  CORRECTED 2026-08-17 (D23 amended, PARITY 20). This paragraph used to
+  read "the port's fallback face is Roboto, consumed as the OFL-licensed
   CodeBrix.Platform.Fonts.Roboto NuGet package, pinned at version
-  1.0.209.315 (decision D23; a version change is a deliberate
-  re-baseline event)
-  -- a package dependency, so nothing font-related beyond the 24 files
-  above is vendored into this repository, and no further entry in this
-  document is required for it. There is deliberately NO fallback to
-  system fonts; scripts the chain does not cover render as missing-glyph
-  .notdef output by design.
+  1.0.209.315". That was never true of the rendering chain: the Engine
+  has no Roboto PackageReference and no Roboto face, so the chain has
+  always stopped at TeX Gyre. Nothing font-related beyond the 24 files
+  above is vendored into this repository, and the correction changes no
+  behaviour -- it makes the record describe the code. Keeping the step
+  would have been a parity RISK rather than a gain: the pinned oracle's
+  font directory has no Roboto, so any code point Roboto covered and
+  these 24 faces do not would draw a real glyph here where the oracle
+  draws none.
+
+  WHERE ROBOTO DOES APPEAR, so that this correction removes a false
+  claim and not an attribution: the Lily.Shell APPLICATION under tools/
+  takes CodeBrix.Platform.Fonts.Roboto.OflLicenseForever (1.0.209.315)
+  for its user-interface chrome and CodeBrix.Platform.Fonts.RobotoMono.
+  OflLicenseForever (1.0.216.1150) for its terminal surface. Both are
+  package dependencies of the shell app, not of the Engine, and neither
+  takes part in engraving or in the D23 text-face chain. Roboto and
+  Roboto Mono are licensed under the SIL Open Font License 1.1; the
+  packages carry their own OFL text, nothing is vendored here, and no
+  font file of theirs travels inside the CodeBrix.LilyPort packages.
 
 --------------------------------------------------------------------------------
 10.4  HOW THE FONT FILES ARE SHIPPED

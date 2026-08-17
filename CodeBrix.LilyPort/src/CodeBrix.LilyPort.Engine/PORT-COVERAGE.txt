@@ -2563,10 +2563,19 @@ THE PREMATURE ALIGNMENT TRIGGER, AND THE PURE STAND-IN THAT ABSORBS IT
   applied translation -- reported the correct 9. Only the offset the staves
   ALREADY carried was wrong.
 
-  The one trigger that existed was Stem::internal_pure_height reading an
+  The first trigger found was Stem::internal_pure_height reading an
   ordinary relative coordinate (see DELIBERATE DIVERGENCES (stems and flags),
-  RESOLVED at PARITY 12); with it gone, nothing reaches the alignment early on
-  the corpus. THE STAND-IN ITSELF STAYS, because the reason it exists --
+  RESOLVED at PARITY 12).
+  ⚠ IT WAS NOT THE ONLY ONE, AND THIS PARAGRAPH SAID IT WAS FOR FOUR SESSIONS.
+  PARITY 18 found a SECOND of the same class -- Staff_symbol_referencer::
+  pure_get_position answering the ordinary position, reached from
+  Dot_column::calc_positioning_done before line breaking, which is what made
+  minimise_least_squares report "vertical spacing is triggered before line
+  breaking" on every sweep. See PARITY GRIND -- THE PURE READS THAT WERE NOT
+  PURE, at the end of this file. The prediction in the paragraph above HELD: the
+  symptom was separations at exact multiples of a staff space, and the cause was
+  a new early reader, not the stand-in.
+  THE STAND-IN ITSELF STAYS, because the reason it exists --
   Spacing_interface::skylines reading early -- has not changed. If a
   cross-staff or multi-staff score ever again shows a separation that is an
   exact multiple of its spacing, look for a NEW early trigger first: the
@@ -7077,9 +7086,13 @@ was wrong)
   skipped and they are NOT closed by reversing the font build.  They are to be
   graded against a COMMITTED PORT-GENERATED BASELINE, and the mechanism is to be
   fenced separately by a unit test.  G1's own definition already reserves this
-  shape -- it requires D23's fallback-dependent files to "match committed
-  PORT-GENERATED baselines" -- and that clause has never been exercised, so the
-  machinery does not exist yet and has to be built.
+  shape -- it requires files whose divergence is in an ASSET the port builds or
+  ships to "match committed PORT-GENERATED baselines" -- and that clause has never
+  been exercised, so the machinery does not exist yet and has to be built.
+  (/!\ THAT CLAUSE WAS RE-WORDED ON 2026-08-17.  When this entry was written it read
+  "D23's fallback-dependent files", which was untrue about every row it covered:
+  these six and R15's two are font-BUILD-dependent, not fallback-dependent, and
+  Roboto was never in the fallback chain at all.)
 
   WHAT EACH HALF CLAIMS, because they are not interchangeable and the split is
   what keeps this honest:
@@ -7844,3 +7857,777 @@ _boxCache was the only state CffFont mutates after construction.
 Fenced by CffGlyphBoxCacheTests, which hammers a COLD cache from every core and
 requires every reader to agree with a single-threaded run.  A/B'd: the fence
 fails 3 of 3 runs with the lock removed and passes 3 of 3 with it.
+
+================================================================================
+PARITY GRIND -- A MUSIC STRING IN A TEXT FACE, AND AN UPSTREAM MISSPELLING
+================================================================================
+
+PARITY 17 (2026-08-16).
+
+
+A MUSIC-ENCODED STRING SET IN A TEXT FACE DRAWS NOTHING -- FIXED
+--------------------------------------------------------------------------------
+
+`\override Staff.TimeSignature.font-name = "Linux Libertine O"' puts a fetaText
+run into a Pango font, and the oracle then draws NEITHER digit and warns twice:
+
+    warning: cannot find SVG font #f
+    warning: cannot find SVG font #f
+
+The port drew both digits as ordinary text.  One defect, two gates -- the
+comparator row carried `extra text:Linux Libertine O:2.2000:3' and `:4', and the
+diagnostics row carried the matching MISSING pair.
+
+THE CHAIN, and it turns on WHICH copy of the encoding is read.  select_font
+(font-select.cc:82) overwrites its own LOCAL `encoding' with `latin1' when
+font-name is a string, and answers a Pango font.  Text_interface::interpret_string
+does NOT reuse that local: it reads font-encoding from PROPS again and computes
+
+    bool is_music = scm_is_true (scm_memq (encoding, music_encodings));   // :240
+    return fm->text_stencil (layout, str, is_music, features_str);        // :241
+
+so the grob's own fetaText survives and the run reaches text_stencil as a MUSIC
+string.  Pango_font::text_stencil then applies its final guard
+
+    if (!scm_is_null (dest.expr ())
+        && (!music_string || !music_strings_to_paths))                    // :574
+
+-- the SVG backend sets music-strings-to-paths, so for a music string BOTH terms
+are false, the utf-8-string encapsulation is SKIPPED, and the expression stays the
+raw per-glyph drawing.  output-svg.scm's glyph-string draws that through
+music-string-to-path, which asks ly:find-file for `<font-name-style>.svg' and, on
+failure, warns and returns unspecified.  LilyPond ships .svg companions for the
+EMMENTALER faces ALONE -- the pinned oracle's font tree has nine, all
+emmentaler-* -- so the lookup fails for every text face.  The run keeps its shaped
+extents; only the drawing is lost.
+
+WHAT THE PORT HAD.  TextInterface.InterpretString dispatched on the C# TYPE of the
+selected font (`font is TextFontMetric') instead of on the encoding.  The two
+agree whenever the encoding and the font kind agree and disagree exactly when
+font-name forces a text font under a music encoding -- trap 12a's shape one level
+up, a C# type test standing in for an upstream property read.
+
+⚠ AND THE PREDICATE WAS ALREADY THERE, WITH NO CALLERS.
+TextInterface.IsMusicEncoded is a faithful port of line 240, complete with its
+doc comment, and NOTHING IN THE ENGINE CALLED IT.  Trap 17a again: the read side
+is perfect and no one asks it.  A grep for the mechanism finds it and looks
+reassuring.
+
+Three changes.  InterpretString computes musicString = IsMusicEncoded(props) and
+passes it down; TextFontMetric.TextStencil takes it and skips the utf-8-string
+wrapper exactly where upstream skips it; and SvgBackend gains a `glyph-outline'
+head that warns `cannot find SVG font #f' and draws nothing.  A bare
+glyph-outline reaches a backend ONLY for this case -- TextFontMetric is the head's
+only producer and it leaves a run unwrapped only when the run is a music string --
+so the head needs no further test.  The message prints `#f' rather than the file
+name because upstream passes the failed RESULT to the warning
+(output-svg.scm:291); that is upstream's and rule 2 keeps it.
+
+MEASURED: font-name.svg GLYPHS-DIFFER -> PLACEMENT-DIFFERS, corpus-wide exactly 2
+`cannot find SVG font' warnings, 0 regressions on a full sweep, and the
+diagnostics gate 2,136 -> 2,137 with MISSING 2 -> 1.  The row does
+not reach MATCH: it carries a residual 2.4242 on "Rest in DejaVu Sans Mono", which
+was invisible before because an inventory mismatch never reaches placement
+comparison.  That residue is the fallback-face class (D23/D31), not this defect.
+
+Fenced by MusicStringOnTextFontTests (3 cases, 2 of them controls -- the latin1
+run must STILL be wrapped, and the extents must be identical either way, because
+upstream returns dest.extent_box() on both branches) and
+SvgMusicStringFallbackTests (2 cases, 1 control).  A/B'd: with the wrapper skip
+reverted the claim fails and both controls hold.
+
+
+ly:system::get-staves ALWAYS ANSWERS THE EMPTY LIST -- UPSTREAM MISSPELLS ITS
+OWN OBJECT, AND THE PORT HAD CORRECTED IT
+--------------------------------------------------------------------------------
+
+lily/system.cc reads the system's alignment object at seven places.  SIX spell it
+`vertical-alignment'.  ONE -- get_maybe_spaceable_staves, system.cc:1023, which is
+the body behind all three ly:system::get-*-staves callbacks -- spells it
+
+    Grob *align = unsmob<Grob> (get_object (me, "vertical_alignment"));
+
+with an UNDERSCORE.  Nothing declares that name and nothing writes it:
+scm/define-grob-properties.scm declares `vertical-alignment' and
+scm/define-grobs.scm gives System the ly:system::get-vertical-alignment callback
+under the hyphen.  So `align' is null, the loop never runs, and get-staves,
+get-spaceable-staves and get-nonspaceable-staves answer the EMPTY LIST for every
+system LilyPond has ever engraved.
+
+ITS ONE VISIBLE CONSEQUENCE IS annotate-spacing.  scm/paper-system.scm guards both
+staff maps with `(< 1 (length ...))', so no staff-level spacing or padding
+annotation is ever drawn.  The port had translated the function faithfully but
+under the DECLARED name, so the callback fired, the alignment was found, and the
+port drew four padding annotations per page that the oracle does not draw.
+
+MEASURED, NOT INFERRED, AND THE MEASUREMENT IS WHAT SETTLED IT:
+
+  - the pinned oracle draws ZERO `padding' annotations across ALL 2,316 reference
+    pages;
+  - annotate-spacing is nevertheless fully ACTIVE on those pages -- the oracle
+    draws `basic-dist (system-system-spacing)', `basic-dist (top-system-spacing)',
+    `basic-dist (last-bottom-spacing)', `bottom-margin' and `extent-estimate',
+    which are the SYSTEM-level annotations and do not go through get-staves.
+
+That pair is what rules out "annotate-spacing is simply off" and leaves the
+misspelling as the only account.  Note the shape of the earlier dead end: the
+padding VALUES the port computed were right -- Page_layout_problem::get_spacing_spec
+returns the Lyrics' own nonstaff-relatedstaff-spacing, padding 0.5, on both pairs,
+and the port read exactly that.  Chasing the value could never have found this,
+because the divergence is one level up, in the LIST.
+
+Reproduced under rule 2, which covers upstream's typos as explicitly as its dead
+code.  The port now looks the alignment up under upstream's misspelled name, in
+GetMaybeSpaceableStaves ONLY -- the port's five other reads correspond to
+upstream's six hyphenated sites and keep the hyphen.  The body is left whole
+rather than folded away, so that correcting one symbol restores the function on
+the day upstream fixes it.
+
+MEASURED: both rows GLYPHS-DIFFER -> MATCH directly, corpus 2,234 -> 2,236, 0
+regressions, one transition kind.  The corpus has SIX files that set
+annotate-spacing; the other four were MATCH before and after, which is the
+control -- their oracle pages carry no padding annotation either, so the change
+is inert wherever the annotation was already absent.
+
+Fenced by VerticalOrganizationEngraverTests.
+the_staves_callbacks_answer_empty_under_upstreams_misspelled_object, whose CONTROL
+is the load-bearing half: the alignment IS reachable under the hyphenated name on
+the same system, so the emptiness is the misspelling and not a system that never
+grew an alignment.  A/B'd: the fence fails with the hyphen restored.
+
+
+D44, THE DEVICE-DOT TIE -- A THIRD RULE REFUTED, AND THE FAMILY RE-SIZED
+--------------------------------------------------------------------------------
+
+STILL OPEN.  PARITY 16 implemented two candidate rules and refuted both by full
+sweep; this session refuted a third, and did it by MEASUREMENT rather than by a
+sweep, which is much cheaper.
+
+THE INSTRUMENT.  ~/ClaudeHome/lilyport-probe-parity17/hb_advance.py drives the
+SYSTEM libharfbuzz through ctypes -- the same shape as PARITY 14's ft_decompose.py
+-- creating an hb_font_t over one of the pinned oracle's own .otf files and asking
+hb_font_get_glyph_h_advance directly.  Rule 35a: a library rule is an oracle and
+has to be READ.  Its selfcheck (hb at scale == upem must reproduce hmtx exactly)
+passes 65 of 65 glyphs on C059 at upem 1000, libharfbuzz 10.2.0.
+
+WHAT IT SAYS, over 285,940 (glyph, scale) samples on five pinned faces:
+
+    em_mult with a TRUNCATED multiplier, +0x8000      414 misses  (0.145%)
+    exact rational, round half away from zero        5883 misses
+    float32 multiplier + roundf                       984 / 56,347
+
+-- so the answer is NEAR the classic em_mult form and is none of the three.  Every
+one of the 414 misses is an exact .5 tie where hb rounds UP and the truncated form
+rounds down.
+
+⚠ AND THE MULTIPLIER FITS NO SIMPLE CLOSED FORM.  Solving for it by interval
+intersection (advance == floor((v*mult + 32768)/65536) constrains mult from many
+glyphs at one scale) gives, for C059 at upem 1000:
+
+    scale   mult must lie in     exact (scale<<16)/upem   truncate  round
+     4134   [270920, 270925]     270925.824               IN        OUT
+     4347   [284885, 284886]     284884.992               OUT       IN
+
+One case needs a multiplier BELOW the exact value and the other ABOVE it.  That is
+PARITY 16's "the two sets sit in the same window and need OPPOSITE answers"
+reproduced against the library itself in a single run, which is what makes it a
+property of HarfBuzz rather than of the corpus.  (The solver assumes the
+(v*mult + 32768) >> 16 form; where its answer sits far from the exact value the
+FORM is what is wrong, so those rows are not measurements of a multiplier.)
+
+⚠ WHAT IS NOT ESTABLISHED, and why no fix was landed off these numbers: whether
+libharfbuzz 10.2.0 is the version the PINNED ORACLE links.  The oracle statically
+links harfbuzz, pango and freetype -- ldd lists only libc, libm, libpthread, libdl
+and libresolv -- so the version cannot be read off the binary.  PARITY 14 met the
+same limit with FreeType (system 2.13.3 against the oracle's 2.14.1) and set the
+rule: rest STRUCTURAL claims on the system library, never sub-unit NUMERIC ones.
+D44 is a sub-unit numeric claim.
+
+THE FAMILY IS SMALLER THAN THE PLAN RECORDS, and the arithmetic is the evidence.
+Expressing every small dx in the residue as a fraction of one device dot
+(0.0341433 staff spaces):
+
+    WHOLE dots, 8 rows -- D44 proper
+      emmentaler-fractions-4 (1,2), emmentaler-number-kerning-4 (1,2,4),
+      markup-finger-figuredbass-fontsize (1), repeat-dc-al-coda (1),
+      repeat-ds-al-coda (1), repeat-ds-mark-override (1),
+      repeat-ds-return-count (1), repeat-ds-torture (1)
+
+    EXACTLY HALF a dot, 3 rows -- the same defect one step downstream
+      kievan-notation, midi-pedal, pedal-bracket
+      (a CENTRED run is placed at -width/2, so a one-dot width error moves its
+       origin by half a dot)
+
+    NOT dot-quantized at all, 4 rows -- a DIFFERENT mechanism
+      accidental-ancient 0.35, markup-with-true-dimensions 0.37/0.74,
+      collision-head-solfa-fa 0.71, dead-notes 0.34-0.80
+
+So D44 is worth ELEVEN rows, not eight and not the whole sub-0.02 tail.  ⚠ The
+plan's D44 row lists "probably the sub-0.02 tail incl. dead-notes' residue" among
+its constituency; dead-notes' dx values are 0.34-0.80 of a dot and are NOT this
+defect.  Correcting that is the point of the table.
+
+================================================================================
+PARITY GRIND -- THE PURE READS THAT WERE NOT PURE
+================================================================================
+
+PARITY 18 (2026-08-16).
+
+Three closures, one class.  Every one of them is a read that upstream takes on
+the PURE side and the port took on the ORDINARY side, and in each case the port
+carried a written note saying the pure machinery did not exist yet.  It does:
+`unpure-pure-container.cc' landed with line breaking, and the notes had simply
+never been re-checked.  That is trap 18, three times in one file family, and it
+is the same shape PARITY 12 closed for `Stem::internal_pure_height' and PARITY 13
+closed for `Staff_grouper_interface::get_extremal_staff'.
+
+⚠ THE SIGNATURE THAT NAMES THIS CLASS IS ALREADY WRITTEN DOWN in the vertical
+stand-in note above: "if a cross-staff or multi-staff score ever again shows a
+separation that is an exact multiple of its spacing, look for a NEW early trigger
+first".  PARITY 18's whole GO'd residue was separations at whole and half staff
+spaces, and two of the three closures below are exactly that.
+
+
+(1) Staff_symbol_referencer::pure_get_position ANSWERED THE ORDINARY POSITION
+--------------------------------------------------------------------------------
+
+`PureGetPosition' was `GetPosition', under a note reading "the port has no
+pure-property machinery yet (unpure-pure-container.cc), so this answers the
+ORDINARY position -- the same standing divergence every pure variant takes
+today".  `Grob.PureRelativeYCoordinate' had twelve callers by then.
+
+`internal_get_position (me, pure)' is now shared by both readings and differs in
+ONE term, exactly as upstream: the pure branch reads
+`pure_relative_y_coordinate (c, 0, INT_MAX)'.  The staff symbol's own coordinate,
+and the no-staff-symbol branch below it, stay ORDINARY on both paths because
+upstream writes them that way (rule 2).
+
+WHAT IT COST.  `Dot_column::calc_positioning_done' is upstream's own reason for
+the distinction and says so in a comment: a dot's real Y may be linked to a
+beam's, and a beam has no position before line breaking.  The port's ordinary
+read forced `Y-parent-positioning' -> the alignment's `positioning-done' ->
+beam positioning, from inside a callback that runs before line breaking -- and
+`minimise_least_squares' then reported "vertical spacing is triggered before line
+breaking" on every sweep.  `dot-column-vertical-positioning.ly' exists to catch
+precisely that and says so in its texidoc.  Three rows to MATCH
+(`rest-dot-position' 36 marks at a flat -1.0, `dot-column-vertical-positioning',
+`dot-column-rest-collision') and the programming error gone, 1 -> 0.
+
+FENCED by `StaffSymbolReferencerTests', five cases.  The claim is carried by a
+PAIR on the same grob shape -- an unpure-pure container whose halves are 1.5 and
+0.5 gives an ordinary position of 3.0 and a pure position of 1.0 -- and the
+CONTROL is a plain-number Y-offset, where the two readings agree.  That control
+is the whole reason the defect survived: wherever the chain has no pure/unpure
+split, reading the wrong branch is invisible.  A/B'd with the fix reverted: the
+three pure cases fail, the ordinary case and the control hold.
+
+
+(2) Staff_grouper_interface::maybe_pure_within_group ASKED THE WRONG QUESTION
+--------------------------------------------------------------------------------
+
+Upstream's loop:
+
+    if (Page_layout_problem::is_spaceable (*i)
+        && ((pure && !Hara_kiri_group_spanner::request_suicide (*i, start, end))
+            || (!pure && (*i)->is_live ())))
+
+The port had `IsSpaceable (elts[i]) && elts[i].IsLive' for BOTH branches, under a
+note saying suicide was unported so the answer was always "no".  ⚠ THIS IS THE
+SIBLING OF THE NOTE PARITY 13 FIXED, in the same upstream file: `get_extremal_staff'
+carried the same claim, was corrected, and nothing re-checked the function below
+it (trap 17c -- when one member of a family is repaired, sweep the family).  The
+CLASS-LEVEL doc comment stated it for both methods and is now corrected for both.
+
+WHAT IT COST.  The answer decides whether the gap under a staff is priced as
+`staff-staff-spacing' or as `staffgroup-staff-spacing'.  Before line breaking
+nothing has suicided, so every removable staff read live and a group's LAST staff
+was mistaken for an interior one.
+
+(3) get_spacing_spec AND calc_maybe_pure_staff_staff_spacing READ ORDINARILY
+--------------------------------------------------------------------------------
+
+Both read their properties with `get_maybe_pure_property' upstream; the port used
+plain `GetProperty' at all twelve sites in the first and all three in the second,
+under a note claiming "every spec the vendored defaults state is a plain alist for
+which the two answers coincide".  ⚠ IT IS NOT: `VerticalAxisGroup.staff-staff-spacing'
+is `(ly:make-unpure-pure-container ly:axis-group-interface::calc-staff-staff-spacing
+ly:axis-group-interface::calc-pure-staff-staff-spacing)' -- two DIFFERENT procedures
+-- and an ordinary read runs the unpure one, which is what carried (2) into every
+pure spacing estimate.  This was PARITY 15's recorded finding (1), unchased until it
+had a measured row impact.
+
+MEASURED, (2) and (3) together: SIX rows, and two of them are the GLYPHS-DIFFER
+brace rows.  `satb-template-with-changed-instrument-names' and its ssaattbb sibling
+were a flat -1.5 over 109 and 111 marks; `satb-template-with-men-women-and-descant'
+-1.5/-3.0; `page-spacing-staff-group-hara-kiri' a flat -11.0 over 28 of 29 marks.
+`hairpin-span-bar' (brace173 -> brace174) and
+`ssaattbb-template-with-men-women-and-descant' (brace163 -> brace165) came with them,
+which CONFIRMS PARITY 17's re-attribution: a system 1.5-3.0 staff spaces too tall
+gives a brace one or two optical sizes too tall with nothing in the brace search
+wrong.  The port's own instrumentation is what named the gap -- a per-mark dump
+showed the choir group unmoved and everything from the organ group down shifted by
+exactly -1.5, so the divergence was ONE gap and the rest of the page inherited it.
+
+FENCED by `StaffGrouperWithinGroupTests', four cases: the disagreeing PAIR (pure
+false, unpure true, same grouper and same range), plus two controls -- a
+non-removable lower staff, where both branches must agree, and a grouper's last
+staff, where both must answer false.  A/B'd with the fix reverted: only the pure
+case fails.
+
+⚠ WHAT WAS RULED OUT ALONG THE WAY, so no session re-derives it.  The first
+hypothesis was a NEW early trigger of the vertical stand-in, and it is REFUTED by
+measurement: `Align_interface::align_to_ideal_distances' is never called at all on
+these files.  Traced from the port (a file-appending probe, because BatchDriver
+redirects both console streams): every vertical translation on
+`satb-template-with-changed-instrument-names' comes through
+`PageLayoutProblem.AppendSystem' -> `GetMinimumTranslationsWithoutMinDist', 385
+calls, of which 4 are unpure.  The stand-in did not fire and is not implicated.
+
+
+(4) get_fixed_spacing READ THE ORDINARY BOUND IN A PURE LOOKUP
+--------------------------------------------------------------------------------
+
+`sys->get_maybe_pure_bound (LEFT, pure, start, end)' had been ported as
+`sys.GetBound (LEFT)'.  `SystemGrob.GetMaybePureBound' existed, with the right
+signature, and this call site -- its only consumer -- did not use it.  Trap 17a's
+shape: the accessor is present and faithful and nothing calls it.  A system's real
+bounds are whatever the last line breaking left behind, so a pure lookup was
+answering about a different line.  Worth `volta-bracket-nest', whose brackets sat
+a flat 2.0 apart from the oracle's.
+
+FENCED by `FixedSpacingPureBoundTests', three cases: the pure lookup must not find
+a forced distance the ordinary bound carries; a control asserting the two bound
+accessors answer differently on that fixture at all (without which the first case
+proves nothing); and a control where nothing is forced and both answer negative
+infinity.  A/B'd with the fix reverted: only the first fails.
+⚠ Its first draft asserted that the UNPURE lookup finds 7.0 and that expectation
+was WRONG, not the port -- a fixture `Item' has no column, so `Grob::get_system'
+answers null and the unpure branch never reaches the bound either.  Rule 35a: a
+fence that fails is as likely to be reporting a bad expectation as a bad port.
+
+
+THE TRAP-24 SWEEP THIS OPENED, RUN AND CLEAN
+--------------------------------------------------------------------------------
+
+Every method in the Engine taking a `bool pure' parameter was scanned for ordinary
+`GetProperty' reads inside its body.  Ten survivors, EVERY ONE verified by hand
+against upstream (trap 32a) and every one FAITHFUL -- upstream reads all of them
+with plain `get_property': `cross-staff' in side-position-interface.cc (216, 268),
+`self-alignment-X/Y' in self-alignment-interface.cc (62), `stacking-dir',
+`padding' and `minimum-translations-alist' in align-interface.cc (175, 188, 193,
+289), `line-break-system-details' in page-layout-problem.cc (1229), and
+staff-symbol-referencer.cc's own `staff-position' fallback.  The class is closed
+for property reads; (4) above is what the same sweep found on the BOUND accessor.
+
+
+================================================================================
+PARITY GRIND -- THE ARGUMENTS THAT WERE ACCEPTED AND DROPPED (PARITY 19,
+2026-08-17)
+================================================================================
+
+Three defects, and TWO of them are one class: a Scheme binding that declares
+upstream's arity, accepts the optional argument, and never looks at it.  Nothing
+in this project could see them.  The arity is right, so the entry-point closure
+and the ledger are satisfied; the call returns a well-formed value, so nothing
+throws; and the C# function each one owed had been ported FAITHFULLY and simply
+had no caller -- trap 17a, for the third and fourth time.
+
+
+(1) ly:stencil-empty? IGNORED ITS AXIS ARGUMENT
+--------------------------------------------------------------------------------
+
+`Bootstrap/RegistryPrimitives.cs' declared arity 1..2 and answered
+`stencil.IsEmpty' -- the WHOLE-stencil question -- for every call.  Upstream
+(stencil-scheme.cc) answers `s->is_empty (from_scm<Axis> (axis))' when the
+argument is supplied.  `Stencil::is_empty (Axis)' was already ported, as
+`Stencil.IsEmptyOn', with C# callers; this, its only SCHEME consumer, never
+called it.
+
+⚠ WHAT IT COST, and why it is more than one row.  A stencil empty on ONE axis is
+the ordinary case for spacing: `\hspace' is X-only, `\vspace' is Y-only.  EIGHT
+sites in the vendored layer ask about a single axis, and not one of their rules
+had ever run:
+
+    lily/stencil.scm:164-165   stack-lines -- a Y-empty, X-non-empty line is
+                               promoted to Y=(0 . 0) so it "registers as a line
+                               of its own".  Every \column, \center-column and
+                               \left-column containing a spacer was mis-measured.
+    lily/titling.scm:87-88     marked-up-headfoot -- the same rule for headers,
+                               footers and titles
+    lily/stencil.scm:662-663   box-stencil's h-space?/v-space? -- whether a box
+                               drawn round a pure spacer keeps the raw extents
+    lily/define-markup-commands.scm:1448-1449, 2106
+
+FOUND FROM `markup-conditionals-single-page', where all ten music marks sat
+2.0659 too high while the header markup was byte-identical and unmoved.  The
+chain, measured with port-side instrumentation rather than reasoned:
+scoreTitleMarkup is `\column { \if \should-print-all-headers { \bookTitleMarkup
+\hspace #1 } \fill-line { piece opus } }', whose first line is X=[0,1] and
+Y-EMPTY.  stack-lines should promote it; the port left it Y-empty; so
+`Paper_book::get_score_title' skipped `align_to (Y_AXIS, UP)', the title prob
+reached `Page_layout_problem::append_prob' with an empty Y interval,
+`minimum_distance = iv[UP] - bottom_skyline_.max_height ()' was -infinity, and the
+header height never constrained the first spring.
+
+    BEFORE  spring[0] ideal=4 min=0        -> music at 4+5 = 9.0 below top margin
+    AFTER   spring[0] ideal=4 min=6.0659   (= header height 5.0659 + padding 1)
+    ORACLE  music at 11.0649 below top margin; 6.0659 + 5 = 11.0659.
+
+Worth FOUR rows: markup-conditionals-single-page, markup-boxed-spacers (the file
+that tests boxing spacers, which is site 662-663 exactly), titling-3, titling-4.
+
+
+(2) ly:event-length IGNORED ITS MOMENT ARGUMENT
+--------------------------------------------------------------------------------
+
+Same shape.  `Bootstrap/TranslationPrimitives.cs' answered the bare `length'
+property.  Upstream's two-argument form is translator.cc's
+`get_event_length (e, now)', which moves the whole length into the GRACE part when
+`now' is an in-grace moment -- grace notes take no main-part time.
+`Translator.GetEventLength (e, now)' was ported faithfully and has eight C#
+callers; the binding never used it.
+
+The vendored `Bend_engraver' is the only Scheme caller that passes a moment, and
+it is the whole cost: a fall starting inside `\grace' computes
+`(ly:moment-add now (ly:event-length (event-cause grob) now))' for its stop
+moment, and with a main-part length there the band is never released --
+`start-translation-timestep' never reaches `stop-fall', so the FIRST fall of a
+grace block is drawn and every later one in that voice is not.  MEASURED with a
+probe that reports and then calls the real stencil callback: the oracle makes 12
+BendAfter stencils on `bend-after-start-in-grace' and the port made 8.
+
+⚠ THE FIX'S FIRST DRAFT WAS WRONG IN A WAY THE PROBE CAUGHT AND A SWEEP WOULD NOT
+HAVE: the optional-argument test was INVERTED, so the two-argument branch was
+taken only when no moment was supplied.  The row stayed GLYPHS-DIFFER and the
+moment probe still showed `#<Mom 3/4>' where the oracle shows `#<Mom 0G3/4>'.
+Run the probe again after the fix, not only the row.
+
+Worth ONE row: bend-after-start-in-grace.
+
+
+(3) memq COMPARED WITH ReferenceEquals, AND ITS SIBLING ALREADY SAID SO
+--------------------------------------------------------------------------------
+
+`SchemeUtilities.Memq' -- the engine's `scm_memq' -- walked the list comparing
+with `ReferenceEquals'.  Guile fixnums, booleans and characters are IMMEDIATES,
+so `(memq 3 '(3))' is true there and two separately boxed 3s are never
+ReferenceEquals here.  `Figured_bass_engraver' reads `implicitBassFigures', a list
+of figure NUMBERS, through it, so NO implicit figure had ever been suppressed.
+
+⚠ THE SIBLING `Assq' CARRIES A NOTE ABOUT EXACTLY THIS DEFECT, written the day
+`ottavationMarkups' exposed it, and `Memq' and `AssqRemove' were left standing.
+Trap 17c: when one member of a family is repaired, sweep the family.  Both now use
+`ReferenceComparer.Instance.Equals', which is LilyScheme's own `eq?'.
+
+Worth ONE row: figured-bass-implicit.
+
+FENCED by `OptionalArgumentBindingTests', six cases, three of them controls, and
+each A/B'd with its own fix FULLY reverted (trap 32d): with the reverts in, the
+three claim cases fail and all three controls hold.  ⚠ The stencil control's first
+draft asserted that a spacer is empty as a WHOLE, and that expectation was wrong,
+not the port -- `Box::is_empty ()' is the AND of both axes, so a stencil empty on
+one axis only is not empty as a whole.  Rule 35a again.
+
+
+THE OPTIONAL-ARGUMENT SWEEP THIS OPENED, RUN AND CLEAN
+--------------------------------------------------------------------------------
+
+Every `DefinePrimitive' in the Engine declaring a maximum arity above its minimum
+was scanned for whether the body reads the optional index.  72 primitives, 12
+survivors, EVERY ONE verified by hand against upstream (trap 32a) and only the two
+above are defects:
+
+  * `ly:parser-output-name', `ly:parser-clear-error', `ly:parser-has-error?' and
+    `ly:make-stencil' read their optional argument through a HELPER (`Parser (a,
+    0, ...)', `ToInterval (a, 1, ...)') -- the scanner cannot see that, they are
+    correct.
+  * `ly:grob-pure-height' drops `val', and so does UPSTREAM: grob-scheme.cc:137
+    defaults it and then returns the extent unconditionally.  Reproducing dead
+    code is rule 2.
+  * `ly:arpeggio::pure-height' takes start/end and upstream ignores them too.
+  * `ly:side-position-interface::x-aligned-side' / `::y-aligned-side' /
+    `::pure-y-aligned-side' DO use theirs, via `OptionalArgument (a, n)'.  This
+    matters: `chain_offset_callback' composes them as `(PROC GROB (orig-proc
+    GROB))', so the second argument is always supplied in practice.
+  * `ly:regex-exec' declares 2..3 where upstream declares 2..2; a superset that
+    nothing calls with three.
+  * `ly:option-usage' is a recorded port-only stub.
+
+The class is closed.
+
+
+================================================================================
+PARITY GRIND -- THE FONT FAMILY THE PORT GUESSED AT (PARITY 20, 2026-08-17)
+================================================================================
+
+Ruling R14 (Jeremy, 2026-08-17), option (a).  `TextFontChain.Normalize' SNIFFED a
+requested font-family name for a category word:
+
+    contains "mono"/"typewriter"/"courier"  -> typewriter -> Nimbus Mono PS
+    contains "sans"                          -> sans       -> Nimbus Sans
+    otherwise                                -> serif      -> C059
+
+UPSTREAM HAS NO SUCH STEP.  It hands the name to fontconfig and never inspects it.
+Under the reference corpus's own pinning -- and `fc-match' answers this, MEASURED
+over fifteen patterns (trap 8b, rule 35a) -- a family none of the 24 vendored faces
+provides resolves to TeX Gyre Schola Regular, at whatever style was asked for:
+
+    "DejaVu Sans" / "DejaVu Serif" / "DejaVu Sans Mono" / "Linux Libertine O"
+    "Arial" / "Courier New" / "Comic Sans MS" / "Foo Bar Baz"   -> TeX Gyre Schola
+    "DejaVu Sans:weight=bold"                                   -> Schola Bold
+
+because reference-fonts.conf.in aliases the generic names and nothing else, and its
+one <dir> is the oracle's own font directory.
+
+Worth SEVEN rows, every one measured to MATCH before the change was written:
+markup-time-signatures, markup-accidentals, markup-font-select,
+font-family-override, font-name (0.0001), metronome-mark-formatter (0.0013),
+dead-notes.  Plus one DIAGNOSTICS row -- see (3).
+
+THE SURPRISING USER-VISIBLE CONSEQUENCE, recorded because the ruling weighed it:
+`\override Staff.TimeSignature.font-name = "DejaVu Sans"' now draws in a SERIF.
+The old answer was the wrong face in the right category; the new one is what
+fontconfig answers over a directory of 25 files.  The request cannot be honoured
+either way -- the user asked for a font that is not there -- so the only question
+was which wrong answer, and parity decides it.  D23 is untouched: TeX Gyre Schola
+is one of the 24 vendored faces, so no option here introduced system-font fallback.
+
+
+(1) A FAMILY IS A LIST, AND THE WHOLE-STRING VERSION WOULD HAVE REGRESSED A ROW
+--------------------------------------------------------------------------------
+
+LilyPond writes CSS family LISTS and fontconfig walks them, taking the first entry
+it can satisfy.  MEASURED under the corpus's pinning:
+
+    "Linux Libertine O"                 -> TeX Gyre Schola
+    "Linux Libertine O,serif"           -> C059
+    "Linux Libertine Mono O,monospace"  -> Nimbus Mono PS
+
+`kievan-notation.ly' sets all three of those, so "unknown name -> Schola" applied
+to the whole string would have sent it to Schola where the oracle reaches C059
+through the list's SECOND entry.  `Normalize' therefore walks the comma-separated
+list and matches a category name EXACTLY within an entry.  That is also why
+kievan-notation is NOT an R14 row: both engines already land it on C059 and its
+0.0171 is D44's half device dot.
+
+An EMPTY entry is skipped rather than defaulted, and there is a real one to skip:
+`font-name = "Bitstream Vera Sans, Bold"' is a Pango description, so
+`FontInterface.ParseDescription' takes " Bold" off as a style word and hands
+`Normalize' the family "Bitstream Vera Sans," -- trailing comma included.
+
+
+(2) THE TWO GROUPS OF CATEGORY NAMES, AND WHY fc-match CANNOT MEASURE ONE OF THEM
+--------------------------------------------------------------------------------
+
+/!\ THE RULING'S PREMISE WAS INCOMPLETE, AND THE RATCHET IS WHAT CAUGHT IT.  The
+first implementation matched only the four CSS generics (serif, sans, sans-serif,
+monospace -- what reference-fonts.conf.in aliases, and what
+ly/paper-defaults-init.ly:170-181 asks for under -dbackend=svg).  The full sweep
+came back +7 improvements and ONE REGRESSION: `markup-music-glyph.svg', MATCH ->
+PLACEMENT-DIFFERS at 0.2731.
+
+That file sets `font-name = "LilyPond Sans Serif"' DIRECTLY, which bypasses
+paper-defaults-init.ly's backend switch -- so LilyPond's own virtual family names
+DO reach the SVG backend, contrary to the reading that they are the non-SVG branch
+only.  And upstream's shipped `fonts/00-lilypond-fonts.conf' aliases exactly three
+of them, by category, with prefer lists that are D23's chain face for face:
+
+    LilyPond Serif       -> C059, Century Schoolbook L, TeX Gyre Schola, DejaVu Serif, Noto CJK
+    LilyPond Sans Serif  -> Nimbus Sans, Nimbus Sans L, TeX Gyre Heros, DejaVu Sans
+    LilyPond Monospace   -> Nimbus Mono PS, Nimbus Mono L, TeX Gyre Cursor, DejaVu Sans Mono
+
+/!\ AND fc-match MISREPORTS THEM.  LilyPond loads that conf into its own FcConfig
+at startup (`lily/font-config.cc'), so those three names are aliased INSIDE the
+oracle's process even though FONTCONFIG_FILE has replaced the system
+configuration.  A shell `fc-match "LilyPond Serif"' answers TeX Gyre Schola; the
+oracle answers C059.  This is trap 8b's sibling: the probe's environment matched
+the corpus's and was still not the oracle's, because the oracle ADDS
+configuration in process.  Read these three off the conf, never off fc-match --
+and the measurement that settled it was the corpus's own bytes, not a probe: the
+oracle's "c'est"->"un" advance on that page is 5.0386, the sniffing heuristic gave
+5.0386, and Schola gives 4.9703.
+
+`Generics' therefore carries SEVEN names in two groups, and the second group is
+upstream's own aliasing rather than a port-side category guess.
+
+
+(3) THE DIAGNOSTICS ROW IT CLOSED, WHICH IS PART OF D40's REMAINING DEBT
+--------------------------------------------------------------------------------
+
+Diagnostics 2138 -> 2139 (99.63% -> 99.67%), TEXT-DIFFERS 3 -> 2.  `pdf-copy-paste'
+asks for "Noto Serif JP"; the old heuristic sniffed it to C059-Roman, and D40's
+missing-glyph warning NAMES THE FACE, so the port reported
+
+    no glyph for character '⾒' (U+2F92 KANGXI RADICAL SEE) in font `C059-Roman.otf'
+
+where the oracle reports texgyreschola-regular.otf.  Both now agree.  R8(A) records
+that the D31 tofu files "still owe the oracle's no-glyph-for-character warnings";
+this pays one of them, and it is paid by resolving the FAMILY upstream's way rather
+than by touching the warning.  The file's SVG row is unchanged -- still
+GLYPHS-DIFFER, still on g1-skip-list.tsv, as D31 requires.
+
+
+(4) D23 AMENDED THE SAME DAY: ROBOTO WAS NEVER IN THE CHAIN
+--------------------------------------------------------------------------------
+
+D23 had read "URW face -> TeX Gyre face -> pinned Roboto -> tofu" since it was
+decided, and `Fonts/TextFace.cs' carried a doc comment saying the port "continues
+into the Roboto package".  There is no Roboto PackageReference and no Roboto face
+in the repository: the chain has always stopped at TeX Gyre.  Removing the step
+CHANGES NO BEHAVIOUR and makes the written decision describe the code.  Keeping it
+would have been a parity RISK rather than a gain -- the pinned oracle's one <dir>
+has no Roboto, so any code point Roboto covered and the 24 faces do not would draw
+a real glyph in the port where the oracle draws none.  The tofu that remains is
+D31's, which is ruled and skip-listed.
+
+
+FENCED BY `TextFontChainTests' (Engine), seven cases, every one paired with a
+control that must come out differently -- a fence checking only the unmatched case
+would pass with the whole family table collapsed onto one face.  A/B'd with the
+change FULLY reverted (the sniffing body restored AND `For's fallback put back to
+serif -- trap 32d): all seven fail.  Restored: all seven pass.
+
+
+================================================================================
+THE TWO ROWS THAT MEASURE OUR OWN EMMENTALER BUILD (PARITY 20, 2026-08-17)
+================================================================================
+
+Ruling R15 (Jeremy, 2026-08-17), option (a): `accidental-ancient' and
+`markup-with-true-dimensions' join R9's committed PORT-GENERATED baseline.  This is
+D43's class exactly and R9 already ruled it, one day earlier, for the six skyline
+rows -- the machinery existed and was built for this.
+
+NOT A DEFECT AND NOT A SKIP.  The port builds Emmentaler from the Metafont sources
+by a written decision (tools/font-build), so the fonts are genuinely ours with
+provenance verifiable from source to binary.  That build is not outline-identical
+to the oracle's, and the difference is MEASURED to the font unit rather than
+bounded.  One font unit is 0.004 staff spaces (upem 1000; emmentaler-20's em is the
+20pt staff height, four staff spaces):
+
+    accidental-ancient           -0.0120 = 3 units    accidentals.hufnagelM1
+    markup-with-true-dimensions  +0.0127 = 1 unit x 2^(10/6)   scripts.trill
+                                 +0.0254 = the same, twice     (\fontsize #10)
+
+WHY IT SURFACES ON TWO ROWS OUT OF 2,316.  Every glyph DIMENSION is read from the
+LILC table, and our LILC tables are byte-identical to the oracle's.  The OUTLINE is
+consulted in one place -- stencil-integral.cc's get_glyph_outline_bbox, feeding
+skylines -- plus `\with-true-dimensions', which reads it by definition.
+
+/!\ AND THE ROUTE IS THE SKYLINE, NOT A BBOX FUNCTION, which corrects the shape the
+ruling was written in.  `stencil-true-extent' (Scheme/lily/stencil.scm:1096) calls
+`ly:skylines-for-stencil' and takes the pair's two max heights; a music glyph's
+skyline is built by StencilIntegral.AddNamedGlyphSegments ->
+CffFont.AddOutlineToSkyline -> GlyphOutlineSkyline.AddOutline.  And accidental
+placement reads each accidental's `horizontal-skylines' (AccidentalPlacement.cs),
+which is the same walk.  So BOTH rows ride ONE mechanism, not two, and the ruling's
+"check whether GlyphOutlineSkylineTests' coverage genuinely extends" resolves as:
+it fences that function's SEGMENT-COUNT rule and says nothing about which SOURCE
+the extent comes from.  That was the real gap, and one fence closes it for both rows.
+
+THE CORRECTNESS FENCE, WHICH IS NOT THE BASELINE (rule 33).  The baseline claims NO
+DRIFT and nothing else.  `GlyphOutlineSkylineTests' gained two cases:
+
+  * a_glyphs_true_extent_is_read_from_its_outline_and_not_from_its_declared_box --
+    on both rows' OWN glyphs (rule 35b).  MEASURED, in stencil units:
+
+        scripts.trill           declared X=[-1.4937,1.4937]  ink X=[-2.2704,1.9471]
+        accidentals.hufnagelM1  declared X=[-0.1757,1.0544]  ink X=[-0.1546,1.0333]
+
+    The true extent equals the INK on both axes to 1e-4, and the ORDINARY extent of
+    the very same stencil equals the LILC-declared box to 1e-9.  Two readings of one
+    glyph out of two different tables; the fixture's premise (that the two sources
+    disagree by more than the comparator's 0.0100) is asserted, not assumed.
+  * a_glyph_whose_outline_fills_its_declared_box_reads_the_same_either_way -- the
+    control, and the glyph had to be MEASURED: `accidentals.sharp' is the one whose
+    declared and ink boxes agree to four decimals on BOTH axes, so reading the wrong
+    source is invisible there.  That is what shows the discrimination above is a
+    property of those glyphs rather than of the mechanism.
+
+A/B'd the way R9's fence was, by BREAKING the mechanism in the plausible direction:
+AddNamedGlyphSegments made to contribute the glyph's DECLARED box instead of tracing
+its outline.  The claim fails; the control still passes; and all four segment-count
+cases also still pass, which is the direct evidence that they never covered this.
+
+WHAT THE ROWS DO NOW.  Graded by `compare-output.py --baseline baseline/svg
+candidate/svg' at 8 of 8 MATCH, WITH R9's control run: without the flag all eight
+read GLYPHS-DIFFER, because the baseline side's glyph paths then resolve against the
+ORACLE's half of glyph-identity.tsv.  They CONTINUE to read PLACEMENT-DIFFERS
+against the oracle corpus in the ordinary sweep and floor there -- expected, and not
+work.  Frozen from the PARITY 20 sweep of 02:08-02:15, and proven current rather
+than assumed: both pages were re-rendered from the then-current binary and compared
+byte for byte with that sweep's output.
+
+RULED OUT ALONG THE WAY: shipping the oracle's .otf (it reverses the font-build
+README's provenance decision), chasing the Metafont/FontForge version difference
+(open-ended, buys two rows, and the README already judged the difference a toolchain
+artifact), and a bounded POSITION tolerance (D29 forbids it, and R13 was recommended
+against on the same ground the same day).
+
+/!\ tools/font-build/README.txt section 7 recorded this on 2026-08-02, named
+accidentals.mensuralM1 as one of the two largest, and named the one code path that
+would expose it.  Trap 27a: a finding recorded in a build README is still a finding.
+
+
+================================================================================
+D23 AMENDED -- THE FALLBACK STEP THAT NEVER EXISTED (PARITY 20, 2026-08-17)
+================================================================================
+
+Jeremy, 2026-08-17, alongside ruling R14.  D23 had read
+
+    URW face -> TeX Gyre face -> pinned Roboto 1.0.209.315 -> tofu
+
+since it was decided on 2026-08-05.  VERIFIED: there is no Roboto
+PackageReference in the Engine and no Roboto face in the repository, so the chain
+has always been
+
+    URW face -> TeX Gyre face -> tofu
+
+Removing the step CHANGES NO BEHAVIOUR, because the step never ran.  What it
+changes is that the written decision now describes the code.
+
+AND KEEPING IT WOULD HAVE BEEN A PARITY RISK RATHER THAN A GAIN.  The pinned
+oracle's one font directory has no Roboto, so any code point Roboto covers and the
+24 vendored faces do not would draw a REAL GLYPH in the port where the oracle draws
+none -- a new divergence class, in exchange for coverage D31 has already ruled on.
+The tofu that remains is D31's, which is ruled and skip-listed.
+
+WHERE THE CLAIM HAD SPREAD.  It was not one sentence.  Corrected in the same cycle,
+after grepping for it rather than fixing only the one that was known:
+
+  Fonts/TextFace.cs                     TextFontChain's class doc claimed the port
+                                        "continues into the Roboto package instead"
+  Fonts/KerningTable.cs                 the wider GPOS surface was "for the faces
+                                        D23's fallback chain may grow (the pinned
+                                        Roboto package)"
+  Bootstrap/NotApplicableEntryPoints.cs the font-plumbing N/A category described the
+                                        font layer as "the 24 vendored faces plus the
+                                        pinned Roboto fallback"
+  assets/fonts/text/README.txt          the same fallback claim, PLUS a "D23
+                                        two-phase protocol" for re-baselining
+                                        DejaVu-dependent references as PORT-GENERATED
+                                        Roboto references -- which also never
+                                        happened: D30's corpus pinning solved that
+                                        problem instead, so there is nothing to
+                                        re-baseline
+  THIRD-PARTY-NOTICES.txt section 10.3  "the port's fallback face is Roboto,
+                                        consumed as the OFL-licensed ... package"
+
+/!\ THE NOTICES ENTRY WAS A CORRECTION, NOT A DELETION, and the distinction
+mattered.  Roboto IS in this repository -- the Lily.Shell APP takes
+CodeBrix.Platform.Fonts.Roboto.OflLicenseForever (1.0.209.315) for its UI chrome and
+CodeBrix.Platform.Fonts.RobotoMono.OflLicenseForever (1.0.216.1150) for its terminal
+surface -- and section 10.3 was the ONLY place in the notices file that mentioned it.
+Deleting the sentence would have removed a real dependency's attribution while
+fixing a false statement about where it is used.  Section 10.3 now records both
+packages against the shell app, notes that neither takes part in engraving or in the
+D23 chain, and states that nothing of theirs is vendored or ships inside the
+CodeBrix.LilyPort packages.  RobotoMono had not been mentioned at all.
+
+ALSO CORRECTED, and it is the wording R15 flagged: G1's baseline clause said "D23
+fallback-dependent files match committed PORT-GENERATED baselines".  None of the
+eight rows on that baseline is fallback-dependent -- D43's six and R15's two are
+font-BUILD-dependent.  Re-worded to "files whose divergence is in an ASSET the port
+builds or ships rather than in the engine", in the plan, in
+tools/regression-harness/README.txt, and in the D43 entry above.  Left alone, the
+sentence describing G1 when it goes green would have been false about eight of its
+rows.

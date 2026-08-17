@@ -88,6 +88,22 @@ public class SystemGrob : Spanner
     private static readonly Symbol LabelsSymbol = Symbol.Intern("labels");
     private static readonly Symbol VerticalAlignmentSymbol
         = Symbol.Intern("vertical-alignment");
+
+    // NOT A TYPO HERE — IT IS UPSTREAM'S, AND IT IS REPRODUCED ON PURPOSE (rule 2).
+    // lily/system.cc reads the alignment object at seven places and spells it
+    // `vertical-alignment' at six of them; `get_maybe_spaceable_staves' (system.cc:1023)
+    // is the seventh and spells it `vertical_alignment', with an UNDERSCORE. Nothing
+    // declares or writes that name -- scm/define-grob-properties.scm declares
+    // `vertical-alignment' and scm/define-grobs.scm gives System the
+    // `ly:system::get-vertical-alignment' callback under the hyphen -- so the read finds
+    // nothing, `align' is null, and ALL THREE `ly:system::get-*-staves' callbacks answer
+    // the EMPTY LIST for every system LilyPond has ever engraved.
+    // Its one visible consequence is that `annotate-spacing' draws no staff-level
+    // annotation: scm/paper-system.scm guards both maps with `(< 1 (length ...))'.
+    // MEASURED, not inferred -- the pinned oracle draws ZERO `padding' annotations
+    // across all 2,316 reference pages. See PORT-COVERAGE, PARITY 17.
+    private static readonly Symbol UpstreamMisspelledVerticalAlignmentSymbol
+        = Symbol.Intern("vertical_alignment");
     private static readonly Symbol ElementsSymbol = Symbol.Intern("elements");
     private static readonly Symbol AxisGroupInterfaceSymbol
         = Symbol.Intern("axis-group-interface");
@@ -656,13 +672,21 @@ public class SystemGrob : Spanner
     /// A DEAD stave is skipped, which is not tidiness: hara-kiri suicides empty staves,
     /// and an annotation drawn against one would be measured from a grob with no extent.
     /// </para>
+    /// <para>
+    /// ⚠ THE ALIGNMENT IS LOOKED UP UNDER UPSTREAM'S MISSPELLED NAME, DELIBERATELY, so
+    /// this function answers the EMPTY LIST exactly as upstream's does. See
+    /// <see cref="UpstreamMisspelledVerticalAlignmentSymbol"/> for the account. The body
+    /// below is otherwise a faithful translation and is kept whole rather than folded
+    /// away, because the misspelling is upstream's to fix: the day it is corrected there,
+    /// correcting the one symbol here restores the whole function.
+    /// </para>
     /// </summary>
     /// <param name="filter">Which staves to keep.</param>
     /// <returns>The staves, as a Scheme list.</returns>
     public object GetMaybeSpaceableStaves(StaffFilter filter)
     {
         List<object> kept = new List<object>();
-        if (GetObject(VerticalAlignmentSymbol) is Grob alignment)
+        if (GetObject(UpstreamMisspelledVerticalAlignmentSymbol) is Grob alignment)
         {
             foreach (Grob stave in PointerGroupInterface.ExtractGrobSet(alignment, ElementsSymbol))
             {

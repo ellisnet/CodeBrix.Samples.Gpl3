@@ -195,7 +195,13 @@ public static class SchemeUtilities
         object cursor = list;
         while (cursor is Pair pair)
         {
-            if (ReferenceEquals(pair.Car, value))
+            //was previously: ReferenceEquals(pair.Car, value);
+            // the same defect Assq above carries a note about, left standing in this
+            // sibling. Guile fixnums are immediates, so `(memq 3 '(3))' is true there
+            // and a boxed 3 is never ReferenceEquals to another boxed 3 here.
+            // `Figured_bass_engraver' reading `implicitBassFigures' -- a list of FIGURE
+            // NUMBERS -- is what exposed it: no implicit figure had ever been suppressed.
+            if (ReferenceComparer.Instance.Equals(pair.Car, value))
             {
                 return true;
             }
@@ -364,7 +370,9 @@ public static class SchemeUtilities
         object cursor = alist;
         while (cursor is Pair pair)
         {
-            if (!(pair.Car is Pair entry && ReferenceEquals(entry.Car, key)))
+            //was previously: ReferenceEquals(entry.Car, key); see Assq's remarks — this
+            // is `assq-remove!', so it owes the same eq? rule its lookup sibling owes.
+            if (!(pair.Car is Pair entry && ReferenceComparer.Instance.Equals(entry.Car, key)))
             {
                 kept.Add(pair.Car);
             }

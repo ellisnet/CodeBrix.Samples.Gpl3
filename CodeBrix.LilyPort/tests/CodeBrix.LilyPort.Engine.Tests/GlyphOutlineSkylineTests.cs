@@ -10,6 +10,9 @@ using System.Collections.Generic;
 using CodeBrix.LilyPort.Engine.Fonts;
 using CodeBrix.LilyPort.Engine.Layout;
 using CodeBrix.LilyPort.Flower;
+using CodeBrix.LilyScheme;
+using CodeBrix.LilyScheme.Runtime;
+using CodeBrix.LilyScheme.Values;
 using SilverAssertions;
 using Xunit;
 
@@ -40,7 +43,22 @@ namespace CodeBrix.LilyPort.Engine.Tests;
 /// every scale, which is what shows the dependence comes from the curve rule and not
 /// from something incidental to drawing bigger.
 /// </para>
+/// <para>
+/// R15 (2026-08-17) added the two cases that ask which SOURCE the extent comes from —
+/// the ink or the LILC-declared box — because the segment-count cases above fence the
+/// flattening rule and say nothing about that, and it is the claim `accidental-ancient'
+/// and `markup-with-true-dimensions' need while they are graded against R9's baseline.
+/// </para>
+/// <para>
+/// ⚠ AND THOSE TWO CASES ARE WHY THIS CLASS SERIALIZES. They build an interpreter, which
+/// rule 8 requires be serialized through <see cref="EngineGlobalStateCollection"/>; the
+/// class needed no collection until then, so ADDING an interpreter-building case to a
+/// class that had none silently opted it out of that rule. It passed run alone and
+/// filtered, and failed intermittently in the full-solution run — which is the only
+/// symptom that class of mistake has.
+/// </para>
 /// </summary>
+[Collection(EngineGlobalStateCollection.Name)]
 public class GlyphOutlineSkylineTests
 {
     private const string FontName = "emmentaler-20";
@@ -166,6 +184,34 @@ public class GlyphOutlineSkylineTests
         return skyline.PendingSegmentCount;
     }
 
+    /// <summary>Loads the music font as a metric, the way a markup reaches it.</summary>
+    /// <returns>The metric.</returns>
+    private static OpenTypeFontMetric LoadMetric()
+    {
+        byte[] bytes = FontAssets.MusicFont(FontName);
+        bytes.Should().NotBeNull();
+
+        Interpreter interpreter = new Interpreter();
+        SchemeBootstrap.LoadCore(interpreter);
+        return new OpenTypeFontMetric(new OpenTypeFont(bytes, FontName, interpreter), FontName);
+    }
+
+    /// <summary>
+    /// <c>stencil-true-extent</c>, written out from the vendored expression rather than
+    /// called through it: <c>lily/stencil.scm:1096</c> asks
+    /// <c>(ly:skylines-for-stencil stencil (other-axis axis))</c> and takes the pair's two
+    /// max heights. The OTHER-axis flip is upstream's and is easy to get backwards.
+    /// </summary>
+    /// <param name="stencil">The stencil to measure.</param>
+    /// <param name="axis">The axis whose true extent is wanted.</param>
+    /// <returns>The extent of the actual printed ink.</returns>
+    private static Interval TrueExtent(Stencil stencil, Axis axis)
+    {
+        SkylinePair pair = StencilIntegral.SkylinesFromStencil(
+            stencil, false, axis == Axis.X ? Axis.Y : Axis.X);
+        return new Interval(pair.Down.MaxHeight(), pair.Up.MaxHeight());
+    }
+
     [Fact]
     public void a_curved_glyph_is_flattened_by_upstreams_own_expression()
     {
@@ -227,6 +273,86 @@ public class GlyphOutlineSkylineTests
         //Assert
         tracedSmall.Should().Be(commands.Count);
         tracedLarge.Should().Be(tracedSmall);
+    }
+
+    [Fact]
+    public void a_glyphs_true_extent_is_read_from_its_outline_and_not_from_its_declared_box()
+    {
+        //Arrange
+        // Ruling R15's two rows, each measured on its OWN glyph (rule 35b):
+        // markup-with-true-dimensions boxes `scripts.trill' four ways, and
+        // accidental-ancient's moving mark is `accidentals.hufnagelM1'.
+        //
+        // These two rows are graded against R9's port-generated baseline, which claims NO
+        // DRIFT and nothing else (rule 33). THIS is their correctness claim: that the
+        // quantity the baseline freezes is read from the OUTLINE. It has to be asserted
+        // separately, because GlyphOutlineSkylineTests' other cases fence how many
+        // SEGMENTS the walk produces and say nothing about which SOURCE the extent has.
+        OpenTypeFontMetric metric = LoadMetric();
+
+        //Act & Assert
+        foreach (string name in new[] { "scripts.trill", "accidentals.hufnagelM1" })
+        {
+            int index = metric.NameToIndex(name);
+            index.Should().NotBe(FontMetric.GlyphIndexInvalid);
+
+            Box declared = metric.GetIndexedCharDimensions(index);
+            Box ink = metric.GetIndexedInkDimensions(index);
+            Stencil stencil = metric.FindByName(name);
+
+            foreach (Axis axis in new[] { Axis.X, Axis.Y })
+            {
+                // The fixture's own premise, asserted rather than assumed: LILC and the
+                // outline must actually disagree here, by more than the comparator's
+                // 0.0100 tolerance, or the test proves nothing about which was read.
+                declared[axis].Left.Should().NotBeApproximately(ink[axis].Left, 0.01);
+
+                Interval trueExtent = TrueExtent(stencil, axis);
+
+                // THE CLAIM: the true extent is the ink.
+                trueExtent.Left.Should().BeApproximately(ink[axis].Left, 1e-4);
+                trueExtent.Right.Should().BeApproximately(ink[axis].Right, 1e-4);
+
+                // THE CONTROL, and the half that makes it a claim about SOURCES: the
+                // ORDINARY extent of the very same stencil is the LILC-declared box,
+                // exactly. Two readings of one glyph, two different tables.
+                stencil.Extent(axis).Left.Should().BeApproximately(declared[axis].Left, 1e-9);
+                stencil.Extent(axis).Right.Should().BeApproximately(declared[axis].Right, 1e-9);
+            }
+        }
+    }
+
+    [Fact]
+    public void a_glyph_whose_outline_fills_its_declared_box_reads_the_same_either_way()
+    {
+        //Arrange
+        // The control for the test above, and it had to be MEASURED: of the glyphs to
+        // hand, `accidentals.sharp' is the one whose declared box and ink box are equal
+        // to four decimals on BOTH axes. (It is already PORT-COVERAGE's control for a
+        // different claim -- its outline is byte-identical between the two Emmentaler
+        // builds -- which is a separate property and not why it is used here.)
+        OpenTypeFontMetric metric = LoadMetric();
+        int index = metric.NameToIndex("accidentals.sharp");
+        Box declared = metric.GetIndexedCharDimensions(index);
+        Box ink = metric.GetIndexedInkDimensions(index);
+        Stencil stencil = metric.FindByName("accidentals.sharp");
+
+        //Act
+        Interval trueX = TrueExtent(stencil, Axis.X);
+        Interval trueY = TrueExtent(stencil, Axis.Y);
+
+        //Assert
+        // The premise: for THIS glyph the two sources agree.
+        ink[Axis.X].Left.Should().BeApproximately(declared[Axis.X].Left, 1e-4);
+        ink[Axis.X].Right.Should().BeApproximately(declared[Axis.X].Right, 1e-4);
+        ink[Axis.Y].Right.Should().BeApproximately(declared[Axis.Y].Right, 1e-4);
+
+        // So the true extent agrees with the declared box too — which is what shows the
+        // discrimination in the previous test is a property of THOSE GLYPHS and not an
+        // artifact of the mechanism reporting something unrelated to the box.
+        trueX.Right.Should().BeApproximately(declared[Axis.X].Right, 1e-4);
+        trueY.Right.Should().BeApproximately(declared[Axis.Y].Right, 1e-4);
+        trueY.Left.Should().BeApproximately(declared[Axis.Y].Left, 1e-4);
     }
 
     [Fact]

@@ -894,8 +894,17 @@ THREE RULINGS THE HARNESS NOW CARRIES (2026-08-16, PARITY 15)
 
 G1's definition has always read "every root regression file + other/ MATCHes the
 pinned corpus at NAMED-GLYPH identity, MINUS A COMMITTED, REASONED SKIP LIST;
-fallback-dependent files match committed PORT-GENERATED baselines". Both clauses
-existed only as sentences until now. Three rulings gave them artifacts.
+files whose divergence is in an ASSET the port builds or ships rather than in the
+engine match committed PORT-GENERATED baselines". Both clauses existed only as
+sentences until now. Three rulings gave them artifacts.
+
+/!\ THE SECOND CLAUSE WAS RE-WORDED ON 2026-08-17 and the old wording was untrue
+about every row it covered. It read "fallback-dependent files (D23) match committed
+PORT-GENERATED Roboto baselines (Roboto pinned at 1.0.209.315)". Neither half held:
+Roboto was never in the fallback chain at all (D23 amended, PARITY 20), and none of
+the rows on the baseline are fallback-dependent -- D43's six and R15's two are
+font-BUILD-dependent, which is a different thing. Left alone, the sentence describing
+G1 when it goes green would have been false about eight of its rows.
 
   g1-skip-list.tsv          R11 -- the rows ruled OUT of G1
   baseline/svg + baseline-manifest.tsv

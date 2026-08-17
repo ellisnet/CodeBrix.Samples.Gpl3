@@ -189,6 +189,15 @@ public static class TextInterface
 
         string features = FontFeatures(props);
 
+        // Upstream ends interpret_string with
+        //     bool is_music = scm_is_true (scm_memq (encoding, music_encodings));
+        //     return fm->text_stencil (layout, str, is_music, features_str);
+        // and the encoding it tests is read straight off PROPS. That matters: when
+        // font-name is set, select_font overwrites its OWN LOCAL copy of the encoding
+        // with latin1 and picks a text font, but the grob's font-encoding property is
+        // untouched, so a fetaText run still reaches text_stencil as a MUSIC string.
+        bool musicString = IsMusicEncoded(props);
+
         if (!(font is TextFontMetric textFont))
         {
             // A music encoding reached the text interface: fetaText's digits, dynamic
@@ -202,7 +211,7 @@ public static class TextInterface
             return MusicFontTextStencil(layout, font, cleaned, features);
         }
 
-        return textFont.TextStencil(cleaned, features);
+        return textFont.TextStencil(cleaned, features, musicString);
     }
 
     /// <summary>

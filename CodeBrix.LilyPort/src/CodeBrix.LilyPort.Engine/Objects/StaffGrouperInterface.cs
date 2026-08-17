@@ -31,10 +31,13 @@ namespace CodeBrix.LilyPort.Engine.Objects; //was previously: lily/staff-grouper
 /// <c>Vertical_align_engraver</c> makes to collect the staves of a
 /// <c>StaffGroup</c>-like context.
 /// <para>
-/// The hara-kiri calls both methods make upstream — <c>consider_suicide</c> before
-/// measuring a staff, <c>request_suicide</c> in the pure branch — are the deliberately
-/// unported staff-removal machinery (the output-pipeline note): no staff ever vanishes here, so
-/// the first is skipped and the second answers "no". Recorded in PORT-COVERAGE.
+/// ⚠ BOTH methods make a hara-kiri call, and BOTH calls were once skipped under one note
+/// saying staff removal was unported — a note that was true when it was written and that
+/// nothing re-checked once line breaking landed the machinery (trap 18). They were
+/// restored one at a time and a session apart: <c>consider_suicide</c> in
+/// <see cref="GetExtremalStaff"/> at PARITY 13, and <c>request_suicide</c> in
+/// <see cref="MaybePureWithinGroup"/>'s pure branch at PARITY 18. When one member of a
+/// family is repaired, sweep the family.
 /// </para>
 /// </summary>
 public static class StaffGrouperInterface
@@ -136,10 +139,17 @@ public static class StaffGrouperInterface
 
         for (++i; i < elts.Count; i++)
         {
-            // The pure branch asks Hara_kiri_group_spanner::request_suicide whether
-            // the staff vanishes over [start, end); suicide is unported, so the
-            // answer is always "no" and both branches reduce to is-live.
-            if (PageLayoutSpacing.IsSpaceable(elts[i]) && elts[i].IsLive)
+            // ⚠ The two branches ask DIFFERENT questions, and the pure one is the whole
+            // point: before line breaking nothing has suicided yet, so "is it live NOW"
+            // answers YES for a staff that will vanish on this line, and the group's last
+            // staff is then mistaken for an interior one. The note that used to stand here
+            // said suicide was unported and both branches reduced to is-live; that was true
+            // when it was written and stopped being true when line breaking landed
+            // Hara_kiri_group_spanner::request_suicide. Trap 18 — and the SIBLING of the
+            // stale note PARITY 13 found in get_extremal_staff, in the same upstream file.
+            if (PageLayoutSpacing.IsSpaceable(elts[i])
+                && ((pure && !HaraKiriGroupSpanner.RequestSuicide(elts[i], start, end))
+                    || (!pure && elts[i].IsLive)))
             {
                 return ReferenceEquals(me, elts[i].GetObject(StaffGrouperSymbol));
             }

@@ -710,15 +710,16 @@ public static class AxisGroupInterfaceVertical
                 grouper, me, pure, start, end);
             if (withinGroup)
             {
-                return grouper.GetProperty(StaffStaffSpacingSymbol);
+                return grouper.GetMaybePureProperty(StaffStaffSpacingSymbol, pure, start, end);
             }
             else
             {
-                return grouper.GetProperty(StaffgroupStaffSpacingSymbol);
+                return grouper.GetMaybePureProperty(
+                    StaffgroupStaffSpacingSymbol, pure, start, end);
             }
         }
 
-        return me.GetProperty(DefaultStaffStaffSpacingSymbol);
+        return me.GetMaybePureProperty(DefaultStaffStaffSpacingSymbol, pure, start, end);
     }
 
     private static double NumberOr(object value, double fallback)

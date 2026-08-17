@@ -202,22 +202,33 @@ public static class LilyPondInit
             // THE EIGHTH LEAK, and unlike the others it points at a MECHANISM rather
             // than a variable (found through the MIDI comparator). Upstream
             // re-initializes every `define-session' variable per file — scm/lily.scm's
-            // session machinery exists precisely for multi-file invocations — and the
-            // port does not drive that machinery. The one session variable MEASURED to leak
-            // is put back by hand: `unique-counter' names the voices \addlyrics
-            // generates (uniqueContext0, 1, ...), so a counter that keeps climbing
-            // across the sweep names every file's contexts after the first
-            // differently from the oracle. Run alone the same file is correct — the
-            // full-sweep-only trap again.
+            // session machinery exists precisely for multi-file invocations.
+            //
+            // ⚠ THE PORT NOW DRIVES THAT MACHINERY, AND THE NOTE THAT USED TO STAND HERE
+            // SAID IT DID NOT. It hand-restored the ONE session variable then measured to
+            // leak — `unique-counter', which names the voices \addlyrics generates. That
+            // was one variable out of every variable `define-session' declares, and the
+            // TWELFTH leak was a second one: `bar-line.scm''s
+            // volta-bracket-allow-volta-hook-list. `#(allow-volta-hook "|")' APPENDS to it,
+            // volta-bracket-add-volta-hook.ly does exactly that, and the file swept
+            // immediately after it — volta-bracket-nest.ly — then drew volta hooks on bar
+            // lines that should not carry them, 2.0 staff spaces of edge-height each. Run
+            // alone that file MATCHES; in the sweep it does not. The full-sweep-only trap
+            // (trap 2), and trap 16's rule — suspect this class FIRST — named it in eleven
+            // bisect runs.
+            //
+            // WHAT UPSTREAM DOES, and what this is: `session-terminate' has three steps —
+            // module restore, DECLARATION restore, and the after-session hook — and the
+            // port had the first and the third. This is the second, and it covers every
+            // define-session variable at once rather than the two now known to leak.
+            // `#(session-save)' is already called for us, by ly/declarations-init.ly's
+            // last line, which is what makes the recorded values the POST-LOAD ones — for
+            // this list that matters, because bar-line.scm's own twelve
+            // `(allow-volta-hook ...)' calls run at load time and must survive the reset.
             CodeBrix.LilyScheme.Interpreter interpreter = Engine.Bootstrap.LilyPondScheme.Current;
             CodeBrix.LilyScheme.Runtime.SchemeModule lilyModule = interpreter?.Modules?.Resolve(
                 CodeBrix.LilyScheme.Values.Pair.List(Symbol.Intern("lily")));
-            CodeBrix.LilyScheme.Values.Variable uniqueCounter
-                = lilyModule?.Lookup(Symbol.Intern("unique-counter"));
-            if (uniqueCounter != null && uniqueCounter.IsBound)
-            {
-                uniqueCounter.SetValue(-1L);
-            }
+            RestoreSessionDeclarations(lilyModule);
 
             // THE ELEVENTH LEAK, and it is the OTHER half of the eighth: upstream's
             // `session-terminate' ends with `(run-hook after-session-hook)', and the
@@ -234,6 +245,46 @@ public static class LilyPondInit
             // the WRITE side is faithful, complete and visible to a grep, and the thing
             // that was supposed to call it is missing.
             RunAfterSessionHook(interpreter, lilyModule);
+        }
+    }
+
+    /// <summary>
+    /// Puts every <c>define-session</c> variable back to the value <c>session-save</c>
+    /// recorded — the middle step of <c>scm/lily.scm</c>'s <c>session-terminate</c>.
+    /// </summary>
+    /// <param name="lilyModule">The <c>(lily)</c> module, or <see langword="null"/>.</param>
+    /// <remarks>
+    /// <c>lilypond-declarations</c> is a list of <c>(cons* SYMBOL IS-PARSER? VAR VALUE)</c>
+    /// tuples, so each element is an improper list whose fourth position IS the value
+    /// rather than holding it. Upstream's whole step is
+    /// <c>(for-each (lambda (p) (variable-set! (caddr p) (cdddr p))) lilypond-declarations)</c>.
+    /// <para>
+    /// The list is private to <c>(lily)</c> — it is not exported — which is why it is
+    /// walked here rather than through a binding, exactly as <c>unique-counter</c> was.
+    /// </para>
+    /// </remarks>
+    private static void RestoreSessionDeclarations(
+        CodeBrix.LilyScheme.Runtime.SchemeModule lilyModule)
+    {
+        CodeBrix.LilyScheme.Values.Variable declarations
+            = lilyModule?.Lookup(Symbol.Intern("lilypond-declarations"));
+        if (declarations == null || !declarations.IsBound)
+        {
+            return;
+        }
+
+        object node = declarations.GetValue();
+        while (node is CodeBrix.LilyScheme.Values.Pair cell)
+        {
+            if (cell.Car is CodeBrix.LilyScheme.Values.Pair entry
+                && entry.Cdr is CodeBrix.LilyScheme.Values.Pair afterSymbol
+                && afterSymbol.Cdr is CodeBrix.LilyScheme.Values.Pair afterFlag
+                && afterFlag.Car is CodeBrix.LilyScheme.Values.Variable variable)
+            {
+                variable.SetValue(afterFlag.Cdr);
+            }
+
+            node = cell.Cdr;
         }
     }
 

@@ -40,8 +40,9 @@ namespace CodeBrix.LilyPort.Engine.Fonts;
 /// names the SAME lookups from every script it declares (measured across
 /// all 24 faces; the monospace quartets carry no kerning and no face carries a legacy
 /// <c>kern</c> table). The wider surface here — Format 2, Extension, the legacy
-/// fallback — is for the faces D23's fallback chain may grow (the pinned Roboto
-/// package), parsed by the spec rather than guessed at.
+/// fallback — is for any face D23's chain may one day grow, parsed by the spec rather
+/// than guessed at. (It used to say "the pinned Roboto package"; there has never been
+/// one — D23 amended 2026-08-17, and the chain ends at TeX Gyre.)
 /// </para>
 /// <para>
 /// Device-table adjustments (hint-driven, per-ppem) are deliberately not applied:

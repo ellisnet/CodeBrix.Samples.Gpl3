@@ -113,7 +113,21 @@ public static class StaffSymbolReferencer
     /// </summary>
     /// <param name="grob">The grob.</param>
     /// <returns>The position.</returns>
-    public static double GetPosition(Grob grob)
+    public static double GetPosition(Grob grob) => InternalGetPosition(grob, false);
+
+    /// <summary>
+    /// <c>internal_get_position</c>: the shared body of the ordinary and the PURE
+    /// position, which differ in ONE term.
+    /// </summary>
+    /// <param name="grob">The grob.</param>
+    /// <param name="pure">Whether to read this grob's PURE vertical coordinate.</param>
+    /// <returns>The position.</returns>
+    /// <remarks>
+    /// Only the FIRST branch takes the pure reading. The staff symbol's own coordinate,
+    /// and the no-staff-symbol branch below it, are read ordinarily on both paths —
+    /// upstream writes them that way and rule 2 keeps them that way.
+    /// </remarks>
+    private static double InternalGetPosition(Grob grob, bool pure)
     {
         double p = 0.0;
         Grob staff = GetStaffSymbol(grob);
@@ -121,7 +135,9 @@ public static class StaffSymbolReferencer
 
         if (staff != null && common != null)
         {
-            double y = grob.RelativeCoordinate(common, Axis.Y)
+            double y = (pure
+                           ? grob.PureRelativeYCoordinate(common, 0, int.MaxValue)
+                           : grob.RelativeCoordinate(common, Axis.Y))
                        - staff.RelativeCoordinate(common, Axis.Y);
             double space = StaffSymbol.StaffSpace(staff);
             p = space == 0 ? 0 : 2.0 * y / space;
@@ -182,13 +198,28 @@ public static class StaffSymbolReferencer
     }
 
     /// <summary>
-    /// <c>pure_get_position</c>. The port has no pure-property machinery yet
-    /// (<c>unpure-pure-container.cc</c>), so this answers the ORDINARY position —
-    /// the same standing divergence every pure variant takes today.
+    /// <c>pure_get_position</c>: the staff position this grob would have on a line the
+    /// breaker has not chosen yet.
+    /// <para>
+    /// It reads <c>pure_relative_y_coordinate</c>, and the difference from the ordinary
+    /// read is not the NUMBER — for a grob with no separate pure callback the two agree —
+    /// it is what asking COSTS. An ordinary vertical read forces <c>Y-parent-positioning</c>,
+    /// which forces the alignment's <c>positioning-done</c>, which positions every staff in
+    /// the system; from inside a callback that runs BEFORE line breaking, that is vertical
+    /// spacing triggered too early. <c>Dot_column</c> is upstream's own reason for the
+    /// distinction and says so in a comment: a dot's real position may be linked to a beam's,
+    /// and a beam has no position yet.
+    /// </para>
     /// </summary>
     /// <param name="grob">The grob.</param>
     /// <returns>The staff position.</returns>
-    public static double PureGetPosition(Grob grob) => GetPosition(grob);
+    /// <remarks>
+    /// ⚠ This answered the ORDINARY position until PARITY 18, under a note saying the port
+    /// had no pure-property machinery. That note was true when it was written and stopped
+    /// being true when the line-breaking group landed <c>unpure-pure-container.cc</c> —
+    /// <see cref="Grob.PureRelativeYCoordinate"/> had twelve callers by then. Trap 18.
+    /// </remarks>
+    public static double PureGetPosition(Grob grob) => InternalGetPosition(grob, true);
 
     /// <summary><c>pure_get_rounded_position</c>.</summary>
     /// <param name="grob">The grob.</param>

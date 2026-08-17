@@ -258,7 +258,34 @@ public sealed class TextFontMetric : FontMetric
     /// The stencil, whose expression is <c>(utf-8-string DESCRIPTION TEXT ())</c> and
     /// whose extents are the run's advance width and ink height.
     /// </returns>
-    public Stencil TextStencil(string text, string features)
+    public Stencil TextStencil(string text, string features) => TextStencil(text, features, false);
+
+    /// <summary>
+    /// Measures a string and returns the stencil that draws it, saying whether the run
+    /// is a MUSIC string — one whose <c>font-encoding</c> is a music encoding.
+    /// <para>
+    /// A music string reaches a TEXT font only when <c>font-name</c> is set on a grob
+    /// that also carries a music <c>font-encoding</c>, because <c>select_font</c> then
+    /// answers a Pango font while <c>interpret_string</c> still reads the grob's own
+    /// encoding (upstream <c>text-interface.cc:240</c>).
+    /// </para>
+    /// <para>
+    /// Upstream encapsulates a shaped run as <c>utf-8-string</c> only when
+    /// <c>(!music_string || !music_strings_to_paths)</c> — <c>pango-font.cc:574</c>. The
+    /// SVG backend sets <c>music-strings-to-paths</c>, so for a music string BOTH terms
+    /// are false and the wrapper is skipped: the expression stays the raw per-glyph
+    /// drawing. <c>output-svg.scm</c> then draws it through <c>music-string-to-path</c>,
+    /// which asks <c>ly:find-file</c> for <c>&lt;font-name-style&gt;.svg</c> — and
+    /// LilyPond ships <c>.svg</c> companions for the EMMENTALER faces only, so a text
+    /// face fails the lookup, warns, and draws nothing while still occupying its shaped
+    /// extents. Dropping the wrapper here is what lets the backend reproduce that.
+    /// </para>
+    /// </summary>
+    /// <param name="text">The text to set.</param>
+    /// <param name="features">The comma-joined <c>font-features</c> string.</param>
+    /// <param name="musicString">Whether the run carries a music <c>font-encoding</c>.</param>
+    /// <returns>The stencil.</returns>
+    public Stencil TextStencil(string text, string features, bool musicString)
     {
         if (string.IsNullOrEmpty(text))
         {
@@ -412,11 +439,16 @@ public sealed class TextFontMetric : FontMetric
             inner = Pair.List(CombineSymbol, run[i], inner);
         }
 
-        object expression = Pair.List(
-            Utf8StringSymbol,
-            new MutableString(DescriptionString),
-            new MutableString(text),
-            inner);
+        // pango-font.cc:574 — the encapsulation is a SHORT-CUT for backends that also
+        // use Pango, and upstream skips it for a music string when the backend turns
+        // music strings into paths. See this method's note.
+        object expression = musicString
+            ? inner
+            : Pair.List(
+                Utf8StringSymbol,
+                new MutableString(DescriptionString),
+                new MutableString(text),
+                inner);
 
         return new Stencil(box, expression);
     }

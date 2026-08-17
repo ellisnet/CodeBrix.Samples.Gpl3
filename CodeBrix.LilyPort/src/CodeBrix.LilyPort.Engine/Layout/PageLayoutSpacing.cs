@@ -107,10 +107,14 @@ public static class PageLayoutSpacing
     /// grobs, chosen by which of the two is a spaceable staff and, for loose lines, by
     /// their <c>staff-affinity</c>.
     /// <para>
-    /// PURE lookups take the unpure answer: the pure-property machinery is
-    /// <c>unpure-pure-container.cc</c>'s, and every spec the vendored defaults
-    /// state is a plain alist for which the two answers coincide. Recorded in
-    /// PORT-COVERAGE.
+    /// ⚠ Every one of the twelve reads is a MAYBE-PURE read, and that is not a formality.
+    /// The note that used to stand here said pure lookups could take the unpure answer
+    /// because "every spec the vendored defaults state is a plain alist for which the two
+    /// answers coincide" — <c>VerticalAxisGroup.staff-staff-spacing</c> is NOT a plain
+    /// alist. It is an <c>ly:make-unpure-pure-container</c> over two DIFFERENT procedures
+    /// (<c>calc-staff-staff-spacing</c> and <c>calc-pure-staff-staff-spacing</c>), and an
+    /// ordinary read of it runs the unpure one over the whole score, which asks whether a
+    /// staff is live NOW rather than whether it survives the line being considered.
     /// </para>
     /// </summary>
     /// <param name="before">The upper grob, or <see langword="null"/>.</param>
@@ -134,31 +138,37 @@ public static class PageLayoutSpacing
         {
             if (IsSpaceable(after))
             {
-                return before.GetProperty(StaffStaffSpacingSymbol);
+                return before.GetMaybePureProperty(StaffStaffSpacingSymbol, pure, start, end);
             }
 
             Direction affinity = DirectionalElementInterface.FromScheme(
-                after.GetProperty(StaffAffinitySymbol), Direction.Center);
+                after.GetMaybePureProperty(StaffAffinitySymbol, pure, start, end),
+                Direction.Center);
             return affinity == Direction.Negative
                 ? AddStretchability(
-                    after.GetProperty(NonstaffUnrelatedstaffSymbol), LargeStretch)
-                : after.GetProperty(NonstaffRelatedstaffSymbol);
+                    after.GetMaybePureProperty(NonstaffUnrelatedstaffSymbol, pure, start, end),
+                    LargeStretch)
+                : after.GetMaybePureProperty(NonstaffRelatedstaffSymbol, pure, start, end);
         }
 
         if (IsSpaceable(after))
         {
             Direction affinity = DirectionalElementInterface.FromScheme(
-                before.GetProperty(StaffAffinitySymbol), Direction.Center);
+                before.GetMaybePureProperty(StaffAffinitySymbol, pure, start, end),
+                Direction.Center);
             return affinity == Direction.Positive
                 ? AddStretchability(
-                    before.GetProperty(NonstaffUnrelatedstaffSymbol), LargeStretch)
-                : before.GetProperty(NonstaffRelatedstaffSymbol);
+                    before.GetMaybePureProperty(NonstaffUnrelatedstaffSymbol, pure, start, end),
+                    LargeStretch)
+                : before.GetMaybePureProperty(NonstaffRelatedstaffSymbol, pure, start, end);
         }
 
         Direction beforeAffinity = DirectionalElementInterface.FromScheme(
-            before.GetProperty(StaffAffinitySymbol), Direction.Center);
+            before.GetMaybePureProperty(StaffAffinitySymbol, pure, start, end),
+            Direction.Center);
         Direction afterAffinity = DirectionalElementInterface.FromScheme(
-            after.GetProperty(StaffAffinitySymbol), Direction.Center);
+            after.GetMaybePureProperty(StaffAffinitySymbol, pure, start, end),
+            Direction.Center);
         if ((int)afterAffinity > (int)beforeAffinity && !_affinityWarned && !pure)
         {
             Warn.Warning("staff-affinities should only decrease");
@@ -167,15 +177,16 @@ public static class PageLayoutSpacing
 
         if (beforeAffinity != Direction.Positive)
         {
-            return before.GetProperty(NonstaffNonstaffSymbol);
+            return before.GetMaybePureProperty(NonstaffNonstaffSymbol, pure, start, end);
         }
         else if (afterAffinity != Direction.Negative)
         {
-            return before.GetProperty(NonstaffNonstaffSymbol);
+            return before.GetMaybePureProperty(NonstaffNonstaffSymbol, pure, start, end);
         }
 
         return AddStretchability(
-            before.GetProperty(NonstaffUnrelatedstaffSymbol), LargeStretch);
+            before.GetMaybePureProperty(NonstaffUnrelatedstaffSymbol, pure, start, end),
+            LargeStretch);
     }
 
     /// <summary>
@@ -208,7 +219,13 @@ public static class PageLayoutSpacing
         // If we're pure, then paper-columns have not had their systems set,
         // and so elts[i]->get_system () is unreliable.
         SystemGrob sys = pure ? Grob.SystemOf(before) : before.GetSystem();
-        Grob leftBound = sys?.GetBound(Direction.Negative);
+
+        // ⚠ The bound is a MAYBE-PURE bound. In a pure lookup the system's real bounds are
+        // whatever the last line breaking left behind, so asking for them answers about a
+        // line other than the one being considered — which is why upstream has a separate
+        // accessor for it at all. Trap 17a's shape: System.GetMaybePureBound was here and
+        // this call site did not use it.
+        Grob leftBound = sys?.GetMaybePureBound(Direction.Negative, pure, start, end);
 
         if (IsSpaceable(before) && IsSpaceable(after) && leftBound != null)
         {
