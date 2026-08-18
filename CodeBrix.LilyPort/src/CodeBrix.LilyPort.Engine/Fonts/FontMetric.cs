@@ -130,6 +130,18 @@ public abstract class FontMetric
     /// <returns>The index, or <see cref="GlyphIndexInvalid"/> when unmapped.</returns>
     public virtual int CharToGlyphIndex(int codePoint) => GlyphIndexInvalid;
 
+    /// <summary>
+    /// Gets the font's TYPOGRAPHIC ascender and descender in DESIGN UNITS, or
+    /// <c>(0, 0)</c> for a metric with no font behind it.
+    /// </summary>
+    /// <remarks>
+    /// The pair is the font's own idea of "a line of this font", and it is what a
+    /// stand-in reserves for a code point the font cannot map (D31 as amended). It stays
+    /// in DESIGN units through a <see cref="ModifiedFontMetric"/> — magnification lives in
+    /// <see cref="FontScaling"/>, which is what converts it.
+    /// </remarks>
+    public virtual (int Ascender, int Descender) TypoAscenderDescender => (0, 0);
+
     /// <summary>Returns a glyph's name from its index, or <see langword="null"/>.</summary>
     /// <param name="index">The glyph index.</param>
     /// <returns>The name.</returns>
@@ -323,6 +335,10 @@ public sealed class OpenTypeFontMetric : FontMetric
     /// <returns>The index, or <see cref="FontMetric.GlyphIndexInvalid"/>.</returns>
     public override int CharToGlyphIndex(int codePoint) => _font.CharToGlyphIndex(codePoint);
 
+    /// <summary>Gets the typographic ascender and descender, from the font's <c>OS/2</c>.</summary>
+    public override (int Ascender, int Descender) TypoAscenderDescender
+        => _font.TypoAscenderDescender;
+
     /// <summary>Returns a glyph's name from its index.</summary>
     /// <param name="index">The glyph index.</param>
     /// <returns>The name, or <see langword="null"/> for an invalid index.</returns>
@@ -482,6 +498,13 @@ public sealed class ModifiedFontMetric : FontMetric
     /// <param name="codePoint">The Unicode code point.</param>
     /// <returns>The index, or <see cref="FontMetric.GlyphIndexInvalid"/>.</returns>
     public override int CharToGlyphIndex(int codePoint) => _original.CharToGlyphIndex(codePoint);
+
+    /// <summary>
+    /// Gets the typographic ascender and descender, which are the ORIGINAL's: they are
+    /// design units and do not scale with magnification.
+    /// </summary>
+    public override (int Ascender, int Descender) TypoAscenderDescender
+        => _original.TypoAscenderDescender;
 
     /// <summary>Returns a glyph's name from its index, which is the original's.</summary>
     /// <param name="index">The glyph index.</param>

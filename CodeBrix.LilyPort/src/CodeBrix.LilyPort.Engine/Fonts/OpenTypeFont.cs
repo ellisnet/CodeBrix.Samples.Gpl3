@@ -70,6 +70,7 @@ public sealed class OpenTypeFont
     private readonly Dictionary<string, int> _nameToIndex = new Dictionary<string, int>(StringComparer.Ordinal);
 
     private Dictionary<int, int> _cmap;
+    private (int Ascender, int Descender)? _typoAscenderDescender;
     private double[] _advances;
     private readonly List<string> _glyphNames;
     private readonly Dictionary<int, Box> _indexToBox = new Dictionary<int, Box>();
@@ -305,6 +306,23 @@ public sealed class OpenTypeFont
         => _globalTable.TryGetValue(DesignSizeSymbol, out object value)
             ? ToDouble(value)
             : 12.0;
+
+    /// <summary>
+    /// Gets the font's TYPOGRAPHIC ascender and descender in DESIGN UNITS, read from
+    /// <c>OS/2</c> once on first ask.
+    /// <para>
+    /// The pair spans the baseline and the descender is normally NEGATIVE. For Emmentaler
+    /// it is <c>(800, -200)</c> — exactly one em — which is what makes it usable as the
+    /// height a stand-in reserves for a code point the font cannot map (D31 as amended).
+    /// </para>
+    /// <para>
+    /// ⚠ NOT <c>hhea</c>'s pair and NOT <c>usWinAscent</c>/<c>Descent</c>: for Emmentaler
+    /// those are 2127/-2314, four and a half em, because music glyphs reach far past the
+    /// staff.
+    /// </para>
+    /// </summary>
+    public (int Ascender, int Descender) TypoAscenderDescender
+        => _typoAscenderDescender ??= Reader?.ReadTypoAscenderDescender() ?? (0, 0);
 
     /// <summary>Returns a glyph's index from its name.</summary>
     /// <param name="glyphName">The glyph name.</param>

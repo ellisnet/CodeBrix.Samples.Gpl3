@@ -198,6 +198,39 @@ public sealed class SfntReader
     }
 
     /// <summary>
+    /// Gets the font's TYPOGRAPHIC ascender and descender in DESIGN UNITS, from
+    /// <c>OS/2</c>, or <c>(0, 0)</c> when the table is absent or too short.
+    /// <para>
+    /// Unlike x-height and cap height, these two are present from <c>OS/2</c> VERSION 0
+    /// onwards, so only the table's length is checked. The descender is signed and is
+    /// normally NEGATIVE — the pair spans the baseline, and Emmentaler's is
+    /// <c>(800, -200)</c>, exactly one em.
+    /// </para>
+    /// <para>
+    /// ⚠ NOT <c>hhea</c>'s ascender/descender and NOT <c>usWinAscent</c>/<c>Descent</c>.
+    /// For Emmentaler those are 2127/-2314 — 4.44 em — because a music font's glyphs
+    /// reach far above and below the staff. The typographic pair is the one that means
+    /// "a line of this font", which is what a stand-in for a missing glyph wants.
+    /// </para>
+    /// </summary>
+    /// <returns>The typographic ascender and descender, in design units.</returns>
+    public (int TypoAscender, int TypoDescender) ReadTypoAscenderDescender()
+    {
+        if (!_tables.TryGetValue("OS/2", out (uint Offset, uint Length) os2))
+        {
+            return (0, 0);
+        }
+
+        if (os2.Length < 72)
+        {
+            return (0, 0);
+        }
+
+        // OS/2 v0 onwards: sTypoAscender at byte 68, sTypoDescender at 70, both signed.
+        return (ReadInt16((int)os2.Offset + 68), ReadInt16((int)os2.Offset + 70));
+    }
+
+    /// <summary>
     /// Returns the glyph names in glyph-index order, read from the CFF charset.
     /// <para>
     /// Index 0 is always <c>.notdef</c> and is not listed in the charset itself, so it

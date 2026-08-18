@@ -3,9 +3,9 @@
 # G1's definition has always read "every root regression file + other/ MATCHes the
 # pinned reference corpus at NAMED-GLYPH identity, MINUS A COMMITTED, REASONED SKIP
 # LIST".  This is that file.  It exists for the CLAIM rather than for the rows: when
-# G1 goes green, "2,316 pages match except these eight, ruled out on this date for
+# G1 goes green, "2,316 pages match except these nine, ruled out on this date for
 # this reason" has to be answerable from the REPOSITORY alone, and until this file
-# existed six of the eight were named nowhere in it.
+# existed six of the original eight were named nowhere in it.
 #
 # THE MECHANISM AND THE REASONING ARE NOT HERE.  They are in
 # src/CodeBrix.LilyPort.Engine/PORT-COVERAGE.txt, where D31 already holds them; this
@@ -23,8 +23,10 @@
 # because their floor genuinely did come down, AND appear here, so there is one place
 # to look.
 #
-# NOT D43's six skyline rows.  Those are ruled onto a committed PORT-GENERATED
-# BASELINE (R9, 2026-08-16) rather than skipped, and need no entry here.
+# NOT D43's six skyline rows.  They used to be ruled onto a committed PORT-GENERATED
+# baseline (R9, 2026-08-16); R20 RETIRED that baseline on 2026-08-17 and they are now
+# certified by the font-parity GATE and priced in font-delta-ledger.tsv instead.
+# Either way they are not skipped and need no entry here.
 #
 # file	verdict-at-ruling	ruling	revisit-condition
 markup-diacritic-marks.svg	GLYPHS-DIFFER	D31 (Jeremy, 2026-08-13): tofu stands -- for a code point no bundled face covers the port emits the <text> run and draws .notdef while the D30-pinned oracle drops the run	the deferred optional-font-packages decision (would this port ever cover CJK/Hebrew/Arabic/Japanese) -- see PORT-COVERAGE D31
@@ -35,3 +37,4 @@ one-page-breaking.svg	GLYPHS-DIFFER	R8(A) (Jeremy, 2026-08-15): D31 extended by 
 profile-property-access.svg	GLYPHS-DIFFER	R8(A) (Jeremy, 2026-08-15): D31 extended by name -- measured at PARITY 13 as that mechanism and nothing else	SVG ROWS ONLY -- this file still owes the oracle's "no glyph for character" warnings, which are D40 and are FIX work; then the deferred optional-font-packages decision
 typography-demo.svg	GLYPHS-DIFFER	R8(A) (Jeremy, 2026-08-15): D31 extended by name -- measured at PARITY 13 as that mechanism and nothing else	SVG ROWS ONLY -- this file still owes the oracle's "no glyph for character" warnings, which are D40 and are FIX work; then the deferred optional-font-packages decision
 utf-8.svg	GLYPHS-DIFFER	R8(A) (Jeremy, 2026-08-15): D31 extended by name -- measured at PARITY 13 as that mechanism and nothing else	SVG ROWS ONLY -- this file still owes the oracle's "no glyph for character" warnings, which are D40 and are FIX work; then the deferred optional-font-packages decision
+markup-compound-meter-denominator-style.svg	PLACEMENT-DIFFERS	D31 AS AMENDED (Jeremy, 2026-08-17): in the MUSIC font a code point the font cannot map ADVANCES and draws nothing, as upstream does -- but upstream's advance is PANGO'S UNKNOWN-GLYPH BOX, whose width is approximate_char_width and is not computable from Emmentaler. The port stands in with TWO U+0020 spaces, the nearest whole number of space advances to that box at every size measured (2.00-2.27 over magsteps 1/4 to 16, exact at 1/4). Residual at this file's size is on BOTH axes: dx improved from -1.7072 to -0.2049 (the width two spaces do not cover), dy improved from -0.2993 to +0.0341 by RESERVING A HEIGHT for the stand-in from OS/2's typographic ascender and descender (Emmentaler: 800/-200, exactly one em) against the oracle's measured -0.1909..+0.8141 em -- because Pango's unknown-glyph box has an INK RECTANGLE as well as a logical width and LilyPond takes a text stencil's Y from the ink rect. The remaining 0.0341 is ONE DEVICE DOT, a quantisation floor: reserving the oracle's own measured fractions instead gives 0.0441, so the font's metric beats the oracle's number and there is nothing further to chase	a decision to model Pango's unknown-glyph box exactly (would need approximate_char_width, which Pango derives from a sample string in a fallback font this port does not ship) -- see PORT-COVERAGE "D31 AS AMENDED"

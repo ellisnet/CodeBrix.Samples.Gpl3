@@ -2406,6 +2406,112 @@ DELIBERATE DIVERGENCES (stems and flags)
     Item::pure_y_extent's cache and it matters for every Item. See CACHED PURE
     HEIGHT below.
 
+  * D31 AS AMENDED (Jeremy, 2026-08-17) -- AN UNMAPPABLE CODE POINT IN THE MUSIC
+    FONT ADVANCES BY TWO SPACES AND DRAWS NOTHING.
+    Objects/TextInterface.cs, MusicFontTextStencil.
+
+    THE TWO FONT CLASSES GET DIFFERENT ANSWERS ON PURPOSE, and the reason is the
+    ruling:
+
+      TEXT FONTS -- tofu, unchanged. If a document asks for Hebrew or CJK and no
+      bundled face covers it, the port DRAWS .notdef so the gap is obvious. That
+      is not a fallback, it is a SIGNAL: we want the user to say "you don't have
+      proper support for Hebrew", because that complaint tells us somebody cares
+      whether we support it. The pinned oracle drops the run instead, and the
+      resulting divergence is on g1-skip-list.tsv where D31 put it.
+
+      THE MUSIC FONT -- faithfulness, because there is nothing to signal. Upstream
+      ADVANCES and DRAWS NOTHING: Pango marks the glyph unknown,
+      Pango_font::get_glyph_desc returns #f so it never reaches the glyph list,
+      but the stencil's extent is `string_extent' taken over the WHOLE glyph
+      string, so the box survives. The port owes the advance and nothing else.
+
+    //was previously: the glyph was DROPPED, contributing no advance at all, so
+    every glyph after it moved left by a whole character.  Emmentaler has no `i'
+    glyph and no cmap entry for U+0069, which is why
+    \compound-meter #'((+inf.0)) came out 1.7071 narrow.
+
+    WHY TWO SPACES, MEASURED AND NOT CHOSEN.  Pango's unknown-glyph box is a
+    per-font, per-size CONSTANT -- `i', `q' and `@' give byte-identical boxes --
+    and the port cannot compute it: its width is `approximate_char_width', which
+    Pango derives by laying out a SAMPLE STRING in a fallback font the port does
+    not have and (having decided to move away from Pango) does not want.  So the
+    port approximates it with the font's own space, U+0020, which Emmentaler has
+    (advance 192/1000 em) and which draws nothing.  Measured against the pinned
+    oracle at seven sizes:
+
+        magstep    1/4     1/2      1       2       4       8      16
+        box/space  2.00    2.27    2.27    2.20    2.21    2.21    2.21
+
+    TWO is the nearest whole number at every size and is EXACT at magstep 1/4.
+
+    /!\ IT DOES NOT CLOSE THE CORPUS ROW AND IS NOT MEANT TO, AND THE RESIDUAL IS
+    ON BOTH AXES.  Measured on markup-compound-meter-denominator-style:
+
+      X  the settled dx went from -1.7071/-1.7072 to -0.2048/-0.2049, which is
+         the width the two spaces do not cover.  No mix of Emmentaler's spaces
+         does better than about half a device dot, because each advance is
+         rounded to one: the finest are U+2009 (66) and U+200A (22), and
+         2 spaces + 1 thin overshoots to +0.068.
+
+      Y  -0.2993/-0.2992 -> +0.0341, by RESERVING A HEIGHT for the stand-in, and
+         the reason it is needed is worth knowing.  "Advances and draws nothing"
+         is true of what upstream DRAWS but not of the box it KEEPS: Pango's
+         unknown-glyph box has an INK RECTANGLE as well as a logical width, and
+         LilyPond takes a text stencil's Y extent from the ink rect while taking X
+         from the logical one (pango_item_string_stencil, trap 15a).  So a line
+         containing an unmappable character is as TALL upstream as any other, and
+         left inkless it measures short and everything stacked against it creeps.
+         Emmentaler's space has no ink -- which is the very property that makes it
+         draw nothing -- so the height cannot come from more spaces and is united
+         in explicitly.
+
+         THE HEIGHT IS THE FONT'S OWN: OS/2's TYPOGRAPHIC ascender and descender,
+         read by SfntReader.ReadTypoAscenderDescender and reaching the call site
+         through FontMetric.TypoAscenderDescender.  For Emmentaler that is
+         (800, -200) -- exactly one em -- against the oracle's box measured at
+         (-0.1909 .. +0.8141) em.
+         /!\ NOT hhea's ascender/descender and NOT usWinAscent/usWinDescent: for
+         Emmentaler those are 2127/-2314, FOUR AND A HALF EM, because a music
+         font's glyphs reach far above and below the staff.  Taking them would be
+         a plausible-looking mistake and the fence controls for it.
+         /!\ AND THE FONT'S OWN METRIC BEATS THE ORACLE'S OWN NUMBER: reserving
+         the measured (-0.1909 .. +0.8141) instead gives 0.0441 where OS/2 gives
+         0.0341.  The residue is ONE DEVICE DOT -- a quantisation floor, not a
+         sizing error -- so there is nothing to gain by chasing a more exact box,
+         which is why the source is the font and not a recorded constant
+         (rule 33).
+         /!\ GSUB can merge or split glyphs, and a recorded POSITION would then
+         name the wrong one; the stand-in positions are DISCARDED if substitution
+         changes the run's length.  Emmentaler substitutes nothing involving a
+         space, so this never fires in the corpus -- it is checked rather than
+         assumed.
+
+    D29 has no position tolerance, so markup-compound-meter-denominator-style is
+    on g1-skip-list.tsv for both residuals.
+
+    /!\ THE WARNING IS UNCHANGED.  MissingGlyphWarning still fires exactly once
+    per unmappable code point, with upstream's wording; the diagnostics gate is at
+    2146/2146 and did not move.
+
+    /!\ THE STAND-IN PARTICIPATES IN KERNING like any other glyph, which is what
+    upstream's buffer does too -- and it is why the fence compares "0i0" against
+    "0  0" rather than against "00": removing the middle character changes the
+    kern pairs, and the fence's first form was wrong by exactly one 0-0 kern.
+
+    Fenced by UnmappableCodePointTests -- ELEVEN cases.  The advance half: one
+    space and three spaces are both wrong, a MAPPABLE code point is untouched, the
+    space glyph has no outline where `0' does.  The height half: OS/2 gives
+    (800, -200) and they span exactly one em, the reserved interval IS that pair
+    scaled, TWO REAL SPACES reserve nothing (which is what makes it a stand-in
+    rule and not a space rule), a mappable glyph keeps its own ink, and the height
+    is one em rather than the font's four-and-a-half-em glyph RANGE.  Rule 35's
+    A/B run on both halves: two cases go red with the stand-in removed, three with
+    the height reservation removed.
+    /!\ The height fence went red once on its own arithmetic: `FontScaling /
+    MusicEm' is stencil units per DESIGN unit and `FontScaling' is one EM, a
+    factor of a thousand apart, and calling both `em' is how it happened.
+
   * CACHED PURE HEIGHT -- Item::pure_y_extent (lily/item.cc:242-251), ported at
     PARITY 25 and previously ABSENT. Upstream OVERRIDES Grob::pure_y_extent on
     Item and stores the answer in cached_pure_height_, invalidated only in the

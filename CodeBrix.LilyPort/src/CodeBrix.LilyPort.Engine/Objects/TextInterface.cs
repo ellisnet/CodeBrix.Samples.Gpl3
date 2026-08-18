@@ -80,6 +80,17 @@ public static class TextInterface
     // the two agree; the constant is named here rather than repeated as a literal.
     private const int MusicEm = 1000;
 
+    /// <summary>
+    /// U+0020, the stand-in for a code point the music font cannot map (D31 as amended).
+    /// </summary>
+    private const int SpaceCodePoint = 0x20;
+
+    /// <summary>
+    /// How many spaces stand in for one unmappable code point — the nearest whole number
+    /// of space advances to Pango's unknown-glyph box, measured at seven sizes.
+    /// </summary>
+    private const int SpacesPerUnmappableCodePoint = 2;
+
     [ThreadStatic]
     private static int _depth;
 
@@ -329,7 +340,13 @@ public static class TextInterface
     /// <param name="text">The cleaned text.</param>
     /// <param name="features">The comma-joined <c>font-features</c> string.</param>
     /// <returns>The composed stencil.</returns>
-    private static Stencil MusicFontTextStencil(
+    /// <remarks>
+    /// Internal rather than private so <c>UnmappableCodePointTests</c> can compose a run
+    /// without standing up a whole <c>OutputDef</c> font tree. Passing a bare layout is
+    /// deliberate there: <see cref="DeviceDot"/> answers zero for it, so advances are not
+    /// put on the device grid and the fence measures the RELATIONSHIP it is about.
+    /// </remarks>
+    internal static Stencil MusicFontTextStencil(
         OutputDef layout, FontMetric font, string text, string features)
     {
         // The whole run is mapped through the cmap FIRST, because a substitution reads
@@ -337,6 +354,11 @@ public static class TextInterface
         // backslash into a single slashed figured-bass glyph, so the run cannot be
         // composed one code point at a time.
         List<int> glyphs = new List<int>(text.Length);
+
+        // Which positions in `glyphs' are STAND-INS rather than characters the document
+        // asked for. They are ordinary spaces to everything downstream except the run's
+        // INK, which they alone contribute to (D31 as amended).
+        HashSet<int> standInPositions = new HashSet<int>();
         for (int i = 0; i < text.Length; i++)
         {
             int codePoint = char.IsHighSurrogate(text[i]) && i + 1 < text.Length
@@ -362,6 +384,51 @@ public static class TextInterface
                 // is reconstructed here rather than read from FileName, which for an
                 // embedded font is the suffix-less asset name.
                 MissingGlyphWarning.Warn(codePoint, MusicFontFileName(font));
+
+                //was previously: the glyph was dropped here and nothing took its place,
+                // so the character contributed NO ADVANCE and every glyph after it moved
+                // left by a whole character. Upstream does not lose the width: Pango
+                // marks the glyph unknown, `Pango_font::get_glyph_desc' returns #f so it
+                // is never DRAWN, but the run's extent is `string_extent' over the whole
+                // glyph string, so the box survives.
+                //
+                // D31 AS AMENDED (Jeremy, 2026-08-17) — the port stands in with TWO
+                // Emmentaler spaces. The tofu rule is for TEXT fonts, where a missing
+                // Hebrew or CJK glyph SHOULD be visible so a user says "you don't support
+                // this" — that complaint is feedback worth having. Emmentaler is the
+                // opposite case: upstream advances and draws nothing, so the port owes
+                // the advance and nothing else.
+                //
+                // WHY TWO, and it is measured rather than chosen: Pango's unknown-glyph
+                // box is a per-font, per-size constant (`i', `q' and `@' give byte-
+                // identical boxes) and the port cannot compute it — its width is
+                // `approximate_char_width', which Pango derives from a sample string in a
+                // fallback font the port does not have and does not want. Measured
+                // against the pinned oracle at seven sizes from magstep 1/4 to 16, the
+                // box is between 2.00 and 2.27 space advances, so TWO is the nearest
+                // whole number at every size and is exact at magstep 1/4. Emmentaler's
+                // space has no outline, so two of them draw nothing — which is what
+                // upstream draws.
+                //
+                // /!\ IT DOES NOT CLOSE THE ROW AND IS NOT MEANT TO. At the corpus's size
+                // two spaces recover 1.5023 of the box's 1.7072, leaving 0.2049 — better
+                // than the whole 1.7072 that was lost, and still far outside D29's
+                // (absent) position tolerance. No mix of Emmentaler's spaces can do
+                // better than about half a device dot, because each advance is rounded to
+                // one. markup-compound-meter-denominator-style is on `g1-skip-list.tsv'
+                // for exactly this residual.
+                int spaceIndex = font.CharToGlyphIndex(SpaceCodePoint);
+
+                // A music font with no space of its own can only be left as it was; the
+                // guard has no upstream counterpart because the whole branch has none.
+                if (spaceIndex != FontMetric.GlyphIndexInvalid)
+                {
+                    for (int space = 0; space < SpacesPerUnmappableCodePoint; space++)
+                    {
+                        standInPositions.Add(glyphs.Count);
+                        glyphs.Add(spaceIndex);
+                    }
+                }
             }
         }
 
@@ -369,7 +436,18 @@ public static class TextInterface
         // HarfBuzz; the port applies the same features out of the font's own GSUB. This
         // is what draws `fattened.three` where a Fingering asks for ss01 and
         // `fixedwidth.four.alt` where a BassFigure asks for tnum and cv47.
+        int beforeSubstitution = glyphs.Count;
         font.Substitutions?.Apply(glyphs, features);
+
+        // GSUB can merge or split glyphs, and then a recorded POSITION no longer names the
+        // glyph it was recorded for. Emmentaler substitutes nothing involving a space, so
+        // this never fires in the corpus — but a stand-in reserving a height at the wrong
+        // index would be worse than reserving none, so the claim is checked rather than
+        // assumed.
+        if (glyphs.Count != beforeSubstitution)
+        {
+            standInPositions.Clear();
+        }
 
         Stencil result = Stencil.Empty;
         double x = 0;
@@ -433,6 +511,41 @@ public static class TextInterface
             // what upstream puts in the description. NOT the declared box: Emmentaler
             // declares one height for all its digits and draws them a few units apart.
             Interval height = font.GetIndexedInkDimensions(index)[Axis.Y];
+
+            // D31 AS AMENDED — the second half. Two spaces give the unmappable code point
+            // its ADVANCE, but a space has NO INK, and a run's Y extent is the union of its
+            // glyphs' ink boxes. Upstream's box is not inkless: Pango's unknown-glyph box
+            // has an ink RECTANGLE as well as a logical width, and LilyPond takes a text
+            // stencil's Y from the ink rect while taking X from the logical one (trap 15a),
+            // so a line containing an unmappable character is as TALL upstream as any other.
+            // Left inkless, such a line measures short and everything stacked against it
+            // creeps: on markup-compound-meter-denominator-style that was a settled
+            // dy of -0.2993 across 86 marks.
+            //
+            // THE HEIGHT IS THE FONT'S OWN, from OS/2's TYPOGRAPHIC ascender and descender
+            // — for Emmentaler (800, -200), exactly one em — against the oracle's box
+            // measured at (-0.1909 .. +0.8141) em. ⚠ NOT hhea's pair and NOT usWinAscent/
+            // Descent, which for a music font are 2127/-2314, four and a half em, because
+            // its glyphs reach far past the staff.
+            //
+            // MEASURED: this takes the settled dy from -0.2993 to +0.0341, which is exactly
+            // ONE DEVICE DOT and is the quantisation floor rather than a sizing error.
+            // ⚠ AND IT IS BETTER THAN THE ORACLE'S OWN NUMBER: reserving the measured
+            // (-0.1909 .. +0.8141) instead gives 0.0441. There is nothing to gain by
+            // chasing a more exact box, which is why the font's own metric is the right
+            // source and not a recorded constant (rule 33).
+            if (standInPositions.Contains(i))
+            {
+                (int ascender, int descender) = font.TypoAscenderDescender;
+                if (ascender != descender)
+                {
+                    // Stencil units per DESIGN unit: a metric answers
+                    // raw * FontScaling / MusicEm, so one em is FontScaling itself.
+                    double perDesignUnit = font.FontScaling / MusicEm;
+                    height = new Interval(descender * perDesignUnit, ascender * perDesignUnit);
+                }
+            }
+
             if (!height.IsEmpty)
             {
                 ink.Unite(height);
