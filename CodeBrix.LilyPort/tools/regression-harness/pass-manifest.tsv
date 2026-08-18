@@ -541,7 +541,7 @@ collision-dots-up-space-dotted.svg	MATCH
 collision-dots.svg	MATCH
 collision-harmonic-no-dots.svg	MATCH
 collision-head-chords.svg	MATCH
-collision-head-solfa-fa.svg	PLACEMENT-DIFFERS
+collision-head-solfa-fa.svg	MATCH
 collision-heads.svg	MATCH
 collision-manual.svg	MATCH
 collision-merge-differently-dotted.svg	MATCH

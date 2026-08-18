@@ -2399,11 +2399,43 @@ DELIBERATE DIVERGENCES (stems and flags)
     value -- trap 24 does not only mean "a different number".
     Fenced by CrossStaffSpacingEndToEndTests.
 
-  * Stem::cache_pure_height computes the clipped interval faithfully and then
-    DROPS it: upstream stores it in the Item's pure-height cache, which is
-    line breaking's machinery. Only reachable under a beam, and line breaking
-    must
-    rewire the final store when the cache exists.
+  * Stem::cache_pure_height STORES the clipped interval now, in the Item
+    pure-height cache that Item::pure_y_extent reads (PARITY 25). It used to
+    compute the interval faithfully and then DROP it, on a recorded reasoning
+    that the Item-side cache "only matters for beams" -- it is
+    Item::pure_y_extent's cache and it matters for every Item. See CACHED PURE
+    HEIGHT below.
+
+  * CACHED PURE HEIGHT -- Item::pure_y_extent (lily/item.cc:242-251), ported at
+    PARITY 25 and previously ABSENT. Upstream OVERRIDES Grob::pure_y_extent on
+    Item and stores the answer in cached_pure_height_, invalidated only in the
+    two constructors. The port carried both fields, cleared them in both
+    constructors, and never read either: the write half of the handshake with
+    no reader (trap 17a), so every pure enquiry recomputed.
+
+    THE CACHE IS PART OF THE SPECIFICATION, NOT AN OPTIMISATION (trap 1c). The
+    FIRST reader freezes the value, so a property the extent depends on that is
+    rewritten LATER cannot change what an earlier reader already saw.
+
+    WHAT IT WAS LOAD-BEARING FOR: Note_collision's `fa' merge
+    (note-collision.cc:237-253) rewrites BOTH heads' stem-attachment while
+    resolving positioning-done, which Separation_item::boxes forces through an
+    ordinary X extent. Horizontal spacing reads the stem's PURE height in
+    Note_spacing::stem_dir_correction and must go on seeing the value from
+    before that rewrite. Without the cache the port's spacing FOLLOWED
+    fa-merge-direction and the oracle's does not -- measured directly: the
+    oracle places the bar line identically for #UP, #DOWN and the default,
+    the port placed it 0.0241 apart. collision-head-solfa-fa placed every mark
+    after the first bar line 0.0241 out because of it.
+
+    Upstream's own comment on the range is reproduced rather than corrected:
+    "cached_pure_height_ does not notice if start changes, implicitly assuming
+    that Items' pure_heights do not depend on 'start' or 'end'."
+
+    Fenced by ItemPureHeightCacheTests -- five cases, three of them controls:
+    an item read for the first time AFTER the change follows it, a Spanner
+    (which upstream does not override) follows it, and the cache is per item
+    rather than shared.
 
   * Stem::calc_stem_info guards its knee/shorten reads with a null-beam check
     where upstream would dereference a null Beam. Unreachable in practice --

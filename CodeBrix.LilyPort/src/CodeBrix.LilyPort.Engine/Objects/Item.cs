@@ -89,6 +89,60 @@ public class Item : Grob
     /// <summary>Gets or sets the cached pure height.</summary>
     protected Interval CachedPureHeight { get; set; }
 
+    /// <summary>
+    /// The item's pure vertical extent, CACHED after the first ask.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// //was previously: inherited from <see cref="Grob"/>, so every pure enquiry
+    /// recomputed. Upstream overrides it on Item (<c>item.cc:242</c>) and stores the
+    /// answer in <c>cached_pure_height_</c>; the port carried the two cache fields and
+    /// invalidated them in both constructors, but nothing ever read them — the write
+    /// side of the handshake without its reader (trap 17a).
+    /// </para>
+    /// <para>
+    /// THE CACHE IS PART OF THE SPECIFICATION, NOT AN OPTIMISATION (trap 1c). The FIRST
+    /// reader freezes the value, so a property the item's extent depends on that is
+    /// rewritten LATER cannot change what an earlier reader saw. That is load-bearing:
+    /// <c>Note_collision</c>'s <c>fa</c> merge rewrites both heads'
+    /// <c>stem-attachment</c> during <c>positioning-done</c>, and horizontal spacing —
+    /// which asks for the stem's pure height through
+    /// <c>Note_spacing::stem_dir_correction</c> — must go on seeing the value it read
+    /// before that. Without the cache the port's spacing followed
+    /// <c>fa-merge-direction</c> and the oracle's did not.
+    /// </para>
+    /// <para>
+    /// Upstream's own comment on the range: "cached_pure_height_ does not notice if
+    /// start changes, implicitly assuming that Items' pure_heights do not depend on
+    /// 'start' or 'end'." That assumption is reproduced here rather than corrected.
+    /// </para>
+    /// </remarks>
+    /// <param name="refp">The reference grob.</param>
+    /// <param name="start">The starting column rank.</param>
+    /// <param name="end">The ending column rank.</param>
+    /// <returns>The pure extent, in <paramref name="refp"/>'s frame.</returns>
+    public override Interval PureYExtent(Grob refp, int start, int end)
+    {
+        if (!CachedPureHeightValid)
+        {
+            // Measured against THIS item, so the stored interval carries no offset and
+            // can be re-based for any later reference point.
+            CachePureHeight(base.PureYExtent(this, start, end));
+        }
+
+        Interval result = CachedPureHeight;
+        result.Translate(PureRelativeYCoordinate(refp, start, end));
+        return result;
+    }
+
+    /// <summary>Stores an item's pure height, from now on answered without recomputing.</summary>
+    /// <param name="height">The extent, in the item's own frame.</param>
+    public virtual void CachePureHeight(Interval height)
+    {
+        CachedPureHeight = height;
+        CachedPureHeightValid = true;
+    }
+
     /// <summary>Gets a value indicating whether this item has been prebroken.</summary>
     public bool IsBroken => _brokenToDrul.Negative != null || _brokenToDrul.Positive != null;
 

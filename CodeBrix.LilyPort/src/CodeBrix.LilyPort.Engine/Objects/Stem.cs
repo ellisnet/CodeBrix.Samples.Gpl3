@@ -649,10 +649,10 @@ public static class Stem
     /// Caches a stem's pure height, clipped so a stem never claims to overshoot in its
     /// own direction.
     /// <para>
-    /// Upstream stores the result on the ITEM's pure-height cache. The port does not
-    /// carry that Item-side cache: the clipped interval is
-    /// computed faithfully and dropped, which only matters for beams, and is
-    /// recorded in PORT-COVERAGE.
+    /// Upstream stores the result on the ITEM's pure-height cache, and so does the port
+    /// now: <see cref="Item.CachePureHeight"/>. The clipped interval used to be computed
+    /// and dropped on the reasoning that the cache "only matters for beams" — it is
+    /// <c>Item::pure_y_extent</c>'s cache and it matters for every item.
     /// </para>
     /// </summary>
     /// <param name="me">The stem.</param>
@@ -669,9 +669,13 @@ public static class Stem
 
         iv.Intersect(overshoot);
 
-        // Upstream: dynamic_cast<Item *> (me)->cache_pure_height (iv);
-        // The Item pure-height cache is not carried; see the XML remarks above.
-        _ = iv;
+        //was previously: the clipped interval was computed and DROPPED, on a recorded
+        // reasoning that the Item-side cache "only matters for beams". The cache is
+        // Item::pure_y_extent's and it matters for every item; it is carried now, so a
+        // beamed stem reports the WHOLE beam's clipped height on every later pure
+        // enquiry, exactly as upstream's `dynamic_cast<Item *> (me)->cache_pure_height'
+        // makes it.
+        (me as Item)?.CachePureHeight(iv);
     }
 
     /// <summary>

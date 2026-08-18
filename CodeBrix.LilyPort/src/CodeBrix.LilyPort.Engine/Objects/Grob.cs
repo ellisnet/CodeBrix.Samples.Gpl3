@@ -981,7 +981,7 @@ public abstract class Grob : IDiagnostics
     /// <param name="start">The starting column rank.</param>
     /// <param name="end">The ending column rank.</param>
     /// <returns>The pure extent.</returns>
-    public Interval PureYExtent(Grob refp, int start, int end)
+    public virtual Interval PureYExtent(Grob refp, int start, int end)
     {
         //was previously: `CallPureFunction (GetPropertyData (YExtentSymbol), …)', which
         // skipped the one branch of the pure reader that CACHES. Upstream writes
