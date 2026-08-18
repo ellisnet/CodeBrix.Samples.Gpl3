@@ -168,26 +168,32 @@ public class PaperColumnEngraver : Engraver
            skipped section, and when music stops being skipped, the columns
            used are those created at the beginning of the skipped section.
            DOCME: why is this necessary? */
-        if (_skipTypesettingAtStartOfTimestep)
+        if (!_skipTypesettingAtStartOfTimestep)
         {
-            return;
+            _commandColumn = MakeColumn("NonMusicalPaperColumn");
+            Context?.SetProperty(CurrentCommandColumnSymbol, _commandColumn);
+            _system?.AddColumn(_commandColumn);
+
+            _musicalColumn = MakeColumn("PaperColumn");
+            Context?.SetProperty(CurrentMusicalColumnSymbol, _musicalColumn);
+            _system?.AddColumn(_musicalColumn);
+
+            if (_system != null && _system.GetBound(Direction.Negative) == null)
+            {
+                // first time step
+                _system.SetBound(Direction.Negative, _commandColumn);
+                _commandColumn.SetProperty(LineBreakPermissionSymbol, AllowSymbol);
+            }
         }
 
-        _commandColumn = MakeColumn("NonMusicalPaperColumn");
-        Context?.SetProperty(CurrentCommandColumnSymbol, _commandColumn);
-        _system?.AddColumn(_commandColumn);
-
-        _musicalColumn = MakeColumn("PaperColumn");
-        Context?.SetProperty(CurrentMusicalColumnSymbol, _musicalColumn);
-        _system?.AddColumn(_musicalColumn);
-
-        if (_system != null && _system.GetBound(Direction.Negative) == null)
-        {
-            // first time step
-            _system.SetBound(Direction.Negative, _commandColumn);
-            _commandColumn.SetProperty(LineBreakPermissionSymbol, AllowSymbol);
-        }
-
+        //was previously: an early RETURN under skipTypesetting, which took the manual
+        // breaks with it. Upstream guards only the COLUMN MAKING and then calls
+        // handle_manual_breaks (false) UNCONDITIONALLY (paper-column-engraver.cc:126-150
+        // — the call is outside the if). The distinction is the whole of
+        // skiptypesetting-break: a \break in a timestep that STARTED skipped attaches to
+        // the column made at the beginning of the skipped section, which is exactly what
+        // the retained column is for, and dropping it merged the file's two systems into
+        // one.
         HandleManualBreaks(false);
     }
 

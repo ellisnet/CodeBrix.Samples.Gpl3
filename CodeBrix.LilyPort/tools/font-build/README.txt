@@ -114,10 +114,25 @@ Exact versions used for the verified 2026-08-02 build:
     python3                  3.13.5
     perl                     5.40.1-6
 
-Toolchain versions matter -- see section 7. Different FontForge or Metafont
-versions produce very slightly different glyph outlines. They do not change
-anything the engraver actually uses for layout, but if you want to reproduce
-the committed fonts bit-for-bit, match the versions above.
+/!\ TOOLCHAIN VERSIONS ARE LOAD-BEARING. MATCH THEM. Different FontForge or
+Metafont versions produce different glyph OUTLINES -- not merely different
+bytes: a different number of curve segments for the same shape between the same
+endpoints, because mf2pt1 has FontForge remove outline overlaps and that step's
+output is version-dependent.
+
+This paragraph used to end "They do not change anything the engraver actually
+uses for layout". That is REFUTED -- see section 7. It is true of everything the
+engraver reads from the LILC table, the advance widths and the glyph inventory,
+and FALSE of the one path that reads the outline, which is skyline computation,
+and which decides eleven regression-corpus rows.
+
+Under ruling R19 the port builds its own fonts permanently, and those eleven
+rows are graded against COMMITTED PORT-GENERATED BASELINES frozen against the
+outlines THIS toolchain produces. So a regeneration on a different FontForge
+will move those baselines silently: the sweep will still be green against the
+oracle everywhere else, and the baseline rows will drift with nothing to catch
+it. If you rebuild the fonts on a different toolchain, RE-FREEZE the baselines
+in the same session and say so in baseline-manifest.tsv's header.
 
 ================================================================================
 3.  HOW TO BUILD
@@ -303,7 +318,7 @@ run has something to measure itself against.
       Largest observed: clefs.hufnagel.do_change and accidentals.mensuralM1,
       both 3 units.
 
-  WHY THE BOUNDING-BOX DIFFERENCES DO NOT MATTER
+  WHERE THE BOUNDING-BOX DIFFERENCES DO NOT MATTER
 
     This was checked against the LilyPond source rather than assumed.
 
@@ -314,16 +329,53 @@ run has something to measure itself against.
 
     -- NOT from the font outline. Since our LILC tables are byte-identical to
     the reference, the engraver receives identical glyph dimensions and will
-    lay music out identically.
+    lay music out identically. That half stands.
 
-    FreeType outline bounding boxes are consulted in exactly one place,
-    lily/stencil-integral.cc:555, via get_glyph_outline_bbox, which feeds
-    skyline computation. A 1-3 unit difference there is far below anything
-    that could change a layout decision.
+  /!\ AND WHERE THEY DO -- CORRECTED 2026-08-17 (PARITY 24), BY MEASUREMENT
+
+    This section used to end: "FreeType outline bounding boxes are consulted in
+    exactly one place, lily/stencil-integral.cc:555, via get_glyph_outline_bbox,
+    which feeds skyline computation. A 1-3 unit difference there is far below
+    anything that could change a layout decision." That is REFUTED, twice over.
+
+    First, the comparison above is of BOUNDING BOXES only. The outlines
+    themselves differ STRUCTURALLY: emmentaler-26's `clefs.G' is 40 curve
+    segments in this build and 47 in the official release, with the same bbox
+    and a different curve between the same endpoints.
+
+    Second, a skyline is not a bbox. The difference is invisible wherever a
+    glyph's EXTREME point decides an answer -- which is most of the corpus, and
+    is why this went eleven sessions unnoticed -- and visible wherever the
+    profile's SHAPE does. Two treble clefs on adjacent staves at
+    layout-set-staff-size 30 face each other's slopes, and the rod between them
+    comes out 0.0457 units short.
+
+    MEASURED by swapping the release's nine emmentaler .otf files in, rebuilding,
+    and grading a full sweep: MATCH 2293 -> 2304. ELEVEN corpus rows are decided
+    by this build alone -- repeat-sign-global-size5/size10,
+    caesura-style-comma-over-bar-line, merge-rests-engraver,
+    ssaattbb-template-with-all-staves, accidental-ancient,
+    markup-with-true-dimensions, show-skylines, skyline-debug,
+    skyline-embedded-ps and skyline-slur-segments -- and a twelfth improves.
+    Only the .otf matters: the .svg font is the SVG backend's drawing source and
+    D29's named-glyph identity already tolerates it.
 
   CONCLUSION: the locally built fonts are equivalent to the official ones for
-  every purpose CodeBrix.LilyPort has. The outline differences are Metafont
-  and FontForge version artifacts, not defects.
+  every purpose that reads the LILC table, the advance widths or the glyph
+  inventory -- which is the engraving. They are NOT equivalent for the one code
+  path that reads the OUTLINE, lily/stencil-integral.cc:555's skyline builder,
+  and that path decides eleven corpus rows. The differences are Metafont and
+  FontForge version artifacts rather than defects in this build.
+
+  /!\ AND THEY ARE NOT A REASON TO STOP BUILDING. RULING R19 (Jeremy,
+  2026-08-17): the port builds its own Emmentaler fonts from the Metafont sources,
+  exactly as LilyPond builds its own from the same sources, and the engine must be
+  correct against THE FONTS THE PORT SHIPS. Shipping the official release's
+  binaries instead is REFUSED -- do not re-propose it, and do not read the
+  measurement above as an argument for it. Those eleven rows belong to G1's second
+  clause (a divergence in an asset the port builds), which grades them against
+  committed port-generated baselines. Full account in PORT-COVERAGE's "PARITY 24"
+  section.
 
   REPRODUCIBILITY
 

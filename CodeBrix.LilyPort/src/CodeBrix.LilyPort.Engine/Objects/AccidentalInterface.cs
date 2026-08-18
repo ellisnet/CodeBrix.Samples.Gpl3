@@ -99,9 +99,13 @@ public static class AccidentalInterface
 
         object parenthesized = me.GetProperty(ParenthesizedSymbol);
 
-        string glyphName = me.GetProperty(GlyphNameSymbol) is MutableString text
-            ? text.ToString()
-            : string.Empty;
+        //was previously: `is MutableString', which is trap 12a — upstream writes
+        // from_scm<std::string> and the port has TWO string shapes, so a CLR string put
+        // there by a C# call site would read as no glyph name at all. Harmless today
+        // because the property always arrives as a MutableString, which is exactly why
+        // it is fixed rather than watched.
+        string glyphName =
+            SchemeUtilities.StringText(me.GetProperty(GlyphNameSymbol)) ?? string.Empty;
 
         if ((glyphName == "accidentals.flat"
              || glyphName == "accidentals.flatflat")
@@ -172,9 +176,9 @@ public static class AccidentalInterface
     public static object Print(Grob me)
     {
         FontMetric fm = FontInterface.GetDefaultFont(me);
-        string glyphName = me.GetProperty(GlyphNameSymbol) is MutableString text
-            ? text.ToString()
-            : string.Empty;
+        //was previously: `is MutableString' — trap 12a, as above.
+        string glyphName =
+            SchemeUtilities.StringText(me.GetProperty(GlyphNameSymbol)) ?? string.Empty;
         Stencil st = fm.FindByName(glyphName);
         if (st.IsEmpty)
         {

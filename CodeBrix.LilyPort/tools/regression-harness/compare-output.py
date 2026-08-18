@@ -834,6 +834,15 @@ def resolve_sides(index_path, reference_dir, candidate_dir, raw_glyph_bytes,
     wrong would make every glyph on the baseline side unresolvable, which fail-strict
     would report as a difference rather than as a mistake.
 
+    /!\ THE COMMITTED R9/R15 BASELINE IS RETIRED (2026-08-17, ruling R20). The flag
+    still works, and is still the right thing for any port-against-port comparison --
+    which is exactly what the font-parity run is -- but `baseline/svg' and
+    `baseline-manifest.tsv' are gone. What replaced them: six of their eight rows are
+    now certified by the GATE, which checks them against the ORACLE rather than
+    against the port's own earlier answer, and the two the gate cannot certify carry
+    a content hash in font-delta-ledger.tsv -- along with ten more pages that never
+    had drift protection at all.
+
     Returns (reference_names, candidate_names, note).
     """
     if raw_glyph_bytes:

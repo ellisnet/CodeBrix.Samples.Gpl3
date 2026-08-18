@@ -42,6 +42,19 @@ public sealed class TextFace
 
         byte[] cff = reader.GetTable("CFF ");
         _cff = cff == null ? null : new CffFont(cff);
+
+        (int xHeight, int capHeight) = reader.ReadXAndCapHeight();
+
+        // PANGO'S SYNTHETIC SMALL CAPS ARE CAPITALS AT THE HEIGHT OF LOWERCASE, so the
+        // scale is the face's own x-height over its own cap height — read off the font
+        // (rule 35a), not chosen. C059-Roman answers 466/722 = 0.6454293628808865, which
+        // is what the pinned oracle's `\fontCaps' measurements come out at.
+        //
+        // A face too old to carry the two fields gets 1.0, which reproduces what the
+        // engine did before small caps were synthesised at all: nothing.
+        SmallCapsScale = xHeight > 0 && capHeight > 0
+            ? xHeight / (double)capHeight
+            : 1.0;
     }
 
     /// <summary>Loads a vendored text face by file name, or returns null when absent.</summary>
@@ -53,11 +66,61 @@ public sealed class TextFace
         return bytes == null ? null : new TextFace(fileName, new SfntReader(bytes));
     }
 
+    /// <summary>
+    /// Loads a face from a PATH ON DISK — a font the DOCUMENT supplied rather than one
+    /// the port ships.
+    /// <para>
+    /// Ruling R16: this is not the system-font fallback D23 forbids. Upstream implements
+    /// <c>ly:font-config-add-font</c> as an <em>application</em> font
+    /// (<c>all-font-metrics.cc</c> → <c>FcConfigAppFontAddFile</c>), the same set
+    /// LilyPond's own bundled faces go into, and a document that carries its font files
+    /// beside it renders the same on every machine — which is the whole point of the
+    /// documented feature and the opposite of depending on the host.
+    /// </para>
+    /// </summary>
+    /// <param name="path">The path to the font file.</param>
+    /// <returns>The face, or <see langword="null"/> when it cannot be read.</returns>
+    public static TextFace LoadFromPath(string path)
+    {
+        try
+        {
+            return new TextFace(System.IO.Path.GetFileName(path), SfntReader.FromFile(path))
+            {
+                SourcePath = System.IO.Path.GetFullPath(path),
+            };
+        }
+        catch (System.IO.IOException)
+        {
+            return null;
+        }
+        catch (System.UnauthorizedAccessException)
+        {
+            return null;
+        }
+    }
+
+    /// <summary>Gets the family name the face declares, or <see langword="null"/>.</summary>
+    public string FamilyName => _reader.ReadFamilyName();
+
     /// <summary>Gets the file the face was read from.</summary>
     public string FileName { get; }
 
+    /// <summary>
+    /// Gets the absolute path a DOCUMENT-supplied face was read from, or
+    /// <see langword="null"/> for one of the vendored faces, which has no path at all —
+    /// it is an embedded resource. <c>ly:font-config-get-font-file</c> (R18) answers
+    /// with this for a document font and with a resource path for a vendored one.
+    /// </summary>
+    public string SourcePath { get; private init; }
+
     /// <summary>Gets the design units per em.</summary>
     public int UnitsPerEm { get; }
+
+    /// <summary>
+    /// Gets the factor a synthesised small capital is set at — the face's x-height over
+    /// its cap height, or 1.0 when <c>OS/2</c> does not say.
+    /// </summary>
+    public double SmallCapsScale { get; }
 
     /// <summary>Gets the underlying container reader.</summary>
     public SfntReader Reader => _reader;
@@ -149,6 +212,12 @@ public static class TextFontChain
     private static readonly object Gate = new object();
     private static readonly Dictionary<string, TextFace> Loaded
         = new Dictionary<string, TextFace>(StringComparer.Ordinal);
+
+    // The DOCUMENT's own fonts, keyed by the family name each file declares. Ordinal-
+    // ignore-case because a document types the family by hand and fontconfig's family
+    // matching is case-insensitive.
+    private static readonly Dictionary<string, TextFace> DocumentFonts
+        = new Dictionary<string, TextFace>(StringComparer.OrdinalIgnoreCase);
 
     // Each family lists its fallback levels, and each level its four faces indexed by
     // (bold ? 1 : 0) + (italic ? 2 : 0). Spelled out rather than generated from a
@@ -265,6 +334,22 @@ public static class TextFontChain
     /// <returns>The loaded faces, in fallback order; empty when nothing resolved.</returns>
     public static IReadOnlyList<TextFace> For(string family, bool bold, bool italic)
     {
+        // A DOCUMENT-SUPPLIED FACE IS CONSULTED FIRST (R16), and it is an EXACT family
+        // match on one entry of the CSS list, which is what fontconfig's best-match comes
+        // to once the document's own files are in the application font set. It has to
+        // come before Normalize, because a document font's family is by definition not
+        // one of the three generic names and would otherwise fall into R14's
+        // unknown → TeX Gyre Schola arm.
+        //
+        // ONE LEVEL, not a chain: the document named this face, and putting a vendored
+        // fallback behind it would silently draw a different typeface for any code point
+        // the document's own font happens not to cover.
+        TextFace supplied = DocumentFont(family);
+        if (supplied != null)
+        {
+            return new[] { supplied };
+        }
+
         string key = Normalize(family);
         if (!Families.TryGetValue(key, out string[][] levels))
         {
@@ -286,6 +371,25 @@ public static class TextFontChain
         return chain;
     }
 
+    /// <summary>
+    /// Lists every vendored face file the family table names, family by family and
+    /// regular-first within each, with repeats left in for the caller to drop.
+    /// </summary>
+    /// <returns>The file names.</returns>
+    private static IEnumerable<string> VendoredFaceFileNames()
+    {
+        foreach (KeyValuePair<string, string[][]> family in Families)
+        {
+            foreach (string[] level in family.Value)
+            {
+                foreach (string fileName in level)
+                {
+                    yield return fileName;
+                }
+            }
+        }
+    }
+
     /// <summary>Loads a face by file name, caching it.</summary>
     /// <param name="fileName">The file name.</param>
     /// <returns>The face, or <see langword="null"/> when there is no such file.</returns>
@@ -304,13 +408,200 @@ public static class TextFontChain
         }
     }
 
+    /// <summary>
+    /// Lists the vendored text faces in the order the family table declares them, each
+    /// with the family name the FILE declares and the location its bytes come from.
+    /// </summary>
+    /// <remarks>
+    /// Ruling R18, and the ORDER is the family table's, not the manifest's: the table
+    /// lists each family's four faces regular-bold-italic-bolditalic, which is what lets
+    /// <see cref="VendoredFaceLocation"/> answer a bare family name with its REGULAR face,
+    /// as fontconfig's best match does. Every one of the 24 faces appears in that table;
+    /// TeX Gyre Schola appears twice, once as serif's second level and once as R14's
+    /// unknown-family answer, and is listed once.
+    /// </remarks>
+    /// <returns>The faces, regular first within each family.</returns>
+    public static IReadOnlyList<TextFace> VendoredFaces()
+    {
+        List<TextFace> faces = new List<TextFace>();
+        HashSet<string> seen = new HashSet<string>(StringComparer.Ordinal);
+        foreach (string fileName in VendoredFaceFileNames())
+        {
+            if (!seen.Add(fileName))
+            {
+                continue;
+            }
+
+            TextFace face = Face(fileName);
+            if (face != null)
+            {
+                faces.Add(face);
+            }
+        }
+
+        return faces;
+    }
+
+    /// <summary>
+    /// Answers where the vendored face for a family name lives, preferring the family's
+    /// REGULAR face, or <see langword="null"/> when no vendored face declares that family.
+    /// </summary>
+    /// <remarks>
+    /// The comparison is on the family name the FILE declares, not on the port's own
+    /// generic keys: "serif" is a request the chain answers, not a family any face calls
+    /// itself, and R18 is about naming a FACE. Case-insensitive, because fontconfig's
+    /// family matching is.
+    /// </remarks>
+    /// <param name="family">The family name asked for.</param>
+    /// <returns>The location, or <see langword="null"/>.</returns>
+    public static string VendoredFaceLocation(string family)
+    {
+        if (string.IsNullOrEmpty(family))
+        {
+            return null;
+        }
+
+        foreach (TextFace face in VendoredFaces())
+        {
+            if (string.Equals(face.FamilyName, family, StringComparison.OrdinalIgnoreCase))
+            {
+                return FontAssets.TextFontLocation(face.FileName);
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Lists the document-supplied registrations, family name and face, in the order the
+    /// families sort.
+    /// </summary>
+    /// <returns>The registrations, empty when this document supplied no fonts.</returns>
+    public static IReadOnlyList<KeyValuePair<string, TextFace>> DocumentFontRegistrations()
+    {
+        lock (Gate)
+        {
+            List<KeyValuePair<string, TextFace>> entries
+                = new List<KeyValuePair<string, TextFace>>(DocumentFonts);
+            entries.Sort((left, right)
+                => string.Compare(left.Key, right.Key, StringComparison.OrdinalIgnoreCase));
+            return entries;
+        }
+    }
+
     /// <summary>Discards every loaded face.</summary>
     public static void Reset()
     {
         lock (Gate)
         {
             Loaded.Clear();
+            DocumentFonts.Clear();
         }
+    }
+
+    /// <summary>
+    /// Registers one document-supplied font FILE, under the family name the file itself
+    /// declares — upstream's <c>ly:font-config-add-font</c> (R16).
+    /// </summary>
+    /// <param name="path">The path to the font file.</param>
+    /// <returns>Whether a face was registered.</returns>
+    public static bool AddDocumentFont(string path)
+    {
+        if (string.IsNullOrEmpty(path))
+        {
+            return false;
+        }
+
+        TextFace face = TextFace.LoadFromPath(path);
+        string family = face?.FamilyName;
+        if (face == null || string.IsNullOrEmpty(family))
+        {
+            return false;
+        }
+
+        lock (Gate)
+        {
+            DocumentFonts[family] = face;
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// Registers every font file in a DIRECTORY — upstream's
+    /// <c>ly:font-config-add-directory</c> (R16).
+    /// </summary>
+    /// <param name="directory">The directory to scan.</param>
+    /// <returns>How many faces were registered.</returns>
+    public static int AddDocumentFontDirectory(string directory)
+    {
+        if (string.IsNullOrEmpty(directory) || !System.IO.Directory.Exists(directory))
+        {
+            return 0;
+        }
+
+        int added = 0;
+        foreach (string path in System.IO.Directory.GetFiles(directory))
+        {
+            if (AddDocumentFont(path))
+            {
+                added++;
+            }
+        }
+
+        return added;
+    }
+
+    /// <summary>
+    /// Discards every document-supplied registration.
+    /// <para>
+    /// ⚠ THIS IS PER-FILE, and it is a leak of exactly the shape the other twelve had
+    /// (trap 16). Upstream makes one fontconfig configuration per process and engraves
+    /// one file per process; the port sweeps 2,146 files through one. A registration
+    /// that outlived its file would let file N+1 resolve a family it never asked for —
+    /// and <c>font-name-add-files.ly</c> DELETES its font files on the way out, so the
+    /// leaked registration would point at a path that no longer exists.
+    /// </para>
+    /// </summary>
+    public static void ResetDocumentFonts()
+    {
+        lock (Gate)
+        {
+            DocumentFonts.Clear();
+        }
+    }
+
+    /// <summary>
+    /// Returns the document-supplied face a family list names, or
+    /// <see langword="null"/>.
+    /// </summary>
+    /// <param name="family">The family or comma-separated family list requested.</param>
+    /// <returns>The face, or <see langword="null"/>.</returns>
+    public static TextFace DocumentFont(string family)
+    {
+        if (string.IsNullOrEmpty(family))
+        {
+            return null;
+        }
+
+        lock (Gate)
+        {
+            if (DocumentFonts.Count == 0)
+            {
+                return null;
+            }
+
+            foreach (string entry in family.Split(','))
+            {
+                string name = entry.Trim();
+                if (name.Length != 0 && DocumentFonts.TryGetValue(name, out TextFace face))
+                {
+                    return face;
+                }
+            }
+        }
+
+        return null;
     }
 
     /// <summary>

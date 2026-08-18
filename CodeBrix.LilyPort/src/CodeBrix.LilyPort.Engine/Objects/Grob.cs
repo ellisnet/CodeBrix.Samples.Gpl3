@@ -983,8 +983,17 @@ public abstract class Grob : IDiagnostics
     /// <returns>The pure extent.</returns>
     public Interval PureYExtent(Grob refp, int start, int end)
     {
-        object ivScm = CallPureFunction(
-            GetPropertyData(YExtentSymbol), new object[] { this }, start, end);
+        //was previously: `CallPureFunction (GetPropertyData (YExtentSymbol), …)', which
+        // skipped the one branch of the pure reader that CACHES. Upstream writes
+        // `get_pure_property (this, "Y-extent", start, end)' (grob.cc:548), and
+        // `internal_get_pure_property' sends an UNCHANGING container — one declared with
+        // no pure half, so its answer cannot depend on start/end — through
+        // `internal_get_property', which stores the result on the mutable alist. Reading
+        // it here instead re-ran that callback on every pure enquiry. The cache is part of
+        // the specification, not an optimisation (trap 1c): a POISONED property reports on
+        // every read, which is how `debug-property-callbacks' counted one cyclic-dependency
+        // report more than the oracle.
+        object ivScm = GetPureProperty(YExtentSymbol, start, end);
         Interval iv = TryNumberPair(ivScm, out Interval read) ? read : Interval.Empty;
         double offset = PureRelativeYCoordinate(refp, start, end);
 

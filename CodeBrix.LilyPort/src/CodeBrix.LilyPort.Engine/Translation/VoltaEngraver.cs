@@ -23,6 +23,7 @@ using CodeBrix.LilyPort.Engine.Music;
 using CodeBrix.LilyPort.Engine.Objects;
 using CodeBrix.LilyPort.Flower;
 using CodeBrix.LilyScheme;
+using CodeBrix.LilyScheme.Runtime;
 using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Translation; //was previously: lily/volta-engraver.cc;
@@ -515,11 +516,17 @@ public class VoltaEngraver : Engraver
                     // Include the volta numbers in the message because they might not be
                     // obvious if the source has the legacy \alternative syntax with
                     // implied \volta.
+                    //was previously: SchemeUtilities.RobustSymbolToString(..., "?").
+                    // `volta-numbers' is a LIST, and a symbol reader answers its fallback
+                    // for one — so the message read "...: ?" and `ly:expect-warning' could
+                    // not match it, which is both halves of
+                    // volta-bracket-warning-start-conflicting-numbers' diagnostics row.
+                    // Upstream writes ly_scm_write_string, which is scm_write to a string
+                    // port, which is Printer.Write.
                     TranslatorSchemeHelpers.EventWarning(
                         ev,
                         "discarding conflicting volta numbers: "
-                        + SchemeUtilities.RobustSymbolToString(
-                            ev.GetProperty(VoltaNumbersSymbol), "?"));
+                        + Printer.Write(ev.GetProperty(VoltaNumbersSymbol)));
                 }
             }
         }

@@ -55,9 +55,11 @@ public static class Clef
     {
         object glyph = grob.GetProperty(GlyphSymbol);
 
-        if (glyph is MutableString text)
+        //was previously: `glyph is MutableString' — trap 12a; upstream's guard is
+        // scm_is_string, which both of the port's string shapes have to satisfy.
+        string name = SchemeUtilities.StringText(glyph);
+        if (name != null)
         {
-            string name = text.ToString();
 
             if (SchemeUtilities.ToBool(grob.GetProperty(NonDefaultSymbol))
                 && (!(grob is Item item) || item.BreakStatusDirection() != Direction.Positive)
@@ -78,12 +80,13 @@ public static class Clef
     /// <returns>The stencil, or the empty list when there is no glyph name.</returns>
     public static object Print(Grob grob)
     {
-        if (!(grob.GetProperty(GlyphNameSymbol) is MutableString glyphName))
+        //was previously: `is MutableString' — trap 12a, the sibling of CalcGlyphName's.
+        string glyph = SchemeUtilities.StringText(grob.GetProperty(GlyphNameSymbol));
+        if (glyph == null)
         {
             return Nil.Instance;
         }
 
-        string glyph = glyphName.ToString();
         FontMetric font = FontInterface.GetDefaultFont(grob);
         if (font == null)
         {

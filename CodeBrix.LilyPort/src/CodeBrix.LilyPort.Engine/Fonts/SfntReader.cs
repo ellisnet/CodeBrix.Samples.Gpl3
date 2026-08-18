@@ -90,6 +90,114 @@ public sealed class SfntReader
     }
 
     /// <summary>
+    /// Returns the family name the font calls itself, from the <c>name</c> table, or
+    /// <see langword="null"/> when it does not say.
+    /// <para>
+    /// A DOCUMENT asks for a font by FAMILY (<c>\override #'(fonts . ((serif .
+    /// "DummyGPL")))</c>), and fontconfig indexes a file it is handed by the family the
+    /// file declares — so registering a document-supplied face means reading this. The
+    /// TYPOGRAPHIC family (name ID 16) wins where a face declares one, because that is
+    /// the name that groups a family of more than four styles; ID 1 is the fallback, and
+    /// is what both of the corpus's dummy faces carry.
+    /// </para>
+    /// <para>
+    /// Records are searched Windows-first (platform 3, English), then Macintosh
+    /// (platform 1, Roman, English), which is the order a face's own names are usually
+    /// ordered in and the order fontconfig's own reader prefers.
+    /// </para>
+    /// </summary>
+    /// <returns>The family name, or <see langword="null"/>.</returns>
+    public string ReadFamilyName()
+    {
+        if (!_tables.TryGetValue("name", out (uint Offset, uint Length) name))
+        {
+            return null;
+        }
+
+        int baseOffset = (int)name.Offset;
+        int count = ReadUInt16(baseOffset + 2);
+        int storage = baseOffset + ReadUInt16(baseOffset + 4);
+
+        // (nameId, platformId) pairs in order of preference. A typographic family beats
+        // the plain one, and within each, Windows beats Macintosh.
+        foreach ((int wantedId, int wantedPlatform) in new[]
+                 {
+                     (16, 3), (16, 1), (1, 3), (1, 1),
+                 })
+        {
+            for (int i = 0; i < count; i++)
+            {
+                int record = baseOffset + 6 + (12 * i);
+                if (record + 12 > baseOffset + name.Length)
+                {
+                    break;
+                }
+
+                if (ReadUInt16(record) != wantedPlatform || ReadUInt16(record + 6) != wantedId)
+                {
+                    continue;
+                }
+
+                int length = ReadUInt16(record + 8);
+                int offset = storage + ReadUInt16(record + 10);
+                if (length == 0 || offset + length > _data.Length)
+                {
+                    continue;
+                }
+
+                // Platform 3 stores UTF-16BE; platform 1 stores one byte per character.
+                // Neither is decoded through a general converter: the names that matter
+                // here are ASCII, and a face with a name in another script would answer
+                // a name no document could type anyway.
+                char[] text = wantedPlatform == 3
+                    ? new char[length / 2]
+                    : new char[length];
+                for (int c = 0; c < text.Length; c++)
+                {
+                    text[c] = wantedPlatform == 3
+                        ? (char)ReadUInt16(offset + (c * 2))
+                        : (char)_data[offset + c];
+                }
+
+                string result = new string(text).Trim();
+                if (result.Length > 0)
+                {
+                    return result;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Gets the font's x-height and cap height in DESIGN UNITS, from <c>OS/2</c>, or
+    /// <c>(0, 0)</c> when the table is absent or too old to carry them.
+    /// <para>
+    /// The two fields arrived in <c>OS/2</c> version 2, so a version-0 or version-1
+    /// table is not merely missing the values — reading at those offsets would read
+    /// whatever follows the table. That is why the version is checked rather than the
+    /// length.
+    /// </para>
+    /// </summary>
+    /// <returns>The x-height and cap height, in design units.</returns>
+    public (int XHeight, int CapHeight) ReadXAndCapHeight()
+    {
+        if (!_tables.TryGetValue("OS/2", out (uint Offset, uint Length) os2))
+        {
+            return (0, 0);
+        }
+
+        if (ReadUInt16((int)os2.Offset) < 2 || os2.Length < 90)
+        {
+            return (0, 0);
+        }
+
+        // OS/2 v2: sxHeight at byte 86, sCapHeight at 88, both signed.
+        return (ReadInt16((int)os2.Offset + 86), ReadInt16((int)os2.Offset + 88));
+    }
+
+    /// <summary>
     /// Returns the glyph names in glyph-index order, read from the CFF charset.
     /// <para>
     /// Index 0 is always <c>.notdef</c> and is not listed in the charset itself, so it
@@ -326,6 +434,8 @@ public sealed class SfntReader
     }
 
     private int ReadUInt16(int offset) => (_data[offset] << 8) | _data[offset + 1];
+
+    private int ReadInt16(int offset) => (short)ReadUInt16(offset);
 
     private uint ReadUInt32(int offset)
         => ((uint)_data[offset] << 24)

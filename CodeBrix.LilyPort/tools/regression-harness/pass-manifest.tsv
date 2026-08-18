@@ -14,7 +14,7 @@ accidental-broken-tie-spacing.svg	MATCH
 accidental-cautionary-horizontal-spacing.svg	MATCH
 accidental-cautionary-script-placement.svg	MATCH
 accidental-cautionary.svg	MATCH
-accidental-clef-change.svg	GLYPHS-DIFFER
+accidental-clef-change.svg	MATCH
 accidental-collision.svg	MATCH
 accidental-contemporary.svg	MATCH
 accidental-double.svg	MATCH
@@ -29,8 +29,8 @@ accidental-placement-samepitch.svg	MATCH
 accidental-placement.svg	MATCH
 accidental-quarter.svg	MATCH
 accidental-single-double.svg	MATCH
-accidental-styles-1.svg	GLYPHS-DIFFER
-accidental-styles-2.svg	GLYPHS-DIFFER
+accidental-styles-1.svg	MATCH
+accidental-styles-2.svg	MATCH
 accidental-styles-3.svg	MATCH
 accidental-suggestions.svg	MATCH
 accidental-tie.svg	MATCH
@@ -390,7 +390,7 @@ bend-spanner-staff-size.svg	MATCH
 bend-spanner-styles.svg	MATCH
 bend-spanner-tied-notes.svg	MATCH
 bom-mark.svg	MATCH
-book-change-global-staffsize-abs-fonts-standard-size.svg	GLYPHS-DIFFER
+book-change-global-staffsize-abs-fonts-standard-size.svg	MATCH
 book-change-global-staffsize-abs-fonts.svg	MATCH
 book-identifier-markup.svg	MATCH
 book-label-no-segfault.svg	MATCH
@@ -445,7 +445,7 @@ caesura-script-multiple.svg	MATCH
 caesura-style-comma-not-at-bar-line.svg	MATCH
 caesura-style-comma-or-fermata.svg	MATCH
 caesura-style-comma-over-bar-line.svg	PLACEMENT-DIFFERS
-caesura-style-comma.svg	PLACEMENT-DIFFERS
+caesura-style-comma.svg	MATCH
 caesura-style-default.svg	MATCH
 caesura-style-straight-or-fermata.svg	MATCH
 center-title.svg	MATCH
@@ -609,7 +609,7 @@ context-score-level.svg	MATCH
 context-string-tuning.svg	MATCH
 cropping-with-negative-vspace.svg	MATCH
 cross-staff-beams.svg	MATCH
-cross-staff-stems.svg	GLYPHS-DIFFER
+cross-staff-stems.svg	MATCH
 cue-clef-after-barline.svg	MATCH
 cue-clef-begin-of-score.svg	MATCH
 cue-clef-keysignature.svg	MATCH
@@ -690,11 +690,11 @@ embedded-strings-comments.svg	MATCH
 emmentaler-fractions-1.svg	MATCH
 emmentaler-fractions-2.svg	MATCH
 emmentaler-fractions-3.svg	MATCH
-emmentaler-fractions-4.svg	PLACEMENT-DIFFERS
+emmentaler-fractions-4.svg	MATCH
 emmentaler-number-kerning-1.svg	MATCH
 emmentaler-number-kerning-2.svg	MATCH
 emmentaler-number-kerning-3.svg	MATCH
-emmentaler-number-kerning-4.svg	PLACEMENT-DIFFERS
+emmentaler-number-kerning-4.svg	MATCH
 empty-chord.svg	MATCH
 engraver-make-item-spanner.svg	MATCH
 episema.svg	MATCH
@@ -759,9 +759,9 @@ follow-voice-break.svg	MATCH
 follow-voice-consecutive.svg	MATCH
 font-bogus-ligature.svg	MATCH
 font-family-override.svg	MATCH
-font-features.svg	PLACEMENT-DIFFERS
+font-features.svg	MATCH
 font-kern.svg	MATCH
-font-name-add-files.svg	PLACEMENT-DIFFERS
+font-name-add-files.svg	MATCH
 font-name-font-size.svg	MATCH
 font-name.svg	MATCH
 footnote-1.svg	MATCH
@@ -958,7 +958,7 @@ jump-break.svg	MATCH
 jump-unaligned.svg	MATCH
 justify-line-test.svg	MATCH
 keep-alive-interfaces-break-invisibility.svg	MATCH
-key-clefs.svg	PLACEMENT-DIFFERS
+key-clefs.svg	MATCH
 key-signature-cancellation.svg	MATCH
 key-signature-left-edge.svg	MATCH
 key-signature-padding.svg	MATCH
@@ -968,7 +968,7 @@ key-signature-space.svg	MATCH
 keys.svg	MATCH
 kievan-notation-dots.svg	MATCH
 kievan-notation-optional-material.svg	MATCH
-kievan-notation.svg	PLACEMENT-DIFFERS
+kievan-notation.svg	MATCH
 label-straddling-page-break-bookparts-1.svg	MATCH
 label-straddling-page-break-bookparts-2.svg	MATCH
 label-straddling-page-break-bookparts-3.svg	MATCH
@@ -1111,7 +1111,7 @@ markup-brace-warning.svg	MATCH
 markup-braces.svg	MATCH
 markup-center-align-nocollision.svg	MATCH
 markup-column-align.svg	MATCH
-markup-commands.svg	PLACEMENT-DIFFERS
+markup-commands.svg	MATCH
 markup-compound-meter-denominator-style.svg	PLACEMENT-DIFFERS
 markup-compound-meter-nested-fraction-mixed-default.svg	MATCH
 markup-compound-meter-nested-fraction-mixed-f.svg	MATCH
@@ -1129,7 +1129,7 @@ markup-depth-non-terminating.svg	MATCH
 markup-diacritic-marks.svg	GLYPHS-DIFFER
 markup-eps.svg	MATCH
 markup-eyeglasses.svg	MATCH
-markup-finger-figuredbass-fontsize.svg	PLACEMENT-DIFFERS
+markup-finger-figuredbass-fontsize.svg	MATCH
 markup-first-visible.svg	MATCH
 markup-font-select.svg	MATCH
 markup-frame-text.svg	MATCH
@@ -1167,7 +1167,7 @@ markup-rhythm-tweaking.svg	MATCH
 markup-rhythm.svg	MATCH
 markup-scheme.svg	MATCH
 markup-score-multi-system.svg	MATCH
-markup-score.svg	GLYPHS-DIFFER
+markup-score.svg	MATCH
 markup-special-characters.svg	MATCH
 markup-splice-empty-list.svg	MATCH
 markup-stack.svg	MATCH
@@ -1177,9 +1177,9 @@ markup-tag-functions-applied-to-markup-score.svg	MATCH
 markup-tag-list-keep-and-remove-with-tag.svg	MATCH
 markup-tag-list-push-and-append-to-tag.svg	MATCH
 markup-tag-list-replace-with-tag.svg	MATCH
-markup-tag-multi-replace-with-tag.svg	GLYPHS-DIFFER
+markup-tag-multi-replace-with-tag.svg	MATCH
 markup-tag-nested-tags.svg	MATCH
-markup-tag-recognized-in-lyrics.svg	PLACEMENT-DIFFERS
+markup-tag-recognized-in-lyrics.svg	MATCH
 markup-tag-recognized-in-music.svg	MATCH
 markup-tag-recognized-in-stanzas.svg	MATCH
 markup-tag-simple-keep-and-remove-with-tag.svg	MATCH
@@ -1207,10 +1207,10 @@ measure-remainder-warning-duration.svg	MATCH
 measure-remainder.svg	MATCH
 measure-spanner-spacing-pair.svg	MATCH
 measure-spanner.svg	MATCH
-mensural-ligature-citations-1.svg	PLACEMENT-DIFFERS
-mensural-ligature-citations-2.svg	PLACEMENT-DIFFERS
+mensural-ligature-citations-1.svg	MATCH
+mensural-ligature-citations-2.svg	MATCH
 mensural-ligature-citations-3.svg	MATCH
-mensural-ligatures-invalid.svg	PLACEMENT-DIFFERS
+mensural-ligatures-invalid.svg	MATCH
 mensural-ligatures.svg	MATCH
 mensural.svg	MATCH
 merge-mmrest-numbers-engraver.svg	MATCH
@@ -1221,7 +1221,7 @@ metronome-mark-formatter.svg	MATCH
 metronome-mark-loose-column.svg	MATCH
 metronome-marking-align-order.svg	MATCH
 metronome-marking-break-align.svg	MATCH
-metronome-marking-fractional.svg	PLACEMENT-DIFFERS
+metronome-marking-fractional.svg	MATCH
 metronome-marking-staff-group-context.svg	MATCH
 metronome-marking.svg	MATCH
 metronome-multimeasure-rest-no-segfault.svg	MATCH
@@ -1235,7 +1235,7 @@ midi-dynamics.svg	MATCH
 midi-key-signature.svg	MATCH
 midi-lyric-barcheck.svg	MATCH
 midi-notes.svg	MATCH
-midi-pedal.svg	PLACEMENT-DIFFERS
+midi-pedal.svg	MATCH
 midi-scales.svg	MATCH
 midi-transposition.svg	MATCH
 midi-tuplets.svg	MATCH
@@ -1317,7 +1317,7 @@ notehead-height.svg	MATCH
 nullvoice-change.svg	MATCH
 nullvoice-slur.svg	MATCH
 number-staff-lines.svg	MATCH
-offsets.svg	PLACEMENT-DIFFERS
+offsets.svg	MATCH
 one-line-auto-height-breaking.svg	GLYPHS-DIFFER
 one-line-breaking.svg	GLYPHS-DIFFER
 one-page-breaking.svg	GLYPHS-DIFFER
@@ -1579,7 +1579,7 @@ pdf-copy-paste.svg	GLYPHS-DIFFER
 pdf-metadata-fromproperty.svg	MATCH
 pdfmark-metadata-unicode.svg	MATCH
 pdfmark-metadata.svg	MATCH
-pedal-bracket.svg	PLACEMENT-DIFFERS
+pedal-bracket.svg	MATCH
 pedal-end.svg	MATCH
 pedal-ped.svg	MATCH
 persian-accidental-glyphs.svg	MATCH
@@ -1677,7 +1677,7 @@ remove-empty-staves-dynamics.svg	MATCH
 remove-empty-staves-with-rests.svg	MATCH
 remove-layer-symbol.svg	MATCH
 repeat-bar-number-engraver-order.svg	MATCH
-repeat-dc-al-coda.svg	PLACEMENT-DIFFERS
+repeat-dc-al-coda.svg	MATCH
 repeat-dc-al-fine.svg	MATCH
 repeat-dc-al-segno.svg	MATCH
 repeat-dc-one-alternative.svg	MATCH
@@ -1689,14 +1689,14 @@ repeat-dc-v-ds.svg	MATCH
 repeat-dc-v-fine-end-visible.svg	MATCH
 repeat-dc-v-fine-end.svg	MATCH
 repeat-dc-v-fine.svg	MATCH
-repeat-ds-al-coda.svg	PLACEMENT-DIFFERS
+repeat-ds-al-coda.svg	MATCH
 repeat-ds-al-fine.svg	MATCH
 repeat-ds-bar-line.svg	MATCH
 repeat-ds-body-empty.svg	MATCH
 repeat-ds-formatter.svg	MATCH
-repeat-ds-mark-override.svg	PLACEMENT-DIFFERS
-repeat-ds-return-count.svg	PLACEMENT-DIFFERS
-repeat-ds-torture.svg	PLACEMENT-DIFFERS
+repeat-ds-mark-override.svg	MATCH
+repeat-ds-return-count.svg	MATCH
+repeat-ds-torture.svg	MATCH
 repeat-etc.svg	MATCH
 repeat-line-break.svg	MATCH
 repeat-percent-count-visibility.svg	MATCH
@@ -1715,7 +1715,7 @@ repeat-segno-in-volta-end.svg	MATCH
 repeat-segno-in-volta-middle.svg	MATCH
 repeat-segno-in-volta-start.svg	MATCH
 repeat-short-function-names.svg	MATCH
-repeat-sign-1.svg	PLACEMENT-DIFFERS
+repeat-sign-1.svg	MATCH
 repeat-sign-2.svg	MATCH
 repeat-sign-global-size10.svg	PLACEMENT-DIFFERS
 repeat-sign-global-size30.svg	MATCH
@@ -1846,7 +1846,7 @@ size26.svg	MATCH
 skip-music.svg	MATCH
 skip-of-length.svg	MATCH
 skiptypesetting-bar-check.svg	MATCH
-skiptypesetting-break.svg	GLYPHS-DIFFER
+skiptypesetting-break.svg	MATCH
 skiptypesetting-clef.svg	MATCH
 skiptypesetting-multimeasurerest.svg	MATCH
 skiptypesetting-show-first-and-last.svg	MATCH
@@ -1861,7 +1861,7 @@ skyline-grob-rotation.svg	GLYPHS-DIFFER
 skyline-horizontal-padding.svg	MATCH
 skyline-merging.svg	MATCH
 skyline-point-extent.svg	MATCH
-skyline-removed.svg	PLACEMENT-DIFFERS
+skyline-removed.svg	MATCH
 skyline-slur-segments.svg	GLYPHS-DIFFER
 skyline-vertical-placement.svg	MATCH
 skyline-vertical-spacing.svg	MATCH
@@ -2027,7 +2027,7 @@ stem-tremolo.svg	MATCH
 stems-clash-between-staves.svg	MATCH
 stencil-bracketify.svg	MATCH
 stencil-color-rotation.svg	MATCH
-stencil-expressions-1.svg	PLACEMENT-DIFFERS
+stencil-expressions-1.svg	MATCH
 stencil-expressions-2.svg	MATCH
 stencil-expressions-3.svg	MATCH
 stencil-hacking.svg	MATCH
@@ -2086,7 +2086,7 @@ tablature-zero-finger.svg	MATCH
 tablature.svg	MATCH
 tabstaff-choirstaff-brace.svg	MATCH
 tag-filter.svg	MATCH
-tag-group.svg	PLACEMENT-DIFFERS
+tag-group.svg	MATCH
 tag-multiple.svg	MATCH
 tenuto-priority.svg	MATCH
 text-end-mark-break-visibility.svg	MATCH

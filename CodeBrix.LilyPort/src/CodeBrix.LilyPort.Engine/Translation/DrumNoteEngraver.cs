@@ -24,6 +24,7 @@ using CodeBrix.LilyPort.Engine.Objects;
 using CodeBrix.LilyPort.Flower;
 using CodeBrix.LilyPort.Engine.Origins;
 using CodeBrix.LilyScheme.Primitives;
+using CodeBrix.LilyScheme.Runtime;
 using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Translation; //was previously: lily/drum-note-engraver.cc;
@@ -127,8 +128,14 @@ public sealed class DrumNotesEngraver : Engraver
                             script, Context?.GetProperty(ScriptDefinitionsSymbol)) == null)
                     {
                         Input origin = ev.Origin as Input;
+                        //was previously: SchemeUtilities.RobustSymbolToString(script, "?").
+                        // Upstream writes ly_scm_write_string here, not
+                        // robust_symbol2string: the two agree on a symbol and diverge on
+                        // everything else, and this message exists precisely for the case
+                        // where the value is NOT what was expected. Swept in with the
+                        // VoltaEngraver site that the diagnostics gate graded.
                         string message = "unrecognised percussion sign: \""
-                                         + SchemeUtilities.RobustSymbolToString(script, "?")
+                                         + Printer.Write(script)
                                          + "\"";
                         if (origin != null)
                         {

@@ -160,16 +160,7 @@ public static class TranslationPrimitives
                 return false;
             }
 
-            GlobalContext global = new GlobalContext(odef, definition);
-            global.MakeGlobalTranslator();
-            Warn.Message("Interpreting music...");
-            if (!global.Iterate(music))
-            {
-                Warn.Warning("skipping zero-duration score");
-                Warn.Warning("to suppress this, consider adding a spacer rest");
-            }
-
-            return global;
+            return GlobalContext.Run(odef, definition, music);
         });
     }
 

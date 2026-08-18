@@ -72,6 +72,14 @@ public static class TextInterface
     // lily/include/pango-font.hh:75 — const int PANGO_RESOLUTION = 1200.
     private const double PangoResolution = 1200.0;
 
+    // PANGO_SCALE — the Pango units a device dot is divided into.
+    private const int PangoScale = 1024;
+
+    // The em FontMetric.IndexedAdvance already hard-codes for a music font, carried over
+    // from output-svg.scm's extract-glyph. Every shipped music font is drawn on it, so
+    // the two agree; the constant is named here rather than repeated as a literal.
+    private const int MusicEm = 1000;
+
     [ThreadStatic]
     private static int _depth;
 
@@ -376,6 +384,25 @@ public static class TextInterface
         // which is what left a music-font run's width out by up to a third of a dot.
         double pixel = DeviceDot(layout);
 
+        // D44 — THE SAME INTEGER PIPELINE THE TEXT PATH RUNS, because upstream reaches
+        // this font through Pango too (font-select.cc's fetaText branch sets a
+        // PangoFontDescription size and calls find_pango_font, exactly as latin1 does).
+        // The scale HarfBuzz shapes at is recovered from the scale the port already
+        // measures with: the port's advance is raw * FontScaling / MusicEm and the
+        // shaped one is raw * x_scale / (MusicEm * PANGO_SCALE) * dot, so
+        // x_scale = FontScaling * PANGO_SCALE / dot, rounded the way
+        // pango_units_from_double rounds. Reconstructing it keeps this path's effective
+        // scale exactly what it already was and changes ONLY the arithmetic that lands
+        // an advance on the dot grid.
+        int xScale = pixel > 0.0
+            ? (int)Math.Floor((font.FontScaling * PangoScale / pixel) + 0.5)
+            : 0;
+        long multiplier = TextFontMetric.Multiplier(xScale, MusicEm);
+
+        // font-features reaches GPOS too, not only GSUB: a run asking for -kern is asking
+        // this table to stand down.
+        bool kerned = KerningTable.Enabled(features);
+
         for (int i = 0; i < glyphs.Count; i++)
         {
             int index = glyphs[i];
@@ -386,7 +413,7 @@ public static class TextInterface
             // This sum is upstream's per-glyph WIDTH, which is Pango's own kern-adjusted
             // advance and is what the cumulative placement accumulates.
             double advance = font.IndexedAdvance(index);
-            if (i + 1 < glyphs.Count)
+            if (kerned && i + 1 < glyphs.Count)
             {
                 advance += font.IndexedKerning(index, glyphs[i + 1]);
             }
@@ -414,10 +441,26 @@ public static class TextInterface
             // The kern is INSIDE the rounding, not outside it — settled by measurement
             // for the text faces at PARITY 5 and reproduced here for the same reason:
             // Pango rounds what the shaper produced, and the shaper had already applied
-            // the kern to the pair's first advance.
-            double stepped = pixel > 0.0
-                ? Math.Floor((advance / pixel) + 0.5) * pixel
-                : advance;
+            // the kern to the pair's first advance. ⚠ The kern is scaled SEPARATELY
+            // (GPOS's apply_value calls em_scale_x on the pair value and adds it to an
+            // already-scaled advance), so the two em_mults are not one em_mult of a sum.
+            double stepped;
+            if (pixel > 0.0)
+            {
+                long steppedUnits = TextFontMetric.EmMult(
+                    DesignUnits(font, font.IndexedAdvance(index)), multiplier);
+                if (kerned && i + 1 < glyphs.Count)
+                {
+                    steppedUnits += TextFontMetric.EmMult(
+                        DesignUnits(font, font.IndexedKerning(index, glyphs[i + 1])), multiplier);
+                }
+
+                stepped = TextFontMetric.PangoUnitsRound(steppedUnits) * pixel / PangoScale;
+            }
+            else
+            {
+                stepped = advance;
+            }
 
             descriptions.Add(Pair.List(
                 stepped,
@@ -462,6 +505,24 @@ public static class TextInterface
                 new MutableString(text),
                 false));
     }
+
+    /// <summary>
+    /// Recovers a music font's own DESIGN units from a metric it has already scaled.
+    /// </summary>
+    /// <remarks>
+    /// <see cref="FontMetric.IndexedAdvance"/> and <see cref="FontMetric.IndexedKerning"/>
+    /// both answer <c>raw * FontScaling / MusicEm</c>, so dividing back recovers the whole
+    /// <c>hmtx</c> / GPOS number HarfBuzz reads — which is what the integer pipeline needs
+    /// and what neither accessor exposes. The round-trip is exact for the values that
+    /// exist: both are whole design units to begin with.
+    /// </remarks>
+    /// <param name="font">The scaled music font.</param>
+    /// <param name="scaled">The metric, in stencil units.</param>
+    /// <returns>The metric in design units.</returns>
+    private static long DesignUnits(FontMetric font, double scaled)
+        => font.FontScaling == 0.0
+            ? 0L
+            : TextFontMetric.DesignUnits(scaled * MusicEm / font.FontScaling);
 
     /// <summary>
     /// One Pango device dot in output units — the grid a shaped advance lands on.

@@ -68,8 +68,21 @@ public static class LilyModules
             return module;
         }
 
+        // THE PUBLIC INTERFACE, NOT THE MODULE. ly_make_module reaches both imports
+        // through ly_use_module, and that is
+        //     module-use! (mod, module-public-interface (used))
+        // — lily/ly-module.cc:37. Importing the module ITSELF makes every PRIVATE
+        // binding of the Scheme layer visible to the parser's identifier lookup, and
+        // then a name the layer happens to use internally SHADOWS the user's own
+        // assignment from an enclosing scope: `part-combiner.scm' declares a GOOPS
+        // accessor called `tuning', so `tuning = \markup { \score { ... } }' followed by
+        // `\tuning' inside a \header markup found the accessor, answered "not a markup",
+        // and dropped the embedded score off the page (markup-score). The interface is
+        // LIVE rather than a snapshot — (lily) is a define-module, so boot-9's
+        // beautify-user-module! installed a real interface module that every later
+        // define-public adds to.
         module.AddUse(interpreter.Modules.RootModule);
-        module.AddUse(interpreter.Modules.Resolve(Pair.List(Symbol.Intern("lily"))));
+        module.AddUse(interpreter.Modules.Resolve(Pair.List(Symbol.Intern("lily"))).Interface());
         return module;
     }
 

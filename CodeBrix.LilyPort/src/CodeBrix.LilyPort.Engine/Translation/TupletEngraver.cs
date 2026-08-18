@@ -289,7 +289,13 @@ public class TupletEngraver : Engraver
             }
             else if (!(GetProperty(SkipTypesettingSymbol) is bool skip && skip))
             {
-                TranslatorSchemeHelpers.EventWarning(ev, "No tuplet to end");
+                //was previously: EventWarning. Upstream writes ev->debug_output here, not
+                // ev->warning — a line that only appears under -ddebug-… . The port
+                // printed it as a warning on every run, which is the whole of
+                // part-combine-tuplet-single's diagnostics row: \partCombine ends the
+                // same tuplet twice and upstream says so only to a debugging reader.
+                // Rule 15: severity is part of the translation.
+                TranslatorSchemeHelpers.EventDebugOutput(ev, "No tuplet to end");
             }
         }
         else

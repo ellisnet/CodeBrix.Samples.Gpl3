@@ -382,46 +382,50 @@ public static class AlignInterface
     /// <summary>
     /// Stacks the elements at their IDEAL distances.
     /// <para>
-    /// Upstream builds a <c>Page_layout_problem</c> over the system and takes its
-    /// solution, which stretches every staff-to-staff spring toward its
-    /// <c>basic-distance</c>. Here the port takes
-    /// the MINIMUM distances instead — the same staves in the same order, packed
-    /// rather than stretched. DELIBERATE STAND-IN, recorded in PORT-COVERAGE.
+    /// With a system, this is upstream's own body: a <c>Page_layout_problem</c> over
+    /// that one system, solved RAGGED, which is what stretches every spring out to its
+    /// <c>basic-distance</c> instead of packing the staves against their skylines.
     /// </para>
     /// <para>
-    /// Upstream also refuses outright when the alignment has no system yet, and can
-    /// afford to: nothing upstream reads a staff's unpure Y position before line
-    /// breaking — the early readers all go through the pure machinery. This
-    /// port's horizontal spacing DOES read early (the recorded divergence in
-    /// <c>Spacing_interface::skylines</c>), a grob's offset is computed exactly
-    /// once, and a refusal would burn every staff's one-shot offset at zero. So the
-    /// early call takes upstream's own currency for before-line-breaking questions:
-    /// the PURE stacking, whose skylines are flat boxes over the groups' Y extents
-    /// and which therefore computes no stencil whose shape depends on the
-    /// not-yet-solved horizontal spacing. The full-score pure range also brings
-    /// <c>basic-distance</c> in, exactly as upstream's pure estimate does. Recorded
-    /// in PORT-COVERAGE.
+    /// Without one it refuses, which is upstream's whole else-branch and moves nothing.
+    /// The port stacked the elements at their PURE minimum translations here instead, on
+    /// the reasoning that its own horizontal spacing reads early and a refusal would burn
+    /// every staff's one-shot offset at zero. Measured at PARITY 24, that reasoning cost
+    /// more than it bought: the stand-in suppressed upstream's own report and raised two
+    /// cyclic-dependency reports of its own, which is the whole of
+    /// <c>arpeggio-no-staff-symbol</c>'s graded diagnostics row, and refusing regresses no
+    /// corpus row.
     /// </para>
     /// </summary>
     /// <param name="me">The alignment grob.</param>
     public static void AlignElementsToIdealDistances(Grob me)
     {
-        if (me.GetSystem() != null)
+        SystemGrob system = me.GetSystem();
+        if (system != null)
         {
-            AlignElementsToMinimumDistances(me, Axis.Y);
+            //was previously: `AlignElementsToMinimumDistances(me, Axis.Y)' here — a
+            // stand-in that packed the staves at their minimum distances. A PAGED score
+            // cannot see the difference, because page layout builds the real
+            // Page_layout_problem afterwards and re-solves; an EMBEDDED `\score' markup
+            // gets no page layout at all, so the stand-in's packed staves were its final
+            // answer. That is the whole of `markup-tag-recognized-in-lyrics', whose lyric
+            // line sat 0.5873 staff-spaces too close to its staff: the oracle's 5.5 is
+            // the `nonstaff-relatedstaff-spacing' basic-distance exactly, and a spring at
+            // zero force IS its ideal length.
+            PageLayoutProblem layout = new PageLayoutProblem(
+                null, Nil.Instance, Pair.ListFrom(new object[] { system }));
+            layout.Solution(true);
             return;
         }
 
-        IReadOnlyList<Grob> allGrobs = AxisGroupInterface.Elements(me);
-        List<double> translates = GetPureMinimumTranslations(
-            me, allGrobs, Axis.Y, 0, int.MaxValue);
-        if (translates.Count > 0)
-        {
-            for (int j = 0; j < allGrobs.Count; j++)
-            {
-                allGrobs[j].TranslateAxis(translates[j], Axis.Y);
-            }
-        }
+        //was previously: the PURE stacking, a recorded stand-in for the case upstream
+        // refuses outright. Upstream's whole else-branch is one line —
+        // `programming_error ("vertical alignment called before line breaking")'
+        // (align-interface.cc:308) — and it moves nothing. The stand-in was reasoned from
+        // the port's horizontal spacing reading early, but it cost a graded diagnostics
+        // row twice over: it suppressed upstream's report and produced two
+        // cyclic-dependency reports of its own, which is `arpeggio-no-staff-symbol'.
+        Warn.ProgrammingError("vertical alignment called before line breaking");
     }
 
     /// <summary>Stacks the elements at their minimum distances and moves each one there.</summary>

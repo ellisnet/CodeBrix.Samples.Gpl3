@@ -212,6 +212,8 @@ public class ClefEngraver : Engraver
     private static readonly Symbol NonDefaultSymbol = Symbol.Intern("non-default");
     private static readonly Symbol FirstClefSymbol = Symbol.Intern("firstClef");
     private static readonly Symbol ForceClefSymbol = Symbol.Intern("forceClef");
+    private static readonly Symbol InvalidateAlterationsSymbol
+        = Symbol.Intern("invalidate-alterations");
     private static readonly Symbol ExplicitClefVisibilitySymbol = Symbol.Intern("explicitClefVisibility");
     private static readonly Symbol ClefTranspositionStyleSymbol
         = Symbol.Intern("clefTranspositionStyle");
@@ -351,6 +353,31 @@ public class ClefEngraver : Engraver
         _modifier = g;
     }
 
+    /// <summary>
+    /// Applies a procedure to a context and to every context beneath it, parent first.
+    /// </summary>
+    /// <remarks>
+    /// <c>lily/clef-engraver.cc:131</c>, a free function in that file rather than a
+    /// Context method — it calls the procedure on the context and then recurses over
+    /// <c>children_contexts</c>. The walk is what reaches the Voice contexts that hold
+    /// the <c>localAlterations</c> a Staff-level clef change has to invalidate.
+    /// </remarks>
+    /// <param name="context">The context to start from.</param>
+    /// <param name="procedure">The procedure, applied to each context in turn.</param>
+    private static void ApplyOnChildren(Context context, object procedure)
+    {
+        if (context == null || procedure == null)
+        {
+            return;
+        }
+
+        SchemeUtilities.CallCallback(procedure, context);
+        foreach (Context child in context.Children)
+        {
+            ApplyOnChildren(child, procedure);
+        }
+    }
+
     private void InspectClefProperties()
     {
         object glyph = GetProperty(ClefGlyphSymbol);
@@ -367,6 +394,18 @@ public class ClefEngraver : Engraver
             || transposition != _previousTransposition
             || SchemeUtilities.ToBool(forceClef))
         {
+            // A CLEF CHANGE INVALIDATES THE MEASURE'S ACCIDENTALS, and this is the call
+            // that says so: `invalidate-alterations' rewrites every localAlterations
+            // entry that does NOT agree with the key signature to the alteration 'clef,
+            // which forces the accidental to be printed again. Without it a pitch already
+            // sounded in the measure kept its alteration across the change and its
+            // accidental was silently dropped.
+            //
+            // The port DEFINED the procedure in the vendored layer and never called it —
+            // trap 17a's own signature, a faithful helper with zero callers. Nothing
+            // throws for a missing call and no ledger row records one.
+            ApplyOnChildren(Context, LilyPondScheme.LookupProcedure(InvalidateAlterationsSymbol));
+
             SetGlyph();
 
             // Not on the very first inspection unless firstClef says so: the previous

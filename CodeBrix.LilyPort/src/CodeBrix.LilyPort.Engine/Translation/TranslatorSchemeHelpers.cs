@@ -87,6 +87,29 @@ internal static class TranslatorSchemeHelpers
         }
     }
 
+    /// <summary>
+    /// Reports DEBUG output at an event's origin — upstream's
+    /// <c>Input::debug_output</c>, reached as <c>ev-&gt;debug_output (…)</c>.
+    /// <para>
+    /// It is a separate helper from <see cref="EventWarning"/> because the two carry
+    /// different SEVERITIES and rule 15 makes severity part of the translation: a line
+    /// upstream only prints under <c>-ddebug-…</c> must not arrive as a warning.
+    /// </para>
+    /// </summary>
+    /// <param name="streamEvent">The event carrying the origin.</param>
+    /// <param name="message">The message text.</param>
+    internal static void EventDebugOutput(StreamEvent streamEvent, string message)
+    {
+        if (streamEvent?.Origin is Input origin)
+        {
+            origin.DebugOutput(message);
+        }
+        else
+        {
+            Warn.Debug(message);
+        }
+    }
+
     /// <summary>Reports an internal error at an event's origin.</summary>
     /// <param name="streamEvent">The event carrying the origin.</param>
     /// <param name="message">The error text.</param>

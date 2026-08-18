@@ -1228,6 +1228,17 @@ Copyright: Copyright (C) 1996--2026 Han-Wen Nienhuys <hanwen@xs4all.nl>
            pango_attr_font_features_new and letting HarfBuzz shape -- and is
            written from the OpenType specification, not derived from HarfBuzz
            source.
+           THE SHAPED-ADVANCE PIPELINE reproduces the ARITHMETIC Pango and
+           HarfBuzz perform on upstream's behalf: pango_units_from_double for
+           the hb scale, HarfBuzz's 16.16 multiplier and its em_mult, and
+           PANGO_UNITS_ROUND per glyph.  NO Pango OR HarfBuzz CODE IS COPIED --
+           the multiplier's float32 quotient was ESTABLISHED BY MEASUREMENT
+           against the system libharfbuzz through
+           ~/ClaudeHome/lilyport-probe-parity21/hb_pipeline.py (0 misses in
+           1,738,110 samples across the oracle's 33 faces), in the same way the
+           Unicode space-fallback table above was measured rather than
+           transcribed.  PANGO_UNITS_ROUND is a two-line macro read out of
+           pango/pango-types.h and reproduced as arithmetic.
 
     src/CodeBrix.LilyPort.Engine/Fonts/OpenTypeFont.cs
         <- lily/open-type-font.cc, lily/include/open-type-font.hh
@@ -1275,6 +1286,13 @@ Copyright: Copyright (C) 1996--2026 Han-Wen Nienhuys <hanwen@xs4all.nl>
         so that the session lifecycle around each batch file is upstream's own
         code run through the real parser. Recorded here because the derivation
         is inside string literals where a header would not travel.
+        Its DRIVER DIAGNOSTICS are ported text as well (rule 15), because this
+        runner stands in for upstream's own driver: "Processing `%s'" and
+        "Parsing..." are lily/lily-parser-scheme.cc:112,116 (GPL-3.0-or-later,
+        Copyright (C) 1997--2026 Han-Wen Nienhuys) at that file's own severities,
+        and "Changing working directory to: `%s'" together with the output-path
+        split it reports is lily/main.cc:729-761 (GPL-3.0-or-later, Copyright
+        (C) 1997--2026 Han-Wen Nienhuys).
 
     src/CodeBrix.LilyPort/LilyPondInit.cs
         New-in-family C# (no upstream header), Copyright (c) 2026 Jeremy Ellis
@@ -1980,8 +1998,21 @@ Copyright: Copyright (C) 1996--2026 Han-Wen Nienhuys <hanwen@xs4all.nl>
     src/CodeBrix.LilyPort.Engine/Bootstrap/FontPrimitives.cs
         <- lily/open-type-font-scheme.cc, lily/otf-scheme.cc,
            lily/all-font-metrics-scheme.cc,
-           lily/font-metric-scheme.cc
+           lily/font-metric-scheme.cc,
+           lily/font-config-scheme.cc
            Copyright (C) 2004--2026 Han-Wen Nienhuys
+           ly:font-config-add-font and ly:font-config-add-directory are ported
+           from font-config-scheme.cc:55-76; their behaviour, including the
+           wording and severity of both diagnostics, is
+           All_font_metrics::add_font_file / add_font_directory
+           (all-font-metrics.cc:306-329).
+           ly:font-config-get-font-file and ly:font-config-display-fonts take
+           only their NAMES, ARITIES and the optional-port default from
+           font-config-scheme.cc:24-52. Their answers are the port's own and
+           deliberately differ from upstream's, which reports a host fontconfig
+           view the port neither has nor may acquire (ruling R18, 2026-08-17 --
+           the project's only sanctioned exception to translating faithfully).
+           No upstream logic is carried; see PORT-COVERAGE, "PARITY 24".
     src/CodeBrix.LilyPort.Engine/Bootstrap/TransformPrimitives.cs
         <- lily/transform-scheme.cc
            Copyright (C) 2016--2026 David Kastrup
@@ -2353,11 +2384,32 @@ WHY THE FONT IS A SEPARATE ENGINEERING PROBLEM, NOT JUST A SEPARATE LICENSE
   stem attachment points, and ledger shortening ranges, keyed by LilyPond
   glyph name as a Scheme symbol.
 
-DECIDED (Jeremy, 2026): BUILD OUR OWN FONTS FROM THE METAFONT SOURCES
+DECIDED (Jeremy, 2026), AND RE-AFFIRMED AS RULING R19 (2026-08-17):
+BUILD OUR OWN FONTS FROM THE METAFONT SOURCES
 
-  CodeBrix.LilyPort does NOT redistribute LilyPond's prebuilt MUSIC font
-  binaries. (The prebuilt TEXT fonts ARE redistributed, by the separate
-  decision D13 -- see section 10.)
+  CodeBrix.LilyPort does NOT SHIP LilyPond's prebuilt MUSIC font binaries.
+  (The prebuilt TEXT fonts ARE shipped, by the separate decision D13 -- see
+  section 10.)
+
+  /!\ SINCE 2026-08-17 THE REPOSITORY DOES CARRY THEM, AS TEST FIXTURES ONLY,
+  and this notice covers that redistribution. tests/fixtures/lilypond-fonts/
+  holds the nine emmentaler-*.otf files from the official GNU LilyPond 2.27.2
+  binary distribution, byte-for-byte, with a SHA256SUMS.txt manifest and a
+  README recording what they are. They are NOT in the NuGet package and must
+  never be: PackagedFontTests opens the built .nupkg and asserts they are
+  absent, and they live under tests/ rather than assets/ so that no asset glob
+  can reach them.
+
+  WHY THEY ARE CARRIED: two FontForge runs over the same Metafont sources do
+  not produce identical outlines, and a skyline reads outlines. Running the
+  regression corpus against BOTH font builds is what separates an ENGINE
+  divergence from upstream (a defect) from a FONT BUILD divergence (measured,
+  recorded in tools/regression-harness/font-delta-ledger.tsv, and held to a
+  ceiling). Their licence terms are the ones already stated in this section --
+  GPL-3.0-or-later with the LilyPond Font Exception, or SIL OFL 1.1, at the
+  recipient's option -- and they are unmodified, so the OFL's Reserved Font
+  Name condition, which binds only MODIFIED fonts, leaves the Emmentaler name
+  intact.
   It vendors the Metafont sources and builds the fonts itself, so that
   provenance is verifiable end to end from Metafont source to shipped
   binary. The build is a one-time operation whose OUTPUTS are committed; the

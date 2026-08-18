@@ -1008,6 +1008,29 @@ public static class StencilIntegral
         int index = (int)Bootstrap.SchemeConvert.ToLong(Nth(arguments, 1), "glyph-outline");
         double scale = Real(Nth(arguments, 2));
 
+        //was previously: the outline was traced unconditionally and a glyph with no ink
+        // contributed NOTHING, which left a HOLE in the run's skyline wherever the text
+        // had a space — and a run ending in one came up short by the whole space.
+        //
+        // Upstream does not: add_glyph_string_segments divides the glyph's two metric
+        // sources (`xlen = real_bbox[X].length () / bbox[X].length ()') and adds the
+        // KERNED BOX instead of the outline when the quotient is not finite. Its comment
+        // says what that case IS — "The value will be nan for whitespace, in which case
+        // we just want filler" — so the branch is not the rounding guard it reads as
+        // (trap 17i). Whitespace divides 0 by 0 on BOTH engines.
+        //
+        // The box is upstream's: the glyph's own advance wide, and its INK height, which
+        // for whitespace is the empty interval at the baseline. So the run's skyline runs
+        // flat across a space instead of stopping at the last inked glyph.
+        Box ink = face.GlyphBox(index);
+        if (ink.X.IsEmpty || ink.X.Length == 0.0 || ink.Y.IsEmpty || ink.Y.Length == 0.0)
+        {
+            double width = Real(Nth(arguments, 3));
+            skyline.AddBox(
+                transform, new Box(new Interval(0.0, width), new Interval(0.0, 0.0)));
+            return;
+        }
+
         Transform local = transform;
         local.Scale(scale, scale);
 

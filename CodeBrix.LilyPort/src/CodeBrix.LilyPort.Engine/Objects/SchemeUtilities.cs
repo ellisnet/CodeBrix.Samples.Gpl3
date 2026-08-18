@@ -368,11 +368,24 @@ public static class SchemeUtilities
     {
         List<object> kept = new List<object>();
         object cursor = alist;
+
+        //was previously: every matching entry was dropped. `scm_assq_remove_x' removes
+        // THE FIRST and no other (libguile/alist.c:344 — scm_sloppy_assq finds one
+        // handle, scm_delq1_x unlinks that pair), and a duplicated key is then uncovered
+        // rather than erased. Fixed with its LilyScheme twin, which the markup tag
+        // machinery reaches through the `assq-remove!' primitive.
+        bool removed = false;
         while (cursor is Pair pair)
         {
             //was previously: ReferenceEquals(entry.Car, key); see Assq's remarks — this
             // is `assq-remove!', so it owes the same eq? rule its lookup sibling owes.
-            if (!(pair.Car is Pair entry && ReferenceComparer.Instance.Equals(entry.Car, key)))
+            if (!removed
+                && pair.Car is Pair entry
+                && ReferenceComparer.Instance.Equals(entry.Car, key))
+            {
+                removed = true;
+            }
+            else
             {
                 kept.Add(pair.Car);
             }

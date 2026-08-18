@@ -114,8 +114,17 @@ public static class Warn
 
     private static readonly List<string> ExpectedWarnings = new List<string>();
 
+    //was previously: LogLevel.LevelWarn, which is not upstream's default and silently
+    // discarded three whole severities. `flower/warn.cc:44' is `int loglevel =
+    // LOGLEVEL_INFO;', under the comment "Define the loglevel (default is INFO)", so
+    // upstream prints Info, Progress and Basic unless a command line asks otherwise.
+    // At LevelWarn the port filtered all three out, which is why `ly:message' looked
+    // unwired: `Warn.Message' was called, computed its text and threw it away
+    // (trap 1b). `Performance.WriteOutput' computes "MIDI output to `...'" 65 times
+    // across the corpus and printed it none.
+
     /// <summary>Gets or sets the active log level mask.</summary>
-    public static LogLevel Level { get; set; } = LogLevel.LevelWarn;
+    public static LogLevel Level { get; set; } = LogLevel.LevelInfo;
 
     /// <summary>
     /// Gets or sets a value indicating whether warnings are promoted to errors, which
@@ -123,8 +132,13 @@ public static class Warn
     /// </summary>
     public static bool WarningAsError { get; set; }
 
-    /// <summary>Gets or sets the writer diagnostics go to.</summary>
-    public static TextWriter Output { get; set; } = Console.Error;
+    /// <summary>
+    /// Gets or sets the writer diagnostics go to. Wrapping it in a
+    /// <see cref="LineTrackingWriter"/> — and giving the interpreter the SAME instance as
+    /// its error port — is what lets a diagnostic start its own line after Scheme code
+    /// has left one open.
+    /// </summary>
+    public static TextWriter Output { get; set; } = new LineTrackingWriter(Console.Error);
 
     /// <summary>
     /// Gets or sets a value indicating whether messages are also recorded in memory.
@@ -372,6 +386,16 @@ public static class Warn
 
         if (IsEnabled(severity))
         {
+            // A diagnostic always starts its own line. Upstream never has to arrange
+            // that, because the only thing it writes without a trailing newline is the
+            // graphviz digraph and the process exits next; here the same stream carries
+            // 2,146 files' output and a `}' glued to the front of a warning is a warning
+            // the diagnostics comparator cannot parse (R17, LineTrackingWriter).
+            if (Output is LineTrackingWriter tracker)
+            {
+                tracker.EndOpenLine();
+            }
+
             Output?.WriteLine(text);
         }
     }

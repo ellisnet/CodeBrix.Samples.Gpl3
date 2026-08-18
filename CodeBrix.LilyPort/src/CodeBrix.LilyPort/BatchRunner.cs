@@ -378,6 +378,15 @@ public static class BatchRunner
         // per-run identifier survives the whole file and the NEXT run's restore wipes
         // it before its own re-set — no stale capture list can leak.
         session.SetIdentifier(Symbol.Intern("toplevel-book-handler"), bookCollector);
+
+        // The two lines upstream's `ly:parse-file' prints before it parses anything
+        // (`lily-parser-scheme.cc:112,116'): the file it opened, at BASIC, and "Parsing..."
+        // at INFO. This runner replaces that driver (trap 17f), so it owes them; until the
+        // log level was upstream's they could not have been seen anyway.
+        Flower.Warn.BasicProgress("Processing `" + ResolvedInputName(baseName, includeDirectory)
+            + "'");
+        Flower.Warn.Message("Parsing...");
+
         int errorCount = RunLifecycle(session, text, baseName, includeDirectory, diagnostics);
 
         // One stencil per PAGE, as the page breaker chose them.
@@ -400,7 +409,6 @@ public static class BatchRunner
         int lines = 0;
         List<Performance> performances = new List<Performance>();
         int skipped = 0;
-        double unitLength = 0.0;
         // THE PARSER STAYS CURRENT ACROSS ENGRAVING.
         //
         // Upstream never leaves the parser's dynamic extent to engrave: book processing
@@ -476,7 +484,16 @@ public static class BatchRunner
                 // unset values.
                 paperBook.Output();
 
-                unitLength = paperBook.Paper.GetDimension("output-scale");
+                // PER BOOK, not once per file. framework-svg.scm's output-framework
+                // calls (set-unit-length (ly:output-def-lookup layout 'output-scale))
+                // for the book it is about to write, and a file may hold books at
+                // DIFFERENT global staff sizes — book-change-global-staffsize-abs-fonts
+                // is two books, 20pt then 10pt, from one source. Keeping one value for
+                // the whole file wrote every book with the LAST book's scale, which the
+                // backend divides font sizes by: the 20pt book came out with every text
+                // font-size exactly doubled while its geometry stayed right, so it read
+                // as a glyph-inventory difference rather than as a layout error.
+                double unitLength = paperBook.Paper.GetDimension("output-scale");
 
                 List<Stencil> bookPages = new List<Stencil>();
                 foreach (object entry in Pair.ToList(paperBook.Pages()))
@@ -495,7 +512,8 @@ public static class BatchRunner
                 bookOutputs.Add(new BookOutput(
                     bookIndex < bookNames.Count ? bookNames[bookIndex] : baseName,
                     bookPages,
-                    SchemeConvert.ToInt(paperBook.Paper.CVariable("first-page-number"), 1)));
+                    SchemeConvert.ToInt(paperBook.Paper.CVariable("first-page-number"), 1),
+                    unitLength));
 
                 lines += CountLines(paperBook);
 
@@ -516,93 +534,58 @@ public static class BatchRunner
             return Unspecified.Instance;
         });
 
-        // ONE FILE PER PAGE, named the way scm/framework-svg.scm's output-stencils names
-        // them: a single-page book is `<base>.svg' and a multi-page one carries the
-        // PAGE NUMBER, not a running index. output-stencils seeds its counter at
-        // `(1- first-page-number)' and bumps it before each page, so a book whose first
-        // page number is 2 writes `<base>-2.svg' first and has no `-1' at all.
-        // ⚠ The port counted from ONE regardless, and its comment asserted that was the
-        // oracle's rule (trap 26). The whole page-turn-page-breaking family sets
-        // auto-first-page-number, which starts those books on page 2: every page of every
-        // one of them was therefore named one too low, so each family member's LAST page
-        // read MISSING and the five before it were graded against the oracle's next page.
-        // That naming is the ORACLE's, so the comparator pairs candidate with reference by
-        // name alone.
+        // The page and performance naming rules — the ORACLE's, so the comparator pairs a
+        // candidate with a reference by name alone — are in WriteBookPages and
+        // WritePerformances below, with the file names they produce.
+        //
+        //was previously: both writers composed `Path.Combine (outputDirectory, name)' and
+        // handed the ENGINE the result. Upstream's engine never sees a directory —
+        // `main.cc:729-761' splits --output into a directory and a file part, prepends the
+        // old working directory to global_path, prints "Changing working directory to:",
+        // chdir's, and reduces the output name to the BARE file part, and
+        // `lily-parser-scheme.cc:40-42' states the consequence as a contract: "Output name
+        // is treated simply as a file name because any directory part should have been
+        // handled in main ()." Because the port broke that contract,
+        // `Performance.WriteOutput' faithfully printed an ABSOLUTE path in
+        // "cannot create a zero-track MIDI file; skipping `%s'" and in "MIDI output to
+        // `%s'" — one graded diagnostics row (skiptypesetting-all-true-midi) and 65 files'
+        // worth of the other.
+        //
+        // The port takes the output directory as the working directory for the span in
+        // which output is WRITTEN, and no longer. The engraving that came before ran in
+        // the driver's per-file scratch directory, and that is what keeps a file's SIDE
+        // files out of the output directory; the oracle harness gets the same isolation
+        // from a fresh temp directory per process.
+        string outputRoot = Path.GetFullPath(outputDirectory);
         string svgPath = null;
         List<string> svgPaths = new List<string>();
-        if (bookOutputs.Exists(output => output.Pages.Count > 0))
+        List<string> midiPaths = new List<string>();
+        if (bookOutputs.Exists(output => output.Pages.Count > 0) || performances.Count > 0)
         {
-            Directory.CreateDirectory(outputDirectory);
-
-            // framework-svg.scm's (set-unit-length (lookup 'output-scale)) — the one
-            // number the backend needs that is not in the stencil.
-            SvgBackend backend = new SvgBackend();
-            if (unitLength > 0.0)
+            Directory.CreateDirectory(outputRoot);
+            string previousDirectory = Directory.GetCurrentDirectory();
+            Directory.SetCurrentDirectory(outputRoot);
+            try
             {
-                backend.UnitLength = unitLength;
+                WriteBookPages(bookOutputs, svgPaths, diagnostics);
+                WritePerformances(performances, baseName, midiPaths, diagnostics);
+            }
+            finally
+            {
+                Directory.SetCurrentDirectory(previousDirectory);
             }
 
-            for (int b = 0; b < bookOutputs.Count; b++)
+            for (int i = 0; i < svgPaths.Count; i++)
             {
-                List<Stencil> bookPages = bookOutputs[b].Pages;
-                string bookName = bookOutputs[b].Name;
-                int pageNumber = bookOutputs[b].FirstPageNumber;
-                for (int i = 0; i < bookPages.Count; i++, pageNumber++)
-                {
-                    string pagePath = Path.Combine(
-                        outputDirectory,
-                        bookPages.Count > 1
-                            ? bookName + "-" + pageNumber + ".svg"
-                            : bookName + ".svg");
+                svgPaths[i] = Path.Combine(outputRoot, svgPaths[i]);
+            }
 
-                    try
-                    {
-                        File.WriteAllText(pagePath, backend.RenderDocument(bookPages[i]));
-                        svgPaths.Add(pagePath);
-                    }
-                    catch (Exception exception) when (!(exception is OutOfMemoryException))
-                    {
-                        diagnostics.Add("SVG output failed: " + exception.Message);
-                    }
-                }
+            for (int i = 0; i < midiPaths.Count; i++)
+            {
+                midiPaths[i] = Path.Combine(outputRoot, midiPaths[i]);
             }
 
             svgPath = svgPaths.Count > 0 ? svgPaths[0] : null;
-        }
-
-        // scm/midi.scm's write-performances-midis names the files: the first performance
-        // in a file gets `<base>.midi', and any further ones get `<base>-<n>.midi'
-        // counting from 1. That naming is the ORACLE's, so the comparator can pair a
-        // candidate with a reference by name alone.
-        List<string> midiPaths = new List<string>();
-        if (performances.Count > 0)
-        {
-            Directory.CreateDirectory(outputDirectory);
-
-            for (int i = 0; i < performances.Count; i++)
-            {
-                // write-performances-midis counts from 0 and suffixes only when the
-                // count is POSITIVE — so the FIRST performance is always `<base>.midi',
-                // even in a file that goes on to produce more. The old `-1/-2' naming
-                // for multi-performance files paired every candidate with the WRONG
-                // reference: the port's first output was compared against the oracle's
-                // second, and the oracle's first was reported missing.
-                string midiPath = Path.Combine(
-                    outputDirectory,
-                    i > 0
-                        ? baseName + "-" + i + ".midi"
-                        : baseName + ".midi");
-
-                try
-                {
-                    performances[i].WriteOutput(midiPath, PerformanceName(performances[i]));
-                    midiPaths.Add(midiPath);
-                }
-                catch (Exception exception) when (!(exception is OutOfMemoryException))
-                {
-                    diagnostics.Add("MIDI output failed: " + exception.Message);
-                }
-            }
         }
 
         // Where upstream calls it: lily.scm runs (ly:check-expected-warnings) between
@@ -628,6 +611,159 @@ public static class BatchRunner
             diagnostics,
             midiPaths,
             svgPaths);
+    }
+
+    /// <summary>
+    /// Substitutes the font files under <paramref name="directory"/> for the assembly's
+    /// own embedded copies, for the rest of the process.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// A face is looked up by FILE NAME, so a directory holding
+    /// <c>emmentaler-&lt;size&gt;.otf</c> and <c>.svg</c> replaces exactly those and
+    /// leaves the other faces alone.
+    /// </para>
+    /// <para>
+    /// THIS EXISTS FOR ONE MEASUREMENT, and it is a measurement the project needs
+    /// standing rather than improvised: the port ships Emmentaler fonts it builds itself
+    /// from the Metafont sources, and LilyPond ships fonts IT built from the same
+    /// sources. Two FontForge runs do not produce identical outlines, and a skyline reads
+    /// outlines, so a corpus row can differ from the oracle for two entirely different
+    /// reasons. Running the same sweep against BOTH font builds separates them: with
+    /// LilyPond's own fonts any divergence is the ENGINE and is a defect, and with the
+    /// port's own fonts the divergence is the FONT BUILD and is measured and recorded
+    /// (ruling R19).
+    /// </para>
+    /// </remarks>
+    /// <param name="directory">The directory to consult before the embedded copies.</param>
+    public static void UseFontsFrom(string directory)
+        => Engine.Fonts.FontAssets.SearchPaths.Add(directory);
+
+    /// <summary>
+    /// Reports a change of working directory the way <c>main.cc:735-756</c> does, at INFO.
+    /// </summary>
+    /// <remarks>
+    /// Upstream changes directory once, in <c>main ()</c>, when <c>--output</c> names one;
+    /// its harness passes an absolute path into a fresh temporary directory, so every
+    /// reference log opens with this line. A driver that engraves many files in one
+    /// process changes directory per file for the same isolation and owes the same line;
+    /// the wording and severity are upstream's (rule 15).
+    /// </remarks>
+    /// <param name="directory">The directory just changed to.</param>
+    public static void ReportWorkingDirectoryChange(string directory)
+        => Flower.Warn.Message("Changing working directory to: `" + directory + "'");
+
+    /// <summary>
+    /// Names the input the way upstream's "Processing `%s'" does: the file as the parser
+    /// resolved it, which is a full path when the caller supplied a directory to resolve
+    /// against and a bare name when it did not.
+    /// </summary>
+    /// <param name="baseName">The output base name, without extension.</param>
+    /// <param name="includeDirectory">The directory the file came from, or null.</param>
+    /// <returns>The name to report.</returns>
+    private static string ResolvedInputName(string baseName, string includeDirectory)
+        => string.IsNullOrEmpty(includeDirectory)
+            ? baseName + ".ly"
+            : Path.Combine(includeDirectory, baseName + ".ly");
+
+    /// <summary>
+    /// Writes one page per stencil, into the CURRENT working directory and under BARE
+    /// names, which is the state upstream's engine runs in.
+    /// </summary>
+    /// <remarks>
+    /// ONE FILE PER PAGE, named the way <c>scm/framework-svg.scm</c>'s
+    /// <c>output-stencils</c> names them: a single-page book is <c>&lt;base&gt;.svg</c>
+    /// and a multi-page one carries the PAGE NUMBER, not a running index.
+    /// <c>output-stencils</c> seeds its counter at <c>(1- first-page-number)</c> and bumps
+    /// it before each page, so a book whose first page number is 2 writes
+    /// <c>&lt;base&gt;-2.svg</c> first and has no <c>-1</c> at all.
+    /// ⚠ The port counted from ONE regardless, and its comment asserted that was the
+    /// oracle's rule (trap 26). The whole page-turn-page-breaking family sets
+    /// <c>auto-first-page-number</c>, which starts those books on page 2: every page of
+    /// every one of them was therefore named one too low, so each family member's LAST
+    /// page read MISSING and the five before it were graded against the oracle's next
+    /// page. That naming is the ORACLE's, so the comparator pairs candidate with
+    /// reference by name alone.
+    /// </remarks>
+    /// <param name="bookOutputs">The books to write.</param>
+    /// <param name="names">Receives each page's bare file name, in the order written.</param>
+    /// <param name="diagnostics">Receives one line per failed page.</param>
+    private static void WriteBookPages(
+        List<BookOutput> bookOutputs,
+        List<string> names,
+        List<string> diagnostics)
+    {
+        // framework-svg.scm's (set-unit-length (lookup 'output-scale)) — the one
+        // number the backend needs that is not in the stencil.
+        SvgBackend backend = new SvgBackend();
+
+        for (int b = 0; b < bookOutputs.Count; b++)
+        {
+            List<Stencil> bookPages = bookOutputs[b].Pages;
+            string bookName = bookOutputs[b].Name;
+            if (bookOutputs[b].UnitLength > 0.0)
+            {
+                backend.UnitLength = bookOutputs[b].UnitLength;
+            }
+
+            int pageNumber = bookOutputs[b].FirstPageNumber;
+            for (int i = 0; i < bookPages.Count; i++, pageNumber++)
+            {
+                string pageName = bookPages.Count > 1
+                    ? bookName + "-" + pageNumber + ".svg"
+                    : bookName + ".svg";
+
+                try
+                {
+                    File.WriteAllText(pageName, backend.RenderDocument(bookPages[i]));
+                    names.Add(pageName);
+                }
+                catch (Exception exception) when (!(exception is OutOfMemoryException))
+                {
+                    diagnostics.Add("SVG output failed: " + exception.Message);
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Writes each performance, into the CURRENT working directory and under a BARE name,
+    /// which is the name upstream's <c>Performance::write_output</c> reports.
+    /// </summary>
+    /// <remarks>
+    /// <c>scm/midi.scm</c>'s <c>write-performances-midis</c> counts from 0 and suffixes
+    /// only when the count is POSITIVE — so the FIRST performance is always
+    /// <c>&lt;base&gt;.midi</c>, even in a file that goes on to produce more. The old
+    /// <c>-1/-2</c> naming for multi-performance files paired every candidate with the
+    /// WRONG reference: the port's first output was compared against the oracle's second,
+    /// and the oracle's first was reported missing.
+    /// </remarks>
+    /// <param name="performances">The performances to write.</param>
+    /// <param name="baseName">The output base name, which carries no directory.</param>
+    /// <param name="names">Receives each file's bare name, in the order written.</param>
+    /// <param name="diagnostics">Receives one line per failed performance.</param>
+    private static void WritePerformances(
+        List<Engine.Layout.Performance> performances,
+        string baseName,
+        List<string> names,
+        List<string> diagnostics)
+    {
+        for (int i = 0; i < performances.Count; i++)
+        {
+            string midiName = i > 0
+                ? baseName + "-" + i + ".midi"
+                : baseName + ".midi";
+
+            try
+            {
+                performances[i].WriteOutput(midiName, PerformanceName(performances[i]));
+                names.Add(midiName);
+            }
+            catch (Exception exception) when (!(exception is OutOfMemoryException))
+            {
+                diagnostics.Add("MIDI output failed: " + exception.Message);
+            }
+        }
     }
 
     /// <summary>
@@ -933,11 +1069,14 @@ public static class BatchRunner
         /// <param name="name">The name <c>get-outfile-name</c> gave the book.</param>
         /// <param name="pages">The book's pages, in order.</param>
         /// <param name="firstPageNumber">The page number the first page prints at.</param>
-        public BookOutput(string name, List<Stencil> pages, int firstPageNumber)
+        /// <param name="unitLength">The book's own <c>output-scale</c>.</param>
+        public BookOutput(
+            string name, List<Stencil> pages, int firstPageNumber, double unitLength)
         {
             Name = name;
             Pages = pages;
             FirstPageNumber = firstPageNumber;
+            UnitLength = unitLength;
         }
 
         /// <summary>Gets the name the book's files print under.</summary>
@@ -948,6 +1087,10 @@ public static class BatchRunner
 
         /// <summary>Gets the page number the first page prints at.</summary>
         public int FirstPageNumber { get; }
+
+        /// <summary>Gets the book's own <c>output-scale</c>, which the backend divides
+        /// font sizes by.</summary>
+        public double UnitLength { get; }
     }
 }
 

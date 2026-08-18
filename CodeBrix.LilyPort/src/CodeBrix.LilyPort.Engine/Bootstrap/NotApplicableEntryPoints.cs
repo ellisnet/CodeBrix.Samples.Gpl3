@@ -88,21 +88,21 @@ public static class NotApplicableEntryPoints
     /// <param name="interpreter">The interpreter to extend.</param>
     private static void InstallFontPlumbing(Interpreter interpreter)
     {
-        NotApplicable(interpreter, "ly:font-config-add-directory", 1, 1, "font-plumbing",
-            "adds a directory to fontconfig's search; D23 forbids system-font fallback, "
-            + "so there is no host search to widen");
+        //was previously: ly:font-config-add-directory and ly:font-config-add-font were
+        // accepted N/A here. RULING R16 (2026-08-17) reversed that under D25's
+        // reversible-by-demand clause — the corpus is the demand — and they are now
+        // IMPLEMENTED in FontPrimitives.InstallDocumentFonts. D23 is untouched: it
+        // forbids falling back on fonts the port assumes the HOST has, and a font the
+        // DOCUMENT supplies and names is the other side of that line, which is exactly
+        // where upstream puts it (fontconfig's APPLICATION font set).
 
-        NotApplicable(interpreter, "ly:font-config-add-font", 1, 1, "font-plumbing",
-            "registers a font file with fontconfig; the port's faces are vendored and "
-            + "registered through its own font layer (D13/D23)");
-
-        NotApplicable(interpreter, "ly:font-config-display-fonts", 0, 1, "font-plumbing",
-            "dumps fontconfig's view of the host's fonts; the port never consults it "
-            + "(D13/D23)");
-
-        NotApplicable(interpreter, "ly:font-config-get-font-file", 1, 1, "font-plumbing",
-            "resolves a family name to a file through fontconfig; D23 forbids the host "
-            + "lookup outright");
+        //was previously: ly:font-config-display-fonts and ly:font-config-get-font-file
+        // were accepted N/A here. RULING R18 (Jeremy, 2026-08-17) took them OFF, and they
+        // are now IMPLEMENTED in FontPrimitives.InstallFontWorldQueries — answering for
+        // the PORT'S OWN font world rather than for a host fontconfig, which is a RULED
+        // exception to rule 2 and the only one in the project. Do not "correct" them
+        // toward upstream's output later; the reasoning is on that method and in
+        // PORT-COVERAGE.
 
         NotApplicable(interpreter, "ly:pango-font-physical-fonts", 1, 1, "font-plumbing",
             "lists the physical faces a Pango font resolved to; the port has no Pango "

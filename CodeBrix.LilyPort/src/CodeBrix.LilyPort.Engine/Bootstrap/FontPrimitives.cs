@@ -129,6 +129,7 @@ public static class FontPrimitives
         // callbacks, where the engraving side of the font interface lives.
         InstallNotApplicable(interpreter);
         InstallFontPredicates(interpreter);
+        InstallDocumentFonts(interpreter);
     }
 
     /// <summary>
@@ -157,6 +158,164 @@ public static class FontPrimitives
         interpreter.DefinePrimitive("ly:otf-font?", 1, 1, a => IsOtf(a[0]));
 
         interpreter.DefinePrimitive("ly:pango-font?", 1, 1, a => false);
+    }
+
+    /// <summary>
+    /// <c>ly:font-config-add-font</c> and <c>ly:font-config-add-directory</c> — a
+    /// DOCUMENT registering fonts it carries with it.
+    /// <para>
+    /// RULING R16 (2026-08-17) took these OFF the accepted-N/A list under D25's
+    /// reversible-by-demand clause. They are a documented Notation Reference feature
+    /// (§Finding fonts) whose stated purpose is portability: "Both commands accept either
+    /// absolute or relative paths, which makes it possible to compile a score on any
+    /// system by simply distributing the relevant font files together with the LilyPond
+    /// input files." Upstream implements them as fontconfig APPLICATION fonts
+    /// (<c>all-font-metrics.cc:306,319</c> → <c>FcConfigAppFontAddDir</c>/<c>AddFile</c>),
+    /// the same set LilyPond's own bundled faces go into and NOT the system directories
+    /// D23 forbids — <c>font-config.cc</c> builds the two sources separately.
+    /// </para>
+    /// <para>
+    /// The diagnostics are upstream's, wording and severity both (rule 15): a failure is
+    /// <c>error</c>, which is fatal, and a success is <c>debug_output</c>.
+    /// </para>
+    /// </summary>
+    /// <param name="interpreter">The interpreter to install into.</param>
+    private static void InstallDocumentFonts(Interpreter interpreter)
+    {
+        interpreter.DefinePrimitive("ly:font-config-add-font", 1, 1, a =>
+        {
+            string path = StringPrimitives.Text(a[0], "ly:font-config-add-font");
+            if (!TextFontChain.AddDocumentFont(path))
+            {
+                Flower.Warn.Error("failed adding font file: " + path);
+            }
+
+            Flower.Warn.Debug("Adding font file: " + path);
+            return Unspecified.Instance;
+        });
+
+        interpreter.DefinePrimitive("ly:font-config-add-directory", 1, 1, a =>
+        {
+            string directory
+                = StringPrimitives.Text(a[0], "ly:font-config-add-directory");
+
+            // Upstream's failure test is FcConfigAppFontAddDir's, which fails on a
+            // directory it cannot read — not on one that holds no fonts. An empty but
+            // readable directory is a success there and is a success here.
+            if (!System.IO.Directory.Exists(directory))
+            {
+                Flower.Warn.Error("failed adding font directory: " + directory);
+            }
+
+            TextFontChain.AddDocumentFontDirectory(directory);
+            Flower.Warn.Debug("Adding font directory: " + directory);
+            return Unspecified.Instance;
+        });
+
+        InstallFontWorldQueries(interpreter);
+    }
+
+    /// <summary>
+    /// The two entry points that ANSWER FOR THE PORT'S OWN FONT WORLD rather than for a
+    /// host fontconfig — <c>ly:font-config-get-font-file</c> and
+    /// <c>ly:font-config-display-fonts</c>.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// ⚠ RULING R18 (Jeremy, 2026-08-17), AND IT IS THE PROJECT'S ONLY DELIBERATE
+    /// EXCEPTION TO RULE 2 — these are to do something SIMILAR to upstream, not identical.
+    /// Upstream reports the HOST's fontconfig view; the port has no host font world to
+    /// report and D23 forbids ever acquiring one, so reporting its OWN world is the whole
+    /// point. Do not "correct" either of these toward upstream's output later.
+    /// </para>
+    /// <para>
+    /// Nothing depends on the answers, which is why a divergence is affordable HERE and
+    /// nowhere else: measured before the ruling,
+    /// <c>ly:font-config-get-font-file</c> has ZERO callers anywhere — not the vendored
+    /// Scheme layer, not the 2,146-file corpus, not upstream's own tree outside its
+    /// definition — and <c>ly:font-config-display-fonts</c> has ONE, <c>lily.scm:1044</c>,
+    /// gated on the <c>show-available-fonts</c> option, which prints and exits.
+    /// </para>
+    /// <para>
+    /// Two divergences from upstream's letter are deliberate and recorded in
+    /// PORT-COVERAGE: a name that matches nothing answers <c>#f</c> where upstream's
+    /// <c>All_font_metrics::get_font_file</c> answers the EMPTY STRING, and the listing is
+    /// the port's 24 vendored faces plus this document's own rather than a fontconfig dump.
+    /// </para>
+    /// </remarks>
+    /// <param name="interpreter">The interpreter to install into.</param>
+    private static void InstallFontWorldQueries(Interpreter interpreter)
+    {
+        interpreter.DefinePrimitive("ly:font-config-get-font-file", 1, 1, a =>
+        {
+            string name = StringPrimitives.Text(a[0], "ly:font-config-get-font-file");
+
+            // The DOCUMENT's own fonts first, exactly as TextFontChain.For consults them
+            // before the generic-family walk: a document that supplies a face has said
+            // which file it means, so the real path on disk is the honest answer.
+            TextFace supplied = TextFontChain.DocumentFont(name);
+            if (supplied != null && supplied.SourcePath != null)
+            {
+                return new MutableString(supplied.SourcePath);
+            }
+
+            string vendored = TextFontChain.VendoredFaceLocation(name);
+            return vendored == null ? (object)false : new MutableString(vendored);
+        });
+
+        interpreter.DefinePrimitive("ly:font-config-display-fonts", 0, 1, a =>
+        {
+            object port = a.Length > 0 ? a[0] : null;
+            WriteFontWorld(interpreter, port);
+            return Unspecified.Instance;
+        });
+    }
+
+    /// <summary>
+    /// Writes the port's font world to a port — the vendored faces, then whatever the
+    /// document registered.
+    /// </summary>
+    /// <param name="interpreter">The interpreter, for the default error port.</param>
+    /// <param name="port">The port to write to, or <see langword="null"/> for the default.</param>
+    private static void WriteFontWorld(Interpreter interpreter, object port)
+    {
+        System.Text.StringBuilder text = new System.Text.StringBuilder();
+
+        IReadOnlyList<TextFace> vendored = TextFontChain.VendoredFaces();
+        text.Append("vendored faces (")
+            .Append(vendored.Count)
+            .Append("):")
+            .Append('\n');
+        foreach (TextFace face in vendored)
+        {
+            text.Append("  ")
+                .Append(face.FamilyName)
+                .Append(" -- ")
+                .Append(FontAssets.TextFontLocation(face.FileName))
+                .Append('\n');
+        }
+
+        IReadOnlyList<KeyValuePair<string, TextFace>> supplied
+            = TextFontChain.DocumentFontRegistrations();
+        text.Append("document-supplied fonts (")
+            .Append(supplied.Count)
+            .Append("):")
+            .Append('\n');
+        foreach (KeyValuePair<string, TextFace> entry in supplied)
+        {
+            text.Append("  ")
+                .Append(entry.Key)
+                .Append(" -- ")
+                .Append(entry.Value.SourcePath)
+                .Append('\n');
+        }
+
+        // The optional-port argument and its (current-error-port) default are upstream's
+        // and cost nothing, so they are kept.
+        System.IO.TextWriter writer = port is SchemeOutputPort target
+            ? target.Writer
+            : interpreter.ErrorWriter;
+        writer.Write(text.ToString());
     }
 
     /// <summary>

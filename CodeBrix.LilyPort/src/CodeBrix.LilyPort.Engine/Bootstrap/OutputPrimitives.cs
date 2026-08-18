@@ -220,9 +220,10 @@ public static class OutputPrimitives
                 return false;
             }
 
-            GlobalContext global = new GlobalContext(scoreDef, globalDef);
-            global.MakeGlobalTranslator();
-            global.Iterate(score.GetMusic() as MusicObject);
+            // score-scheme.cc:146 — ly_run_translator, which is where the
+            // zero-duration warning is raised.
+            GlobalContext global = GlobalContext.Run(
+                scoreDef, globalDef, score.GetMusic() as MusicObject);
 
             return FormatOutput(global);
         });

@@ -236,6 +236,44 @@ public class GlobalContext : Context
     }
 
     /// <summary>
+    /// Builds the global context for one output definition, translates the music through
+    /// it, and reports a score that turned out to have no duration.
+    /// </summary>
+    /// <remarks>
+    /// <c>ly_run_translator</c> (<c>lily/global-context-scheme.cc:113</c>), which is the
+    /// ONE route upstream takes into translation: <c>Score::book_rendering</c>
+    /// (<c>score.cc:146</c>) and <c>ly:score-embedded-format</c>
+    /// (<c>score-scheme.cc:146</c>) both call it rather than assembling a global context
+    /// themselves.
+    /// <para>
+    /// ⚠ THE PORT'S TWO DRIVERS OPEN-CODED THE ASSEMBLY AND DROPPED THE ANSWER. Iterate's
+    /// bool is the whole of the zero-duration report, so the warning existed, was
+    /// correct, and could not fire on the path every real score takes — trap 17f, a fix
+    /// wired into a driver nothing reaches (<c>ly:run-translator</c> itself has no
+    /// callers in the port). <c>no-music</c> expects eight of these warnings and got
+    /// none.
+    /// </para>
+    /// </remarks>
+    /// <param name="layout">The output definition to translate for.</param>
+    /// <param name="definition">The <c>Global</c> context definition.</param>
+    /// <param name="music">The music to translate.</param>
+    /// <returns>The global context, after translation.</returns>
+    public static GlobalContext Run(
+        Layout.OutputDef layout, ContextDef definition, MusicObject music)
+    {
+        GlobalContext global = new GlobalContext(layout, definition);
+        global.MakeGlobalTranslator();
+        Warn.Message("Interpreting music...");
+        if (!global.Iterate(music))
+        {
+            Warn.Warning("skipping zero-duration score");
+            Warn.Warning("to suppress this, consider adding a spacer rest");
+        }
+
+        return global;
+    }
+
+    /// <summary>
     /// Interprets a piece of music: the main translation loop.
     /// </summary>
     /// <param name="music">The music to interpret.</param>

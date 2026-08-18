@@ -87,6 +87,30 @@ public static class FontAssets
     /// <returns>The OTF bytes.</returns>
     public static byte[] TextFont(string fileName) => Read(fileName, TextPrefix);
 
+    /// <summary>
+    /// Names where a vendored text face actually lives: the assembly that carries it and
+    /// the embedded-resource name within that assembly, joined so the whole thing reads
+    /// as a path.
+    /// </summary>
+    /// <remarks>
+    /// Ruling R18. A vendored face has NO on-disk path — it is an
+    /// <c>EmbeddedResource</c>, and the only filesystem lookup in <see cref="Read"/> is
+    /// the normally-empty <see cref="SearchPaths"/> override — so
+    /// <c>ly:font-config-get-font-file</c> cannot answer one without inventing it. What a
+    /// caller asking that question actually needs is where to go and get the bytes, and
+    /// this says exactly that.
+    /// </remarks>
+    /// <param name="fileName">The file name, such as <c>C059-Roman.otf</c>.</param>
+    /// <returns>The location, or <see langword="null"/> when the face is not vendored.</returns>
+    public static string TextFontLocation(string fileName)
+    {
+        Assembly assembly = typeof(FontAssets).Assembly;
+        string resource = TextPrefix + fileName;
+        return assembly.GetManifestResourceInfo(resource) == null
+            ? null
+            : assembly.GetName().Name + ".dll/" + resource;
+    }
+
     /// <summary>Lists the vendored text font file names.</summary>
     /// <returns>The file names, with the <c>.otf</c> suffix.</returns>
     public static IEnumerable<string> TextFontNames()

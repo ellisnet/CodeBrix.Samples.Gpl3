@@ -91,13 +91,26 @@ public static class LilyPondScheme
     internal static void RestoreAmbient(Interpreter interpreter) => Current = interpreter;
 
     /// <summary>
-    /// Looks a name up in the ambient interpreter's current module.
+    /// Looks a name up the way <c>lily-imports.hh</c> does — in the <c>(lily)</c> module
+    /// first, and only then in the ambient interpreter's current module.
     /// <para>
-    /// Upstream reaches the same values through <c>lily-imports.hh</c>, which resolves
-    /// each one lazily out of the <c>(lily)</c> module and caches it. The port resolves
-    /// per call rather than caching, because the ambient interpreter is REPLACED between
-    /// tests and a cached procedure would then belong to a dead one — a class of defect
-    /// that is silent, because the stale procedure still runs.
+    /// Upstream reaches every one of these values through <c>Lily::</c>, and each of
+    /// those is bound against the LILY MODULE ITSELF (<c>lily/lily-imports.cc</c>), never
+    /// against whatever scope the parser happens to be in. The port resolves per call
+    /// rather than caching, because the ambient interpreter is REPLACED between tests and
+    /// a cached procedure would then belong to a dead one — a class of defect that is
+    /// silent, because the stale procedure still runs.
+    /// </para>
+    /// <para>
+    /// ⚠ THE (lily) STEP IS LOAD-BEARING AND WAS ADDED WITH THE SCOPE-IMPORT FIX.
+    /// A parser scope imports (lily)'s PUBLIC INTERFACE, so reading only the current
+    /// module cannot see a PRIVATE (lily) binding — and several of upstream's
+    /// <c>Lily::</c> names are plain defines: <c>deprecated-setter-object-property</c> is
+    /// <c>scm/lily.scm:672</c>, and <c>Lily::deprecated_setter_object_property</c> is
+    /// <c>lily-imports.cc:96</c>. Resolving those through the parser's scope was a
+    /// divergence that only became visible once the scope stopped importing (lily) whole.
+    /// The current module is still consulted, because a caller may legitimately want a
+    /// name a scope defines.
     /// </para>
     /// </summary>
     /// <param name="name">The name to look up.</param>
@@ -110,7 +123,13 @@ public static class LilyPondScheme
             return null;
         }
 
-        Variable variable = interpreter.CurrentModule?.Lookup(name);
+        SchemeModule lily = interpreter.Modules?.Resolve(Pair.List(Symbol.Intern("lily")));
+        Variable variable = lily?.Lookup(name);
+        if (variable == null || !variable.IsBound)
+        {
+            variable = interpreter.CurrentModule?.Lookup(name);
+        }
+
         return variable != null && variable.IsBound ? variable.GetValue() : null;
     }
 
@@ -374,6 +393,11 @@ public static class LilyPondScheme
     public static Interpreter CreateInterpreter()
     {
         Interpreter interpreter = new Interpreter();
+
+        // The Scheme error port and the diagnostic writer must be the SAME object, or
+        // neither can tell whether the other left a line open — which is how the graphviz
+        // digraph's missing final newline came to swallow a graded warning (R17).
+        interpreter.ErrorWriter = Flower.Warn.Output;
 
         // Attached before LoadCore so the prelude's expansion caches too. Replaying
         // still EVALUATES everything live — only read-and-macroexpand is substituted —

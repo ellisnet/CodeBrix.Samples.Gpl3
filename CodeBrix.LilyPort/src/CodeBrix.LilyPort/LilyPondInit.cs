@@ -167,6 +167,18 @@ public static class LilyPondInit
             // ratchet is read before the floor is advanced.
             LilyPondScheme.Options?.RestoreValues(_optionsSnapshot);
 
+            // THE THIRTEENTH LEAK: DOCUMENT-SUPPLIED FONTS. ly:font-config-add-font and
+            // ly:font-config-add-directory put a face in the port's registry under the
+            // family name the FILE declares, and upstream's counterpart is an fcconfig
+            // that dies with the process — one process per file. Here one process sweeps
+            // 2,146, so a registration that outlived its file would let a later file
+            // resolve a family it never asked for.
+            //
+            // font-name-add-files.ly makes this concrete: it writes its two faces into a
+            // temp directory, registers them, and DELETES the whole directory before it
+            // ends. A leaked registration would point at a path that no longer exists.
+            Engine.Fonts.TextFontChain.ResetDocumentFonts();
+
             // THE FIFTH LEAK, AND IT IS THE OLDEST AND WIDEST OF THEM (found through the
             // MIDI comparator). Lily_parser::default_duration_ is what a note with NO written
             // duration inherits, and upstream makes ONE PARSER PER FILE, so it starts

@@ -112,6 +112,17 @@ public static class AxisGroupInterfaceVertical
             return pair;
         }
 
+        // An EXPLICIT #f is an answer, not an absence, and upstream's readers all
+        // spell it `if (!is_scm<Skyline_pair> (...)) continue;' — the grob is left out
+        // of the skyline entirely. Standing in for it here would invent an obstacle the
+        // user asked to remove, which is exactly what `skyline-removed.ly' tests with
+        // \tweak vertical-skylines ##f. The fallback below is for a property nothing
+        // has answered at all, which is a different question.
+        if (value is bool)
+        {
+            return new SkylinePair(new List<Box>(), a == Axis.Y ? Axis.X : Axis.Y);
+        }
+
         return FallbackSkylines(grob, a);
     }
 

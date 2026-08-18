@@ -44,10 +44,6 @@ ly:png-dimensions	cairo.cc	reads back the size of a PNG the Ghostscript pipeline
 ly:png->eps-dump	cairo.cc	wraps a PNG in an EPS for inclusion in a PostScript stream (D15)	ps-backend	accepted ps-backend
 ly:ttf->pfa	ttf.cc	converts a TrueType face to a PostScript Type 1 font for embedding (D15)	ps-backend	accepted ps-backend
 ly:ttf-ps-name	ttf.cc	reads the PostScript name a font would be embedded under (D15)	ps-backend	accepted ps-backend
-ly:font-config-add-directory	font-config-scheme.cc	adds a directory to fontconfig's search; D23 forbids system-font fallback, so there is no host search to widen	font-plumbing	accepted font-plumbing
-ly:font-config-add-font	font-config-scheme.cc	registers a font file with fontconfig; the port's faces are vendored and registered through its own font layer (D13/D23)	font-plumbing	accepted font-plumbing
-ly:font-config-display-fonts	font-config-scheme.cc	dumps fontconfig's view of the host's fonts; the port never consults it (D13/D23)	font-plumbing	accepted font-plumbing
-ly:font-config-get-font-file	font-config-scheme.cc	resolves a family name to a file through fontconfig; D23 forbids the host lookup outright	font-plumbing	accepted font-plumbing
 ly:pango-font-physical-fonts	pango-font-scheme.cc	lists the physical faces a Pango font resolved to; the port has no Pango layer (D13/D23)	font-plumbing	accepted font-plumbing
 ly:smob-protects	smobs.cc	lists the smobs held alive by GC protection; the port's objects are ordinary CLR references	guile-internals	accepted guile-internals
 ly:parsed-undead-list!	undead.cc	a GC-liveness test harness; there is no equivalent question to ask the CLR	guile-internals	rejected->owed (ly/declarations-init.ly:171 via session-save -> dump-zombies); IMPLEMENTED 2026-08-12 as the empty list, which is upstream's own answer for a run with no zombies

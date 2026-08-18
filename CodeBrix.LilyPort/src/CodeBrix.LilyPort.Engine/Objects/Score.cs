@@ -227,10 +227,11 @@ public class Score
                 continue;
             }
 
-            Translation.GlobalContext global
-                = new Translation.GlobalContext(scaled, globalDef);
-            global.MakeGlobalTranslator();
-            global.Iterate(_music as Music.MusicObject);
+            // ly_run_translator, not an open-coded copy of it: score.cc:146 goes
+            // through the same primitive ly:score-embedded-format does, and the
+            // zero-duration report lives there.
+            Translation.GlobalContext global = Translation.GlobalContext.Run(
+                scaled, globalDef, _music as Music.MusicObject);
 
             object output = Bootstrap.OutputPrimitives.FormatOutput(global);
             if (output != null && !(output is Nil))

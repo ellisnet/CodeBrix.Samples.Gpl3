@@ -19,7 +19,8 @@ namespace CodeBrix.LilyPort.BatchDriver;
 /// — the batch half of decision D14, on decision D20's score → SVG path.
 /// <para>
 /// Usage:
-/// <c>BatchDriver SUITE_DIR OUT_DIR [--limit N] [--files a.ly,b.ly] [--keep-existing]</c>.
+/// <c>BatchDriver SUITE_DIR OUT_DIR [--limit N] [--files a.ly,b.ly] [--keep-existing]
+/// [--diagnostics] [--fonts DIR]</c>.
 /// One SVG per input lands in <c>OUT_DIR</c>; per-file status goes to standard
 /// output as a tab-separated line the harness scripts can read. The process exits
 /// zero as long as the SWEEP ran AND the output directory holds exactly what the
@@ -69,7 +70,7 @@ public static class Program
         {
             Console.Error.WriteLine(
                 "usage: BatchDriver SUITE_DIR OUT_DIR [--limit N] [--files a.ly,b.ly]"
-                + " [--keep-existing]");
+                + " [--keep-existing] [--diagnostics] [--fonts DIR]");
             return 2;
         }
 
@@ -81,6 +82,8 @@ public static class Program
         int limit = int.MaxValue;
         HashSet<string> only = null;
         bool keepExisting = false;
+        bool showDiagnostics = false;
+        string fontDirectory = null;
 
         for (int i = 2; i < args.Length; i++)
         {
@@ -91,6 +94,37 @@ public static class Program
             else if (args[i] == "--files" && i + 1 < args.Length)
             {
                 only = new HashSet<string>(args[++i].Split(','), StringComparer.Ordinal);
+            }
+            else if (args[i] == "--diagnostics")
+            {
+                // OPT IN, and deliberately not the default: the sweep log is the input to
+                // compare-diagnostics.py, which attributes every line since the previous
+                // result line to the file named next, so extra lines on a full sweep would
+                // read as EXTRA diagnostics. What this recovers is the half BatchDriver
+                // has always thrown away (trap 1b) — a file that STILL PRODUCED SVG can
+                // report a parse error count with no message anywhere, and then the count
+                // is the only evidence that anything went wrong. markup-score is such a
+                // file: one parse error, no message, and an embedded score missing from
+                // the page.
+                showDiagnostics = true;
+            }
+            else if (args[i] == "--fonts" && i + 1 < args.Length)
+            {
+                // SUBSTITUTES THE FONT FILES WITHOUT A REBUILD. FontAssets consults its
+                // SearchPaths before the assembly's embedded copies, so a directory
+                // holding `emmentaler-<size>.otf' and `.svg' replaces exactly those and
+                // leaves every other face alone.
+                //
+                // What this is FOR: the port ships fonts it builds itself from the
+                // Metafont sources, and LilyPond ships fonts IT built from the same
+                // sources; two FontForge runs do not produce identical outlines, and a
+                // skyline reads outlines. Running the same sweep both ways separates
+                // "the engine disagrees with upstream" from "the two font builds
+                // disagree" -- the first is a defect, the second is measured and
+                // recorded. Without this flag the only way to do that was to overwrite
+                // the committed assets and rebuild, which is slow and leaves the working
+                // tree dirty if anything goes wrong mid-run.
+                fontDirectory = Path.GetFullPath(args[++i]);
             }
             else if (args[i] == "--keep-existing")
             {
@@ -105,6 +139,24 @@ public static class Program
         {
             Console.Error.WriteLine("no suite at " + suiteDirectory);
             return 2;
+        }
+
+        if (fontDirectory != null)
+        {
+            if (!Directory.Exists(fontDirectory))
+            {
+                Console.Error.WriteLine("no font directory at " + fontDirectory);
+                return 2;
+            }
+
+            BatchRunner.UseFontsFrom(fontDirectory);
+
+            // Named on its own line because a sweep graded against the wrong fonts is
+            // indistinguishable from a sweep graded against the wrong engine, and the log
+            // is the only place the difference is recoverable afterwards.
+            Console.WriteLine("# fonts overridden from " + fontDirectory + " ("
+                + Directory.GetFiles(fontDirectory, "*.otf").Length + " otf, "
+                + Directory.GetFiles(fontDirectory, "*.svg").Length + " svg)");
         }
 
         List<string> files = Directory.GetFiles(suiteDirectory, "*.ly")
@@ -155,6 +207,13 @@ public static class Program
             try
             {
                 Directory.SetCurrentDirectory(scratch);
+
+                // `main.cc:735-756' prints this at INFO whenever it changes directory,
+                // and the oracle harness gets it on every file because it engraves each
+                // one in a fresh temporary directory. This driver takes a per-file scratch
+                // directory for the same reason, so it says so the same way.
+                BatchRunner.ReportWorkingDirectoryChange(scratch);
+
                 BatchRunResult result = BatchRunner.RunFile(file, outputDirectory);
 
                 // MIDI is reported on its own line and always,
@@ -189,6 +248,13 @@ public static class Program
                     }
                     Console.WriteLine(name + "\tSVG\t" + result.SystemCount
                         + " system(s), " + result.ErrorCount + " parse error(s)");
+                    if (showDiagnostics)
+                    {
+                        foreach (string diagnostic in result.Diagnostics)
+                        {
+                            Console.WriteLine("# DIAG\t" + name + "\t" + FirstLine(diagnostic));
+                        }
+                    }
                 }
                 else
                 {

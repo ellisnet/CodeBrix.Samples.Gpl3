@@ -201,4 +201,44 @@ public class KerningTableTests
         System.Math.Abs(widthEm - OracleEm)
             .Should().BeLessThan(System.Math.Abs(RawSumEm - OracleEm) / 2.0);
     }
+
+    [Fact]
+    public void a_run_asking_for_minus_kern_is_not_kerned()
+    {
+        //Arrange
+        // font-features reaches GPOS as well as GSUB. HarfBuzz turns `kern' on for a
+        // horizontal run without being asked, so the tag only ever appears in a run that
+        // wants it OFF — which is what emmentaler-fractions and emmentaler-number-kerning
+        // each devote their fourth page to.
+        TextFontMetric metric = new TextFontMetric("serif", false, false, false, 4.0, 1.0);
+
+        //Act
+        double kerned = metric.TextStencil("AVAVAV", string.Empty).XExtent.Right;
+        double unkerned = metric.TextStencil("AVAVAV", "-kern").XExtent.Right;
+
+        //Assert
+        // The CONTROL is the default run: a fence that only measured the -kern run would
+        // pass with kerning switched off everywhere.
+        unkerned.Should().BeGreaterThan(kerned);
+    }
+
+    [Fact]
+    public void the_kern_tag_is_read_the_way_the_substitution_tags_are_read()
+    {
+        //Arrange
+        // Same -tag/+tag spelling SubstitutionTable reads, and the LAST entry naming the
+        // tag wins, because HarfBuzz appends a run's features in order.
+
+        //Act, Assert
+        KerningTable.Enabled(null).Should().BeTrue();
+        KerningTable.Enabled(string.Empty).Should().BeTrue();
+        KerningTable.Enabled("tnum,cv47").Should().BeTrue();
+        KerningTable.Enabled("-kern").Should().BeFalse();
+        KerningTable.Enabled("tnum,cv47,-kern").Should().BeFalse();
+        KerningTable.Enabled("-kern,+kern").Should().BeTrue();
+        KerningTable.Enabled("+kern,-kern").Should().BeFalse();
+
+        // A tag that merely CONTAINS the letters is not the tag.
+        KerningTable.Enabled("-kerning").Should().BeTrue();
+    }
 }

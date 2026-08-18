@@ -547,10 +547,21 @@ public static class SidePositionInterface
         {
             if (quantizePosition)
             {
+                // THE READS ARE MAYBE-PURE HERE TOO — upstream spells every one of the
+                // six in this tail with get_maybe_pure_property / maybe_pure_coordinate
+                // / maybe_pure_extent, and the port had them all ORDINARY. On a spanner
+                // that is not broken yet, an ordinary read answers about the WHOLE
+                // spanner and then CACHES on the original, and Grob's copy constructor
+                // hands that cache to every broken piece (ly_alist_copy) — so a
+                // property whose value is an unpure-pure-container gets its unpure half
+                // called once, on the original, and each piece inherits the one answer.
+                // That is `offsets.ly': \offset staff-padding #'(1.0 2.0) distributes
+                // one value per broken sibling, and the port applied 1.0 to both.
                 Grob quantizeCommon = me.CommonRefpoint(staff, Axis.Y);
                 double myOff = me.GetParent(Axis.Y)
-                    .RelativeCoordinate(quantizeCommon, Axis.Y);
-                double staffOff = staff.RelativeCoordinate(quantizeCommon, Axis.Y);
+                    .MaybePureCoordinate(quantizeCommon, Axis.Y, pure, start, end);
+                double staffOff
+                    = staff.MaybePureCoordinate(quantizeCommon, Axis.Y, pure, start, end);
                 double staffSpace = StaffSymbol.StaffSpace(staff);
                 double position = 2 * (myOff + totalOff - staffOff) / staffSpace;
                 double rounded = DirectedRound(position, dir);
@@ -571,17 +582,23 @@ public static class SidePositionInterface
                     }
                 }
             }
-            else if (SchemeConvert.IsNumber(me.GetProperty(StaffPadding)) && dir.IsNonZero)
+            else if (SchemeConvert.IsNumber(
+                         me.GetMaybePureProperty(StaffPadding, pure, start, end))
+                     && dir.IsNonZero)
             {
                 double staffPadding = StaffSymbolReferencer.StaffSpace(me)
                                       * SchemeConvert.ToDouble(
-                                          me.GetProperty(StaffPadding), "staff-padding");
+                                          me.GetMaybePureProperty(
+                                              StaffPadding, pure, start, end),
+                                          "staff-padding");
 
                 Grob parent = me.GetParent(Axis.Y);
                 Grob paddingCommon = me.CommonRefpoint(staff, Axis.Y);
-                double parentPosition = parent.RelativeCoordinate(paddingCommon, Axis.Y);
-                double staffPosition = staff.RelativeCoordinate(paddingCommon, Axis.Y);
-                Interval staffExtent = staff.Extent(staff, a);
+                double parentPosition
+                    = parent.MaybePureCoordinate(paddingCommon, Axis.Y, pure, start, end);
+                double staffPosition
+                    = staff.MaybePureCoordinate(paddingCommon, Axis.Y, pure, start, end);
+                Interval staffExtent = staff.MaybePureExtent(staff, a, pure, start, end);
                 double diff
                     = (dir * staffExtent[dir]) + staffPadding - (dir * totalOff)
                       + (dir * (staffPosition - parentPosition));

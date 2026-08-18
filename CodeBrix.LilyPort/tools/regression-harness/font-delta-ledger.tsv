@@ -1,0 +1,184 @@
+# CodeBrix.LilyPort -- font-build delta ledger (ruling R19).
+#
+# Every page here renders DIFFERENTLY under the port's own Emmentaler build
+# than under the one LilyPond ships.  Same engine, same input, same
+# everything else -- so each number is the cost of building our own fonts,
+# and nothing else.  Pages absent from this file are byte-identical.
+#
+# The numbers are EXACT, not sampled: the font build is byte-reproducible and
+# the engine is deterministic.  So any change to any of them is a signal and
+# has to be explained, even a change that makes a number SMALLER.
+#
+# verdict  MOVED     marks are in different places; dx/dy are the largest
+#                    single-mark displacement in the paper's staff-spaces,
+#                    and mm is that converted through this page's own scale.
+#          STRUCTURE the page has a different NUMBER of marks.  Only the
+#                    -ddebug-skylines pages do this, because they draw the
+#                    skylines themselves; `moved'/`total' hold the two counts.
+#          ABSENT    the page is missing from the other render entirely.
+#          SAME-FONTS both font builds render it identically; it is here
+#                    only because the GATE does not certify it.
+#
+# gate     what the LilyPond-font run graded against the oracle corpus.  A
+#          page the gate says MATCH is vouched for by an ORACLE and needs no
+#          drift record, so its sha256 column is `-'.  Every other page
+#          carries the hash of OUR OWN rendering, which is what the retired
+#          baseline/svg used to hold as eight whole files.
+#
+# file	verdict	moved	total	max_dx_ss	max_dy_ss	max_mm	gate	sha256
+accidental-ancient.svg	MOVED	2	65	0.0120	0.0000	0.021088	MATCH	-
+alignment-order.svg	MOVED	3	85	0.0000	0.0085	0.014937	MATCH	-
+alternative-end-segno.svg	MOVED	3	80	0.0000	0.0026	0.004569	MATCH	-
+alternative-end.svg	MOVED	1	57	0.0000	0.0025	0.004393	MATCH	-
+alternative-middle-segno.svg	MOVED	1	63	0.0000	0.0025	0.004393	MATCH	-
+alternative-middle.svg	MOVED	1	66	0.0000	0.0025	0.004393	MATCH	-
+alternative-mmrest.svg	MOVED	1	34	0.0000	0.0025	0.004393	MATCH	-
+alternative-nest-end-end-segno1.svg	MOVED	1	60	0.0000	0.0026	0.004569	MATCH	-
+alternative-nest-end-end-segno2.svg	MOVED	1	68	0.0000	0.0026	0.004569	MATCH	-
+alternative-nest-end-end.svg	MOVED	1	88	0.0000	0.0025	0.004393	MATCH	-
+alternative-reuse.svg	MOVED	3	94	0.0000	0.0025	0.004393	MATCH	-
+alternative-start-segno.svg	MOVED	1	54	0.0000	0.0025	0.004393	MATCH	-
+alternative-start.svg	MOVED	1	57	0.0000	0.0025	0.004393	MATCH	-
+alternative-trailing-var.svg	MOVED	1	36	0.0000	0.0025	0.004393	MATCH	-
+alternative-var-sequential.svg	MOVED	2	52	0.0000	0.0025	0.004393	MATCH	-
+annotate-volta-spanner-end.svg	MOVED	2	67	0.0000	0.0026	0.004569	MATCH	-
+auto-beam-without-bar-lines.svg	MOVED	1	56	0.0000	0.0025	0.004393	MATCH	-
+autobeam-3-4-rules-shortened-measure.svg	MOVED	1	157	0.0000	0.0025	0.004393	MATCH	-
+bar-check-after-cadenza-warn.svg	MOVED	3	142	0.0000	0.0025	0.004393	MATCH	-
+bar-check-parallel-alternative-ok.svg	MOVED	1	53	0.0000	0.0025	0.004393	MATCH	-
+bar-check-submeasure-alternative-warn.svg	MOVED	2	54	0.0000	0.0025	0.004393	MATCH	-
+bar-line-allow-volta-hook.svg	MOVED	1	27	0.0000	0.0025	0.004393	MATCH	-
+bar-line-fine-volta-hook.svg	MOVED	1	28	0.0000	0.0025	0.004393	MATCH	-
+bar-line-submeasure-bar-type.svg	MOVED	2	266	0.0000	0.0049	0.008611	MATCH	-
+bar-line-submeasure-bars-off.svg	MOVED	90	93	0.0000	0.0100	0.017573	MATCH	-
+bar-number-after-alternative-restore-cadenza.svg	MOVED	3	98	0.0000	0.0025	0.004393	MATCH	-
+bar-number-after-alternative-restore-grace.svg	MOVED	3	101	0.0000	0.0025	0.004393	MATCH	-
+bar-number-alternative-number.svg	MOVED	4	63	0.0000	0.0025	0.004393	MATCH	-
+bar-number-alternative-style.svg	MOVED	6	249	0.0000	0.0025	0.004393	MATCH	-
+bar-number-break-alignment-list.svg	MOVED	44	47	0.0000	0.0050	0.008786	MATCH	-
+bar-number-volta-repeat-end.svg	MOVED	1	33	0.0000	0.0025	0.004393	MATCH	-
+bar-number-volta-repeat.svg	MOVED	4	292	0.0000	0.0025	0.004393	MATCH	-
+caesura-alignment-multiple.svg	MOVED	2	36	0.0000	0.0002	0.000351	MATCH	-
+caesura-script-multiple.svg	MOVED	25	29	0.0000	0.0014	0.002460	MATCH	-
+caesura-style-comma-not-at-bar-line.svg	MOVED	148	155	0.0000	0.0031	0.005448	MATCH	-
+caesura-style-comma-or-fermata.svg	MOVED	164	171	0.0000	0.0028	0.004920	MATCH	-
+caesura-style-comma-over-bar-line.svg	MOVED	5	171	0.0000	0.0104	0.027414	MATCH	-
+caesura-style-comma.svg	MOVED	1	171	0.0000	0.0026	0.006853	MATCH	-
+caesura-style-default.svg	MOVED	1	171	0.0000	0.0070	0.012301	MATCH	-
+caesura-style-straight-or-fermata.svg	MOVED	164	171	0.0000	0.0085	0.014937	MATCH	-
+centered-bar-numbers-alternative.svg	MOVED	1	43	0.0000	0.0026	0.004569	MATCH	-
+choirstaff-dynamics-spacing.svg	MOVED	36	74	0.0000	0.0017	0.002987	MATCH	-
+chord-changes-alternative.svg	MOVED	60	73	0.0000	0.0026	0.004569	MATCH	-
+chord-repetition-tweak.svg	MOVED	2	72	0.0000	0.0019	0.003339	MATCH	-
+clef-transposition-optional.svg	MOVED	1	20	0.0000	0.0037	0.006502	MATCH	-
+clef-transposition-placement.svg	MOVED	71	142	0.0000	0.0052	0.015991	MATCH	-
+clef-transposition.svg	MOVED	3	52	0.0000	0.0047	0.008259	MATCH	-
+clip-systems-clip-input.svg	SAME-FONTS	0	0	0.0000	0.0000	0.000000	UNKNOWN	a39b351fe1acee5a599209c123298007fde70343dd955d9e3ca4811b13c12fac
+collision-head-solfa-fa.svg	SAME-FONTS	0	0	0.0000	0.0000	0.000000	PLACEMENT-DIFFERS	bfd70a18b0ca0df760850feedd624a10b78098b6ba5ed9e831ce74964c2c1116
+cue-clef-transposition-optional.svg	MOVED	3	100	0.0000	0.0001	0.000176	MATCH	-
+cue-clef-transposition.svg	MOVED	3	98	0.0000	0.0001	0.000176	MATCH	-
+duration-line-thickness-staff-sizes.svg	MOVED	304	597	0.0000	0.0069	0.012125	MATCH	-
+dynamics-text-dynamics-context.svg	MOVED	45	118	0.0000	0.0016	0.002812	MATCH	-
+easy-notation-size.svg	MOVED	491	642	0.0000	0.0062	0.010895	MATCH	-
+event-listener-output.svg	MOVED	255	357	0.0000	0.0092	0.016167	MATCH	-
+fermata-dot-position.svg	MOVED	3	105	0.0000	0.0030	0.005272	MATCH	-
+fermata-outside-staff-priority.svg	MOVED	30	40	0.0000	0.0035	0.006151	MATCH	-
+footnote-volta-spanner.svg	MOVED	1	31	0.0000	0.0025	0.004393	MATCH	-
+full-measure-rest-fermata.svg	MOVED	2	58	0.0000	0.0042	0.007381	MATCH	-
+grace-alternative.svg	MOVED	62	71	0.0000	0.0025	0.004393	MATCH	-
+hairpin-to-rest.svg	MOVED	3	15	0.0000	0.0018	0.003163	MATCH	-
+horizontal-script.svg	MOVED	42	93	0.0000	0.0045	0.007908	MATCH	-
+instrument-name-volta.svg	MOVED	1	45	0.0000	0.0025	0.004393	MATCH	-
+irregular-measure-alternative.svg	MOVED	1	108	0.0000	0.0025	0.004393	MATCH	-
+les-nereides.svg	MOVED	8	499	0.0000	0.0067	0.011774	MATCH	-
+lyric-hyphen-grace.svg	MOVED	6	189	0.0000	0.0085	0.014937	MATCH	-
+lyric-repeat-count-alternatives.svg	MOVED	2	45	0.0000	0.0025	0.004393	MATCH	-
+lyric-volta-alternative-end.svg	MOVED	1	51	0.0000	0.0025	0.004393	MATCH	-
+lyric-volta-alternative.svg	MOVED	1	61	0.0000	0.0025	0.004393	MATCH	-
+lyrics-spanbar.svg	MOVED	4	125	0.0000	0.0085	0.014937	MATCH	-
+magnifyStaff-time-signature.svg	MOVED	38	59	0.0000	0.0046	0.008084	MATCH	-
+markup-compound-meter-denominator-style.svg	SAME-FONTS	0	0	0.0000	0.0000	0.000000	PLACEMENT-DIFFERS	226c3d6ccb4b501e0fc32b22a464cf70972381d2a9f38131f1f6ae3e691b9859
+markup-diacritic-marks.svg	SAME-FONTS	0	0	0.0000	0.0000	0.000000	GLYPHS-DIFFER	5f0117d213cbf3cc7a21d7d844cbe031164239b1c18da44ab1e7f171653f2c7b
+markup-note-dot.svg	MOVED	22	27	0.0000	0.0040	0.007029	MATCH	-
+markup-note-sizes.svg	MOVED	210	363	0.0000	0.0075	0.016475	MATCH	-
+markup-with-true-dimensions.svg	MOVED	15	22	0.0254	0.0000	0.044635	MATCH	-
+measure-counter-alternative-numbering.svg	MOVED	2	188	0.0000	0.0025	0.004393	MATCH	-
+mensural-ligature-citations-2.svg	MOVED	63	715	0.0080	0.0096	0.016870	MATCH	-
+mensural-ligatures.svg	MOVED	2	651	0.0080	0.0000	0.014058	MATCH	-
+mensural.svg	MOVED	2	140	0.0080	0.0000	0.014058	MATCH	-
+merge-rests-engraver.svg	MOVED	1	215	0.0000	0.0139	0.024426	MATCH	-
+metronome-mark-formatter.svg	MOVED	6	365	0.0000	0.0013	0.002284	MATCH	-
+midi-dynamics.svg	MOVED	3	72	0.0000	0.0018	0.003163	MATCH	-
+mozart-hrn-3-2.svg	MOVED	1	1191	0.0000	0.0013	0.002284	MATCH	-
+mozart-hrn-3-3.svg	MOVED	1139	1238	0.0000	0.0013	0.002284	MATCH	-
+mozart-hrn-3-4.svg	MOVED	2	1096	0.0000	0.0013	0.002284	MATCH	-
+multi-measure-rest-create-context.svg	MOVED	1	20	0.0000	0.0025	0.004393	MATCH	-
+multi-measure-rest-text-spanned.svg	MOVED	1	57	0.0000	0.0025	0.004393	MATCH	-
+multi-measure-rest-text.svg	MOVED	1	48	0.0000	0.0077	0.013531	MATCH	-
+one-line-auto-height-breaking.svg	SAME-FONTS	0	0	0.0000	0.0000	0.000000	GLYPHS-DIFFER	4dd046845068c507794cf6dda1ce8d696f7ec1fe274143aecbd09f3a9f0aa052
+one-line-breaking.svg	SAME-FONTS	0	0	0.0000	0.0000	0.000000	GLYPHS-DIFFER	be7ec5a4443b49b61a63ad94aa64064054ad8038ab3d98d262356705636e3248
+one-page-breaking.svg	SAME-FONTS	0	0	0.0000	0.0000	0.000000	GLYPHS-DIFFER	c914ede151d6dbd2a7ab6406c572900f0fa695f824cff49c59e31934bd558938
+page-layout-bottom-padding.svg	MOVED	249	375	0.0000	0.0083	0.008022	MATCH	-
+parenthesize-singlenotes-chords-rests.svg	MOVED	7	71	0.0000	0.0013	0.002284	MATCH	-
+pdf-copy-paste.svg	SAME-FONTS	0	0	0.0000	0.0000	0.000000	GLYPHS-DIFFER	5f0f94c6e10c3a2d399c926cec5d71343e3f4baf90f2c13eb33370efd2645e32
+polymeter-ossia.svg	MOVED	2	68	0.0000	0.0047	0.008259	MATCH	-
+polymetric-time-repeat.svg	MOVED	1	278	0.0000	0.0025	0.004393	MATCH	-
+profile-property-access.svg	SAME-FONTS	0	0	0.0000	0.0000	0.000000	GLYPHS-DIFFER	50498eb4cdc72ff090908f282385e679c29f065a1b1de88cfa5f0d20ef7c7d19
+repeat-bar-number-engraver-order.svg	MOVED	2	86	0.0000	0.0025	0.004393	MATCH	-
+repeat-dc-one-alternative.svg	MOVED	1	39	0.0000	0.0026	0.004569	MATCH	-
+repeat-ds-body-empty.svg	MOVED	5	146	0.0000	0.0025	0.004393	MATCH	-
+repeat-line-break.svg	MOVED	2	62	0.0000	0.0025	0.004393	MATCH	-
+repeat-petrucci-alternatives.svg	MOVED	2	79	0.0000	0.0025	0.004393	MATCH	-
+repeat-petrucci-with-measure-bar-lines.svg	MOVED	7	115	0.0000	0.0040	0.007029	MATCH	-
+repeat-petrucci.svg	MOVED	2	100	0.0000	0.0040	0.007029	MATCH	-
+repeat-sign-global-size10.svg	MOVED	22	68	0.0000	0.0457	0.040154	MATCH	-
+repeat-sign-global-size5.svg	MOVED	22	68	0.0000	0.0914	0.040154	MATCH	-
+repeat-unfold-all.svg	MOVED	1	52	0.0000	0.0025	0.004393	MATCH	-
+repeat-unfold-partial.svg	MOVED	4	319	0.0000	0.0026	0.004569	MATCH	-
+repeat-volta-alternative-empty.svg	MOVED	3	108	0.0000	0.0025	0.004393	MATCH	-
+repeat-volta-alternative-zero-duration.svg	MOVED	3	108	0.0000	0.0025	0.004393	MATCH	-
+repeat-volta-body-empty.svg	MOVED	3	117	0.0000	0.0025	0.004393	MATCH	-
+repeat-volta-body-grace.svg	MOVED	3	147	0.0000	0.0025	0.004393	MATCH	-
+repeat-volta-body-zero-duration.svg	MOVED	3	117	0.0000	0.0025	0.004393	MATCH	-
+repeat-volta-count-one-printed.svg	MOVED	1	61	0.0000	0.0025	0.004393	MATCH	-
+repeat-volta-in-segno-end.svg	MOVED	1	59	0.0000	0.0025	0.004393	MATCH	-
+repeat-volta-in-segno-middle.svg	MOVED	1	65	0.0000	0.0025	0.004393	MATCH	-
+repeat-volta-in-segno-start.svg	MOVED	1	65	0.0000	0.0025	0.004393	MATCH	-
+repeat-volta-one-alternative.svg	MOVED	1	25	0.0000	0.0025	0.004393	MATCH	-
+repeat-volta-skip-alternatives.svg	MOVED	1	28	0.0000	0.0025	0.004393	MATCH	-
+repeat-volta-specified-alternatives.svg	MOVED	2	60	0.0000	0.0025	0.004393	MATCH	-
+repeat-volta.svg	MOVED	61	70	0.0000	0.0051	0.008962	MATCH	-
+rest-collision.svg	MOVED	91	180	0.0000	0.0025	0.004393	MATCH	-
+satb-template-with-men-women-and-descant.svg	MOVED	9	274	0.0000	0.0085	0.014937	MATCH	-
+script-skip.svg	MOVED	1	51	0.0000	0.0085	0.014937	MATCH	-
+section-label-style.svg	MOVED	72	75	0.0000	0.0085	0.014937	MATCH	-
+show-skylines.svg	STRUCTURE	211	219	0.0000	0.0000	0.000000	MATCH	-
+size20.svg	MOVED	1	44	0.0000	0.0025	0.004393	MATCH	-
+skyline-boxes-ellipses.svg	STRUCTURE	744	764	0.0000	0.0000	0.000000	PLACEMENT-DIFFERS	c016d11e0a700d67516d892bdd87d0506725200a7ddf5596060dea10379a0f10
+skyline-debug.svg	STRUCTURE	538	578	0.0000	0.0000	0.000000	MATCH	-
+skyline-embedded-ps.svg	STRUCTURE	256	286	0.0000	0.0000	0.000000	MATCH	-
+skyline-grob-rotation.svg	STRUCTURE	954	994	0.0000	0.0000	0.000000	GLYPHS-DIFFER	2b32cabb45d06791a49187c304f8bbf6708efcc450a037f35c0b75277db74ba5
+skyline-slur-segments.svg	STRUCTURE	655	675	0.0000	0.0000	0.000000	MATCH	-
+ssaattbb-template-with-all-staves.svg	MOVED	436	463	0.0000	0.0183	0.032159	MATCH	-
+ssaattbb-template-with-all-voices-on-one-staff.svg	MOVED	12	417	0.0000	0.0085	0.014937	MATCH	-
+ssaattbb-template-with-men-women-and-descant.svg	MOVED	210	415	0.0000	0.0049	0.008611	MATCH	-
+tablature-full-notation.svg	MOVED	1	343	0.0000	0.0001	0.000158	MATCH	-
+tablature-repeat-tie.svg	MOVED	1	245	0.0000	0.0025	0.004393	MATCH	-
+tablature-tie-behaviour.svg	MOVED	3	474	0.0000	0.0025	0.004393	MATCH	-
+typography-demo.svg	SAME-FONTS	0	0	0.0000	0.0000	0.000000	GLYPHS-DIFFER	50498eb4cdc72ff090908f282385e679c29f065a1b1de88cfa5f0d20ef7c7d19
+utf-8.svg	SAME-FONTS	0	0	0.0000	0.0000	0.000000	GLYPHS-DIFFER	a4e8b29534ab7f18a86467de60282dc99485a0659a4e7d2dfd6c2ea59bb6e661
+volta-bracket-add-volta-hook.svg	MOVED	1	30	0.0000	0.0025	0.004393	MATCH	-
+volta-bracket-grace-synchronization-negative.svg	MOVED	4	199	0.0000	0.0025	0.004393	MATCH	-
+volta-bracket-grace-synchronization.svg	MOVED	14	210	0.0000	0.0026	0.004569	MATCH	-
+volta-bracket-nest.svg	MOVED	1	43	0.0000	0.0025	0.004393	MATCH	-
+volta-bracket-vertical-skylines.svg	MOVED	2	146	0.0000	0.0025	0.004393	MATCH	-
+volta-bracket-warning-end-prematurely.svg	MOVED	4	122	0.0000	0.0025	0.004393	MATCH	-
+volta-bracket-warning-start-conflicting-numbers.svg	MOVED	1	26	0.0000	0.0025	0.004393	MATCH	-
+volta-broken-left-edge.svg	MOVED	4	227	0.0000	0.0025	0.004393	MATCH	-
+volta-multi-staff-inner-staff.svg	MOVED	1	89	0.0000	0.0025	0.004393	MATCH	-
+volta-multi-staff.svg	MOVED	1	89	0.0000	0.0025	0.004393	MATCH	-
+volta-number-offset.svg	MOVED	1	26	0.0000	0.0025	0.004393	MATCH	-
+volta-overhang-manual.svg	MOVED	2	74	0.0000	0.0025	0.004393	MATCH	-
+volta-overhang.svg	MOVED	1	45	0.0000	0.0025	0.004393	MATCH	-
+volta-spec-ossia.svg	MOVED	1	32	0.0000	0.0025	0.004393	MATCH	-
+volta-spec-volta-in-unfold.svg	MOVED	2	52	0.0000	0.0025	0.004393	MATCH	-

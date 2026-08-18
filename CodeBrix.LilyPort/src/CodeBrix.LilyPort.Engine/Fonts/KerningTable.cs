@@ -52,6 +52,59 @@ namespace CodeBrix.LilyPort.Engine.Fonts;
 /// </summary>
 public sealed class KerningTable
 {
+    /// <summary>
+    /// Determines whether a run's <c>font-features</c> string leaves the <c>kern</c>
+    /// feature switched on.
+    /// </summary>
+    /// <remarks>
+    /// <c>kern</c> is one of the features HarfBuzz enables for a horizontal run without
+    /// being asked, so the answer is <see langword="true"/> until an entry turns it off —
+    /// and the LAST entry naming the tag wins, because HarfBuzz appends the run's features
+    /// in order and a later one overrides an earlier. The <c>-tag</c>/<c>+tag</c> spelling
+    /// is the same one <see cref="SubstitutionTable"/> reads for GSUB; the feature just
+    /// reaches a different table.
+    /// <para>
+    /// ⚠ NOTHING ELSE CONSULTED THIS, which is why a run asking for <c>-kern</c> was
+    /// kerned anyway: the port routed <c>font-features</c> to GSUB only, so the
+    /// substitutions a run asked for landed and the positioning it asked AGAINST landed
+    /// too. <c>emmentaler-fractions</c> and <c>emmentaler-number-kerning</c> each devote
+    /// their fourth page to exactly that request.
+    /// </para>
+    /// </remarks>
+    /// <param name="features">The comma-joined <c>font-features</c> string.</param>
+    /// <returns><see langword="true"/> when the run is kerned.</returns>
+    public static bool Enabled(string features)
+    {
+        bool enabled = true;
+
+        if (string.IsNullOrEmpty(features))
+        {
+            return enabled;
+        }
+
+        foreach (string entry in features.Split(','))
+        {
+            string tag = entry.Trim();
+            if (tag.Length == 0)
+            {
+                continue;
+            }
+
+            bool off = tag[0] == '-';
+            if (off || tag[0] == '+')
+            {
+                tag = tag.Substring(1);
+            }
+
+            if (string.Equals(tag, "kern", StringComparison.Ordinal))
+            {
+                enabled = !off;
+            }
+        }
+
+        return enabled;
+    }
+
     private readonly List<List<PairSubtable>> _lookups;
     private readonly Dictionary<long, double> _legacyPairs;
 

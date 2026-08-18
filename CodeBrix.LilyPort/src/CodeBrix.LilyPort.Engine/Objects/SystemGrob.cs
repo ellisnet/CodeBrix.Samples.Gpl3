@@ -892,7 +892,25 @@ public class SystemGrob : Spanner
 
     /// <summary>
     /// Moves the system so its top edge sits at the origin, which is where the page
-    /// layout expects a line to start.
+    /// layout expects a line to start, and then computes EVERY grob's stencil.
+    /// <para>
+    /// Upstream calls the second half "generate all stencils to trigger font loads",
+    /// and it is cheap because stencils are cached per grob. But loading fonts is not
+    /// the only thing it does, and the other thing is load-bearing: a stencil callback
+    /// is allowed to have SIDE EFFECTS ON OTHER GROBS, and the only reason those land
+    /// is that this pass runs every callback before the drawing loop consumes anything.
+    /// <c>stem-span-stencil</c> (scm/music-functions.scm) is the case that proves it —
+    /// it hides the stems it spans by SETTING their <c>stencil</c> to <c>#f</c>, and
+    /// without this pass the drawing loop had already committed twelve of them
+    /// (<c>cross-staff-stems.ly</c>: 30 rects where the oracle draws 18).
+    /// </para>
+    /// <para>
+    /// Upstream's <c>uniquify</c> sorts by POINTER before removing duplicates, so its
+    /// visiting order is arbitrary; the port dedupes by reference in first-seen order
+    /// instead. That is a divergence in ORDER only, and it cannot be observed here: a
+    /// callback that overwrites another grob's stencil leaves the same value behind
+    /// whichever of the two ran first.
+    /// </para>
     /// </summary>
     public void PostProcessing()
     {
@@ -904,6 +922,25 @@ public class SystemGrob : Spanner
         else
         {
             TranslateAxis(-extent.Right, Axis.Y);
+        }
+
+        /* Generate all stencils to trigger font loads.
+           This might seem inefficient, but Stencils are cached per grob
+           anyway. */
+        List<Grob> allElementsSorted = new List<Grob>();
+        HashSet<Grob> seen = new HashSet<Grob>(ReferenceEqualityComparer.Instance);
+        foreach (Grob grob in AllElements)
+        {
+            if (seen.Add(grob))
+            {
+                allElementsSorted.Add(grob);
+            }
+        }
+
+        GetStencil();
+        foreach (Grob grob in allElementsSorted)
+        {
+            grob.GetStencil();
         }
     }
 

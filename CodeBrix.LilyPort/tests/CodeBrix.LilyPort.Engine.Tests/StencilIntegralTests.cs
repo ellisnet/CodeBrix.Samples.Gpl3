@@ -318,6 +318,84 @@ public class StencilIntegralTests
         lazy.IsEmpty.Should().BeFalse();
     }
 
+    [Fact]
+    public void a_trailing_space_reaches_the_run_s_full_advance_in_the_skyline()
+    {
+        //Arrange
+        // THE REGRESSION FILE'S OWN MATERIAL (rule 35b): "BB " is a mensural-ligatures-
+        // invalid.ly label, and its trailing space is the whole of what this fences.
+        //
+        // Expected off the AUTHORITY, not the port (rules 33/35a): upstream's
+        // add_glyph_string_segments divides a glyph's two metric sources and adds the
+        // KERNED BOX instead of the outline when the quotient is not finite, which for
+        // whitespace is 0/0 on either engine. get_glyph_desc builds that box from the
+        // LOGICAL sub-rectangle, whose width for a single glyph IS its advance — so a
+        // run's skyline reaches the run's full advance whenever it ends in a space.
+        TextFontMetric metric = new TextFontMetric("serif", false, false, false, 12.0, 1.0);
+        Stencil spaced = metric.TextStencil("BB ");
+        Stencil bare = metric.TextStencil("BB");
+        spaced.IsEmpty.Should().BeFalse();
+        bare.IsEmpty.Should().BeFalse();
+
+        //Act
+        double spacedReach = Trace(spaced, Axis.X).Down.Right();
+        double bareReach = Trace(bare, Axis.X).Down.Right();
+
+        //Assert
+        // THE CONTROL, which must come out DIFFERENTLY: a run ending in an INKED glyph
+        // stops at that glyph's INK, strictly inside its advance by the right side
+        // bearing. A fence asserting only the spaced case would pass with the filler
+        // wired to every glyph, and this is what says the filler is whitespace-only.
+        bareReach.Should().BeLessThan(bare.XExtent.Right);
+
+        // The relationship, not a literal (rule 33): a run that ENDS in a space reaches
+        // its own full advance, because the filler box spans the space's advance and the
+        // space is the last thing in the run. Without the filler this reach is "BB"'s
+        // ink — the two B outlines and nothing else — which is what the fence catches.
+        spacedReach.Should().BeApproximately(spaced.XExtent.Right, 1e-9);
+
+        // And it really is the space rather than a wider bearing: the reach passes the
+        // whole advance of the same run WITHOUT the space.
+        spacedReach.Should().BeGreaterThan(bare.XExtent.Right);
+    }
+
+    [Fact]
+    public void an_interior_space_leaves_no_hole_in_the_skyline()
+    {
+        //Arrange
+        // The other half of the same mechanism, and the one merge-rests-engraver.ly's
+        // "Upper text" depends on: a space BETWEEN words. Without the filler the run's
+        // skyline is two separate islands with an empty gap over the space, so a grob
+        // under the gap is invisible to the collision pass.
+        TextFontMetric metric = new TextFontMetric("serif", false, false, false, 12.0, 1.0);
+        Stencil spaced = metric.TextStencil("B B");
+        Stencil single = metric.TextStencil("B");
+        Stencil singleSpaced = metric.TextStencil("B ");
+        spaced.IsEmpty.Should().BeFalse();
+
+        //Act
+        Skyline down = Trace(spaced, Axis.X).Down;
+
+        // The space occupies exactly the advance between "B" and "B ", so its middle is
+        // derived from the metric rather than guessed — the sample must land INSIDE the
+        // space or the test is about a letter (trap 32a).
+        double gapMiddle
+            = (single.XExtent.Right + singleSpaced.XExtent.Right) / 2.0;
+        double overGap = down.Height(gapMiddle);
+
+        //Assert
+        // Over the space the skyline is the filler at the BASELINE, a real building —
+        // never the empty skyline's infinity.
+        double.IsInfinity(overGap).Should().BeFalse(
+            "the space must contribute a building, not a hole");
+        overGap.Should().BeApproximately(0.0, 1e-9);
+
+        // The control: a point genuinely OUTSIDE the run is still empty, so the
+        // assertion above is about the space and not about the skyline being solid
+        // everywhere.
+        double.IsInfinity(down.Height(spaced.XExtent.Right + 10.0)).Should().BeTrue();
+    }
+
     private static OpenTypeFontMetric LoadMusicFont()
     {
         byte[] bytes = FontAssets.MusicFont("emmentaler-20");
