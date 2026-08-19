@@ -26,15 +26,13 @@ namespace CodeBrix.LilyPort.Tests;
 /// the oracle's own 126 and moved 37 comparator rows with no regression.
 /// </para>
 /// <para>
-/// ⚠ WHAT THIS FILE DELIBERATELY DOES NOT FENCE, because it is NOT yet true. A synthetic
-/// three-segment staff — <c>{ \stopStaff s4 \startStaff \bar "|" f4 \bar "|" e'4 }</c>
-/// three times over — renders 15 staff lines on the pinned oracle and still renders 5 in
-/// the port. The listener fix is therefore real but INCOMPLETE, and the residue has its
-/// own entry in the plan's open-defect table. A fence asserting the multi-segment count
-/// would have to be written red, and a fence written to the port's current answer would
-/// record the defect as the contract — which is the thing rule 33 exists to prevent.
-/// What is fenced here is the half that IS settled, and the control that any "just always
-/// start a spanner" shortcut would break.
+/// //was previously: a note here said the multi-segment count was deliberately NOT
+/// fenced, because a synthetic three-segment staff rendered 15 staff lines on the
+/// pinned oracle and only 5 in the port — that residue was defect D11, and PARITY 7
+/// (2026-08-14, the same day) closed it: D11 and D2 were ONE defect,
+/// <c>Spanner::set_bound</c>'s missing double dispatch. The note went stale unretired
+/// (trap 18). RE-MEASURED 2026-08-18 on both engines: oracle 15, port 15 — so the
+/// fence the note said would have to be written red is now written GREEN below.
 /// </para>
 /// </summary>
 [Collection("engine-global-state")]
@@ -94,5 +92,33 @@ public class StaffSpanEndToEndTests
 
         //Act & Assert
         StaffLines(One, "staffspanone").Should().Be(5);
+    }
+
+    [Fact]
+    public void three_stop_and_restart_segments_draw_three_staff_symbols_worth()
+    {
+        //Arrange
+        // The fence the header's retired note owed. Expected value read off the pinned
+        // ORACLE (rule 35), re-measured 2026-08-18: three stop/restart segments draw
+        // 15 staff lines. Written red at PARITY 6 it would have been — the port then
+        // drew 5 — and D11's close (PARITY 7, Spanner::set_bound's double dispatch) is
+        // what makes it green.
+        const string Segment =
+            "\\stopStaff s4 \\startStaff \\bar \"|\" f4 \\bar \"|\" e'4 ";
+        const string One = Version
+            + "\\score { \\new Staff { " + Segment + "} }\n";
+        const string Three = Version
+            + "\\score { \\new Staff { " + Segment + Segment + Segment + "} }\n";
+
+        //Act
+        int oneSegment = StaffLines(One, "staffspanseg1");
+        int threeSegments = StaffLines(Three, "staffspanseg3");
+
+        //Assert
+        // The RELATIONSHIP is the claim (rule 33): each restarted segment gets its own
+        // StaffSymbol's worth of lines, so three segments draw exactly three times the
+        // one-segment answer — and the absolute count is the oracle's own 15.
+        threeSegments.Should().Be(3 * oneSegment);
+        threeSegments.Should().Be(15);
     }
 }

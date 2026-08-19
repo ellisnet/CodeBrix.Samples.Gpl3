@@ -135,7 +135,10 @@ public sealed class Performance : MusicOutput
             return;
         }
 
-        Warn.Message("MIDI output to `" + output + "'...");
+        //was previously: no trailing newline. performance.cc:144 puts the newline
+        // INSIDE the format string — "MIDI output to `%s'...\n" — the one phase
+        // marker that closes its own line.
+        Warn.Message("MIDI output to `" + output + "'...\n");
 
         using (MidiStream midiStream = new MidiStream(output))
         {

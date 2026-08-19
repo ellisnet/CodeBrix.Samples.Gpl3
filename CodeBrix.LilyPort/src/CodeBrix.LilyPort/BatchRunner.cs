@@ -694,6 +694,15 @@ public static class BatchRunner
         // them afterwards, so the equivalent point is here.
         Flower.Warn.CheckExpectedWarnings();
 
+        // THE PER-FILE BOUNDARY closes any line the file's output left open. Upstream
+        // gets this for free — its per-file process exits and the stream ends — and
+        // R17 puts formatting fixes at exactly this boundary in scope. Without it, a
+        // file whose LAST output is a phase marker (message() leaves its line OPEN,
+        // as upstream's does) would have the driver's result line glued onto it, and
+        // the diagnostics comparator attributes everything since the previous result
+        // line, so one glued line mis-files a whole file's diagnostics.
+        (Flower.Warn.Output as Flower.LineTrackingWriter)?.EndOpenLine();
+
         return new BatchRunResult(
             svgPath,
             books.Count,

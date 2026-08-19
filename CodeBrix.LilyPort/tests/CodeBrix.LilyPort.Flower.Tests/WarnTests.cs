@@ -32,6 +32,7 @@ public class WarnTests : IDisposable
 {
     private readonly LogLevel _savedLevel = Warn.Level;
     private readonly bool _savedAsError = Warn.WarningAsError;
+    private readonly System.Func<bool> _savedAsErrorSource = Warn.WarningAsErrorSource;
     private readonly TextWriter _savedOutput = Warn.Output;
 
     public WarnTests()
@@ -42,12 +43,14 @@ public class WarnTests : IDisposable
         Warn.ClearMessages();
         Warn.Level = LogLevel.LevelDebug;
         Warn.WarningAsError = false;
+        Warn.WarningAsErrorSource = null;
     }
 
     public void Dispose()
     {
         Warn.Level = _savedLevel;
         Warn.WarningAsError = _savedAsError;
+        Warn.WarningAsErrorSource = _savedAsErrorSource;
         Warn.Output = _savedOutput;
         Warn.RecordMessages = false;
         Warn.ClearMessages();
@@ -198,6 +201,102 @@ public class WarnTests : IDisposable
 
         //Act / Assert
         Assert.Throws<LilyPondErrorException>(() => Warn.Warning("promoted"));
+    }
+
+    [Fact]
+    public void warning_as_error_promotes_a_programming_error_to_one_fatal_line()
+    {
+        //Arrange
+        Warn.WarningAsError = true;
+
+        //Act
+        Assert.Throws<LilyPondErrorException>(() => Warn.ProgrammingError("promoted"));
+
+        //Assert
+        // Upstream's promoted path (flower/warn.cc:230-231) prints ONE "fatal error:"
+        // line through print_error — NOT the two-line "programming error: ..." +
+        // "continuing, cross fingers" pair of the unpromoted path, which is the
+        // CONTROL other tests in this class pin.
+        Warn.Messages.Should().ContainSingle();
+        Warn.Messages[0].Should().Be("fatal error: promoted");
+    }
+
+    [Fact]
+    public void warning_as_error_promotes_a_non_fatal_error()
+    {
+        //Arrange
+        Warn.WarningAsError = true;
+
+        //Act
+        Assert.Throws<LilyPondErrorException>(() => Warn.NonFatalError("promoted"));
+
+        //Assert -- flower/warn.cc:247-248: the prefix becomes "fatal error:", not "error:"
+        Warn.Messages[0].Should().Be("fatal error: promoted");
+    }
+
+    [Fact]
+    public void an_expected_message_stays_suppressed_even_under_warning_as_error()
+    {
+        //Arrange
+        // Upstream asks is_expected FIRST on all three paths, so a registered message
+        // never reaches deferrable_error (warn.cc:227-231).
+        Warn.WarningAsError = true;
+        Warn.ExpectWarning("registered");
+
+        //Act -- must not throw
+        Warn.Warning("registered");
+
+        //Assert
+        Warn.Messages[0].Should().StartWith("suppressed warning: ");
+    }
+
+    [Fact]
+    public void a_deferral_scope_completes_first_and_stops_when_it_closes()
+    {
+        //Arrange
+        // WarningAsErrorExitDeferrer (warn.hh:47-66): inside the scope a promoted
+        // diagnostic PRINTS and defers the stop; the scope's close performs it. The
+        // work between the two lines below is the whole point of the mechanism.
+        Warn.WarningAsError = true;
+        Warn.WarningAsErrorExitDeferrer scope = new Warn.WarningAsErrorExitDeferrer();
+
+        //Act
+        Warn.Warning("deferred");
+        bool reportCompleted = true;
+
+        //Assert
+        Warn.Messages[0].Should().Be("fatal error: deferred");
+        reportCompleted.Should().BeTrue();
+        Assert.Throws<LilyPondErrorException>(() => scope.Dispose());
+
+        // The state must not leak into the next run (the port's process outlives the
+        // "exit", unlike upstream's): a fresh scope closes without throwing, and an
+        // unpromoted warning behaves normally again.
+        Warn.WarningAsError = false;
+        using (new Warn.WarningAsErrorExitDeferrer())
+        {
+            Warn.Warning("after the stop");
+        }
+
+        Warn.Messages[1].Should().Be("warning: after the stop");
+    }
+
+    [Fact]
+    public void the_source_hook_answers_when_the_backing_flag_is_off()
+    {
+        //Arrange
+        // The engine installs a live read of its option store here; flower only owes
+        // the OR between the two halves.
+        Warn.WarningAsError = false;
+        Warn.WarningAsErrorSource = static () => true;
+
+        //Act / Assert
+        Assert.Throws<LilyPondErrorException>(() => Warn.Warning("promoted by source"));
+
+        // The CONTROL: with the source answering false again, nothing promotes.
+        Warn.WarningAsErrorSource = static () => false;
+        Warn.Warning("plain again");
+        Warn.Messages[1].Should().Be("warning: plain again");
     }
 
     [Fact]

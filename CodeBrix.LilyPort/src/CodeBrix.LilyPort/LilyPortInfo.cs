@@ -8,9 +8,13 @@
 namespace CodeBrix.LilyPort;
 
 /// <summary>
-/// Identifies the LilyPond release this port tracks. The engraving engine is not yet
-/// ported; this type exists so the facade assembly has a public surface while the port
-/// is built out underneath it.
+/// Identifies the LilyPond release this port tracks.
+/// <para>
+/// //was previously: a note here said the engraving engine was not yet ported and this
+/// type existed only to give the facade assembly a public surface. The engine has since
+/// been ported in full and is verified against the pinned 2.27.2 oracle's own
+/// regression suite; this type remains the package's statement of provenance.
+/// </para>
 /// </summary>
 public static class LilyPortInfo
 {

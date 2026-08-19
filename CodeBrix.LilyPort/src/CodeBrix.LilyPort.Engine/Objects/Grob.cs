@@ -1769,7 +1769,11 @@ public abstract class Grob : IDiagnostics
 
     /// <summary>Returns the external representation.</summary>
     /// <returns>The grob's name and class.</returns>
-    public override string ToString() => "#<Grob " + Name + ">";
+    //was previously: => "#<Grob " + Name + ">";  Upstream's Grob::print_smob
+    // (lily/grob-smob.cc:41-49) puts a SPACE before the closing bracket — the
+    // scheme-engraver trace's "saw #<Grob NoteHead > coming from ..." is graded
+    // against those bytes.
+    public override string ToString() => "#<Grob " + Name + " >";
 
     /// <summary>
     /// Returns the property alist chain used for lookups that fall back through a

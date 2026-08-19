@@ -254,5 +254,8 @@ public abstract class Translator
 
     /// <summary>Returns the external representation.</summary>
     /// <returns>The translator's name.</returns>
-    public override string ToString() => "#<Translator " + Name + ">";
+    //was previously: => "#<Translator " + Name + ">";  Upstream's
+    // Translator::print_smob (lily/translator.cc:194-200) puts a SPACE before the
+    // closing bracket, exactly as Grob's does.
+    public override string ToString() => "#<Translator " + Name + " >";
 }

@@ -113,6 +113,48 @@ does not need. Porting them would produce nothing.
      Error raises LilyPondErrorException and the caller decides. This is the only
      place in flower/ where the port does not mirror upstream control flow.
 
+     EXTENDED 2026-08-18 (the warning-as-error + message-model session, GO
+     Jeremy; audit items 1.2 and 1.3):
+
+     * warning-as-error IS WIRED. warn.cc's three promotion branches
+       (programming_error :230, non_fatal_error :247, warning :260) route
+       through DeferrableError, the port of deferrable_error (:200-208), and
+       WarningAsErrorExitDeferrer (warn.hh:47-66, one upstream scope at
+       parse-scm.cc:62) is ported as an IDisposable whose Dispose performs the
+       deferred stop. exit(1) is LilyPondErrorException, as above. UNLIKE
+       upstream, the deferrer's statics RESET when the deferred stop fires --
+       upstream's process dies, this one runs the next file, and a surviving
+       flag would stop that file's run at its first deferral scope (the
+       per-file leak class). The flag itself is read LIVE from the engine's
+       option store through Warn.WarningAsErrorSource -- upstream mirrors into
+       a global from internal_set_option; the port cannot, because
+       ly:reset-options and the per-file option restore write the store
+       without passing ly:set-option, and a mirror would go stale exactly
+       there. The deferral was parked while the port reached programming
+       errors upstream does not; that residue was MEASURED ZERO on 2026-08-18
+       (the three "bounds of this piece" reports are upstream's own three,
+       graded MATCH by the diagnostics gate). Fenced by WarnTests (promotion,
+       one-fatal-line shape, expectation-beats-promotion, deferral scope,
+       source hook) and WarningAsErrorTests (the engine wiring + the
+       restore-bypass case).
+
+     * THE MESSAGE MODEL IS UPSTREAM'S OPEN-LINE MODEL. print_message
+       (warn.cc:161-177) starts a message on a new line when one is open and
+       appends NOTHING; the newline lives in the CALLER's text for the
+       warning/error/basic_progress family and is absent for message() and
+       progress_indication(). Warn previously WriteLine'd everything, which
+       rendered identically except where raw Scheme output with leading
+       newlines followed a phase marker -- scheme-engraver.ly's trace begins
+       "\n\n", and the port printed one blank line more than the oracle.
+       Message/Progress now write raw through EmitPart (Progress with
+       newline=false, warn-scheme.cc:121-122's own comment); three call sites
+       carry upstream's own suffixes ("Calculating line breaks... " and
+       "Drawing systems... " with paper-score.cc's trailing space; "MIDI
+       output to `%s'...\n" with performance.cc's embedded newline); and the
+       per-file boundary in BatchRunner closes any open line before the
+       driver's result line prints (R17's carve-out -- upstream's per-file
+       process exit did this for free).
+
 4.4  Interval.Compare throws instead of asserting
      Upstream assert()s when neither interval contains the other. The port throws
      InvalidOperationException, which is the same contract with a better

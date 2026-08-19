@@ -20,6 +20,7 @@
 using System;
 using System.Text;
 using CodeBrix.LilyPort.Engine.Music;
+using CodeBrix.LilyScheme.Runtime;
 using CodeBrix.LilyScheme.Values;
 
 namespace CodeBrix.LilyPort.Engine.Objects; //was previously: lily/prob.cc, lily/include/prob.hh;
@@ -224,20 +225,28 @@ public class Prob : ISchemeEqual
         }
     }
 
-    /// <summary>Returns the external representation, in upstream's debug wording.</summary>
-    /// <returns>The type, class and both alists.</returns>
+    /// <summary>Returns the external representation — <c>Prob::print_smob</c>.</summary>
+    /// <returns>The type, class and both alists, in upstream's exact bytes.</returns>
     public override string ToString()
     {
+        //was previously: hand-appended text with a space before each alist, the
+        // alists rendered by their .NET ToString (which for a Pair is the TYPE NAME,
+        // not Scheme text), and no trailing newline. Upstream (lily/prob.cc:138-150)
+        // scm_puts the class name DIRECTLY against scm_write of the mutable alist,
+        // writes the immutable alist against that, and ends " >\n" — newline included,
+        // which is what breaks the line after an event is displayed and what makes a
+        // NESTED prob (a music-cause, say) split its owner's report across lines.
+        // The Scheme printer's fallback for an engine object is this method, so this
+        // IS the port's print hook and owes upstream's bytes (rule 15's cousin: a
+        // printed representation is ported text, not the port's own prose).
         StringBuilder builder = new StringBuilder();
         builder.Append("#<Prob: ");
-        builder.Append(Type);
+        builder.Append(Printer.Display(Type));
         builder.Append(" C++: ");
         builder.Append(ClassName);
-        builder.Append(' ');
-        builder.Append(MutablePropertyAlist);
-        builder.Append(' ');
-        builder.Append(ImmutablePropertyAlist);
-        builder.Append(" >");
+        builder.Append(Printer.Write(MutablePropertyAlist));
+        builder.Append(Printer.Write(ImmutablePropertyAlist));
+        builder.Append(" >\n");
         return builder.ToString();
     }
 

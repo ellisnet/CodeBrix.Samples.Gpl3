@@ -127,10 +127,38 @@ public static class Warn
     public static LogLevel Level { get; set; } = LogLevel.LevelInfo;
 
     /// <summary>
-    /// Gets or sets a value indicating whether warnings are promoted to errors, which
-    /// is LilyPond's <c>--warning-as-error</c>.
+    /// Gets or sets the live source of the <c>warning-as-error</c> program option.
+    /// <para>
+    /// The engine installs a read of its option store here at bootstrap — the same
+    /// idiom <c>debug-property-callbacks</c> uses — so <c>ly:reset-options</c> and the
+    /// per-file session restore keep the answer honest with no mirror to go stale.
+    /// flower stays free of any dependency on the option machinery, exactly as
+    /// upstream's <c>flower/warn.cc:45</c> global is owned here and assigned only from
+    /// <c>lily/program-option-scheme.cc:115</c>.
+    /// </para>
     /// </summary>
-    public static bool WarningAsError { get; set; }
+    public static Func<bool> WarningAsErrorSource { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether warnings are promoted to errors, which
+    /// is LilyPond's <c>-dwarning-as-error</c> (<c>flower/warn.cc:45</c>). The setter
+    /// serves flower-only tests; once <see cref="WarningAsErrorSource"/> is installed
+    /// the OPTION is the truth, and the getter honours whichever half answers true.
+    /// //was previously: an auto-property nothing in the engine ever assigned, so
+    /// `ly:set-option 'warning-as-error` was inert for the life of the port. The
+    /// deferral it was parked behind — the D2 residue of programming errors upstream
+    /// does not reach — was MEASURED at zero on 2026-08-18 (the port's three
+    /// "bounds of this piece" reports are upstream's own three, graded MATCH by the
+    /// diagnostics gate), so the revisit condition fired and the option is wired.
+    /// </summary>
+    public static bool WarningAsError
+    {
+        get => _warningAsError
+            || (WarningAsErrorSource != null && WarningAsErrorSource());
+        set => _warningAsError = value;
+    }
+
+    private static bool _warningAsError;
 
     /// <summary>
     /// Gets or sets the writer diagnostics go to. Wrapping it in a
@@ -256,7 +284,11 @@ public static class Warn
 
         if (WarningAsError)
         {
-            Error(message, location);
+            //was previously: Error(message, location);
+            // Upstream routes the promotion through deferrable_error (warn.cc:260-261),
+            // not through error/1 — the same print and the same stop when no deferral
+            // scope is open, and a COMPLETED report first when one is.
+            DeferrableError(message, location);
             return;
         }
 
@@ -286,16 +318,36 @@ public static class Warn
         return true;
     }
 
-    /// <summary>Emits an informational message.</summary>
+    /// <summary>
+    /// Emits an informational message — upstream <c>message()</c>
+    /// (<c>flower/warn.cc:294-300</c>).
+    /// //was previously: Emit(...), which ends every message's line. Upstream's
+    /// message() goes through print_message with newline=true and NO appended
+    /// newline: it STARTS on its own line and leaves that line OPEN, and whatever
+    /// prints next supplies the break — usually the next message's own prepend, so
+    /// the rendering is unchanged almost everywhere. The case that can tell the
+    /// difference is Scheme code writing raw text with leading newlines to the same
+    /// stream: scheme-engraver.ly's trace begins "\n\n", and closing the line here
+    /// printed one blank line more than the oracle (measured 2026-08-18). Call
+    /// sites owe upstream's own suffixes — paper-score.cc appends " " to two of its
+    /// phase markers and performance.cc puts "\n" inside its MIDI line — because
+    /// this function no longer supplies any.
+    /// </summary>
     /// <param name="message">The message text.</param>
     /// <param name="location">Where it applies, or <see langword="null"/>.</param>
     public static void Message(string message, string location = null)
-        => Emit(LogLevel.Info, string.Empty, message, location);
+        => EmitPart(LogLevel.Info, message, location, newline: true);
 
-    /// <summary>Emits a progress message.</summary>
+    /// <summary>
+    /// Emits a progress indication — upstream <c>progress_indication()</c> as
+    /// <c>ly:progress</c> calls it, with <c>newline=false</c>: *"calls to
+    /// ly:progress should in general not start a new line"*
+    /// (<c>lily/warn-scheme.cc:121-122</c>), and nothing is appended either.
+    /// //was previously: Emit(...), which both started and ended a line.
+    /// </summary>
     /// <param name="message">The message text.</param>
     public static void Progress(string message)
-        => Emit(LogLevel.Progress, string.Empty, message, null);
+        => EmitPart(LogLevel.Progress, message, null, newline: false);
 
     /// <summary>
     /// Emits a success message — <c>basic_progress</c>, which upstream logs one level
@@ -330,12 +382,17 @@ public static class Warn
         // invisible at --loglevel=ERROR. And upstream prints a SECOND line after every
         // programming error; the port printed only the first.
         //
-        // ⚠ What is deliberately NOT here: upstream routes a programming_error through
-        // deferrable_error when warning-as-error is set, which prints `fatal error: ' and
-        // stops the run. The port must not do that yet — it still REACHES programming
-        // errors upstream does not (defect D2), so honouring warning-as-error would turn
-        // those into lost output rather than a noisy log. Recorded in PORT-COVERAGE with
-        // its revisit condition: when D2's residue is zero.
+        //was previously: a note here parked the warning-as-error branch behind D2's
+        // residue of programming errors upstream does not reach. MEASURED ZERO on
+        // 2026-08-18 (the three remaining "bounds of this piece" reports are upstream's
+        // own three, graded MATCH by the diagnostics gate), so upstream's branch
+        // (flower/warn.cc:230-231) is here now.
+        if (WarningAsError)
+        {
+            DeferrableError(message, location);
+            return;
+        }
+
         Emit(LogLevel.Error, "programming error: ", message, location);
         Emit(LogLevel.Error, string.Empty, "continuing, cross fingers", location);
     }
@@ -359,6 +416,84 @@ public static class Warn
         throw new LilyPondErrorException(message, location);
     }
 
+    // WarningAsErrorExitDeferrer's file statics (flower/warn.cc:179-180). Upstream never
+    // clears exit_deferred_ because the process is about to die; the port's process
+    // outlives the "exit", so both reset when the deferred stop fires — a flag that
+    // survived the throw would stop the NEXT file's run at its first deferral scope
+    // (the per-file leak class, trap 16).
+    private static uint _deferralEnabled;
+    private static bool _exitDeferred;
+    private static string _deferredMessage;
+    private static string _deferredLocation;
+
+    /// <summary>
+    /// Prints a promoted diagnostic as <c>fatal error:</c> and stops the run — at once
+    /// when no deferral scope is open, at scope close when one is.
+    /// <c>flower/warn.cc:200-208</c>, <c>deferrable_error</c>: with no scope it falls
+    /// through to <c>non_deferrable_error</c>, which is the port's
+    /// <see cref="Error"/> — the same <c>fatal error:</c> print and the same stop.
+    /// </summary>
+    /// <param name="message">The diagnostic text.</param>
+    /// <param name="location">Where the problem was found, or <see langword="null"/>.</param>
+    public static void DeferrableError(string message, string location = null)
+    {
+        if (_deferralEnabled == 0)
+        {
+            Error(message, location);
+        }
+
+        _exitDeferred = true;
+        _deferredMessage = message;
+        _deferredLocation = location;
+        Emit(LogLevel.Error, "fatal error: ", message, location);
+    }
+
+    /// <summary>
+    /// Defers the warning-as-error stop while in scope — upstream's
+    /// <c>WarningAsErrorExitDeferrer</c> (<c>flower/include/warn.hh:47-66</c>): when
+    /// <c>warning-as-error</c> is set it can be undesirable to stop on the FIRST
+    /// promoted diagnostic, so a scope holder lets the work in progress finish and
+    /// performs the stop when it closes. Upstream declares exactly one, inside the
+    /// embedded-Scheme error handler (<c>lily/parse-scm.cc:62</c>), so an error
+    /// report completes before the run stops; the port opens its scope at the same
+    /// site.
+    /// </summary>
+    public sealed class WarningAsErrorExitDeferrer : IDisposable
+    {
+        /// <summary>Opens the scope — the constructor, <c>warn.cc:182-185</c>.</summary>
+        public WarningAsErrorExitDeferrer()
+        {
+            _deferralEnabled++;
+        }
+
+        /// <summary>
+        /// Closes the scope and performs a recorded deferred stop — the destructor,
+        /// <c>warn.cc:187-192</c>, whose <c>exit (1)</c> is the port's
+        /// <see cref="LilyPondErrorException"/>. The message was already printed when
+        /// the stop was deferred, exactly as upstream prints before deferring, so the
+        /// throw carries the text without re-emitting it.
+        /// </summary>
+        public void Dispose()
+        {
+            bool stop = _exitDeferred;
+            string message = _deferredMessage;
+            string location = _deferredLocation;
+            _exitDeferred = false;
+            _deferredMessage = null;
+            _deferredLocation = null;
+            if (_deferralEnabled > 0)
+            {
+                _deferralEnabled--;
+            }
+
+            if (stop)
+            {
+                throw new LilyPondErrorException(
+                    message ?? "warning treated as error", location);
+            }
+        }
+    }
+
     /// <summary>Emits a non-fatal error, without throwing.</summary>
     /// <param name="message">The error text.</param>
     /// <param name="location">Where the problem was found, or <see langword="null"/>.</param>
@@ -370,7 +505,50 @@ public static class Warn
             return;
         }
 
+        // Upstream's warning-as-error branch, flower/warn.cc:247-248.
+        if (WarningAsError)
+        {
+            DeferrableError(message, location);
+            return;
+        }
+
         Emit(LogLevel.Error, "error: ", message, location);
+    }
+
+    /// <summary>
+    /// The open-line half of upstream's <c>print_message</c>
+    /// (<c>flower/warn.cc:161-177</c>): starts on a new line when asked and the
+    /// current line is open, writes the text EXACTLY as given — no prefix, no
+    /// appended newline — and leaves the line state to the text's own last
+    /// character, which the <see cref="LineTrackingWriter"/> tracks. The
+    /// closed-line family (warnings, errors, basic progress) stays on
+    /// <see cref="Emit"/>, whose upstream call sites append their own newline.
+    /// </summary>
+    /// <param name="severity">The log level.</param>
+    /// <param name="message">The text, exactly as it should reach the stream.</param>
+    /// <param name="location">Where it applies, or <see langword="null"/>.</param>
+    /// <param name="newline">Whether the text must start on a fresh line.</param>
+    private static void EmitPart(
+        LogLevel severity, string message, string location, bool newline)
+    {
+        string text = string.IsNullOrEmpty(location)
+            ? message
+            : location + ": " + message;
+
+        if (RecordMessages)
+        {
+            RecordedMessages.Add(text);
+        }
+
+        if (IsEnabled(severity))
+        {
+            if (newline && Output is LineTrackingWriter tracker)
+            {
+                tracker.EndOpenLine();
+            }
+
+            Output?.Write(text);
+        }
     }
 
     private static void Emit(LogLevel severity, string prefix, string message, string location)

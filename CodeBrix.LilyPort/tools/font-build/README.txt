@@ -126,13 +126,25 @@ engraver reads from the LILC table, the advance widths and the glyph inventory,
 and FALSE of the one path that reads the outline, which is skyline computation,
 and which decides eleven regression-corpus rows.
 
-Under ruling R19 the port builds its own fonts permanently, and those eleven
-rows are graded against COMMITTED PORT-GENERATED BASELINES frozen against the
-outlines THIS toolchain produces. So a regeneration on a different FontForge
-will move those baselines silently: the sweep will still be green against the
-oracle everywhere else, and the baseline rows will drift with nothing to catch
-it. If you rebuild the fonts on a different toolchain, RE-FREEZE the baselines
-in the same session and say so in baseline-manifest.tsv's header.
+Under ruling R19 the port builds its own fonts permanently. Under R20
+(2026-08-17 -- which RETIRED the committed R9 baselines; baseline/svg and
+baseline-manifest.tsv no longer exist) the corpus is graded BOTH ways on every
+run: once with LilyPond's own release binaries from
+tests/fixtures/lilypond-fonts (the GATE -- any divergence there is the ENGINE),
+and once with the port's own fonts, whose cost is recorded exactly, in
+millimetres per page, in tools/regression-harness/font-delta-ledger.tsv against
+a 0.05 mm ceiling; pages the gate does not certify also carry a sha256 drift
+hash in that ledger. So a regeneration on a different FontForge is no longer
+silent: font-delta.py --check fails loudly on ANY change to ANY recorded
+number, in either direction. If you rebuild the fonts on a different toolchain,
+then IN THE SAME SESSION: (1) re-run the font-parity pair (harness README,
+"THE FONT-PARITY PAIR") and re-write font-delta-ledger.tsv with a reasoned
+record of why every changed number changed; (2) re-run
+generate-glyph-identity.py -- the committed glyph-name index is built from the
+port's OWN fonts and goes stale with them (its --check is the fence); (3)
+re-run GlyphOutlineSkylineTests, which carries the outline-correctness claim.
+A ledger row crossing the 0.05 mm ceiling is a re-ruling for Jeremy, not a
+number to accept.
 
 ================================================================================
 3.  HOW TO BUILD

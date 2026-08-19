@@ -7084,15 +7084,23 @@ sides -- D11 (staff-span segments after the first were never drawn) and D2
   LOG_INFO and the port's default log level is LevelWarn where upstream's is INFO.
   The diagnostics gate drops those lines on both sides anyway.
 
-  DELIBERATELY NOT DONE, WITH ITS REVISIT CONDITION.  Upstream routes a
-  programming_error and a non_fatal_error through deferrable_error when
-  warning-as-error is set, which prints `fatal error: ' and stops the run.  The
-  port must not do that yet: it still REACHES programming errors upstream does
-  not (the D2 residue, 3 occurrences of "bounds of this piece aren't breakable"),
-  and honouring warning-as-error would turn those into LOST OUTPUT rather than a
-  noisy log.  Revisit when that residue is zero.  Related and also left alone:
-  Warn.WarningAsError is assigned by nothing, so `ly:set-option 'warning-as-error'
-  is inert in the port.
+  DONE (2026-08-18, the AUDIT-FIXES session -- the revisit condition FIRED and
+  was measured).  This entry used to park deferrable_error behind the D2
+  residue: "the port still REACHES programming errors upstream does not (3
+  occurrences of `bounds of this piece aren't breakable')".  MEASURED at the
+  ruling: the port's three occurrences are upstream's OWN three -- grace-end,
+  grace-end-expression and repeat-volta-body-grace each carry the identical
+  programming error in the reference diagnostics, the graded totals are 29 = 29,
+  and the gate reads 2,146/2,146 -- so the residue-against-upstream was ZERO and
+  had been since the D2/D11 close.  warning-as-error is now WIRED: the three
+  warn.cc promotion branches, deferrable_error and the exit deferrer are ported
+  in Flower's Warn (see Flower PORT-COVERAGE 4.3 for the full account,
+  including why the flag is a LIVE READ of the option store rather than
+  upstream's mirrored global), the parse-scm.cc:62 deferral scope sits in
+  LilyParserSession.EvaluateEmbedded's handler, and that handler's catch now
+  excludes LilyPondErrorException -- it models scm_c_catch, and the port's
+  exit(1) is not a Scheme throw, so a promotion raised DURING embedded
+  evaluation aborts the file exactly as upstream's process death does.
 
 --------------------------------------------------------------------------------
 GLYPH SUBSTITUTION -- THE GSUB SURFACE (2026-08-15, PARITY 9, D33)
@@ -9885,3 +9893,57 @@ BarEngravers.  EVERY ONE IS FAITHFUL.
 
 The class stays open as a residual, now with a measured size and a named
 remainder rather than an open worry.
+
+--------------------------------------------------------------------------------
+AUDIT FIXES (2026-08-18, GO Jeremy) -- the shipped-text corrections, the
+Windows path-escaping class, and printed-representation parity
+--------------------------------------------------------------------------------
+
+INCLUDE-SETTINGS IS SANITIZED AT THE STORE, WINDOWS ONLY -- A DELIBERATE
+DIVERGENCE (GO Jeremy 2026-08-18).  ly/init.ly:44 splices each
+include-settings value RAW between double quotes into an \include line, and
+the LilyPond lexer's quoted strings process escapes -- so on Windows
+C:\Users\... dies on \U and C:\temp silently names a different file through
+\t.  Upstream has the identical exposure; the LilyScheme precedent (the
+reader stays faithful, the HOST escapes what it splices) puts the repair on
+the host side, and the vendored file is never edited (rule 13).
+ProgramOptions.Set and AppendTo therefore normalize that ONE option's string
+values -- backslash separators become forward slashes, WINDOWS ONLY, where a
+backslash is always a separator and never part of a name, so the rewritten
+value names the same file.  On every other platform the value passes through
+untouched and the splice behaves exactly as upstream's does (a POSIX filename
+may legitimately contain a backslash; rewriting it would name a DIFFERENT
+file).  Fenced by ProgramOptionsTests, whose treatAsWindows seam runs the
+Windows arm on any platform; the store-level control pins that no OTHER
+option is touched.  The one C#-to-Scheme splice in the tree
+(FontWorldQueryTests' ly:font-config-add-font call) now goes through
+LilyScheme's Printer.WriteString, the sister repo's round-trip escaper,
+instead of its former hand-rolled Replace("\\","/").
+
+PRINTED REPRESENTATIONS ARE PORTED TEXT (rule 15's cousin), measured against
+the oracle's scheme-engraver trace and now byte-identical in content:
+
+  * Prob.ToString is Prob::print_smob (lily/prob.cc:138-150): the class name
+    DIRECTLY against scm_write of the mutable alist, the immutable alist
+    against that, and " >\n" -- the trailing newline included, which is what
+    breaks the line after a displayed event and what splits a NESTED prob
+    (a music-cause) across lines exactly as the oracle's does.  The alists
+    render through LilyScheme's Printer.Write, not .NET ToString -- the old
+    text printed a Pair as its TYPE NAME.
+  * Stream_event's ToString override is REMOVED: upstream stream-event.cc
+    declares no print_smob, so an event prints through Prob's.
+  * Grob and Translator print with upstream's trailing space --
+    "#<Grob NoteHead >" (grob-smob.cc:41-49), "#<Translator
+    Note_heads_engraver >" (translator.cc:194-200).
+  * The message model moved to upstream's open-line print_message semantics,
+    with three call-site suffixes restored -- the full account is Flower
+    PORT-COVERAGE 4.3; the per-file boundary close in BatchRunner is R17's
+    carve-out.
+
+ACCEPTED UNDER R17 (log ORDER, not content): the oracle's own
+scheme-engraver.log interleaves three phase markers INSIDE the final trace
+record and glues "Drawing systems..." onto the record's tail -- a buffering
+artifact of the oracle process's own capture.  The port emits the record
+whole and the markers after it.  The line CONTENTS are identical as a
+multiset; reproducing the oracle's interleave would mean modelling its
+stderr flush timing, which no ruling asks for.

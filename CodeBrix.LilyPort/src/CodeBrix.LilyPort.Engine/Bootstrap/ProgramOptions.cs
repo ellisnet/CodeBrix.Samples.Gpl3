@@ -89,7 +89,7 @@ public sealed class ProgramOptions
             _order.Add(name);
         }
 
-        _values[name] = value;
+        _values[name] = SanitizeSplicedPath(name, value);
     }
 
     /// <summary>
@@ -183,8 +183,64 @@ public sealed class ProgramOptions
         // Upstream conses onto whatever the handle holds, without checking that it is a
         // list — so a mis-declared accumulative option builds an improper list there and
         // here alike. Reproduced rather than corrected.
-        _values[name] = new Pair(value, current);
+        _values[name] = new Pair(SanitizeSplicedPath(name, value), current);
         return true;
+    }
+
+    /// <summary>
+    /// Sanitizes the value of the ONE option whose consumer splices it into source that
+    /// is re-lexed: <c>ly/init.ly</c> formats each <c>include-settings</c> entry raw
+    /// between double quotes into an <c>\include</c> line. On Windows a native path
+    /// there is misread by the lexer's escape rules — <c>C:\Users</c> dies on
+    /// <c>\U</c>, and <c>C:\temp</c> silently names a different file through
+    /// <c>\t</c> — so the HOST normalizes the separators at the store boundary, the
+    /// LilyScheme precedent (the reader stays faithful; whoever supplies text that will
+    /// be re-read escapes it) applied to the one splice the vendored layer performs.
+    /// <para>
+    /// A deliberate, WINDOWS-ONLY divergence (GO Jeremy 2026-08-18, recorded in
+    /// PORT-COVERAGE): on Windows a backslash is always a separator and never part of a
+    /// file name, so the rewritten value names the same file; on every other platform a
+    /// backslash is a legal file-name character and the value passes through untouched
+    /// — where the vendored splice then behaves exactly as upstream's does.
+    /// </para>
+    /// </summary>
+    /// <param name="name">The option name.</param>
+    /// <param name="value">The value being stored.</param>
+    /// <returns>The value to store.</returns>
+    private static object SanitizeSplicedPath(string name, object value)
+        => name == "include-settings"
+            ? NormalizeDirectorySeparators(value, OperatingSystem.IsWindows())
+            : value;
+
+    /// <summary>
+    /// Rewrites backslash separators to forward slashes in a string value when the
+    /// host's separator is the backslash. Internal with an explicit switch so the fence
+    /// can exercise the Windows arm on any platform. Non-string values pass through.
+    /// </summary>
+    /// <param name="value">The value to normalize.</param>
+    /// <param name="treatAsWindows">Whether to treat the host as Windows.</param>
+    /// <returns>The normalized value.</returns>
+    internal static object NormalizeDirectorySeparators(object value, bool treatAsWindows)
+    {
+        if (!treatAsWindows)
+        {
+            return value;
+        }
+
+        if (value is MutableString mutableText)
+        {
+            string text = mutableText.ToString();
+            return text.IndexOf('\\') >= 0
+                ? new MutableString(text.Replace('\\', '/'))
+                : value;
+        }
+
+        if (value is string clrText && clrText.IndexOf('\\') >= 0)
+        {
+            return clrText.Replace('\\', '/');
+        }
+
+        return value;
     }
 
     /// <summary>

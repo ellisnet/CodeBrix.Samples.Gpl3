@@ -54,13 +54,12 @@
   <ItemGroup>
     <ProjectReference Include="..\CodeBrix.LilyPort.Flower\CodeBrix.LilyPort.Flower.csproj" />
     <!--
-      Development-time ProjectReference into the sibling CodeBrix.LilyScheme repo.
-      Long-term this becomes a PackageReference on
-      CodeBrix.LilyScheme.LgplLicenseForever; see the plan section 1. Flagged
-      here because a cross-repo filesystem reference is discouraged-but-negotiable
-      under the CodeBrix rules, and this one is deliberate and temporary.
+      The Scheme interpreter, consumed as its published nuget.org package.
+      Nothing in this repo may reach outside the repo with a filesystem
+      reference; package references are the only permitted external edge.
     -->
-    <ProjectReference Include="..\..\..\..\CodeBrix.LilyScheme\src\CodeBrix.LilyScheme\CodeBrix.LilyScheme.csproj" />
+    <!--was previously: <ProjectReference Include="..\..\..\..\CodeBrix.LilyScheme\src\CodeBrix.LilyScheme\CodeBrix.LilyScheme.csproj" />-->
+    <PackageReference Include="CodeBrix.LilyScheme.LgplLicenseForever" Version="1.0.230.1423" />
   </ItemGroup>
 
 </Project>

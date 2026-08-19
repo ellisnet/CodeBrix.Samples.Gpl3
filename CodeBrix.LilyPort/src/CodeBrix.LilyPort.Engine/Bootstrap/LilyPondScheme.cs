@@ -413,6 +413,22 @@ public static class LilyPondScheme
         EngineClasses.Install();
         EmbeddedLilyReader.Install();
         Options = GeneralPrimitives.Install(interpreter);
+
+        // The warning-as-error wiring (2026-08-18, discharging the parked half of the
+        // PORT-COVERAGE deferrable_error entry). Upstream assigns flower/warn.cc:45's
+        // global from internal_set_option (program-option-scheme.cc:112-115); the port
+        // reads the option store LIVE instead — the debug-property-callbacks idiom —
+        // because ly:reset-options and the per-file session restore both write values
+        // without going through ly:set-option, and a mirrored bool would go stale
+        // exactly there (trap 16's shape). ToBool is upstream's from_scm<bool>:
+        // exactly-#t, so `-dwarning-as-error=whatever` does not read as true.
+        Flower.Warn.WarningAsErrorSource = static () =>
+        {
+            ProgramOptions current = Options;
+            return current != null
+                && Objects.SchemeUtilities.ToBool(current.Get("warning-as-error"));
+        };
+
         MusicPrimitives.Install(interpreter);
         TypePredicates.Install(interpreter);
         ProbPrimitives.Install(interpreter);

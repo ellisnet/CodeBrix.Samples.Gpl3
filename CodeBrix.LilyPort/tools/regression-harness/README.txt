@@ -302,8 +302,13 @@ CodeBrix.LilyPort/THIRD-PARTY-NOTICES.txt section 1.
 
 TWO THINGS TO KNOW:
 
-  * ly/articulate.ly is GPL-3-ONLY, not "or later", and is DELIBERATELY ABSENT.
-    See THIRD-PARTY-NOTICES.txt section 2 -- that decision is still open.
+  * ly/articulate.ly is GPL-3-ONLY, not "or later", and IS VENDORED
+    (src/CodeBrix.LilyPort.Engine/Scheme/ly/articulate.ly). Including it is
+    what makes the aggregate package convey as GPL-3.0-only. See
+    THIRD-PARTY-NOTICES.txt section 2, which records the consequence in full.
+    (This bullet once said the file was deliberately absent and the decision
+    still open -- true when written, false since D12 was ruled and the file
+    was added; corrected 2026-08-18.)
 
   * input/regression/musicxml/ is MIT-licensed (Reinhold Kainhofer), NOT GPL. It
     is a separate work that happens to live inside the regression tree. It is NOT
@@ -889,7 +894,8 @@ A SHARP EDGE WORTH KNOWING BEFORE READING A DIFF
       way. CodeBrix.LilyScheme's SoftPortBufferingTests fences the model.
 
 ================================================================================
-THREE RULINGS THE HARNESS NOW CARRIES (2026-08-16, PARITY 15)
+THREE RULINGS THE HARNESS NOW CARRIES (2026-08-16, PARITY 15; R9's slot passed
+to R20 on 2026-08-17, and this section was updated for it on 2026-08-18)
 ================================================================================
 
 G1's definition has always read "every root regression file + other/ MATCHes the
@@ -907,33 +913,45 @@ font-BUILD-dependent, which is a different thing. Left alone, the sentence descr
 G1 when it goes green would have been false about eight of its rows.
 
   g1-skip-list.tsv          R11 -- the rows ruled OUT of G1
-  baseline/svg + baseline-manifest.tsv
-                            R9  -- the rows graded against the PORT instead
+  font-delta-ledger.tsv + tests/fixtures/lilypond-fonts
+                            R20 -- the font-build rows PRICED against the
+                            oracle (this RETIRED R9's committed baseline on
+                            2026-08-17; baseline/svg and baseline-manifest.tsv
+                            are deleted)
   compare-output.py's R10 post-pass
                             R12 -- four rows graded WITH a stated bound
 
 THEY ARE THREE DIFFERENT THINGS AND MUST NOT BE MERGED.
 
-  * A SKIP-LIST row is not required to match at all. Eight of them, all one
-    mechanism (D31's tofu, extended by name in R8(A)). The file is read by
-    NOTHING automatically and has no reporting script: it exists so that
-    "2,316 pages match except these eight, ruled out on this date for this
-    reason" is answerable from the REPOSITORY, not from a plan document that
-    does not ship.
+  * A SKIP-LIST row is not required to match at all. Eleven of them now --
+    D31's tofu rows (extended by name in R8(A)), D31-as-amended's one (D45),
+    and D46's two. The file is read by NOTHING automatically and has no
+    reporting script: it exists so that "2,316 pages match except these
+    eleven, ruled out on this date for this reason" is answerable from the
+    REPOSITORY, not from a plan document that does not ship.
 
-  * A BASELINE row IS required to match -- the PORT's own frozen output rather
-    than the oracle's:
+  * A FONT-LEDGER row is PRICED rather than frozen (R20, which replaced R9's
+    port-generated baseline with something stronger -- an ORACLE-backed
+    measurement instead of a self-referential no-drift claim). Every graded
+    run goes BOTH ways:
 
-        python3 compare-output.py --baseline baseline/svg candidate/svg
+        BatchDriver ... /tmp/gate --fonts tests/fixtures/lilypond-fonts
+        python3 compare-output.py reference/svg /tmp/gate --tsv /tmp/gate.tsv
+        python3 font-delta.py candidate/svg /tmp/gate --gate /tmp/gate.tsv \
+            --check font-delta-ledger.tsv
 
-    Expect 6 of 6 MATCH. --baseline makes BOTH sides resolve glyph names against
-    the PORT's half of glyph-identity.tsv, and it is load-bearing: without it the
-    baseline side resolves 5 of 73 paths and every row reads GLYPHS-DIFFER. A
-    baseline claims NO DRIFT and nothing else (rule 33 forbids reading a value
-    recorded from the port's own output as a correctness result); the
-    correctness claim for that mechanism is GlyphOutlineSkylineTests in the
-    Engine suite. Landing a baseline without its fence is the failure mode.
-    Provenance and the re-freezing rule are in baseline-manifest.tsv's header.
+    The GATE run (LilyPond's own release binaries, never shipped -- fenced by
+    PackagedFontTests) must match the oracle exactly; any divergence there is
+    the ENGINE. The ledger then records what the port's OWN font build costs,
+    per page, in millimetres, against a 0.05 mm ceiling -- and --check fails
+    on ANY change to ANY recorded number, in either direction, on a row
+    appearing, and on a row vanishing. Pages the gate does not certify also
+    carry a sha256 drift hash in the ledger, which is the drift cover the
+    retired baseline used to provide. The correctness claim for the skyline
+    mechanism is still GlyphOutlineSkylineTests in the Engine suite, exactly
+    as it was under R9. (compare-output.py --baseline still exists and is
+    still right for any port-against-port comparison; there is simply no
+    committed baseline any more.)
 
   * The R10 POST-PASS grades normally and then, on four named files only, asks
     whether the ENTIRE inventory difference is text elements identical in family

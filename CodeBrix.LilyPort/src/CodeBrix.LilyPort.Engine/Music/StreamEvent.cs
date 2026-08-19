@@ -184,18 +184,12 @@ public class StreamEvent : Prob
         }
     }
 
-    /// <summary>Returns the external representation.</summary>
-    /// <returns>The event's class and properties.</returns>
-    public override string ToString()
-    {
-        StringBuilder builder = new StringBuilder();
-        builder.Append("#<Stream_event ");
-        builder.Append(EventClass);
-        builder.Append(' ');
-        builder.Append(MutablePropertyAlist);
-        builder.Append('>');
-        return builder.ToString();
-    }
+    //was previously: a ToString override printing "#<Stream_event {class} {alist}>",
+    // with both halves rendered by their .NET ToString — for a Pair that is the TYPE
+    // NAME, not Scheme text. Upstream's Stream_event declares NO print_smob of its own
+    // (lily/stream-event.cc), so an event prints through Prob::print_smob as
+    // "#<Prob: Stream_event C++: Stream_event(...)...>"; the override is REMOVED and
+    // the base's faithful form serves (2026-08-18, the scheme-engraver trace parity).
 
     /// <summary>
     /// Deep-copies an event value: events are cloned, pairs are rebuilt, and anything

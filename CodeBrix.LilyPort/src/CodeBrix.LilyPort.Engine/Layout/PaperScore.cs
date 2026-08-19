@@ -160,7 +160,10 @@ public class PaperScore : MusicOutput
     {
         ConstrainedBreaking algorithm = new ConstrainedBreaking(this);
 
-        Warn.Message("Calculating line breaks...");
+        //was previously: no trailing space. paper-score.cc:115 writes
+        // message (_ ("Calculating line breaks...") + " ") — the space is upstream's
+        // own bytes, visible now that Message no longer closes the line.
+        Warn.Message("Calculating line breaks... ");
 
         object systemCountValue = LookupLayout(SystemCountSymbol);
         int systemCount = Bootstrap.SchemeConvert.IsNumber(systemCountValue)
@@ -203,7 +206,10 @@ public class PaperScore : MusicOutput
         {
             List<ColumnXPositions> breaking = CalcBreaking();
             _system.BreakIntoPieces(breaking);
-            Warn.Message("Drawing systems...");
+            //was previously: no trailing space. paper-score.cc:155 writes
+            // message (_ ("Drawing systems...") + " ") — unlike the page breakers'
+            // bare "Drawing systems...", which stay bare.
+            Warn.Message("Drawing systems... ");
             _system.DoBreakSubstitutionAndFixupRefpoints();
             systems.AddRange(_system.GetPaperSystemsPerLine());
         }

@@ -99,7 +99,9 @@ STATUS
                                    project licence: generate-documentation.ly,
                                    internal-backend-test.ly, titling-init.ly.
     Scheme/lily/*.scm              91 files, LilyPond, GPL-3.0-or-later.
-    tests/regression/              2,146 .ly + 29 .ily, GPL-3.0-or-later.
+    tests/regression/              2,146 .ly + 29 .ily, plus 73 .ly in
+                                   tests/regression/midi/ (the MIDI
+                                   subsuite), GPL-3.0-or-later.
 
     flower/ (ported to C#)         src/CodeBrix.LilyPort.Flower/, with
                                    upstream's own tests. Section 1.5.
@@ -1661,6 +1663,9 @@ Copyright: Copyright (C) 1996--2026 Han-Wen Nienhuys <hanwen@xs4all.nl>
 
     tests/regression/*.ly       2,146 inputs, vendored verbatim
     tests/regression/*.ily      29 include files, vendored verbatim
+    tests/regression/midi/*.ly  73 MIDI-subsuite inputs, vendored verbatim
+                                (graded by compare-midi.py against
+                                reference-midi/, recorded further below)
         <- lilypond/input/regression/
            Copyright (C) 1996--2026 the LilyPond contributors, GPL-3.0-or-later
 

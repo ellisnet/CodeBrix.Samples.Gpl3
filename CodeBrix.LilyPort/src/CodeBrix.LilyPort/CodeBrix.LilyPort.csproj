@@ -29,7 +29,7 @@
     <Product>CodeBrix.LilyPort</Product>
     <Title>CodeBrix.LilyPort</Title>
     <Authors>Jeremy Ellis</Authors>
-    <Description>A managed, cross-platform music engraving engine for .NET, ported from GNU LilyPond. Licensed GPL-3.0-only (not -or-later) because it includes LilyPond's articulate.ly, which is GPL-3-only. Early-stage: the flower utility layer is in place; the engraving engine is not yet ported.</Description>
+    <Description>A managed, cross-platform music engraving engine for .NET, ported from GNU LilyPond 2.27.2. The complete engine is ported — parser, Scheme layer, engravers, page layout, fonts, SVG and MIDI output — and is verified page-for-page against LilyPond's own 2,146-file regression suite. Licensed GPL-3.0-only (not -or-later) because it includes LilyPond's articulate.ly, which is GPL-3-only.</Description>
     <!--
       GPL-3.0-ONLY rather than "or later", and this is deliberate.
 
@@ -71,6 +71,20 @@
     <ProjectReference Include="..\CodeBrix.LilyPort.Engine\CodeBrix.LilyPort.Engine.csproj" PrivateAssets="all" />
     <ProjectReference Include="..\CodeBrix.LilyPort.Backends\CodeBrix.LilyPort.Backends.csproj" PrivateAssets="all" />
     <ProjectReference Include="..\CodeBrix.LilyPort.Parsing\CodeBrix.LilyPort.Parsing.csproj" PrivateAssets="all" />
+  </ItemGroup>
+
+  <!--
+    The Scheme interpreter is a real nuget.org DEPENDENCY of this package —
+    published separately as CodeBrix.LilyScheme.LgplLicenseForever — not one of
+    the bundled sub-assemblies above. It must be declared HERE as well as in the
+    Engine, because the Engine reference above is PrivateAssets="all", which
+    suppresses everything the Engine would otherwise contribute: without this
+    line the packed nuspec carries no LilyScheme dependency, and a consumer that
+    references this project alone (the regression BatchDriver) compiles clean
+    and then fails at runtime unable to load the interpreter assembly.
+  -->
+  <ItemGroup>
+    <PackageReference Include="CodeBrix.LilyScheme.LgplLicenseForever" Version="1.0.230.1423" />
   </ItemGroup>
 
   <PropertyGroup>

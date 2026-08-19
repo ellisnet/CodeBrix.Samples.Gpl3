@@ -25,6 +25,7 @@ using CodeBrix.LilyPort.Engine.Layout;
 using CodeBrix.LilyPort.Engine.Music;
 using CodeBrix.LilyPort.Engine.Objects;
 using CodeBrix.LilyPort.Engine.Origins;
+using CodeBrix.LilyPort.Flower;
 using CodeBrix.LilyPort.Parsing.Actions;
 using CodeBrix.LilyPort.Parsing.Driver;
 using CodeBrix.LilyPort.Parsing.Lexing;
@@ -531,9 +532,25 @@ public sealed partial class LilyParserSession : IParserHost, ILexerHost
                 }
             });
         }
-        catch (Exception ex)
+        catch (Exception ex) when (!(ex is LilyPondErrorException))
         {
-            ParserError(location, ex.Message);
+            // This catch models parse-scm.cc's scm_c_catch, and a
+            // LilyPondErrorException is NOT a Scheme throw — it is the port's
+            // exit(1), which no scm_c_catch can intercept. Under warning-as-error a
+            // promoted diagnostic raised DURING evaluation must therefore abort the
+            // file (upstream's process dies), not become a located parse error that
+            // lets the file carry on.
+            //
+            // The deferral scope is upstream's own, from the top of
+            // handle_error_before_unwinding (parse-scm.cc:62): a diagnostic promoted
+            // while REPORTING this error completes the report first and stops when
+            // the scope closes. The port's report path raises nothing today, so the
+            // scope is inert insurance — kept because it is where upstream keeps it.
+            using (new Warn.WarningAsErrorExitDeferrer())
+            {
+                ParserError(location, ex.Message);
+            }
+
             return DefaultArgument.Instance;
         }
     }

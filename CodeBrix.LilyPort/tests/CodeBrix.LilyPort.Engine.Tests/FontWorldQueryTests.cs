@@ -11,6 +11,7 @@ using CodeBrix.LilyPort.Engine.Bootstrap;
 using CodeBrix.LilyPort.Engine.Fonts;
 using CodeBrix.LilyPort.Engine.Objects;
 using CodeBrix.LilyScheme;
+using CodeBrix.LilyScheme.Runtime;
 using SilverAssertions;
 using Xunit;
 
@@ -195,9 +196,12 @@ public class FontWorldQueryTests
                 unknown.Should().Be(false);
 
                 // The DOCUMENT arm through the whole Scheme surface: register with the
-                // primitive R16 built, then ask with the one R18 built.
+                // primitive R16 built, then ask with the one R18 built. The path is
+                // spliced into Scheme SOURCE, so it goes through Printer.WriteString --
+                // a raw splice dies on \U (C:\Users) and silently misreads \t and \a.
+                //was previously: "(ly:font-config-add-font \"" + path.Replace("\\", "/") + "\")"
                 interpreter.EvalString(
-                    "(ly:font-config-add-font \"" + path.Replace("\\", "/") + "\")", "<r18>");
+                    "(ly:font-config-add-font " + Printer.WriteString(path) + ")", "<r18>");
                 object supplied = interpreter.EvalString(
                     "(ly:font-config-get-font-file \"Nimbus Sans\")", "<r18>");
                 SchemeUtilities.StringText(supplied).Should().Be(Path.GetFullPath(path));
