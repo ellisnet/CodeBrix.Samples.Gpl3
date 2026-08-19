@@ -73,6 +73,15 @@ public sealed class TextFontMetric : FontMetric
     // glyph, carrying the face, the glyph index and the design-units-to-output-units
     // scale — which is everything CffFont.AddOutlineToSkyline needs. Recorded in
     // PORT-COVERAGE under THE STENCIL EXPRESSION WALK.
+    //
+    // ⚠ THIS SUBSTITUTION IS WHAT D46 RULES ON (Jeremy, 2026-08-18). Because the node
+    // carries a FACE AND AN INDEX rather than Pango's measured boxes, the skyline built
+    // from it is bounded by the real outline, while upstream's is bounded by Pango's ink
+    // rectangle quantized to whole Pango units. The gap is ~4.2e-05 mm, it costs two
+    // -ddebug-skylines corpus rows and no moving mark anywhere, and both rows are ruled
+    // out of G1 on g1-skip-list.tsv rather than closed. Modelling Pango's quantization
+    // here is RULED AGAINST — see StencilIntegral.AddGlyphOutlineSegments, which consumes
+    // this node and carries the full ruling.
     private static readonly Symbol GlyphOutlineSymbol = Symbol.Intern("glyph-outline");
 
     // lily/include/pango-font.hh:75 — const int PANGO_RESOLUTION = 1200. Upstream never

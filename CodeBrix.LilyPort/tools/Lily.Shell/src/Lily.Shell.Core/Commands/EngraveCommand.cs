@@ -5,6 +5,7 @@
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
+using CodeBrix.LilyPort;
 using Lily.Shell.Kernel.Commands;
 using Lily.Shell.Services;
 using System;
@@ -41,19 +42,20 @@ public sealed class EngraveCommand : IShellCommand
     public string Summary => "Engraves a .ly file to SVG (and .midi when the score has a \\midi block).";
 
     /// <inheritdoc/>
-    public string Usage => "engrave <file.ly> [-o <output-dir>]";
+    public string Usage => "engrave <file.ly> [-o <output-dir-or-name>]";
 
     /// <inheritdoc/>
     public async Task ExecuteAsync(ShellCommandContext context)
     {
         string path = null;
-        string outputDirectory = null;
+        string outputName = null;
+        string outputDirectory;
 
         for (var i = 0; i < context.Arguments.Count; i++)
         {
             if (context.Arguments[i] == "-o" && i + 1 < context.Arguments.Count)
             {
-                outputDirectory = context.Arguments[i + 1];
+                outputName = context.Arguments[i + 1];
                 i++;
             }
             else if (path == null)
@@ -74,10 +76,22 @@ public sealed class EngraveCommand : IShellCommand
             return;
         }
 
-        outputDirectory ??= Path.GetDirectoryName(Path.GetFullPath(path));
+        // `-o' IS lilypond's, so it means what lilypond's means: a NAME, not just a
+        // directory. main.cc:729-761 asks whether the value is an existing directory and
+        // uses it as one if so; otherwise it splits the value and the FILE part becomes
+        // the output base name. `lily.shell engrave x.ly -o out/dir/name' therefore writes
+        // out/dir/name.svg, the way `lilypond -o out/dir/name x.ly' does.
+        //
+        //was previously: the whole value was taken as a directory, so `-o out/dir/name'
+        // created a directory called `name' and wrote x.svg inside it.
+        BatchRunner.SplitOutputName(outputName, out var namedDirectory, out var baseName);
+
+        outputDirectory = namedDirectory
+            ?? Path.GetDirectoryName(Path.GetFullPath(path));
         Directory.CreateDirectory(outputDirectory);
 
-        var result = await _host.EngraveFileAsync(path, outputDirectory, context.CancellationToken)
+        var result = await _host
+            .EngraveFileAsync(path, outputDirectory, baseName, context.CancellationToken)
             .ConfigureAwait(false);
 
         foreach (var diagnostic in result.Diagnostics)

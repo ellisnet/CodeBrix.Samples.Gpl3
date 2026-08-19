@@ -258,3 +258,36 @@ CORRECTED BY THE MIDI GROUP -- TWO TYPES THAT LOOKED PORTED AND WERE NOT
   byte-returning siblings of the existing char-based helpers. std::string is a byte
   container and System.String is not; the reasoning is in StringConvert.cs and in
   the Engine's PORT-COVERAGE.
+
+
+PARITY 26 -- offset_directed's DEGREE CONVERSION IS GROUPED, NOT FOLDED
+------------------------------------------------------------------------------
+  Upstream writes `sin ((90 - angle) * M_PI / 180.0)'.  C evaluates that LEFT TO
+  RIGHT: ((90 - angle) * M_PI) / 180.0.  The port had folded the constant into one
+  multiplier -- `(90 - angle) * ToRadians' with `ToRadians = Math.PI / 180.0' --
+  which is algebraically the same expression and is NOT the same expression in
+  doubles.
+
+  MEASURED: the two disagree in the last bit for 1,008 of the 2,881
+  quarter-degree angles in (-360, 360), and for 208 of the 719 whole-degree ones.
+  A rotation computed one bit away from upstream's is a rotation whose every
+  transformed point is one bit away from upstream's, and a skyline built from
+  those points can keep or drop a degenerate building on the strength of it.
+
+  Now upstream's grouping, in a private SinDegrees helper so the grouping is
+  stated once and cannot drift.  Fenced by five OffsetTests cases, each with a
+  control; the grouping case asserts that the two spellings DIFFER before
+  asserting which one Directed answers, so it cannot pass with the fix reverted.
+
+  /!\ NOT THE SAME AS SvgBackend's PiOver180, which mirrors lily-library.scm's
+      own `PI-OVER-180' constant.  Upstream really does precompute that one, and
+      folding it there is the faithful choice.  Family swept; that is the only
+      other site.
+
+  /!\ ONE ANGLE PRODUCES A NEGATIVE ZERO AND IT IS FAITHFUL.  `fmod' keeps the
+      sign of its first argument, so -360 folds to -0.0, every later test is
+      false, and the angle reaches `sin (-0.0 * M_PI / 180.0)' = -0.0.  Upstream
+      takes the identical path.  Fenced BECAUSE it looks like a defect: the
+      arrangement's "avoid -0.0" comment covers the quadrant handovers, not this.
+      It moved no corpus row -- none of the corpus's rotation angles is one of the
+      208 -- and that is expected of a rule-2 fix.

@@ -6246,6 +6246,21 @@ keeps its provided fonts and makes a coverage gap OBVIOUS.  The two pages are a
 permanent, documented divergence, rebaselined with the ruling recorded in
 pass-manifest-decisions.tsv; they cannot reach MATCH while the ruling stands.
 
+D47 (Jeremy, 2026-08-18) -- THE DEFERRED QUESTION IS ANSWERED: NO CJK, HEBREW,
+ARABIC OR JAPANESE SUPPORT FOR NOW.  D31 left "would this port ever cover
+CJK/Hebrew/Arabic/Japanese" as a deferred decision; Jeremy ruled it on
+2026-08-18: those scripts are UNSUPPORTED at this time -- no optional font
+packages are built and no coverage is promised.  What already renders keeps
+rendering: tofu per D31 for a code point no bundled face covers (the gap
+deliberately obvious, the missing-glyph warning intact), and a DOCUMENT that
+supplies its own font (R16) can genuinely cover these scripts today.  Future
+coverage happens only as work Jeremy SCHEDULES -- especially if a user request
+is made -- and that work is exactly the event the g1-skip-list.tsv
+revisit-condition column has always waited for (the two D31 originals and
+R8(A)'s six rows).  Measured the same day: the 19 generated documentation
+files contain ZERO characters from any of these scripts, so Phase 5 /
+LilyDocs is not blocked by this ruling.
+
 
 ================================================================================
 TEXT ADVANCES LAND ON PANGO'S DEVICE-DOT GRID
@@ -7689,6 +7704,18 @@ THE MISSING-GLYPH WARNING, AND WHERE ITS UNICODE NAMES LIVE
 THE MISSING-GLYPH WARNING NAMES A DIFFERENT FACE ON pdf-copy-paste
 (2026-08-16, PARITY 15 -- D40's remainder, ACCEPTED)
 --------------------------------------------------------------------------------
+
+/!\ SUPERSEDED 2026-08-17 BY R14, AND THE ACCEPTANCE BELOW NO LONGER APPLIES.
+    R14 made an unknown family resolve to TeX GYRE SCHOLA rather than to the head
+    of the serif chain, so the port now names texgyreschola-regular.otf and BOTH
+    ENGINES AGREE -- see "(3) THE DIAGNOSTICS ROW IT CLOSED" in the PARITY 20
+    section below, which took diagnostics 2138 -> 2139.  The row is graded MATCH
+    and the diagnostics gate is at 2,146/2,146.  What survives from this note is
+    the SVG row only: pdf-copy-paste is still GLYPHS-DIFFER and still on
+    g1-skip-list.tsv under D31, for the tofu reason and not for this one.
+    Kept rather than deleted because the MEASUREMENT below is still the evidence
+    for how the family resolves (trap 18: a note that stops being true is not
+    re-checked by anything, so it is marked where it stands).
 
   Of the 316 occurrences in the reference logs, 310 name C059-Roman.otf and 4
   name emmentaler-20.otf; the port reproduces both.  The remaining TWO, both in
@@ -9682,3 +9709,179 @@ implementation answering the same thing for every name would pass everything els
 MEASURED BEFORE THE RULING and worth keeping: get-font-file has ZERO callers anywhere,
 and display-fonts has ONE (lily.scm:1044, gated on show-available-fonts, which prints
 and exits).  That is why a divergence is affordable here and nowhere else.
+
+
+PARITY 26 -- THE TEXT SKYLINE'S METRIC SOURCE, AND WHY TWO CORPUS ROWS TURN ON IT
+==============================================================================
+This is the account of `skyline-boxes-ellipses' and `skyline-grob-rotation', the
+last two rows the GATE does not certify.  It is recorded here rather than closed,
+because the divergence is one the project has already RULED IN FAVOUR OF and the
+two rows are its only visible consequence in 2,316 pages.
+
+WHAT DIFFERS.  Read numerically off both engines with ly:skyline->points and
+ly:skyline-max-height (the -ddebug-skylines DRAWING rounds to four decimals, and
+four decimals is exactly the precision the question is about):
+
+    quantity                 oracle                 port                delta
+    max height (up)   -0.03300964259350392  -0.033001306825172244    8.3e-06
+    max height (down)  1.6214403128075787    1.6214642086767959     -2.4e-05
+    leftmost x         0.017605142716535432  0.017600696973425194    4.4e-06
+
+THE ORACLE'S NUMBERS ARE PANGO'S.  -0.03300964259350393 is exactly the height
+pair its own glyph-string expression carries: Pango's INK RECTANGLE, quantized to
+whole Pango units and then scaled.  `add_glyph_string_segments' composes each
+glyph's transform out of THREE differently-rounded boxes -- Pango's scaled ink
+rect (get_scaled_indexed_char_dimensions), FreeType's unscaled metric box
+(get_unscaled_indexed_char_dimensions), and their length ratio as `scale_factor'
+-- and upstream's own comment on that chain reads "FIXME: this looks extremely
+fishy."  The port has ONE source for both, its charstring interpreter, which
+AddGlyphOutlineSegments already records as a deliberate divergence; its chain
+cancels EXACTLY, verified in doubles for the measured numbers.
+
+SO THE RESIDUE IS ~1e-5 STAFF SPACES = ~4.2e-05 mm -- 1,200 times below the font
+ledger's accepted ceiling of 0.05 mm, and below what four decimals can print.
+It becomes visible in exactly two places: where a coordinate lands on a rounding
+boundary (12.3500 against 12.3501), and where a skyline merge tie-break lands on
+exact equality and keeps or drops a DEGENERATE, zero-width building.  Only a
+-ddebug-skylines page can see either, because only such a page draws the skyline
+partition itself.  That is why two pages of 2,316 differ and no other does.
+
+WHAT WAS REFUTED, so nobody re-runs it (probes and evidence in
+~/ClaudeHome/lilyport-probe-parity26/):
+
+  * THE MERGE.  A LITERAL Python transcription of lily/skyline.cc's whole build
+    path, fed the port's own raw inputs, agrees with the port's C# TO THE LAST BIT
+    of every left, right, slope and y-intercept, on all six skyline builds of a
+    two-glyph markup.
+  * THE SORT.  The same transcription gives the same answer under a stable sort
+    and under a reproduction of libstdc++'s std::sort introsort.  (PARITY 25 had
+    only shown that reversing tie order moves nothing, which is weaker.)
+  * THE TRANSFORM CHAIN.  Upstream's four-step
+    translate/translate/scale/translate cancels exactly in doubles for the
+    measured numbers, so the extra steps are not where the difference enters.
+  * THE ADVANCE.  1.2291590551181102 on both engines, to the last bit.
+  * THE SINGLE-GLYPH OUTLINE.  Ten one-character markups render skyline drawings
+    bit-identical to the oracle's, line for line.  The difference needs two.
+
+/!\ CLOSING THE TWO ROWS MEANS MODELLING PANGO'S DEVICE-QUANTIZED GLYPH EXTENTS.
+    There is no other route: the quantity that leaks is Pango's rounding residue
+    and the port cannot compute it from its own sources.  D45 refused Pango's
+    metrics as an answer in as many words.  So this is a DECISION, not a defect,
+    and it is written up in the plan's section 3e.
+
+
+D46 -- RULED (Jeremy, 2026-08-18).  THE DIVERGENCE STANDS; BOTH ROWS ARE RULED
+OUT OF G1 RATHER THAN CLOSED.  G1 IS GREEN.
+------------------------------------------------------------------------------
+THE RULING.  The port keeps the real CFF outline as its single metric source for
+a text glyph's skyline.  `skyline-boxes-ellipses' and `skyline-grob-rotation' go
+onto g1-skip-list.tsv, which takes it from nine rows to ELEVEN, and G1 closes at
+2,305 MATCH + 11 ruled out = 2,316 of 2,316.
+
+WHY THIS WAY ROUND, IN THE TERMS THE PROJECT HAS ALREADY USED TWICE.  D31 draws
+the line at what a USER CAN SEE: tofu exists because a reader who is missing a
+Hebrew glyph should SEE that something is missing.  D45 drew the same line for
+the music font and refused Pango's metrics as the answer, in as many words --
+"we are moving away from Pango in LilyPort".  D46 is that line applied a third
+time, and the quantity on the far side of it is 4.2e-05 mm:
+
+    against the font ledger's own accepted ceiling (0.05 mm)   1,200x smaller
+    against the worst row the port already SHIPS (0.044635 mm) ~1,060x smaller
+    against one dot of a 1200 dpi printer                        ~500x smaller
+    against one pixel of a 96 dpi screen                       ~6,300x smaller
+    against the finest detail human vision resolves            ~2,400x smaller
+
+  It is also below the SVG backend's own four-decimal print precision, so it
+  cannot be represented in the output format, let alone seen in it.
+
+/!\ WHAT THE SKIP-LISTING DOES NOT DO.  It changes NO code and NO rendering.
+    Every score LilyPort engraves is byte-for-byte what it was before the ruling;
+    what changed is what G1 CLAIMS about itself.  The rows still grade and still
+    floor exactly as any other row does -- being ruled out of G1 is a statement
+    about the GATE, never about the measurement (the skip list's own header says
+    so, and it is still true of these two).
+
+/!\ AND WHAT IT DOES ACCEPT, STATED HONESTLY.  The divergence is SYSTEMATIC in an
+    INTERNAL quantity -- every text skyline in the port is bounded by the real
+    outline where upstream uses Pango's quantized ink rect -- not something local
+    to these two files.  They are simply the only two inputs in 2,316 that can
+    EXPOSE it, because only a -ddebug-skylines page draws the skyline partition.
+    Skylines feed vertical spacing, so in principle a comparison landing on exact
+    equality could tip somewhere else.  The bound on that is EMPIRICAL, not
+    proven: across the whole corpus it tips nothing, and no mark moves on either
+    of the two rows themselves.  That is a weaker guarantee than a proof and it is
+    recorded as such -- but it is the same class of guarantee, three orders of
+    magnitude tighter, as the one R19/R20 already accept for the port's own
+    Emmentaler build, which DOES move marks on 155 pages.
+
+/!\ DO NOT "CORRECT" THIS LATER.  Modelling pango_font_get_glyph_extents's
+    rounding would make it load-bearing in every text skyline for the life of the
+    port, to move two debug pages that no reader can tell apart, and it would run
+    against D45 and D46 both.  If it is ever re-opened, the trigger is a MEASURED
+    consequence somewhere a user can see -- not the two skip-listed rows, which
+    are the known and accepted cost.
+
+WHERE THE RULING IS RECORDED IN CODE:
+  * StencilIntegral.AddGlyphOutlineSegments -- the consumer, and it carries the
+    full text of the ruling in its <remarks> plus a note on the tracing line.
+  * TextFontMetric's GlyphOutlineSymbol -- the producer, with a pointer to it.
+  * tools/regression-harness/g1-skip-list.tsv -- the two rows, with the reasoning
+    and the revisit condition.
+
+/!\ AND A TRAP FROM THE MEASUREMENT ITSELF.  The first dump recorded
+    Height(left)/Height(right) instead of the raw (x1, y1, y2, x2).  A building
+    rebuilt from its own recomputed heights is not the same building --
+    y_intercept = y1 - slope*left, so Height(left) is y1 only up to rounding --
+    and the comparison reported six false differences before that was found.
+    Trap 32a in a brand-new instrument.
+
+
+PARITY 26 -- main.cc's OUTPUT-NAME SPLIT IS NOW A NAMED FUNCTION
+------------------------------------------------------------------------------
+`BatchRunner.SplitOutputName' is upstream's main.cc:729-761: an existing DIRECTORY
+is taken as one, and anything else is split, the FILE part becoming the output
+base name (lily-parser-scheme.cc:37-60).  It lives in the engine rather than in
+Lily.Shell so there is one implementation and the main suite fences it
+(OutputNameSplitTests, 6 cases, each with a control; plus an end-to-end case in
+BatchRunnerTests for the RunFile overload that consumes it).
+
+  /!\ THE FILE PART KEEPS ITS EXTENSION.  File_name::file_part rejoins base and
+      ext, and the --output arm of output_file_name_for_input_file_name is the one
+      that does NOT clear ext_.  So `-o name.pdf' really does engrave to
+      `name.pdf.svg'.  Stripping it would be an improvement, which is a parity bug.
+  /!\ A DIRECTORY PART OF "." IS DROPPED, which is upstream's `dir != "."' guard
+      and is what keeps `-o ./name' from being a different instruction from
+      `-o name'.
+
+  This discharges the Lily.Shell half of the output-path item PARITY 24 opened
+  (rule 14): `lily.shell engrave x.ly -o out/dir/name' now behaves as
+  `lilypond -o out/dir/name x.ly' does, where before it created a directory called
+  `name'.
+
+
+PARITY 26 -- TRAP 14'S LOCAL/RETURN-VALUE HALF, AUDITED
+------------------------------------------------------------------------------
+SIZED: 340 boolean-read sites in the engine, 218 of them on property reads (swept
+at PARITY 1 and PARITY 6), leaving 122 on locals and return values.
+
+MECHANICALLY COMPLETE FOR ONE SUBCLASS: upstream reads exactly FIVE named
+properties with Scheme truthiness -- centerBarNumbers, circled-tip, stencil,
+suspendMelodyDecisions, tuplet-slur -- and the port spells all five
+IsSchemeTrue/IsFalse.
+
+BY HAND for the rest, roughly 50 sites across 20 files: LineSpanner's five
+bound-details reads, ConstrainedBreaking's four (including the !scm_is_bool
+special case), PageBreaking, OutputDef, Item::break_visible, AccidentalEngraver,
+TupletBracket, MusicFunction, Clef_engraver's forceClef pair, VowelTransition,
+TextInterface, PitchedTrillEngraver, DeprecatedProperty, Hairpin, MelodyEngraver,
+BarEngravers.  EVERY ONE IS FAITHFUL.
+
+  /!\ ONE LOOKED LIKE A HIT AND WAS NOT.  tuplet-bracket.cc:106 reads
+      bracket-visibility with scm_is_true where the port uses exactly-#t -- but
+      upstream only USES that value under `if (scm_is_bool (bracket_vis_prop))',
+      where the two predicates agree, and both sites that matter (lines 134 and
+      334) really are from_scm<bool>.  The port is right.  Read what a value is
+      USED FOR before reading the predicate it was computed with.
+
+The class stays open as a residual, now with a measured size and a named
+remainder rather than an open worry.

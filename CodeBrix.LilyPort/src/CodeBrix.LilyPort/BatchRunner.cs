@@ -225,6 +225,29 @@ public static class BatchRunner
     /// <param name="outputDirectory">Where the <c>.svg</c> lands.</param>
     /// <returns>What the run produced and reported.</returns>
     public static BatchRunResult RunFile(string filePath, string outputDirectory)
+        => RunFile(filePath, outputDirectory, null);
+
+    /// <summary>
+    /// Runs one <c>.ly</c> file, writing its output into
+    /// <paramref name="outputDirectory"/> under <paramref name="outputBaseName"/>.
+    /// </summary>
+    /// <param name="filePath">The <c>.ly</c> file to run.</param>
+    /// <param name="outputDirectory">Where the <c>.svg</c> lands.</param>
+    /// <param name="outputBaseName">
+    /// The output base name, or <see langword="null"/> to take the input file's own.
+    /// </param>
+    /// <returns>What the run produced and reported.</returns>
+    /// <remarks>
+    /// The named-output form is what <c>lilypond -o</c> gives a caller:
+    /// <c>output_file_name_for_input_file_name</c>
+    /// (<c>lily-parser-scheme.cc:37-60</c>) uses <c>output_name_global</c> when it is set
+    /// and the input's base name otherwise, and it does NOT strip an extension from the
+    /// named form the way it does from the derived one. Pair it with
+    /// <see cref="SplitOutputName"/>, which is the half that turns one <c>-o</c> value
+    /// into a directory and a name.
+    /// </remarks>
+    public static BatchRunResult RunFile(
+        string filePath, string outputDirectory, string outputBaseName)
     {
         if (filePath == null)
         {
@@ -233,9 +256,78 @@ public static class BatchRunner
 
         return RunText(
             File.ReadAllText(filePath),
-            Path.GetFileNameWithoutExtension(filePath),
+            string.IsNullOrEmpty(outputBaseName)
+                ? Path.GetFileNameWithoutExtension(filePath)
+                : outputBaseName,
             Path.GetDirectoryName(Path.GetFullPath(filePath)),
             outputDirectory);
+    }
+
+    /// <summary>
+    /// Splits one <c>--output</c>/<c>-o</c> value into the directory the run writes into
+    /// and the base name it writes under — upstream's <c>main.cc:729-761</c>.
+    /// </summary>
+    /// <param name="outputName">
+    /// The <c>-o</c> value, or <see langword="null"/>/empty when none was given.
+    /// </param>
+    /// <param name="directory">
+    /// Receives the directory part, or <see langword="null"/> when the value names none
+    /// (the caller then keeps whatever directory it would have used).
+    /// </param>
+    /// <param name="baseName">
+    /// Receives the file part, or <see langword="null"/> when the value names none (the
+    /// caller then derives the name from the input file).
+    /// </param>
+    /// <remarks>
+    /// <para>
+    /// ⚠ AN EXISTING DIRECTORY IS TAKEN AS ONE, AND THAT TEST IS ON THE FILE SYSTEM, not
+    /// on a trailing separator: upstream asks <c>is_dir (output_name_global)</c> first
+    /// and only splits when the answer is no. So <c>-o out</c> writes
+    /// <c>out/&lt;input&gt;.svg</c> when <c>out</c> exists and <c>./out.svg</c> when it
+    /// does not, and both are correct.
+    /// </para>
+    /// <para>
+    /// The file part keeps its extension, because upstream's <c>File_name::file_part</c>
+    /// rejoins <c>base</c> and <c>ext</c> and the <c>--output</c> path is the one arm of
+    /// <c>output_file_name_for_input_file_name</c> that does NOT clear <c>ext_</c>. So
+    /// <c>-o name.pdf</c> really does engrave to <c>name.pdf.svg</c>; that is upstream's
+    /// behaviour and reproducing it is rule 2.
+    /// </para>
+    /// <para>
+    /// A directory part of <c>"."</c> is dropped, which is upstream's
+    /// <c>dir != "."</c> guard: it is what keeps <c>-o ./name</c> from being a different
+    /// instruction from <c>-o name</c>.
+    /// </para>
+    /// </remarks>
+    public static void SplitOutputName(
+        string outputName, out string directory, out string baseName)
+    {
+        directory = null;
+        baseName = null;
+
+        if (string.IsNullOrEmpty(outputName))
+        {
+            return;
+        }
+
+        if (Directory.Exists(outputName))
+        {
+            directory = outputName;
+            return;
+        }
+
+        string directoryPart = Path.GetDirectoryName(outputName);
+        string filePart = Path.GetFileName(outputName);
+
+        if (!string.IsNullOrEmpty(directoryPart) && directoryPart != ".")
+        {
+            directory = directoryPart;
+        }
+
+        if (!string.IsNullOrEmpty(filePart))
+        {
+            baseName = filePart;
+        }
     }
 
     /// <summary>Runs one file's text through the full pipeline.</summary>

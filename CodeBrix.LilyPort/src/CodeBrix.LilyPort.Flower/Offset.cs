@@ -238,18 +238,39 @@ public readonly struct Offset : IEquatable<Offset>
             angle -= 360.0;
         }
 
-        const double ToRadians = Math.PI / 180.0;
+        //was previously: each sine took `(degrees) * ToRadians' with a precomputed
+        // `ToRadians = Math.PI / 180.0'. Upstream writes `sin (degrees * M_PI / 180.0)',
+        // which C evaluates LEFT TO RIGHT as `(degrees * M_PI) / 180.0' -- a different
+        // floating-point expression from `degrees * (M_PI / 180.0)'. The two disagree in
+        // the last bit for 1,008 of the 2,881 quarter-degree angles in (-360, 360), which
+        // is rule 2's case exactly: an arrangement that looks like a simplification is
+        // not one, and a rotation the port computes one bit away from upstream's is a
+        // rotation whose every transformed point is one bit away from upstream's.
         if (angle > 0)
         {
             return angle > 90
-                ? new Offset(Math.Sin((90 - angle) * ToRadians), Math.Sin((180 - angle) * ToRadians))
-                : new Offset(Math.Sin((90 - angle) * ToRadians), Math.Sin(angle * ToRadians));
+                ? new Offset(SinDegrees(90 - angle), SinDegrees(180 - angle))
+                : new Offset(SinDegrees(90 - angle), SinDegrees(angle));
         }
 
         return angle < -90
-            ? new Offset(Math.Sin((90 + angle) * ToRadians), Math.Sin((-180 - angle) * ToRadians))
-            : new Offset(Math.Sin((90 + angle) * ToRadians), Math.Sin(angle * ToRadians));
+            ? new Offset(SinDegrees(90 + angle), SinDegrees(-180 - angle))
+            : new Offset(SinDegrees(90 + angle), SinDegrees(angle));
     }
+
+    /// <summary>
+    /// Returns the sine of an angle given in degrees, converting the way upstream's
+    /// <c>sin (x * M_PI / 180.0)</c> does.
+    /// </summary>
+    /// <remarks>
+    /// The grouping is the point: <c>(x * PI) / 180</c>, never <c>x * (PI / 180)</c>.
+    /// C's left-to-right evaluation of <c>x * M_PI / 180.0</c> is the first, and folding
+    /// the constant into one multiplier changes the result in the last bit for about a
+    /// third of all angles.
+    /// </remarks>
+    /// <param name="degrees">The angle in degrees.</param>
+    /// <returns>The sine.</returns>
+    private static double SinDegrees(double degrees) => Math.Sin(degrees * Math.PI / 180.0);
 
     /// <summary>Gets the angle from the positive X axis, in degrees, in -180..180.</summary>
     /// <returns>The angle in degrees.</returns>

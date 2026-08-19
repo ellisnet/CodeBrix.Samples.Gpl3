@@ -73,6 +73,32 @@ public class BatchRunnerTests
     }
 
     [Fact]
+    public void a_named_output_writes_under_the_given_base_name_not_the_input_s()
+    {
+        //Arrange
+        // The other half of `lilypond -o out/dir/name': BatchRunner.SplitOutputName
+        // decides WHICH part is the name, and this is the part that USES it. Lily.Shell's
+        // `engrave -o' goes through exactly this pair, so a wiring break here is a wiring
+        // break there.
+        string output = ScratchDirectory();
+        string source = Path.Combine(output, "the-input-name.ly");
+        File.WriteAllText(source, "\\version \"2.27.2\"\n\\score { { c'4 } }\n");
+
+        //Act
+        BatchRunResult named = BatchRunner.RunFile(source, output, "the-output-name");
+
+        //Assert
+        named.SvgPath.Should().NotBeNull();
+        Path.GetFileName(named.SvgPath).Should().Be("the-output-name.svg");
+
+        // THE CONTROL: with no name given the input's own is used, so a runner that
+        // ignored the argument entirely would still pass the assertion above if the two
+        // names happened to agree.
+        BatchRunResult derived = BatchRunner.RunFile(source, output);
+        Path.GetFileName(derived.SvgPath).Should().Be("the-input-name.svg");
+    }
+
+    [Fact]
     public void a_score_reaches_svg_through_the_toplevel_handlers()
     {
         //Arrange

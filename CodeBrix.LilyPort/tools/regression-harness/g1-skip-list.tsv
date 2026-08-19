@@ -3,9 +3,23 @@
 # G1's definition has always read "every root regression file + other/ MATCHes the
 # pinned reference corpus at NAMED-GLYPH identity, MINUS A COMMITTED, REASONED SKIP
 # LIST".  This is that file.  It exists for the CLAIM rather than for the rows: when
-# G1 goes green, "2,316 pages match except these nine, ruled out on this date for
+# G1 goes green, "2,316 pages match except these eleven, ruled out on this date for
 # this reason" has to be answerable from the REPOSITORY alone, and until this file
 # existed six of the original eight were named nowhere in it.
+#
+# G1 IS GREEN AS OF 2026-08-18, AND THIS FILE IS THE OTHER HALF OF THE CLAIM.  The
+# gate run -- the port engraving with LilyPond's OWN Emmentaler binaries, where any
+# divergence is the ENGINE and is a defect -- MATCHes 2,305 of 2,316, and the
+# remaining eleven are the rows below.  2,305 + 11 = 2,316.  Anyone auditing G1 needs
+# exactly two artifacts: that number and this file.
+#
+# THE ELEVEN ARE NOT ONE KIND OF THING.  Nine of them (D31, R8(A), D31 AS AMENDED)
+# are about a code point no bundled face can draw, and they are all in some sense
+# "the port shows the user something upstream does not".  The last two, added under
+# D46, are the opposite shape: they are a divergence of ~4.2e-05 mm that NO user can
+# see under any circumstance, in a debug overlay that only a -ddebug-skylines page
+# draws.  Do not read the eleven as a single category, and do not let the count grow
+# on the strength of "there is already a skip list".
 #
 # THE MECHANISM AND THE REASONING ARE NOT HERE.  They are in
 # src/CodeBrix.LilyPort.Engine/PORT-COVERAGE.txt, where D31 already holds them; this
@@ -17,16 +31,23 @@
 # the measurement.
 #
 # NOT pass-manifest-decisions.tsv, deliberately.  That file's own header reads "every
-# time a floor came DOWN, and why".  Six of these eight never had a floor come down --
-# they have been GLYPHS-DIFFER throughout -- so listing them there would make that file
-# say something untrue about itself.  The two D31 originals keep their entries there,
-# because their floor genuinely did come down, AND appear here, so there is one place
-# to look.
+# time a floor came DOWN, and why".  NINE of these eleven never had a floor come down
+# -- the six R8(A) rows have been GLYPHS-DIFFER throughout, and D45's row and D46's two
+# were never floored higher than they stand -- so listing them there would make that
+# file say something untrue about itself.  The two D31 originals keep their entries
+# there, because their floor genuinely did come down, AND appear here, so there is one
+# place to look.
 #
 # NOT D43's six skyline rows.  They used to be ruled onto a committed PORT-GENERATED
 # baseline (R9, 2026-08-16); R20 RETIRED that baseline on 2026-08-17 and they are now
 # certified by the font-parity GATE and priced in font-delta-ledger.tsv instead.
 # Either way they are not skipped and need no entry here.
+#
+# D47 (Jeremy, 2026-08-18): the "deferred optional-font-packages decision" named by
+# the revisit-condition column below is now RULED -- CJK, Hebrew, Arabic and Japanese
+# are UNSUPPORTED for now, and coverage arrives only as future work Jeremy schedules
+# (especially on a user request).  The conditions below stand unchanged: such
+# scheduled work is exactly the event they wait for.  See PORT-COVERAGE under D31/D47.
 #
 # file	verdict-at-ruling	ruling	revisit-condition
 markup-diacritic-marks.svg	GLYPHS-DIFFER	D31 (Jeremy, 2026-08-13): tofu stands -- for a code point no bundled face covers the port emits the <text> run and draws .notdef while the D30-pinned oracle drops the run	the deferred optional-font-packages decision (would this port ever cover CJK/Hebrew/Arabic/Japanese) -- see PORT-COVERAGE D31
@@ -38,3 +59,5 @@ profile-property-access.svg	GLYPHS-DIFFER	R8(A) (Jeremy, 2026-08-15): D31 extend
 typography-demo.svg	GLYPHS-DIFFER	R8(A) (Jeremy, 2026-08-15): D31 extended by name -- measured at PARITY 13 as that mechanism and nothing else	SVG ROWS ONLY -- this file still owes the oracle's "no glyph for character" warnings, which are D40 and are FIX work; then the deferred optional-font-packages decision
 utf-8.svg	GLYPHS-DIFFER	R8(A) (Jeremy, 2026-08-15): D31 extended by name -- measured at PARITY 13 as that mechanism and nothing else	SVG ROWS ONLY -- this file still owes the oracle's "no glyph for character" warnings, which are D40 and are FIX work; then the deferred optional-font-packages decision
 markup-compound-meter-denominator-style.svg	PLACEMENT-DIFFERS	D31 AS AMENDED (Jeremy, 2026-08-17): in the MUSIC font a code point the font cannot map ADVANCES and draws nothing, as upstream does -- but upstream's advance is PANGO'S UNKNOWN-GLYPH BOX, whose width is approximate_char_width and is not computable from Emmentaler. The port stands in with TWO U+0020 spaces, the nearest whole number of space advances to that box at every size measured (2.00-2.27 over magsteps 1/4 to 16, exact at 1/4). Residual at this file's size is on BOTH axes: dx improved from -1.7072 to -0.2049 (the width two spaces do not cover), dy improved from -0.2993 to +0.0341 by RESERVING A HEIGHT for the stand-in from OS/2's typographic ascender and descender (Emmentaler: 800/-200, exactly one em) against the oracle's measured -0.1909..+0.8141 em -- because Pango's unknown-glyph box has an INK RECTANGLE as well as a logical width and LilyPond takes a text stencil's Y from the ink rect. The remaining 0.0341 is ONE DEVICE DOT, a quantisation floor: reserving the oracle's own measured fractions instead gives 0.0441, so the font's metric beats the oracle's number and there is nothing further to chase	a decision to model Pango's unknown-glyph box exactly (would need approximate_char_width, which Pango derives from a sample string in a fallback font this port does not ship) -- see PORT-COVERAGE "D31 AS AMENDED"
+skyline-boxes-ellipses.svg	PLACEMENT-DIFFERS	D46 (Jeremy, 2026-08-18): the port bounds a TEXT glyph's skyline by the real CFF outline through its own charstring interpreter; upstream bounds it by PANGO'S INK RECTANGLE, quantized to whole Pango units and then scaled, composed through THREE differently-rounded boxes in add_glyph_string_segments -- whose own comment on that chain reads "FIXME: this looks extremely fishy." Measured NUMERICALLY (ly:skyline->points / ly:skyline-max-height; the -ddebug-skylines DRAWING rounds to four decimals and the whole difference is at the fifth), the two engines' text skylines differ by ~1e-5 staff spaces = ~4.2e-05 mm -- 1,200x below the font ledger's accepted 0.05 mm ceiling, below the SVG backend's own four-decimal print precision, and roughly 2,400x below the finest detail human vision resolves. This file sets debug-skylines IN ITS OWN SOURCE, which is the only reason it can see the difference: only such a page draws the skyline partition, and that is why exactly two pages of 2,316 differ. MEASURED AT THIS RULING against the gate: ZERO moving marks on BOTH axes out of 728 paired; the whole difference is extra or missing hairlines where a coordinate lands on a rounding boundary (9 unpaired bands on x, 5 on y). The comparator's "worst 19.1348 at line:0.1000" is the PAIRING, not a displacement (trap 7a). EVERY differing element on this page is a line:0.1000 -- a skyline-partition hairline -- and NO music glyph, notehead, stem or text moves. Closing it means MODELLING PANGO'S DEVICE-QUANTIZED GLYPH EXTENTS, the only route, because the quantity that leaks is Pango's rounding residue and the port cannot compute it from its own sources; D45 refused Pango's metrics as an answer in as many words ("we are moving away from Pango in LilyPort"). NINE hypotheses are refuted in writing across PARITY 25-26 and none should be re-run: the merge (bit-exact against a literal Python transcription of lily/skyline.cc), the sort (same transcription under a reproduction of libstdc++'s introsort), the four-step transform chain, the advance, the single-glyph outline, the contour-closing rule, the CFF walk, and the font assets.	a MEASURED consequence somewhere a USER CAN SEE -- not this row, which is the known and accepted cost. A decision to model Pango's device-quantized glyph extents would close it and is ruled against by D45 and D46 both: it would make pango_font_get_glyph_extents's rounding load-bearing in every text skyline for the life of the port, to move two debug pages no reader can tell apart. See PORT-COVERAGE "D46 -- RULED" and StencilIntegral.AddGlyphOutlineSegments, which carries the full ruling.
+skyline-grob-rotation.svg	GLYPHS-DIFFER	D46 (Jeremy, 2026-08-18): the port bounds a TEXT glyph's skyline by the real CFF outline through its own charstring interpreter; upstream bounds it by PANGO'S INK RECTANGLE, quantized to whole Pango units and then scaled, composed through THREE differently-rounded boxes in add_glyph_string_segments -- whose own comment on that chain reads "FIXME: this looks extremely fishy." Measured NUMERICALLY (ly:skyline->points / ly:skyline-max-height; the -ddebug-skylines DRAWING rounds to four decimals and the whole difference is at the fifth), the two engines' text skylines differ by ~1e-5 staff spaces = ~4.2e-05 mm -- 1,200x below the font ledger's accepted 0.05 mm ceiling, below the SVG backend's own four-decimal print precision, and roughly 2,400x below the finest detail human vision resolves. This file sets debug-skylines IN ITS OWN SOURCE, which is the only reason it can see the difference: only such a page draws the skyline partition, and that is why exactly two pages of 2,316 differ. MEASURED AT THIS RULING against the gate: TWO moving marks out of 970 paired, both line:0.1000 and both dx -0.0500, plus twelve EXTRA hairlines -- the degenerate, zero-width buildings a merge tie-break landing on exact equality keeps instead of dropping. EVERY differing element on this page is a line:0.1000 -- a skyline-partition hairline -- and NO music glyph, notehead, stem or text moves. Closing it means MODELLING PANGO'S DEVICE-QUANTIZED GLYPH EXTENTS, the only route, because the quantity that leaks is Pango's rounding residue and the port cannot compute it from its own sources; D45 refused Pango's metrics as an answer in as many words ("we are moving away from Pango in LilyPort"). NINE hypotheses are refuted in writing across PARITY 25-26 and none should be re-run: the merge (bit-exact against a literal Python transcription of lily/skyline.cc), the sort (same transcription under a reproduction of libstdc++'s introsort), the four-step transform chain, the advance, the single-glyph outline, the contour-closing rule, the CFF walk, and the font assets.	a MEASURED consequence somewhere a USER CAN SEE -- not this row, which is the known and accepted cost. A decision to model Pango's device-quantized glyph extents would close it and is ruled against by D45 and D46 both: it would make pango_font_get_glyph_extents's rounding load-bearing in every text skyline for the life of the port, to move two debug pages no reader can tell apart. See PORT-COVERAGE "D46 -- RULED" and StencilIntegral.AddGlyphOutlineSegments, which carries the full ruling.

@@ -155,7 +155,25 @@ public sealed class LilyPortHost
     /// </remarks>
     public Task<BatchRunResult> EngraveFileAsync(
         string path, string outputDirectory, CancellationToken cancellationToken) =>
-        RunOnEngineAsync(_ => BatchRunner.RunFile(path, outputDirectory), cancellationToken);
+        EngraveFileAsync(path, outputDirectory, null, cancellationToken);
+
+    /// <summary>
+    /// Runs a <c>.ly</c> file through the real batch pipeline, writing into
+    /// <paramref name="outputDirectory"/> under <paramref name="outputBaseName"/>.
+    /// </summary>
+    /// <remarks>
+    /// The named form exists because <c>-o</c> is lilypond's option and lilypond's
+    /// <c>-o</c> names a FILE, not only a directory; <see cref="BatchRunner.SplitOutputName"/>
+    /// is the half that decides which of the two a given value is.
+    /// </remarks>
+    public Task<BatchRunResult> EngraveFileAsync(
+        string path,
+        string outputDirectory,
+        string outputBaseName,
+        CancellationToken cancellationToken) =>
+        RunOnEngineAsync(
+            _ => BatchRunner.RunFile(path, outputDirectory, outputBaseName),
+            cancellationToken);
 
     /// <summary>
     /// Engraves the first-light demo (a Scheme-built quarter-note c'4) end to

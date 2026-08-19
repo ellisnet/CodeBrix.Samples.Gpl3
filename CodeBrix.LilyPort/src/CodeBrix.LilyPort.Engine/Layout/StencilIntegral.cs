@@ -996,6 +996,61 @@ public static class StencilIntegral
     /// charstring interpreter underneath. A music glyph is addressed by NAME through a
     /// font metric; a text glyph is addressed by INDEX through the face the D23 chain
     /// resolved, and carries its own scale because the chain can change face mid-run.
+    /// <para>
+    /// DIVERGENCE, RULED AND ACCEPTED — D46 (Jeremy, 2026-08-18). THIS METHOD IS WHERE
+    /// THE PORT'S TEXT SKYLINE PARTS COMPANY WITH UPSTREAM'S, AND THE PARTING IS
+    /// DELIBERATE. There is no <c>glyph-outline</c> expression upstream at all: a text
+    /// run reaches the skyline walk as <c>glyph-string</c>, built by
+    /// <c>pango-font.cc:498</c>, and <c>add_glyph_string_segments</c> asserts its font is
+    /// a <c>Pango_font</c> before it does anything else. It then bounds each glyph with
+    /// PANGO'S INK RECTANGLE — <c>get_scaled_indexed_char_dimensions</c>, which is
+    /// quantized to whole Pango units and only then scaled — and composes the glyph's
+    /// transform out of THREE differently-rounded boxes: that scaled ink rect, the
+    /// unscaled metric box, and their length ratio as <c>scale_factor</c>. Upstream's own
+    /// comment on that chain reads "FIXME: this looks extremely fishy." The port has no
+    /// Pango and ONE metric source for both halves — this charstring interpreter — so its
+    /// chain cancels exactly.
+    /// </para>
+    /// <para>
+    /// WHAT THE DIVERGENCE COSTS, MEASURED (PARITY 26). Read numerically off both engines
+    /// through <c>ly:skyline-&gt;points</c> and <c>ly:skyline-max-height</c>, because the
+    /// <c>-ddebug-skylines</c> DRAWING rounds to four decimals and the whole difference is
+    /// at the fifth: a two-glyph markup's skyline differs by ~1e-5 staff spaces =
+    /// ~4.2e-05 mm. That is 1,200 times below the font ledger's own accepted ceiling of
+    /// 0.05 mm, some 500 times below one dot of a 1200 dpi printer, and below what the
+    /// SVG's four decimals can print at all. It surfaces in exactly two ways — where a
+    /// coordinate lands on a rounding boundary (12.3500 against 12.3501), and where a
+    /// skyline merge tie-break lands on exact equality and so keeps or drops a
+    /// DEGENERATE, zero-width building — and only a <c>-ddebug-skylines</c> page can draw
+    /// either, because only such a page draws the skyline partition itself. Exactly two
+    /// pages of 2,316 differ, <c>skyline-boxes-ellipses</c> and
+    /// <c>skyline-grob-rotation</c>, both of which set <c>debug-skylines</c> in their own
+    /// source. NO MARK MOVES ON EITHER PAGE; what differs is the debug overlay.
+    /// </para>
+    /// <para>
+    /// THE RULING ITSELF. Both rows are ruled out of G1 on
+    /// <c>tools/regression-harness/g1-skip-list.tsv</c>, and G1 is GREEN with them there.
+    /// Closing them by code has exactly one route — MODELLING PANGO'S DEVICE-QUANTIZED
+    /// GLYPH EXTENTS — because the quantity that leaks is Pango's rounding residue and the
+    /// port cannot compute it from its own sources. D45 refused Pango's metrics as an
+    /// answer in as many words ("we are moving away from Pango in LilyPort"), and D46
+    /// refuses them again here, for a quantity three orders of magnitude below what the
+    /// project already accepts and SHIPS from its own Emmentaler build (R19/R20). ⚠ DO
+    /// NOT "CORRECT" THIS TOWARD PANGO. Making <c>pango_font_get_glyph_extents</c>'s
+    /// rounding load-bearing in every text skyline for the life of the port, to move two
+    /// debug pages no reader can tell apart, is the change this ruling exists to refuse.
+    /// </para>
+    /// <para>
+    /// ⚠ AND DO NOT RE-RUN THE REFUTED HYPOTHESES. Nine are refuted in writing across
+    /// PARITY 25 and 26: the merge (bit-exact against a literal Python transcription of
+    /// <c>lily/skyline.cc</c>'s whole build path — six builds, every left, right, slope
+    /// and y-intercept), the sort (that same transcription under a reproduction of
+    /// libstdc++'s <c>std::sort</c> introsort), the four-step transform chain, the advance
+    /// (1.2291590551181102 both sides), the single-glyph outline (ten one-character
+    /// markups bit-identical), the contour-closing rule, the CFF walk, and the font
+    /// assets. The full account is in PORT-COVERAGE under "PARITY 26 — THE TEXT SKYLINE'S
+    /// METRIC SOURCE"; the probes are in <c>~/ClaudeHome/lilyport-probe-parity26/</c>.
+    /// </para>
     /// </remarks>
     private static void AddGlyphOutlineSegments(
         LazySkylinePair skyline, Transform transform, object arguments)
@@ -1034,6 +1089,14 @@ public static class StencilIntegral
         Transform local = transform;
         local.Scale(scale, scale);
 
+        // D46 (Jeremy, 2026-08-18) LIVES ON THIS LINE. The real CFF outline is the port's
+        // only metric source for a text glyph's skyline, where upstream takes Pango's
+        // quantized ink rectangle through a three-box transform chain its own comment
+        // calls "extremely fishy". The two engines therefore differ by ~4.2e-05 mm, which
+        // costs exactly two -ddebug-skylines pages of 2,316 and moves no mark on either;
+        // both are ruled out of G1 on g1-skip-list.tsv. Read the remarks above — and
+        // PORT-COVERAGE "PARITY 26" — before changing anything here. Modelling Pango's
+        // quantization to close those two rows is RULED AGAINST, not merely unattempted.
         face.Cff.AddOutlineToSkyline(skyline, local, index);
     }
 

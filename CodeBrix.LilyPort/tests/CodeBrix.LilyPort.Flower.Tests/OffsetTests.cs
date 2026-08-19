@@ -162,6 +162,105 @@ public class OffsetTests
         new Offset(1, 2).IsSane.Should().BeTrue();
         new Offset(double.NaN, 2).IsSane.Should().BeFalse();
     }
+
+    [Fact]
+    public void directed_groups_the_degree_conversion_the_way_upstream_writes_it()
+    {
+        //Arrange
+        // upstream: `sin ((90 - angle) * M_PI / 180.0)', which C evaluates LEFT TO
+        // RIGHT -- `(x * M_PI) / 180.0'. Folding the constant into `x * (M_PI / 180.0)'
+        // is a DIFFERENT floating-point expression, and -357 (folded to +3) is one of
+        // the 208 whole-degree angles in (-360, 360) where the two disagree.
+        double upstreamGrouping = Math.Sin(3.0 * Math.PI / 180.0);
+        double foldedConstant = Math.Sin(3.0 * (Math.PI / 180.0));
+
+        //Act
+        Offset directed = Offset.Directed(-357.0);
+
+        //Assert
+        // THE CONTROL, and it carries the whole point: if these two ever became equal
+        // this fence would pass with the grouping wrong, so it is asserted rather than
+        // assumed.
+        foldedConstant.Should().NotBe(upstreamGrouping);
+        directed.Y.Should().Be(upstreamGrouping);
+        directed.Y.Should().NotBe(foldedConstant);
+    }
+
+    [Fact]
+    public void directed_gives_exactly_equal_magnitudes_at_odd_multiples_of_45()
+    {
+        //Arrange / Act / Assert
+        // upstream's comment says this is what the all-sines arrangement buys, "at the
+        // cost of losing some less obvious invariants" -- so it is the invariant to
+        // fence, and it is exact equality, not a tolerance.
+        foreach (double angle in new[] { 45.0, 135.0, -45.0, -135.0, 225.0, -225.0 })
+        {
+            Offset d = Offset.Directed(angle);
+            Math.Abs(d.X).Should().Be(Math.Abs(d.Y));
+        }
+
+        // THE CONTROL: an angle that is NOT an odd multiple of 45 must come out with
+        // unequal magnitudes, or the assertion above would pass on a broken Directed
+        // that always answered the same number twice.
+        Offset control = Offset.Directed(30.0);
+        Math.Abs(control.X).Should().NotBe(Math.Abs(control.Y));
+    }
+
+    [Fact]
+    public void directed_produces_no_negative_zero_at_the_quadrant_handovers()
+    {
+        //Arrange / Act / Assert
+        // upstream: "Sign of the sine is chosen to avoid -0.0 in results." A -0.0 in a
+        // transform's xy term is invisible in every printed form and changes the sign of
+        // a product, so it is the kind of thing only an explicit fence catches. What the
+        // arrangement buys is the HANDOVERS -- the angles where a component is zero.
+        foreach (double angle in new[] { 0.0, 90.0, 180.0, -90.0, -180.0, 360.0 })
+        {
+            Offset d = Offset.Directed(angle);
+            IsNegativeZero(d.X).Should().BeFalse();
+            IsNegativeZero(d.Y).Should().BeFalse();
+        }
+    }
+
+    [Fact]
+    public void directed_of_minus_360_does_produce_a_negative_zero_and_upstream_does_too()
+    {
+        //Arrange / Act
+        Offset d = Offset.Directed(-360.0);
+
+        //Assert
+        // THE ONE ANGLE THE ARRANGEMENT DOES NOT COVER, and it is not a port defect:
+        // `fmod' keeps the sign of its FIRST argument, so folding -360 gives -0.0 rather
+        // than 0.0, and every later test (-0.0 <= -180, -0.0 > 180, -0.0 > 0) is false,
+        // so the angle reaches `sin (-0.0 * M_PI / 180.0)' -- which is -0.0. Upstream
+        // takes the identical path and answers the identical pair. Fenced BECAUSE it
+        // looks like a defect: a later reader tempted to "fix" it would be diverging.
+        d.X.Should().Be(1.0);
+        IsNegativeZero(d.Y).Should().BeTrue();
+
+        // THE CONTROL: +360 folds to +0.0 and comes out the other way.
+        IsNegativeZero(Offset.Directed(360.0).Y).Should().BeFalse();
+    }
+
+    private static bool IsNegativeZero(double value)
+        => value == 0.0 && double.IsNegative(value);
+
+    [Fact]
+    public void directed_folds_an_out_of_range_angle_onto_its_in_range_twin()
+    {
+        //Arrange / Act / Assert
+        // The folding is `fmod' (truncating), then one adjustment into (-180, 180].
+        // Math.IEEERemainder rounds to nearest and would fold 359 to -1 by a different
+        // route, so the two are not interchangeable however alike the names look.
+        Offset.Directed(363.0).X.Should().Be(Offset.Directed(3.0).X);
+        Offset.Directed(363.0).Y.Should().Be(Offset.Directed(3.0).Y);
+        Offset.Directed(-357.0).X.Should().Be(Offset.Directed(3.0).X);
+        Offset.Directed(-357.0).Y.Should().Be(Offset.Directed(3.0).Y);
+
+        // THE CONTROL: a fold that collapsed everything onto one answer would pass the
+        // three above.
+        Offset.Directed(363.0).Y.Should().NotBe(Offset.Directed(7.0).Y);
+    }
 }
 
 public class PolynomialTests
