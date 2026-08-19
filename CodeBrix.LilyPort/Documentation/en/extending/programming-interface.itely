@@ -1,0 +1,1767 @@
+@c -*- coding: utf-8; mode: texinfo; -*-
+
+@ignore
+    Translation of GIT committish: FILL-IN-HEAD-COMMITTISH
+
+    When revising a translation, copy the HEAD committish of the
+    version that you are working on.  For details, see the Contributors'
+    Guide, node Updating translation committishes..
+@end ignore
+
+@c \version "2.23.6"
+
+
+@node Interfaces for programmers
+@chapter Interfaces for programmers
+
+Advanced tweaks may be performed by using Scheme.  If you are
+not familiar with Scheme, you may wish to read our
+@ref{Scheme tutorial}.
+
+
+@node LilyPond code blocks
+@section LilyPond code blocks
+
+@cindex LilyPond code blocks
+@cindex code blocks, LilyPond
+@funindex #@{ @dots{} #@}
+@funindex $
+@funindex #
+
+Creating music expressions in Scheme can be tedious, as they are
+heavily nested and the resulting Scheme code is large. For some
+simple tasks this can be avoided by using LilyPond code blocks,
+which enable common LilyPond syntax to be used within Scheme.
+
+LilyPond code blocks look like
+
+@example
+#@{ @var{LilyPond code} #@}
+@end example
+
+Here is a trivial example:
+
+@lilypond[verbatim,quote]
+ritpp = #(define-event-function () ()
+  #{ ^"rit." \pp #}
+)
+
+{ c'4 e'4\ritpp g'2 }
+@end lilypond
+
+LilyPond code blocks can be used anywhere where you can write Scheme
+code.  The Scheme reader actually is changed for accommodating
+LilyPond code blocks and can deal with embedded Scheme expressions
+starting with @samp{$} and @samp{#}.
+
+The reader extracts the LilyPond code block and generates a runtime
+call to the LilyPond parser to interpret the LilyPond code.
+Scheme expressions embedded in the LilyPond code are evaluated in the
+lexical environment of the LilyPond code block, so all local variables
+and function parameters available at the point the LilyPond code block
+is written may be accessed.  Variables defined in other Scheme modules,
+like the modules containing @code{\header} and @code{\layout} blocks,
+are not accessible as Scheme variables, i.e., prefixed
+with @samp{#}, but they are accessible as LilyPond variables, i.e.,
+prefixed with @samp{\}.
+
+All music generated inside the code block has its
+@samp{origin} set to the current input location.
+
+A LilyPond code block may contain anything that you can use on the
+right side of an assignment.  In addition, an empty LilyPond block
+corresponds to a void music expression, and a LilyPond block
+containing multiple music events gets turned into a sequential music
+expression.
+
+
+@node Scheme functions
+@section Scheme functions
+@cindex Scheme functions (LilyPond syntax)
+
+@emph{Scheme functions} are Scheme procedures that can create Scheme
+expressions from input written in LilyPond syntax.  They can be called
+in pretty much all places where using @samp{#} for specifying a value in
+Scheme syntax is allowed.  While Scheme has functions of its own, this
+chapter is concerned with @emph{syntactic} functions, functions that
+receive arguments specified in LilyPond syntax.
+
+
+@node Scheme function definitions
+@subsection Scheme function definitions
+@funindex define-scheme-function
+
+The general form for defining Scheme functions is:
+
+@example
+function =
+#(define-scheme-function
+     (@var{arg1} @var{arg2} @dots{})
+     (@var{type1?} @var{type2?} @dots{})
+   @var{body})
+@end example
+
+@noindent
+where
+
+@indentedblock
+@table @code
+@item @var{argN}
+@var{n}th argument.
+
+@item @var{typeN?}
+A Scheme @emph{type predicate} for which @code{@var{argN}}
+must return @code{#t}.  There is also a special form
+@code{(@emph{predicate?} @emph{default})} for specifying optional
+arguments.  If the actual argument is missing when the function is being
+called, the default value is substituted instead.  Default values are
+evaluated at definition time (including LilyPond code blocks!), so if
+you need a default calculated at runtime, instead write a special value
+you can easily recognize.  If you write the predicate in parentheses but
+don't follow it with a default value, @code{#f} is used as the default.
+Default values are not verified with @emph{predicate?} at either
+definition or run time: it is your responsibility to deal with the
+values you specify.  Default values that happen to be music expressions
+are copied while setting @code{origin} to the current input location.
+
+@item @var{body}
+A sequence of Scheme forms evaluated in order, the last one being
+used as the return value of the Scheme function.  It may contain
+LilyPond code blocks enclosed in hashed braces
+(@tie{}@w{@code{#@{@dots{}#@}}}@tie{}), like described in
+@ref{LilyPond code blocks}.  Within LilyPond code blocks, use @samp{#}
+to reference function arguments (e.g., @code{#arg1}) or to start an
+inline Scheme expression containing function arguments (e.g.,
+@w{@samp{#(cons arg1 arg2)}}).  Where normal Scheme expressions using
+@samp{#} don't do the trick, you might need to revert to immediate
+Scheme expressions using @samp{$}, for example as @code{$music}.
+
+If your function returns a music expression, it is given a useful value
+of @code{origin}.
+@end table
+@end indentedblock
+
+@noindent
+Suitability of arguments for the predicates is determined by
+actually calling the predicate after LilyPond has already converted them
+into a Scheme expression.  As a consequence, the argument can be
+specified in Scheme syntax if desired (introduced with @samp{#} or as
+the result of calling a Scheme function), but LilyPond will also convert
+a number of LilyPond constructs into Scheme before actually checking the
+predicate on them.  Currently, those include music, postevents, simple
+strings (with or without quotes), numbers, full markups and markup
+lists, score, book, bookpart, context definition and output definition
+blocks.
+
+Some
+ambiguities LilyPond sorts out by checking with predicate
+functions: is @samp{-3} a fingering postevent or a negative number?  Is
+@code{"a" 4} in lyric mode a string followed by a number, or a lyric
+event of duration @code{4}?  LilyPond tries the argument
+predicate on successive interpretations until success, with an
+order designed to minimize inconsistent interpretations and
+lookahead.
+
+For example, a predicate accepting both music expressions and
+pitches will consider @code{c''} to be a pitch rather than a music
+expression.  Immediately following durations or postevents will
+change that interpretation.  It's best to avoid overly
+permissive predicates like @code{scheme?} when the application
+rather calls for more specific argument types.
+
+For a list of available predefined type predicates, see
+@rnotation{Predefined type predicates}.
+
+@morerefs
+Notation Reference:
+@rnotation{Predefined type predicates}.
+
+Installed Files:
+@file{lily/music-scheme.cc},
+@file{scm/c++.scm},
+@file{scm/lily.scm}.
+@endmorerefs
+
+
+@node Scheme function usage
+@subsection Scheme function usage
+
+Scheme functions can be called pretty much anywhere where a Scheme
+expression starting with @samp{#} can be written.  You call a
+Scheme function from LilyPond by writing its name preceded by
+@code{\}, followed by its arguments.  Once an optional argument
+predicate does not match an argument, LilyPond skips this and all
+following optional arguments, replacing them with their specified
+default, and @q{backs up} the argument that did not match to the
+place of the next mandatory argument.  Since the backed up
+argument needs to go somewhere, optional arguments are not
+actually considered optional unless followed by a mandatory
+argument.
+
+There is one exception: if you write @code{\default} in the place of an
+optional argument, this and all following optional arguments are skipped
+and replaced by their default.  This works even when no mandatory
+argument follows since @code{\default} does not need to get backed up.
+The @code{mark} and @code{key} commands make use of that trick to
+provide their default behavior when just followed by @code{\default}.
+
+Apart from places where a Scheme value is required, there are a few
+places where @samp{#} expressions are currently accepted and evaluated
+for their side effects but otherwise ignored.  Mostly those are the
+places where an assignment would be acceptable as well.
+
+Since it is a bad idea to return values that can be misinterpreted in
+some context, you should use normal Scheme functions only for those
+cases where you always return a useful value, and use void Scheme
+functions (@pxref{Void Scheme functions}) otherwise.
+
+For convenience, Scheme functions may also be called directly from
+Scheme bypassing the LilyPond parser.  Their name can be used like
+the name of an ordinary function.  Typechecking of the arguments
+and skipping optional arguments will happen in the same manner as
+when called from within LilyPond, with the Scheme value
+@code{*unspecified*} taking the role of the @code{\default}
+reserved word for explicitly skipping optional arguments.
+Optional arguments at the end of an argument list can just be
+omitted without indication when called via Scheme.
+
+
+@node Void Scheme functions
+@subsection Void Scheme functions
+@funindex define-void-function
+@funindex \void
+
+Sometimes a procedure is executed in order to perform an action rather
+than return a value.  Some programming languages (like C and Scheme) use
+functions for either concept and just discard the returned value
+(usually by allowing any expression to act as statement, ignoring the
+result).  This is clever but error-prone: most C compilers nowadays
+offer warnings for various non-@q{void} expressions being discarded.
+For many functions executing an action, the Scheme standards declare the
+return value to be unspecified.  LilyPond's Scheme interpreter Guile has
+a unique value @code{*unspecified*} that it usually (such when using
+@code{set!} directly on a variable) but unfortunately not consistently
+returns in such cases.
+
+Defining a LilyPond function with @code{define-void-function} makes
+sure that this special value (the only value satisfying the predicate
+@code{void?}) will be returned.
+
+@example
+noPointAndClick =
+#(define-void-function
+     ()
+     ()
+   (ly:set-option 'point-and-click #f))
+@dots{}
+\noPointAndClick   % disable point and click
+@end example
+
+If you want to evaluate an expression only for its side-effect and
+don't want any value it may return interpreted, you can do so by
+prefixing it with @code{\void}:
+
+@example
+\void #(hashq-set! some-table some-key some-value)
+@end example
+
+That way, you can be sure that LilyPond will not assign meaning to the
+returned value regardless of where it encounters it.  This will also
+work for music functions such as @code{\displayMusic}.
+
+
+@node Music functions
+@section Music functions
+
+@cindex music functions
+
+@emph{Music functions} are Scheme procedures that can create music
+expressions automatically, and can be used to greatly simplify the
+input file.
+
+
+@node Music function definitions
+@subsection Music function definitions
+@cindex defining music functions
+@funindex define-music-function
+
+The general form for defining music functions is:
+
+@example
+function =
+#(define-music-function
+     (@var{arg1} @var{arg2} @dots{})
+     (@var{type1?} @var{type2?} @dots{})
+   @var{body})
+@end example
+
+@noindent
+quite in analogy to @ref{Scheme function definitions}.  More often than
+not, @var{body} will be a @ref{LilyPond code blocks, LilyPond code block}.
+
+For a list of available type predicates, see
+@rnotation{Predefined type predicates}.
+
+@morerefs
+Notation Reference:
+@rnotation{Predefined type predicates}.
+
+Installed Files:
+@file{lily/music-scheme.cc},
+@file{scm/c++.scm},
+@file{scm/lily.scm}.
+@endmorerefs
+
+
+@node Music function usage
+@subsection Music function usage
+With regard to handling the argument list, music functions don't
+differ from Scheme functions, @ref{Scheme function usage}.
+
+A @q{music function} has to return an expression matching the predicate
+@code{ly:music?}.  This makes music function calls suitable as arguments
+of type @code{ly:music?} for another music function call.
+
+When using a music function call in other contexts, the context may
+cause further semantic restrictions.
+
+@itemize
+@item
+At the top level in a music expression a post-event is not accepted.
+
+@item
+When a music function (as opposed to an event function) returns an
+expression of type post-event, LilyPond requires one of the named
+direction indicators (@code{-}, @code{^}, @w{and @code{_}}) in order to
+properly integrate the post-event produced by the music function call
+into the surrounding expression.
+
+@item
+As a chord constituent.  The returned expression must be of a
+@code{rhythmic-event} type, most likely a @code{NoteEvent}.
+@end itemize
+
+@noindent
+@q{Polymorphic} functions, like @code{\tweak}, can be applied to
+post-events, chord constituent and top level music expressions.
+
+
+@node Simple substitution functions
+@subsection Simple substitution functions
+
+Simple substitution functions are music functions whose output
+music expression is written in LilyPond format and contains
+function arguments in the output expression.  They are described
+in @rnotation{Substitution function examples}.
+
+
+@node Intermediate substitution functions
+@subsection Intermediate substitution functions
+
+Intermediate substitution functions involve a mix of Scheme code
+and LilyPond code in the music expression to be returned.
+
+Some @code{\override} commands require an argument consisting of
+a pair of numbers (called a @emph{cons cell} in Scheme).
+
+The pair can be directly passed into the music function,
+using a @code{pair?} variable:
+
+@example
+manualBeam =
+#(define-music-function
+     (beg-end)
+     (pair?)
+   #@{
+     \once \override Beam.positions = #beg-end
+   #@})
+
+\relative c' @{
+  \manualBeam #'(3 . 6) c8 d e f
+@}
+@end example
+
+Alternatively, the numbers making up the pair can be
+passed as separate arguments, and the Scheme code
+used to create the pair can be included in the
+music expression:
+
+@lilypond[quote,verbatim,ragged-right]
+manualBeam =
+#(define-music-function
+     (beg end)
+     (number? number?)
+   #{
+     \once \override Beam.positions = #(cons beg end)
+   #})
+
+\relative c' {
+  \manualBeam #3 #6 c8 d e f
+}
+@end lilypond
+
+@funindex \temporary
+@cindex temporary overrides
+@cindex overrides, temporary
+@cindex properties, popping previous value
+
+Properties are maintained conceptually using one stack per property
+per grob per context.  Music functions may need to override one or
+several properties for the duration of the function, restoring them
+to their previous value before exiting.  However, normal overrides
+pop and discard the top of the current property stack before
+pushing to it, so the previous value of the property is lost when it
+is overridden.  When the previous value must be preserved, prefix the
+@code{\override} command with @code{\temporary}, like this:
+
+@example
+\temporary \override @dots{}
+@end example
+
+The use of @code{\temporary} causes the (usually set) @code{pop-first}
+property in the override to be cleared, so the previous value is not
+popped off the property stack before pushing the new value onto it.
+When a subsequent @code{\revert} pops off the temporarily overriden
+value, the previous value will re-emerge.
+
+In other words, calling @code{\temporary \override} and @code{\revert}
+in succession on the same property will have a net effect of zero.
+Similarly, pairing @code{\temporary} and @code{\undo} on the same
+music containing overrides will have a net effect of zero.
+
+Here is an example of a music function which makes use of this.
+The use of @code{\temporary} ensures the values of the
+@code{cross-staff} and @code{style} properties are restored on exit
+to whatever values they had when the @code{crossStaff} function was
+called.  Without @code{\temporary} the default values would have been
+set on exit.
+
+@example
+crossStaff =
+#(define-music-function (notes) (ly:music?)
+  (_i "Create cross-staff stems")
+  #@{
+  \temporary \override Stem.cross-staff = #cross-staff-connect
+  \temporary \override Flag.style = #'no-flag
+  #notes
+  \revert Stem.cross-staff
+  \revert Flag.style
+#@})
+@end example
+
+
+@node Mathematics in functions
+@subsection Mathematics in functions
+
+Music functions can involve Scheme programming in
+addition to simple substitution,
+
+@lilypond[quote,verbatim,ragged-right]
+AltOn =
+#(define-music-function
+     (mag)
+     (number?)
+   #{
+     \override Stem.length = #(* 7.0 mag)
+     \override NoteHead.font-size =
+       #(inexact->exact (* (/ 6.0 (log 2.0)) (log mag)))
+   #})
+
+AltOff = {
+  \revert Stem.length
+  \revert NoteHead.font-size
+}
+
+\relative {
+  c'2 \AltOn #0.5 c4 c
+  \AltOn #1.5 c c \AltOff c2
+}
+@end lilypond
+
+@noindent
+This example may be rewritten to pass in music expressions,
+
+@lilypond[quote,verbatim,ragged-right]
+withAlt =
+#(define-music-function
+     (mag music)
+     (number? ly:music?)
+   #{
+     \override Stem.length = #(* 7.0 mag)
+     \override NoteHead.font-size =
+       #(inexact->exact (* (/ 6.0 (log 2.0)) (log mag)))
+     #music
+     \revert Stem.length
+     \revert NoteHead.font-size
+   #})
+
+\relative {
+  c'2 \withAlt #0.5 { c4 c }
+  \withAlt #1.5 { c c } c2
+}
+@end lilypond
+
+
+@node Functions without arguments
+@subsection Functions without arguments
+
+In most cases a function without arguments should be written
+with a variable,
+
+@example
+dolce = \markup@{ \italic \bold dolce @}
+@end example
+
+However, in rare cases it may be useful to create a music function
+without arguments,
+
+@example
+displayBarNum =
+#(define-music-function
+     ()
+     ()
+   (if (eq? #t (ly:get-option 'display-bar-numbers))
+       #@{ \once \override Score.BarNumber.break-visibility = ##f #@}
+       #@{#@}))
+@end example
+
+To actually display bar numbers where this function is called,
+invoke @command{lilypond} with
+
+@example
+lilypond -d display-bar-numbers FILENAME.ly
+@end example
+
+
+@node Void music functions
+@subsection Void music functions
+
+A music function must return a music expression.  If you want to
+execute a function only for its side effect, you should use
+@code{define-void-function}.  But there may be cases where you
+sometimes want to produce a music expression, and sometimes not (like
+in the previous example).  Returning a @code{void} music expression
+via @code{#@{ #@}} will achieve that.
+
+
+@node Event functions
+@section Event functions
+@funindex define-event-function
+@cindex event functions
+
+To use a music function in the place of an event, you need to write a
+direction indicator before it.  But sometimes, this does not quite match
+the syntax of constructs you want to replace.  For example, if you want
+to write dynamics commands, those are usually attached without direction
+indicator, like @code{c'\pp}.  Here is a way to write arbitrary
+dynamics:
+@lilypond[quote,verbatim,ragged-right]
+dyn=#(define-event-function (arg) (markup?)
+         (make-dynamic-script arg))
+\relative { c'\dyn pfsss }
+@end lilypond
+You could do the same using a music function, but then you always would
+have to write a direction indicator before calling it, like
+@code{@w{c-\dyn pfsss}}.
+
+
+@node Markup functions
+@section Markup functions
+
+Markups are implemented as special Scheme functions which produce a
+@code{Stencil} object given a number of arguments.
+
+
+@node Markup construction in Scheme
+@subsection Markup construction in Scheme
+
+@cindex defining markup commands
+@funindex \displayScheme
+
+Markup expressions are internally represented in Scheme using the
+@code{markup} macro:
+
+@example
+(markup @var{expr})
+@end example
+
+To see a markup expression in its Scheme form, use the
+@code{\displayScheme} command:
+
+@example
+\displayScheme
+\markup @{
+  \column @{
+    \line @{ \bold \italic "hello" \raise #0.4 "world" @}
+    \larger \line @{ foo bar baz @}
+  @}
+@}
+@end example
+
+@noindent
+Compiling the code above will send the following to the display
+console:
+
+@example
+(markup
+  #:line
+  (#:column
+   (#:line
+    (#:bold (#:italic "hello") #:raise 0.4 "world")
+    #:larger
+    (#:line ("foo" "bar" "baz")))))
+@end example
+
+To prevent the markup from printing on the page, use
+@w{@samp{\void \displayScheme @var{markup}}}.  Also, as with the
+@code{\displayMusic} command, the output of @code{\displayScheme}
+can be saved to an external file.  See
+@ref{Displaying music expressions}.
+
+@noindent
+This example demonstrates the main translation rules between regular
+LilyPond markup syntax and Scheme markup syntax.  Using @code{#@{
+@dots{} #@}} for entering in LilyPond syntax will often be most
+convenient, but we explain how to use the @code{markup} macro to get a
+Scheme-only solution.
+
+@need 800
+@indentedblock
+@multitable {@code{\markup @{ markup1 markup2 @dots{} @}}} {@code{(markup markup1 markup2 @dots{})}}
+@item @b{LilyPond}
+      @tab @b{Scheme}
+@item @code{\markup markup1}
+      @tab @code{(markup markup1)}
+@item @code{\markup @{ markup1 markup2 @dots{} @}}
+      @tab @code{(markup markup1 markup2 @dots{})}
+@item @code{\markup-command}
+      @tab @code{#:markup-command}
+@item @code{\variable}
+      @tab @code{variable}
+@item @code{\center-column @{ @dots{} @}}
+      @tab @code{#:center-column (@dots{})}
+@item @code{string}
+      @tab @code{"string"}
+@item @code{#scheme-arg}
+      @tab @code{scheme-arg}
+@end multitable
+@end indentedblock
+
+The whole Scheme language is accessible inside the
+@code{markup} macro.  For example, You may use function calls inside
+@code{markup} in order to manipulate character strings.  This is
+useful when defining new markup commands (see
+@ref{New markup command definition}).
+
+
+@knownissues
+
+The markup-list argument of commands such as @code{#:line},
+@code{#:center-column}, and @code{#:column} cannot be a variable
+or the result of a function call.
+
+@lisp
+(markup #:line (function-that-returns-markups))
+@end lisp
+
+@noindent
+is invalid.  One should use the @code{make-line-markup},
+@code{make-center-column-markup}, or @code{make-column-markup}
+functions instead,
+
+@lisp
+(markup (make-line-markup (function-that-returns-markups)))
+@end lisp
+
+
+@node How markups work internally
+@subsection How markups work internally
+
+In a markup like
+
+@example
+\raise #0.5 "text example"
+@end example
+
+@noindent
+@code{\raise} is actually represented by the @code{raise-markup}
+function.  The markup expression is stored as
+
+@example
+(list raise-markup 0.5 "text example")
+@end example
+
+When the markup is converted to printable objects (Stencils), the
+@code{raise-markup} function is called as
+
+@example
+(apply raise-markup
+       @var{\layout object}
+       @var{list of property alists}
+       0.5
+       @var{the "text example" markup})
+@end example
+
+The @code{raise-markup} function first creates the stencil for the
+@code{text example} string, and then it raises that Stencil by 0.5
+staff space.  This is a rather simple example; more complex examples
+are in the rest
+of this section, and in @file{scm/define-markup-commands.scm}.
+
+
+@node New markup command definition
+@subsection New markup command definition
+
+This section discusses the definition of new markup commands.
+
+
+@node Markup command definition syntax
+@unnumberedsubsubsec Markup command definition syntax
+
+New markup commands can be defined using the
+@code{define-markup-command} Scheme macro, at top-level.
+
+@lisp
+(define-markup-command (@var{command-name} @var{layout} @var{props} @var{arg1} @var{arg2} @dots{})
+    (@var{arg1-type?} @var{arg2-type?} @dots{})
+    [ #:properties ((@var{property1} @var{default-value1})
+                    @dots{}) ]
+    [ #:as-string @var{expression} ]
+  @dots{}command body@dots{})
+@end lisp
+
+The arguments are
+
+@table @code
+@item @var{command-name}
+the markup command name
+@item layout
+the @q{layout} definition.
+@item props
+a list of associative lists, containing all active properties.
+@item @var{argi}
+@var{i}th command argument
+@item @var{argi-type?}
+a type predicate for the i@var{th} argument
+@end table
+
+If the command uses properties from the @code{props} arguments,
+the @code{#:properties} keyword can be used to specify which
+properties are used along with their default values.
+
+Arguments are distinguished according to their type:
+@itemize
+@item a markup, corresponding to type predicate @code{markup?};
+@item a list of markups, corresponding to type predicate
+@code{markup-list?};
+@item any other Scheme object, corresponding to type predicates such as
+@code{list?}, @code{number?}, @code{boolean?}, etc.
+@end itemize
+
+There is no limitation on the order of arguments (after the
+standard @code{layout} and @code{props} arguments).  However,
+markup functions taking a markup as their last argument are
+somewhat special as you can apply them to a markup list, and the
+result is a markup list where the markup function (with the
+specified leading arguments) has been applied to every element of
+the original markup list.
+
+Since replicating the leading arguments for applying a markup
+function to a markup list is cheap mostly for Scheme arguments,
+you avoid performance pitfalls by just using Scheme arguments for
+the leading arguments of markup functions that take a markup as
+their last argument.
+
+@funindex \markup
+@cindex markup macro
+@funindex interpret-markup
+Markup commands have a rather complex life cycle.  The body of a
+markup command definition is responsible for converting the
+arguments of the markup command into a stencil expression which is
+returned.  Quite often this is accomplished by calling the
+@code{interpret-markup} function on a markup expression, passing
+the @var{layout} and @var{props} arguments on to it.  Those
+arguments are usually only known at a very late stage in
+typesetting.  Markup expressions have their components assembled
+into markup expressions already when @code{\markup} in a LilyPond
+expression or the @code{markup} macro in Scheme is expanded.  The
+evaluation and typechecking of markup command arguments happens at
+the time @code{\markup}/@code{markup} are interpreted.
+
+But the actual conversion of markup expressions into stencil
+expressions by executing the markup function bodies only happens
+when @code{interpret-markup} is called on a markup expression.
+
+
+@node On properties
+@unnumberedsubsubsec On properties
+
+The @code{layout} and @code{props} arguments of markup commands bring a
+context for the markup interpretation: font size, line width, etc.
+
+The @code{layout} argument allows access to properties defined in
+@code{paper} blocks, using the @code{ly:output-def-lookup} function.
+For instance, the line width (the same as the one used in scores) is
+read using:
+
+@example
+(ly:output-def-lookup layout 'line-width)
+@end example
+
+The @code{props} argument makes some properties accessible to markup
+commands.  For instance, when a book title markup is interpreted, all
+the variables defined in the @code{\header} block are automatically
+added to @code{props}, so that the book title markup can access the book
+title, composer, etc.  It is also a way to configure the behavior of a
+markup command: for example, when a command uses font size during
+processing, the font size is read from @code{props} rather than having a
+@code{font-size} argument.  The caller of a markup command may change
+the value of the font size property in order to change the behavior.
+Use the @code{#:properties} keyword of @code{define-markup-command} to
+specify which properties shall be read from the @code{props} arguments.
+
+The example in next section illustrates how to access and override
+properties in a markup command.
+
+
+@node A complete example
+@unnumberedsubsubsec A complete example
+
+The following example defines a markup command to draw a double box
+around a piece of text.
+
+Firstly, we need to build an approximative result using markups.
+Consulting the @rnotation{Text markup commands} shows us the @code{\box}
+command is useful:
+
+@lilypond[quote,verbatim,ragged-right]
+\markup \box \box HELLO
+@end lilypond
+
+Now, we consider that more padding between the text and the boxes is
+preferable.  According to the @code{\box} documentation, this command
+uses a @code{box-padding} property, which defaults to 0.2.  The
+documentation also mentions how to override it:
+
+@lilypond[quote,verbatim,ragged-right]
+\markup \box \override #'(box-padding . 0.6) \box A
+@end lilypond
+
+Then, the padding between the two boxes is considered too small, so we
+override it too:
+
+@lilypond[quote,verbatim,ragged-right]
+\markup \override #'(box-padding . 0.4) \box
+     \override #'(box-padding . 0.6) \box A
+@end lilypond
+
+@noindent
+Repeating this lengthy markup would be painful.  This is where a markup
+command is needed.  Thus, we write a @code{double-box} markup command,
+taking one argument (the text).  This draws the two boxes, with some
+padding.
+
+@lisp
+#(define-markup-command (double-box layout props text) (markup?)
+  "Draw a double box around text."
+  (interpret-markup layout props
+    #@{\markup \override #'(box-padding . 0.4) \box
+            \override #'(box-padding . 0.6) \box @{ #text @}#@}))
+@end lisp
+
+@noindent
+or, equivalently
+
+@lisp
+#(define-markup-command (double-box layout props text) (markup?)
+  "Draw a double box around text."
+  (interpret-markup layout props
+    (markup #:override '(box-padding . 0.4) #:box
+            #:override '(box-padding . 0.6) #:box text)))
+@end lisp
+
+@code{text} is the name of the command argument, and @code{markup?} its
+type: it identifies it as a markup.  The @code{interpret-markup}
+function is used in most of markup commands: it builds a stencil, using
+@code{layout}, @code{props}, and a markup.  In the second case, this
+markup is built using the @code{markup} Scheme macro, see @ref{Markup
+construction in Scheme}.  The transformation from @code{\markup}
+expression to Scheme markup expression is straight-forward.
+
+The new command can be used as follow:
+
+@example
+\markup \double-box A
+@end example
+
+It would be nice to make the @code{double-box} command customizable:
+here, the @code{box-padding} values are hard coded, and cannot be
+changed by the user.  Also, it would be better to distinguish the
+padding between the two boxes, from the padding between the inner box
+and the text.  So we will introduce a new property,
+@code{inter-box-padding}, for the padding between the two boxes.  The
+@code{box-padding} will be used for the inner padding.  The new code is
+now as follows:
+
+@lisp
+#(define-markup-command (double-box layout props text) (markup?)
+  #:properties ((inter-box-padding 0.4)
+                (box-padding 0.6))
+  "Draw a double box around text."
+  (interpret-markup layout props
+    #@{\markup \override #`(box-padding . ,inter-box-padding) \box
+               \override #`(box-padding . ,box-padding) \box
+               @{ #text @} #@}))
+@end lisp
+
+Again, the equivalent version using the markup macro would be:
+
+@lisp
+#(define-markup-command (double-box layout props text) (markup?)
+  #:properties ((inter-box-padding 0.4)
+                (box-padding 0.6))
+  "Draw a double box around text."
+  (interpret-markup layout props
+    (markup #:override `(box-padding . ,inter-box-padding) #:box
+            #:override `(box-padding . ,box-padding) #:box text)))
+@end lisp
+
+Here, the @code{#:properties} keyword is used so that the
+@code{inter-box-padding} and @code{box-padding} properties are read from
+the @code{props} argument, and default values are given to them if the
+properties are not defined.
+
+Then, these values are used to override the @code{box-padding}
+properties used by the two @code{\box} commands.  Note the backquote and
+the comma in the @code{\override} argument: they allow you to introduce
+a variable value into a literal expression.
+
+Now, the command can be used in a markup, and the boxes padding be
+customized:
+
+@lilypond[quote,verbatim,ragged-right]
+#(define-markup-command (double-box layout props text) (markup?)
+  #:properties ((inter-box-padding 0.4)
+                (box-padding 0.6))
+  "Draw a double box around text."
+  (interpret-markup layout props
+    #{\markup \override #`(box-padding . ,inter-box-padding) \box
+              \override #`(box-padding . ,box-padding) \box
+              { #text } #}))
+
+\markup \double-box A
+\markup \override #'(inter-box-padding . 0.8) \double-box A
+\markup \override #'(box-padding . 1.0) \double-box A
+@end lilypond
+
+
+@node Adapting builtin commands
+@unnumberedsubsubsec Adapting builtin commands
+
+A good way to start writing a new markup command, is to take example on
+a builtin one.  Most of the markup commands provided with LilyPond can be
+found in file @file{scm/define-markup-commands.scm}.
+
+For instance, we would like to adapt the @code{\draw-line} command, to
+draw a double line instead.  The @code{\draw-line} command is defined as
+follow (documentation stripped):
+
+@lisp
+(define-markup-command (draw-line layout props dest)
+  (number-pair?)
+  #:category graphic
+  #:properties ((thickness 1))
+  "@dots{}documentation@dots{}"
+  (let ((th (* (ly:output-def-lookup layout 'line-thickness)
+               thickness))
+        (x (car dest))
+        (y (cdr dest)))
+    (make-line-stencil th 0 0 x y)))
+@end lisp
+
+To define a new command based on an existing one, copy the definition,
+and change the command name.  The @code{#:category} keyword can be
+safely removed, as it is only used for generating LilyPond
+documentation, and is of no use for user-defined markup commands.
+
+@lisp
+(define-markup-command (draw-double-line layout props dest)
+  (number-pair?)
+  #:properties ((thickness 1))
+  "@dots{}documentation@dots{}"
+  (let ((th (* (ly:output-def-lookup layout 'line-thickness)
+               thickness))
+        (x (car dest))
+        (y (cdr dest)))
+    (make-line-stencil th 0 0 x y)))
+@end lisp
+
+Then, a property for setting the gap between two lines is added, called
+@code{line-gap}, defaulting, e.g., to 0.6:
+
+@lisp
+(define-markup-command (draw-double-line layout props dest)
+  (number-pair?)
+  #:properties ((thickness 1)
+                (line-gap 0.6))
+  "@dots{}documentation@dots{}"
+  @dots{}
+@end lisp
+
+Finally, the code for drawing two lines is added.  Two calls to
+@code{make-line-stencil} are used to draw the lines, and the resulting
+stencils are combined using @code{ly:stencil-add}:
+
+@lilypond[quote,verbatim,ragged-right]
+#(define-markup-command (my-draw-line layout props dest)
+   (number-pair?)
+   #:properties ((thickness 1)
+                 (line-gap 0.6))
+   "..documentation.."
+   (let* ((th (* (ly:output-def-lookup layout 'line-thickness)
+                 thickness))
+          (dx (car dest))
+          (dy (cdr dest))
+          (w (/ line-gap 2.0))
+          (x (cond ((= dx 0) w)
+                   ((= dy 0) 0)
+                   (else (/ w (sqrt (+ 1 (* (/ dx dy) (/ dx dy))))))))
+          (y (cond ((= dy 0) w)
+                   ((= dx 0) 0)
+                   (else (/ w (sqrt (+ 1 (* (/ dy dx) (/ dy dx))))))))
+          (y (* (if (< (* dx dy) 0) 1 -1) y)))
+     (ly:stencil-add
+      (make-line-stencil th x y (+ dx x) (+ dy y))
+      (make-line-stencil th (- x) (- y) (- dx x) (- dy y)))))
+
+\markup \my-draw-line #'(4 . 3)
+\markup \override #'(line-gap . 1.2) \my-draw-line #'(4 . 3)
+@end lilypond
+
+
+@node Converting markups to strings
+@unnumberedsubsubsec Converting markups to strings
+
+@cindex markup, to string
+@funindex markup->string
+
+Markups are occasionally converted to plain strings, such as when
+outputting PDF metadata based on the @code{title} header field or
+for converting lyrics to MIDI.  This conversion is inherently
+lossy, but tries to as accurate as feasible.  The function used
+for this is @code{markup->string}.
+
+@lilypond[verbatim,quote]
+composerName = \markup \box "Arnold Schönberg"
+
+\markup \composerName
+
+\markup \typewriter #(markup->string composerName)
+@end lilypond
+
+For custom markup commands, the default behavior is to convert all
+markup or markup list arguments first, and join the results by
+spaces.
+
+@lilypond[verbatim,quote]
+#(define-markup-command (authors-and layout props authorA authorB)
+                        (markup? markup?)
+   (interpret-markup layout props
+    #{
+      \markup \fill-line { \box #authorA and \box #authorB }
+    #}))
+
+defaultBehavior = \markup \authors-and "Bertolt Brecht" "Kurt Weill"
+
+\markup \defaultBehavior
+
+\markup \typewriter #(markup->string defaultBehavior)
+@end lilypond
+
+@code{markup->string} can also receive the named arguments
+@code{#:layout @var{layout}} and @code{#:props @var{props}}, with
+the same meaning as in the definition of a markup command.
+However, they are optional because they cannot always be provided
+(such as the @code{layout} argument when converting to MIDI).
+
+To support special conversions in custom markup commands, the
+@code{#:as-string} parameter can be given to
+@code{define-markup-command}.  It expects an expression, which is
+evaluated by @code{markup->string} in order to yield the string
+result.
+
+@lilypond[verbatim,quote]
+#(define-markup-command (authors-and layout props authorA authorB)
+                        (markup? markup?)
+   #:as-string (format
+                #f "~a and ~a"
+                (markup->string authorA #:layout layout #:props props)
+                (markup->string authorB #:layout layout #:props props))
+   (interpret-markup layout props
+    #{
+      \markup \fill-line { \box #authorA and \box #authorB }
+    #}))
+
+customized = \markup \authors-and "Bertolt Brecht" "Kurt Weill"
+
+\markup \customized
+
+\markup \typewriter #(markup->string customized)
+@end lilypond
+
+Within the expression, the same bindings are available as in the
+main markup command body, namely @code{layout} and @code{props},
+the command argument, and optionally the properties.
+
+@lilypond[verbatim,quote]
+#(define-markup-command (authors-and layout props authorA authorB)
+                        (markup? markup?)
+   #:properties ((author-separator " and "))
+   #:as-string (format
+                #f "~a~a~a"
+                (markup->string authorA
+                                #:layout layout #:props props)
+                (markup->string author-separator
+                                #:layout layout #:props props)
+                (markup->string authorB
+                                #:layout layout #:props props))
+   (interpret-markup layout props
+    #{
+      \markup { \box #authorA #author-separator \box #authorB }
+    #}))
+
+customized = \markup \override #'(author-separator . ", ")
+                     \authors-and "Bertolt Brecht" "Kurt Weill"
+
+\markup \customized
+
+\markup \typewriter #(markup->string customized)
+@end lilypond
+
+Most often, a custom handler only needs to call
+@code{markup->string} recursively on certain arguments, as
+demonstrated above.  However, it can also make use of the
+@code{layout} and @code{props} directly, in the same way as in the
+main body.  Care must be taken that the @code{layout} argument is
+@code{#f} if no @code{#:layout} has been given to
+@code{markup->string}.  The @code{props} argument defaults to the
+empty list.
+
+
+@node New markup list command definition
+@subsection New markup list command definition
+@funindex define-markup-list-command
+@funindex interpret-markup-list
+Markup list commands are defined with the
+@code{define-markup-list-command} Scheme macro, which is similar to the
+@code{define-markup-command} macro described in
+@ref{New markup command definition}, except that where the latter returns
+a single stencil, the former returns a list of stencils.
+
+In a similar vein, @code{interpret-markup-list} is used instead of
+@code{interpret-markup} for converting a markup list into a list
+of stencils.
+
+In the following example, a @code{\paragraph} markup list command is
+defined, which returns a list of justified lines, the first one being
+indented.  The indent width is taken from the @code{props} argument.
+
+@example
+#(define-markup-list-command (paragraph layout props args) (markup-list?)
+   #:properties ((par-indent 2))
+   (interpret-markup-list layout props
+     #@{\markuplist \justified-lines @{ \hspace #par-indent #args @} #@}))
+@end example
+
+
+The version using just Scheme is more complex:
+@example
+#(define-markup-list-command (paragraph layout props args) (markup-list?)
+   #:properties ((par-indent 2))
+   (interpret-markup-list layout props
+     (make-justified-lines-markup-list (cons (make-hspace-markup par-indent)
+                                             args))))
+@end example
+
+Besides the usual @code{layout} and @code{props} arguments, the
+@code{paragraph} markup list command takes a markup list argument, named
+@code{args}.  The predicate for markup lists is @code{markup-list?}.
+
+First, the function gets the indent width, a property here named
+@code{par-indent}, from the property list @code{props}.  If the
+property is not found, the default value is @code{2}.  Then, a
+list of justified lines is made using the built-in markup list command
+@code{\justified-lines}, which is related to the
+@code{make-justified-lines-markup-list} function.  A
+horizontal space is added at the beginning using @code{\hspace} (or the
+@code{make-hspace-markup} function).  Finally, the markup list is
+interpreted using the @code{interpret-markup-list} function.
+
+This new markup list command can be used as follows:
+@example
+\markuplist @{
+  \paragraph @{
+    The art of music typography is called \italic @{(plate) engraving.@}
+    The term derives from the traditional process of music printing.
+    Just a few decades ago, sheet music was made by cutting and stamping
+    the music into a zinc or pewter plate in mirror image.
+  @}
+  \override-lines #'(par-indent . 4) \paragraph @{
+    The plate would be inked, the depressions caused by the cutting
+    and stamping would hold ink.  An image was formed by pressing paper
+    to the plate.  The stamping and cutting was completely done by
+    hand.
+  @}
+@}
+@end example
+
+
+@node Contexts for programmers
+@section Contexts for programmers
+
+
+@node Context evaluation
+@subsection Context evaluation
+
+@cindex calling code during interpreting
+@funindex \applyContext
+@funindex make-apply-context
+@funindex ly:context-property
+@funindex ly:context-set-property!
+@funindex ly:context-grob-definition
+@funindex ly:assoc-get
+@funindex ly:context-pushpop-property
+
+Contexts can be modified during interpretation with Scheme code.
+In a LilyPond code block, the syntax for this is:
+
+@example
+\applyContext @var{function}
+@end example
+
+In Scheme code, the syntax is:
+
+@example
+(make-apply-context @var{function})
+@end example
+
+@code{@var{function}} should be a Scheme function that takes a
+single argument: the context in which the @code{\applyContext}
+command is being called.  The function can access as well as
+override/set grob properties and context properties.  Any actions
+taken by the function that depend on the state of the context are
+limited to the state of the context @emph{when the function is
+called}.  Also, changes effected by a call to @code{\applyContext}
+remain in effect until they are directly modified again, or
+reverted, even if the initial conditions that they depended on
+have changed.
+
+The following Scheme functions are useful when using
+@code{\applyContext}:
+
+@table @code
+@item ly:context-property
+look up a context property value
+
+@item ly:context-set-property!
+set a context property
+
+@item ly:context-grob-definition
+@itemx ly:assoc-get
+look up a grob property value
+
+@item ly:context-pushpop-property
+do a @code{\temporary@tie{}\override}
+or a @code{\revert} on a grob property
+@end table
+
+
+The following example looks up the current @code{fontSize} value, and
+then doubles it:
+
+@lilypond[quote,verbatim]
+doubleFontSize =
+\applyContext
+  #(lambda (context)
+     (let ((fontSize (ly:context-property context 'fontSize)))
+       (ly:context-set-property! context 'fontSize (+ fontSize 6))))
+
+{
+  \set fontSize = -3
+  b'4
+  \doubleFontSize
+  b'
+}
+@end lilypond
+
+
+The following example looks up the current colors of the
+@code{NoteHead}, @code{Stem}, and @code{Beam} grobs, and then changes
+each to a less saturated shade.
+
+@lilypond[quote,verbatim]
+desaturate =
+\applyContext
+  #(lambda (context)
+     (define (desaturate-grob grob)
+       (let* ((grob-def (ly:context-grob-definition context grob))
+              (color (ly:assoc-get 'color grob-def black))
+              (new-color (map (lambda (x)
+                                (min 1 (/ (1+ x) 2)))
+                              color)))
+         (ly:context-pushpop-property context grob
+                                      'color new-color)))
+     (for-each desaturate-grob '(NoteHead Stem Beam)))
+
+\relative {
+  \time 3/4
+  g'8[ g] \desaturate g[ g] \desaturate g[ g]
+  \override NoteHead.color = #darkred
+  \override Stem.color = #darkred
+  \override Beam.color = #darkred
+  g[ g] \desaturate g[ g] \desaturate g[ g]
+}
+@end lilypond
+
+
+This also could be implemented as a music function, in order to
+restrict the modifications to a single music block.  Notice how
+@code{ly:context-pushpop-property} is used both as a
+@code{\temporary@tie{}\override} and as a @code{\revert}:
+
+@lilypond[quote,verbatim]
+desaturate =
+#(define-music-function (music) (ly:music?)
+   #{
+     \applyContext
+     #(lambda (context)
+        (define (desaturate-grob grob)
+          (let* ((grob-def (ly:context-grob-definition context grob))
+                 (color (ly:assoc-get 'color grob-def black))
+                 (new-color (map (lambda (x)
+                                   (min 1 (/ (1+ x) 2)))
+                                 color)))
+            (ly:context-pushpop-property context grob
+                                         'color new-color)))
+        (for-each desaturate-grob '(NoteHead Stem Beam)))
+     #music
+     \applyContext
+     #(lambda (context)
+        (define (revert-color grob)
+          (ly:context-pushpop-property context grob 'color))
+        (for-each revert-color '(NoteHead Stem Beam)))
+   #})
+
+\relative {
+  \override NoteHead.color = #darkblue
+  \override Stem.color = #darkblue
+  \override Beam.color = #darkblue
+  g'8 a b c
+  \desaturate { d c b a }
+  g b d b g2
+}
+@end lilypond
+
+
+@node Running a function on all layout objects
+@subsection Running a function on all layout objects
+
+
+@cindex calling code on layout objects
+@funindex \applyOutput
+
+The most versatile way of tuning an object is @code{\applyOutput} which
+works by inserting an event into the specified context
+(@rinternals{ApplyOutputEvent}).  Its syntax is either
+@example
+\applyOutput @var{Context} @var{proc}
+@end example
+or
+@example
+\applyOutput @var{Context}.@var{Grob} @var{proc}
+@end example
+
+@noindent
+where @code{@var{proc}} is a Scheme function, taking three arguments.
+
+When interpreted, the function @code{@var{proc}} is called for
+every layout object (with grob name @var{Grob} if specified) found
+in the context @code{@var{Context}} at the current time step, with
+the following arguments:
+@itemize
+@item the layout object itself,
+@item the context where the layout object was created, and
+@item the context where @code{\applyOutput} is processed.
+@end itemize
+
+
+In addition, the cause of the layout object, i.e., the music
+expression or object that was responsible for creating it, is in the
+object property @code{cause}.  For example, for a note head, this is a
+@rinternals{NoteHead} event, and for a stem object,
+this is a @rinternals{Stem} object.
+
+Here is a function to use for @code{\applyOutput}; it blanks
+note-heads on the center-line and next to it:
+
+@lilypond[quote,verbatim,ragged-right]
+#(define (blanker grob grob-origin context)
+   (if (< (abs (ly:grob-property grob 'staff-position)) 2)
+       (set! (ly:grob-property grob 'transparent) #t)))
+
+\relative {
+  a'4 e8 <<\applyOutput Voice.NoteHead #blanker a c d>> b2
+}
+@end lilypond
+
+To have @var{function} interpreted at the @code{Score} or @code{Staff}
+level use these forms
+
+@example
+\applyOutput Score@dots{}
+\applyOutput Staff@dots{}
+@end example
+
+
+@node Callback functions
+@section Callback functions
+
+Properties (like @code{thickness}, @code{direction}, etc.@:) can be
+set at fixed values with @code{\override}, e.g.
+
+@example
+\override Stem.thickness = #2.0
+@end example
+
+Properties can also be set to a Scheme procedure:
+
+@lilypond[fragment,verbatim,quote]
+\override Stem.thickness = #(lambda (grob)
+    (if (= UP (ly:grob-property grob 'direction))
+        2.0
+        7.0))
+\relative { c'' b a g b a g b }
+@end lilypond
+
+@noindent
+In this case, the procedure is executed as soon as the value of the
+property is requested during the formatting process.
+
+Most of the typesetting engine is driven by such callbacks.
+Properties that typically use callbacks include
+
+@table @code
+@item stencil
+  The printing routine, that constructs a drawing for the symbol
+@item X-offset
+  The routine that sets the horizontal position
+@item X-extent
+  The routine that computes the width of an object
+@end table
+
+The procedure always takes a single argument, being the grob.
+
+That procedure may access the usual value of the property, by first
+calling the function that is the usual callback for that property, which
+can by found in the Internals Reference or the file 'define-grobs.scm':
+
+@example
+\relative @{
+  \override Flag.X-offset = #(lambda (flag)
+    (let ((default (ly:flag::calc-x-offset flag)))
+      (* default 4.0)))
+  c''4. d8 a4. g8
+@}
+@end example
+
+It is also possible to get the value of the existing default by
+employing the function @code{grob-transformer}:
+
+@lilypond[verbatim,quote]
+\relative {
+  \override Flag.X-offset = #(grob-transformer 'X-offset
+    (lambda (flag default) (* default 4.0)))
+  c''4. d8 a4. g8
+}
+@end lilypond
+
+
+From within a callback, the easiest method for evaluating a markup is
+to use grob-interpret-markup.  For example:
+
+@example
+my-callback = #(lambda (grob)
+                 (grob-interpret-markup grob (markup "foo")))
+@end example
+
+@ignore
+
+@n ode Inline Scheme code
+@s ection Inline Scheme code
+
+TODO: after this section had been written, LilyPond has improved
+to the point that finding a @emph{simple} example where one would
+@emph{have} to revert to Scheme has become rather hard.
+
+Until this section gets a rewrite, let's pretend we don't know.
+
+The main disadvantage of @code{\tweak} is its syntactical
+inflexibility.  For example, the following produces a syntax error
+(or rather, it did so at some point in the past).
+
+@example
+F = \tweak font-size #-3 -\flageolet
+
+\relative @{
+  c''4^\F c4_\F
+@}
+@end example
+
+@noindent
+Using Scheme, this problem can be avoided.  The route to the
+result is given in @ref{Adding articulation to notes (example)},
+especially how to use @code{\displayMusic} as a helping guide.
+
+@example
+F = #(let ((m (make-music 'ArticulationEvent
+                          'articulation-type 'flageolet)))
+       (set! (ly:music-property m 'tweaks)
+             (acons 'font-size -3
+                    (ly:music-property m 'tweaks)))
+       m)
+
+\relative @{
+  c''4^\F c4_\F
+@}
+@end example
+
+@noindent
+Here, the @code{tweaks} properties of the flageolet object
+@code{m} (created with @code{make-music}) are extracted with
+@code{ly:music-property}, a new key-value pair to change the
+font size is prepended to the property list with the
+@code{acons} Scheme function, and the result is finally
+written back with @code{set!}.  The last element of the
+@code{let} block is the return value, @code{m} itself.
+
+@end ignore
+
+
+@node Unpure-pure containers
+@section Unpure-pure containers
+
+@c See issue #3512.
+@warning{While this subsubsection reflects the current state, the given
+example is moot and does not show any effect.}
+
+@cindex Scheme, pure container
+@cindex Scheme, unpure container
+@cindex pure container, Scheme
+@cindex unpure container, Scheme
+@cindex horizontal spacing, overriding
+
+Unpure-pure containers are useful for overriding @emph{Y-axis} spacing
+calculations -- specifically @code{Y-offset} and @code{Y-extent} -- with a
+Scheme function instead of a literal (i.e., a number or pair).
+
+For certain grobs, the @code{Y-extent} is based on the @code{stencil}
+property, overriding the stencil property of one of these will
+require an additional @code{Y-extent} override with an unpure-pure
+container.  When a function overrides a @code{Y-offset} and/or
+@code{Y-extent} it is assumed that this will trigger line breaking
+calculations too early during compilation.  So the function is not
+evaluated at all (usually returning a value of @samp{0} or
+@samp{'(0 . 0)}) which can result in collisions.  A @q{pure} function
+will not affect properties, objects or grob suicides and therefore will
+always have its Y-axis-related evaluated correctly.
+
+Currently, there are about thirty functions that are already considered
+@q{pure} and Unpure-pure containers are a way to set functions not on
+this list as @q{pure}.  The @q{pure} function is evaluated @emph{before}
+any line-breaking and so the horizontal spacing can be adjusted
+@q{in time}.  The @q{unpure} function is then evaluated @emph{after}
+line breaking.
+
+@warning{As it is difficult to always know which functions are on this
+list we recommend that any @q{pure} functions you create do not use
+@code{Beam} or @code{VerticalAlignment} grobs.}
+
+An unpure-pure container is constructed as follows;
+
+@example
+(ly:make-unpure-pure-container f0 f1)
+@end example
+
+@noindent
+where @code{f0} is a function taking @var{n} arguments (@var{n >= 1})
+and the first argument must always be the grob.  This is the function
+that gives the actual result.  @var{f1} is the function being labeled
+as @q{pure} that takes @var{n + 2} arguments.  Again, the first argument
+must always still be the grob but the second and third are @q{start}
+and @q{end} arguments.
+
+@var{start} and @var{end} are, for all intents and purposes, dummy
+values that only matter for @code{Spanners} (i.e @code{Hairpin} or
+@code{Beam}), that can return different height estimations based on a
+starting and ending column.
+
+The rest are the other arguments to the first function (which
+may be none if @var{n = 1}).
+
+The results of the second function are used as an approximation of the
+value needed which is then used by the first function to get the real
+value which is then used for fine-tuning much later during the spacing
+process.
+
+@c TODO: The following example supposedly showing a collision no longer
+@c 'works' since 2.18.x. Another example of a collision is needed.
+@c Issue #3512
+
+@lilypond[verbatim,quote,ragged-right]
+#(define (square-line-circle-space grob)
+(let* ((pitch (ly:event-property (ly:grob-property grob 'cause)
+                                 'pitch))
+      (notename (ly:pitch-notename pitch)))
+ (if (= 0 (modulo notename 2))
+     (make-circle-stencil 0.5 0.0 #t)
+     (make-filled-box-stencil '(0 . 1.0)
+                              '(-0.5 . 0.5)))))
+
+squareLineCircleSpace = {
+  \override NoteHead.stencil = #square-line-circle-space
+}
+
+smartSquareLineCircleSpace = {
+  \squareLineCircleSpace
+  \override NoteHead.Y-extent =
+   #(ly:make-unpure-pure-container
+      ly:grob::stencil-height
+      (lambda (grob start end) (ly:grob::stencil-height grob)))
+}
+
+\new Voice \with { \remove Stem_engraver }
+\relative c'' {
+  \squareLineCircleSpace
+  cis4 ces disis d
+  \smartSquareLineCircleSpace
+  cis4 ces disis d
+}
+@end lilypond
+
+@noindent
+In the first measure, without the unpure-pure container, the spacing
+engine does not know the width of the note head and lets it collide with
+the accidentals.  In the second measure, with unpure-pure containers,
+the spacing engine knows the width of the note heads and avoids the
+collision by lengthening the line accordingly.
+
+Usually for simple calculations nearly-identical functions for
+both the @q{unpure} and @q{pure} parts can be used, by only
+changing the number of arguments passed to, and the scope of, the
+function.  This use case is frequent enough that
+@code{ly:make-unpure-pure-container} constructs such a second
+function by default when called with only one function argument.
+
+@warning{If a function is labeled as @q{pure} and it turns out not to
+be, the results can be unexpected.}
+
+
+@node Difficult tweaks
+@section Difficult tweaks
+
+There are a few classes of difficult adjustments.
+
+@itemize
+
+
+@item
+One type of difficult adjustment involves the appearance of
+spanner objects, such as slurs and ties.  Usually, only one
+spanner object is created at a time, and it can be adjusted with
+the normal mechanism.  However, occasionally a spanner crosses a
+line break.  When this happens, the object is cloned.  A separate
+object is created for every system in which the spanner appears.
+The new objects are clones of the original object and inherit all
+properties, including @code{\override}s.
+
+
+In other words, an @code{\override} always affects all pieces of a
+broken spanner.  To change only one part of a spanner at a line break,
+it is necessary to hook into the formatting process.  The
+@code{after-line-breaking} callback contains the Scheme procedure that
+is called after the line breaks have been determined and layout
+objects have been split over different systems.
+
+In the following example, we define a procedure
+@code{my-callback}.  This procedure
+
+@itemize @minus{}
+@item
+determines if the spanner has been split across line breaks
+@item
+if yes, retrieves all the split objects
+@item
+checks if this grob is the last of the split objects
+@item
+if yes, it sets @code{extra-offset}.
+@end itemize
+
+This procedure is installed into @rinternals{Tie}, so the last part
+of the broken tie is repositioned.
+
+@lilypond[quote,verbatim,ragged-right]
+#(define (my-callback grob)
+   (let* (
+          ;; have we been split?
+          (orig (ly:grob-original grob))
+
+          ;; if yes, get the split pieces (our siblings)
+          (siblings (if (ly:grob? orig)
+                        (ly:spanner-broken-into orig)
+                        '())))
+
+     (if (and (>= (length siblings) 2)
+              (eq? (car (last-pair siblings)) grob))
+         (ly:grob-set-property! grob 'extra-offset '(1 . -4)))))
+
+\relative {
+  \override Tie.after-line-breaking =
+  #my-callback
+  c''1 ~ \break
+  c2 ~ 2
+}
+@end lilypond
+
+@noindent
+When applying this trick, the new @code{after-line-breaking} callback
+should also call the old one, if such a default exists.  For example,
+if using this with @code{Hairpin}, @code{ly:spanner::kill-zero-spanned-time}
+should also be called.
+
+
+@item
+Some objects cannot be changed with @code{\override} for technical
+reasons.  They can be changed with the @code{\overrideProperty}
+function, which works similar to @code{\once \override}, but uses
+a different syntax.@footnote{Over time, @code{\overrideProperty}
+is being replaced with the more usual @code{\once \override}
+command.  If you still find yourself needing @code{\overrideProperty},
+a bug report would be appreciated.}
+
+@example
+\overrideProperty [@var{ContextName}]
+                  .@var{GrobName}
+                  .@var{property-name}
+                  [.@var{subproperty-name}] @var{value}
+@end example
+
+@end itemize
+
+
+@node LilyPond Scheme interfaces
+@chapter LilyPond Scheme interfaces
+
+This chapter covers the various tools provided by LilyPond to help
+Scheme programmers get information into and out of the music streams.
+
+TODO -- figure out what goes in here and how to organize it

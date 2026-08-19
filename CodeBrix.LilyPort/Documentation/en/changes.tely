@@ -1,0 +1,393 @@
+\input texinfo @c -*- coding: utf-8; mode: texinfo; -*-
+
+@settitle LilyPond Changes
+
+@dircategory LilyPond -- the music typesetter
+@direntry
+* Changes: (lilypond-changes).          News since version 2.26.
+@end direntry
+
+@include en/macros.itexi
+
+@documentencoding UTF-8
+@documentlanguage en
+@afourpaper
+
+@macro manualIntro
+This document lists changes and new features
+in LilyPond version @version{} since 2.26.
+@end macro
+
+@lilyTitlePage{Changes}
+
+@ignore
+
+HINTS
+
+* only show verbatim input for syntax/input changes
+
+* try to be as brief possible in those cases
+
+* don't try to provide real-world examples, they often get too big,
+which scares away people.
+
+* Write complete sentences.
+
+* only show user-visible changes.
+
+@end ignore
+
+@warning{LilyPond releases can contain syntax changes, which may
+require modifications in your existing files written for older
+versions so that they work in the new version.  To upgrade files,
+it is @strong{strongly recommended} to use the @command{convert-ly}
+tool distributed with LilyPond, which is described in
+@rprogram{Updating files with convert-ly}.  @command{convert-ly} can
+perform almost all syntax updates automatically.  Frescobaldi users can
+run @command{convert-ly} directly from Frescobaldi using
+@qq{Tools > Update with convert-ly@dots{}}.  Other editing
+environments with LilyPond support may provide a way to run
+@command{convert-ly} graphically.}
+
+
+@c Don't remove this top-level menu; it is needed to suppress automatic
+@c generation of a `@detailmenu` block by `texi2any` up to version 7.2.
+@menu
+* Major changes in LilyPond::
+* New for musical notation::
+* New for specialist notation::
+* Miscellaneous improvements::
+@end menu
+
+
+@contents
+
+
+@node Major changes in LilyPond
+@unnumbered Major changes in LilyPond
+
+None so far.
+
+@ignore
+
+@node Notes for source compilation and packagers
+@unnumberedsec Notes for source compilation and packagers
+
+See if we need this again...
+
+This section is aimed at enthusiasts compiling LilyPond from source
+and packagers preparing LilyPond for distribution.  If you are not
+part of either group, you can skip over this section.
+
+@end ignore
+
+@need 1500
+@node New for musical notation
+@unnumbered New for musical notation
+
+@node Pitches improvements
+@unnumberedsec Pitches improvements
+
+None so far.
+
+@node Rhythm improvements
+@unnumberedsec Rhythm improvements
+
+@itemize
+
+@item
+The new @code{\measure} command changes the measure length to
+match the duration of the given music and restores it afterward.
+
+@lilypond[quote,verbatim]
+\fixed c'' {
+  d2( c)
+  \measure { d\breve }
+}
+@end lilypond
+
+@item
+The new @code{\measureRemainder} command is similar to
+@code{\measure}, but it can be used to complete a measure that has
+already begun.
+
+@item
+The new @code{\setMeasureLengthFromHere} command simplifies
+creating irregular measures by setting the measure length relative
+to the current measure position.  This complements
+@code{\partial}, which changes the measure position relative to
+the measure length.  The new @code{\setDefaultMeasureLength}
+command restores the measure length to the value dictated by the
+time signature.
+
+@item
+The new @code{\premeasure @var{music}} command is an abbreviation
+for @code{\partial @var{duration} @var{music}} that computes the
+duration automatically.
+
+@item
+By default, strictly alternating meters consisting of 4/4 and 2/2
+are printed in a historic style using multiple C or cut-C symbols.
+
+@lilypond[quote,verbatim]
+{
+  \time #'((2 . 2) (2 . 2))
+  b'1 2 2
+}
+@end lilypond
+
+@item
+The automatic beaming algorithm now can be told to interrupt an
+automatically created beam at some point using @code{\beamBreak}.
+Similarly, using @code{\noBeamBreak}, two adjoining notes can
+be forced to get beamed together:
+
+@lilypond[quote,verbatim]
+\relative {
+  c''8 c c c d d \beamBreak d d
+  \time 2/4
+  c8 8 8 8
+  8 8 \noBeamBreak 8 8
+  4. 8 \noBeamBreak
+  8 4 8
+}
+@end lilypond
+
+@end itemize
+
+
+@node Expressive mark improvements
+@unnumberedsec Expressive mark improvements
+
+None so far.
+
+@node Repeat improvements
+@unnumberedsec Repeat improvements
+
+None so far.
+
+@node Editorial annotation improvements
+@unnumberedsec Editorial annotation improvements
+
+@itemize
+
+@item
+The Scheme function @code{parenthesize-stencil} got an optional
+argument to lengthen the parentheses.
+
+@item
+The Scheme function @code{bracketify-stencil} got an optional
+argument to lengthen the brackets.
+
+@end itemize
+
+
+@node Text and font improvements
+@unnumberedsec Text and font improvements
+
+@itemize
+
+@item
+An equal sign was added to the Emmentaler font.
+
+@item
+A senza-misura time signature was added to the Emmentaler font.
+
+@lilypond[quote]
+{
+  \override Staff.TimeSignature.stencil =
+    #(lambda (grob)
+       (grob-interpret-markup grob
+                              (make-musicglyph-markup "timesig.X")))
+  \time 4/4 f'1
+}
+@end lilypond
+
+@item
+Text variant glyphs for common time and cut time symbols were
+added to the Emmentaler font.  They can be either accessed
+directly as Unicode characters or using the
+@code{\text-common-time} and @code{\text-cut-time} markup
+commands.
+
+@lilypond[quote]
+\markup {
+  Common time \concat{ "(" \tiny\number{𝄴} ")," }
+  cut time \concat{ "(" \tiny\number{𝄵} ")." }
+}
+@end lilypond
+
+@item
+Fonts may be changed in a single markup using @code{\font-select}.
+The font names for the serif, sans and typewriter families are
+chosen independently.
+
+@lilypond[quote,verbatim]
+\markup \font-select #'((sans . "DejaVu Sans")
+                        (typewriter . "DejaVu Sans Mono"))
+{
+  \sans \line { Sans-serif font. }
+  \typewriter \line { Typewriter font. }
+  \line { Default serif font. }
+  \font-select #'(serif . "DejaVu Serif")
+  \line { Changed serif font. }
+}
+@end lilypond
+
+@end itemize
+
+
+@node New for specialist notation
+@unnumbered New for specialist notation
+
+@itemize
+
+@item
+The chord name input @code{@var{x}:1/@var{x}} gets now rendered as
+@q{N.C./@var{x}}.
+
+@lilypond[quote, verbatim]
+\chords { d:1/d }
+@end lilypond
+
+@item
+White mensural ligatures now support final ascending longae facing backwards,
+obey tweaks in more cases, and handle errors more gracefully.
+
+@lilypond[quote,ragged-right,verbatim]
+\score {
+  \new PetrucciStaff {
+    \clef "petrucci-c4"
+    \[ g\breve f \tweak ligature-pes ##t c'\longa \]
+  }
+}
+@end lilypond
+
+@item
+Stanza numbers in lyrics are now created with a dedicated @code{\stanza ...}
+command.  This replaces the former syntax @code{\set stanza = ...}.
+
+@lilypond[quote,ragged-right,verbatim]
+\relative {
+  c'4 c g' g
+  a a g2
+}
+\addlyrics {
+  \stanza "1."
+  Twin -- kle, twin -- kle, lit -- tle star
+}
+\addlyrics {
+  \stanza "2."
+  When the bla -- zing sun is gone
+}
+@end lilypond
+
+@item
+Stanza numbers in lyrics can now be auto-repeated at the beginning of each
+line.  To activate this feature, set the @code{stanzaReminders} property to
+@code{#t}:
+@lilypond[quote,ragged-right,verbatim]
+\new Voice \relative {
+  \key e \minor
+  b'4 b a g
+  fis2 e \break
+  b'4 cis d b
+  e2 dis \break
+  e4 g fis fis
+  e1
+}
+\addlyrics {
+  \stanza "1."
+  \set stanzaReminders = ##t
+  Je -- su, mei -- ne Freu -- de,
+  mei -- nes Her -- zens Wei -- de,
+  \set stanzaReminderText = "(1st)"
+  Je -- su, mei -- ne Zier.
+}
+\addlyrics {
+  \stanza "2."
+  Un -- ter dei -- nem Schir -- men
+  bin ich vor den Stür -- men
+  \set stanzaReminders = ##t
+  \set stanzaReminderText = #make-tiny-markup
+  al -- ler Fein -- de frei.
+}
+@end lilypond
+
+@item
+An alternative to using @code{\pes} and @code{\flexa} (which
+internally do the same) is the command @code{\~}.  This isn't new
+(being introduced in 2003); however, it stayed undocumented and
+was broken for some time.
+
+@lilypond[quote,verbatim,staffsize=26]
+\new VaticanaScore {
+  \new VaticanaVoice \relative {
+    \[ a \pes b \flexa g \]
+  }
+}
+@end lilypond
+
+@lilypond[quote,verbatim,staffsize=26]
+\new VaticanaScore {
+  \new VaticanaVoice \relative {
+    \[ a \~ b \~ g \]
+  }
+}
+@end lilypond
+
+
+@end itemize
+
+
+@node Miscellaneous improvements
+@unnumbered Miscellaneous improvements
+
+@itemize
+
+@item
+The new @code{\verboseBarNumbers} command simplifies documentation
+examples where bar numbers are a central concern.  It might also
+be useful for debugging.
+
+@item
+The new commands @code{\startGradualTempoChange} and
+@code{\stopGradualTempoChange} describe a temporary departure from
+the prevailing tempo.  Currently, these affect only MIDI output.
+
+@item
+These functions, which have been deprecated since version 2.13.19,
+have been removed: @code{\deprecatedcresc},
+@code{\deprecatedendcresc}, @code{\deprecateddim}, and
+@code{\deprecatedenddim}.
+
+@item
+The @code{glyph-name} property of a @code{NoteHead} grob now contains a
+fully qualified glyph name, as documented.  It is no longer necessary to
+replace the stencil just to draw a different note head glyph; setting this
+property suffices.
+@lilypond[quote,ragged-right,verbatim]
+{
+  c'4
+  \once\override NoteHead.glyph-name = "noteheads.s2triangle"
+  c'4
+}
+@end lilypond
+As a side effect, the Scheme function @code{note-head::calc-glyph-name}
+is not needed anymore and will be removed after a deprecation cycle.
+Depending on the intended use case, its use may be replaced either by
+accessing the @code{glyph-name} property of a specific @code{NoteHead}
+grob, or by calling @code{select-head-glyph} for a specific notehead
+style and duration-log.
+
+@end itemize
+
+
+@ifhtml
+For older news, go to
+@uref{https://lilypond.org/doc/v2.22/Documentation/changes/},
+or @uref{../,go back} to the Documentation index.
+
+@end ifhtml
+
+@bye

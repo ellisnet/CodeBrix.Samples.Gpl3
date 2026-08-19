@@ -1,0 +1,44 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>disable</Nullable>
+    <IsPackable>false</IsPackable>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <RootNamespace>Lily.Docs.Tests</RootNamespace>
+    <AssemblyName>Lily.Docs.Tests</AssemblyName>
+  </PropertyGroup>
+
+  <!--
+    THE VSTest DIALECT, CHOSEN DELIBERATELY (the plan's §8(a) asks for the choice to
+    be made and written down). This repository contains BOTH xunit.v3 dialects: the
+    main CodeBrix.LilyPort solution is VSTest, and tools/Lily.Shell is the
+    Microsoft.Testing.Platform dialect, where the trx logger switch is ignored (two
+    MTP0001 warnings) and plain `dotnet test' is refused on the .NET 10 SDK.
+    Lily.Docs takes the VSTest dialect so that the documented command
+
+        dotnet test Lily.Docs.slnx -c Release
+
+    works as written, with trx logging available for the same instrumentation the rest
+    of the harness uses. Do not add UseMicrosoftTestingPlatformRunner here without
+    changing README.txt in the same edit.
+  -->
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.5.1" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="3.1.5">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="xunit.v3" Version="3.2.2" />
+    <PackageReference Include="SilverAssertions.ApacheLicenseForever" Version="1.0.164.180" />
+    <PackageReference Include="coverlet.collector" Version="6.0.4">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Lily.Docs\Lily.Docs.csproj" />
+  </ItemGroup>
+
+</Project>

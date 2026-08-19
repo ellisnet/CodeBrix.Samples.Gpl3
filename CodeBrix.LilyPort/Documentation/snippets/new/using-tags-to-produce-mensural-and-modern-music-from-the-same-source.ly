@@ -1,0 +1,108 @@
+\version "2.24.0"
+
+\header {
+  categories = "Ancient notation, Contexts and engravers, Vocal music"
+
+  texidoc = "
+Using tags it is possible to produce both mensural and modern notation
+from the same music. In this snippet, a function @code{\\menrest} is
+introduced, allowing mensural rests to be pitched as in the original,
+but with modern rests in the standard staff position.
+
+Tags can also be used where other differences are needed: for example
+using @qq{whole measure rests} (@code{R1}, @code{R\\breve}, etc.) in
+modern music, but normal rests (@code{r1}, @code{r\\breve}, etc.) in
+the mensural version. Converting mensural music to its modern
+equivalent is usually referred to as @emph{transcription}.
+
+The call @code{c4.\\Be c8 c\\Am} is the same as @code{c4.[ c8 c]}.
+However, it suppresses warnings if it starts on a note that can't hold
+a beam but needs it anyway due to the use of
+@code{Completion_heads_engraver}.
+
+[Note that the custos sticks out into the right margin and might be cut
+off if the LilyPond output gets cropped tightly. The use of
+@code{\\with-true-dimensions} below avoids this.]
+"
+
+  doctitle = "Using tags to produce mensural and modern music from the same source"
+} % begin verbatim
+
+
+\layout {
+  line-width = 150\mm
+}
+
+menrest = #(define-music-function (note) (ly:music?)
+              #{
+                \tag #'mens $(make-music 'RestEvent note)
+                \tag #'mod $(make-music 'RestEvent note 'pitch '())
+              #})
+Be = \tag #'mod
+       #(begin
+          (ly:expect-warning (G_ "stem does not fit in beam"))
+          (ly:expect-warning (G_ "beam was started here"))
+          (make-span-event 'BeamEvent START))
+Am = \tag #'mod ]
+
+MenStyle = {
+  \override Score.BarNumber.transparent = ##t
+  \override Stem.neutral-direction = #up
+  \omit Slur
+  \omit Beam
+}
+
+finalis = \section
+
+Music = \relative c'' {
+  \key f \major
+  g1 d'2 \menrest bes4 bes a2 \menrest r4 g4 fis4. fis8 fis4 fis \break
+  g e f4.([ g8] a4[ g8 f] g2.\Be fis8 e\Am fis2) g\breve \finalis
+}
+
+MenLyr = \lyricmode {
+  So farre, deere life, deare life,
+  from thy bright beames ab- ſen- ted,
+}
+ModLyr = \lyricmode {
+  So far, dear life, dear life,
+  from your bright beams ab -- sen -- ted, __
+}
+
+\score {
+  \keepWithTag #'mens {
+    <<
+      \new PetrucciStaff {
+        \new PetrucciVoice = "Cantus" {
+          \clef "petrucci-c1" \time 4/4 \MenStyle \Music
+        }
+      }
+      \new Lyrics \lyricsto "Cantus" \MenLyr
+    >>
+  }
+  \layout {
+    \context {
+      \PetrucciVoice
+      % No longer necessary starting with version 2.25.23.
+      \override Flag.style = #'mensural
+    }
+  }
+}
+
+\markup\vspace #1
+
+\score {
+  \keepWithTag #'mod {
+    \new ChoirStaff <<
+      \new Staff {
+        \new Voice = "Sop" \with {
+          \remove "Note_heads_engraver"
+          \consists "Completion_heads_engraver"
+          \remove "Rest_engraver"
+          \consists "Completion_rest_engraver"
+        } \shiftDurations 1 0 { \time 2/4 \autoBeamOff \Music }
+      }
+      \new Lyrics \lyricsto "Sop" \ModLyr
+    >>
+  }
+}

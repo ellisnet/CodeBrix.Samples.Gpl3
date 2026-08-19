@@ -1,0 +1,611 @@
+@c -*- coding: utf-8; mode: texinfo; -*-
+@c This file is part of community.itexi and ../topdocs/AUTHORS.itexi
+
+@ignore
+
+  This file lists authors of LilyPond, and what they wrote.  Each
+  list is sorted alphabetically by surname.  This file lists people
+  that have contributed more than a few hours of work.
+
+  Developers are people who have been listed under the "Development
+  Team" in Documentation/misc/THANKS*, or who are added when they
+  reach a significant amount of contributions with respect to the
+  existing Developers list, and can choose their own titles.
+  Contributors are everybody else, and simply list their
+  contributions.  All lists are sorted alphabetically.
+
+  Developers should be listed under "main developers" and nowhere
+  else. Main developers may appear in both the current and previous.
+  Anybody who has finished doing a "main devel team" task should
+  list it under developersPrevious, even if they're still doing
+  other "main devel team" stuff.  See "Graham Percival" for an
+  example.
+
+  Contributors are also split between Current and Previous.
+  Anybody who worked on anything up to and including the latest
+  stable release should be listed under "previous contributors".
+  Contributors who worked on the unstable release should be listed
+  under "current contributors".  A contributor can thus be listed
+  twice (under previous and current).
+
+  Each category contains:
+    core...     (programming)
+    font...     (duh)
+    doc...      (documentation and examples)
+    bug...      (bug squad members)
+    support...  (building, distributions, editors, lilypond-book,
+                 LilyPond Wiki, but *not* answering emails)
+    translations... (duh)
+  We might add a "general" or "other" if there's something else.
+
+@end ignore
+
+
+@macro developersCurrent
+
+@itemize
+
+@item Colin Campbell:
+@email{cpkc.music@@shaw.ca},
+Patch Meister
+
+@item Dan Eble:
+@email{nine.fierce.ballads@@gmail.com},
+Core developer
+
+@item Jonas Hahnfeld:
+@email{hahnjo@@hahnjo.de}
+@uref{https://www.hahnjo.de/}
+Core developer, release unbreaker, GitLab manager
+
+@item Phil Holmes:
+@email{mail@@philholmes.net}
+@uref{http://www.philholmes.net}
+Build unentangler, Bug squad member
+
+@item David Kastrup:
+@email{dak@@gnu.org},
+hard core developer, user and programming interfaces, bug squashing and
+swamp drainage.
+
+@item Werner Lemberg:
+@email{wl@@gnu.org},
+Fonts, bug squasher
+
+@item Han-Wen Nienhuys:
+@email{hanwen@@xs4all.nl},
+@uref{https://www.xs4all.nl/~hanwen/},
+Main author
+
+@item Francisco Vila:
+Translation Meister
+
+@end itemize
+@end macro
+
+
+
+@macro developersPrevious
+
+@itemize
+
+@c use colons not commas for @item entries.
+
+@item Jean Abou Samra:
+@email{jean@@abou-samra.fr}, @uref{https://jean.abou-samra.fr},
+Factotum
+
+@item Mats Bengtsson:
+@email{mats.bengtsson@@ee.kth.se},
+@uref{https://www.kth.se/profile/matben/},
+Support guru
+
+@item Bertrand Bordage:
+@email{bordage.bertrand@@gmail.com},
+Core developer, font designer
+
+@item Trevor Daniels:
+@email{t.daniels@@treda.co.uk},
+Assistant documentation editor
+
+@item Colin Hall:
+Bug Meister
+
+@item Ian Hulin:
+Core developer
+
+@item Reinhold Kainhofer:
+@email{reinhold@@kainhofer.com},
+@uref{https://reinhold.kainhofer.com},
+Core developer, Music2xml wrangler
+
+@item Pedro Kroeger:
+Build Meister
+
+@item Jonathan Kulp:
+Assistant documentation editor
+
+@item James Lowe:
+Documentation, Patch Meister
+
+@item Joe Neeman:
+Core developer
+
+@item Jan Nieuwenhuizen:
+@email{janneke@@gnu.org},
+@uref{https://JoyofSource.com},
+@uref{https://AvatarAcademy.nl},
+Main author
+
+@item John Mandereau:
+@email{john.mandereau@@free.fr},
+Translation Meister
+
+@item Patrick McCarty:
+SVG guru, bug squad member, bug squasher, text handling
+
+@item Graham Percival:
+@uref{https://percival-music.ca},
+Bug Meister, Grand Documentation Project leader
+
+@item Mark Polesky:
+Documentation, Code cleanup
+
+@item Neil Puttock:
+Core developer
+
+@item Jürgen Reuter:
+@email{reuter_j@@web.de},
+@uref{https://www.juergen-reuter.de},
+Ancient notation
+
+@item Mike Solomon:
+@email{mike@@mikesolomon.org},
+Core developer, Frog Meister
+
+@item Erik Sandberg:
+Bug Meister
+
+@item Nicolas Sceaux:
+Core developer, Schemer extraordinaire
+
+@item Carl Sorensen:
+@email{c_sorensen@@byu.edu},
+Core developer
+
+@item Valentin Villenave:
+Core developer
+
+@item Janek Warchoł:
+@email{janek.lilypond@@gmail.com},
+Core developer
+
+@end itemize
+@end macro
+
+
+@c  *****************  current contributors
+
+@macro coreCurrent
+
+@c use commas not colons
+
+Joram Berger,
+Martín Rincón Botero,
+Peter Chubb,
+Amir Czwink,
+Jiří Hon,
+Masamichi Hosoda,
+Nicolas Joyard,
+Michael Käppler,
+Mark Knoop,
+Thomas Morley,
+Lukas-Fabian Moser,
+Stefan Mueller,
+Benkő Pál,
+Mark Polesky,
+Alen Šiljak,
+Kim Shrier,
+Saul James Tobin,
+Christoph Wagner,
+John Wheeler,
+Éric Würbel,
+Jason Yip,
+David Zelinsky,
+Yiyu Zhou
+
+@c no comma for last entry
+
+@end macro
+
+
+
+@macro fontCurrent
+
+@c use commas not colons
+
+
+@c no comma for last entry
+
+@end macro
+
+
+
+@macro docCurrent
+
+@c use commas not colons
+
+Simon Albrecht,
+Alexander Brock,
+Federico Bruni,
+Amir Czwink,
+Patrice Dumas,
+Derek Erdmann,
+Luise Flesch,
+Felix Janda,
+Thomas Morley,
+Paolo Prete,
+Furkan Şimşekli,
+David Zelinsky
+
+@c no comma for last entry
+
+@end macro
+
+
+
+@macro translationsCurrent
+
+@c use commas not colons
+
+Walter Garcia-Fontes,
+Jean-Charles Malahieude,
+Begüm Önal,
+Gon Solo
+
+@c no comma for last entry
+
+@end macro
+
+
+
+@c  *****************  previous contributors
+
+@macro corePrevious
+
+@c use commas not colons
+
+Erlend Aasland,
+Maximilian Albert,
+Aleksandr Andreev,
+Guido Amoruso,
+Don Armstrong,
+Guido Aulisi,
+Joe Austin,
+Sven Axelsson,
+Kevin Barry,
+Robin Bannister,
+Kristof Bastiaensen,
+Étienne Beaulé,
+Davide Bonetti,
+Martín Rincón Botero,
+Frédéric Bron,
+Federico Bruni,
+Tim Burgess,
+Nathan Chou,
+Juliusz Chroboczek,
+Peter Chubb,
+Angelo Contardi,
+Thibaut Cuvelier,
+Vicente Solsona Della,
+Hajo Dezelski,
+Michael Welsh Duggan,
+Hassan Elfatihi,
+Jefferson Felix,
+David Feuer,
+Bertalan Fodor,
+Richard Gay,
+Mathieu Giraud,
+Frederic Gohier,
+Lisa Opus Goldstein,
+Adam Good,
+John Gourlay,
+David Stephen Grant,
+Torsten Hämmerle,
+Yuval Harel,
+Andrew Hawryluk,
+Jordan Henderson,
+Karlin High,
+Christian Hitz,
+Karin Hoethker,
+Rutger Hofmann,
+Marc Hohl,
+Masamichi Hosoda,
+Bernard Hurley,
+Yoshinobu Ishizaki,
+Chris Jackson,
+Felix Janda,
+David Jedlinsky,
+Nihal Jere,
+Martin Joerg,
+Heikki Junes,
+Michael Käppler,
+Doug Kearns,
+Thomas Klausner,
+Marek Klein,
+Mark Knoop,
+Michael Krause,
+Tobias Kretschmar,
+Jean-Baptiste Lamy,
+John Lemcke,
+Patrice Levesque,
+Vincent Le Ligeour,
+Jonatan Liljedahl,
+Urs Liska,
+Peter Lutek,
+Kieren MacMillan,
+Andrew Main,
+John Mandereau,
+Hendrik Maryns,
+Malte Meyn,
+Thomas Morgan,
+Thomas Morley,
+Paul Morris,
+Lukas-Fabian Moser,
+Alexander Myltsev,
+David Nalesnik,
+Matthias Neeracher,
+Martin Neubauer,
+Joram Noeck,
+Keith OHara,
+Justin Ohmie,
+Tatsuya Ono,
+Antonio Ospite,
+Benkő Pál,
+Benjamin Peterson,
+Knut Petersen,
+Valentin Petzel,
+Matthew Peveler,
+Guy Gascoigne-Piggford,
+Anders Pilegaard,
+Henning Hraban Ramm,
+Nathan Reed,
+Julien Rioux,
+Johannes Rohrer,
+Ben Rudiak-Gould,
+Stan Sanderson,
+Andreas Scherer,
+Johannes Schindelin,
+Patrick Schmidt,
+Devon Schudy,
+Boris Shingarov,
+Kim Shrier,
+Pete Siddall,
+Alen Šiljak,
+Edward Sanford Sutton,
+Adam Spiers,
+Tim Starling,
+David Svoboda,
+Samuel Tam,
+Simon Tatham,
+Heikki Taurainen,
+Timofey,
+Piers Titus van der Torren,
+Owen Tuz,
+Sebastiano Vigna,
+Jan-Peter Voigt,
+Arno Waschk,
+Nathan Whetsell,
+Bernhard M. Wiedemann,
+John Williams,
+Andrew Wilson,
+Jaap de Wolff,
+Milan Zamazal,
+Rune Zedeler,
+Boris-Chengbiao Zhou,
+Rodolfo Zitellini
+
+@c no comma for last entry
+
+@end macro
+
+
+
+@macro fontPrevious
+
+@c use commas not colons
+
+Jay Anderson,
+Tom Cato Amundsen,
+Johannes Feulner,
+David Stephen Grant,
+Torsten Hämmerle,
+Marc Hohl,
+Masamichi Hosoda,
+Chris Jackson,
+Alexander Kobel,
+Owen Lamb,
+Daniel Benjamin Miller,
+Abraham Lee,
+Keith OHara,
+Carsten Steger,
+Arno Waschk,
+Rune Zedeler
+
+@c no comma for last entry
+
+@end macro
+
+
+
+@macro docPrevious
+
+@c use commas not colons
+
+Erlend Aasland,
+Simon Albrecht,
+Trevor Bača,
+Kevin Barry,
+Bernhard Bloechl,
+Alard de Boer,
+Frédéric Bron,
+Federico Bruni,
+Torsten Hämmerle,
+Jay Hamilton,
+Joseph Harfouch,
+Andrew Hawryluk,
+Karlin High,
+Cameron Horsburgh,
+Geoff Horton,
+Masamichi Hosoda,
+Heikki Junes,
+Michael Käppler,
+Kurtis Kroon,
+Daniel Tobias Johansen Langhoff,
+Davide Liessi,
+Urs Liska,
+Dave Luttinen,
+Kieren MacMillan,
+Jean-Charles Malahieude,
+Malte Meyn,
+Christian Mondrup,
+Mike Moral,
+Thomas Morley,
+Paul Morris,
+Eyolf Østrem,
+Ralph Palmer,
+Pierre Perol-Schneider,
+François Pinard,
+Noam Postavsky,
+David Pounder,
+Michael Rasmussen,
+Till Rettig,
+Pavel Roskin,
+Patrick Schmidt,
+Andrej Shadura,
+Alberto Simoes,
+Fr. Samuel Springuel,
+Guy Stalnaker,
+Greg Swinford,
+Martin Tarenskeen,
+Arnold Theresius,
+Anh Hai Trinh,
+Eduardo Vieira,
+Stefan Weil,
+John Wheeler,
+Rune Zedeler,
+Rodolfo Zitellini
+
+@c no comma for last entry
+
+@end macro
+
+
+@macro bugsquadPrevious
+
+@c use commas not colons
+
+Simon Albrecht,
+James E. Bailey,
+Federico Bruni,
+Eluze,
+Phil Holmes,
+Derek Klinge,
+Marek Klein,
+Urs Liska,
+Kieren MacMillan,
+Ralph Palmer,
+Dmytro O. Redchuk
+
+@c no comma for last entry
+@end macro
+
+@macro supportPrevious
+
+@c use commas not colons
+
+Simon Albrecht,
+Eluze,
+Anthony Fok,
+Christian Hitz,
+Marc Hohl,
+Phil Holmes,
+Chris Jackson,
+Heikki Junes,
+Marek Klein,
+Urs Liska,
+Alex Loomis,
+Kieren MacMillan,
+Tim McNamara,
+Thomas Morley,
+Paul Morris,
+David Nalesnik,
+Ralph Palmer,
+Pierre Perol-Schneider,
+Neil Puttock,
+David Svoboda,
+Tao
+
+@c no comma for last entry
+
+@end macro
+
+
+
+@macro translationsPrevious
+
+@c use commas not colons
+
+Caio Barros,
+Alard de Boer,
+Federico Bruni,
+Luca Rossetto Casel,
+Felipe Castro,
+Abel Cheung,
+Frédéric Chiasson,
+Simon Dahlbacka,
+Orm Finnendahl,
+Rafael Fontenelle,
+Pavel Fric,
+Hiroshi Fukuhara,
+Walter Garcia-Fontes,
+David González,
+Tommaso Gordini,
+Nicolas Grandclaude,
+Erika Griechisch,
+Guyutongxue,
+Dénes Harmath,
+Damien Heurtebise,
+Masamichi Hosoda,
+Bjoern Jacke,
+Matthieu Jacquot,
+Neil Jerram,
+Heikki Junes,
+Nicolas Klutchnikoff,
+Chengrui Li,
+Jean-Charles Malahieude,
+Adrian Mariano,
+Christian Mondrup,
+Tineke de Munnik,
+Steven Michael Murphy,
+Till Paala,
+Benkő Pál,
+François Pinard,
+Gauvain Pocentek,
+Till Rettig,
+Ludovic Sardain,
+Yoshiki Sawada,
+Thomas Scharkowski,
+Clytie Siddall,
+August S. Sigov,
+Roland Stigge,
+Tomohiro Tatejima,
+Paco Tomillo,
+Risto Vääräniemi,
+Andrea Valle,
+Ralf Wildenhues,
+Olcay Yıldırım
+
+@c no comma for last entry
+
+@end macro

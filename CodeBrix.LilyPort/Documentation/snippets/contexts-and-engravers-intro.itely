@@ -1,0 +1,11 @@
+@node Contexts and engravers
+@chapter Contexts and engravers
+
+@set lyprefix Contexts and engravers
+
+@c FIXME make xref more precise when the chapter has been
+@c revised in GDP
+See also @rnotation{Changing defaults} and
+@rlearning{Contexts and engravers}.
+
+@lysnippets

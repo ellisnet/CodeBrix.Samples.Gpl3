@@ -1,0 +1,436 @@
+@c -*- coding: utf-8; mode: texinfo; -*-
+@ignore
+    Translation of GIT committish: FILL-IN-HEAD-COMMITTISH
+
+    When revising a translation, copy the HEAD committish of the
+    version that you are working on.  For details, see the Contributors'
+    Guide, node Updating translation committishes..
+@end ignore
+
+@c \version "2.19.16"
+
+@node Wind instruments
+@chapter Wind instruments
+
+@lilypondfile[quote]{snippets/wind-headword.ly}
+
+This section includes elements of music notation that arise when
+writing specifically for wind instruments.
+
+
+@node Common notation for wind instruments
+@section Common notation for wind instruments
+
+This section discusses notation common to most wind instruments.
+
+
+@node References for wind instruments
+@subsection References for wind instruments
+
+@cindex wind instrument
+
+Many notation issues for wind instruments pertain to breathing and
+tonguing:
+
+@itemize
+@item Breathing can be specified by rests or @ref{Breath marks}.
+@item Legato playing is indicated by @ref{Slurs}.
+@item Different types of tonguings, ranging from legato to non-legato to
+staccato are usually shown by articulation marks, sometimes combined
+with slurs, see @ref{Articulations and ornamentations} and
+@ref{List of articulations}.
+@item Flutter tonguing is usually indicated by placing a tremolo mark
+and a text markup on the note.  See @ref{Tremolo repeats}.
+@end itemize
+
+Other aspects of musical notation that can apply to wind instruments:
+
+@itemize
+@item Many wind instruments are transposing instruments, see
+@ref{Instrument transpositions}.
+@item Slide glissandi are characteristic of the trombone, but other
+winds may perform keyed or valved glissandi.  See @ref{Glissando}.
+@item Harmonic series glissandi, which are possible on all brass
+instruments but common for French Horns, are usually written out as
+@ref{Grace notes}.
+@item Pitch inflections at the end of a note are discussed in
+@ref{Falls and doits}.
+@item Key slaps or valve slaps are often shown by the @code{cross} style
+of @ref{Special note heads}.
+@item Woodwinds can overblow low notes to sound harmonics.  These are
+shown by the @code{flageolet} articulation.
+See @ref{List of articulations}.
+@item The use of brass mutes is usually indicated by a text markup, but
+where there are many rapid changes it is better to use the
+@code{stopped} and @code{open} articulations.
+See @ref{Articulations and ornamentations} and
+@ref{List of articulations}.
+@item Stopped horns are indicated by the @code{stopped} articulation.
+See @ref{Articulations and ornamentations}.
+@end itemize
+
+@morerefs
+Notation Reference:
+@ref{Breath marks},
+@ref{Slurs},
+@ref{Articulations and ornamentations},
+@ref{List of articulations},
+@ref{Tremolo repeats},
+@ref{Instrument transpositions},
+@ref{Glissando},
+@ref{Grace notes},
+@ref{Falls and doits},
+@ref{Special note heads}.
+
+Snippets:
+@rlsr{Wind instruments}.
+@endmorerefs
+
+
+@node Fingerings
+@subsection Fingerings
+
+All wind instruments other than the trombone require the use of several
+fingers to produce each pitch.  Some fingering examples are shown in
+the snippets below.
+
+Woodwind diagrams can be produced and are described in
+@ref{Woodwind diagrams}.
+
+
+@snippets
+
+@funindex \stopped
+@funindex \open
+@cindex fingering, symbols, for wind instruments
+@cindex wind instrument, fingering symbols
+@cindex @q{stopped} articulation
+@cindex articulation, stopped
+@cindex @q{open} articulation
+@cindex articulation, open
+@lilypondfile[verbatim,quote,texidoc,doctitle]
+{snippets/fingering-symbols-for-wind-instruments.ly}
+
+@cindex fingering chart
+@cindex chart, fingering
+@lilypondfile[verbatim,quote,texidoc,doctitle]
+{snippets/recorder-fingering-chart.ly}
+
+
+@morerefs
+Notation Reference:
+@ref{Woodwind diagrams}.
+
+Snippets:
+@rlsr{Wind instruments}.
+@endmorerefs
+
+
+@node Bagpipes
+@section Bagpipes
+
+This section discusses notation common bagpipes.
+
+
+@node Bagpipe definitions
+@subsection Bagpipe definitions
+
+@cindex bagpipe
+@cindex Scottish highland bagpipe
+@cindex grace note
+@funindex \taor
+@funindex \hideKeySignature
+@funindex \showKeySignature
+
+LilyPond contains special definitions for Scottish, Highland Bagpipe
+music; to use them, add
+
+@example
+\include "bagpipe.ly"
+@end example
+
+@noindent
+to the top of your input file.  This lets you add the special grace notes
+common to bagpipe music with short commands.  For example, you could
+write @code{\taor} instead of
+
+@example
+\grace @{ \small G32[ d G e] @}
+@end example
+
+@file{bagpipe.ly} also contains pitch definitions for the bagpipe
+notes in the appropriate octaves, so you do not need to worry about
+@code{\relative} or @code{\transpose}.
+
+@lilypond[ragged-right,verbatim,quote,notime]
+\include "bagpipe.ly"
+{ \grg G4 \grg a \grg b \grg c \grg d \grg e \grg f \grA g A }
+@end lilypond
+
+Bagpipe music nominally uses the key of D Major (even though that
+isn't really true).  However, since that is the only key that can be used,
+the key signature is normally not written out.  To set this up correctly,
+always start your music with @code{\hideKeySignature}.  If you for some
+reason want to show the key signature, you can use @code{\showKeySignature}
+instead.
+
+Some modern music use cross-fingering on c and@tie{}f to flatten those notes.
+This can be indicated by @code{c-flat} or @code{f-flat}.  Similarly, the
+@emph{Piobaireachd} high@tie{}g can be written @code{g-flat} when it occurs in light
+music.
+
+@morerefs
+Snippets:
+@rlsr{Wind instruments}.
+@endmorerefs
+
+
+@node Bagpipe example
+@subsection Bagpipe example
+
+@cindex bagpipe, example
+@cindex @q{Amazing Grace}, bagpipe example
+
+This is what the well known tune Amazing Grace looks like in bagpipe
+notation.
+
+@lilypond[verbatim,quote]
+\include "bagpipe.ly"
+\layout {
+  indent = 0.0\cm
+  \context { \Score \remove Bar_number_engraver }
+}
+
+\header {
+  title = "Amazing Grace"
+  meter = "Hymn"
+  arranger = "Trad. arr."
+}
+
+{
+  \hideKeySignature
+  \time 3/4
+  \grg \partial 4 a8. d16
+  \slurd d2 \grg f8[ e32 d16.]
+  \grg f2 \grg f8 e
+  \thrwd d2 \grg b4
+  \grG a2 \grg a8. d16
+  \slurd d2 \grg f8[ e32 d16.]
+  \grg f2 \grg e8. f16
+  \dblA A2 \grg A4
+  \grg A2 f8. A16
+  \grg A2 \hdblf f8[ e32 d16.]
+  \grg f2 \grg f8 e
+  \thrwd d2 \grg b4
+  \grG a2 \grg a8. d16
+  \slurd d2 \grg f8[ e32 d16.]
+  \grg f2 e4
+  \thrwd d2.
+  \slurd d2
+  \bar "|."
+}
+@end lilypond
+
+@morerefs
+Snippets:
+@rlsr{Wind instruments}.
+@endmorerefs
+
+
+@node Woodwinds
+@section Woodwinds
+
+This section discusses notation specifically for woodwind instruments.
+
+
+@node Woodwind diagrams
+@subsection Woodwind diagrams
+
+Woodwind diagrams can be used to indicate the fingering to be used
+for specific notes and are available for the following instruments:
+
+@itemize
+@item piccolo
+@item flute
+@item oboe
+@item clarinet
+@item bass clarinet
+@item saxophone
+@item bassoon
+@item contrabassoon
+@end itemize
+
+@noindent
+Woodwind diagrams are created as markups:
+
+@lilypond[verbatim,quote,fragment]
+c''1^\markup {
+  \woodwind-diagram #'piccolo #'((lh . (gis))
+                                 (cc . (one three))
+                                 (rh . (ees)))
+}
+@end lilypond
+
+Keys can be open, partially-covered, ring-depressed, or fully
+covered. The angle of partially-covered keys can be specified:
+
+@lilypond[verbatim,quote]
+\markup \override #'(baseline-skip . 22) \column {
+  \override #'(baseline-skip . 2.5) \fill-line {
+    ""
+    \raise #1.2 \center-column { "one" "quarter" }
+    \raise #1.2 \center-column { "one" "half" }
+    \raise #1.2 \center-column { "three" "quarter" }
+    "ring"
+    "full"
+    \raise #1.2 \center-column { "one half," "vertical" }
+    ""
+  }
+  \fill-line {
+    ""
+    \woodwind-diagram #'flute #'((cc . (one1q))
+                                 (lh . ())
+                                 (rh . ()))
+    \woodwind-diagram #'flute #'((cc . (one1h))
+                                 (lh . ())
+                                 (rh . ()))
+    \woodwind-diagram #'flute #'((cc . (one3q))
+                                 (lh . ())
+                                 (rh . ()))
+    \woodwind-diagram #'flute #'((cc . (oneR))
+                                 (lh . ())
+                                 (rh . ()))
+    \woodwind-diagram #'flute #'((cc . (oneF two))
+                                 (lh . ())
+                                 (rh . ()))
+    \override #'(woodwind-diagram-details . ((fill-angle . 90)))
+    \woodwind-diagram #'flute #'((cc . (one1h))
+                                 (lh . ())
+                                 (rh . ()))
+    ""
+  }
+}
+@end lilypond
+
+Trills are indicated as shaded keys, or in non-graphical mode,
+as either circled (the default) or shaded text:
+
+@lilypond[verbatim,quote]
+\markup {
+  \override #'(baseline-skip . 20)
+  \override #'(line-width . 50)
+  \column {
+    \fill-line {
+      ""
+      "standard"
+      "circled"
+      "shaded"
+      ""
+    }
+    \fill-line {
+      ""
+      \woodwind-diagram #'bass-clarinet
+                        #'((cc . (threeT four))
+                           (lh . ())
+                           (rh . (b fis)))
+      \override #'(graphical . #f)
+      \woodwind-diagram #'bass-clarinet
+                        #'((cc . (threeT four))
+                           (lh . ())
+                           (rh . (b fisT)))
+      \override #'(graphical . #f)
+      \override #'(woodwind-diagram-details
+                   . ((text-trill-circled . #f)))
+      \woodwind-diagram #'bass-clarinet
+                        #'((cc . (threeT four))
+                           (lh . ())
+                           (rh . (b fisT)))
+      ""
+    }
+  }
+}
+@end lilypond
+
+A variety of trills can be displayed:
+
+@lilypond[verbatim,quote]
+\markup {
+  \override #'(baseline-skip . 22)
+  \column {
+    \override #'(baseline-skip . 2.5) \fill-line {
+      ""
+      \center-column { "one quarter" "to ring" }
+      \center-column { "ring" "to shut" }
+      \center-column { "ring" "to open" }
+      \center-column { "open" "to shut" }
+      \center-column { "one quarter to" "three quarters" }
+      ""
+    }
+    \fill-line {
+      ""
+      \woodwind-diagram #'flute #'((cc . (one1qTR))
+                                   (lh . ())
+                                   (rh . ()))
+      \woodwind-diagram #'flute #'((cc . (oneTR))
+                                   (lh . ())
+                                   (rh . ()))
+      \woodwind-diagram #'flute #'((cc . (oneRT))
+                                   (lh . ())
+                                   (rh . ()))
+      \woodwind-diagram #'flute #'((cc . (oneT))
+                                   (lh . ())
+                                   (rh . ()))
+      \woodwind-diagram #'flute #'((cc . (one1qT3q))
+                                   (lh . ())
+                                   (rh . ()))
+      ""
+    }
+  }
+}
+@end lilypond
+
+The list of all possible keys and settings for a given instrument
+can be displayed on the console using
+@code{#(print-keys-verbose 'flute)} or in the log file using
+@code{#(print-keys-verbose 'flute (current-error-port))}, although
+they will not show up in the music output.
+
+Creating new diagrams is possible, although this will require
+Scheme ability and may not be accessible to all users.  The
+patterns for the diagrams are in files
+@file{scm/define-@/woodwind-@/diagrams.scm} and
+@file{scm/display-@/woodwind-@/diagrams.scm}.
+
+
+@snippets
+
+@cindex woodwind diagram, list
+@cindex list of woodwind diagrams
+@lilypondfile[verbatim,quote,texidoc,doctitle]
+{snippets/woodwind-diagrams-listing.ly}
+
+@cindex woodwind diagram, modifying
+@lilypondfile[verbatim,quote,texidoc,doctitle]
+{snippets/graphical-and-text-woodwind-diagrams.ly}
+
+@lilypondfile[verbatim,quote,texidoc,doctitle]
+{snippets/changing-the-size-of-woodwind-diagrams.ly}
+
+@cindex woodwind diagram, key lists
+@cindex list of keys, in woodwind diagrams
+@lilypondfile[verbatim,quote,texidoc,doctitle]
+{snippets/woodwind-diagrams-key-lists.ly}
+
+
+@morerefs
+Installed Files:
+@file{scm/define-woodwind-diagrams.scm}, @*
+@file{scm/display-woodwind-diagrams.scm}.
+
+Snippets:
+@rlsr{Wind instruments}.
+
+Internals Reference:
+@rinternals{TextScript},
+@rinternals{instrument-specific-markup-interface}.
+@endmorerefs

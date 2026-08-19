@@ -1,0 +1,29 @@
+CASE	OPTIONS	CODE	DIRECTIVE_LINE	REFERENCE	PROVENANCE
+bare		{ c'4 }	12	bare.ly	own
+fragment	fragment	d4 e4	19	fragment.ly	own
+nofragment	nofragment	{ e'4 f'4 g'4 }	26	nofragment.ly	own
+relative-1	relative=1	f4 g4 a4 b4	33	relative-1.ly	own
+relative-2	relative=2	g4	40	relative-2.ly	own
+relative-minus-1	relative=-1	a4 b4	47	relative-minus-1.ly	own
+quote	quote	{ b'4 c'4 d'4 }	54	quote.ly	own
+quote-ragged-right	quote,ragged-right	{ c'4 d'4 e'4 f'4 }	61	quote-ragged-right.ly	own
+ragged-right	ragged-right	{ d'4 }	68	ragged-right.ly	own
+noragged-right	noragged-right	{ e'4 f'4 }	75	noragged-right.ly	own
+notime	notime,fragment	f4 g4 a4	82	notime.ly	own
+staffsize-16	staffsize=16	{ g'4 a'4 b'4 c'4 }	89	staffsize-16.ly	own
+staffsize-26	staffsize=26	{ a'4 }	96	staffsize-26.ly	own
+line-width	line-width=8\cm	{ b'4 c'4 }	103	line-width.ly	own
+indent	indent=1\cm	{ c'4 d'4 e'4 }	110	indent.ly	own
+noindent	noindent	{ d'4 e'4 f'4 g'4 }	117	noindent.ly	own
+papersize	papersize=a6	{ e'4 }	124	papersize.ly	own
+papersize-line-width	papersize=a6,line-width=8\cm	{ f'4 g'4 }	131	papersize-line-width.ly	own
+paper-width	paper-width=10\cm	{ g'4 a'4 b'4 }	138	paper-width.ly	own
+paper-height	paper-height=5\cm	{ a'4 b'4 c'4 d'4 }	145	paper-height.ly	own
+paper-width-height	paper-width=10\cm,paper-height=5\cm	{ b'4 }	152	paper-width-height.ly	own
+inline	inline	{ c'4 d'4 }	159	inline.ly	own
+verbatim	verbatim	{ d'4 e'4 f'4 }	166	verbatim.ly	own
+texidoc-doctitle	texidoc,doctitle	{ e'4 f'4 g'4 a'4 }	173	texidoc-doctitle.ly	own
+quote-fragment-relative	quote,fragment,relative=2	f4	180	quote-fragment-relative.ly	own
+notime-staffsize	notime,staffsize=16,fragment	g4 a4	187	notime-staffsize.ly	own
+dedup-plain		{ g'2 }	194	dedup-verbatim.ly	deduplicated-by-oracle:dedup-verbatim
+dedup-verbatim	verbatim	{ g'2 }	201	dedup-verbatim.ly	own

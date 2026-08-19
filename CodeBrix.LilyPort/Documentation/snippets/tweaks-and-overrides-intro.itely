@@ -1,0 +1,10 @@
+@node Tweaks and overrides
+@chapter Tweaks and overrides
+
+@set lyprefix Tweaks and overrides
+
+@c FIXME make xref more precise when the chapter has been
+@c revised in GDP
+See also @rnotation{Changing defaults} and @rlearning{Tweaking output}.
+
+@lysnippets

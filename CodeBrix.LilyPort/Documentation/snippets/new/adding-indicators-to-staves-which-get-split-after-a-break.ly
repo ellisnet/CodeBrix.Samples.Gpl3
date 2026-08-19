@@ -1,0 +1,189 @@
+\version "2.25.35"
+
+\header {
+  categories = "Scheme, Staff notation, Symbols and glyphs, Vocal
+                music"
+
+  texidoc = "
+This snippet defines the commands @code{\\splitStaffBarLine},
+@code{\\convUpStaffBarLine}, and @code{\\convDownStaffBarLine}. These
+add arrows at a bar line to denote that several voices sharing a staff
+will each continue on a staff of their own in the next system, or that
+voices split in this way recombine.
+
+Note that the implementation in this snippet draws dimensionless arrows
+into the right margin. For normal printing, this doesn't cause
+problems. However, it is necessary to increase the bounding box
+horizontally if you render the code as an image to avoid cropping, as
+demonstrated below.
+"
+
+  doctitle = "Adding indicators to staves which get split after a break"
+} % begin verbatim
+
+
+#(define-markup-command (arrow-at-angle layout props angle-deg length fill)
+   (number? number? boolean?)
+   (let* ((PI-OVER-180 (/ (atan 1 1) 34))
+          (degrees->radians (lambda (degrees) (* degrees PI-OVER-180)))
+          (angle-rad (degrees->radians angle-deg))
+          (target-x (* length (cos angle-rad)))
+          (target-y (* length (sin angle-rad))))
+     (interpret-markup layout props
+       (markup
+        #:translate (cons (/ target-x 2) (/ target-y 2))
+        #:rotate angle-deg
+        #:translate (cons (/ length -2) 0)
+        #:concat (#:draw-line (cons length 0)
+                   #:arrow-head X RIGHT fill)))))
+
+splitStaffBarLineMarkup = \markup \with-dimensions #'(0 . 0) #'(0 . 0) {
+  \combine
+  \arrow-at-angle #45 #(sqrt 8) ##t
+  \arrow-at-angle #-45 #(sqrt 8) ##t
+}
+
+splitStaffBarLine = {
+  \once \override Staff.BarLine.stencil =
+  #(lambda (grob)
+     (ly:stencil-combine-at-edge
+      (ly:bar-line::print grob)
+      X RIGHT
+      (grob-interpret-markup grob splitStaffBarLineMarkup)
+      0))
+  \break
+}
+
+convDownStaffBarLine = {
+  \once \override Staff.BarLine.stencil =
+  #(lambda (grob)
+     (ly:stencil-combine-at-edge
+      (ly:bar-line::print grob)
+      X RIGHT
+      (grob-interpret-markup grob #{
+        \markup\with-dimensions #'(0 . 0) #'(0 . 0) {
+          \translate #'(0 . -.13)\arrow-at-angle #-45 #(sqrt 8) ##t
+        }#})
+      0))
+  \break
+}
+
+convUpStaffBarLine = {
+  \once \override Staff.BarLine.stencil =
+  #(lambda (grob)
+     (ly:stencil-combine-at-edge
+      (ly:bar-line::print grob)
+      X RIGHT
+      (grob-interpret-markup grob #{
+        \markup\with-dimensions #'(0 . 0) #'(0 . 0) {
+          \translate #'(0 . .14)\arrow-at-angle #45 #(sqrt 8) ##t
+        }#})
+      0))
+  \break
+}
+
+\paper {
+  indent = 10\mm
+  short-indent = 10\mm
+  line-width = 8\cm
+}
+
+separateSopranos = {
+  \set Staff.instrumentName = "AI AII"
+  \set Staff.shortInstrumentName = "AI AII"
+  \splitStaffBarLine
+  \change Staff = "up"
+}
+convSopranos = {
+  \convDownStaffBarLine
+  \change Staff = "shared"
+  \set Staff.instrumentName = "S A"
+  \set Staff.shortInstrumentName = "S A"
+}
+
+sI = {
+  \voiceOne
+  \*4 f''2
+  \separateSopranos
+  \*4 g''2
+  \convSopranos
+  \*4 c''2
+}
+sII = {
+  s1*2
+  \voiceTwo
+  \change Staff = "up"
+  \*4 d''2
+}
+aI = {
+  \voiceTwo
+  \*4 a'2
+  \voiceOne
+  \*4 b'2
+  \convUpStaffBarLine
+  \voiceTwo
+  \*4 g'2
+}
+aII = {
+  s1*2
+  \voiceTwo
+  \*4 g'2
+}
+ten = {
+  \voiceOne
+  \*4 c'2
+  \*4 d'2
+  \*4 c'2
+}
+bas = {
+  \voiceTwo
+  \*4 f2
+  \*4 g2
+  \*4 c2
+}
+
+\markup \pad-x #3  % avoid cropping
+  \score {
+    <<
+      \new ChoirStaff <<
+        \new Staff = up \with {
+          instrumentName = "SI SII"
+          shortInstrumentName = "SI SII"
+        } {
+          s1*4
+        }
+
+        \new Staff = shared \with {
+          instrumentName = "S A"
+          shortInstrumentName = "S A"
+        } <<
+          \new Voice = sopI \sI
+          \new Voice = sopII \sII
+          \new Voice = altI \aI
+          \new Voice = altII \aII
+        >>
+        \new Lyrics \with {
+          alignBelowContext = up
+        }
+        \lyricsto sopII { e f g h }
+        \new Lyrics \lyricsto altI { a b c d e f g h i j k l }
+
+        \new Staff = men \with {
+          instrumentName = "T B"
+          shortInstrumentName = "T B"
+        } <<
+          \clef F
+          \new Voice = ten \ten
+          \new Voice = bas \bas
+        >>
+        \new Lyrics \lyricsto bas { a b c d e f g h i j k l }
+      >>
+    >>
+
+    \layout {
+      \context {
+        \Staff \RemoveEmptyStaves
+        \override VerticalAxisGroup.remove-first = ##t
+      }
+    }
+}

@@ -1,0 +1,22 @@
+@c -*- coding: utf-8; mode: texinfo; -*-
+@ignore
+    Translation of GIT committish: FILL-IN-HEAD-COMMITTISH
+
+    When revising a translation, copy the HEAD committish of the
+    version that you are working on.  For details, see the Contributors'
+    Guide, node Updating translation committishes..
+@end ignore
+
+@c \version "2.16.0"
+
+
+@part Musical notation
+
+@include en/notation/pitches.itely
+@include en/notation/rhythms.itely
+@include en/notation/expressive.itely
+@include en/notation/repeats.itely
+@include en/notation/simultaneous.itely
+@include en/notation/staff.itely
+@include en/notation/editorial.itely
+@include en/notation/text.itely

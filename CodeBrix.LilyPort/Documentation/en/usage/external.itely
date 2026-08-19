@@ -1,0 +1,872 @@
+@c -*- coding: utf-8; mode: texinfo; -*-
+
+@ignore
+    Translation of GIT committish: FILL-IN-HEAD-COMMITTISH
+
+    When revising a translation, copy the HEAD committish of the
+    version that you are working on.  For details, see the Contributors'
+    Guide, node Updating translation committishes..
+@end ignore
+
+@c \version "2.19.21"
+
+@node External programs
+@chapter External programs
+
+LilyPond can interact with other programs in various ways.
+
+
+@node Point and click
+@section Point and click
+
+@cindex point and click
+
+Point and click lets you find notes in the input by clicking on them
+in the PDF viewer.  This makes it easier to find input that causes some
+error in the sheet music.
+
+
+@node Configuring the system for point and click
+@subsection Configuring the system
+
+When this functionality is active, LilyPond adds hyperlinks to PDF and
+SVG files.  These hyperlinks are sent to a @q{URI helper} or a
+web-browser, which opens a text-editor with the cursor in the right
+place.
+
+To make this chain work, you should configure your PDF viewer to
+follow hyperlinks using the @file{lilypond-invoke-editor} script
+supplied with LilyPond.
+
+The program @file{lilypond-invoke-editor} is a small helper
+program.  It will invoke an editor for the special @code{textedit}
+URIs, and run a web browser for others.  It looks up the environment
+variables @code{EDITOR} and @code{LYEDITOR} to find out and launch the
+favorite editor to use.  @code{LYEDITOR} will have priority over
+@code{EDITOR}, so we recommend using the former especially if you want
+to use one editor in the terminal and another editor for LilyPond point
+and click.
+
+Every editor may have a different syntax to open a file in a specific line
+and column.  For user's convenience, LilyPond comes with ready commands
+for several editors, listed in @file{scripts/lilypond-invoke-editor.py}.
+This means that you can simply write the editor binary name, e.g.:
+
+@example
+export LYEDITOR=atom
+@end example
+
+@noindent
+and this will invoke
+@example
+atom %(file)s:%(line)s:%(column)s
+@end example
+
+@noindent
+where @code{%(file)s}, @code{%(line)s} and @code{%(column)s} are replaced with
+the file, line and column respectively.
+
+In order to use an editor not listed in the script, you should
+find its specific syntax and assign the full command to @code{LYEDITOR}.
+Here's an example for Visual Studio Code editor:
+
+@example
+export LYEDITOR="code --goto %(file)s:%(line)s:%(column)s"
+@end example
+
+@warning{If you choose Emacs, an extra configuration is needed.  You should
+add the line @code{(server-start)} to your @file{~/.emacs} file, otherwise
+every click on an object in the PDF will open a new Emacs window.}
+
+
+@node Using GNOME for point and click
+@unnumberedsubsubsec Using GNOME
+
+@c This likely also works with KDE, no?
+
+In GNOME, URIs are handled via @q{.desktop} files.  Create a file
+in a local directory such as @file{/tmp} that is called
+@file{lilypond-@/invoke-@/editor.desktop} and has the contents;
+
+@example
+[Desktop Entry]
+Version=1.0
+Name=lilypond-invoke-editor
+GenericName=Textedit URI handler
+Comment=URI handler for textedit:
+Exec=lilypond-invoke-editor %u
+Terminal=false
+Type=Application
+MimeType=x-scheme-handler/textedit;
+Categories=Editor
+NoDisplay=true
+@end example
+and then execute the commands
+@example
+xdg-desktop-menu install ./lilypond-invoke-editor.desktop
+xdg-mime default lilypond-invoke-editor.desktop x-scheme-handler/textedit
+@end example
+
+After that invocation;
+
+@example
+xdg-open textedit:///etc/issue:1:0:0
+@end example
+@noindent
+should call @file{lilypond-invoke-editor} for opening files.
+
+
+@node Extra configuration for Evince
+@unnumberedsubsubsec Extra configuration for Evince
+
+@cindex Evince
+
+If @code{xdg-open} works, but Evince still refuses to open point
+and click links due to denied permissions, you might need to
+change the Apparmor profile of Evince which controls the kind of
+actions Evince is allowed to perform.
+
+For Ubuntu, the process is to edit the file
+@file{/etc/apparmor.d/local/usr.bin.evince} and append the
+following lines:
+
+@example
+# For Textedit links
+/usr/local/bin/lilypond-invoke-editor Cx -> sanitized_helper,
+@end example
+@noindent
+
+After adding these lines, call
+
+@example
+sudo apparmor_parser -r -T -W /etc/apparmor.d/usr.bin.evince
+@end example
+
+@noindent
+Now Evince should be able to open point and click links.  It is
+likely that similar configurations will work for other viewers.
+
+
+@node Enabling point and click
+@unnumberedsubsec Enabling point and click
+@cindex file size, output
+
+Point and click functionality is enabled by default when creating
+PDF or SVG files.
+
+The point and click links enlarge the output files significantly.  For
+reducing the size of these (and PS) files, point and click may
+be switched off by issuing
+
+@example
+\pointAndClickOff
+@end example
+
+@noindent
+in a @file{.ly} file.  Point and click may be explicitly enabled with
+
+@example
+\pointAndClickOn
+@end example
+
+Alternately, you may disable point and click with a command-line
+option:
+
+@example
+lilypond -dno-point-and-click file.ly
+@end example
+
+@warning{You should always turn off point and click in any LilyPond
+files to be distributed to avoid including path information about
+your computer in the PDF file, which can pose a security risk.}
+
+
+@node Selective point-and-click
+@unnumberedsubsec Selective point-and-click
+
+For some interactive applications, it may be desirable to only
+include certain point-and-click items.  For example, if somebody
+wanted to create an application which played audio or video
+starting from a particular note, it would be awkward if clicking
+on the note produced the point-and-click location for an
+accidental or slur which occurred over that note.
+
+This may be controlled by indicating which events to include:
+
+@itemize
+@item
+Hard-coded in the @file{.ly} file:
+
+@example
+\pointAndClickTypes #'note-event
+\relative @{
+  c'2\f( f)
+@}
+@end example
+
+or
+
+@example
+#(ly:set-option 'point-and-click 'note-event)
+\relative @{
+  c'2\f( f)
+@}
+@end example
+
+@item
+Command line:
+
+@example
+lilypond -dpoint-and-click=note-event example.ly
+@end example
+
+@end itemize
+
+Multiple events can be included:
+
+@itemize
+@item
+Hard-coded in the @file{.ly} file:
+
+@example
+\pointAndClickTypes #'(note-event dynamic-event)
+\relative @{
+  c'2\f( f)
+@}
+@end example
+
+or
+
+@example
+#(ly:set-option 'point-and-click '(note-event dynamic-event))
+\relative @{
+  c'2\f( f)
+@}
+@end example
+
+@item
+Command line:
+
+@example
+lilypond \
+  -dpoint-and-click="(note-event dynamic-event)" \
+  example.ly
+@end example
+
+@end itemize
+
+
+@node Text editor support
+@section Text editor support
+
+@cindex editors
+@cindex vim
+@cindex emacs
+@cindex modes, editor
+@cindex syntax coloring
+@cindex coloring, syntax
+
+There is support for different text editors for LilyPond.
+
+
+@node Emacs mode
+@unnumberedsubsec Emacs mode
+
+Emacs has a @file{lilypond-mode}, which provides keyword
+autocompletion, indentation, LilyPond specific parenthesis matching
+and syntax coloring, handy compile short-cuts and reading LilyPond
+manuals using Info.  If @file{lilypond-mode} is not installed on your
+platform, see below.
+
+An Emacs mode for entering music and running LilyPond is contained in
+the source archive in the @file{elisp} directory.  Do @command{make
+install} to install it to @var{elispdir}.  The file @file{lilypond-init.el}
+should be placed to @var{load-path}@file{/site-start.d/} or appended
+to your @file{~/.emacs} or @file{~/.emacs.el}.
+
+As a user, you may want add your source path (e.g. @file{~/site-lisp/}) to
+your @var{load-path} by appending the following line (as modified) to your
+@file{~/.emacs}
+
+@c any reason we do not advise:  (push "~/site-lisp" load-path)
+@example
+(setq load-path
+      (append (list (expand-file-name "~/site-lisp")) load-path))
+@end example
+
+
+@node Vim mode
+@unnumberedsubsec Vim mode
+
+For @uref{https://@/www@/.vim@/.org,Vim}, a filetype plugin, indent
+mode, and syntax-highlighting mode are available to use with
+LilyPond.  To enable all of these features, create (or modify)
+your @file{$HOME/.vimrc} to contain these three lines, in order:
+
+@example
+filetype off
+set runtimepath+=/usr/local/share/lilypond/@version{}/vim/
+filetype on
+syntax on
+@end example
+
+@noindent
+If LilyPond is not installed in the @file{/usr/local/} directory,
+change the path appropriately.  This topic is discussed in
+@rlearning{Other sources of information}.
+
+
+@node Other editors
+@unnumberedsubsec Other editors
+
+Other editors (both text and graphical) support LilyPond, but
+their special configuration files are not distributed with
+LilyPond.  Consult their documentation for more information.  Such
+editors are listed in @rweb{Easier editing}.
+
+
+@node Converting from other formats
+@section Converting from other formats
+
+Music can be entered also by importing it from other formats.  This
+chapter documents the tools included in the distribution to do so.
+There are other tools that produce LilyPond input, for example GUI
+sequencers and XML converters.  Refer to the
+@uref{https://@/lilypond@/.org,website} for more details.
+
+These are separate programs from @command{lilypond} itself, and are
+run on the command line; see @ref{Command-line usage} for more
+information.
+
+@knownissues
+We unfortunately do not have the resources to maintain these
+programs; please consider them @qq{as-is}.  Patches are appreciated, but
+bug reports will almost certainly not be resolved.
+
+@menu
+* Invoking midi2ly::     Importing MIDI.
+* Invoking musicxml2ly:: Importing MusicXML.
+* Invoking abc2ly::      Importing ABC.
+* Invoking etf2ly::      Importing Finale.
+* Other formats::
+@end menu
+
+
+@node Invoking midi2ly
+@subsection Invoking @command{midi2ly}
+
+@cindex MIDI
+
+@command{midi2ly} translates a Type@tie{}1 MIDI file to a LilyPond
+source file.
+
+MIDI (Music Instrument Digital Interface) is a standard for digital
+instruments: it specifies cabling, a serial protocol and a file
+format.  The MIDI file format is a de facto standard format for
+exporting music from other programs, so this capability may come in
+useful when importing files from a program that has a converter for a
+direct format.
+
+@command{midi2ly} converts tracks into @rinternals{Staff} and
+channels into @rinternals{Voice} contexts.  Relative mode is used
+for pitches, durations are only written when necessary.
+
+It is possible to record a MIDI file using a digital keyboard, and
+then convert it to @file{.ly}.  However, human players are not
+rhythmically exact enough to make a MIDI to LY conversion trivial.
+When invoked with quantizing (@option{-s} and @option{-d} options)
+@command{midi2ly} tries to compensate for these timing errors, but is
+not very good at this.  It is therefore not recommended to use
+@command{midi2ly} for human-generated midi files.
+
+It is invoked from the command line as follows,
+
+@example
+midi2ly [@var{option}]@dots{} @var{midi-file}
+@end example
+
+Note that by @q{command line}, we mean the command line of the
+operating system.  See @ref{Converting from other formats}, for
+more information about this.
+
+The following options are supported by @command{midi2ly}.
+
+@table @code
+@item -a, --absolute-pitches
+Print absolute pitches.
+
+@item -d, --duration-quant=@var{DUR}
+Quantize note durations on @var{DUR}.
+
+@item -e, --explicit-durations
+Print explicit durations.
+
+@item -h, --help
+Show summary of usage.
+
+@item -k, --key=@var{acc}[:@var{minor}]
+Set default key.  @math{@var{acc} > 0} sets number of sharps;
+@math{@var{acc} < 0} sets number of flats.  A minor key is indicated by
+@code{:1}.
+
+@item -o, --output=@var{file}
+Write output to @var{file}.
+
+@item -s, --start-quant=@var{DUR}
+Quantize note starts on @var{DUR}.
+
+@item -t, --allow-tuplet=@var{DUR}*@var{NUM}/@var{DEN}
+Allow tuplet durations @var{DUR}*@var{NUM}/@var{DEN}.
+
+@item -v, --verbose
+Be verbose.
+
+@item -V, --version
+Print version number.
+
+@item -w, --warranty
+Show warranty and copyright.
+
+@item -x, --text-lyrics
+Treat every text as a lyric.
+@end table
+
+@knownissues
+Overlapping notes in an arpeggio will not be correctly rendered.  The
+first note will be read and the others will be ignored.  Set them all
+to a single duration and add phrase markings or pedal indicators.
+
+
+@node Invoking musicxml2ly
+@subsection Invoking @code{musicxml2ly}
+
+@cindex MusicXML
+
+@uref{https://www.w3.org/2021/06/musicxml40/,MusicXML} is an XML
+dialect for representing music notation.  It is the de-facto
+standard for interchanging scores between notation programs.
+However, some of its elements are rather low-level and
+graphic-oriented, which makes it non-trivial (and sometimes even
+impossible) to automatically convert them to LilyPond.
+
+The Python script @command{musicxml2ly} extracts notes,
+articulations, score structure, and lyrics from @q{part-wise}
+MusicXML files, writing them to a @file{.ly} file.  It is run from
+the command line as follows.
+
+@example
+musicxml2ly [@var{option}]@dots{} @var{file}
+@end example
+
+Note that by @q{command line} we mean the command line of the
+operating system.  @xref{Converting from other formats}, for more
+information about this.
+
+By default, @command{musicxml2ly} strips off the extension from
+@var{file} and appends @file{.ly} to construct the output file
+name.  If @var{file} is @q{@file{-}}, the script reads from
+standard input (and writes to standard output) instead.
+
+If the file called @file{@var{file}} cannot be found,
+@file{@var{file}.xml}, @file{@var{file}.musicxml}, and
+@file{@var{file}.mxl} are also tried as input files.
+
+The following options are supported by @command{musicxml2ly}.
+
+@table @code
+@item -a, --absolute
+Convert pitches in absolute mode.
+
+@item --book
+Put the top-level score into a @code{\book @{ ... @}} block.  This
+might be useful for further processing with
+@command{lilypond-book}.
+
+@item --cp, --credit-page=@var{n}
+Specify the page from which LilyPond should take @code{<credit>}
+data to fill the @code{\header} block.  To suppress the handling
+of @code{<credit>} elements, pass value@tie{}0.  The default value
+is@tie{}1, i.e., take the data from the first page.
+
+@item --ds, --dynamics-scale=@var{factor}
+Scale @code{<dynamics>} elements by a non-negative @var{factor};
+value 0 means to use LilyPond's standard size for dynamics.  This
+option might be needed for MusicXML files that use a music font
+like @q{Maestro}, where the size of dynamics symbols like @q{f} or
+@q{p} differ greatly from LilyPond's @q{Emmentaler} glyphs.
+
+@item --fb --fretboards
+Convert @code{<frame>} events to a separate @code{FretBoard} voice
+instead of markups.
+
+@item -h, --help
+Print usage information and a summary of all the available
+command-line options.
+
+@item -l, --language=@var{lang}
+Use @var{lang} for pitch names, e.g., @code{deutsch} for note
+names in German.  Allowed values are the note input languages
+supported by LilyPond, see @rnotation{Note names in other
+languages}.
+
+@item --loglevel=@var{log-level}
+Set the output verbosity to @var{log-level}.  Possible values are
+@code{NONE}, @code{ERROR}, @code{WARN}, @code{PROGRESS} (which is
+the default), and @code{DEBUG}.
+
+@item -m, --midi
+Activate the MIDI block in the output LilyPond file.
+
+@item --nb, --no-beaming
+Do not convert beaming information, use LilyPond's automatic
+beaming instead.
+
+@item --nd, --no-articulation-directions
+Do not convert directions (@samp{^}, @samp{_}, or @samp{-}) for
+articulations, dynamics, etc.
+
+@item --npb, --no-page-breaks
+Ignore page breaks.
+
+@item --npl, --no-page-layout
+Do not convert the exact page layout and breaks.  This is a
+shortcut for options @option{--npb}, @option{--npm}, and
+@option{--nsb}.
+
+@item --npm, --no-page-margins
+Ignore page margins.
+
+@item --nrp, --no-rest-positions
+Do not convert exact vertical position of rests.
+
+@item --nsb, --no-system-breaks
+Ignore system breaks.
+
+@item --nsd, --no-stem-directions
+Ignore stem directions given in the MusicXML file, use LilyPond's
+automatic stemming instead.
+
+@item --nt, --no-tagline
+Don't emit a LilyPond tagline (at the bottom of the last page).
+
+@item -o, --output=@var{file}
+Set the output file name to @var{file}.  If @var{file} is
+@q{@file{-}}, the output will be printed to standard output.
+
+@item --oe, --ottavas-end-early=t[rue]/f[alse]
+Expect @code{<octave-shift>} end elements before the associated
+@code{<note>} (as in the @q{Finale} notation software) if value is
+@samp{t} (or @code{true}).  Default is @samp{f} (or @code{false}).
+
+@item -r, --relative
+Convert pitches in relative mode (this option is set by default).
+
+@item --sm, --shift-duration=@var{value}
+Shift durations and time signatures by @var{value}; for example,
+value@tie{}-1 doubles all durations, and value@tie{}1 halves them.
+
+@item --sn --string-numbers=t[rue]/f[alse]
+Control output of string numbers; value @samp{f} (or @code{false})
+disables them.  Default is @samp{t} (or @code{true}).
+
+@item --tc, --tab-clef=@var{tab-clef-name}
+Switch between two versions of tab clefs.  Possible values for
+@var{tab-clef-name} are @code{tab} (the default) and
+@code{moderntab}.
+
+@item --transpose=@var{to-pitch}
+Set pitch to transpose by the interval between pitch @q{c} and
+@var{to-pitch}.
+
+@item -v, --verbose
+Be verbose.
+
+@item --version
+Show version number and exit.
+
+@item -z, --compressed
+Input file is a compressed MusicXML file.  By default, this option
+is active if the input file has @file{.mxl} as the extension.
+@end table
+
+
+@node Invoking abc2ly
+@subsection Invoking @code{abc2ly}
+
+@warning{This is not currently supported and may eventually be removed
+from future versions of LilyPond.}
+
+@cindex ABC
+
+ABC is a fairly simple ASCII based format.  It is described at the ABC
+site:
+
+@quotation
+@uref{http://@/www@/.walshaw@/.plus@/.com/@/abc/@/learn@/.html}.
+@end quotation
+
+@command{abc2ly} translates from ABC to LilyPond.  It is invoked as
+follows:
+
+@example
+abc2ly [@var{option}]@dots{} @var{abc-file}
+@end example
+
+The following options are supported by @command{abc2ly}:
+
+@table @code
+@item -b, --beams=None
+preserve ABC's notion of beams
+@item -h, --help
+this help
+@item -o, --output=@var{file}
+set output file name to @var{file}.
+@item -s, --strict
+be strict about success
+@item --version
+print version information.
+@end table
+
+There is a rudimentary facility for adding LilyPond code to the ABC
+source file.  For example;
+
+@example
+%%LY voices \set autoBeaming = ##f
+@end example
+
+This will cause the text following the keyword @q{voices} to be inserted
+into the current voice of the LilyPond output file.
+
+Similarly,
+
+@example
+%%LY slyrics more words
+@end example
+
+will cause the text following the @q{slyrics} keyword to be inserted
+into the current line of lyrics.
+
+@knownissues
+The ABC standard is not very @q{standard}.  For extended features
+(e.g., polyphonic music) different conventions exist.
+
+Multiple tunes in one file cannot be converted.
+
+ABC synchronizes words and notes at the beginning of a line;
+@command{abc2ly} does not.
+
+@command{abc2ly} ignores the ABC beaming.
+
+
+@node Invoking etf2ly
+@subsection Invoking @command{etf2ly}
+
+@warning{This is not currently supported and may eventually be removed
+from future versions of LilyPond.}
+
+@cindex Enigma Transport Format
+@cindex ETF
+@cindex enigma
+@cindex Finale
+@cindex Coda Technology
+
+ETF (Enigma Transport Format) is a format used by Coda Music
+Technology's Finale product.  @command{etf2ly} will convert part of an
+ETF file to a ready-to-use LilyPond file.
+
+It is invoked from the command line as follows;
+
+@example
+etf2ly [@var{option}]@dots{} @var{etf-file}
+@end example
+
+Note that by @q{command line}, we mean the command line of the
+operating system.  See @ref{Converting from other formats}, for
+more information about this.
+
+The following options are supported by @command{etf2ly}:
+
+@table @code
+@item -h, --help
+this help
+@item -o, --output=@var{FILE}
+set output file name to @var{FILE}
+@item --version
+version information
+@end table
+
+@knownissues
+The list of articulation scripts is incomplete.  Empty measures
+confuse @command{etf2ly}.  Sequences of grace notes are ended
+improperly.
+
+
+@node Other formats
+@subsection Other formats
+
+@cindex External programs, generating LilyPond files
+
+LilyPond itself does not come with support for any other formats,
+but some external tools can also generate LilyPond files.  These
+are listed in @rweb{Easier editing}.
+
+
+@node LilyPond output in other programs
+@section LilyPond output in other programs
+
+This section shows methods to integrate text and music, different than
+the automated method with @command{lilypond-book}.
+
+
+@node LuaTeX
+@subsection Lua@TeX{}
+
+@cindex Lua@TeX{}
+@cindex lyluatex
+
+As well as @code{lilypond-book} to integrate LilyPond output,
+there is an alternative program that can be used when using Lua@TeX{}
+called
+@uref{https://github.com/jperon/lyluatex/blob/master/README.md,lyluatex}.
+
+
+@node OpenOffice and LibreOffice
+@subsection OpenOffice and LibreOffice
+
+@cindex OpenOffice.org
+@cindex LibreOffice.org
+@cindex OOoLilyPond
+
+LilyPond notation can be added to OpenOffice.org and LibreOffice with
+@uref{https://github.com/openlilylib/LO-ly,OOoLilyPond}, an
+OpenOffice.org extension that converts LilyPond files into images within
+OpenOffice.org documents.  OOoLilyPond (OLy) works with recent versions of
+LibreOffice and OpenOffice. Older versions should work as well. It has even
+been tested with OpenOffice 2.4 without issues.
+
+
+@node ly2video
+@subsection @command{ly2video}
+
+@cindex @command{ly2video}
+@cindex score, creating videos
+@cindex videos, with scrolling score
+@cindex MIDI, synchronized video
+
+Using the Python script
+@uref{https://github.com/aspiers/ly2video,@command{ly2video}} it
+is possible to create videos that contain a horizontally scrolling
+score synchronized with a MIDI-generated audio rendering of the
+music.  It is also possible to synchronize the video of the
+scrolling music notation with a previously recorded audio track of
+the same music, such as a live performance, even if the audio uses
+@emph{tempo rubato} or is not precisely metronomic.
+
+
+@node Other programs
+@subsection Other programs
+
+When integrating LilyPond scores into documents in other software,
+you have to effectively mimick how @command{lilypond-book} runs
+@command{lilypond}.
+
+Here we discuss how to create @file{PNG} images
+for use with online formats similar to HTML, and @file{PDF} and
+@file{EPS} for print-out formats similar to @file{PDF}.
+
+PDF documents are usually formatted to enable printing.  This means
+that long pieces of music must be distributed over several
+pages.  For this mode of operation, invoke @command{lilypond} as
+
+@example
+lilypond -dseparate-page-formats=pdf myfile.ly
+@end example
+
+@noindent
+This creates @file{myfile-1.pdf}, @file{myfile-2.pdf}, @dots{},
+each containing a single page.
+
+For embedding the images in a PostScript file, you can create
+@file{EPS} files, using @code{-dseparate-page-formats=eps}.  In
+this case, you may also want to specify
+@code{-dno-gs-load-@/fonts} and @code{-dinclude-eps-fonts}, otherwise the
+@file{EPS} files will not render if they are copied to another computer.
+
+HTML documents are not printed, so they usually don't have to
+worry about splitting music images across page breaks, and you can
+use a single (possibly very tall) image to represent a long
+score.  This can be achieved with
+
+@example
+lilypond -dtall-page-formats=png myfile.ly
+@end example
+
+@noindent
+yielding a @file{myfile.png} that has all the pages of
+@file{myfile.ly} stacked vertically.
+
+Specifying either @code{-dseparate-page-formats} or
+@code{-dtall-page-formats} suppresses the standard output mode
+(single file with multiple pages) and the associated
+@code{--formats} option.  Both options take a comma-separated list
+of formats and can be specified together, e.g.
+
+@example
+lilypond -dseparate-page-formats=eps,pdf \
+         -dtall-page-formats=png,svg \
+         myfile.ly
+@end example
+
+To reduce the margins around the pages pass the
+@code{-dno-use-paper-size-for-page} option to crop extraneous
+whitespace.  The following paper settings will elide page numbers
+and other footers that enlarge the page.
+
+@example
+\paper@{
+  indent=0\mm
+  oddFooterMarkup=##f
+  oddHeaderMarkup=##f
+  bookTitleMarkup = ##f
+  scoreTitleMarkup = ##f
+@}
+
+@var{@dots{} music @dots{}}
+@end example
+
+The above discusses how pages are dumped into output files, but
+for music integrated  into text, you often don't want full pages
+(possibly including page numbers, margins etc.), but rather lines
+of music.  This is achieved by including @file{lilypond-book-preamble.ly}
+before a fragment of music.  This makes a toplevel @code{\score}
+block render into lines of music rather than pages.  
+
+
+@cindex fragments, music
+@cindex quoting, music fragments
+@cindex music fragments, quoting
+
+If you need to quote many fragments from a large score, you can also use
+the clip systems feature, see @rnotation{Extracting fragments of music}.
+
+
+@node Independent includes
+@section Independent @code{include}s
+
+Some users have produced files that can be @code{\include}d with
+LilyPond to produce certain effects and those listed below are part of
+the LilyPond distribution.  Also see @rnotation{Working with input files}.
+
+
+@node MIDI articulation
+@subsection MIDI articulation
+
+@cindex MIDI
+@cindex Articulate project
+
+The @uref{http://www.nicta.com.au/articulate,Articulate} project is an
+attempt to enhance LilyPond's MIDI output and works by adjusting note
+lengths (that are not under slurs) according to the articulation
+markings attached to them.  For example, a @q{staccato} halves the note
+value, @q{tenuto} gives a note its full duration and so on.  See
+@rnotation{Enhancing MIDI output}.

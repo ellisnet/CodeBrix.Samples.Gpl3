@@ -1,0 +1,48 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>disable</Nullable>
+    <IsPackable>false</IsPackable>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <RootNamespace>Lily.Docs</RootNamespace>
+    <AssemblyName>Lily.Docs</AssemblyName>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+  </PropertyGroup>
+
+  <!--
+    The two Texinfo packages are PINNED AT ONE VERSION AND MOVE TOGETHER. Bumping
+    one without the other is the mistake this comment exists to prevent (the same
+    pin discipline the CodeBrix.LilyScheme reference carries). Texinfo2Pdf brings
+    Texinfo2Html transitively; it is named anyway so the pin is visible in one
+    place and so neither can drift.
+  -->
+  <ItemGroup>
+    <PackageReference Include="CodeBrix.Texinfo2Html.MitLicenseForever" Version="1.0.220.120" />
+    <PackageReference Include="CodeBrix.Texinfo2Pdf.MitLicenseForever" Version="1.0.220.120" />
+  </ItemGroup>
+
+  <!--
+    CodeBrix.LilyPort references its sub-assemblies with PrivateAssets="all" so the
+    package ships as one unit, which means the Engine does NOT flow transitively.
+    Named directly, exactly as DocsDriver does, for the one thing it needs: reading
+    the vendored ly/generate-documentation.ly out of the Engine's embedded
+    resources rather than off a source path that only exists in a checkout.
+  -->
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\src\CodeBrix.LilyPort\CodeBrix.LilyPort.csproj" />
+    <ProjectReference Include="..\..\..\..\src\CodeBrix.LilyPort.Engine\CodeBrix.LilyPort.Engine.csproj" />
+  </ItemGroup>
+
+  <!--
+    The two GFDL macro files the Internals Reference cannot render without
+    (decision D49(a)). Vendored so the tool works without a lilypond checkout;
+    byte-identical to ../../../Documentation/en/, which VendoredAssetTests fences.
+  -->
+  <ItemGroup>
+    <None Include="..\..\assets\en\*.itexi" Link="assets\en\%(Filename)%(Extension)"
+          CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>

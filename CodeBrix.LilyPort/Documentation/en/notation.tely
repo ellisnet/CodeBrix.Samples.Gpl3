@@ -1,0 +1,160 @@
+\input texinfo @c -*- coding: utf-8; mode: texinfo; -*-
+@ignore
+    Translation of GIT committish: FILL-IN-HEAD-COMMITTISH
+
+    When revising a translation, copy the HEAD committish of the
+    version that you are working on.  For details, see the Contributors'
+    Guide, node Updating translation committishes..
+@end ignore
+
+@settitle LilyPond Notation Reference
+@documentencoding UTF-8
+@documentlanguage en
+@afourpaper
+
+@macro manualIntro
+This manual provides a reference for all notation that can be
+produced with LilyPond version @version{}.  It assumes that
+the reader is familiar with the material in the @rlearning{Top}.
+@end macro
+
+@c 'Notation Reference' was born 1998-08-14 with this commit:
+@c release: 1.0.2
+@c author: Han-Wen Nienhuys
+@c commit: a3a44f9f3c581b6824b3a65f9039656693e09bbf
+@c   file: Documentation/tex/refman.yo
+
+@macro copyrightDeclare
+Copyright @copyright{} 1998--2026 by the authors.
+@end macro
+
+@dircategory LilyPond -- the music typesetter
+@direntry
+* Notation: (lilypond-notation).        Notation reference.
+@end direntry
+
+@set FDL
+@include en/macros.itexi
+@iftex
+@include en/hyphenation.itexi
+@end iftex
+
+
+@lilyTitlePage{Notation Reference}
+
+
+@ifnottex
+
+@menu
+Musical notation
+
+* Pitches::               Writing and display the pitches of notes.
+* Rhythms::               Writing and displaying the durations of notes.
+* Expressive marks::      Adding expression to notes.
+* Repeats::               Repeat music.
+* Simultaneous notes::    More than one note at once.
+* Staff notation::        Displaying staves.
+* Editorial annotations:: Special notation to increase legibility.
+* Text::                  Adding text to scores.
+
+Specialist notation
+
+* Vocal music::           Lyrics, operas, and more.
+* Keyboard and other multi-staff instruments::
+                          Piano, harp, etc.
+* Unfretted string instruments::
+                          Violin and friends.
+* Fretted string instruments::
+                          Guitar, Lute, etc.
+* Percussion::            Drums and friends.
+* Wind instruments::      Woodwinds, brass, and more.
+* Chord notation::        Chords and figured bass.
+* Contemporary music::    Also graphical notation.
+* Ancient notation::      Mensural music, Gregorian and Kievan chant, etc.
+* World music::           Non-Western music
+
+General input and output
+
+* Input modes::           Note mode, Lyrics mode, Markup mode, etc.
+* Input structure::       How a LilyPond input file looks like.
+* Titles and headers::    Also footnotes, table of contents, etc.
+* Working with input files::
+                          Including files, tagging music, and more.
+* Controlling output::    Music extraction and skipping, output formats,
+                            embedding files in PDF, etc.
+* Creating MIDI output::  Notation support, dynamics, instruments, channels,
+                            and more.
+* Extracting musical information::
+                          Displaying LilyPond data structures.
+
+Spacing issues
+
+* Page layout::           Paper size, fixed and vertical spacing,
+                            @code{\paper} variables.
+* Score layout::          Staff size, the @code{\layout} block.
+* Breaks::                Line and page breaking.
+* Vertical spacing::      Spacing and positioning of vertical staves
+                            and systems.
+* Horizontal spacing::    Spacing sections, strict note spacing, and more.
+* Fitting music onto fewer pages::
+                          Displaying and changing vertical spacing.
+
+Changing defaults
+
+* Tuning output::         A first overview.
+* Interpretation contexts::
+                          Creating and referencing contexts, and more.
+* Explaining the Internals Reference::
+                          How to find descriptions for grobs, properties,
+                          engravers, and more.
+* Modifying properties::  @code{\set}, @code{\override}, @code{\tweak}, etc.
+* Useful concepts and properties::
+                          How grobs and their properties are classified.
+
+Appendices
+
+* Markup commands::       Detailed description of all markup commands.
+* Notation manual tables::
+                          Tables and charts.
+* Cheat sheet::           Summary of LilyPond syntax.
+* GNU Free Documentation License::
+                          License of this document.
+* Index of commands and concepts::
+@end menu
+
+@docMain
+@end ifnottex
+
+@contents
+
+@include en/notation/notation.itely
+@include en/notation/specialist.itely
+
+@include en/notation/input.itely
+@include en/notation/spacing.itely
+
+@include en/notation/changing-defaults.itely
+
+
+@include en/notation/notation-appendices.itely
+@include en/notation/cheatsheet.itely
+
+
+@include en/fdl.itexi
+
+
+@node Index of commands and concepts
+@appendix Index
+
+In addition to all the LilyPond commands and keywords, this index lists
+musical terms and words that relate to each of them, with links to
+those sections of the manual that describe or discuss that topic.
+@ifhtml
+Each link is in two parts.  The first part points to the exact location
+in the manual where the topic appears; the second part points to the
+start of the section of the manual where that topic is discussed.
+@end ifhtml
+
+@printindex cp
+
+@bye

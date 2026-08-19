@@ -117,6 +117,37 @@ STATUS
                                    distribution, plus their license texts.
                                    Added under decision D13.
                                    Section 10.
+    book-mirror/                   4 files, byte-identical mirror of
+                                   lilypond/scripts/lilypond-book.py and
+                                   lilypond/python/book_snippets.py,
+                                   book_base.py and book_texinfo.py (2,716
+                                   lines). LilyPond, GPL-3.0-or-later. The
+                                   faithfulness authority for the Phase-5
+                                   snippet-engraving seam; reference text, never
+                                   executed. Added under decision D49(c); the
+                                   last two added at wave LD2, 2026-08-19, on
+                                   finding that compose_ly reads its defaults
+                                   from them. Section 1.5.
+    tools/Lily.Docs/               28 composed snippet sources written by the
+      composed-reference/          ORACLE's own lilypond-book at 2.27.2, frozen
+                                   as the composition-parity fence, plus the
+                                   probe document they were made from. LilyPond,
+                                   GPL-3.0-or-later: they are that tool's output
+                                   and carry template text from
+                                   python/book_snippets.py, which section 1.5
+                                   already records. Added at wave LD2,
+                                   2026-08-19. Sections 1 and 1.5.
+    Documentation/                 633 files, byte-identical PARTIAL mirror of
+                                   lilypond/Documentation -- the manual sources
+                                   the port's generated documentation is
+                                   rendered into. GNU FDL 1.3-or-later EXCEPT
+                                   Documentation/snippets/ which is PUBLIC
+                                   DOMAIN. Added under decision D49(b).
+                                   Sections 4 and 5.
+    COPYING.FDL                    The GNU Free Documentation License 1.3,
+                                   verbatim from upstream. Required by section
+                                   4's own standing instruction once any FDL
+                                   material is incorporated. Section 4.
 
   THE C++ ENGINE IS INCORPORATED. ⚠ This paragraph used to read "NOT YET
   INCORPORATED: most of the C++ engine (lily/)", which was written when that was
@@ -1659,6 +1690,65 @@ Copyright: Copyright (C) 1996--2026 Han-Wen Nienhuys <hanwen@xs4all.nl>
            section 13). The rule ACTIONS are hand-ported C# keyed by rule
            identity; the lexer is hand-ported as a modal scanner.
 
+  lilypond-book mirror:
+
+    book-mirror/lilypond-book.py    803 lines, vendored verbatim
+    book-mirror/book_snippets.py  1,104 lines, vendored verbatim
+    book-mirror/book_base.py        326 lines, vendored verbatim
+    book-mirror/book_texinfo.py     483 lines, vendored verbatim
+        <- lilypond/scripts/lilypond-book.py, lilypond/python/book_snippets.py,
+           lilypond/python/book_base.py, lilypond/python/book_texinfo.py
+           Copyright (C) 1998--2026 Han-Wen Nienhuys and Jan Nieuwenhuizen,
+           GPL-3.0-or-later
+
+           A BYTE-IDENTICAL mirror, on the same terms as parser-mirror/ and mf/
+           -- see book-mirror/README.txt. Decision D49(c), 2026-08-18.
+
+           These two files are the FAITHFULNESS AUTHORITY for the snippet
+           seam in tools/Lily.Docs: the logic that composes the source text of
+           each @lilypond snippet a manual embeds. Phase 5 treats lilypond-book
+           and texi2any as GPL ORACLES -- run them, read their OUTPUT, never
+           their source -- and lilypond-book is the ONE NAMED EXCEPTION, on the
+           same footing lily/*.cc has for the engine. Ported logic carries a
+           `//was previously: python/book_snippets.py' provenance note per
+           section 1.3.
+
+           ⚠ FOUR FILES, NOT THE TWO D49(c) NAMED -- corrected at wave LD2,
+           2026-08-19. `compose_ly', the function the seam is a port of, reads
+           its defaults from `self.formatter.default_snippet_options', and that
+           dictionary is defined in book_base.py:67-73 and widened by
+           book_texinfo.py's own page geometry; half the values in every composed
+           snippet's `%% Options:' line come from those two files. The gap had
+           the same shape as the one wave LD1 found in D49(a), where the vendored
+           macro closure proved to be three files rather than two. What was
+           ported out of them -- the A4 paper defaults, the page-size to
+           line-width fallback table, and the texi2pdf geometry probe whose
+           no-probe branch the port takes -- lives in
+           tools/Lily.Docs/src/Lily.Docs/Snippets/TexinfoPageGeometry.cs with
+           provenance notes naming the file and lines.
+
+           ⚠ NOTHING EXECUTES THESE FILES. No build or test step reads them and
+           the port has no Python runtime dependency; they are reference text.
+           BookMirrorTests fences all four against the sha256s in
+           book-mirror/README.txt and asserts that no project file references the
+           directory, so both halves of that claim are mechanical.
+           texi2any's source is NOT covered by the exception and is never
+           mirrored or read -- Texinfo rendering is done by the published
+           CodeBrix.Texinfo packages (decision D28).
+
+    tools/Lily.Docs/composed-reference/*.ly   27 files, oracle output
+    tools/Lily.Docs/composed-reference/probe.itely   the probe document
+        <- written by lilypond-book 2.27.2 run over probe.itely by hand,
+           2026-08-19; GPL-3.0-or-later as that tool's output, carrying template
+           text from python/book_snippets.py:193-262
+
+           The composition-parity fence: what the ORACLE composed for each of 28
+           option cases, frozen so the gate can assert against it without any
+           build or test step touching ~/GitHome/lilypond (standing rule 7) and
+           without depending on an oracle install that is not in the repository.
+           See composed-reference/README.txt for the exact command, the mapping
+           by \sourcefileline, and the re-freezing rule.
+
   Regression suite:
 
     tests/regression/*.ly       2,146 inputs, vendored verbatim
@@ -2536,13 +2626,70 @@ Copyright: Copyright (C) 1996--2026 the LilyPond authors
   either direction. FDL-licensed documentation text must therefore never be
   copied into source files or XML doc comments in this repository.
 
-  CURRENT POSITION: CodeBrix.LilyPort does not incorporate LilyPond
-  documentation. If documentation is ever ported, COPYING.FDL (451 lines)
-  must be added to this repository and the FDL-covered material kept in a
-  clearly separated directory tree, never intermixed with GPL source.
+  CURRENT POSITION (updated 2026-08-18): ⚠ THIS SECTION'S STANDING INSTRUCTION
+  HAS FIRED. It previously read "CodeBrix.LilyPort does not incorporate LilyPond
+  documentation. If documentation is ever ported, COPYING.FDL (451 lines) must be
+  added to this repository and the FDL-covered material kept in a clearly
+  separated directory tree, never intermixed with GPL source." Documentation IS
+  now incorporated, and both conditions are discharged:
+
+    * COPYING.FDL is present at the repository root (22,958 bytes, verbatim from
+      upstream lilypond/COPYING.FDL).
+
+    * The FDL-covered material lives in ONE clearly separated tree,
+      Documentation/, which contains no GPL source and from which no text is
+      copied into src/. The prohibition above -- FDL text never enters source
+      files or XML doc comments -- is unchanged and still binding.
+
+  ⚠ A NOTED DISCREPANCY, recorded rather than resolved: upstream's
+  LICENSE.DOCUMENTATION (quoted verbatim above) states FDL "version 1.3, or (at
+  your option) any later version", but the per-file notice that macros.itexi
+  emits into generated manuals -- including the Internals Reference -- states
+  "Version 1.1 or any later version". Both notices are reproduced as upstream
+  wrote them; neither is edited to agree with the other. "Or later" in the 1.1
+  notice reaches 1.3, so the two are compatible, but the difference is real and a
+  reader who finds only one of them should know the other exists.
 
 Source derived from Documentation/ (in this repository):
-  (none)
+
+  Documentation/            633 files, 3.21 MB, byte-identical partial mirror
+                            of lilypond/Documentation at v2.27.2. Every file's
+                            sha256 is recorded in Documentation/MANIFEST.sha256;
+                            the tree's own README.txt records what was copied and
+                            why. Decision D49(b), Jeremy, 2026-08-18.
+
+                            en/          77 files -- the @include closure of the
+                                         eight corpus manuals, plus en/included/
+                                         (@lilypondfile targets).
+                            ly-examples/ 18 files -- @image targets.
+                            bib/          5 files -- bibliography sources.
+                            snippets/   533 files -- SEE SECTION 5, these are
+                                         PUBLIC DOMAIN, not FDL.
+
+                            NOT copied: pictures/ (11 MB), referenced only by
+                            web.texi, which is out of scope.
+
+  tools/Lily.Docs/assets/en/
+                            3 files, 57,795 bytes, byte-identical copies of
+                            Documentation/en/macros.itexi,
+                            Documentation/en/common-macros.itexi and
+                            Documentation/en/cyrillic.itexi. Decision D49(a),
+                            Jeremy, 2026-08-18.
+
+                            These are the complete @include closure of the
+                            Internals Reference, which cannot render without
+                            them. Vendored SEPARATELY from the mirror above so
+                            the docs tool works with no corpus present;
+                            Lily.Docs.Tests fences the two copies as
+                            byte-identical and COMPUTES the closure, so a fourth
+                            support file added upstream fails a test rather than
+                            degrading a render.
+
+  COPYING.FDL               The GNU Free Documentation License 1.3, verbatim.
+
+  ⚠ These files are INPUT, not output. The port's own nineteen generated
+  documentation files are build products of the engine and carry the FDL notice
+  that macros.itexi emits into them; they are not derived from this mirror.
 
 ================================================================================
 
@@ -2561,7 +2708,17 @@ obligation. Attribution is retained here as a matter of record, not
 obligation.
 
 Source derived from Documentation/snippets/ (in this repository):
-  (none yet)
+
+  Documentation/snippets/   533 files, 2.3 MB, byte-identical mirror of
+                            lilypond/Documentation/snippets at v2.27.2 (389 .ly
+                            at the top level plus the snippets/new/ subtree).
+                            Targets of @lilypondfile in the manual prose -- 192
+                            references from the notation manual alone. Copied in
+                            under decision D49(b), 2026-08-18, together with the
+                            FDL tree recorded in section 4, but licensed
+                            SEPARATELY: public domain, per upstream's own
+                            exception list. sha256s in
+                            Documentation/MANIFEST.sha256.
 
 ================================================================================
 

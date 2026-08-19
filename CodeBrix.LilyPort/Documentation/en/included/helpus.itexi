@@ -1,0 +1,97 @@
+@c -*- coding: utf-8; mode: texinfo; -*-
+@c This file is part of web/community.itexi and
+@c contributor/introduction.itely
+
+@macro helpusNeed
+@subheading We need you!
+
+Thank you for your interest in helping us -- we would love to see
+you get involved!  Your contribution will help a large group of users
+make beautifully typeset music.
+
+Even working on small tasks can have a big impact: taking care of
+them allows experienced developers to work on advanced tasks instead
+of spending time on those simple tasks.
+
+For a multi-faceted project like LilyPond, sometimes it's tough to know
+where to begin.  In addition to the avenues proposed below, you can send
+an e-mail to the
+@uref{https://lists.gnu.org/mailman/listinfo/lilypond-devel, @code{lilypond-devel@@gnu.org}}
+mailing list, and we'll help you to get started.
+
+@end macro
+
+
+@macro helpusSimple
+@subheading Simple tasks
+
+@strong{No programming skills} required!
+
+@itemize
+@item
+Mailing list support: answer questions from fellow users.
+(This may entail helping them navigate the online documentation;
+in such cases it may sometimes be appropriate to point them
+to version-agnostic URL paths such as
+@uref{https://lilypond.org/doc/latest/Documentation/notation/, @samp{latest}} or
+@uref{https://lilypond.org/doc/stable/Documentation/notation/, @samp{stable}},
+which are automatically redirected.)
+
+@item
+Bug reporting: help users create proper @rweb{Bug reports}, and/or
+join the Bug Squad to organize @rcontrib{Issues}.
+
+@item
+Documentation: small changes can be proposed by following the
+guidelines for @rcontrib{Documentation suggestions}.
+
+@item
+LilyPond Wiki: create and fix snippets following the guidelines in
+@rcontrib{Adding and editing snippets}.
+
+@item
+Discussions, reviews, and testing: the developers often ask for
+feedback about new documentation, potential syntax changes, and
+testing new features.  Please contribute to these discussions!
+
+@end itemize
+
+@end macro
+
+
+@macro helpusAdvanced
+@subheading Advanced tasks
+
+These jobs generally require that you have the source code and can
+compile LilyPond.
+
+@warning{We suggest that contributors using Windows or macOS do
+@strong{not} attempt to set up their own development environment;
+instead, use Lilydev as discussed in @rcontrib{Quick start}.}
+
+Contributors using Linux or FreeBSD may also use Lilydev, but if
+they prefer their own development environment, they should read
+@rcontrib{Working with source code}, and @rcontrib{Compiling}.
+
+Begin by reading @rcontrib{Summary for experienced developers}.
+
+@itemize
+@item
+Documentation: for large changes, see
+@rcontrib{Documentation work}.
+
+@item
+Website: the website is built from the normal documentation
+source.  See the info about documentation, and also
+@rcontrib{Website work}.
+
+@item
+Translations: see @rcontrib{Translating the documentation}, and
+@rcontrib{Translating the website}.
+
+@item
+Bugfixes or new features: read @rcontrib{Programming work}.
+
+@end itemize
+
+@end macro

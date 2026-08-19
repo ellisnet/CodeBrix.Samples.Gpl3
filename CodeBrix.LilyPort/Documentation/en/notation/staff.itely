@@ -1,0 +1,1920 @@
+@c -*- coding: utf-8; mode: texinfo; -*-
+@ignore
+    Translation of GIT committish: FILL-IN-HEAD-COMMITTISH
+
+    When revising a translation, copy the HEAD committish of the
+    version that you are working on.  For details, see the Contributors'
+    Guide, node Updating translation committishes..
+@end ignore
+
+@c \version "2.25.35"
+
+@node Staff notation
+@chapter Staff notation
+
+@lilypondfile[quote]{snippets/staff-headword.ly}
+
+This section explains how to influence the appearance of staves,
+how to print scores with more than one staff, and how to add tempo
+indications and cue notes to staves.
+
+
+@node Displaying staves
+@section Displaying staves
+
+This section describes the different methods of creating and
+grouping staves.
+
+
+@node Instantiating new staves
+@subsection Instantiating new staves
+
+@cindex new staff
+@cindex staff, initiation
+@cindex staff, instantiation
+@cindex staff, new
+@cindex staff, single
+
+@notation{Staves} (singular: @notation{staff}) are created with
+the @code{\new} or @code{\context} commands.  For details, see
+@ref{Creating and referencing contexts}.
+
+The basic staff context is @code{Staff}:
+
+@lilypond[verbatim,quote]
+\new Staff \relative { c''4 d e f }
+@end lilypond
+
+@cindex staff, drum
+@cindex staff, percussion
+@cindex drum staff
+@cindex percussion staff
+@funindex \drummode
+@funindex DrumStaff
+
+The @code{DrumStaff} context creates a five-line staff set up for
+a typical drum set.  Each instrument is shown with a different
+symbol.  The instruments are entered in drum mode following a
+@code{\drummode} command, with each instrument specified by name.
+For details, see @ref{Percussion staves}.
+
+@lilypond[verbatim,quote]
+\new DrumStaff {
+  \drummode { cymc hh ss tomh }
+}
+@end lilypond
+
+@cindex rhythmic staff
+@funindex RhythmicStaff
+
+@code{RhythmicStaff} creates a single-line staff that only
+displays the rhythmic values of the input.  Real durations are
+preserved.  For details, see @ref{Showing melody rhythms}.
+
+@lilypond[verbatim,quote]
+\new RhythmicStaff { c4 d e f }
+@end lilypond
+
+@cindex tablature
+@funindex TabStaff
+
+@code{TabStaff} creates a tablature with six strings in standard
+guitar tuning.  For details, see @ref{Default tablatures}.
+
+@lilypond[verbatim,quote]
+\new TabStaff \relative { c''4 d e f }
+@end lilypond
+
+@cindex Gregorian transcription staff
+@funindex MensuralStaff
+@funindex VaticanaStaff
+@funindex GregorianTranscriptionStaff
+
+There are staff contexts specific for the notation of ancient
+music, for example, @code{MensuralStaff} and @code{VaticanaStaff}.
+They are described in @ref{Predefined contexts}.
+
+The @code{GregorianTranscriptionStaff} context creates a staff to
+notate modern Gregorian chant.  It engraves @notation{divisiones}
+as bar lines, but it does not show measure bar lines.
+
+@lilypond[verbatim,quote]
+\new GregorianTranscriptionStaff \relative { c''4 d e f e d }
+@end lilypond
+
+New single staff contexts may be defined.  For details, see
+@ref{Defining new contexts}.
+
+@morerefs
+Music Glossary:
+@rglos{staff},
+@rglos{staves}.
+
+Notation Reference:
+@ref{Creating and referencing contexts},
+@ref{Percussion staves},
+@ref{Showing melody rhythms},
+@ref{Default tablatures},
+@ref{Predefined contexts},
+@ref{Staff symbol},
+@ref{Gregorian chant contexts},
+@ref{Mensural contexts},
+@ref{Defining new contexts}.
+
+Snippets:
+@rlsr{Staff notation}.
+
+Internals Reference:
+@rinternals{Staff},
+@rinternals{DrumStaff},
+@rinternals{GregorianTranscriptionStaff},
+@rinternals{RhythmicStaff},
+@rinternals{TabStaff},
+@rinternals{MensuralStaff},
+@rinternals{VaticanaStaff},
+@rinternals{StaffSymbol}.
+@endmorerefs
+
+
+@node Grouping staves
+@subsection Grouping staves
+
+@cindex start of system
+@cindex staff, multiple
+@cindex system start delimiter
+@cindex bracket, vertical
+@cindex brace, vertical
+@cindex system
+
+Various contexts exist to group single staves together in order to
+form multi-staff systems.  Each grouping context sets the style of
+the system start delimiter and the behavior of bar lines.
+
+If no context is specified, the default properties will be used:
+the group is started with a vertical line, and the bar lines are
+not connected.
+
+@lilypond[verbatim,quote]
+<<
+  \new Staff \relative { c''1 c }
+  \new Staff \relative { c''1 c }
+>>
+@end lilypond
+
+@cindex staff group
+
+In the @code{StaffGroup} context, the group is started with a
+bracket and bar lines are drawn through all the staves.
+
+@lilypond[verbatim,quote]
+\new StaffGroup <<
+  \new Staff \relative { c''1 c }
+  \new Staff \relative { c''1 c }
+>>
+@end lilypond
+
+@cindex choir staff
+@cindex staff, choir
+
+In a @code{ChoirStaff}, the group starts with a bracket, but bar
+lines are not connected.
+
+@lilypond[verbatim,quote]
+\new ChoirStaff <<
+  \new Staff \relative { c''1 c }
+  \new Staff \relative { c''1 c }
+>>
+@end lilypond
+
+@cindex grand staff
+@cindex staff, grand
+
+In a @code{GrandStaff}, the group begins with a brace, and bar
+lines are connected between the staves.
+
+@lilypond[verbatim,quote]
+\new GrandStaff <<
+  \new Staff \relative { c''1 c }
+  \new Staff \relative { c''1 c }
+>>
+@end lilypond
+
+@cindex piano staff
+@cindex staff, piano
+
+The @code{PianoStaff} is identical to a @code{GrandStaff}, except
+that its staves are only removed together, never separately;
+@pxref{Hiding staves}.
+
+@funindex OneStaff
+@cindex overlaying contexts
+@cindex context, overlaying multiple
+The @code{OneStaff} is a staff group that places separate contexts
+in the same vertical alignment.  This example shows three staves
+sharing the same space.  Here, the @code{Time_signature_engraver}
+has been moved from the staves to the @code{OneStaff} context to
+prevent it from being repeated for each staff.
+
+@lilypond[verbatim,quote]
+\layout {
+  \context {
+    \OneStaff
+    \consists Time_signature_engraver
+  }
+  \context {
+    \Staff
+    \remove Time_signature_engraver
+  }
+  \context {
+    \DrumStaff
+    \remove Time_signature_engraver
+  }
+}
+
+\new OneStaff {
+  \new Staff {
+    c'4 4 d'4 4 e'2 d'
+  }
+  \drums {
+    hihat4 hh bassdrum bd
+  }
+  \new Staff {
+    c'4 4 d'4 4 e'2 d'
+  }
+}
+@end lilypond
+
+Each staff group context sets the property
+@code{systemStartDelimiter} to one of the following values:
+@code{SystemStartBar}, @code{SystemStartBrace}, or
+@code{SystemStartBracket}.  A fourth delimiter,
+@code{SystemStartSquare}, is also available, but it must be
+explicitly specified.
+
+New staff group contexts may be defined.  For details, see
+@ref{Defining new contexts}.
+
+
+@snippets
+
+@cindex square bracket, at start of staff group
+@cindex bracket, square, at start of staff group
+@cindex staff group, with square bracket at start
+@lilypondfile[verbatim,quote,texidoc,doctitle]
+{snippets/use-square-bracket-at-the-start-of-a-staff-group.ly}
+
+@cindex bracket, at start of single staff
+@cindex brace, at start of single staff
+@cindex staff, single, with bracket or brace
+@cindex single staff, with bracket or brace
+@lilypondfile[verbatim,quote,texidoc,doctitle]
+{snippets/display-bracket-with-only-one-staff-in-a-system.ly}
+
+@cindex Mensurstriche, layout
+@cindex Renaissance music
+@cindex transcription, of mensural music
+@cindex mensural music, transcription
+@cindex bar line, between staves
+@lilypondfile[verbatim,quote,texidoc,doctitle]
+{snippets/mensurstriche-layout-bar-lines-between-the-staves.ly}
+
+
+@morerefs
+Music Glossary:
+@rglos{brace},
+@rglos{bracket},
+@rglos{grand staff},
+@rglos{mensurstrich}.
+
+Notation Reference:
+@ref{Instrument names},
+@ref{Defining new contexts}.
+
+Snippets:
+@rlsr{Staff notation}.
+
+Internals Reference:
+@rinternals{Staff},
+@rinternals{StaffGroup},
+@rinternals{ChoirStaff},
+@rinternals{GrandStaff},
+@rinternals{PianoStaff},
+@rinternals{OneStaff},
+@rinternals{SystemStartBar},
+@rinternals{SystemStartBrace},
+@rinternals{SystemStartBracket},
+@rinternals{SystemStartSquare}.
+@endmorerefs
+
+@node Nested staff groups
+@subsection Nested staff groups
+
+@cindex staff, nested
+@cindex nesting, staves
+@cindex system start delimiter, nested
+@cindex nesting, staff bracket
+@cindex bracket, nested
+@cindex brace, nested
+
+Staff-group contexts can be nested to arbitrary depths.  In this
+case, each child context creates a new bracket adjacent to the
+bracket of its parent group.
+
+@lilypond[verbatim,quote]
+\new StaffGroup <<
+  \new Staff \relative { c''2 c | c2 c }
+  \new StaffGroup <<
+    \new Staff \relative { g'2 g | g2 g }
+    \new StaffGroup \with {
+      systemStartDelimiter = #'SystemStartSquare
+    }
+    <<
+      \new Staff \relative { e'2 e | e2 e }
+      \new Staff \relative { c'2 c | c2 c }
+    >>
+  >>
+>>
+@end lilypond
+
+New nested staff group contexts can be defined.  For details, see
+@ref{Defining new contexts}.
+
+
+@snippets
+
+@lilypondfile[verbatim,quote,texidoc,doctitle]
+{snippets/nesting-staves.ly}
+
+
+@morerefs
+Notation Reference:
+@ref{Grouping staves},
+@ref{Instrument names},
+@ref{Defining new contexts}.
+
+Snippets:
+@rlsr{Staff notation}.
+
+Internals Reference:
+@rinternals{StaffGroup},
+@rinternals{ChoirStaff},
+@rinternals{SystemStartBar},
+@rinternals{SystemStartBrace},
+@rinternals{SystemStartBracket},
+@rinternals{SystemStartSquare}.
+@endmorerefs
+
+
+@node Separating systems
+@subsection Separating systems
+
+@cindex system separator mark
+@cindex separator mark, system
+
+If the number of systems per page changes from page to page it is
+customary to separate the systems by placing a system separator mark
+between them.  By default the system separator is blank, but can be
+turned on with a @code{\paper} option.
+
+@c \book is required here to display the system separator
+@c ragged-right is required as there are two systems
+@lilypond[paper-width=100\mm,paper-height=75\mm,verbatim,quote,ragged-right]
+\book {
+  \score {
+    \new StaffGroup <<
+      \new Staff {
+        \relative {
+          c''4 c c c
+          \break
+          c4 c c c
+        }
+      }
+      \new Staff {
+        \relative {
+          c''4 c c c
+          \break
+          c4 c c c
+        }
+      }
+    >>
+  }
+  \paper {
+    system-separator-markup = \slashSeparator
+    tagline = ##f
+  }
+}
+@end lilypond
+
+@morerefs
+Notation Reference:
+@ref{Page layout}.
+
+Snippets:
+@rlsr{Staff notation}.
+@endmorerefs
+
+
+@node Modifying single staves
+@section Modifying single staves
+
+This section explains how to change specific attributes of one
+staff: for example, modifying the number of staff lines or the
+staff size.  Methods to start and stop staves and set ossia
+sections are also described.
+
+
+@node Staff symbol
+@subsection Staff symbol
+
+@cindex staff symbol
+@cindex staff line, stopping and starting
+@cindex staff line, modifying
+@cindex ledger line
+@cindex ledger line, internal
+@cindex ledger line, modifying
+
+@funindex \startStaff
+@funindex \stopStaff
+
+The @code{\stopStaff} and @code{\startStaff} commands can be used to
+stop or (re)start the staff lines respectively, from being printed at
+any point within a score.
+
+@lilypond[verbatim,quote]
+\relative {
+  \stopStaff f''4 d \startStaff g, e
+  f'4 d \stopStaff g, e
+  f'4 d \startStaff g, e
+}
+@end lilypond
+
+@predefined
+@code{\startStaff},
+@code{\stopStaff}.
+@endpredefined
+
+The lines of a staff belong to the @code{StaffSymbol} grob (including
+ledger lines) and can be modified using @code{StaffSymbol} properties, but
+these modifications must be made before the staff is (re)started.
+
+The number of staff lines can be altered:
+
+@lilypond[verbatim,quote]
+\relative {
+  f''4 d \stopStaff
+  \override Staff.StaffSymbol.line-count = 2
+  \startStaff g, e |
+
+  f'4 d \stopStaff
+  \revert Staff.StaffSymbol.line-count
+  \startStaff g, e |
+}
+@end lilypond
+
+The position of each staff line can also be altered.  A list of
+numbers sets each line's position.  @code{0}@tie{}corresponds to
+the normal center line, and the normal line positions are
+@code{(-4@tie{}-2@tie{}0@tie{}2@tie{}4)}.  A single staff line is
+printed for every value entered so that the number of staff lines,
+as well as their position, can be changed with a single override
+(thus, the @code{line-count} property is disregarded if
+@code{line-positions} is set).
+
+@lilypond[verbatim,quote]
+\relative {
+  f''4 d \stopStaff
+  \override Staff.StaffSymbol.line-positions = #'(1 3 5 -1 -3)
+  \startStaff g, e |
+  f'4 d \stopStaff
+  \override Staff.StaffSymbol.line-positions = #'(8 6.5 -6 -8 -0.5)
+  \startStaff g, e |
+}
+@end lilypond
+
+To preserve typical stem directions (in the bottom half of the staff
+stems point up, in the top half they point down), align the center
+line (or space) of the customized staff with the position of the
+normal center line (0).  The clef position and the position of
+middle@tie{}C may need to be adjusted accordingly to fit the new
+lines.  See @ref{Clef}.
+
+Staff line thickness can be altered.  Ledger lines and note stems, by
+default, are also affected.
+
+@lilypond[verbatim,quote]
+\new Staff \with {
+  \override StaffSymbol.thickness = 3
+} \relative {
+  f''4 d g, e
+}
+@end lilypond
+
+It is also possible to set ledger line thickness independently of staff
+lines.
+
+@lilypond[verbatim,quote]
+\new Staff \with {
+  \override StaffSymbol.thickness = 2
+  \override StaffSymbol.ledger-line-thickness = #'(0.5 . 0.4)
+} \relative {
+  f'''4 a, a,, f
+}
+@end lilypond
+
+@noindent
+The first value is multiplied by the staff line thickness, the second by
+the staff space and then the two values are added together to give the
+new thickness of the ledger line.
+
+The vertical positions of ledger lines can be altered,
+
+@lilypond[verbatim,quote]
+\new Staff \with {
+  \override StaffSymbol.ledger-positions = #'(-3 -2 -1 2 5 6)
+} \relative {
+  f'''4 a, a,, f
+}
+@end lilypond
+
+Additional ledger lines can be made to appear above or below note heads
+depending on the current position relative to other note heads that
+also have their own ledger lines.
+
+@lilypond[verbatim,quote]
+\new Staff \with {
+  \override StaffSymbol.ledger-extra = 4
+} \relative {
+  f'''4 a, d, f,
+}
+@end lilypond
+
+Ledger lines can also be made to appear inside the staff where custom
+staff lines are required.  The example shows the default position of
+ledger lines when the explicit @code{ledger-position} is and is not set.
+The @code{\stopStaff} is needed in the example to revert the
+@code{\override} for the whole @code{StaffSymbol}.
+
+@lilypond[verbatim,quote]
+\relative d' {
+  \override Staff.StaffSymbol.line-positions = #'(-8 0 2 4)
+  d4 e f g
+  \stopStaff
+  \startStaff
+  \override Staff.StaffSymbol.ledger-positions = #'(-8 -6 (-4 -2) 0)
+  d4 e f g
+}
+@end lilypond
+
+The distance between staff lines can be altered.  This affects ledger
+line spacing as well.
+
+@lilypond[verbatim,quote]
+\new Staff \with {
+  \override StaffSymbol.staff-space = 1.5
+} \relative {
+  f'''4 d, g, e,
+}
+@end lilypond
+
+The width of a staff can be modified.  The units are staff
+spaces.  The spacing of objects inside the staff is not affected by
+this setting.
+
+@lilypond[verbatim,quote]
+\new Staff \with {
+  \override StaffSymbol.width = 23
+}
+\relative { a4 e' f b | d1 }
+@end lilypond
+
+@snippets
+
+@lilypondfile[verbatim,quote,texidoc,doctitle]
+{snippets/making-some-staff-lines-thicker-than-the-others.ly}
+
+
+@morerefs
+Music Glossary:
+@rglos{line},
+@rglos{ledger line},
+@rglos{staff}.
+
+Notation Reference:
+@ref{Clef}.
+
+Snippets:
+@rlsr{Staff notation}.
+
+Internals Reference:
+@rinternals{StaffSymbol},
+@rinternals{staff-symbol-interface}.
+@endmorerefs
+
+
+@node Ossia staves
+@subsection Ossia staves
+
+@cindex staff, Frenched
+@cindex ossia
+@cindex Frenched staff
+@cindex staff, resizing
+@cindex resizing of staves
+
+@funindex \startStaff
+@funindex \stopStaff
+
+@notation{Ossia} staves can be set by creating a new simultaneous
+staff in the appropriate location:
+
+@lilypond[verbatim,quote]
+\new Staff \relative {
+  c''4 b d c
+  <<
+    { c4 b d c }
+    \new Staff { e4 d f e }
+  >>
+  c4 b c2
+}
+@end lilypond
+
+@noindent
+However, the above example is not what is usually desired.  To
+create ossia staves that are above the original staff, have no
+time signature or clef, and have a smaller font size, tweaks must
+be used.  The Learning Manual describes a specific technique to
+achieve this goal, beginning with
+@rlearning{Nesting music expressions}.
+
+The following example uses the @code{alignAboveContext} property
+to align the ossia staff.  This method is most appropriate when
+only a few ossia staves are needed.
+
+@lilypond[verbatim,quote]
+\new Staff = "main" \relative {
+  c''4 b d c
+  <<
+    { c4 b d c }
+
+    \new Staff \with {
+      \remove Time_signature_engraver
+      alignAboveContext = "main"
+      \magnifyStaff #2/3
+      firstClef = ##f
+    }
+    { e4 d f e }
+  >>
+  c4 b c2
+}
+@end lilypond
+
+If many isolated ossia staves are needed, creating an empty
+@code{Staff} context with a specific @emph{context id} may be more
+appropriate; the ossia staves may then be created by
+@emph{calling} this context and using @code{\startStaff} and
+@code{\stopStaff} at the desired locations.  The benefits of this
+method are more apparent if the piece is longer than the following
+example.
+
+@lilypond[verbatim,quote,ragged-right]
+<<
+  \new Staff = "ossia" \with {
+    \remove Time_signature_engraver
+    \hide Clef
+    \magnifyStaff #2/3
+  }
+  { \stopStaff s1*6 }
+
+  \new Staff \relative {
+    c'4 b c2
+    <<
+      { e4 f e2 }
+      \context Staff = "ossia" {
+        \startStaff e4 g8 f e2 \stopStaff
+      }
+    >>
+    g4 a g2 \break
+    c4 b c2
+    <<
+      { g4 a g2 }
+      \context Staff = "ossia" {
+        \startStaff g4 e8 f g2 \stopStaff
+      }
+    >>
+    e4 d c2
+  }
+>>
+@end lilypond
+
+
+Using the @code{\RemoveAllEmptyStaves} command to create ossia
+staves may be used as an alternative.  This method is most
+convenient when ossia staves occur immediately following a line
+break.  For more information about
+@code{\RemoveAllEmptyStaves}, see @ref{Hiding staves}.
+
+@lilypond[verbatim,quote,ragged-right]
+<<
+  \new Staff = "ossia" \with {
+    \remove Time_signature_engraver
+    \hide Clef
+    \magnifyStaff #2/3
+    \RemoveAllEmptyStaves
+  } \relative {
+    R1*3
+    c''4 e8 d c2
+  }
+  \new Staff \relative {
+    c'4 b c2
+    e4 f e2
+    g4 a g2 \break
+    c4 b c2
+    g4 a g2
+    e4 d c2
+  }
+>>
+@end lilypond
+
+
+@snippets
+
+@cindex ossia, positioning
+@cindex lyrics, positioning
+@cindex position, lyrics
+@cindex position, ossia
+@funindex alignBelowContext
+@funindex alignAboveContext
+@lilypondfile[verbatim,quote,texidoc,doctitle]
+{snippets/vertically-aligning-ossias-and-lyrics.ly}
+
+
+@morerefs
+Music Glossary:
+@rglos{ossia},
+@rglos{staff},
+@rglos{Frenched staff}.
+
+Learning Manual:
+@rlearning{Nesting music expressions},
+@rlearning{Size of objects},
+@rlearning{Length and thickness of objects}.
+
+Notation Reference:
+@ref{Hiding staves}.
+
+Snippets:
+@rlsr{Staff notation}.
+
+Internals Reference:
+@rinternals{StaffSymbol}.
+@endmorerefs
+
+
+@node Hiding staves
+@subsection Hiding staves
+
+@cindex Frenched score
+@cindex Frenched staff
+@cindex staff, hiding
+@cindex staff, empty
+@cindex hiding staves
+@cindex hiding ancient staves
+@cindex hiding rhythmic staves
+@cindex hiding Vaticana staves
+@cindex empty staff
+
+@funindex Staff_symbol_engraver
+@funindex \stopStaff
+
+
+Staff lines can be hidden by removing the
+@code{Staff_symbol_engraver} from the @code{Staff} context.  As an
+alternative, @code{\stopStaff} may be used.
+
+@lilypond[verbatim,quote]
+\new Staff \with {
+  \remove Staff_symbol_engraver
+}
+\relative { a''8 f e16 d c b a2 }
+@end lilypond
+
+
+Empty staves can be hidden (for a so-called @q{Frenched Score})
+by applying the @code{\RemoveEmptyStaves} command on a context, which
+can be done globally (in a @code{\layout} block) as well as for
+specific staves only (in a @code{\with} block).  This command removes
+all empty staves in a score except for those in the first system.  If
+you want those in the first system to be hidden also, use
+@code{\RemoveAllEmptyStaves}.
+
+
+@lilypond[verbatim,quote,ragged-right]
+\layout {
+  \context {
+    \Staff
+    \RemoveEmptyStaves
+  }
+}
+
+\relative <<
+  \new Staff {
+    e'4 f g a \break
+    b1 \break
+    a4 b c2
+  }
+  \new Staff {
+    c,4 d e f \break
+    R1 \break
+    f4 g c,2
+  }
+>>
+@end lilypond
+
+@funindex keepAliveInterfaces
+
+A staff is considered empty when it contains only multi-measure rests,
+rests, skips, or a combination of these elements.  All @emph{other} musical
+objects (that cause a staff not to be considered as empty) are listed in the
+@code{keepAliveInterfaces} context property, as initially set in the
+@file{ly/engraver-init.ly} file.
+
+@funindex \RemoveEmptyStaves
+@funindex \RemoveAllEmptyStaves
+@funindex remove-empty
+@funindex remove-first
+
+@code{\RemoveEmptyStaves} and @code{\RemoveAllEmptyStaves} are
+both predefined shortcuts that set such properties as
+@code{remove-empty} and @code{remove-first} for the
+@code{VerticalAxisGroup} object, as explained in
+@ref{Context modification identifiers}.
+
+The @code{Keep_alive_together_engraver} allows groups of staves
+to only be removed together and not individually.  By default,
+it is part of the @code{PianoStaff} context: a piano part will
+only be hidden when both of its staves are empty.
+Similarly, a common engraving practice in orchestral
+scores is to remove empty groups of staves rather than individual
+staves; that can be achieved by adding the
+@code{Keep_alive_together_engraver} to the relevant staff grouping
+context, as explained @ref{Modifying context plug-ins} (see
+@ref{Grouping staves} for the context names).
+
+@example
+\layout @{
+  \context @{
+    \StaffGroup
+    \RemoveEmptyStaves
+    \consists Keep_alive_together_engraver
+  @}
+@}
+@end example
+
+In the following example, staves devoted to wind instruments are
+removed in the second system; however, the double bass is not, because
+it is part of the string section, which is playing.
+
+@lilypond
+%{
+  This is taken from Berlioz, Symphonie fantastique.
+  http://imslp.eu/files/imglnks/euimg/5/54/IMSLP522307-PMLP3653-NBE_-_Symphonie_Fantastique_-_I._Reveries,_Passions_(etc).pdf
+%}
+\layout {
+  \context {
+    \StaffGroup
+    \RemoveEmptyStaves
+    \consists Keep_alive_together_engraver
+  }
+}
+
+\paper {
+  indent = 25
+  short-indent = 10
+}
+
+<<
+  \new StaffGroup <<
+    \new Staff \with { instrumentName = "Flute" } \relative c'' {
+      \key c \minor
+      <<
+        { \tuplet 3/2 4 { \*4 { g'8( g g) } } }
+        \\
+        { r2 \tuplet 3/2 4 { \*2 { f8( f f) } } }
+      >>
+      <ees g>1~
+      q16 r16 r8 r4 r2
+      R1\fermata
+      R1*3
+    }
+    \new Staff \with { instrumentName = "Oboe" } \relative c' {
+      \key c \minor
+      r2
+      \tuplet 3/2 4 { g'8( a b) c( cis d) }
+      <g, ees'>1~
+      q16 r16 r8 r4 r2
+      R1\fermata
+      R1*3
+    }
+    \new Staff \with { instrumentName = "Bassoon" } \relative c {
+      \key c \minor
+      \clef bass
+      r2 r4 \tuplet 3/2 { r8 g'( b,) }
+      c1~
+      c16 r16 r8 r4 r2
+      R1\fermata
+      R1*3
+    }
+  >>
+  \new StaffGroup <<
+    \new Staff \with {
+      instrumentName = "Violin I"
+      shortInstrumentName = "Vl."
+    } \relative c'' {
+      \key c \minor
+      R1*2
+      g'8. g16( aes8. g16) g8( f) f8.( ees16)
+      ees2( d16) r16\fermata d8( ees f)
+      g4( ees8) r16 c aes'4( g8) r16 fis
+      g2( f8) r8 r4\fermata
+    }
+    \new Staff \with {
+      instrumentName = "Violin II"
+      shortInstrumentName = "Vl. II"
+    } \relative c' {
+      \key c \minor
+      R1*2
+      r2 b'4( c)
+      c2~ c16 r16\fermata b8( c d)
+      ees4( c8) r8 ees4~ ees8 r
+      d2~ d8 r8 r4\fermata
+    }
+    \new Staff \with {
+      instrumentName = "Alto"
+      shortInstrumentName = "Al."
+    } \relative c' {
+      \key c \minor
+      \clef alto
+      R1*2
+      r2 d4( c
+      a'2~) a16 r16\fermata aes8( g f)
+      ees4~ ees8 r c'4~ c8 r8
+      b2~ b8 r8 r4\fermata
+    }
+    \new Staff \with {
+      instrumentName = "Cello"
+      shortInstrumentName = "Cl."
+    } \relative c {
+      \key c \minor
+      \clef bass
+      R1*2
+      r2 aes'4( g
+      fis2~) fis16 r16\fermata f8( ees d)
+      c4~ c8 r8 c'4~ c8 r8
+      b2~ b8 r8 r4 \fermata
+    }
+    \new Staff \with {
+      instrumentName = "Double bass"
+      shortInstrumentName = "D.B."
+    } {
+      \key c \minor
+      \clef bass
+      R1*6
+    }
+  >>
+>>
+@end lilypond
+
+@cindex divisi staves
+@cindex staves, divisi
+@funindex remove-layer
+
+The @code{Keep_alive_together_engraver} internally uses the
+@code{remove-layer} property of a staff's @code{VerticalAxisGroup}
+to decide whether to print it or not when it is considered empty.
+That property may also be set directly, in which case it acts as
+a priority index: values closest to zero take precedence over
+higher numbers, and thus staves whose @code{remove-layer} is
+higher will be masked in favor of staves of a lower number.
+
+This is particularly useful for @q{divisi} staves, where some
+individual parts (see @ref{Writing parts}) occasionally need
+to be expanded to more than one staff.
+In the following example, two parts are routed to @emph{three} staves;
+however, all three staves are never printed at the same time:
+
+@itemize
+
+@item
+in the first systems, only a single one of them is shown, as the
+@code{keepAliveInterfaces} property has been set to an empty list -- therefore
+the other two staves are considered empty and thus hidden, regardless of what
+they may contain;
+
+@item
+when that property gets unset (and thus reverts to its default
+setting), it is no longer preventing the two other staves from being
+printed; however, as their @code{remove-layer} setting is lower than
+the single staff's, these two staves are now printed in its place.
+
+@end itemize
+
+@noindent
+Such substitutions are applied not just to notes, chords and other musical
+events that occur immediately after the new setting, but to the whole system
+where it takes place.
+
+@lilypond[verbatim,papersize=a6]
+\layout {
+  short-indent = 2\cm
+  indent = 3\cm
+  \context {
+    \Staff
+    keepAliveInterfaces = #'()
+  }
+}
+
+violI = {
+  \*24 d'4
+  \once \unset Staff.keepAliveInterfaces
+  <d' g''>2
+  \*14 d'4
+  \bar "|."
+}
+
+violII = {
+  \*24 g4
+  <g d'>2
+  \*14 g4
+  \bar "|."
+}
+
+\new StaffGroup \with { \consists Keep_alive_together_engraver } <<
+  \new Staff \with {
+    instrumentName = "Violins"
+    shortInstrumentName = "V I & II"
+    \override VerticalAxisGroup.remove-layer = 2
+  } <<  \violI \\ \violII  >>
+  \new Staff \with {
+    instrumentName = "Violin I"
+    shortInstrumentName = "V I"
+    \RemoveAllEmptyStaves
+    \override VerticalAxisGroup.remove-layer = 1
+  } \violI
+  \new Staff \with {
+    instrumentName = "Violin II"
+    shortInstrumentName = "V II"
+    \RemoveAllEmptyStaves
+    \override VerticalAxisGroup.remove-layer = 1
+  } \violII
+>>
+@end lilypond
+
+@cindex ossia
+
+@code{\RemoveAllEmptyStaves} can also be used to create ossia
+sections for a staff.  For details, see @ref{Ossia staves}.
+
+
+@predefined
+@code{\RemoveEmptyStaves},
+@code{\RemoveAllEmptyStaves}.
+@endpredefined
+
+@morerefs
+Music Glossary:
+@rglos{Frenched staff}.
+
+Learning Manual:
+@rlearning{Visibility and color of objects}.
+
+Notation Reference:
+@ref{Changing context default settings},
+@ref{Staff symbol},
+@ref{Ossia staves},
+@ref{Hidden notes},
+@ref{Invisible rests},
+@ref{Visibility of objects},
+@ref{Context modification identifiers},
+@ref{Grouping staves},
+@ref{Modifying context plug-ins}.
+
+Installed Files:
+@file{ly/engraver-init.ly}.
+
+Snippets:
+@rlsr{Staff notation}.
+
+Internals Reference:
+@rinternals{ChordNames},
+@rinternals{FiguredBass},
+@rinternals{Lyrics},
+@rinternals{Staff},
+@rinternals{VerticalAxisGroup},
+@rinternals{Staff_symbol_engraver},
+@rinternals{Axis_group_engraver},
+@rinternals{Keep_alive_together_engraver}.
+@endmorerefs
+
+@knownissues
+Removing @code{Staff_symbol_engraver} also hides bar lines.  If
+bar line visibility is forced, formatting errors may occur.  In
+this case, use the following overrides instead of removing the
+engraver:
+
+@example
+\omit StaffSymbol
+\override NoteHead.no-ledgers = ##t
+@end example
+
+For the Known issues and warnings associated with
+@code{\RemoveEmptyStaves} see
+@ref{Changing context default settings}.
+
+
+@node Writing parts
+@section Writing parts
+
+@cindex individual parts
+@cindex desk parts
+@cindex section parts
+@cindex part, individual
+@cindex part, desk
+@cindex part, section
+
+This section explains how to prepare parts
+for orchestral or ensemble music, which often
+requires to insert instrument names into the score.
+Methods to quote other voices and to format cue notes
+are also described, as well as a way to contract
+multiple consecutive empty measures in individual parts.
+
+Additionally, a method for printing @emph{divisi} staves,
+sometimes used in individual or desk parts, can be found in
+@ref{Hiding staves}.
+
+
+@node Instrument names
+@subsection Instrument names
+
+@cindex instrument name
+@cindex instrument name, short
+
+Instrument names can be printed on the left side of staves in the
+@code{Staff}, @code{PianoStaff}, @code{StaffGroup}, @code{GrandStaff}
+and @code{ChoirStaff} contexts.  The value of
+@code{instrumentName} is used for the first staff, and the value
+of @code{shortInstrumentName} is used for all succeeding staves.
+
+@lilypond[verbatim,quote,ragged-right]
+\new Staff \with {
+  instrumentName = "Violin "
+  shortInstrumentName = "Vln. "
+} \relative {
+  c'4.. g'16 c4.. g'16 \break | c1 |
+}
+@end lilypond
+
+@cindex instrument name, complex
+
+@code{\markup} can be used to create more complex instrument names:
+
+@lilypond[verbatim,quote]
+\new Staff \with {
+  instrumentName = \markup {
+    \column { "Clarinetti"
+      \line { "in B" \smaller \flat }
+    }
+  }
+} \relative {
+  c''4 c,16 d e f g2
+}
+@end lilypond
+
+@cindex instrument name, centering
+
+When two or more staff contexts are grouped together, the instrument
+names and short instrument names are centered by default.  To center
+multi-line instrument names, @code{\center-column} must be used:
+
+@lilypond[verbatim,quote,indent=1.5\cm]
+<<
+  \new Staff \with {
+    instrumentName = "Flute"
+  } \relative {
+    f''2 g4 f
+}
+  \new Staff \with {
+    instrumentName = \markup {
+      \center-column { "Clarinet"
+        \line { "in B" \smaller \flat }
+      }
+    }
+  } \relative { c''4 b c2 }
+>>
+@end lilypond
+
+@funindex indent
+@funindex short-indent
+
+However, if the instrument names are longer, the instrument names in a
+staff group may not be centered unless the @code{indent} and
+@code{short-indent} settings are increased.  For details about these
+settings, see @ref{paper variables for shifts and indents}.
+
+@lilypond[verbatim,quote,ragged-right]
+<<
+  \new Staff \with {
+    instrumentName = "Alto Flute in G"
+    shortInstrumentName = "Flt."
+  } \relative {
+    f''2 g4 f \break
+    g4 f g2
+  }
+  \new Staff \with {
+    instrumentName = "Clarinet"
+    shortInstrumentName = "Clar."
+  } \relative {
+    c''4 b c2 \break
+    c2 b4 c
+  }
+>>
+
+\layout {
+  indent = 3.0\cm
+  short-indent = 1.5\cm
+}
+@end lilypond
+
+@cindex instrument name, adding to other contexts
+
+To add instrument names to other contexts (such as @code{ChordNames} or
+@code{FiguredBass}), @code{Instrument_name_engraver} must be added to
+that context.  For details, see @ref{Modifying context plug-ins}.
+
+@cindex instrument name, changing
+@cindex changing instrument name
+
+The @code{shortInstrumentName} may be changed in the middle of a piece,
+along with other settings as needed for the new instrument.
+However, only the first instance of @code{instrumentName} will be
+printed and subsequent changes will be ignored:
+
+@lilypond[verbatim,quote,ragged-right]
+prepPiccolo = <>^\markup \italic { muta in Piccolo }
+
+prepFlute = <>^\markup \italic { muta in Flauto }
+
+setPiccolo = {
+  <>^\markup \bold { Piccolo }
+  \transposition c''
+}
+
+setFlute = {
+  <>^\markup \bold { Flute }
+  \transposition c'
+}
+
+\new Staff \with {
+  instrumentName = "Flute"
+  shortInstrumentName = "Flt."
+}
+\relative {
+  g'1 g g g \break
+  g1 g \prepPiccolo R R \break
+  \set Staff.instrumentName = "Piccolo"
+  \set Staff.shortInstrumentName = "Picc."
+  \setPiccolo
+  g1 g g g \break
+  g1 g \prepFlute R R \break
+  \set Staff.instrumentName = "Flute"
+  \set Staff.shortInstrumentName = "Flt."
+  \setFlute
+  g1 g g g
+}
+@end lilypond
+
+
+@morerefs
+Notation Reference:
+@ref{paper variables for shifts and indents},
+@ref{Modifying context plug-ins}.
+
+Snippets:
+@rlsr{Staff notation}.
+
+Internals Reference:
+@rinternals{InstrumentName},
+@rinternals{PianoStaff},
+@rinternals{Staff}.
+@endmorerefs
+
+
+@node Quoting other voices
+@subsection Quoting other voices
+
+@cindex quote, voices
+@cindex voice, quoting
+@cindex fragment, quoting
+@cindex cue note
+
+@funindex \addQuote
+@funindex \quoteDuring
+@funindex \transposition
+
+It is very common for one voice to use the same notes as those from
+another voice.  For example, first and second violins playing the same
+phrase during a particular passage of the music.  This is done by
+letting one voice @emph{quote} the other, without having to reenter the
+music all over again for the second voice.
+
+The @code{\addQuote} command, used in the top level scope, defines a
+stream of music from which fragments can be quoted.
+
+The @code{\quoteDuring} command is used to indicate the point where the
+quotation begins.  It is followed by two arguments: the name of the
+quoted voice, as defined with @code{\addQuote}, and a music expression
+for the duration of the quote.
+
+@lilypond[verbatim,quote]
+fluteNotes = \relative {
+  a'4 gis g gis | b4^"quoted" r8 ais\p a4( f)
+}
+
+oboeNotes = \relative {
+  c''4 cis c b \quoteDuring "flute" { s1 }
+}
+
+\addQuote "flute" { \fluteNotes }
+
+\score {
+  <<
+    \new Staff \with { instrumentName = "Flute" } \fluteNotes
+    \new Staff \with { instrumentName = "Oboe" } \oboeNotes
+  >>
+}
+@end lilypond
+
+If the music expression used in @code{\quoteDuring} contains notes
+instead of spacer or multi-measure rests then the quote will appear as
+polyphony and may produce unexpected results.
+
+@lilypond[verbatim,quote]
+fluteNotes = \relative {
+  a'4 gis g gis | b4^"quoted" r8 ais\p a4( f)
+}
+
+oboeNotes = \relative {
+  c''4 cis c b \quoteDuring "flute" { e4 r8 ais b4 a }
+}
+
+\addQuote "flute" { \fluteNotes }
+
+\score {
+  <<
+    \new Staff \with { instrumentName = "Flute" } \fluteNotes
+    \new Staff \with { instrumentName = "Oboe" } \oboeNotes
+  >>
+}
+@end lilypond
+
+If an @code{\unfoldRepeats} command in a music expression is required to
+be printed when using @code{\quoteDuring}, then it too must also contain
+its own @code{\unfoldRepeats} command;
+
+@lilypond[verbatim,quote]
+fluteNotes = \relative {
+  \repeat volta 2 { a'4 gis g gis }
+}
+
+oboeNotesDW = \relative {
+  \repeat volta 2 \quoteDuring "incorrect" { s1 }
+}
+
+oboeNotesW = \relative {
+  \repeat volta 2 \quoteDuring "correct" { s1 }
+}
+
+
+\addQuote "incorrect" { \fluteNotes }
+
+\addQuote "correct" { \unfoldRepeats \fluteNotes }
+
+\score {
+  \unfoldRepeats
+  <<
+    \new Staff \with { instrumentName = "Flute" }
+    \fluteNotes
+    \new Staff \with { instrumentName = "Oboe (incorrect)" }
+    \oboeNotesDW
+    \new Staff \with { instrumentName = "Oboe (correct)" }
+    \oboeNotesW
+  >>
+}
+@end lilypond
+
+The @code{\quoteDuring} command uses the @code{\transposition} settings
+of both quoted and quoting parts to produce notes for the quoting part
+that have the same sounding pitch as those in the quoted part.
+
+@lilypond[verbatim,quote]
+clarinetNotes = \relative c'' {
+  \transposition bes
+  \key d \major
+  b4 ais a ais | cis4^"quoted" r8 bis\p b4( f)
+}
+
+oboeNotes = \relative {
+  c''4 cis c b \quoteDuring "clarinet" { s1 }
+}
+
+\addQuote "clarinet" { \clarinetNotes }
+
+
+\score {
+  <<
+    \new Staff \with { instrumentName = "Clarinet" } \clarinetNotes
+    \new Staff \with { instrumentName = "Oboe" } \oboeNotes
+  >>
+}
+@end lilypond
+
+@funindex note-event
+@funindex articulation-event
+@funindex dynamic-event
+@funindex rest-event
+@funindex slur-event
+@funindex crescendo-event
+
+@funindex quotedEventTypes
+@funindex quotedCueEventTypes
+
+By default quoted music will include all articulations, dynamics,
+markups, etc., in the quoted expression.  It is possible to choose which
+of these objects from the quoted music are displayed by using the
+@code{quotedEventTypes} context property.
+
+@lilypond[verbatim,quote]
+fluteNotes = \relative {
+  a'2 g2 |
+  b4\<^"quoted" r8 ais a4\f( c->)
+ }
+
+oboeNotes = \relative {
+  c''2. b4 |
+  \quoteDuring "flute" { s1 }
+}
+
+\addQuote "flute" { \fluteNotes }
+
+\score {
+  <<
+    \set Score.quotedEventTypes = #'(note-event articulation-event
+                                     crescendo-event rest-event
+                                     slur-event dynamic-event)
+    \new Staff \with { instrumentName = "Flute" } \fluteNotes
+    \new Staff \with { instrumentName = "Oboe" } \oboeNotes
+  >>
+ }
+@end lilypond
+
+Quotes can also be tagged, see @ref{Using tags}.
+
+@morerefs
+Notation Reference:
+@ref{Instrument transpositions},
+@ref{Using tags}.
+
+Installed Files:
+@file{scm/define-event-classes.scm}.
+
+Snippets:
+@rlsr{Staff notation}.
+
+Internals Reference:
+@rinternals{Music classes},
+@rinternals{QuoteMusic},
+@rinternals{Voice}.
+@endmorerefs
+
+@knownissues
+Only the contents of the first @code{Voice} occurring in an
+@code{\addQuote} command will be considered for quotation, so if the music
+expression contains @code{\new} or @code{\context Voice}
+statements, their contents will not be quoted.  Quoting grace notes
+is unsupported and may cause LilyPond to crash whereas quoting nested
+triplets may result in poor notation.
+
+
+@node Formatting cue notes
+@subsection Formatting cue notes
+
+@cindex cue note
+@cindex fragment
+@cindex cue note, formatting
+@cindex formatting, cue notes
+@cindex voice, quoting
+
+
+@funindex \cueClef
+@funindex \cueClefUnset
+@funindex \quoteDuring
+
+@cindex note, smaller
+@cindex smaller note
+@funindex CueVoice
+
+The simplest way to format cue notes is to explicitly create a
+@code{CueVoice} context within the part.
+
+@lilypond[verbatim,quote]
+\relative {
+  R1
+  <<
+    { e'2\rest r4. e8 }
+    \new CueVoice {
+      \stemUp d'8^"flute" c d e fis2
+    }
+  >>
+  d,4 r a r
+}
+@end lilypond
+
+The @code{\cueClef} command can also be used with an explicit
+@code{CueVoice} context if a change of clef is required and will print
+an appropriately sized clef for the cue notes.  The @code{\cueClefUnset}
+command can then be used to switch back to the original clef, again with
+an appropriately sized clef.
+
+@lilypond[verbatim,quote]
+\relative {
+  \clef "bass"
+  R1
+  <<
+    { e'2\rest r4. \cueClefUnset e,8 }
+    \new CueVoice {
+      \cueClef "treble" \stemUp d''8^"flute" c d e fis2
+    }
+  >>
+  d,,4 r a r
+}
+@end lilypond
+
+The @code{\cueClef} and @code{\cueClefUnset} commands can also be used
+without a @code{CueVoice} if required.
+
+@lilypond[verbatim,quote]
+\relative {
+  \clef "bass"
+  R1
+  \cueClef "treble"
+  d''8^"flute" c d e fis2
+  \cueClefUnset
+  d,,4 r a r
+}
+@end lilypond
+
+@funindex \cueDuring
+@funindex \cueDuringWithClef
+
+For more complex cue note placement like including transposition, or
+inserting cue notes from multiple music sources, the @code{\cueDuring} or
+@code{\cueDuringWithClef} commands can be used.  These are more
+specialized forms of @code{\quoteDuring}, @pxref{Quoting other voices}
+in the previous section.
+
+The syntax is
+
+@example
+\cueDuring @var{quotename} @var{direction} @var{music}
+@end example
+
+@noindent
+and
+
+@example
+\cueDuringWithClef @var{quotename} @var{direction} @var{clef} @var{music}
+@end example
+
+The music from the corresponding measures of @var{quotename}
+is added as a @code{CueVoice} context and occurs simultaneously with
+@var{music}, which then creates a polyphonic situation.  The
+@var{direction} variable takes the argument @code{#UP} or @code{#DOWN}, and
+corresponds to the first and second voice, respectively, determining how
+the cue notes are printed in relation to the other voice.
+
+@lilypond[verbatim,quote]
+fluteNotes = \relative {
+  r2. c''4 | d8 c d e fis2 | g2 d |
+}
+
+oboeNotes = \relative c'' {
+  R1
+  <>^\markup \tiny { flute }
+  \cueDuring "flute" #UP { R1 }
+  g2 c,
+}
+
+\addQuote "flute" { \fluteNotes }
+
+\new Staff {
+  \oboeNotes
+}
+@end lilypond
+
+It is possible to adjust which aspects of the music are quoted with
+@code{\cueDuring} by setting the @code{quotedCueEventTypes}
+property.  Its default value is @code{'(note-event rest-event
+tie-event beam-event tuplet-span-event)}, which means that only
+notes, rests, ties, beams and tuplets are quoted, but not
+articulations, dynamic marks, markup, etc.
+
+@warning{When a @code{Voice} starts with @code{@bs{}cueDuring}, as in the
+following example, the @code{Voice} context must be explicitly declared,
+or else the entire music expression would belong to the @code{CueVoice}
+context.}
+
+@lilypond[verbatim,quote]
+oboeNotes = \relative {
+  r2 r8 d''16(\f f e g f a)
+  g8 g16 g g2.
+}
+\addQuote "oboe" { \oboeNotes }
+
+\new Voice \relative c'' {
+  \set Score.quotedCueEventTypes = #'(note-event rest-event tie-event
+                                      beam-event tuplet-span-event
+                                      dynamic-event slur-event)
+  \cueDuring "oboe" #UP { R1 }
+  g2 c,
+}
+@end lilypond
+
+Markup can be used to show the name of the quoted instrument.
+If the cue notes require a change in clef,
+this can be done manually but the original clef should also be
+restored manually at the end of the cue notes.
+
+@lilypond[verbatim,quote]
+fluteNotes = \relative {
+  r2. c''4 d8 c d e fis2 g2 d2
+}
+
+bassoonNotes = \relative c {
+  \clef bass
+  R1
+  \clef treble
+  <>^\markup \tiny { flute }
+  \cueDuring "flute" #UP { R1 }
+  \clef bass
+  g4. b8 d2
+}
+
+\addQuote "flute" { \fluteNotes }
+
+\new Staff {
+  \bassoonNotes
+}
+@end lilypond
+
+Alternatively, the @code{\cueDuringWithClef} function can be used
+instead.  This command takes an extra argument to specify the change of
+clef that needs to be printed for the cue notes but will automatically
+print the original clef once the cue notes have finished.
+
+@lilypond[verbatim,quote]
+fluteNotes = \relative {
+  r2. c''4 d8 c d e fis2 g2 d2
+}
+
+bassoonNotes = \relative c {
+  \clef bass
+  R1
+  <>^\markup { \tiny "flute" }
+  \cueDuringWithClef "flute" #UP "treble" { R1 }
+  g4. b8 d2
+}
+
+\addQuote "flute" { \fluteNotes }
+
+\new Staff {
+  \bassoonNotes
+}
+@end lilypond
+
+@funindex \transposedCueDuring
+
+Like @code{\quoteDuring}, @code{\cueDuring} takes instrument
+transpositions into account.  Cue notes are produced at the
+pitches that would be written for the instrument receiving the cue
+to produce the sounding pitches of the source instrument.
+
+To transpose cue notes differently, use
+@code{\transposedCueDuring}.  This command takes an extra argument
+to specify (in absolute mode) the printed pitch that you want to
+represent the sound of a concert middle@tie{}C.  This is useful for
+taking cues from an instrument in a completely different register.
+
+@lilypond[verbatim,quote]
+piccoloNotes = \relative {
+  \clef "treble^8"
+  R1
+  c'''8 c c e g2
+  c4 g g2
+}
+
+bassClarinetNotes = \relative c' {
+  \key d \major
+  \transposition bes,
+  d4 r a r
+  \transposedCueDuring "piccolo" #UP d { R1 }
+  d4 r a r
+}
+
+\addQuote "piccolo" { \piccoloNotes }
+
+<<
+  \new Staff \piccoloNotes
+  \new Staff \bassClarinetNotes
+>>
+@end lilypond
+
+@cindex removing cue notes
+@cindex cue note, removing
+
+@funindex \killCues
+
+The @code{\killCues} command removes cue notes from a music
+expression, so the same music expression can be used to produce
+the instrument part with cues and the score.  The @code{\killCues}
+command removes only the notes and events that were quoted by
+@code{\cueDuring}.  Other markup associated with cues, such as clef
+changes and a label identifying the source instrument, can be
+tagged for selective inclusion in the score; see @ref{Using tags}.
+
+@lilypond[verbatim,quote]
+fluteNotes = \relative {
+  r2. c''4 d8 c d e fis2 g2 d2
+}
+
+bassoonNotes = \relative c {
+  \clef bass
+  R1
+  \tag #'part {
+    \clef treble
+    <>^\markup \tiny { flute }
+  }
+  \cueDuring "flute" #UP { R1 }
+  \tag #'part \clef bass
+  g4. b8 d2
+}
+
+\addQuote "flute" { \fluteNotes }
+
+\new Staff {
+  \bassoonNotes
+}
+
+\new StaffGroup <<
+  \new Staff {
+    \fluteNotes
+  }
+  \new Staff {
+    \removeWithTag #'part { \killCues { \bassoonNotes } }
+  }
+>>
+@end lilypond
+
+@morerefs
+Notation Reference:
+@ref{Quoting other voices},
+@ref{Instrument transpositions},
+@ref{Instrument names},
+@ref{Clef},
+@ref{Musical cues},
+@ref{Using tags}.
+
+Snippets:
+@rlsr{Staff notation}.
+
+Internals Reference:
+@rinternals{CueVoice},
+@rinternals{Voice}.
+@endmorerefs
+
+@knownissues
+Collisions can occur with rests, when using @code{\cueDuring},
+between @code{Voice} and @code{CueVoice} contexts.  When using
+@code{\cueDuringWithClef} or @code{\transposedCueDuring} the extra
+argument required for each case must come after the quote and the
+direction.
+
+
+@node Compressing empty measures
+@subsection Compressing empty measures
+
+@cindex multi-measure rest, expanding multiple
+@cindex multi-measure rest, contracting multiple
+@funindex \compressEmptyMeasures
+@funindex \expandEmptyMeasures
+
+By default, all measures are printed even if they are empty
+-- which can happen if a rhythmic event (such as notes, rests
+or invisible rests) is so long as to span several measures.
+This behavior can be changed by contracting all empty
+measures into a single one, as illustrated here (the second
+part of this example, with expanded measures,
+actually reverts back to the default behavior):
+
+@lilypond[quote,verbatim,fragment]
+\override Score.BarNumber.break-visibility = ##(#f #t #t)
+\time 2/4
+\compressEmptyMeasures
+c'1 d'1. e'\breve
+\bar "||"
+\expandEmptyMeasures
+c'1 d'1. e'\breve
+@end lilypond
+
+@noindent
+Although that notation is syntactically correct, it may be
+confusing from a musical point of view, as illustrated in
+the previous example; hence the need for measure numbers
+to be explicitly printed, using the syntax described in
+@ref{Using break-visibility}.
+
+@cindex multi-measure rest, expanding multiple
+@cindex multi-measure rest, contracting multiple
+@funindex \compressMMRests
+
+Where such a notation may become more useful is when applied to
+@ref{Full measure rests}.  A multi-measure rest will then be shown
+as a single measure containing a multi-measure rest symbol,
+with the number of measures of rest printed above the measure:
+
+@lilypond[quote,verbatim,fragment]
+% Default behavior
+\time 3/4 r2. | R2.*2 |
+\time 2/4 R2 |
+\time 4/4
+% Rest measures contracted to single measure
+\compressEmptyMeasures
+r1 | R1*17 | R1*4 |
+\expandEmptyMeasures
+% Rest measures expanded again
+\time 3/4
+R2.*2 |
+@end lilypond
+
+Unlike @code{\compressEmptyMeasures}, the music function
+@code{\compressMMRests} will only apply to rests, leaving
+any other events uncompressed.  As a function rather than
+a property setting, its syntax differs slightly in that
+it must be followed by a music expression:
+
+@lilypond[quote,verbatim,fragment]
+\compressMMRests {
+  % Rests are compressed...
+  R1*7
+  % ... but notes can still span multiple measures.
+  g'1 a'1*2 d'1
+  R1*2
+}
+@end lilypond
+
+@funindex skipBars
+All of the commands described in this section actually
+rely on the @code{skipBars} internal property, which is
+set in the @code{Score} context, @pxref{Set and unset}.
+
+@predefined
+@code{\compressEmptyMeasures},
+@code{\expandEmptyMeasures},
+@code{\compressMMRests}.
+@endpredefined
+
+@snippets
+
+@cindex multi-measure rest, numbering
+@funindex restNumberThreshold
+@lilypondfile[verbatim,quote,ragged-right,texidoc,doctitle]
+{snippets/numbering-single-measure-rests.ly}
+
+@cindex church rest
+@cindex rest, church
+@cindex Kirchenpause
+@cindex multi-measure rest, style
+@cindex style, multi-measure rests
+@lilypondfile[verbatim,quote,ragged-right,texidoc,doctitle]
+{snippets/changing-form-of-multi-measure-rests.ly}
+
+@morerefs
+Notation Reference:
+@ref{Using break-visibility},
+@ref{Full measure rests},
+@ref{Set and unset}.
+
+Internals Reference:
+@rinternals{MultiMeasureRest},
+@rinternals{MultiMeasureRestNumber},
+@rinternals{MultiMeasureRestScript},
+@rinternals{MultiMeasureRestText}.
+@endmorerefs

@@ -1,0 +1,205 @@
+\input texinfo
+@setfilename probe.info
+@settitle Composition probe
+@afourpaper
+
+@node Top
+@top Composition probe
+
+@node bare
+@section bare
+
+@lilypond
+{ c'4 }
+@end lilypond
+
+@node fragment
+@section fragment
+
+@lilypond[fragment]
+d4 e4
+@end lilypond
+
+@node nofragment
+@section nofragment
+
+@lilypond[nofragment]
+{ e'4 f'4 g'4 }
+@end lilypond
+
+@node relative-1
+@section relative-1
+
+@lilypond[relative=1]
+f4 g4 a4 b4
+@end lilypond
+
+@node relative-2
+@section relative-2
+
+@lilypond[relative=2]
+g4
+@end lilypond
+
+@node relative-minus-1
+@section relative-minus-1
+
+@lilypond[relative=-1]
+a4 b4
+@end lilypond
+
+@node quote
+@section quote
+
+@lilypond[quote]
+{ b'4 c'4 d'4 }
+@end lilypond
+
+@node quote-ragged-right
+@section quote-ragged-right
+
+@lilypond[quote,ragged-right]
+{ c'4 d'4 e'4 f'4 }
+@end lilypond
+
+@node ragged-right
+@section ragged-right
+
+@lilypond[ragged-right]
+{ d'4 }
+@end lilypond
+
+@node noragged-right
+@section noragged-right
+
+@lilypond[noragged-right]
+{ e'4 f'4 }
+@end lilypond
+
+@node notime
+@section notime
+
+@lilypond[notime,fragment]
+f4 g4 a4
+@end lilypond
+
+@node staffsize-16
+@section staffsize-16
+
+@lilypond[staffsize=16]
+{ g'4 a'4 b'4 c'4 }
+@end lilypond
+
+@node staffsize-26
+@section staffsize-26
+
+@lilypond[staffsize=26]
+{ a'4 }
+@end lilypond
+
+@node line-width
+@section line-width
+
+@lilypond[line-width=8\cm]
+{ b'4 c'4 }
+@end lilypond
+
+@node indent
+@section indent
+
+@lilypond[indent=1\cm]
+{ c'4 d'4 e'4 }
+@end lilypond
+
+@node noindent
+@section noindent
+
+@lilypond[noindent]
+{ d'4 e'4 f'4 g'4 }
+@end lilypond
+
+@node papersize
+@section papersize
+
+@lilypond[papersize=a6]
+{ e'4 }
+@end lilypond
+
+@node papersize-line-width
+@section papersize-line-width
+
+@lilypond[papersize=a6,line-width=8\cm]
+{ f'4 g'4 }
+@end lilypond
+
+@node paper-width
+@section paper-width
+
+@lilypond[paper-width=10\cm]
+{ g'4 a'4 b'4 }
+@end lilypond
+
+@node paper-height
+@section paper-height
+
+@lilypond[paper-height=5\cm]
+{ a'4 b'4 c'4 d'4 }
+@end lilypond
+
+@node paper-width-height
+@section paper-width-height
+
+@lilypond[paper-width=10\cm,paper-height=5\cm]
+{ b'4 }
+@end lilypond
+
+@node inline
+@section inline
+
+@lilypond[inline]
+{ c'4 d'4 }
+@end lilypond
+
+@node verbatim
+@section verbatim
+
+@lilypond[verbatim]
+{ d'4 e'4 f'4 }
+@end lilypond
+
+@node texidoc-doctitle
+@section texidoc-doctitle
+
+@lilypond[texidoc,doctitle]
+{ e'4 f'4 g'4 a'4 }
+@end lilypond
+
+@node quote-fragment-relative
+@section quote-fragment-relative
+
+@lilypond[quote,fragment,relative=2]
+f4
+@end lilypond
+
+@node notime-staffsize
+@section notime-staffsize
+
+@lilypond[notime,staffsize=16,fragment]
+g4 a4
+@end lilypond
+
+@node dedup-plain
+@section dedup-plain
+
+@lilypond
+{ g'2 }
+@end lilypond
+
+@node dedup-verbatim
+@section dedup-verbatim
+
+@lilypond[verbatim]
+{ g'2 }
+@end lilypond
+
+@bye

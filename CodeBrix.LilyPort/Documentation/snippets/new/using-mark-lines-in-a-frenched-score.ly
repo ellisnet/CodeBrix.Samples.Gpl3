@@ -1,0 +1,115 @@
+\version "2.25.80"
+
+\header {
+  categories = "Contexts and engravers, Staff notation"
+
+  texidoc = "
+Using @code{MarkLine} contexts (such as in @qq{Placing rehearsal marks
+other than above the top staff}) in a Frenched score can be problematic
+if all the staves between two @code{MarkLine}s are removed in one
+system. The @code{Keep_alive_together_engraver} can be used within each
+@code{StaffGroup} to keep the @code{MarkLine} alive only as long as the
+other staves in the group stay alive.
+"
+
+  doctitle = "Using mark lines in a Frenched score"
+} % begin verbatim
+
+
+bars = {
+  \tempo Allegro 4=120
+  s1*2
+  \*5 { \mark \default s1*2 }
+  \bar "||"
+  \tempo Adagio 4=40
+  s1*2
+  \*8 { \mark \default s1*2 }
+  \bar "|."
+}
+winds = \*120 c''4
+trumpet = {
+  \*8 g'2
+  R1*16
+  \*4 g'2
+  R1*8
+}
+trombone = {
+  \*4 c'1
+  R1*8
+  d'1
+  R1*17
+}
+strings = \*240 c''8
+
+#(set-global-staff-size 16)
+\paper {
+  systems-per-page = 5
+  ragged-last-bottom = ##f
+  tagline = ##f
+}
+
+\layout {
+  indent = 16\mm
+  short-indent = 5\mm
+  \context {
+    \name MarkLine
+    \type Engraver_group
+    \consists Apply_output_engraver
+    \consists Axis_group_engraver
+    \consists Mark_engraver
+    \consists Metronome_mark_engraver
+    \consists Staff_collecting_engraver
+    \override VerticalAxisGroup.remove-empty = ##t
+    \override VerticalAxisGroup.remove-layer = #'any
+    \override VerticalAxisGroup.staff-affinity = #DOWN
+    \override VerticalAxisGroup.nonstaff-relatedstaff-spacing.padding = 1
+    keepAliveInterfaces = #'()
+  }
+  \context {
+    \Staff
+    \override VerticalAxisGroup.remove-empty = ##t
+    \override VerticalAxisGroup.remove-layer = ##f
+  }
+  \context {
+    \StaffGroup
+    \accepts MarkLine
+    \consists Keep_alive_together_engraver
+  }
+  \context {
+    \Score
+    \remove Mark_engraver
+    \remove Metronome_mark_engraver
+    \remove Staff_collecting_engraver
+    \override BarNumber.Y-offset = #3
+  }
+}
+
+\score {
+  <<
+    \new StaffGroup = "winds" \with {
+      instrumentName = "Winds"
+      shortInstrumentName = "W."
+    } <<
+      \new MarkLine \bars
+      \new Staff \winds
+    >>
+    \new StaffGroup = "brass" <<
+      \new MarkLine \bars
+      \new Staff = "trumpet" \with {
+        instrumentName = "Trumpet"
+        shortInstrumentName = "Tp."
+      } \trumpet
+      \new Staff = "trombone" \with {
+        instrumentName = "Trombone"
+        shortInstrumentName = "Tb."
+      } \trombone
+    >>
+    \new StaffGroup = "strings" \with {
+      instrumentName = "Strings"
+      shortInstrumentName = "Str."
+    } <<
+      \new MarkLine \bars
+      \new Staff = "strings" { \strings }
+    >>
+  >>
+}

@@ -1,0 +1,8 @@
+@node MIDI
+@chapter MIDI
+
+@set lyprefix MIDI
+
+See also @rnotation{Creating MIDI output}.
+
+@lysnippets

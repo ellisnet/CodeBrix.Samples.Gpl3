@@ -1,0 +1,84 @@
+\version "2.25.35"
+
+\header {
+  categories = "Headword"
+
+  texidoc = "
+Rhythms headword.
+"
+
+  doctitle = "Rhythms headword"
+} % begin verbatim
+
+
+% Beethoven, Op. 81a
+% Piano sonata 26 - (Les Adieux)
+% Movt II - Abwesenheit (L'Absence)
+% Measures 31 - 34
+
+\include "english.ly"
+
+% Circumvent issue #6876: `strict-grace-spacing` ignores
+% accidentals of the following main note.
+shiftedGrace =
+#(define-music-function (offset music) (number? ly:music?)
+   #{
+     \override NoteHead.X-offset = #(- offset 0.85)
+     \override Stem.X-offset = #offset
+     \grace { $music }
+     \revert NoteHead.X-offset
+     \revert Stem.X-offset
+   #})
+
+\new PianoStaff <<
+  \new Staff = "right hand" {
+    \clef treble
+    \key c \minor
+    \time 2/4
+    \set Score.currentBarNumber = #31
+
+    <c''' c''>8(^\markup \italic "a tempo" <g'' g'>) ~
+      <g'' g'>8( <a'' a'>16 <f'' f'>) |
+    <f'' f'>8[( \shiftedGrace #-0.15 { e''32 f'' e'' d'' }
+      <e''! e'>16 <f'' f'>16]) <g'' g'>16-.([ <a'' a'>-.)]
+      <bf'' bf'>32( <b'' b'>) <b'' b'>( <c''' c''>) |
+
+    b''32([ c''' d''' c'''32)] g''8 ~
+      g''32[ a''64( g'']) a''64([ g'') bf''( a''64)]
+      bf''64([ a'') c'''( b''64)] c'''128[ b'' d''' c''' f'''64 f''] |
+    <f'' f'>8[( \shiftedGrace #-0.15 { e''32 f'' e'' d''] }
+      <e''! e'>16 <f'' f'>]) <g'' g'>16-.([ <af''! af'!>-.)]
+      <bf'' bf'>32( <b'' b'>) <b'' b'>( <c''' c''>) |
+   }
+
+  \new Dynamics {
+    s2\offset Y-offset 1 -\markup \italic "cantabile" |
+    s4 s\tweak style #'none \cresc |
+    s16.\offset Y-offset 1 \p \offset Y-offset 1 \> s32\! s4. |
+    s4 s\tweak style #'none \cresc <>\! |
+  }
+
+  \new Staff = "left hand" {
+    \set Staff.beatBase = #1/8
+    \set Staff.beatStructure = 1,1,1,1
+    \clef bass
+    \key c \minor
+    \time 2/4
+    \*3 { <g e>32 c' <g e> c' } <a f> c' <a f> c' |
+    \*2 { <bf g>32 c' <bf g> c' }
+      <bf g> c' <a f> c' <g e> c' <g e> c' |
+
+    \*3 { <g e>32 c' <g e> c' } <a f> c' <a f> c' |
+    \*2 { <bf g>32 c' <bf g> c' }
+      <bf g> c' <af! f> c' <g e> c' <g e> c' |
+   }
+>>
+
+\layout {
+  \context {
+    \Score
+    \override SpacingSpanner.base-shortest-duration =
+      \musicLength 1*1/40
+    \override SpacingSpanner.strict-grace-spacing = ##t
+  }
+}

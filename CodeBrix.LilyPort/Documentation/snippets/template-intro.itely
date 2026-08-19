@@ -1,0 +1,6 @@
+@node Templates
+@chapter Templates
+
+@set lyprefix Templates
+
+@lysnippets

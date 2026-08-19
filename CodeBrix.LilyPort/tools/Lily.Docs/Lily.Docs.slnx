@@ -1,0 +1,31 @@
+<Solution>
+  <!-- Lily.Docs.slnx
+       The Phase-5 documentation vehicle: generates the port's nineteen
+       documentation files and renders manuals from them through the published
+       CodeBrix.Texinfo packages.
+
+       DELIBERATELY SEPARATE FROM CodeBrix.LilyPort.slnx (decision D52, ruled
+       2026-08-18). The Texinfo -> Html2Pdf -> MarkupParse/StyleSheetParse/font
+       dependency chain must not reach the main solution or the shipped package;
+       keeping this solution apart is what keeps the parity battery lean. The
+       arrow only points one way: the engine projects below ARE listed here,
+       which is what lets a Release build actually be one. -->
+  <Project Path="src/Lily.Docs/Lily.Docs.csproj" />
+  <Folder Name="/Solution Items/">
+    <File Path="README.txt" />
+  </Folder>
+  <!-- The engine, by ProjectReference. These must be LISTED, not merely
+       referenced: a project a solution does not name is built with its OWN
+       default configuration, so `dotnet test -c Release' silently ran the suite
+       against a DEBUG engine until they were added here (measured 2026-08-18). -->
+  <Folder Name="/Engine/">
+    <Project Path="../../src/CodeBrix.LilyPort/CodeBrix.LilyPort.csproj" />
+    <Project Path="../../src/CodeBrix.LilyPort.Engine/CodeBrix.LilyPort.Engine.csproj" />
+    <Project Path="../../src/CodeBrix.LilyPort.Backends/CodeBrix.LilyPort.Backends.csproj" />
+    <Project Path="../../src/CodeBrix.LilyPort.Parsing/CodeBrix.LilyPort.Parsing.csproj" />
+    <Project Path="../../src/CodeBrix.LilyPort.Flower/CodeBrix.LilyPort.Flower.csproj" />
+  </Folder>
+  <Folder Name="/Tests/">
+    <Project Path="tests/Lily.Docs.Tests/Lily.Docs.Tests.csproj" />
+  </Folder>
+</Solution>

@@ -1,0 +1,8 @@
+@node Text
+@chapter Text
+
+@set lyprefix Text
+
+See also @rnotation{Text}.
+
+@lysnippets
