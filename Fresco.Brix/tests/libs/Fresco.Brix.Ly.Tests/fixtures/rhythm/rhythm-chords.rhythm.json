@@ -1,0 +1,114 @@
+{
+ "extract": [
+  "4",
+  "8",
+  "8",
+  "4",
+  "1",
+  "",
+  "4"
+ ],
+ "music_items": [
+  [
+   39,
+   41,
+   40,
+   true,
+   [
+    ">"
+   ],
+   [
+    "4"
+   ]
+  ],
+  [
+   51,
+   53,
+   52,
+   true,
+   [
+    ">"
+   ],
+   [
+    "8"
+   ]
+  ],
+  [
+   54,
+   56,
+   55,
+   true,
+   [
+    "q"
+   ],
+   [
+    "8"
+   ]
+  ],
+  [
+   57,
+   59,
+   58,
+   true,
+   [
+    "q"
+   ],
+   [
+    "4"
+   ]
+  ],
+  [
+   86,
+   88,
+   87,
+   true,
+   [
+    "c"
+   ],
+   [
+    "1"
+   ]
+  ],
+  [
+   89,
+   90,
+   90,
+   true,
+   [
+    "g"
+   ],
+   []
+  ],
+  [
+   98,
+   100,
+   99,
+   true,
+   [
+    "a"
+   ],
+   [
+    "4"
+   ]
+  ]
+ ],
+ "overwrite_durations": [
+  "4",
+  "8",
+  "",
+  "16."
+ ],
+ "results": {
+  "dot": "\\version \"2.27.2\"\nmusic = {\n  <c' e' g'>4. <d' f' a'>8. q8. q4.\n}\nchords = \\chordmode {\n  c1. g/b d2:7 a4./e\n}\n",
+  "double": "\\version \"2.27.2\"\nmusic = {\n  <c' e' g'>2 <d' f' a'>4 q4 q2\n}\nchords = \\chordmode {\n  c\\breve g/b d2:7 a2/e\n}\n",
+  "explicit": "\\version \"2.27.2\"\nmusic = {\n  <c' e' g'>4 <d' f' a'>8 q8 q4\n}\nchords = \\chordmode {\n  c1 g1/b d2:7 a4/e\n}\n",
+  "halve": "\\version \"2.27.2\"\nmusic = {\n  <c' e' g'>8 <d' f' a'>16 q16 q8\n}\nchords = \\chordmode {\n  c2 g/b d2:7 a8/e\n}\n",
+  "implicit": "\\version \"2.27.2\"\nmusic = {\n  <c' e' g'>4 <d' f' a'>8 q q4\n}\nchords = \\chordmode {\n  c1 g/b d2:7 a4/e\n}\n",
+  "implicit_per_line": "\\version \"2.27.2\"\nmusic = {\n  <c' e' g'>4 <d' f' a'>8 q q4\n}\nchords = \\chordmode {\n  c1 g/b d2:7 a4/e\n}\n",
+  "overwrite": "\\version \"2.27.2\"\nmusic = {\n  <c' e' g'>4 <d' f' a'>8 q q16.\n}\nchords = \\chordmode {\n  c4 g8/b d2:7 a/e\n}\n",
+  "remove": "\\version \"2.27.2\"\nmusic = {\n  <c' e' g'> <d' f' a'> q q\n}\nchords = \\chordmode {\n  c g/b d2:7 a/e\n}\n",
+  "remove_fraction_scaling": "\\version \"2.27.2\"\nmusic = {\n  <c' e' g'>4 <d' f' a'>8 q8 q4\n}\nchords = \\chordmode {\n  c1 g/b d2:7 a4/e\n}\n",
+  "remove_scaling": "\\version \"2.27.2\"\nmusic = {\n  <c' e' g'>4 <d' f' a'>8 q8 q4\n}\nchords = \\chordmode {\n  c1 g/b d2:7 a4/e\n}\n",
+  "undot": "\\version \"2.27.2\"\nmusic = {\n  <c' e' g'>4 <d' f' a'>8 q8 q4\n}\nchords = \\chordmode {\n  c1 g/b d2:7 a4/e\n}\n"
+ }
+}

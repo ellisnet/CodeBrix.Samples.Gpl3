@@ -1,0 +1,3684 @@
+{
+ "has_output": true,
+ "node_positions": [
+  [
+   0,
+   "Document",
+   -1
+  ],
+  [
+   7,
+   "Header",
+   1
+  ],
+  [
+   14,
+   "Assignment",
+   14
+  ],
+  [
+   21,
+   "Assignment",
+   14
+  ],
+  [
+   28,
+   "String",
+   24
+  ],
+  [
+   35,
+   "String",
+   24
+  ],
+  [
+   42,
+   "String",
+   24
+  ],
+  [
+   49,
+   "String",
+   24
+  ],
+  [
+   56,
+   "String",
+   24
+  ],
+  [
+   63,
+   "String",
+   24
+  ],
+  [
+   70,
+   "String",
+   24
+  ],
+  [
+   77,
+   "String",
+   24
+  ],
+  [
+   84,
+   "String",
+   24
+  ],
+  [
+   91,
+   "String",
+   24
+  ],
+  [
+   98,
+   "String",
+   24
+  ],
+  [
+   105,
+   "String",
+   24
+  ],
+  [
+   112,
+   "String",
+   24
+  ],
+  [
+   119,
+   "String",
+   24
+  ],
+  [
+   126,
+   "String",
+   24
+  ],
+  [
+   133,
+   "String",
+   24
+  ],
+  [
+   140,
+   "String",
+   24
+  ],
+  [
+   147,
+   "String",
+   24
+  ],
+  [
+   154,
+   "String",
+   24
+  ],
+  [
+   161,
+   "String",
+   24
+  ],
+  [
+   168,
+   "String",
+   24
+  ],
+  [
+   175,
+   "String",
+   24
+  ],
+  [
+   182,
+   "String",
+   24
+  ],
+  [
+   189,
+   "String",
+   24
+  ],
+  [
+   196,
+   "String",
+   24
+  ],
+  [
+   203,
+   "String",
+   24
+  ],
+  [
+   210,
+   "String",
+   24
+  ],
+  [
+   217,
+   "String",
+   24
+  ],
+  [
+   224,
+   "Layout",
+   224
+  ],
+  [
+   231,
+   "Layout",
+   224
+  ],
+  [
+   238,
+   "Assignment",
+   236
+  ],
+  [
+   245,
+   "Assignment",
+   236
+  ],
+  [
+   252,
+   "SchemeItem",
+   252
+  ],
+  [
+   259,
+   "Assignment",
+   257
+  ],
+  [
+   266,
+   "Scheme",
+   266
+  ],
+  [
+   273,
+   "LayoutContext",
+   271
+  ],
+  [
+   280,
+   "LayoutContext",
+   271
+  ],
+  [
+   287,
+   "LayoutContext",
+   271
+  ],
+  [
+   294,
+   "LayoutContext",
+   271
+  ],
+  [
+   301,
+   "Keyword",
+   297
+  ],
+  [
+   308,
+   "String",
+   305
+  ],
+  [
+   315,
+   "String",
+   305
+  ],
+  [
+   322,
+   "String",
+   305
+  ],
+  [
+   329,
+   "String",
+   305
+  ],
+  [
+   336,
+   "String",
+   305
+  ],
+  [
+   343,
+   "Version",
+   338
+  ],
+  [
+   350,
+   "String",
+   347
+  ],
+  [
+   357,
+   "MusicList",
+   357
+  ],
+  [
+   364,
+   "Command",
+   361
+  ],
+  [
+   371,
+   "Command",
+   361
+  ],
+  [
+   378,
+   "Note",
+   377
+  ],
+  [
+   385,
+   "Markup",
+   381
+  ],
+  [
+   392,
+   "MarkupList",
+   389
+  ],
+  [
+   399,
+   "MarkupWord",
+   395
+  ],
+  [
+   406,
+   "MarkupCommand",
+   403
+  ],
+  [
+   413,
+   "SchemeItem",
+   411
+  ],
+  [
+   420,
+   "MarkupCommand",
+   415
+  ],
+  [
+   427,
+   "MarkupCommand",
+   425
+  ],
+  [
+   434,
+   "MarkupWord",
+   431
+  ],
+  [
+   441,
+   "MarkupCommand",
+   439
+  ],
+  [
+   448,
+   "MarkupCommand",
+   439
+  ],
+  [
+   455,
+   "SchemeItem",
+   452
+  ],
+  [
+   462,
+   "SchemeItem",
+   452
+  ],
+  [
+   469,
+   "SchemeItem",
+   468
+  ],
+  [
+   476,
+   "MarkupCommand",
+   476
+  ],
+  [
+   483,
+   "MarkupCommand",
+   476
+  ],
+  [
+   490,
+   "MarkupCommand",
+   485
+  ],
+  [
+   497,
+   "MarkupWord",
+   495
+  ],
+  [
+   504,
+   "MarkupWord",
+   504
+  ],
+  [
+   511,
+   "MarkupWord",
+   504
+  ],
+  [
+   518,
+   "MarkupCommand",
+   514
+  ],
+  [
+   525,
+   "SchemeItem",
+   523
+  ],
+  [
+   532,
+   "MarkupCommand",
+   531
+  ],
+  [
+   539,
+   "String",
+   539
+  ],
+  [
+   546,
+   "String",
+   539
+  ],
+  [
+   553,
+   "String",
+   539
+  ],
+  [
+   560,
+   "MarkupCommand",
+   554
+  ],
+  [
+   567,
+   "String",
+   566
+  ],
+  [
+   574,
+   "String",
+   566
+  ],
+  [
+   581,
+   "String",
+   566
+  ],
+  [
+   588,
+   "String",
+   566
+  ],
+  [
+   595,
+   "String",
+   566
+  ],
+  [
+   602,
+   "MarkupCommand",
+   597
+  ],
+  [
+   609,
+   "String",
+   606
+  ],
+  [
+   616,
+   "String",
+   610
+  ],
+  [
+   623,
+   "MarkupCommand",
+   618
+  ],
+  [
+   630,
+   "String",
+   627
+  ],
+  [
+   637,
+   "String",
+   631
+  ],
+  [
+   644,
+   "MarkupCommand",
+   644
+  ],
+  [
+   651,
+   "MarkupCommand",
+   644
+  ],
+  [
+   658,
+   "MarkupCommand",
+   654
+  ],
+  [
+   665,
+   "String",
+   662
+  ],
+  [
+   672,
+   "String",
+   662
+  ],
+  [
+   679,
+   "MarkupCommand",
+   675
+  ],
+  [
+   686,
+   "String",
+   683
+  ],
+  [
+   693,
+   "String",
+   683
+  ],
+  [
+   700,
+   "String",
+   683
+  ],
+  [
+   707,
+   "String",
+   702
+  ],
+  [
+   714,
+   "MarkupCommand",
+   710
+  ],
+  [
+   721,
+   "MarkupWord",
+   718
+  ],
+  [
+   728,
+   "MarkupCommand",
+   728
+  ],
+  [
+   735,
+   "String",
+   735
+  ],
+  [
+   742,
+   "String",
+   735
+  ],
+  [
+   749,
+   "MarkupCommand",
+   743
+  ],
+  [
+   756,
+   "MarkupCommand",
+   751
+  ],
+  [
+   763,
+   "String",
+   760
+  ],
+  [
+   770,
+   "String",
+   768
+  ],
+  [
+   777,
+   "MarkupCommand",
+   776
+  ],
+  [
+   784,
+   "MarkupCommand",
+   776
+  ],
+  [
+   791,
+   "MarkupWord",
+   785
+  ],
+  [
+   798,
+   "MarkupCommand",
+   794
+  ],
+  [
+   805,
+   "String",
+   802
+  ],
+  [
+   812,
+   "MarkupCommand",
+   806
+  ],
+  [
+   819,
+   "MarkupCommand",
+   819
+  ],
+  [
+   826,
+   "MarkupCommand",
+   819
+  ],
+  [
+   833,
+   "MarkupCommand",
+   828
+  ],
+  [
+   840,
+   "String",
+   837
+  ],
+  [
+   847,
+   "MarkupCommand",
+   846
+  ],
+  [
+   854,
+   "MarkupCommand",
+   846
+  ],
+  [
+   861,
+   "MarkupCommand",
+   855
+  ],
+  [
+   868,
+   "MarkupCommand",
+   864
+  ],
+  [
+   875,
+   "String",
+   873
+  ],
+  [
+   882,
+   "String",
+   873
+  ],
+  [
+   889,
+   "MarkupCommand",
+   883
+  ],
+  [
+   896,
+   "String",
+   896
+  ],
+  [
+   903,
+   "String",
+   896
+  ],
+  [
+   910,
+   "Command",
+   910
+  ],
+  [
+   917,
+   "Command",
+   910
+  ],
+  [
+   924,
+   "SchemeList",
+   924
+  ],
+  [
+   931,
+   "SchemeItem",
+   925
+  ],
+  [
+   938,
+   "String",
+   933
+  ],
+  [
+   945,
+   "SchemeItem",
+   940
+  ],
+  [
+   952,
+   "SchemeItem",
+   952
+  ],
+  [
+   959,
+   "SchemeItem",
+   952
+  ],
+  [
+   966,
+   "SchemeItem",
+   963
+  ],
+  [
+   973,
+   "String",
+   970
+  ],
+  [
+   980,
+   "SchemeItem",
+   977
+  ],
+  [
+   987,
+   "SchemeItem",
+   977
+  ],
+  [
+   994,
+   "SchemeItem",
+   990
+  ],
+  [
+   1001,
+   "SchemeItem",
+   990
+  ],
+  [
+   1008,
+   "SchemeItem",
+   1006
+  ],
+  [
+   1015,
+   "SchemeItem",
+   1010
+  ],
+  [
+   1022,
+   "SchemeItem",
+   1020
+  ],
+  [
+   1029,
+   "SchemeList",
+   1029
+  ],
+  [
+   1036,
+   "String",
+   1031
+  ],
+  [
+   1043,
+   "String",
+   1037
+  ],
+  [
+   1050,
+   "String",
+   1044
+  ],
+  [
+   1057,
+   "SchemeItem",
+   1053
+  ],
+  [
+   1064,
+   "SchemeItem",
+   1062
+  ],
+  [
+   1071,
+   "SchemeItem",
+   1067
+  ],
+  [
+   1078,
+   "String",
+   1076
+  ],
+  [
+   1085,
+   "String",
+   1076
+  ],
+  [
+   1092,
+   "SchemeItem",
+   1088
+  ],
+  [
+   1099,
+   "SchemeItem",
+   1088
+  ],
+  [
+   1106,
+   "String",
+   1101
+  ],
+  [
+   1113,
+   "String",
+   1101
+  ],
+  [
+   1120,
+   "String",
+   1101
+  ],
+  [
+   1127,
+   "String",
+   1101
+  ],
+  [
+   1134,
+   "SchemeItem",
+   1129
+  ],
+  [
+   1141,
+   "String",
+   1139
+  ],
+  [
+   1148,
+   "SchemeItem",
+   1148
+  ],
+  [
+   1155,
+   "SchemeItem",
+   1148
+  ],
+  [
+   1162,
+   "String",
+   1162
+  ],
+  [
+   1169,
+   "SchemeItem",
+   1167
+  ],
+  [
+   1176,
+   "SchemeItem",
+   1173
+  ],
+  [
+   1183,
+   "String",
+   1183
+  ],
+  [
+   1190,
+   "String",
+   1183
+  ],
+  [
+   1197,
+   "String",
+   1194
+  ],
+  [
+   1204,
+   "String",
+   1194
+  ],
+  [
+   1211,
+   "String",
+   1207
+  ],
+  [
+   1218,
+   "SchemeItem",
+   1212
+  ],
+  [
+   1225,
+   "String",
+   1221
+  ],
+  [
+   1232,
+   "SchemeItem",
+   1230
+  ],
+  [
+   1239,
+   "String",
+   1238
+  ],
+  [
+   1246,
+   "SchemeItem",
+   1243
+  ],
+  [
+   1253,
+   "SchemeItem",
+   1252
+  ],
+  [
+   1260,
+   "SchemeItem",
+   1252
+  ],
+  [
+   1267,
+   "String",
+   1267
+  ],
+  [
+   1274,
+   "SchemeItem",
+   1272
+  ],
+  [
+   1281,
+   "SchemeItem",
+   1272
+  ],
+  [
+   1288,
+   "String",
+   1282
+  ],
+  [
+   1295,
+   "SchemeItem",
+   1290
+  ],
+  [
+   1302,
+   "SchemeItem",
+   1297
+  ],
+  [
+   1309,
+   "SchemeItem",
+   1309
+  ],
+  [
+   1316,
+   "SchemeItem",
+   1309
+  ],
+  [
+   1323,
+   "SchemeItem",
+   1323
+  ],
+  [
+   1330,
+   "SchemeItem",
+   1323
+  ],
+  [
+   1337,
+   "SchemeItem",
+   1333
+  ],
+  [
+   1344,
+   "String",
+   1343
+  ],
+  [
+   1351,
+   "String",
+   1343
+  ],
+  [
+   1358,
+   "SchemeItem",
+   1356
+  ],
+  [
+   1365,
+   "SchemeItem",
+   1356
+  ],
+  [
+   1372,
+   "SchemeItem",
+   1366
+  ],
+  [
+   1379,
+   "SchemeItem",
+   1376
+  ],
+  [
+   1386,
+   "String",
+   1386
+  ],
+  [
+   1393,
+   "SchemeItem",
+   1392
+  ],
+  [
+   1400,
+   "SchemeItem",
+   1392
+  ],
+  [
+   1407,
+   "String",
+   1407
+  ],
+  [
+   1414,
+   "String",
+   1407
+  ],
+  [
+   1418,
+   "String",
+   1407
+  ]
+ ],
+ "time_positions": [
+  [
+   0,
+   null
+  ],
+  [
+   7,
+   null
+  ],
+  [
+   14,
+   null
+  ],
+  [
+   21,
+   null
+  ],
+  [
+   28,
+   null
+  ],
+  [
+   35,
+   null
+  ],
+  [
+   42,
+   null
+  ],
+  [
+   49,
+   null
+  ],
+  [
+   56,
+   null
+  ],
+  [
+   63,
+   null
+  ],
+  [
+   70,
+   null
+  ],
+  [
+   77,
+   null
+  ],
+  [
+   84,
+   null
+  ],
+  [
+   91,
+   null
+  ],
+  [
+   98,
+   null
+  ],
+  [
+   105,
+   null
+  ],
+  [
+   112,
+   null
+  ],
+  [
+   119,
+   null
+  ],
+  [
+   126,
+   null
+  ],
+  [
+   133,
+   null
+  ],
+  [
+   140,
+   null
+  ],
+  [
+   147,
+   null
+  ],
+  [
+   154,
+   null
+  ],
+  [
+   161,
+   null
+  ],
+  [
+   168,
+   null
+  ],
+  [
+   175,
+   null
+  ],
+  [
+   182,
+   null
+  ],
+  [
+   189,
+   null
+  ],
+  [
+   196,
+   null
+  ],
+  [
+   203,
+   null
+  ],
+  [
+   210,
+   null
+  ],
+  [
+   217,
+   null
+  ],
+  [
+   224,
+   null
+  ],
+  [
+   231,
+   null
+  ],
+  [
+   238,
+   null
+  ],
+  [
+   245,
+   null
+  ],
+  [
+   252,
+   null
+  ],
+  [
+   259,
+   null
+  ],
+  [
+   266,
+   null
+  ],
+  [
+   273,
+   null
+  ],
+  [
+   280,
+   null
+  ],
+  [
+   287,
+   null
+  ],
+  [
+   294,
+   null
+  ],
+  [
+   301,
+   null
+  ],
+  [
+   308,
+   null
+  ],
+  [
+   315,
+   null
+  ],
+  [
+   322,
+   null
+  ],
+  [
+   329,
+   null
+  ],
+  [
+   336,
+   null
+  ],
+  [
+   343,
+   null
+  ],
+  [
+   350,
+   null
+  ],
+  [
+   357,
+   "0/1"
+  ],
+  [
+   364,
+   "0/1"
+  ],
+  [
+   371,
+   "0/1"
+  ],
+  [
+   378,
+   "0/1"
+  ],
+  [
+   385,
+   "1/1"
+  ],
+  [
+   392,
+   "1/1"
+  ],
+  [
+   399,
+   "1/1"
+  ],
+  [
+   406,
+   "1/1"
+  ],
+  [
+   413,
+   "1/1"
+  ],
+  [
+   420,
+   "1/1"
+  ],
+  [
+   427,
+   "1/1"
+  ],
+  [
+   434,
+   "1/1"
+  ],
+  [
+   441,
+   "1/1"
+  ],
+  [
+   448,
+   "1/1"
+  ],
+  [
+   455,
+   "1/1"
+  ],
+  [
+   462,
+   "1/1"
+  ],
+  [
+   469,
+   "1/1"
+  ],
+  [
+   476,
+   "1/1"
+  ],
+  [
+   483,
+   "1/1"
+  ],
+  [
+   490,
+   "1/1"
+  ],
+  [
+   497,
+   "1/1"
+  ],
+  [
+   504,
+   "1/1"
+  ],
+  [
+   511,
+   "1/1"
+  ],
+  [
+   518,
+   "1/1"
+  ],
+  [
+   525,
+   "1/1"
+  ],
+  [
+   532,
+   "1/1"
+  ],
+  [
+   539,
+   "1/1"
+  ],
+  [
+   546,
+   "1/1"
+  ],
+  [
+   553,
+   "1/1"
+  ],
+  [
+   560,
+   "1/1"
+  ],
+  [
+   567,
+   "1/1"
+  ],
+  [
+   574,
+   "1/1"
+  ],
+  [
+   581,
+   "1/1"
+  ],
+  [
+   588,
+   "1/1"
+  ],
+  [
+   595,
+   "1/1"
+  ],
+  [
+   602,
+   "1/1"
+  ],
+  [
+   609,
+   "1/1"
+  ],
+  [
+   616,
+   "1/1"
+  ],
+  [
+   623,
+   "1/1"
+  ],
+  [
+   630,
+   "1/1"
+  ],
+  [
+   637,
+   "1/1"
+  ],
+  [
+   644,
+   "1/1"
+  ],
+  [
+   651,
+   "1/1"
+  ],
+  [
+   658,
+   "1/1"
+  ],
+  [
+   665,
+   "1/1"
+  ],
+  [
+   672,
+   "1/1"
+  ],
+  [
+   679,
+   "1/1"
+  ],
+  [
+   686,
+   "1/1"
+  ],
+  [
+   693,
+   "1/1"
+  ],
+  [
+   700,
+   "1/1"
+  ],
+  [
+   707,
+   "1/1"
+  ],
+  [
+   714,
+   "1/1"
+  ],
+  [
+   721,
+   "1/1"
+  ],
+  [
+   728,
+   "1/1"
+  ],
+  [
+   735,
+   "1/1"
+  ],
+  [
+   742,
+   "1/1"
+  ],
+  [
+   749,
+   "1/1"
+  ],
+  [
+   756,
+   "1/1"
+  ],
+  [
+   763,
+   "1/1"
+  ],
+  [
+   770,
+   "1/1"
+  ],
+  [
+   777,
+   "1/1"
+  ],
+  [
+   784,
+   "1/1"
+  ],
+  [
+   791,
+   "1/1"
+  ],
+  [
+   798,
+   "1/1"
+  ],
+  [
+   805,
+   "1/1"
+  ],
+  [
+   812,
+   "1/1"
+  ],
+  [
+   819,
+   "1/1"
+  ],
+  [
+   826,
+   "1/1"
+  ],
+  [
+   833,
+   "1/1"
+  ],
+  [
+   840,
+   "1/1"
+  ],
+  [
+   847,
+   "1/1"
+  ],
+  [
+   854,
+   "1/1"
+  ],
+  [
+   861,
+   "1/1"
+  ],
+  [
+   868,
+   "1/1"
+  ],
+  [
+   875,
+   "1/1"
+  ],
+  [
+   882,
+   "1/1"
+  ],
+  [
+   889,
+   "1/1"
+  ],
+  [
+   896,
+   "1/1"
+  ],
+  [
+   903,
+   "1/1"
+  ],
+  [
+   910,
+   "1/1"
+  ],
+  [
+   917,
+   "1/1"
+  ],
+  [
+   924,
+   "2/1"
+  ],
+  [
+   931,
+   "2/1"
+  ],
+  [
+   938,
+   "2/1"
+  ],
+  [
+   945,
+   "2/1"
+  ],
+  [
+   952,
+   "2/1"
+  ],
+  [
+   959,
+   "2/1"
+  ],
+  [
+   966,
+   "2/1"
+  ],
+  [
+   973,
+   "2/1"
+  ],
+  [
+   980,
+   "2/1"
+  ],
+  [
+   987,
+   "2/1"
+  ],
+  [
+   994,
+   "2/1"
+  ],
+  [
+   1001,
+   "2/1"
+  ],
+  [
+   1008,
+   "2/1"
+  ],
+  [
+   1015,
+   "2/1"
+  ],
+  [
+   1022,
+   "2/1"
+  ],
+  [
+   1029,
+   "2/1"
+  ],
+  [
+   1036,
+   "2/1"
+  ],
+  [
+   1043,
+   "2/1"
+  ],
+  [
+   1050,
+   "2/1"
+  ],
+  [
+   1057,
+   "2/1"
+  ],
+  [
+   1064,
+   "2/1"
+  ],
+  [
+   1071,
+   "2/1"
+  ],
+  [
+   1078,
+   "2/1"
+  ],
+  [
+   1085,
+   "2/1"
+  ],
+  [
+   1092,
+   "2/1"
+  ],
+  [
+   1099,
+   "2/1"
+  ],
+  [
+   1106,
+   "2/1"
+  ],
+  [
+   1113,
+   "2/1"
+  ],
+  [
+   1120,
+   "2/1"
+  ],
+  [
+   1127,
+   "2/1"
+  ],
+  [
+   1134,
+   "2/1"
+  ],
+  [
+   1141,
+   "2/1"
+  ],
+  [
+   1148,
+   "2/1"
+  ],
+  [
+   1155,
+   "2/1"
+  ],
+  [
+   1162,
+   "2/1"
+  ],
+  [
+   1169,
+   "2/1"
+  ],
+  [
+   1176,
+   "2/1"
+  ],
+  [
+   1183,
+   "2/1"
+  ],
+  [
+   1190,
+   "2/1"
+  ],
+  [
+   1197,
+   "2/1"
+  ],
+  [
+   1204,
+   "2/1"
+  ],
+  [
+   1211,
+   "2/1"
+  ],
+  [
+   1218,
+   "2/1"
+  ],
+  [
+   1225,
+   "2/1"
+  ],
+  [
+   1232,
+   "2/1"
+  ],
+  [
+   1239,
+   "2/1"
+  ],
+  [
+   1246,
+   "2/1"
+  ],
+  [
+   1253,
+   "2/1"
+  ],
+  [
+   1260,
+   "2/1"
+  ],
+  [
+   1267,
+   "2/1"
+  ],
+  [
+   1274,
+   "2/1"
+  ],
+  [
+   1281,
+   "2/1"
+  ],
+  [
+   1288,
+   "2/1"
+  ],
+  [
+   1295,
+   "2/1"
+  ],
+  [
+   1302,
+   "2/1"
+  ],
+  [
+   1309,
+   "2/1"
+  ],
+  [
+   1316,
+   "2/1"
+  ],
+  [
+   1323,
+   "2/1"
+  ],
+  [
+   1330,
+   "2/1"
+  ],
+  [
+   1337,
+   "2/1"
+  ],
+  [
+   1344,
+   "2/1"
+  ],
+  [
+   1351,
+   "2/1"
+  ],
+  [
+   1358,
+   "2/1"
+  ],
+  [
+   1365,
+   "2/1"
+  ],
+  [
+   1372,
+   "2/1"
+  ],
+  [
+   1379,
+   "2/1"
+  ],
+  [
+   1386,
+   "2/1"
+  ],
+  [
+   1393,
+   "2/1"
+  ],
+  [
+   1400,
+   "2/1"
+  ],
+  [
+   1407,
+   "2/1"
+  ],
+  [
+   1414,
+   "2/1"
+  ],
+  [
+   1418,
+   null
+  ]
+ ],
+ "tree": {
+  "children": [
+   {
+    "children": [
+     {
+      "children": [
+       {
+        "children": [],
+        "cls": "String",
+        "end": 136,
+        "length": "0/1",
+        "plaintext": "There is a Scheme macro @code{markup} to produce markup\n    texts using a similar syntax as @code{\\markup}.\n\n",
+        "position": 24,
+        "token": "\"",
+        "tokens": [
+         "There is a Scheme macro @code{markup} to produce markup",
+         "\n",
+         "    texts using a similar syntax as @code{",
+         "\\\\",
+         "markup}.",
+         "\n",
+         "\n",
+         "\""
+        ]
+       }
+      ],
+      "cls": "Assignment",
+      "end": 136,
+      "length": "0/1",
+      "plaintext": "",
+      "position": 14,
+      "token": "texidoc",
+      "tokens": [
+       "="
+      ]
+     }
+    ],
+    "cls": "Header",
+    "end": 139,
+    "length": "0/1",
+    "plaintext": "",
+    "position": 1,
+    "token": "\\header",
+    "tokens": [
+     "{",
+     "}"
+    ]
+   },
+   {
+    "children": [
+     {
+      "children": [
+       {
+        "children": [
+         {
+          "children": [],
+          "cls": "SchemeItem",
+          "end": 254,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 252,
+          "token": "#t",
+          "tokens": []
+         }
+        ],
+        "cls": "Scheme",
+        "end": 254,
+        "length": "0/1",
+        "plaintext": "",
+        "position": 251,
+        "token": "#",
+        "tokens": []
+       }
+      ],
+      "cls": "Assignment",
+      "end": 254,
+      "length": "0/1",
+      "plaintext": "",
+      "position": 236,
+      "token": "ragged-right",
+      "tokens": [
+       "="
+      ]
+     },
+     {
+      "children": [
+       {
+        "children": [
+         {
+          "children": [],
+          "cls": "SchemeItem",
+          "end": 268,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 267,
+          "token": "0",
+          "tokens": []
+         }
+        ],
+        "cls": "Scheme",
+        "end": 268,
+        "length": "0/1",
+        "plaintext": "",
+        "position": 266,
+        "token": "#",
+        "tokens": []
+       }
+      ],
+      "cls": "Assignment",
+      "end": 268,
+      "length": "0/1",
+      "plaintext": "",
+      "position": 257,
+      "token": "indent",
+      "tokens": [
+       "="
+      ]
+     },
+     {
+      "children": [
+       {
+        "children": [],
+        "cls": "Keyword",
+        "end": 304,
+        "length": "0/1",
+        "plaintext": "",
+        "position": 297,
+        "token": "\\remove",
+        "tokens": []
+       },
+       {
+        "children": [],
+        "cls": "String",
+        "end": 330,
+        "length": "0/1",
+        "plaintext": "Time_signature_engraver",
+        "position": 305,
+        "token": "\"",
+        "tokens": [
+         "Time_signature_engraver",
+         "\""
+        ]
+       }
+      ],
+      "cls": "LayoutContext",
+      "end": 334,
+      "length": "0/1",
+      "plaintext": "",
+      "position": 271,
+      "token": "\\context",
+      "tokens": [
+       "{",
+       "}"
+      ]
+     }
+    ],
+    "cls": "Layout",
+    "end": 336,
+    "length": "0/1",
+    "plaintext": "",
+    "position": 224,
+    "token": "\\layout",
+    "tokens": [
+     "{",
+     "}"
+    ]
+   },
+   {
+    "children": [
+     {
+      "children": [],
+      "cls": "String",
+      "end": 355,
+      "length": "0/1",
+      "plaintext": "2.21.0",
+      "position": 347,
+      "token": "\"",
+      "tokens": [
+       "2.21.0",
+       "\""
+      ]
+     }
+    ],
+    "cls": "Version",
+    "end": 355,
+    "length": "0/1",
+    "plaintext": "",
+    "position": 338,
+    "token": "\\version",
+    "tokens": []
+   },
+   {
+    "children": [
+     {
+      "children": [],
+      "cls": "Command",
+      "end": 374,
+      "length": "0/1",
+      "plaintext": "",
+      "position": 361,
+      "token": "\\textLengthOn",
+      "tokens": []
+     },
+     {
+      "children": [
+       {
+        "children": [],
+        "cls": "Duration",
+        "end": 380,
+        "length": "0/1",
+        "plaintext": "",
+        "position": 379,
+        "token": "1",
+        "tokens": []
+       }
+      ],
+      "cls": "Note",
+      "end": 380,
+      "length": "1/1",
+      "plaintext": "",
+      "position": 377,
+      "token": "f",
+      "tokens": []
+     },
+     {
+      "children": [
+       {
+        "children": [
+         {
+          "children": [
+           {
+            "children": [],
+            "cls": "MarkupWord",
+            "end": 398,
+            "length": "0/1",
+            "plaintext": "foo",
+            "position": 395,
+            "token": "foo",
+            "tokens": []
+           },
+           {
+            "children": [
+             {
+              "children": [
+               {
+                "children": [],
+                "cls": "SchemeItem",
+                "end": 414,
+                "length": "0/1",
+                "plaintext": "",
+                "position": 411,
+                "token": "0.2",
+                "tokens": []
+               }
+              ],
+              "cls": "Scheme",
+              "end": 414,
+              "length": "0/1",
+              "plaintext": "",
+              "position": 410,
+              "token": "#",
+              "tokens": []
+             },
+             {
+              "children": [
+               {
+                "children": [
+                 {
+                  "children": [],
+                  "cls": "MarkupWord",
+                  "end": 434,
+                  "length": "0/1",
+                  "plaintext": "bar",
+                  "position": 431,
+                  "token": "bar",
+                  "tokens": []
+                 }
+                ],
+                "cls": "MarkupCommand",
+                "end": 434,
+                "length": "0/1",
+                "plaintext": "bar",
+                "position": 425,
+                "token": "\\bold",
+                "tokens": []
+               }
+              ],
+              "cls": "MarkupCommand",
+              "end": 434,
+              "length": "0/1",
+              "plaintext": "bar",
+              "position": 415,
+              "token": "\\hbracket",
+              "tokens": []
+             }
+            ],
+            "cls": "MarkupCommand",
+            "end": 434,
+            "length": "0/1",
+            "plaintext": " bar",
+            "position": 403,
+            "token": "\\raise",
+            "tokens": []
+           },
+           {
+            "children": [
+             {
+              "children": [
+               {
+                "children": [
+                 {
+                  "children": [
+                   {
+                    "children": [],
+                    "cls": "SchemeItem",
+                    "end": 465,
+                    "length": "0/1",
+                    "plaintext": "",
+                    "position": 452,
+                    "token": "baseline-skip",
+                    "tokens": []
+                   },
+                   {
+                    "children": [],
+                    "cls": "SchemeItem",
+                    "end": 467,
+                    "length": "0/1",
+                    "plaintext": "",
+                    "position": 466,
+                    "token": ".",
+                    "tokens": []
+                   },
+                   {
+                    "children": [],
+                    "cls": "SchemeItem",
+                    "end": 469,
+                    "length": "0/1",
+                    "plaintext": "",
+                    "position": 468,
+                    "token": "4",
+                    "tokens": []
+                   }
+                  ],
+                  "cls": "SchemeList",
+                  "end": 470,
+                  "length": "0/1",
+                  "plaintext": "",
+                  "position": 451,
+                  "token": "(",
+                  "tokens": [
+                   ")"
+                  ]
+                 }
+                ],
+                "cls": "SchemeQuote",
+                "end": 470,
+                "length": "0/1",
+                "plaintext": "",
+                "position": 450,
+                "token": "'",
+                "tokens": []
+               }
+              ],
+              "cls": "Scheme",
+              "end": 470,
+              "length": "0/1",
+              "plaintext": "",
+              "position": 449,
+              "token": "#",
+              "tokens": []
+             },
+             {
+              "children": [
+               {
+                "children": [
+                 {
+                  "children": [
+                   {
+                    "children": [],
+                    "cls": "MarkupWord",
+                    "end": 498,
+                    "length": "0/1",
+                    "plaintext": "baz",
+                    "position": 495,
+                    "token": "baz",
+                    "tokens": []
+                   },
+                   {
+                    "children": [],
+                    "cls": "MarkupWord",
+                    "end": 503,
+                    "length": "0/1",
+                    "plaintext": "bazr",
+                    "position": 499,
+                    "token": "bazr",
+                    "tokens": []
+                   },
+                   {
+                    "children": [],
+                    "cls": "MarkupWord",
+                    "end": 507,
+                    "length": "0/1",
+                    "plaintext": "bla",
+                    "position": 504,
+                    "token": "bla",
+                    "tokens": []
+                   }
+                  ],
+                  "cls": "MarkupList",
+                  "end": 509,
+                  "length": "0/1",
+                  "plaintext": "baz bazr bla",
+                  "position": 493,
+                  "token": "{",
+                  "tokens": [
+                   "}"
+                  ]
+                 }
+                ],
+                "cls": "MarkupCommand",
+                "end": 509,
+                "length": "0/1",
+                "plaintext": "baz bazr bla",
+                "position": 485,
+                "token": "\\column",
+                "tokens": []
+               }
+              ],
+              "cls": "MarkupCommand",
+              "end": 509,
+              "length": "0/1",
+              "plaintext": "baz bazr bla",
+              "position": 476,
+              "token": "\\bracket",
+              "tokens": []
+             }
+            ],
+            "cls": "MarkupCommand",
+            "end": 509,
+            "length": "0/1",
+            "plaintext": " baz bazr bla",
+            "position": 439,
+            "token": "\\override",
+            "tokens": []
+           },
+           {
+            "children": [
+             {
+              "children": [
+               {
+                "children": [],
+                "cls": "SchemeItem",
+                "end": 526,
+                "length": "0/1",
+                "plaintext": "",
+                "position": 523,
+                "token": "2.0",
+                "tokens": []
+               }
+              ],
+              "cls": "Scheme",
+              "end": 526,
+              "length": "0/1",
+              "plaintext": "",
+              "position": 522,
+              "token": "#",
+              "tokens": []
+             }
+            ],
+            "cls": "MarkupCommand",
+            "end": 526,
+            "length": "0/1",
+            "plaintext": "",
+            "position": 514,
+            "token": "\\hspace",
+            "tokens": []
+           },
+           {
+            "children": [
+             {
+              "children": [],
+              "cls": "String",
+              "end": 549,
+              "length": "0/1",
+              "plaintext": "brace100",
+              "position": 539,
+              "token": "\"",
+              "tokens": [
+               "brace100",
+               "\""
+              ]
+             }
+            ],
+            "cls": "MarkupCommand",
+            "end": 549,
+            "length": "0/1",
+            "plaintext": "brace100",
+            "position": 531,
+            "token": "\\lookup",
+            "tokens": []
+           },
+           {
+            "children": [
+             {
+              "children": [],
+              "cls": "String",
+              "end": 592,
+              "length": "0/1",
+              "plaintext": "accidentals.mirroredflat",
+              "position": 566,
+              "token": "\"",
+              "tokens": [
+               "accidentals.mirroredflat",
+               "\""
+              ]
+             }
+            ],
+            "cls": "MarkupCommand",
+            "end": 592,
+            "length": "0/1",
+            "plaintext": "accidentals.mirroredflat",
+            "position": 554,
+            "token": "\\musicglyph",
+            "tokens": []
+           },
+           {
+            "children": [
+             {
+              "children": [],
+              "cls": "String",
+              "end": 609,
+              "length": "0/1",
+              "plaintext": "X",
+              "position": 606,
+              "token": "\"",
+              "tokens": [
+               "X",
+               "\""
+              ]
+             },
+             {
+              "children": [],
+              "cls": "String",
+              "end": 613,
+              "length": "0/1",
+              "plaintext": "+",
+              "position": 610,
+              "token": "\"",
+              "tokens": [
+               "+",
+               "\""
+              ]
+             }
+            ],
+            "cls": "MarkupCommand",
+            "end": 613,
+            "length": "0/1",
+            "plaintext": "X +",
+            "position": 597,
+            "token": "\\combine",
+            "tokens": []
+           },
+           {
+            "children": [
+             {
+              "children": [],
+              "cls": "String",
+              "end": 630,
+              "length": "0/1",
+              "plaintext": "o",
+              "position": 627,
+              "token": "\"",
+              "tokens": [
+               "o",
+               "\""
+              ]
+             },
+             {
+              "children": [],
+              "cls": "String",
+              "end": 634,
+              "length": "0/1",
+              "plaintext": "/",
+              "position": 631,
+              "token": "\"",
+              "tokens": [
+               "/",
+               "\""
+              ]
+             }
+            ],
+            "cls": "MarkupCommand",
+            "end": 634,
+            "length": "0/1",
+            "plaintext": "o /",
+            "position": 618,
+            "token": "\\combine",
+            "tokens": []
+           },
+           {
+            "children": [
+             {
+              "children": [
+               {
+                "children": [
+                 {
+                  "children": [
+                   {
+                    "children": [
+                     {
+                      "children": [],
+                      "cls": "String",
+                      "end": 672,
+                      "length": "0/1",
+                      "plaintext": "string 1",
+                      "position": 662,
+                      "token": "\"",
+                      "tokens": [
+                       "string 1",
+                       "\""
+                      ]
+                     }
+                    ],
+                    "cls": "MarkupList",
+                    "end": 674,
+                    "length": "0/1",
+                    "plaintext": "string 1",
+                    "position": 660,
+                    "token": "{",
+                    "tokens": [
+                     "}"
+                    ]
+                   }
+                  ],
+                  "cls": "MarkupCommand",
+                  "end": 674,
+                  "length": "0/1",
+                  "plaintext": "string 1",
+                  "position": 654,
+                  "token": "\\line",
+                  "tokens": []
+                 },
+                 {
+                  "children": [
+                   {
+                    "children": [
+                     {
+                      "children": [],
+                      "cls": "String",
+                      "end": 693,
+                      "length": "0/1",
+                      "plaintext": "string 2",
+                      "position": 683,
+                      "token": "\"",
+                      "tokens": [
+                       "string 2",
+                       "\""
+                      ]
+                     }
+                    ],
+                    "cls": "MarkupList",
+                    "end": 695,
+                    "length": "0/1",
+                    "plaintext": "string 2",
+                    "position": 681,
+                    "token": "{",
+                    "tokens": [
+                     "}"
+                    ]
+                   }
+                  ],
+                  "cls": "MarkupCommand",
+                  "end": 695,
+                  "length": "0/1",
+                  "plaintext": "string 2",
+                  "position": 675,
+                  "token": "\\line",
+                  "tokens": []
+                 }
+                ],
+                "cls": "MarkupList",
+                "end": 697,
+                "length": "0/1",
+                "plaintext": "string 1 string 2",
+                "position": 652,
+                "token": "{",
+                "tokens": [
+                 "}"
+                ]
+               }
+              ],
+              "cls": "MarkupCommand",
+              "end": 697,
+              "length": "0/1",
+              "plaintext": "string 1 string 2",
+              "position": 644,
+              "token": "\\column",
+              "tokens": []
+             }
+            ],
+            "cls": "MarkupCommand",
+            "end": 697,
+            "length": "0/1",
+            "plaintext": "string 1 string 2",
+            "position": 639,
+            "token": "\\box",
+            "tokens": []
+           },
+           {
+            "children": [],
+            "cls": "String",
+            "end": 705,
+            "length": "0/1",
+            "plaintext": " ",
+            "position": 702,
+            "token": "\"",
+            "tokens": [
+             " ",
+             "\""
+            ]
+           },
+           {
+            "children": [
+             {
+              "children": [],
+              "cls": "MarkupWord",
+              "end": 723,
+              "length": "0/1",
+              "plaintext": "Norsk",
+              "position": 718,
+              "token": "Norsk",
+              "tokens": []
+             }
+            ],
+            "cls": "MarkupCommand",
+            "end": 723,
+            "length": "0/1",
+            "plaintext": "Norsk",
+            "position": 710,
+            "token": "\\italic",
+            "tokens": []
+           },
+           {
+            "children": [
+             {
+              "children": [],
+              "cls": "String",
+              "end": 738,
+              "length": "0/1",
+              "plaintext": "2",
+              "position": 735,
+              "token": "\"",
+              "tokens": [
+               "2",
+               "\""
+              ]
+             }
+            ],
+            "cls": "MarkupCommand",
+            "end": 738,
+            "length": "0/1",
+            "plaintext": "2",
+            "position": 728,
+            "token": "\\super",
+            "tokens": []
+           },
+           {
+            "children": [
+             {
+              "children": [
+               {
+                "children": [],
+                "cls": "String",
+                "end": 763,
+                "length": "0/1",
+                "plaintext": "p",
+                "position": 760,
+                "token": "\"",
+                "tokens": [
+                 "p",
+                 "\""
+                ]
+               }
+              ],
+              "cls": "MarkupCommand",
+              "end": 763,
+              "length": "0/1",
+              "plaintext": "p",
+              "position": 751,
+              "token": "\\dynamic",
+              "tokens": []
+             }
+            ],
+            "cls": "MarkupCommand",
+            "end": 763,
+            "length": "0/1",
+            "plaintext": "p",
+            "position": 743,
+            "token": "\\circle",
+            "tokens": []
+           },
+           {
+            "children": [],
+            "cls": "String",
+            "end": 771,
+            "length": "0/1",
+            "plaintext": " ",
+            "position": 768,
+            "token": "\"",
+            "tokens": [
+             " ",
+             "\""
+            ]
+           },
+           {
+            "children": [
+             {
+              "children": [],
+              "cls": "MarkupWord",
+              "end": 789,
+              "length": "0/1",
+              "plaintext": "sfzp",
+              "position": 785,
+              "token": "sfzp",
+              "tokens": []
+             }
+            ],
+            "cls": "MarkupCommand",
+            "end": 789,
+            "length": "0/1",
+            "plaintext": "sfzp",
+            "position": 776,
+            "token": "\\dynamic",
+            "tokens": []
+           },
+           {
+            "children": [
+             {
+              "children": [
+               {
+                "children": [],
+                "cls": "String",
+                "end": 805,
+                "length": "0/1",
+                "plaintext": "A",
+                "position": 802,
+                "token": "\"",
+                "tokens": [
+                 "A",
+                 "\""
+                ]
+               },
+               {
+                "children": [
+                 {
+                  "children": [],
+                  "cls": "String",
+                  "end": 818,
+                  "length": "0/1",
+                  "plaintext": "A",
+                  "position": 815,
+                  "token": "\"",
+                  "tokens": [
+                   "A",
+                   "\""
+                  ]
+                 }
+                ],
+                "cls": "MarkupCommand",
+                "end": 818,
+                "length": "0/1",
+                "plaintext": "A",
+                "position": 806,
+                "token": "\\smaller",
+                "tokens": []
+               },
+               {
+                "children": [
+                 {
+                  "children": [
+                   {
+                    "children": [],
+                    "cls": "String",
+                    "end": 840,
+                    "length": "0/1",
+                    "plaintext": "A",
+                    "position": 837,
+                    "token": "\"",
+                    "tokens": [
+                     "A",
+                     "\""
+                    ]
+                   }
+                  ],
+                  "cls": "MarkupCommand",
+                  "end": 840,
+                  "length": "0/1",
+                  "plaintext": "A",
+                  "position": 828,
+                  "token": "\\smaller",
+                  "tokens": []
+                 }
+                ],
+                "cls": "MarkupCommand",
+                "end": 840,
+                "length": "0/1",
+                "plaintext": "A",
+                "position": 819,
+                "token": "\\smaller",
+                "tokens": []
+               },
+               {
+                "children": [
+                 {
+                  "children": [
+                   {
+                    "children": [
+                     {
+                      "children": [],
+                      "cls": "String",
+                      "end": 876,
+                      "length": "0/1",
+                      "plaintext": "A",
+                      "position": 873,
+                      "token": "\"",
+                      "tokens": [
+                       "A",
+                       "\""
+                      ]
+                     }
+                    ],
+                    "cls": "MarkupCommand",
+                    "end": 876,
+                    "length": "0/1",
+                    "plaintext": "A",
+                    "position": 864,
+                    "token": "\\smaller",
+                    "tokens": []
+                   }
+                  ],
+                  "cls": "MarkupCommand",
+                  "end": 876,
+                  "length": "0/1",
+                  "plaintext": "A",
+                  "position": 855,
+                  "token": "\\smaller",
+                  "tokens": []
+                 }
+                ],
+                "cls": "MarkupCommand",
+                "end": 876,
+                "length": "0/1",
+                "plaintext": "A",
+                "position": 846,
+                "token": "\\smaller",
+                "tokens": []
+               }
+              ],
+              "cls": "MarkupList",
+              "end": 878,
+              "length": "0/1",
+              "plaintext": "A A A A",
+              "position": 800,
+              "token": "{",
+              "tokens": [
+               "}"
+              ]
+             }
+            ],
+            "cls": "MarkupCommand",
+            "end": 878,
+            "length": "0/1",
+            "plaintext": "A A A A",
+            "position": 794,
+            "token": "\\huge",
+            "tokens": []
+           },
+           {
+            "children": [
+             {
+              "children": [
+               {
+                "children": [],
+                "cls": "String",
+                "end": 903,
+                "length": "0/1",
+                "plaintext": "alike",
+                "position": 896,
+                "token": "\"",
+                "tokens": [
+                 "alike",
+                 "\""
+                ]
+               }
+              ],
+              "cls": "MarkupCommand",
+              "end": 903,
+              "length": "0/1",
+              "plaintext": "alike",
+              "position": 891,
+              "token": "\\sub",
+              "tokens": []
+             }
+            ],
+            "cls": "MarkupCommand",
+            "end": 903,
+            "length": "0/1",
+            "plaintext": "alike",
+            "position": 883,
+            "token": "\\larger",
+            "tokens": []
+           }
+          ],
+          "cls": "MarkupList",
+          "end": 907,
+          "length": "0/1",
+          "plaintext": "foo  bar  baz bazr bla  brace100 accidentals.mirroredflat X + o / string 1 string 2   Norsk 2 p   sfzp A A A A alike",
+          "position": 389,
+          "token": "{",
+          "tokens": [
+           "}"
+          ]
+         }
+        ],
+        "cls": "Markup",
+        "end": 907,
+        "length": "0/1",
+        "plaintext": "foo  bar  baz bazr bla  brace100 accidentals.mirroredflat X + o / string 1 string 2   Norsk 2 p   sfzp A A A A alike",
+        "position": 381,
+        "token": "\\markup",
+        "tokens": []
+       }
+      ],
+      "cls": "Postfix",
+      "end": 907,
+      "length": "0/1",
+      "plaintext": "",
+      "position": 380,
+      "token": "-",
+      "tokens": []
+     },
+     {
+      "children": [],
+      "cls": "Command",
+      "end": 916,
+      "length": "0/1",
+      "plaintext": "",
+      "position": 910,
+      "token": "\\break",
+      "tokens": []
+     },
+     {
+      "children": [
+       {
+        "children": [],
+        "cls": "Duration",
+        "end": 922,
+        "length": "0/1",
+        "plaintext": "",
+        "position": 921,
+        "token": "1",
+        "tokens": []
+       }
+      ],
+      "cls": "Note",
+      "end": 922,
+      "length": "1/1",
+      "plaintext": "",
+      "position": 919,
+      "token": "f",
+      "tokens": []
+     },
+     {
+      "children": [],
+      "cls": "Postfix",
+      "end": 923,
+      "length": "0/1",
+      "plaintext": "",
+      "position": 922,
+      "token": "-",
+      "tokens": []
+     },
+     {
+      "children": [
+       {
+        "children": [
+         {
+          "children": [],
+          "cls": "SchemeItem",
+          "end": 931,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 925,
+          "token": "markup",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "String",
+          "end": 938,
+          "length": "0/1",
+          "plaintext": "foo",
+          "position": 933,
+          "token": "\"",
+          "tokens": [
+           "foo",
+           "\""
+          ]
+         },
+         {
+          "children": [],
+          "cls": "SchemeItem",
+          "end": 947,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 940,
+          "token": "#:raise",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "SchemeItem",
+          "end": 951,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 948,
+          "token": "0.2",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "SchemeItem",
+          "end": 962,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 952,
+          "token": "#:hbracket",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "SchemeItem",
+          "end": 969,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 963,
+          "token": "#:bold",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "String",
+          "end": 975,
+          "length": "0/1",
+          "plaintext": "bar",
+          "position": 970,
+          "token": "\"",
+          "tokens": [
+           "bar",
+           "\""
+          ]
+         },
+         {
+          "children": [],
+          "cls": "SchemeItem",
+          "end": 987,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 977,
+          "token": "#:override",
+          "tokens": []
+         },
+         {
+          "children": [
+           {
+            "children": [
+             {
+              "children": [],
+              "cls": "SchemeItem",
+              "end": 1003,
+              "length": "0/1",
+              "plaintext": "",
+              "position": 990,
+              "token": "baseline-skip",
+              "tokens": []
+             },
+             {
+              "children": [],
+              "cls": "SchemeItem",
+              "end": 1005,
+              "length": "0/1",
+              "plaintext": "",
+              "position": 1004,
+              "token": ".",
+              "tokens": []
+             },
+             {
+              "children": [],
+              "cls": "SchemeItem",
+              "end": 1007,
+              "length": "0/1",
+              "plaintext": "",
+              "position": 1006,
+              "token": "4",
+              "tokens": []
+             }
+            ],
+            "cls": "SchemeList",
+            "end": 1008,
+            "length": "0/1",
+            "plaintext": "",
+            "position": 989,
+            "token": "(",
+            "tokens": [
+             ")"
+            ]
+           }
+          ],
+          "cls": "SchemeQuote",
+          "end": 1008,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 988,
+          "token": "'",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "SchemeItem",
+          "end": 1019,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 1010,
+          "token": "#:bracket",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "SchemeItem",
+          "end": 1028,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 1020,
+          "token": "#:column",
+          "tokens": []
+         },
+         {
+          "children": [
+           {
+            "children": [],
+            "cls": "String",
+            "end": 1036,
+            "length": "0/1",
+            "plaintext": "baz",
+            "position": 1031,
+            "token": "\"",
+            "tokens": [
+             "baz",
+             "\""
+            ]
+           },
+           {
+            "children": [],
+            "cls": "String",
+            "end": 1043,
+            "length": "0/1",
+            "plaintext": "bazr",
+            "position": 1037,
+            "token": "\"",
+            "tokens": [
+             "bazr",
+             "\""
+            ]
+           },
+           {
+            "children": [],
+            "cls": "String",
+            "end": 1049,
+            "length": "0/1",
+            "plaintext": "bla",
+            "position": 1044,
+            "token": "\"",
+            "tokens": [
+             "bla",
+             "\""
+            ]
+           }
+          ],
+          "cls": "SchemeList",
+          "end": 1051,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 1029,
+          "token": "(",
+          "tokens": [
+           ")"
+          ]
+         },
+         {
+          "children": [],
+          "cls": "SchemeItem",
+          "end": 1061,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 1053,
+          "token": "#:hspace",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "SchemeItem",
+          "end": 1065,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 1062,
+          "token": "2.0",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "SchemeItem",
+          "end": 1075,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 1067,
+          "token": "#:lookup",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "String",
+          "end": 1086,
+          "length": "0/1",
+          "plaintext": "brace100",
+          "position": 1076,
+          "token": "\"",
+          "tokens": [
+           "brace100",
+           "\""
+          ]
+         },
+         {
+          "children": [],
+          "cls": "SchemeItem",
+          "end": 1100,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 1088,
+          "token": "#:musicglyph",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "String",
+          "end": 1127,
+          "length": "0/1",
+          "plaintext": "accidentals.mirroredflat",
+          "position": 1101,
+          "token": "\"",
+          "tokens": [
+           "accidentals.mirroredflat",
+           "\""
+          ]
+         },
+         {
+          "children": [],
+          "cls": "SchemeItem",
+          "end": 1138,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 1129,
+          "token": "#:combine",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "String",
+          "end": 1142,
+          "length": "0/1",
+          "plaintext": "X",
+          "position": 1139,
+          "token": "\"",
+          "tokens": [
+           "X",
+           "\""
+          ]
+         },
+         {
+          "children": [],
+          "cls": "String",
+          "end": 1146,
+          "length": "0/1",
+          "plaintext": "+",
+          "position": 1143,
+          "token": "\"",
+          "tokens": [
+           "+",
+           "\""
+          ]
+         },
+         {
+          "children": [],
+          "cls": "SchemeItem",
+          "end": 1157,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 1148,
+          "token": "#:combine",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "String",
+          "end": 1161,
+          "length": "0/1",
+          "plaintext": "o",
+          "position": 1158,
+          "token": "\"",
+          "tokens": [
+           "o",
+           "\""
+          ]
+         },
+         {
+          "children": [],
+          "cls": "String",
+          "end": 1165,
+          "length": "0/1",
+          "plaintext": "/",
+          "position": 1162,
+          "token": "\"",
+          "tokens": [
+           "/",
+           "\""
+          ]
+         },
+         {
+          "children": [],
+          "cls": "SchemeItem",
+          "end": 1172,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 1167,
+          "token": "#:box",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "SchemeItem",
+          "end": 1181,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 1173,
+          "token": "#:column",
+          "tokens": []
+         },
+         {
+          "children": [
+           {
+            "children": [],
+            "cls": "String",
+            "end": 1193,
+            "length": "0/1",
+            "plaintext": "string 1",
+            "position": 1183,
+            "token": "\"",
+            "tokens": [
+             "string 1",
+             "\""
+            ]
+           },
+           {
+            "children": [],
+            "cls": "String",
+            "end": 1204,
+            "length": "0/1",
+            "plaintext": "string 2",
+            "position": 1194,
+            "token": "\"",
+            "tokens": [
+             "string 2",
+             "\""
+            ]
+           }
+          ],
+          "cls": "SchemeList",
+          "end": 1205,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 1182,
+          "token": "(",
+          "tokens": [
+           ")"
+          ]
+         },
+         {
+          "children": [],
+          "cls": "String",
+          "end": 1210,
+          "length": "0/1",
+          "plaintext": " ",
+          "position": 1207,
+          "token": "\"",
+          "tokens": [
+           " ",
+           "\""
+          ]
+         },
+         {
+          "children": [],
+          "cls": "SchemeItem",
+          "end": 1220,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 1212,
+          "token": "#:italic",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "String",
+          "end": 1228,
+          "length": "0/1",
+          "plaintext": "Norsk",
+          "position": 1221,
+          "token": "\"",
+          "tokens": [
+           "Norsk",
+           "\""
+          ]
+         },
+         {
+          "children": [],
+          "cls": "SchemeItem",
+          "end": 1237,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 1230,
+          "token": "#:super",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "String",
+          "end": 1241,
+          "length": "0/1",
+          "plaintext": "2",
+          "position": 1238,
+          "token": "\"",
+          "tokens": [
+           "2",
+           "\""
+          ]
+         },
+         {
+          "children": [],
+          "cls": "SchemeItem",
+          "end": 1251,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 1243,
+          "token": "#:circle",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "SchemeItem",
+          "end": 1261,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 1252,
+          "token": "#:dynamic",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "String",
+          "end": 1265,
+          "length": "0/1",
+          "plaintext": "p",
+          "position": 1262,
+          "token": "\"",
+          "tokens": [
+           "p",
+           "\""
+          ]
+         },
+         {
+          "children": [],
+          "cls": "String",
+          "end": 1270,
+          "length": "0/1",
+          "plaintext": " ",
+          "position": 1267,
+          "token": "\"",
+          "tokens": [
+           " ",
+           "\""
+          ]
+         },
+         {
+          "children": [],
+          "cls": "SchemeItem",
+          "end": 1281,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 1272,
+          "token": "#:dynamic",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "String",
+          "end": 1288,
+          "length": "0/1",
+          "plaintext": "sfzp",
+          "position": 1282,
+          "token": "\"",
+          "tokens": [
+           "sfzp",
+           "\""
+          ]
+         },
+         {
+          "children": [],
+          "cls": "SchemeItem",
+          "end": 1296,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 1290,
+          "token": "#:huge",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "SchemeItem",
+          "end": 1303,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 1297,
+          "token": "#:line",
+          "tokens": []
+         },
+         {
+          "children": [
+           {
+            "children": [],
+            "cls": "String",
+            "end": 1308,
+            "length": "0/1",
+            "plaintext": "A",
+            "position": 1305,
+            "token": "\"",
+            "tokens": [
+             "A",
+             "\""
+            ]
+           },
+           {
+            "children": [],
+            "cls": "SchemeItem",
+            "end": 1318,
+            "length": "0/1",
+            "plaintext": "",
+            "position": 1309,
+            "token": "#:smaller",
+            "tokens": []
+           },
+           {
+            "children": [],
+            "cls": "String",
+            "end": 1322,
+            "length": "0/1",
+            "plaintext": "A",
+            "position": 1319,
+            "token": "\"",
+            "tokens": [
+             "A",
+             "\""
+            ]
+           },
+           {
+            "children": [],
+            "cls": "SchemeItem",
+            "end": 1332,
+            "length": "0/1",
+            "plaintext": "",
+            "position": 1323,
+            "token": "#:smaller",
+            "tokens": []
+           },
+           {
+            "children": [],
+            "cls": "SchemeItem",
+            "end": 1342,
+            "length": "0/1",
+            "plaintext": "",
+            "position": 1333,
+            "token": "#:smaller",
+            "tokens": []
+           },
+           {
+            "children": [],
+            "cls": "String",
+            "end": 1346,
+            "length": "0/1",
+            "plaintext": "A",
+            "position": 1343,
+            "token": "\"",
+            "tokens": [
+             "A",
+             "\""
+            ]
+           },
+           {
+            "children": [],
+            "cls": "SchemeItem",
+            "end": 1365,
+            "length": "0/1",
+            "plaintext": "",
+            "position": 1356,
+            "token": "#:smaller",
+            "tokens": []
+           },
+           {
+            "children": [],
+            "cls": "SchemeItem",
+            "end": 1375,
+            "length": "0/1",
+            "plaintext": "",
+            "position": 1366,
+            "token": "#:smaller",
+            "tokens": []
+           },
+           {
+            "children": [],
+            "cls": "SchemeItem",
+            "end": 1385,
+            "length": "0/1",
+            "plaintext": "",
+            "position": 1376,
+            "token": "#:smaller",
+            "tokens": []
+           },
+           {
+            "children": [],
+            "cls": "String",
+            "end": 1389,
+            "length": "0/1",
+            "plaintext": "A",
+            "position": 1386,
+            "token": "\"",
+            "tokens": [
+             "A",
+             "\""
+            ]
+           }
+          ],
+          "cls": "SchemeList",
+          "end": 1390,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 1304,
+          "token": "(",
+          "tokens": [
+           ")"
+          ]
+         },
+         {
+          "children": [],
+          "cls": "SchemeItem",
+          "end": 1400,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 1392,
+          "token": "#:larger",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "SchemeItem",
+          "end": 1406,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 1401,
+          "token": "#:sub",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "String",
+          "end": 1414,
+          "length": "0/1",
+          "plaintext": "alike",
+          "position": 1407,
+          "token": "\"",
+          "tokens": [
+           "alike",
+           "\""
+          ]
+         }
+        ],
+        "cls": "SchemeList",
+        "end": 1415,
+        "length": "0/1",
+        "plaintext": "",
+        "position": 924,
+        "token": "(",
+        "tokens": [
+         ")"
+        ]
+       }
+      ],
+      "cls": "Scheme",
+      "end": 1415,
+      "length": "0/1",
+      "plaintext": "foobarbazbazrblabrace100accidentals.mirroredflatX+o/string 1string 2 Norsk2p sfzpAAAAalike",
+      "position": 923,
+      "token": "$",
+      "tokens": []
+     }
+    ],
+    "cls": "MusicList",
+    "end": 1417,
+    "length": "2/1",
+    "plaintext": "",
+    "position": 357,
+    "token": "{",
+    "tokens": [
+     "}"
+    ]
+   }
+  ],
+  "cls": "Document",
+  "end": 1417,
+  "length": "0/1",
+  "plaintext": "",
+  "position": -1,
+  "token": null,
+  "tokens": []
+ }
+}

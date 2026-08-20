@@ -1,0 +1,339 @@
+{
+ "has_output": false,
+ "node_positions": [
+  [
+   0,
+   "Version",
+   0
+  ],
+  [
+   7,
+   "Version",
+   0
+  ],
+  [
+   14,
+   "String",
+   9
+  ],
+  [
+   21,
+   "Language",
+   18
+  ],
+  [
+   28,
+   "String",
+   28
+  ],
+  [
+   35,
+   "String",
+   28
+  ],
+  [
+   42,
+   "Assignment",
+   38
+  ],
+  [
+   49,
+   "MusicList",
+   46
+  ],
+  [
+   56,
+   "Note",
+   54
+  ],
+  [
+   63,
+   "Note",
+   60
+  ],
+  [
+   70,
+   "Note",
+   65
+  ],
+  [
+   77,
+   "Duration",
+   76
+  ],
+  [
+   84,
+   "Note",
+   83
+  ],
+  [
+   91,
+   "Note",
+   87
+  ],
+  [
+   93,
+   "Note",
+   87
+  ]
+ ],
+ "time_positions": [
+  [
+   0,
+   null
+  ],
+  [
+   7,
+   null
+  ],
+  [
+   14,
+   null
+  ],
+  [
+   21,
+   null
+  ],
+  [
+   28,
+   null
+  ],
+  [
+   35,
+   null
+  ],
+  [
+   42,
+   "0/1"
+  ],
+  [
+   49,
+   "0/1"
+  ],
+  [
+   56,
+   "1/2"
+  ],
+  [
+   63,
+   "3/4"
+  ],
+  [
+   70,
+   "5/4"
+  ],
+  [
+   77,
+   "3/2"
+  ],
+  [
+   84,
+   "7/4"
+  ],
+  [
+   91,
+   "9/4"
+  ],
+  [
+   93,
+   null
+  ]
+ ],
+ "tree": {
+  "children": [
+   {
+    "children": [
+     {
+      "children": [],
+      "cls": "String",
+      "end": 17,
+      "length": "0/1",
+      "plaintext": "2.27.2",
+      "position": 9,
+      "token": "\"",
+      "tokens": [
+       "2.27.2",
+       "\""
+      ]
+     }
+    ],
+    "cls": "Version",
+    "end": 17,
+    "length": "0/1",
+    "plaintext": "",
+    "position": 0,
+    "token": "\\version",
+    "tokens": []
+   },
+   {
+    "children": [
+     {
+      "children": [],
+      "cls": "String",
+      "end": 37,
+      "length": "0/1",
+      "plaintext": "deutsch",
+      "position": 28,
+      "token": "\"",
+      "tokens": [
+       "deutsch",
+       "\""
+      ]
+     }
+    ],
+    "cls": "Language",
+    "end": 37,
+    "length": "0/1",
+    "plaintext": "",
+    "position": 18,
+    "token": "\\language",
+    "tokens": []
+   },
+   {
+    "children": [
+     {
+      "children": [
+       {
+        "children": [
+         {
+          "children": [],
+          "cls": "Duration",
+          "end": 53,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 52,
+          "token": "4",
+          "tokens": []
+         }
+        ],
+        "cls": "Note",
+        "end": 53,
+        "length": "1/4",
+        "plaintext": "",
+        "position": 50,
+        "token": "c",
+        "tokens": []
+       },
+       {
+        "children": [],
+        "cls": "Note",
+        "end": 56,
+        "length": "1/4",
+        "plaintext": "",
+        "position": 54,
+        "token": "h",
+        "tokens": []
+       },
+       {
+        "children": [],
+        "cls": "Note",
+        "end": 59,
+        "length": "1/4",
+        "plaintext": "",
+        "position": 57,
+        "token": "b",
+        "tokens": []
+       },
+       {
+        "children": [],
+        "cls": "Note",
+        "end": 64,
+        "length": "1/4",
+        "plaintext": "",
+        "position": 60,
+        "token": "cis",
+        "tokens": []
+       },
+       {
+        "children": [],
+        "cls": "Note",
+        "end": 69,
+        "length": "1/4",
+        "plaintext": "",
+        "position": 65,
+        "token": "des",
+        "tokens": []
+       },
+       {
+        "children": [
+         {
+          "children": [],
+          "cls": "Duration",
+          "end": 77,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 76,
+          "token": "4",
+          "tokens": []
+         }
+        ],
+        "cls": "Note",
+        "end": 77,
+        "length": "1/4",
+        "plaintext": "",
+        "position": 72,
+        "token": "fis",
+        "tokens": []
+       },
+       {
+        "children": [],
+        "cls": "Note",
+        "end": 82,
+        "length": "1/4",
+        "plaintext": "",
+        "position": 78,
+        "token": "ges",
+        "tokens": []
+       },
+       {
+        "children": [],
+        "cls": "Note",
+        "end": 86,
+        "length": "1/4",
+        "plaintext": "",
+        "position": 83,
+        "token": "as",
+        "tokens": []
+       },
+       {
+        "children": [],
+        "cls": "Note",
+        "end": 90,
+        "length": "1/4",
+        "plaintext": "",
+        "position": 87,
+        "token": "es",
+        "tokens": []
+       }
+      ],
+      "cls": "MusicList",
+      "end": 92,
+      "length": "9/4",
+      "plaintext": "",
+      "position": 46,
+      "token": "{",
+      "tokens": [
+       "}"
+      ]
+     }
+    ],
+    "cls": "Assignment",
+    "end": 92,
+    "length": "0/1",
+    "plaintext": "",
+    "position": 38,
+    "token": "music",
+    "tokens": [
+     "="
+    ]
+   }
+  ],
+  "cls": "Document",
+  "end": 92,
+  "length": "0/1",
+  "plaintext": "",
+  "position": -1,
+  "token": null,
+  "tokens": []
+ }
+}

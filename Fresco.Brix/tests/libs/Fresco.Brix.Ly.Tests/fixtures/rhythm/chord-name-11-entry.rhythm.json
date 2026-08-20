@@ -1,0 +1,58 @@
+{
+ "extract": [
+  "4",
+  "",
+  ""
+ ],
+ "music_items": [
+  [
+   162,
+   163,
+   163,
+   true,
+   [
+    "c"
+   ],
+   []
+  ],
+  [
+   167,
+   168,
+   168,
+   true,
+   [
+    "c"
+   ],
+   []
+  ],
+  [
+   175,
+   176,
+   176,
+   true,
+   [
+    "c"
+   ],
+   []
+  ]
+ ],
+ "overwrite_durations": [
+  "4",
+  "8",
+  "",
+  "16."
+ ],
+ "results": {
+  "dot": "\\version \"2.16.0\" \n\n\\header {\n\n    texidoc = \"The 11 is only added to major-13 if it\n is mentioned explicitly.\"\n\n}\n\n\\layout { ragged-right = ##t } \n\n\\chordmode { c:13 c:13.11 c:m13 }\n\n",
+  "double": "\\version \"2.16.0\" \n\n\\header {\n\n    texidoc = \"The 11 is only added to major-13 if it\n is mentioned explicitly.\"\n\n}\n\n\\layout { ragged-right = ##t } \n\n\\chordmode { c:13 c:13.11 c:m13 }\n\n",
+  "explicit": "\\version \"2.16.0\" \n\n\\header {\n\n    texidoc = \"The 11 is only added to major-13 if it\n is mentioned explicitly.\"\n\n}\n\n\\layout { ragged-right = ##t } \n\n\\chordmode { c:13 c:13.11 c:m13 }\n\n",
+  "halve": "\\version \"2.16.0\" \n\n\\header {\n\n    texidoc = \"The 11 is only added to major-13 if it\n is mentioned explicitly.\"\n\n}\n\n\\layout { ragged-right = ##t } \n\n\\chordmode { c:13 c:13.11 c:m13 }\n\n",
+  "implicit": "\\version \"2.16.0\" \n\n\\header {\n\n    texidoc = \"The 11 is only added to major-13 if it\n is mentioned explicitly.\"\n\n}\n\n\\layout { ragged-right = ##t } \n\n\\chordmode { c:13 c:13.11 c:m13 }\n\n",
+  "implicit_per_line": "\\version \"2.16.0\" \n\n\\header {\n\n    texidoc = \"The 11 is only added to major-13 if it\n is mentioned explicitly.\"\n\n}\n\n\\layout { ragged-right = ##t } \n\n\\chordmode { c:13 c:13.11 c:m13 }\n\n",
+  "overwrite": "\\version \"2.16.0\" \n\n\\header {\n\n    texidoc = \"The 11 is only added to major-13 if it\n is mentioned explicitly.\"\n\n}\n\n\\layout { ragged-right = ##t } \n\n\\chordmode { c4:13 c8:13.11 c:m13 }\n\n",
+  "remove": "\\version \"2.16.0\" \n\n\\header {\n\n    texidoc = \"The 11 is only added to major-13 if it\n is mentioned explicitly.\"\n\n}\n\n\\layout { ragged-right = ##t } \n\n\\chordmode { c:13 c:13.11 c:m13 }\n\n",
+  "remove_fraction_scaling": "\\version \"2.16.0\" \n\n\\header {\n\n    texidoc = \"The 11 is only added to major-13 if it\n is mentioned explicitly.\"\n\n}\n\n\\layout { ragged-right = ##t } \n\n\\chordmode { c:13 c:13.11 c:m13 }\n\n",
+  "remove_scaling": "\\version \"2.16.0\" \n\n\\header {\n\n    texidoc = \"The 11 is only added to major-13 if it\n is mentioned explicitly.\"\n\n}\n\n\\layout { ragged-right = ##t } \n\n\\chordmode { c:13 c:13.11 c:m13 }\n\n",
+  "undot": "\\version \"2.16.0\" \n\n\\header {\n\n    texidoc = \"The 11 is only added to major-13 if it\n is mentioned explicitly.\"\n\n}\n\n\\layout { ragged-right = ##t } \n\n\\chordmode { c:13 c:13.11 c:m13 }\n\n"
+ }
+}

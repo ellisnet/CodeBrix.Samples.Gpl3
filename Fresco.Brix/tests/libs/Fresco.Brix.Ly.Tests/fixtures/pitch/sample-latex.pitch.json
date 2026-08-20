@@ -1,0 +1,38 @@
+{
+ "results": {
+  "abs2rel": "\\documentclass{article}\n\\begin{document}\nSome text.\n\\begin{lilypond}\n{ c4 d e f g a }\n\\end{lilypond}\n\\end{document}\n",
+  "abs2rel_no_startpitch": "\\documentclass{article}\n\\begin{document}\nSome text.\n\\begin{lilypond}\n{ c4 d e f g a }\n\\end{lilypond}\n\\end{document}\n",
+  "abs2rel_no_startpitch_first_absolute": "\\documentclass{article}\n\\begin{document}\nSome text.\n\\begin{lilypond}\n{ c4 d e f g a }\n\\end{lilypond}\n\\end{document}\n",
+  "inversion": "\\documentclass{article}\n\\begin{document}\nSome text.\n\\begin{lilypond}\n{ c4 d e f g a }\n\\end{lilypond}\n\\end{document}\n",
+  "modal_down_three_g_major": "\\documentclass{article}\n\\begin{document}\nSome text.\n\\begin{lilypond}\n{ c4 d e f g a }\n\\end{lilypond}\n\\end{document}\n",
+  "modal_up_two_c_major": "\\documentclass{article}\n\\begin{document}\nSome text.\n\\begin{lilypond}\n{ c4 d e f g a }\n\\end{lilypond}\n\\end{document}\n",
+  "mode_shift_a_minor_harmonic": "\\documentclass{article}\n\\begin{document}\nSome text.\n\\begin{lilypond}\n{ c4 d e f g a }\n\\end{lilypond}\n\\end{document}\n",
+  "mode_shift_c_major": "\\documentclass{article}\n\\begin{document}\nSome text.\n\\begin{lilypond}\n{ c4 d e f g a }\n\\end{lilypond}\n\\end{document}\n",
+  "rel2abs": "\\documentclass{article}\n\\begin{document}\nSome text.\n\\begin{lilypond}\n{ c4 d e f g a }\n\\end{lilypond}\n\\end{document}\n",
+  "rel2abs_first_absolute": "\\documentclass{article}\n\\begin{document}\nSome text.\n\\begin{lilypond}\n{ c4 d e f g a }\n\\end{lilypond}\n\\end{document}\n",
+  "retrograde": "\\documentclass{article}\n\\begin{document}\nSome text.\n\\begin{lilypond}\n{ c4 d e f g a }\n\\end{lilypond}\n\\end{document}\n",
+  "simplify": "\\documentclass{article}\n\\begin{document}\nSome text.\n\\begin{lilypond}\n{ c4 d e f g a }\n\\end{lilypond}\n\\end{document}\n",
+  "transpose_c_a_down": "\\documentclass{article}\n\\begin{document}\nSome text.\n\\begin{lilypond}\n{ c4 d e f g a }\n\\end{lilypond}\n\\end{document}\n",
+  "transpose_c_d": "\\documentclass{article}\n\\begin{document}\nSome text.\n\\begin{lilypond}\n{ c4 d e f g a }\n\\end{lilypond}\n\\end{document}\n",
+  "transpose_c_d_relative_absolute": "\\documentclass{article}\n\\begin{document}\nSome text.\n\\begin{lilypond}\n{ c4 d e f g a }\n\\end{lilypond}\n\\end{document}\n",
+  "transpose_c_ees": "\\documentclass{article}\n\\begin{document}\nSome text.\n\\begin{lilypond}\n{ c4 d e f g a }\n\\end{lilypond}\n\\end{document}\n"
+ },
+ "translations": {
+  "deutsch": {
+   "changed": false,
+   "text": "\\documentclass{article}\n\\begin{document}\nSome text.\n\\begin{lilypond}\n{ c4 d e f g a }\n\\end{lilypond}\n\\end{document}\n"
+  },
+  "english": {
+   "changed": false,
+   "text": "\\documentclass{article}\n\\begin{document}\nSome text.\n\\begin{lilypond}\n{ c4 d e f g a }\n\\end{lilypond}\n\\end{document}\n"
+  },
+  "italiano": {
+   "changed": false,
+   "text": "\\documentclass{article}\n\\begin{document}\nSome text.\n\\begin{lilypond}\n{ c4 d e f g a }\n\\end{lilypond}\n\\end{document}\n"
+  },
+  "norsk": {
+   "changed": false,
+   "text": "\\documentclass{article}\n\\begin{document}\nSome text.\n\\begin{lilypond}\n{ c4 d e f g a }\n\\end{lilypond}\n\\end{document}\n"
+  }
+ }
+}

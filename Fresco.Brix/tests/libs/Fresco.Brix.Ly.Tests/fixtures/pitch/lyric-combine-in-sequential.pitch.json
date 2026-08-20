@@ -1,0 +1,38 @@
+{
+ "results": {
+  "abs2rel": "\\version \"2.21.7\"\n\n\\header {\n  texidoc = \"This tests @code{\\\\lyricsto} as the first element of\nsequential music.\"\n}\n\n\\relative c' <<\n  \\context Voice = V f1\n  \\context Lyrics { \\lyricsto V { \\lyricmode { eff } } }\n>>\n",
+  "abs2rel_no_startpitch": "\\version \"2.21.7\"\n\n\\header {\n  texidoc = \"This tests @code{\\\\lyricsto} as the first element of\nsequential music.\"\n}\n\n\\relative <<\n  \\context Voice = V f1\n  \\context Lyrics { \\lyricsto V { \\lyricmode { eff } } }\n>>\n",
+  "abs2rel_no_startpitch_first_absolute": "\\version \"2.21.7\"\n\n\\header {\n  texidoc = \"This tests @code{\\\\lyricsto} as the first element of\nsequential music.\"\n}\n\n\\relative <<\n  \\context Voice = V f'1\n  \\context Lyrics { \\lyricsto V { \\lyricmode { eff } } }\n>>\n",
+  "inversion": "\\version \"2.21.7\"\n\n\\header {\n  texidoc = \"This tests @code{\\\\lyricsto} as the first element of\nsequential music.\"\n}\n\n<<\n  \\context Voice = V f'1\n  \\context Lyrics { \\lyricsto V { \\lyricmode { eff } } }\n>>\n",
+  "modal_down_three_g_major": "\\version \"2.21.7\"\n\n\\header {\n  texidoc = \"This tests @code{\\\\lyricsto} as the first element of\nsequential music.\"\n}\n\n<<\n  \\context Voice = V ces'1\n  \\context Lyrics { \\lyricsto V { \\lyricmode { eff } } }\n>>\n",
+  "modal_up_two_c_major": "\\version \"2.21.7\"\n\n\\header {\n  texidoc = \"This tests @code{\\\\lyricsto} as the first element of\nsequential music.\"\n}\n\n<<\n  \\context Voice = V a'1\n  \\context Lyrics { \\lyricsto V { \\lyricmode { eff } } }\n>>\n",
+  "mode_shift_a_minor_harmonic": "\\version \"2.21.7\"\n\n\\header {\n  texidoc = \"This tests @code{\\\\lyricsto} as the first element of\nsequential music.\"\n}\n\n<<\n  \\context Voice = V f'1\n  \\context Lyrics { \\lyricsto V { \\lyricmode { eff } } }\n>>\n",
+  "mode_shift_c_major": "\\version \"2.21.7\"\n\n\\header {\n  texidoc = \"This tests @code{\\\\lyricsto} as the first element of\nsequential music.\"\n}\n\n<<\n  \\context Voice = V f'1\n  \\context Lyrics { \\lyricsto V { \\lyricmode { eff } } }\n>>\n",
+  "rel2abs": "\\version \"2.21.7\"\n\n\\header {\n  texidoc = \"This tests @code{\\\\lyricsto} as the first element of\nsequential music.\"\n}\n\n<<\n  \\context Voice = V f'1\n  \\context Lyrics { \\lyricsto V { \\lyricmode { eff } } }\n>>\n",
+  "rel2abs_first_absolute": "\\version \"2.21.7\"\n\n\\header {\n  texidoc = \"This tests @code{\\\\lyricsto} as the first element of\nsequential music.\"\n}\n\n<<\n  \\context Voice = V f'1\n  \\context Lyrics { \\lyricsto V { \\lyricmode { eff } } }\n>>\n",
+  "retrograde": "\\version \"2.21.7\"\n\n\\header {\n  texidoc = \"This tests @code{\\\\lyricsto} as the first element of\nsequential music.\"\n}\n\n<<\n  \\context Voice = V f'1\n  \\context Lyrics { \\lyricsto V { \\lyricmode { eff } } }\n>>\n",
+  "simplify": "\\version \"2.21.7\"\n\n\\header {\n  texidoc = \"This tests @code{\\\\lyricsto} as the first element of\nsequential music.\"\n}\n\n<<\n  \\context Voice = V f'1\n  \\context Lyrics { \\lyricsto V { \\lyricmode { eff } } }\n>>\n",
+  "transpose_c_a_down": "\\version \"2.21.7\"\n\n\\header {\n  texidoc = \"This tests @code{\\\\lyricsto} as the first element of\nsequential music.\"\n}\n\n<<\n  \\context Voice = V d'1\n  \\context Lyrics { \\lyricsto V { \\lyricmode { eff } } }\n>>\n",
+  "transpose_c_d": "\\version \"2.21.7\"\n\n\\header {\n  texidoc = \"This tests @code{\\\\lyricsto} as the first element of\nsequential music.\"\n}\n\n<<\n  \\context Voice = V g'1\n  \\context Lyrics { \\lyricsto V { \\lyricmode { eff } } }\n>>\n",
+  "transpose_c_d_relative_absolute": "\\version \"2.21.7\"\n\n\\header {\n  texidoc = \"This tests @code{\\\\lyricsto} as the first element of\nsequential music.\"\n}\n\n<<\n  \\context Voice = V g'1\n  \\context Lyrics { \\lyricsto V { \\lyricmode { eff } } }\n>>\n",
+  "transpose_c_ees": "\\version \"2.21.7\"\n\n\\header {\n  texidoc = \"This tests @code{\\\\lyricsto} as the first element of\nsequential music.\"\n}\n\n<<\n  \\context Voice = V ases'1\n  \\context Lyrics { \\lyricsto V { \\lyricmode { eff } } }\n>>\n"
+ },
+ "translations": {
+  "deutsch": {
+   "changed": false,
+   "text": "\\version \"2.21.7\"\n\n\\header {\n  texidoc = \"This tests @code{\\\\lyricsto} as the first element of\nsequential music.\"\n}\n\n<<\n  \\context Voice = V f'1\n  \\context Lyrics { \\lyricsto V { \\lyricmode { eff } } }\n>>\n"
+  },
+  "english": {
+   "changed": false,
+   "text": "\\version \"2.21.7\"\n\n\\header {\n  texidoc = \"This tests @code{\\\\lyricsto} as the first element of\nsequential music.\"\n}\n\n<<\n  \\context Voice = V f'1\n  \\context Lyrics { \\lyricsto V { \\lyricmode { eff } } }\n>>\n"
+  },
+  "italiano": {
+   "changed": false,
+   "text": "\\version \"2.21.7\"\n\n\\header {\n  texidoc = \"This tests @code{\\\\lyricsto} as the first element of\nsequential music.\"\n}\n\n<<\n  \\context Voice = V fa'1\n  \\context Lyrics { \\lyricsto V { \\lyricmode { eff } } }\n>>\n"
+  },
+  "norsk": {
+   "changed": false,
+   "text": "\\version \"2.21.7\"\n\n\\header {\n  texidoc = \"This tests @code{\\\\lyricsto} as the first element of\nsequential music.\"\n}\n\n<<\n  \\context Voice = V f'1\n  \\context Lyrics { \\lyricsto V { \\lyricmode { eff } } }\n>>\n"
+  }
+ }
+}

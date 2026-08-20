@@ -83,7 +83,16 @@ public static class PointAndClick
 
     /// <summary>
     /// Percent-encodes a string the way upstream's <c>String_convert::percent_encode</c>
-    /// does: everything except the unreserved set and <c>/</c>.
+    /// does: everything except the characters its <c>is_not_escape_character</c> keeps.
+    /// <para>
+    /// The kept set is upstream's own — letters, digits, <c>-</c>, <c>.</c>, <c>/</c>,
+    /// <c>:</c> and <c>_</c> (<c>flower/string-convert.cc:180-203</c>). The first version
+    /// of this method kept <c>~</c> and escaped <c>:</c>, which its own doc comment
+    /// claimed was upstream's set (trap 26): a home directory path came out with a raw
+    /// tilde where upstream writes <c>%7E</c>, and every anchor's <c>:</c> separators
+    /// would have doubled as encoded ones. Encoding walks the UTF-8 BYTES because
+    /// upstream walks a <c>std::string</c>'s bytes.
+    /// </para>
     /// </summary>
     /// <param name="value">The text to encode.</param>
     /// <returns>The encoded text.</returns>
@@ -101,7 +110,7 @@ public static class PointAndClick
             bool unreserved = (c >= 'A' && c <= 'Z')
                               || (c >= 'a' && c <= 'z')
                               || (c >= '0' && c <= '9')
-                              || c == '-' || c == '_' || c == '.' || c == '~' || c == '/';
+                              || c == '-' || c == '.' || c == '/' || c == ':' || c == '_';
 
             if (unreserved)
             {

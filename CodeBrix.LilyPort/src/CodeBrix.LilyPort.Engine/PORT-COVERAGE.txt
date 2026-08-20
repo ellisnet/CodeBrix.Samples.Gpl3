@@ -9947,3 +9947,88 @@ artifact of the oracle process's own capture.  The port emits the record
 whole and the markers after it.  The line CONTENTS are identical as a
 multiset; reproducing the oracle's interleave would mean modelling its
 stderr flush timing, which no ruling asks for.
+
+--------------------------------------------------------------------------------
+W0: POINT-AND-CLICK ANCHORS IN THE SVG OUTPUT (2026-08-20, GO Jeremy -- the
+Fresco.Brix prerequisite wave), AND THE HOST RUN-OPTIONS SEAM
+--------------------------------------------------------------------------------
+
+THE GAP THIS CLOSES (the Fresco.Brix plan's measured basis, its section 4.3):
+SvgBackend collected every grob-cause into Causes and emitted NO anchor for
+the life of the port -- invisible to the whole battery because the reference
+corpus is generated with -dno-point-and-click.  SvgBackend.GrobCauseAnchor is
+now output-svg.scm's grob-cause decision for decision: option truthiness
+first (scm truthiness, not exactly-#t), the cause must be a STREAM EVENT
+whose origin is an input location, then upstream's cond over the option's
+three declared shapes (boolean / event-class symbol / class list, any-match),
+then the anchor
+  <a style="color:inherit;" xlink:href="textedit://FILE:LINE:CHAR:COL+1">\n
+with FILE made absolute against the CURRENT working directory when relative
+(ly-getcwd at DRAW time -- the batch runner writes pages with the output
+directory current, so a host that wants anchors into its own file engraves
+where it writes or passes absolute paths), backslashes substituted to
+slashes, and the whole path percent-encoded.  no-origin emits </a> exactly
+when grob-cause opened one (have-grob-cause? is a single boolean upstream and
+here).  Causes stays -- it is public API with its own test.
+
+VERIFIED AGAINST THE ORACLE WITH POINT-AND-CLICK ON (the battery cannot see
+this surface): 15 probe files across categories (notes, rests, beams, chords,
+drums, figured bass, lyrics, grace, dynamics, slurs, ties, tuplets, tremolo,
+voice-follower, markup), pinned-font environment, oracle run WITHOUT
+-dno-point-and-click.  ALL 328 anchors IDENTICAL as a per-page multiset --
+file, line, char, one-based column, and counts all exact.  The anchor
+SEQUENCE within a page differs because the two engines DRAW a page's
+furniture in different order (measured on the anchor-stripped element
+streams: same multiset, different sequence, e.g. the oracle opens
+accidental-accent with a <line> and the port with a <text>) -- a pre-existing
+property the comparator is deliberately blind to (D29 grades inventory +
+position, never order), not an anchor defect and not new.
+
+PERCENT-ENCODING WAS WRONG AND ITS DOC COMMENT CLAIMED OTHERWISE (trap 26):
+PointAndClick.PercentEncode kept '~' and escaped ':' where upstream's
+String_convert::percent_encode (flower/string-convert.cc:180-220) does the
+opposite.  ly:string-percent-encode binds this method, so the vendored SVG
+Scheme (never the live path) and the new anchor emission both depended on it.
+Fixed to upstream's exact set (letters, digits, - . / : _), still over UTF-8
+BYTES as upstream walks a std::string.  Flower's StringConvert.PercentEncode
+always had the right SET but walks UTF-16 code units; the two now agree on
+ASCII and the anchor path goes through PointAndClick's byte-walking one.
+Fenced by PointAndClickTests (hand-computed from upstream's
+is_not_escape_character, including the UTF-8-bytes case).
+
+THE HARNESS CONVENTION: BatchDriver now passes point-and-click=false on every
+sweep file, mirroring generate-reference.sh's -dno-point-and-click -- the
+sweep grades the ENGRAVING, and anchors would differ on every page for the
+uninteresting reason that the two sides run from different paths.
+--point-and-click (probe-only flag) flips it for anchor probes.  Lily.Docs'
+EngineSnippetRenderer also passes false: a manual picture's anchor would
+point into the renderer's scratch directory, and the frozen picture
+inventory must not grow an element for it.  DocsDriver needs nothing (G8's
+19 files are text).
+
+THE HOST SEAM (BatchRunOptions, the Fresco.Brix plan's W0c): RunFile/RunText
+overloads take { PointAndClick, MessageWriter, CancellationToken }.  Option
+overrides are applied AFTER the per-file restore, so they hold for exactly
+one run and the next run's restore takes them off -- the lifetime a
+per-process -d option has upstream (the snapshot's timing makes a
+driver-level ly:set-option silently un-stick, which is why the seam exists).
+MessageWriter swaps Flower.Warn.Output for the run, wrapped in a
+LineTrackingWriter, closed and restored in a finally.  Cancellation is
+cooperative at the runner's own boundaries (before the parse, between books,
+before output) because one book's engraving is one uninterruptible engine
+call; a cancelled run throws OperationCanceledException and writes nothing
+further.  BatchRunResult.DeclaredVersion reports the \version string the
+lexer recorded off the main input (null when none), for a host deciding
+whether to offer convert-ly.  Fenced end to end by PointAndClickEndToEndTests
+(anchor locations hand-computed from the fixture text: :2:2:3 for the note,
+:2:6:7 for the rest; one case per option shape; the one-run lifetime; the
+writer swap-and-restore; the cancelled-token no-output case; both
+DeclaredVersion arms).
+
+ONE FENCE UPDATED, NOT LOOSENED: DimensionPropertyEndToEndTests compares
+whole documents across renders in DIFFERENT scratch directories, and an
+anchor embeds the render's own directory -- so its Render now passes
+point-and-click=false, the same convention the sweep uses, with the reason
+recorded at the site.  Lily.Shell inherits the upstream default (#t) through
+the shared engine: its engrave command now emits anchors exactly as
+lilypond's own CLI does, and needed nothing (rule 14, checked).

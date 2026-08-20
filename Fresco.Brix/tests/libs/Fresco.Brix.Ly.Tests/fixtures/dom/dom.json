@@ -1,0 +1,79 @@
+{
+ "brackets": {
+  "after": 1,
+  "before": 1,
+  "indented": "one = \\someMusic\ntwo = { \\someMusic }\nthree = << c'4 d'4 >>\nfour = { }\n",
+  "ly": "one = \\someMusic\ntwo = { \\someMusic }\nthree = << c'4 d'4 >>\nfour = { }",
+  "plain_quotes": "one = \\someMusic\ntwo = { \\someMusic }\nthree = << c'4 d'4 >>\nfour = { }\n"
+ },
+ "chords": {
+  "after": 0,
+  "before": 0,
+  "indented": "{ <c'' e'' geses''>4. bis,1*2/3 r8 }",
+  "ly": "{ <c'' e'' geses''>4. bis,1*2/3 r8 }",
+  "plain_quotes": "{ <c'' e'' geses''>4. bis,1*2/3 r8 }"
+ },
+ "comments": {
+  "after": 1,
+  "before": 1,
+  "indented": "% a full-line comment\n% a trailing comment\n%{\n  a block\n  comment  with an end marker\n%}\n%{ a short block %}\n\"he said \u2018hello\u2019 and \u201cgoodbye\u201d\"\n",
+  "ly": "% a full-line comment\n% a trailing comment\n%{\na block\ncomment  with an end marker\n%}\n%{ a short block %}\n\"he said \u2018hello\u2019 and \u201cgoodbye\u201d\"",
+  "plain_quotes": "% a full-line comment\n% a trailing comment\n%{\n  a block\n  comment  with an end marker\n%}\n%{ a short block %}\n\"he said \\\"hello\\\" and 'goodbye'\"\n"
+ },
+ "contexts": {
+  "after": 0,
+  "before": 0,
+  "indented": "<<\n  \\new MyStaff = \"up\" { c'1 }\n  \\context Score { d'1 }\n  \\new PianoStaff = \"pf\" \n  \\new GrandStaff \\with {\n    \\consists \"Instrument_name_engraver\"\n  }\n>>",
+  "ly": "<<\n\\new MyStaff = \"up\" { c'1 }\n\\context Score { d'1 }\n\\new PianoStaff = \"pf\" \n\\new GrandStaff \\with {\n\\consists \"Instrument_name_engraver\"\n}\n>>",
+  "plain_quotes": "<<\n  \\new MyStaff = \"up\" { c'1 }\n  \\context Score { d'1 }\n  \\new PianoStaff = \"pf\" \n  \\new GrandStaff \\with {\n    \\consists \"Instrument_name_engraver\"\n  }\n>>"
+ },
+ "document": {
+  "after": 1,
+  "before": 1,
+  "indented": "\\version \"2.27.2\"\n\\include \"articulate.ly\"\n\nmelody = { c'4 d' e' f' }\n",
+  "ly": "\\version \"2.27.2\"\n\\include \"articulate.ly\"\n\nmelody = { c'4 d' e' f' }",
+  "plain_quotes": "\\version \"2.27.2\"\n\\include \"articulate.ly\"\n\nmelody = { c'4 d' e' f' }\n"
+ },
+ "header": {
+  "after": 1,
+  "before": 1,
+  "indented": "\\header {\n  title = \"A Title\"\n  composer = \"Johann Sebastian Bach\"\n  tagline = ##f\n}\n",
+  "ly": "\\header {\ntitle = \"A Title\"\ncomposer = \"Johann Sebastian Bach\"\ntagline = ##f\n}",
+  "plain_quotes": "\\header {\n  title = \"A Title\"\n  composer = \"Johann Sebastian Bach\"\n  tagline = ##f\n}\n"
+ },
+ "lyrics": {
+  "after": 0,
+  "before": 0,
+  "indented": "<<\n  \\new Voice = \"melody\" { c'4 d' e' f' }\n  \\new Lyrics \\lyricsto \"melody\" { Sing a song of six -- pence }\n  \\addlyrics { An -- oth -- er verse here }\n>>",
+  "ly": "<<\n\\new Voice = \"melody\" { c'4 d' e' f' }\n\\new Lyrics \\lyricsto \"melody\" { Sing a song of six -- pence }\n\\addlyrics { An -- oth -- er verse here }\n>>",
+  "plain_quotes": "<<\n  \\new Voice = \"melody\" { c'4 d' e' f' }\n  \\new Lyrics \\lyricsto \"melody\" { Sing a song of six -- pence }\n  \\addlyrics { An -- oth -- er verse here }\n>>"
+ },
+ "markup": {
+  "after": 0,
+  "before": 0,
+  "indented": "\\markup { \\bold { } \\italic \"a \u2018quoted\u2019 word\" \\hspace 2 }",
+  "ly": "\\markup { \\bold { } \\italic \"a \u2018quoted\u2019 word\" \\hspace 2 }",
+  "plain_quotes": "\\markup { \\bold { } \\italic \"a \\\"quoted\\\" word\" \\hspace 2 }"
+ },
+ "reference": {
+  "after": 1,
+  "before": 1,
+  "indented": "renamedMelody = { c'4 }\n\\renamedMelody\n",
+  "ly": "renamedMelody = { c'4 }\n\\renamedMelody",
+  "plain_quotes": "renamedMelody = { c'4 }\n\\renamedMelody\n"
+ },
+ "score": {
+  "after": 1,
+  "before": 1,
+  "indented": "\\score {\n  <<\n    \\new Staff \\with {\n      instrumentName = \"Violin\"\n    } {\n      \\clef treble \\time 3/4 \\key g \\minor\n      \\partial 8\n      c'4 d' e'\n    }\n  >>\n  \\layout {\n    \\context {\n      \\Staff\n      fontSize = #-2\n    }\n  }\n  \\midi {\n    tempoWholesPerMinute = #(ly:make-moment 100 4)\n  }\n}\n",
+  "ly": "\\score {\n<<\n\\new Staff \\with {\ninstrumentName = \"Violin\"\n} {\n\\clef treble \\time 3/4 \\key g \\minor\n\\partial 8\nc'4 d' e'\n}\n>>\n\\layout {\n\\context {\n\\Staff\nfontSize = #-2\n}\n}\n\\midi {\ntempoWholesPerMinute = #(ly:make-moment 100 4)\n}\n}",
+  "plain_quotes": "\\score {\n  <<\n    \\new Staff \\with {\n      instrumentName = \"Violin\"\n    } {\n      \\clef treble \\time 3/4 \\key g \\minor\n      \\partial 8\n      c'4 d' e'\n    }\n  >>\n  \\layout {\n    \\context {\n      \\Staff\n      fontSize = #-2\n    }\n  }\n  \\midi {\n    tempoWholesPerMinute = #(ly:make-moment 100 4)\n  }\n}\n"
+ },
+ "tempo": {
+  "after": 0,
+  "before": 0,
+  "indented": "{\n  \\tempo 4=100\n  \\tempo \"Allegro\" 2=60\n  \\tempo\n  \\mark ##f\n}",
+  "ly": "{\n\\tempo 4=100\n\\tempo \"Allegro\" 2=60\n\\tempo\n\\mark ##f\n}",
+  "plain_quotes": "{\n  \\tempo 4=100\n  \\tempo \"Allegro\" 2=60\n  \\tempo\n  \\mark ##f\n}"
+ }
+}

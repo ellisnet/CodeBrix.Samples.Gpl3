@@ -1,0 +1,405 @@
+{
+ "has_output": true,
+ "node_positions": [
+  [
+   0,
+   "Document",
+   -1
+  ],
+  [
+   7,
+   "Document",
+   -1
+  ],
+  [
+   14,
+   "Document",
+   -1
+  ],
+  [
+   21,
+   "Document",
+   -1
+  ],
+  [
+   28,
+   "Document",
+   -1
+  ],
+  [
+   35,
+   "Document",
+   -1
+  ],
+  [
+   42,
+   "Document",
+   -1
+  ],
+  [
+   49,
+   "Document",
+   -1
+  ],
+  [
+   56,
+   "Document",
+   -1
+  ],
+  [
+   63,
+   "Document",
+   -1
+  ],
+  [
+   70,
+   "Document",
+   -1
+  ],
+  [
+   77,
+   "Document",
+   -1
+  ],
+  [
+   84,
+   "Document",
+   -1
+  ],
+  [
+   91,
+   "Document",
+   -1
+  ],
+  [
+   98,
+   "Relative",
+   97
+  ],
+  [
+   105,
+   "Relative",
+   97
+  ],
+  [
+   112,
+   "Note",
+   112
+  ],
+  [
+   119,
+   "Note",
+   119
+  ],
+  [
+   126,
+   "Note",
+   126
+  ],
+  [
+   133,
+   "Note",
+   126
+  ],
+  [
+   140,
+   "Note",
+   126
+  ],
+  [
+   147,
+   "Note",
+   126
+  ],
+  [
+   154,
+   "Note",
+   126
+  ],
+  [
+   161,
+   "Note",
+   126
+  ],
+  [
+   168,
+   "Note",
+   126
+  ],
+  [
+   175,
+   "Note",
+   126
+  ],
+  [
+   182,
+   "Note",
+   126
+  ],
+  [
+   189,
+   "Note",
+   126
+  ],
+  [
+   194,
+   "Note",
+   126
+  ]
+ ],
+ "time_positions": [
+  [
+   0,
+   null
+  ],
+  [
+   7,
+   null
+  ],
+  [
+   14,
+   null
+  ],
+  [
+   21,
+   null
+  ],
+  [
+   28,
+   null
+  ],
+  [
+   35,
+   null
+  ],
+  [
+   42,
+   null
+  ],
+  [
+   49,
+   null
+  ],
+  [
+   56,
+   null
+  ],
+  [
+   63,
+   null
+  ],
+  [
+   70,
+   null
+  ],
+  [
+   77,
+   null
+  ],
+  [
+   84,
+   null
+  ],
+  [
+   91,
+   null
+  ],
+  [
+   98,
+   "0/1"
+  ],
+  [
+   105,
+   "0/1"
+  ],
+  [
+   112,
+   "0/1"
+  ],
+  [
+   119,
+   "3/4"
+  ],
+  [
+   126,
+   "3/2"
+  ],
+  [
+   133,
+   null
+  ],
+  [
+   140,
+   null
+  ],
+  [
+   147,
+   null
+  ],
+  [
+   154,
+   null
+  ],
+  [
+   161,
+   null
+  ],
+  [
+   168,
+   null
+  ],
+  [
+   175,
+   null
+  ],
+  [
+   182,
+   null
+  ],
+  [
+   189,
+   null
+  ],
+  [
+   194,
+   null
+  ]
+ ],
+ "tree": {
+  "children": [
+   {
+    "children": [
+     {
+      "children": [],
+      "cls": "Note",
+      "end": 109,
+      "length": "0/1",
+      "plaintext": "",
+      "position": 107,
+      "token": "c",
+      "tokens": []
+     },
+     {
+      "children": [
+       {
+        "children": [
+         {
+          "children": [],
+          "cls": "Duration",
+          "end": 114,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 113,
+          "token": "4",
+          "tokens": []
+         }
+        ],
+        "cls": "Note",
+        "end": 114,
+        "length": "1/4",
+        "plaintext": "",
+        "position": 112,
+        "token": "c",
+        "tokens": []
+       },
+       {
+        "children": [],
+        "cls": "Note",
+        "end": 116,
+        "length": "1/4",
+        "plaintext": "",
+        "position": 115,
+        "token": "d",
+        "tokens": []
+       },
+       {
+        "children": [],
+        "cls": "Note",
+        "end": 118,
+        "length": "1/4",
+        "plaintext": "",
+        "position": 117,
+        "token": "e",
+        "tokens": []
+       },
+       {
+        "children": [],
+        "cls": "Note",
+        "end": 120,
+        "length": "1/4",
+        "plaintext": "",
+        "position": 119,
+        "token": "f",
+        "tokens": []
+       },
+       {
+        "children": [],
+        "cls": "PipeSymbol",
+        "end": 122,
+        "length": "0/1",
+        "plaintext": "",
+        "position": 121,
+        "token": "|",
+        "tokens": []
+       },
+       {
+        "children": [
+         {
+          "children": [],
+          "cls": "Duration",
+          "end": 125,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 124,
+          "token": "2",
+          "tokens": []
+         }
+        ],
+        "cls": "Note",
+        "end": 125,
+        "length": "1/2",
+        "plaintext": "",
+        "position": 123,
+        "token": "g",
+        "tokens": []
+       },
+       {
+        "children": [],
+        "cls": "Note",
+        "end": 127,
+        "length": "1/2",
+        "plaintext": "",
+        "position": 126,
+        "token": "g",
+        "tokens": []
+       }
+      ],
+      "cls": "MusicList",
+      "end": 129,
+      "length": "2/1",
+      "plaintext": "",
+      "position": 110,
+      "token": "{",
+      "tokens": [
+       "}"
+      ]
+     }
+    ],
+    "cls": "Relative",
+    "end": 129,
+    "length": "2/1",
+    "plaintext": "",
+    "position": 97,
+    "token": "\\relative",
+    "tokens": []
+   }
+  ],
+  "cls": "Document",
+  "end": 129,
+  "length": "0/1",
+  "plaintext": "",
+  "position": -1,
+  "token": null,
+  "tokens": []
+ }
+}

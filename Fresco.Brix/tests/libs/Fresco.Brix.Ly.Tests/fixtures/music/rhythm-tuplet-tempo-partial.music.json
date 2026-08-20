@@ -1,0 +1,504 @@
+{
+ "has_output": false,
+ "node_positions": [
+  [
+   0,
+   "Version",
+   0
+  ],
+  [
+   7,
+   "Version",
+   0
+  ],
+  [
+   14,
+   "String",
+   9
+  ],
+  [
+   21,
+   "Assignment",
+   18
+  ],
+  [
+   28,
+   "MusicList",
+   26
+  ],
+  [
+   35,
+   "Tempo",
+   30
+  ],
+  [
+   42,
+   "Number",
+   41
+  ],
+  [
+   49,
+   "Partial",
+   46
+  ],
+  [
+   56,
+   "Duration",
+   55
+  ],
+  [
+   63,
+   "Scaler",
+   63
+  ],
+  [
+   70,
+   "Scaler",
+   63
+  ],
+  [
+   77,
+   "MusicList",
+   77
+  ],
+  [
+   84,
+   "Note",
+   83
+  ],
+  [
+   91,
+   "Note",
+   86
+  ],
+  [
+   98,
+   "Scaler",
+   93
+  ],
+  [
+   105,
+   "MusicList",
+   105
+  ],
+  [
+   112,
+   "Note",
+   111
+  ],
+  [
+   119,
+   "Note",
+   114
+  ],
+  [
+   126,
+   "Duration",
+   124
+  ],
+  [
+   128,
+   "Duration",
+   124
+  ]
+ ],
+ "time_positions": [
+  [
+   0,
+   null
+  ],
+  [
+   7,
+   null
+  ],
+  [
+   14,
+   null
+  ],
+  [
+   21,
+   "0/1"
+  ],
+  [
+   28,
+   "0/1"
+  ],
+  [
+   35,
+   "0/1"
+  ],
+  [
+   42,
+   "0/1"
+  ],
+  [
+   49,
+   "0/1"
+  ],
+  [
+   56,
+   "0/1"
+  ],
+  [
+   63,
+   "1/8"
+  ],
+  [
+   70,
+   "1/8"
+  ],
+  [
+   77,
+   "1/8"
+  ],
+  [
+   84,
+   "5/24"
+  ],
+  [
+   91,
+   "3/8"
+  ],
+  [
+   98,
+   "3/8"
+  ],
+  [
+   105,
+   "3/8"
+  ],
+  [
+   112,
+   "11/24"
+  ],
+  [
+   119,
+   "5/8"
+  ],
+  [
+   126,
+   "7/8"
+  ],
+  [
+   128,
+   null
+  ]
+ ],
+ "tree": {
+  "children": [
+   {
+    "children": [
+     {
+      "children": [],
+      "cls": "String",
+      "end": 17,
+      "length": "0/1",
+      "plaintext": "2.27.2",
+      "position": 9,
+      "token": "\"",
+      "tokens": [
+       "2.27.2",
+       "\""
+      ]
+     }
+    ],
+    "cls": "Version",
+    "end": 17,
+    "length": "0/1",
+    "plaintext": "",
+    "position": 0,
+    "token": "\\version",
+    "tokens": []
+   },
+   {
+    "children": [
+     {
+      "children": [
+       {
+        "children": [
+         {
+          "children": [],
+          "cls": "Duration",
+          "end": 38,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 37,
+          "token": "4",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "Number",
+          "end": 43,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 41,
+          "token": "90",
+          "tokens": []
+         }
+        ],
+        "cls": "Tempo",
+        "end": 43,
+        "length": "0/1",
+        "plaintext": "",
+        "position": 30,
+        "token": "\\tempo",
+        "tokens": [
+         "="
+        ]
+       },
+       {
+        "children": [
+         {
+          "children": [],
+          "cls": "Duration",
+          "end": 56,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 55,
+          "token": "8",
+          "tokens": []
+         }
+        ],
+        "cls": "Partial",
+        "end": 56,
+        "length": "0/1",
+        "plaintext": "",
+        "position": 46,
+        "token": "\\partial",
+        "tokens": []
+       },
+       {
+        "children": [
+         {
+          "children": [],
+          "cls": "Duration",
+          "end": 60,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 59,
+          "token": "8",
+          "tokens": []
+         }
+        ],
+        "cls": "Note",
+        "end": 60,
+        "length": "1/8",
+        "plaintext": "",
+        "position": 57,
+        "token": "c",
+        "tokens": []
+       },
+       {
+        "children": [
+         {
+          "children": [],
+          "cls": "Number",
+          "end": 74,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 71,
+          "token": "3/2",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "Duration",
+          "end": 76,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 75,
+          "token": "4",
+          "tokens": []
+         },
+         {
+          "children": [
+           {
+            "children": [
+             {
+              "children": [],
+              "cls": "Duration",
+              "end": 82,
+              "length": "0/1",
+              "plaintext": "",
+              "position": 81,
+              "token": "8",
+              "tokens": []
+             }
+            ],
+            "cls": "Note",
+            "end": 82,
+            "length": "1/8",
+            "plaintext": "",
+            "position": 79,
+            "token": "d",
+            "tokens": []
+           },
+           {
+            "children": [],
+            "cls": "Note",
+            "end": 85,
+            "length": "1/8",
+            "plaintext": "",
+            "position": 83,
+            "token": "e",
+            "tokens": []
+           },
+           {
+            "children": [],
+            "cls": "Note",
+            "end": 88,
+            "length": "1/8",
+            "plaintext": "",
+            "position": 86,
+            "token": "f",
+            "tokens": []
+           }
+          ],
+          "cls": "MusicList",
+          "end": 90,
+          "length": "3/8",
+          "plaintext": "",
+          "position": 77,
+          "token": "{",
+          "tokens": [
+           "}"
+          ]
+         }
+        ],
+        "cls": "Scaler",
+        "end": 90,
+        "length": "1/4",
+        "plaintext": "",
+        "position": 63,
+        "token": "\\tuplet",
+        "tokens": []
+       },
+       {
+        "children": [
+         {
+          "children": [],
+          "cls": "Number",
+          "end": 104,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 101,
+          "token": "3/2",
+          "tokens": []
+         },
+         {
+          "children": [
+           {
+            "children": [
+             {
+              "children": [],
+              "cls": "Duration",
+              "end": 110,
+              "length": "0/1",
+              "plaintext": "",
+              "position": 109,
+              "token": "8",
+              "tokens": []
+             }
+            ],
+            "cls": "Note",
+            "end": 110,
+            "length": "1/8",
+            "plaintext": "",
+            "position": 107,
+            "token": "g",
+            "tokens": []
+           },
+           {
+            "children": [],
+            "cls": "Note",
+            "end": 113,
+            "length": "1/8",
+            "plaintext": "",
+            "position": 111,
+            "token": "a",
+            "tokens": []
+           },
+           {
+            "children": [],
+            "cls": "Note",
+            "end": 116,
+            "length": "1/8",
+            "plaintext": "",
+            "position": 114,
+            "token": "b",
+            "tokens": []
+           }
+          ],
+          "cls": "MusicList",
+          "end": 118,
+          "length": "3/8",
+          "plaintext": "",
+          "position": 105,
+          "token": "{",
+          "tokens": [
+           "}"
+          ]
+         }
+        ],
+        "cls": "Scaler",
+        "end": 118,
+        "length": "1/4",
+        "plaintext": "",
+        "position": 93,
+        "token": "\\tuplet",
+        "tokens": []
+       },
+       {
+        "children": [
+         {
+          "children": [],
+          "cls": "Duration",
+          "end": 125,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 124,
+          "token": "4",
+          "tokens": []
+         }
+        ],
+        "cls": "Note",
+        "end": 125,
+        "length": "1/4",
+        "plaintext": "",
+        "position": 121,
+        "token": "c",
+        "tokens": []
+       }
+      ],
+      "cls": "MusicList",
+      "end": 127,
+      "length": "7/8",
+      "plaintext": "",
+      "position": 26,
+      "token": "{",
+      "tokens": [
+       "}"
+      ]
+     }
+    ],
+    "cls": "Assignment",
+    "end": 127,
+    "length": "0/1",
+    "plaintext": "",
+    "position": 18,
+    "token": "music",
+    "tokens": [
+     "="
+    ]
+   }
+  ],
+  "cls": "Document",
+  "end": 127,
+  "length": "0/1",
+  "plaintext": "",
+  "position": -1,
+  "token": null,
+  "tokens": []
+ }
+}

@@ -1,0 +1,492 @@
+{
+ "has_output": true,
+ "node_positions": [
+  [
+   0,
+   "Version",
+   0
+  ],
+  [
+   7,
+   "Version",
+   0
+  ],
+  [
+   14,
+   "String",
+   9
+  ],
+  [
+   21,
+   "Header",
+   19
+  ],
+  [
+   28,
+   "Header",
+   19
+  ],
+  [
+   35,
+   "Assignment",
+   31
+  ],
+  [
+   42,
+   "String",
+   41
+  ],
+  [
+   49,
+   "String",
+   41
+  ],
+  [
+   56,
+   "String",
+   41
+  ],
+  [
+   63,
+   "String",
+   41
+  ],
+  [
+   70,
+   "String",
+   41
+  ],
+  [
+   77,
+   "String",
+   41
+  ],
+  [
+   84,
+   "String",
+   41
+  ],
+  [
+   91,
+   "String",
+   41
+  ],
+  [
+   98,
+   "String",
+   41
+  ],
+  [
+   105,
+   "String",
+   41
+  ],
+  [
+   112,
+   "String",
+   41
+  ],
+  [
+   119,
+   "MusicList",
+   117
+  ],
+  [
+   126,
+   "Context",
+   122
+  ],
+  [
+   133,
+   "Context",
+   122
+  ],
+  [
+   140,
+   "Context",
+   122
+  ],
+  [
+   147,
+   "Context",
+   147
+  ],
+  [
+   154,
+   "Context",
+   147
+  ],
+  [
+   161,
+   "Context",
+   147
+  ],
+  [
+   168,
+   "LyricsTo",
+   165
+  ],
+  [
+   175,
+   "LyricsTo",
+   165
+  ],
+  [
+   182,
+   "LyricMode",
+   179
+  ],
+  [
+   189,
+   "LyricMode",
+   179
+  ],
+  [
+   196,
+   "LyricText",
+   192
+  ],
+  [
+   203,
+   "LyricText",
+   192
+  ],
+  [
+   205,
+   "LyricText",
+   192
+  ]
+ ],
+ "time_positions": [
+  [
+   0,
+   null
+  ],
+  [
+   7,
+   null
+  ],
+  [
+   14,
+   null
+  ],
+  [
+   21,
+   null
+  ],
+  [
+   28,
+   null
+  ],
+  [
+   35,
+   null
+  ],
+  [
+   42,
+   null
+  ],
+  [
+   49,
+   null
+  ],
+  [
+   56,
+   null
+  ],
+  [
+   63,
+   null
+  ],
+  [
+   70,
+   null
+  ],
+  [
+   77,
+   null
+  ],
+  [
+   84,
+   null
+  ],
+  [
+   91,
+   null
+  ],
+  [
+   98,
+   null
+  ],
+  [
+   105,
+   null
+  ],
+  [
+   112,
+   null
+  ],
+  [
+   119,
+   "0/1"
+  ],
+  [
+   126,
+   "0/1"
+  ],
+  [
+   133,
+   "0/1"
+  ],
+  [
+   140,
+   "0/1"
+  ],
+  [
+   147,
+   "0/1"
+  ],
+  [
+   154,
+   "0/1"
+  ],
+  [
+   161,
+   "0/1"
+  ],
+  [
+   168,
+   "0/1"
+  ],
+  [
+   175,
+   "0/1"
+  ],
+  [
+   182,
+   "0/1"
+  ],
+  [
+   189,
+   "0/1"
+  ],
+  [
+   196,
+   "1/1"
+  ],
+  [
+   203,
+   "0/1"
+  ],
+  [
+   205,
+   null
+  ]
+ ],
+ "tree": {
+  "children": [
+   {
+    "children": [
+     {
+      "children": [],
+      "cls": "String",
+      "end": 17,
+      "length": "0/1",
+      "plaintext": "2.21.7",
+      "position": 9,
+      "token": "\"",
+      "tokens": [
+       "2.21.7",
+       "\""
+      ]
+     }
+    ],
+    "cls": "Version",
+    "end": 17,
+    "length": "0/1",
+    "plaintext": "",
+    "position": 0,
+    "token": "\\version",
+    "tokens": []
+   },
+   {
+    "children": [
+     {
+      "children": [
+       {
+        "children": [],
+        "cls": "String",
+        "end": 113,
+        "length": "0/1",
+        "plaintext": "This tests @code{\\lyricsto} as the first element of\nsequential music.",
+        "position": 41,
+        "token": "\"",
+        "tokens": [
+         "This tests @code{",
+         "\\\\",
+         "lyricsto} as the first element of",
+         "\n",
+         "sequential music.",
+         "\""
+        ]
+       }
+      ],
+      "cls": "Assignment",
+      "end": 113,
+      "length": "0/1",
+      "plaintext": "",
+      "position": 31,
+      "token": "texidoc",
+      "tokens": [
+       "="
+      ]
+     }
+    ],
+    "cls": "Header",
+    "end": 115,
+    "length": "0/1",
+    "plaintext": "",
+    "position": 19,
+    "token": "\\header",
+    "tokens": [
+     "{",
+     "}"
+    ]
+   },
+   {
+    "children": [
+     {
+      "children": [
+       {
+        "children": [
+         {
+          "children": [],
+          "cls": "Duration",
+          "end": 144,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 143,
+          "token": "1",
+          "tokens": []
+         }
+        ],
+        "cls": "Note",
+        "end": 144,
+        "length": "1/1",
+        "plaintext": "",
+        "position": 141,
+        "token": "f",
+        "tokens": []
+       }
+      ],
+      "cls": "Context",
+      "end": 144,
+      "length": "1/1",
+      "plaintext": "",
+      "position": 122,
+      "token": "\\context",
+      "tokens": []
+     },
+     {
+      "children": [
+       {
+        "children": [
+         {
+          "children": [
+           {
+            "children": [
+             {
+              "children": [
+               {
+                "children": [
+                 {
+                  "children": [],
+                  "cls": "LyricText",
+                  "end": 195,
+                  "length": "1/1",
+                  "plaintext": "",
+                  "position": 192,
+                  "token": "eff",
+                  "tokens": []
+                 }
+                ],
+                "cls": "MusicList",
+                "end": 197,
+                "length": "1/1",
+                "plaintext": "",
+                "position": 190,
+                "token": "{",
+                "tokens": [
+                 "}"
+                ]
+               }
+              ],
+              "cls": "LyricMode",
+              "end": 197,
+              "length": "1/1",
+              "plaintext": "",
+              "position": 179,
+              "token": "\\lyricmode",
+              "tokens": []
+             }
+            ],
+            "cls": "MusicList",
+            "end": 199,
+            "length": "1/1",
+            "plaintext": "",
+            "position": 177,
+            "token": "{",
+            "tokens": [
+             "}"
+            ]
+           }
+          ],
+          "cls": "LyricsTo",
+          "end": 199,
+          "length": "1/1",
+          "plaintext": "",
+          "position": 165,
+          "token": "\\lyricsto",
+          "tokens": []
+         }
+        ],
+        "cls": "MusicList",
+        "end": 201,
+        "length": "1/1",
+        "plaintext": "",
+        "position": 163,
+        "token": "{",
+        "tokens": [
+         "}"
+        ]
+       }
+      ],
+      "cls": "Context",
+      "end": 201,
+      "length": "1/1",
+      "plaintext": "",
+      "position": 147,
+      "token": "\\context",
+      "tokens": []
+     }
+    ],
+    "cls": "MusicList",
+    "end": 204,
+    "length": "1/1",
+    "plaintext": "",
+    "position": 117,
+    "token": "<<",
+    "tokens": [
+     ">>"
+    ]
+   }
+  ],
+  "cls": "Document",
+  "end": 204,
+  "length": "0/1",
+  "plaintext": "",
+  "position": -1,
+  "token": null,
+  "tokens": []
+ }
+}

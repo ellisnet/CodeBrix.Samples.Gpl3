@@ -1,0 +1,83 @@
+{
+ "complete": true,
+ "counted_tokens": {
+  "_token.Newline": 45,
+  "_token.Space": 128,
+  "lilypond.CloseBracket": 5,
+  "lilypond.Command": 2,
+  "lilypond.ContextName": 6,
+  "lilypond.ContextProperty": 3,
+  "lilypond.Direction": 2,
+  "lilypond.Dot": 1,
+  "lilypond.DotPath": 4,
+  "lilypond.DrumMode": 3,
+  "lilypond.DrumNote": 33,
+  "lilypond.EqualSign": 10,
+  "lilypond.GrobName": 2,
+  "lilypond.GrobProperty": 2,
+  "lilypond.Header": 1,
+  "lilypond.HeaderVariable": 1,
+  "lilypond.IntegerValue": 1,
+  "lilypond.Keyword": 1,
+  "lilypond.Layout": 1,
+  "lilypond.Length": 20,
+  "lilypond.LineComment": 1,
+  "lilypond.Midi": 1,
+  "lilypond.Name": 3,
+  "lilypond.New": 4,
+  "lilypond.OpenBracket": 11,
+  "lilypond.OpenSimultaneous": 1,
+  "lilypond.Override": 2,
+  "lilypond.Repeat": 4,
+  "lilypond.RepeatCount": 4,
+  "lilypond.Rest": 5,
+  "lilypond.SchemeStart": 3,
+  "lilypond.Score": 1,
+  "lilypond.SequentialEnd": 9,
+  "lilypond.SequentialStart": 3,
+  "lilypond.Set": 2,
+  "lilypond.SimultaneousEnd": 4,
+  "lilypond.SimultaneousStart": 3,
+  "lilypond.String": 13,
+  "lilypond.StringQuotedEnd": 10,
+  "lilypond.StringQuotedStart": 10,
+  "lilypond.Tempo": 1,
+  "lilypond.UserCommand": 3,
+  "lilypond.With": 1,
+  "scheme.CloseParen": 1,
+  "scheme.Dot": 1,
+  "scheme.Number": 3,
+  "scheme.OpenParen": 1,
+  "scheme.Quote": 1,
+  "scheme.Word": 1
+ },
+ "definitions": [
+  [
+   "drh",
+   287
+  ],
+  [
+   "drl",
+   392
+  ],
+  [
+   "timb",
+   506
+  ]
+ ],
+ "global_staff_size": null,
+ "has_output": true,
+ "include_args": [],
+ "language": null,
+ "markup_definitions": [],
+ "mode": "lilypond",
+ "output_args": [],
+ "scheme_load_args": [],
+ "token_count": 378,
+ "version": [
+  2,
+  17,
+  6
+ ],
+ "version_string": "2.17.6"
+}

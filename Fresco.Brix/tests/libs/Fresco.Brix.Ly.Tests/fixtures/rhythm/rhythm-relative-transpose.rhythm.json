@@ -1,0 +1,90 @@
+{
+ "extract": [
+  "4",
+  "8",
+  "16",
+  "2",
+  "4"
+ ],
+ "music_items": [
+  [
+   61,
+   63,
+   62,
+   true,
+   [
+    "c"
+   ],
+   [
+    "4"
+   ]
+  ],
+  [
+   64,
+   66,
+   65,
+   true,
+   [
+    "d"
+   ],
+   [
+    "8"
+   ]
+  ],
+  [
+   67,
+   70,
+   68,
+   true,
+   [
+    "e"
+   ],
+   [
+    "16"
+   ]
+  ],
+  [
+   75,
+   77,
+   76,
+   true,
+   [
+    "f"
+   ],
+   [
+    "2"
+   ]
+  ],
+  [
+   78,
+   80,
+   79,
+   true,
+   [
+    "g"
+   ],
+   [
+    "4"
+   ]
+  ]
+ ],
+ "overwrite_durations": [
+  "4",
+  "8",
+  "",
+  "16."
+ ],
+ "results": {
+  "dot": "\\version \"2.27.2\"\nmusic = \\relative c'' {\n  \\transpose c d { c4. d8. e16. }\n  f2. g4.\n}\n",
+  "double": "\\version \"2.27.2\"\nmusic = \\relative c'' {\n  \\transpose c d { c2 d4 e8 }\n  f1 g2\n}\n",
+  "explicit": "\\version \"2.27.2\"\nmusic = \\relative c'' {\n  \\transpose c d { c4 d8 e16 }\n  f2 g4\n}\n",
+  "halve": "\\version \"2.27.2\"\nmusic = \\relative c'' {\n  \\transpose c d { c8 d16 e32 }\n  f4 g8\n}\n",
+  "implicit": "\\version \"2.27.2\"\nmusic = \\relative c'' {\n  \\transpose c d { c4 d8 e16 }\n  f2 g4\n}\n",
+  "implicit_per_line": "\\version \"2.27.2\"\nmusic = \\relative c'' {\n  \\transpose c d { c4 d8 e16 }\n  f2 g4\n}\n",
+  "overwrite": "\\version \"2.27.2\"\nmusic = \\relative c'' {\n  \\transpose c d { c4 d8 e }\n  f16. g4\n}\n",
+  "remove": "\\version \"2.27.2\"\nmusic = \\relative c'' {\n  \\transpose c d { c d e }\n  f g\n}\n",
+  "remove_fraction_scaling": "\\version \"2.27.2\"\nmusic = \\relative c'' {\n  \\transpose c d { c4 d8 e16 }\n  f2 g4\n}\n",
+  "remove_scaling": "\\version \"2.27.2\"\nmusic = \\relative c'' {\n  \\transpose c d { c4 d8 e16 }\n  f2 g4\n}\n",
+  "undot": "\\version \"2.27.2\"\nmusic = \\relative c'' {\n  \\transpose c d { c4 d8 e16 }\n  f2 g4\n}\n"
+ }
+}

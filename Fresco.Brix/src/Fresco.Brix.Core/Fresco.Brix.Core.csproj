@@ -11,5 +11,15 @@
     <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="10.0.11" />
     <PackageReference Include="CodeBrix.Platform.ApacheLicenseForever" Version="1.0.231.233" />
     <PackageReference Include="CodeBrix.Platform.Fonts.Roboto.OflLicenseForever" Version="1.0.209.315" />
+    <!-- The editor: the AvalonEdit-class text editing add-in (family version) -->
+    <PackageReference Include="CodeBrix.Platform.AdvancedTextEdit.ApacheLicenseForever" Version="1.0.231.233" />
+    <!-- The editor monospace font (FD4) -->
+    <PackageReference Include="CodeBrix.Platform.Fonts.RobotoMono.OflLicenseForever" Version="1.0.216.1150" />
+    <!-- The settings store (Develop's options.sqlite pattern) -->
+    <PackageReference Include="CodeBrix.Sqlite.ApacheLicenseForever" Version="1.0.213.50" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\libs\Fresco.Brix.Ly\Fresco.Brix.Ly.csproj" />
   </ItemGroup>
 </Project>

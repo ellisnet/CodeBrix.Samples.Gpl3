@@ -1,0 +1,106 @@
+{
+ "extract": [
+  "16",
+  "16.",
+  "32",
+  "16",
+  "8.",
+  "16"
+ ],
+ "music_items": [
+  [
+   226,
+   229,
+   227,
+   true,
+   [
+    "r"
+   ],
+   [
+    "16"
+   ]
+  ],
+  [
+   230,
+   234,
+   231,
+   true,
+   [
+    "r"
+   ],
+   [
+    "16",
+    "."
+   ]
+  ],
+  [
+   235,
+   239,
+   237,
+   true,
+   [
+    "c",
+    "'"
+   ],
+   [
+    "32"
+   ]
+  ],
+  [
+   241,
+   244,
+   242,
+   true,
+   [
+    "c"
+   ],
+   [
+    "16"
+   ]
+  ],
+  [
+   252,
+   255,
+   253,
+   true,
+   [
+    "c"
+   ],
+   [
+    "8",
+    "."
+   ]
+  ],
+  [
+   258,
+   261,
+   259,
+   true,
+   [
+    "r"
+   ],
+   [
+    "16"
+   ]
+  ]
+ ],
+ "overwrite_durations": [
+  "4",
+  "8",
+  "",
+  "16."
+ ],
+ "results": {
+  "dot": "\\header {\n  texidoc = \"beamlets don't run to end of line if there are no other\n  beamlets on the same height.\"\n\n}\n\\version \"2.19.21\"\n\n\\paper {\n  ragged-right = ##t\n}\n\n\\relative {\n  \\time 1/4\n  \\override Beam.breakable = ##t\n  r16. r16.. c'32.[ c16. \\break c8.. ] r16.\n}\n",
+  "double": "\\header {\n  texidoc = \"beamlets don't run to end of line if there are no other\n  beamlets on the same height.\"\n\n}\n\\version \"2.19.21\"\n\n\\paper {\n  ragged-right = ##t\n}\n\n\\relative {\n  \\time 1/4\n  \\override Beam.breakable = ##t\n  r8 r8. c'16[ c8 \\break c4. ] r8\n}\n",
+  "explicit": "\\header {\n  texidoc = \"beamlets don't run to end of line if there are no other\n  beamlets on the same height.\"\n\n}\n\\version \"2.19.21\"\n\n\\paper {\n  ragged-right = ##t\n}\n\n\\relative {\n  \\time 1/4\n  \\override Beam.breakable = ##t\n  r16 r16. c'32[ c16 \\break c8. ] r16\n}\n",
+  "halve": "\\header {\n  texidoc = \"beamlets don't run to end of line if there are no other\n  beamlets on the same height.\"\n\n}\n\\version \"2.19.21\"\n\n\\paper {\n  ragged-right = ##t\n}\n\n\\relative {\n  \\time 1/4\n  \\override Beam.breakable = ##t\n  r32 r32. c'64[ c32 \\break c16. ] r32\n}\n",
+  "implicit": "\\header {\n  texidoc = \"beamlets don't run to end of line if there are no other\n  beamlets on the same height.\"\n\n}\n\\version \"2.19.21\"\n\n\\paper {\n  ragged-right = ##t\n}\n\n\\relative {\n  \\time 1/4\n  \\override Beam.breakable = ##t\n  r16 r16. c'32[ c16 \\break c8. ] r16\n}\n",
+  "implicit_per_line": "\\header {\n  texidoc = \"beamlets don't run to end of line if there are no other\n  beamlets on the same height.\"\n\n}\n\\version \"2.19.21\"\n\n\\paper {\n  ragged-right = ##t\n}\n\n\\relative {\n  \\time 1/4\n  \\override Beam.breakable = ##t\n  r16 r16. c'32[ c16 \\break c8. ] r16\n}\n",
+  "overwrite": "\\header {\n  texidoc = \"beamlets don't run to end of line if there are no other\n  beamlets on the same height.\"\n\n}\n\\version \"2.19.21\"\n\n\\paper {\n  ragged-right = ##t\n}\n\n\\relative {\n  \\time 1/4\n  \\override Beam.breakable = ##t\n  r4 r8 c'[ c16. \\break c4 ] r8\n}\n",
+  "remove": "\\header {\n  texidoc = \"beamlets don't run to end of line if there are no other\n  beamlets on the same height.\"\n\n}\n\\version \"2.19.21\"\n\n\\paper {\n  ragged-right = ##t\n}\n\n\\relative {\n  \\time 1/4\n  \\override Beam.breakable = ##t\n  r r c'[ c \\break c ] r\n}\n",
+  "remove_fraction_scaling": "\\header {\n  texidoc = \"beamlets don't run to end of line if there are no other\n  beamlets on the same height.\"\n\n}\n\\version \"2.19.21\"\n\n\\paper {\n  ragged-right = ##t\n}\n\n\\relative {\n  \\time 1/4\n  \\override Beam.breakable = ##t\n  r16 r16. c'32[ c16 \\break c8. ] r16\n}\n",
+  "remove_scaling": "\\header {\n  texidoc = \"beamlets don't run to end of line if there are no other\n  beamlets on the same height.\"\n\n}\n\\version \"2.19.21\"\n\n\\paper {\n  ragged-right = ##t\n}\n\n\\relative {\n  \\time 1/4\n  \\override Beam.breakable = ##t\n  r16 r16. c'32[ c16 \\break c8. ] r16\n}\n",
+  "undot": "\\header {\n  texidoc = \"beamlets don't run to end of line if there are no other\n  beamlets on the same height.\"\n\n}\n\\version \"2.19.21\"\n\n\\paper {\n  ragged-right = ##t\n}\n\n\\relative {\n  \\time 1/4\n  \\override Beam.breakable = ##t\n  r16 r16 c'32[ c16 \\break c8 ] r16\n}\n"
+ }
+}

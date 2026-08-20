@@ -1,0 +1,417 @@
+{
+ "has_output": false,
+ "node_positions": [
+  [
+   0,
+   "Version",
+   0
+  ],
+  [
+   7,
+   "Version",
+   0
+  ],
+  [
+   14,
+   "String",
+   9
+  ],
+  [
+   21,
+   "Assignment",
+   18
+  ],
+  [
+   28,
+   "MusicList",
+   26
+  ],
+  [
+   35,
+   "Note",
+   35
+  ],
+  [
+   42,
+   "Command",
+   37
+  ],
+  [
+   49,
+   "Command",
+   46
+  ],
+  [
+   56,
+   "Command",
+   46
+  ],
+  [
+   63,
+   "Note",
+   61
+  ],
+  [
+   70,
+   "Transpose",
+   67
+  ],
+  [
+   77,
+   "Transpose",
+   67
+  ],
+  [
+   84,
+   "Note",
+   84
+  ],
+  [
+   91,
+   "Note",
+   91
+  ],
+  [
+   98,
+   "Note",
+   98
+  ],
+  [
+   105,
+   "Note",
+   104
+  ],
+  [
+   112,
+   "Note",
+   109
+  ],
+  [
+   119,
+   "Note",
+   114
+  ]
+ ],
+ "time_positions": [
+  [
+   0,
+   null
+  ],
+  [
+   7,
+   null
+  ],
+  [
+   14,
+   null
+  ],
+  [
+   21,
+   "0/1"
+  ],
+  [
+   28,
+   "0/1"
+  ],
+  [
+   35,
+   "0/1"
+  ],
+  [
+   42,
+   "0/1"
+  ],
+  [
+   49,
+   "0/1"
+  ],
+  [
+   56,
+   "0/1"
+  ],
+  [
+   63,
+   "0/1"
+  ],
+  [
+   70,
+   "0/1"
+  ],
+  [
+   77,
+   "0/1"
+  ],
+  [
+   84,
+   "0/1"
+  ],
+  [
+   91,
+   "1/2"
+  ],
+  [
+   98,
+   "3/4"
+  ],
+  [
+   105,
+   "1/1"
+  ],
+  [
+   112,
+   "5/4"
+  ],
+  [
+   119,
+   null
+  ]
+ ],
+ "tree": {
+  "children": [
+   {
+    "children": [
+     {
+      "children": [],
+      "cls": "String",
+      "end": 17,
+      "length": "0/1",
+      "plaintext": "2.27.2",
+      "position": 9,
+      "token": "\"",
+      "tokens": [
+       "2.27.2",
+       "\""
+      ]
+     }
+    ],
+    "cls": "Version",
+    "end": 17,
+    "length": "0/1",
+    "plaintext": "",
+    "position": 0,
+    "token": "\\version",
+    "tokens": []
+   },
+   {
+    "children": [
+     {
+      "children": [
+       {
+        "children": [
+         {
+          "children": [],
+          "cls": "Note",
+          "end": 36,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 35,
+          "token": "d",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "Command",
+          "end": 43,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 37,
+          "token": "\\major",
+          "tokens": []
+         }
+        ],
+        "cls": "KeySignature",
+        "end": 43,
+        "length": "0/1",
+        "plaintext": "",
+        "position": 30,
+        "token": "\\key",
+        "tokens": []
+       },
+       {
+        "children": [],
+        "cls": "Command",
+        "end": 60,
+        "length": "0/1",
+        "plaintext": "",
+        "position": 46,
+        "token": "\\transposition",
+        "tokens": []
+       },
+       {
+        "children": [],
+        "cls": "Note",
+        "end": 64,
+        "length": "0/1",
+        "plaintext": "",
+        "position": 61,
+        "token": "bes",
+        "tokens": []
+       },
+       {
+        "children": [
+         {
+          "children": [],
+          "cls": "Note",
+          "end": 79,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 78,
+          "token": "c",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "Note",
+          "end": 81,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 80,
+          "token": "d",
+          "tokens": []
+         },
+         {
+          "children": [
+           {
+            "children": [
+             {
+              "children": [],
+              "cls": "Duration",
+              "end": 87,
+              "length": "0/1",
+              "plaintext": "",
+              "position": 86,
+              "token": "4",
+              "tokens": []
+             }
+            ],
+            "cls": "Note",
+            "end": 87,
+            "length": "1/4",
+            "plaintext": "",
+            "position": 84,
+            "token": "c",
+            "tokens": []
+           },
+           {
+            "children": [],
+            "cls": "Note",
+            "end": 90,
+            "length": "1/4",
+            "plaintext": "",
+            "position": 88,
+            "token": "d",
+            "tokens": []
+           },
+           {
+            "children": [],
+            "cls": "Note",
+            "end": 93,
+            "length": "1/4",
+            "plaintext": "",
+            "position": 91,
+            "token": "e",
+            "tokens": []
+           }
+          ],
+          "cls": "MusicList",
+          "end": 95,
+          "length": "3/4",
+          "plaintext": "",
+          "position": 82,
+          "token": "{",
+          "tokens": [
+           "}"
+          ]
+         }
+        ],
+        "cls": "Transpose",
+        "end": 95,
+        "length": "3/4",
+        "plaintext": "",
+        "position": 67,
+        "token": "\\transpose",
+        "tokens": []
+       },
+       {
+        "children": [
+         {
+          "children": [],
+          "cls": "Duration",
+          "end": 103,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 102,
+          "token": "4",
+          "tokens": []
+         }
+        ],
+        "cls": "Note",
+        "end": 103,
+        "length": "1/4",
+        "plaintext": "",
+        "position": 98,
+        "token": "fis",
+        "tokens": []
+       },
+       {
+        "children": [],
+        "cls": "Note",
+        "end": 108,
+        "length": "1/4",
+        "plaintext": "",
+        "position": 104,
+        "token": "gis",
+        "tokens": []
+       },
+       {
+        "children": [],
+        "cls": "Note",
+        "end": 113,
+        "length": "1/4",
+        "plaintext": "",
+        "position": 109,
+        "token": "ais",
+        "tokens": []
+       },
+       {
+        "children": [],
+        "cls": "Note",
+        "end": 116,
+        "length": "1/4",
+        "plaintext": "",
+        "position": 114,
+        "token": "b",
+        "tokens": []
+       }
+      ],
+      "cls": "MusicList",
+      "end": 118,
+      "length": "7/4",
+      "plaintext": "",
+      "position": 26,
+      "token": "{",
+      "tokens": [
+       "}"
+      ]
+     }
+    ],
+    "cls": "Assignment",
+    "end": 118,
+    "length": "0/1",
+    "plaintext": "",
+    "position": 18,
+    "token": "music",
+    "tokens": [
+     "="
+    ]
+   }
+  ],
+  "cls": "Document",
+  "end": 118,
+  "length": "0/1",
+  "plaintext": "",
+  "position": -1,
+  "token": null,
+  "tokens": []
+ }
+}

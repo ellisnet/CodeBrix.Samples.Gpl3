@@ -1,0 +1,38 @@
+{
+ "results": {
+  "abs2rel": "\n\\version \"2.16.0\"\n\n\\header {\n  texidoc = \"Slurs handle avoid objects better.\n\"\n}\n\n\\relative c'' {\n a8 (  b'4 \\fermata )\n}\n",
+  "abs2rel_no_startpitch": "\n\\version \"2.16.0\"\n\n\\header {\n  texidoc = \"Slurs handle avoid objects better.\n\"\n}\n\n\\relative {\n a'8 (  b'4 \\fermata )\n}\n",
+  "abs2rel_no_startpitch_first_absolute": "\n\\version \"2.16.0\"\n\n\\header {\n  texidoc = \"Slurs handle avoid objects better.\n\"\n}\n\n\\relative {\n a'8 (  b'4 \\fermata )\n}\n",
+  "inversion": "\n\\version \"2.16.0\"\n\n\\header {\n  texidoc = \"Slurs handle avoid objects better.\n\"\n}\n\n{\n a'8 (  g4 \\fermata )\n}\n",
+  "modal_down_three_g_major": "\n\\version \"2.16.0\"\n\n\\header {\n  texidoc = \"Slurs handle avoid objects better.\n\"\n}\n\n{\n e'8 (  fis''4 \\fermata )\n}\n",
+  "modal_up_two_c_major": "\n\\version \"2.16.0\"\n\n\\header {\n  texidoc = \"Slurs handle avoid objects better.\n\"\n}\n\n{\n c''8 (  d'''4 \\fermata )\n}\n",
+  "mode_shift_a_minor_harmonic": "\n\\version \"2.16.0\"\n\n\\header {\n  texidoc = \"Slurs handle avoid objects better.\n\"\n}\n\n{\n a'8 (  b''4 \\fermata )\n}\n",
+  "mode_shift_c_major": "\n\\version \"2.16.0\"\n\n\\header {\n  texidoc = \"Slurs handle avoid objects better.\n\"\n}\n\n{\n a'8 (  b''4 \\fermata )\n}\n",
+  "rel2abs": "\n\\version \"2.16.0\"\n\n\\header {\n  texidoc = \"Slurs handle avoid objects better.\n\"\n}\n\n{\n a'8 (  b''4 \\fermata )\n}\n",
+  "rel2abs_first_absolute": "\n\\version \"2.16.0\"\n\n\\header {\n  texidoc = \"Slurs handle avoid objects better.\n\"\n}\n\n{\n a'8 (  b''4 \\fermata )\n}\n",
+  "retrograde": "\n\\version \"2.16.0\"\n\n\\header {\n  texidoc = \"Slurs handle avoid objects better.\n\"\n}\n\n{\n b''8 (  a'4 \\fermata )\n}\n",
+  "simplify": "\n\\version \"2.16.0\"\n\n\\header {\n  texidoc = \"Slurs handle avoid objects better.\n\"\n}\n\n{\n a'8 (  b''4 \\fermata )\n}\n",
+  "transpose_c_a_down": "\n\\version \"2.16.0\"\n\n\\header {\n  texidoc = \"Slurs handle avoid objects better.\n\"\n}\n\n{\n fis'8 (  gis''4 \\fermata )\n}\n",
+  "transpose_c_d": "\n\\version \"2.16.0\"\n\n\\header {\n  texidoc = \"Slurs handle avoid objects better.\n\"\n}\n\n{\n b'8 (  cis'''4 \\fermata )\n}\n",
+  "transpose_c_d_relative_absolute": "\n\\version \"2.16.0\"\n\n\\header {\n  texidoc = \"Slurs handle avoid objects better.\n\"\n}\n\n{\n b'8 (  cis'''4 \\fermata )\n}\n",
+  "transpose_c_ees": "\n\\version \"2.16.0\"\n\n\\header {\n  texidoc = \"Slurs handle avoid objects better.\n\"\n}\n\n{\n ces''8 (  des'''4 \\fermata )\n}\n"
+ },
+ "translations": {
+  "deutsch": {
+   "changed": false,
+   "text": "\n\\version \"2.16.0\"\n\n\\header {\n  texidoc = \"Slurs handle avoid objects better.\n\"\n}\n\n{\n a'8 (  h''4 \\fermata )\n}\n"
+  },
+  "english": {
+   "changed": false,
+   "text": "\n\\version \"2.16.0\"\n\n\\header {\n  texidoc = \"Slurs handle avoid objects better.\n\"\n}\n\n{\n a'8 (  b''4 \\fermata )\n}\n"
+  },
+  "italiano": {
+   "changed": false,
+   "text": "\n\\version \"2.16.0\"\n\n\\header {\n  texidoc = \"Slurs handle avoid objects better.\n\"\n}\n\n{\n la'8 (  si''4 \\fermata )\n}\n"
+  },
+  "norsk": {
+   "changed": false,
+   "text": "\n\\version \"2.16.0\"\n\n\\header {\n  texidoc = \"Slurs handle avoid objects better.\n\"\n}\n\n{\n a'8 (  h''4 \\fermata )\n}\n"
+  }
+ }
+}

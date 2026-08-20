@@ -363,9 +363,15 @@ public sealed class EngineSnippetRenderer : ILilypondSnippetRenderer, IDisposabl
                 BatchRunner.ReportWorkingDirectoryChange(directory);
                 InstallIncludeDirectories();
 
+                // A manual's pictures carry no point-and-click anchors: the engine's
+                // default is upstream's #t, but an anchor here would point into this
+                // renderer's scratch directory — a path no reader has — and the frozen
+                // picture inventory must not grow an element for it. Off, deliberately,
+                // the way every documentation build disables it.
                 BatchRunResult result = BatchRunner.RunText(
                     EngravingTextFor(composed.Source), name, IncludeDirectoryFor(snippet),
-                    directory);
+                    directory,
+                    new BatchRunOptions { PointAndClick = false });
 
                 if (result.ErrorCount > 0)
                 {

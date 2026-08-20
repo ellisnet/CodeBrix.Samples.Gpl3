@@ -20,7 +20,7 @@ namespace CodeBrix.LilyPort.BatchDriver;
 /// <para>
 /// Usage:
 /// <c>BatchDriver SUITE_DIR OUT_DIR [--limit N] [--files a.ly,b.ly] [--keep-existing]
-/// [--diagnostics] [--fonts DIR]</c>.
+/// [--diagnostics] [--fonts DIR] [--point-and-click]</c>.
 /// One SVG per input lands in <c>OUT_DIR</c>; per-file status goes to standard
 /// output as a tab-separated line the harness scripts can read. The process exits
 /// zero as long as the SWEEP ran AND the output directory holds exactly what the
@@ -70,7 +70,7 @@ public static class Program
         {
             Console.Error.WriteLine(
                 "usage: BatchDriver SUITE_DIR OUT_DIR [--limit N] [--files a.ly,b.ly]"
-                + " [--keep-existing] [--diagnostics] [--fonts DIR]");
+                + " [--keep-existing] [--diagnostics] [--fonts DIR] [--point-and-click]");
             return 2;
         }
 
@@ -84,6 +84,7 @@ public static class Program
         bool keepExisting = false;
         bool showDiagnostics = false;
         string fontDirectory = null;
+        bool pointAndClick = false;
 
         for (int i = 2; i < args.Length; i++)
         {
@@ -132,6 +133,15 @@ public static class Program
                 // ADDING pages to a directory a full sweep filled. It suppresses the
                 // clean AND the self-check, because neither means anything then.
                 keepExisting = true;
+            }
+            else if (args[i] == "--point-and-click")
+            {
+                // PROBE-ONLY: engrave with textedit:// anchors ON, for comparing the
+                // port's anchors against an oracle run made WITHOUT
+                // `-dno-point-and-click'. Never on a graded sweep — the reference
+                // corpus has no anchors, so every page would differ for the
+                // uninteresting reason.
+                pointAndClick = true;
             }
         }
 
@@ -214,7 +224,14 @@ public static class Program
                 // directory for the same reason, so it says so the same way.
                 BatchRunner.ReportWorkingDirectoryChange(scratch);
 
-                BatchRunResult result = BatchRunner.RunFile(file, outputDirectory);
+                // The reference corpus is generated with `-dno-point-and-click'
+                // (generate-reference.sh:161), so the candidate is too — the sweep
+                // grades the ENGRAVING, and textedit:// anchors would differ on every
+                // page for the uninteresting reason that the two sides ran from
+                // different paths. `--point-and-click' flips this for anchor probes.
+                BatchRunResult result = BatchRunner.RunFile(
+                    file, outputDirectory, null,
+                    new BatchRunOptions { PointAndClick = pointAndClick });
 
                 // MIDI is reported on its own line and always,
                 // because the sweep log IS this project's demand list: a performance that

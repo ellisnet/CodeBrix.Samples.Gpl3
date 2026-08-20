@@ -10,4 +10,11 @@
   <Project Path="src/Fresco.Brix.MacOS/Fresco.Brix.MacOS.csproj" />
   <Project Path="src/Fresco.Brix.Win32Skia/Fresco.Brix.Win32Skia.csproj" />
   <Project Path="src/Fresco.Brix.WinWpfSkia/Fresco.Brix.WinWpfSkia.csproj" />
+  <Folder Name="/Libraries/">
+    <Project Path="src/libs/Fresco.Brix.Ly/Fresco.Brix.Ly.csproj" />
+  </Folder>
+  <Folder Name="/Tests/">
+    <Project Path="tests/Fresco.Brix.Core.Tests/Fresco.Brix.Core.Tests.csproj" />
+    <Project Path="tests/libs/Fresco.Brix.Ly.Tests/Fresco.Brix.Ly.Tests.csproj" />
+  </Folder>
 </Solution>

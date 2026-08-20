@@ -13,6 +13,8 @@
       <!-- Roboto font - reference the .ttf file directly (the Fonts.xaml
            merge does not work on Skia targets) -->
       <m:FontFamily x:Key="RobotoFont">ms-appx:///CodeBrix.Platform.Fonts.Roboto/Fonts/Roboto.ttf</m:FontFamily>
+      <!-- The editor monospace font (FD4) -->
+      <m:FontFamily x:Key="RobotoMonoFont">ms-appx:///CodeBrix.Platform.Fonts.RobotoMono/Fonts/RobotoMono.ttf</m:FontFamily>
     </ResourceDictionary>
   </Application.Resources>
 

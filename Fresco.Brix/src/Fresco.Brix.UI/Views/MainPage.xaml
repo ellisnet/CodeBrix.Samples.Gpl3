@@ -4,6 +4,7 @@
     xmlns:d="clr-namespace:Microsoft.UI.Xaml.Data;assembly=CodeBrix.Platform.UI"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:vm="clr-namespace:Fresco.Brix.ViewModels;assembly=Fresco.Brix.Core"
+    xmlns:advtxt="clr-namespace:CodeBrix.Platform.UI.AdvancedTextEdit;assembly=CodeBrix.Platform.UI.AdvancedTextEdit"
     xmlns:local="using:Fresco.Brix.Views"
     FontFamily="{StaticResource RobotoFont}"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
@@ -13,9 +14,42 @@
     </Page.DataContext>
 
     <Grid>
-        <TextBlock Text="{d:Binding Greeting}"
-                   FontSize="24"
-                   HorizontalAlignment="Center"
-                   VerticalAlignment="Center" />
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- Toolbar: the file actions (menus and the full command system land
+             with the shell work; these are the first-light entry points) -->
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="6" Padding="8,8,8,4">
+            <Button Content="New" Command="{d:Binding NewCommand}" />
+            <Button Content="Open..." Command="{d:Binding OpenCommand}" />
+            <Button Content="Save" Command="{d:Binding SaveCommand}" />
+            <Button Content="Save As..." Command="{d:Binding SaveAsCommand}" />
+            <!-- Open recent: the persisted list, straight off the settings
+                 store (the real File > Open recent menu lands with the shell's
+                 command system) -->
+            <ComboBox x:Name="RecentBox" Width="220"
+                      PlaceholderText="Recent"
+                      ItemsSource="{d:Binding RecentFilePaths}"
+                      SelectedItem="{d:Binding SelectedRecentPath, Mode=TwoWay}" />
+            <TextBlock Text="{d:Binding WindowTitle}" VerticalAlignment="Center"
+                       Margin="16,0,0,0" />
+        </StackPanel>
+
+        <!-- The editor: LilyPond text with parity highlighting driven by the
+             ported ly.lex tokenizer (wired in code-behind) -->
+        <advtxt:AdvancedTextEdit
+            x:Name="Editor"
+            Grid.Row="1"
+            Margin="8,0,8,0"
+            FontFamily="{StaticResource RobotoMonoFont}"
+            FontSize="13"
+            ShowLineNumbers="True" />
+
+        <!-- Status bar: caret position and tokenizer mode -->
+        <TextBlock Grid.Row="2" Padding="8,4,8,6"
+                   Text="{d:Binding StatusText}" />
     </Grid>
 </Page>

@@ -1,0 +1,106 @@
+{
+ "extract": [
+  "1",
+  "1",
+  "1",
+  "1",
+  "1",
+  "1"
+ ],
+ "music_items": [
+  [
+   204,
+   207,
+   206,
+   true,
+   [
+    "c",
+    "'"
+   ],
+   [
+    "1"
+   ]
+  ],
+  [
+   213,
+   215,
+   214,
+   true,
+   [
+    "c"
+   ],
+   [
+    "1"
+   ]
+  ],
+  [
+   221,
+   224,
+   223,
+   true,
+   [
+    "f",
+    ","
+   ],
+   [
+    "1"
+   ]
+  ],
+  [
+   230,
+   233,
+   232,
+   true,
+   [
+    "c",
+    "'"
+   ],
+   [
+    "1"
+   ]
+  ],
+  [
+   239,
+   241,
+   240,
+   true,
+   [
+    "c"
+   ],
+   [
+    "1"
+   ]
+  ],
+  [
+   250,
+   252,
+   251,
+   true,
+   [
+    "c"
+   ],
+   [
+    "1"
+   ]
+  ]
+ ],
+ "overwrite_durations": [
+  "4",
+  "8",
+  "",
+  "16."
+ ],
+ "results": {
+  "dot": "\\version \"2.19.21\"\n\n\\header {\n  texidoc = \"If a dynamic has an explicit direction that differs from the \ndynamic line spanner's direction, automatically break the dynamic line spanner.\n\"\n}\n\n\\relative {\n  c'1.^\\<\n  c1._\\>\n  f,1.\\p\n\n  c'1.^\\<\n  c1._\\p^\\>\n  c1.\\!\n}\n",
+  "double": "\\version \"2.19.21\"\n\n\\header {\n  texidoc = \"If a dynamic has an explicit direction that differs from the \ndynamic line spanner's direction, automatically break the dynamic line spanner.\n\"\n}\n\n\\relative {\n  c'\\breve^\\<\n  c\\breve_\\>\n  f,\\breve\\p\n\n  c'\\breve^\\<\n  c\\breve_\\p^\\>\n  c\\breve\\!\n}\n",
+  "explicit": "\\version \"2.19.21\"\n\n\\header {\n  texidoc = \"If a dynamic has an explicit direction that differs from the \ndynamic line spanner's direction, automatically break the dynamic line spanner.\n\"\n}\n\n\\relative {\n  c'1^\\<\n  c1_\\>\n  f,1\\p\n\n  c'1^\\<\n  c1_\\p^\\>\n  c1\\!\n}\n",
+  "halve": "\\version \"2.19.21\"\n\n\\header {\n  texidoc = \"If a dynamic has an explicit direction that differs from the \ndynamic line spanner's direction, automatically break the dynamic line spanner.\n\"\n}\n\n\\relative {\n  c'2^\\<\n  c2_\\>\n  f,2\\p\n\n  c'2^\\<\n  c2_\\p^\\>\n  c2\\!\n}\n",
+  "implicit": "\\version \"2.19.21\"\n\n\\header {\n  texidoc = \"If a dynamic has an explicit direction that differs from the \ndynamic line spanner's direction, automatically break the dynamic line spanner.\n\"\n}\n\n\\relative {\n  c'1^\\<\n  c_\\>\n  f,\\p\n\n  c'^\\<\n  c_\\p^\\>\n  c\\!\n}\n",
+  "implicit_per_line": "\\version \"2.19.21\"\n\n\\header {\n  texidoc = \"If a dynamic has an explicit direction that differs from the \ndynamic line spanner's direction, automatically break the dynamic line spanner.\n\"\n}\n\n\\relative {\n  c'1^\\<\n  c1_\\>\n  f,1\\p\n\n  c'1^\\<\n  c1_\\p^\\>\n  c1\\!\n}\n",
+  "overwrite": "\\version \"2.19.21\"\n\n\\header {\n  texidoc = \"If a dynamic has an explicit direction that differs from the \ndynamic line spanner's direction, automatically break the dynamic line spanner.\n\"\n}\n\n\\relative {\n  c'4^\\<\n  c8_\\>\n  f,\\p\n\n  c'16.^\\<\n  c4_\\p^\\>\n  c8\\!\n}\n",
+  "remove": "\\version \"2.19.21\"\n\n\\header {\n  texidoc = \"If a dynamic has an explicit direction that differs from the \ndynamic line spanner's direction, automatically break the dynamic line spanner.\n\"\n}\n\n\\relative {\n  c'^\\<\n  c_\\>\n  f,\\p\n\n  c'^\\<\n  c_\\p^\\>\n  c\\!\n}\n",
+  "remove_fraction_scaling": "\\version \"2.19.21\"\n\n\\header {\n  texidoc = \"If a dynamic has an explicit direction that differs from the \ndynamic line spanner's direction, automatically break the dynamic line spanner.\n\"\n}\n\n\\relative {\n  c'1^\\<\n  c1_\\>\n  f,1\\p\n\n  c'1^\\<\n  c1_\\p^\\>\n  c1\\!\n}\n",
+  "remove_scaling": "\\version \"2.19.21\"\n\n\\header {\n  texidoc = \"If a dynamic has an explicit direction that differs from the \ndynamic line spanner's direction, automatically break the dynamic line spanner.\n\"\n}\n\n\\relative {\n  c'1^\\<\n  c1_\\>\n  f,1\\p\n\n  c'1^\\<\n  c1_\\p^\\>\n  c1\\!\n}\n",
+  "undot": "\\version \"2.19.21\"\n\n\\header {\n  texidoc = \"If a dynamic has an explicit direction that differs from the \ndynamic line spanner's direction, automatically break the dynamic line spanner.\n\"\n}\n\n\\relative {\n  c'1^\\<\n  c1_\\>\n  f,1\\p\n\n  c'1^\\<\n  c1_\\p^\\>\n  c1\\!\n}\n"
+ }
+}

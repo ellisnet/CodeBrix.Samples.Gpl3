@@ -1,0 +1,38 @@
+{
+ "results": {
+  "abs2rel": "\\version \"2.27.2\"\nmusic = \\relative c' {\n  c4 e g c\n  d,8 fis a d\n  bes,,4 as ges f\n}\n",
+  "abs2rel_no_startpitch": "\\version \"2.27.2\"\nmusic = \\relative {\n  c4 e g c\n  d,8 fis a d\n  bes,,4 as ges f\n}\n",
+  "abs2rel_no_startpitch_first_absolute": "\\version \"2.27.2\"\nmusic = \\relative {\n  c'4 e g c\n  d,8 fis a d\n  bes,,4 as ges f\n}\n",
+  "inversion": "\\version \"2.27.2\"\nmusic = {\n  c'4 as f c\n  bes8 ges es bes,\n  d''4 e'' fis'' g''\n}\n",
+  "modal_down_three_g_major": "\\version \"2.27.2\"\nmusic = {\n  g4 b d' g'\n  a8 c' e' a'\n  f,4 es, des, ces,\n}\n",
+  "modal_up_two_c_major": "\\version \"2.27.2\"\nmusic = {\n  e'4 g' b' e''\n  f'8 ais' c'' f''\n  des4 ces bes, a,\n}\n",
+  "mode_shift_a_minor_harmonic": "\\version \"2.27.2\"\nmusic = {\n  c'4 e' gis' c''\n  d'8 f' a' d''\n  b,4 a, gis, f,\n}\n",
+  "mode_shift_c_major": "\\version \"2.27.2\"\nmusic = {\n  c'4 e' g' c''\n  d'8 f' a' d''\n  b,4 a, g, f,\n}\n",
+  "rel2abs": "\\version \"2.27.2\"\nmusic = {\n  c'4 e' g' c''\n  d'8 fis' a' d''\n  bes,4 aes, ges, f,\n}\n",
+  "rel2abs_first_absolute": "\\version \"2.27.2\"\nmusic = {\n  c'4 e' g' c''\n  d'8 fis' a' d''\n  bes,4 aes, ges, f,\n}\n",
+  "retrograde": "\\version \"2.27.2\"\nmusic = {\n  f,4 ges, as, bes,\n  d''8 a' fis' d'\n  c''4 g' e' c'\n}\n",
+  "simplify": "\\version \"2.27.2\"\nmusic = {\n  c'4 e' g' c''\n  d'8 fis' a' d''\n  bes,4 as, ges, f,\n}\n",
+  "transpose_c_a_down": "\\version \"2.27.2\"\nmusic = {\n  a4 cis' e' a'\n  b8 dis' fis' b'\n  g,4 f, es, d,\n}\n",
+  "transpose_c_d": "\\version \"2.27.2\"\nmusic = {\n  d'4 fis' a' d''\n  e'8 gis' b' e''\n  c4 bes, as, g,\n}\n",
+  "transpose_c_d_relative_absolute": "\\version \"2.27.2\"\nmusic = {\n  d'4 fis' a' d''\n  e'8 gis' b' e''\n  c4 bes, as, g,\n}\n",
+  "transpose_c_ees": "\\version \"2.27.2\"\nmusic = {\n  eses'4 ges' beses' eses''\n  fes'8 as' ces'' fes''\n  deses4 ceses as, ases,\n}\n"
+ },
+ "translations": {
+  "deutsch": {
+   "changed": false,
+   "text": "\\version \"2.27.2\"\nmusic = {\n  c'4 e' g' c''\n  d'8 fis' a' d''\n  b,4 as, ges, f,\n}\n"
+  },
+  "english": {
+   "changed": false,
+   "text": "\\version \"2.27.2\"\nmusic = {\n  c'4 e' g' c''\n  d'8 fs' a' d''\n  bf,4 af, gf, f,\n}\n"
+  },
+  "italiano": {
+   "changed": false,
+   "text": "\\version \"2.27.2\"\nmusic = {\n  do'4 mi' sol' do''\n  re'8 fad' la' re''\n  sib,4 lab, solb, fa,\n}\n"
+  },
+  "norsk": {
+   "changed": false,
+   "text": "\\version \"2.27.2\"\nmusic = {\n  c'4 e' g' c''\n  d'8 fis' a' d''\n  b,4 as, ges, f,\n}\n"
+  }
+ }
+}

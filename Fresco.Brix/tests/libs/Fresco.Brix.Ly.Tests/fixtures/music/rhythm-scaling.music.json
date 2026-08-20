@@ -1,0 +1,283 @@
+{
+ "has_output": false,
+ "node_positions": [
+  [
+   0,
+   "Version",
+   0
+  ],
+  [
+   7,
+   "Version",
+   0
+  ],
+  [
+   14,
+   "String",
+   9
+  ],
+  [
+   21,
+   "Assignment",
+   18
+  ],
+  [
+   28,
+   "MusicList",
+   26
+  ],
+  [
+   35,
+   "Duration",
+   32
+  ],
+  [
+   42,
+   "Duration",
+   38
+  ],
+  [
+   49,
+   "Duration",
+   46
+  ],
+  [
+   56,
+   "Duration",
+   53
+  ],
+  [
+   63,
+   "Duration",
+   61
+  ],
+  [
+   68,
+   "Duration",
+   61
+  ]
+ ],
+ "time_positions": [
+  [
+   0,
+   null
+  ],
+  [
+   7,
+   null
+  ],
+  [
+   14,
+   null
+  ],
+  [
+   21,
+   "0/1"
+  ],
+  [
+   28,
+   "0/1"
+  ],
+  [
+   35,
+   "1/2"
+  ],
+  [
+   42,
+   "1/2"
+  ],
+  [
+   49,
+   "13/24"
+  ],
+  [
+   56,
+   "35/48"
+  ],
+  [
+   63,
+   "17/16"
+  ],
+  [
+   68,
+   null
+  ]
+ ],
+ "tree": {
+  "children": [
+   {
+    "children": [
+     {
+      "children": [],
+      "cls": "String",
+      "end": 17,
+      "length": "0/1",
+      "plaintext": "2.27.2",
+      "position": 9,
+      "token": "\"",
+      "tokens": [
+       "2.27.2",
+       "\""
+      ]
+     }
+    ],
+    "cls": "Version",
+    "end": 17,
+    "length": "0/1",
+    "plaintext": "",
+    "position": 0,
+    "token": "\\version",
+    "tokens": []
+   },
+   {
+    "children": [
+     {
+      "children": [
+       {
+        "children": [
+         {
+          "children": [],
+          "cls": "Duration",
+          "end": 35,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 32,
+          "token": "4",
+          "tokens": [
+           "*2"
+          ]
+         }
+        ],
+        "cls": "Note",
+        "end": 35,
+        "length": "1/2",
+        "plaintext": "",
+        "position": 30,
+        "token": "c",
+        "tokens": []
+       },
+       {
+        "children": [
+         {
+          "children": [],
+          "cls": "Duration",
+          "end": 43,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 38,
+          "token": "8",
+          "tokens": [
+           "*1/3"
+          ]
+         }
+        ],
+        "cls": "Note",
+        "end": 43,
+        "length": "1/24",
+        "plaintext": "",
+        "position": 36,
+        "token": "d",
+        "tokens": []
+       },
+       {
+        "children": [
+         {
+          "children": [],
+          "cls": "Duration",
+          "end": 50,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 46,
+          "token": "16",
+          "tokens": [
+           "*3"
+          ]
+         }
+        ],
+        "cls": "Note",
+        "end": 50,
+        "length": "3/16",
+        "plaintext": "",
+        "position": 44,
+        "token": "e",
+        "tokens": []
+       },
+       {
+        "children": [
+         {
+          "children": [],
+          "cls": "Duration",
+          "end": 58,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 53,
+          "token": "2",
+          "tokens": [
+           "*2/3"
+          ]
+         }
+        ],
+        "cls": "Note",
+        "end": 58,
+        "length": "1/3",
+        "plaintext": "",
+        "position": 51,
+        "token": "f",
+        "tokens": []
+       },
+       {
+        "children": [
+         {
+          "children": [],
+          "cls": "Duration",
+          "end": 65,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 61,
+          "token": "4",
+          "tokens": [
+           ".",
+           "*4"
+          ]
+         }
+        ],
+        "cls": "Note",
+        "end": 65,
+        "length": "3/2",
+        "plaintext": "",
+        "position": 59,
+        "token": "g",
+        "tokens": []
+       }
+      ],
+      "cls": "MusicList",
+      "end": 67,
+      "length": "41/16",
+      "plaintext": "",
+      "position": 26,
+      "token": "{",
+      "tokens": [
+       "}"
+      ]
+     }
+    ],
+    "cls": "Assignment",
+    "end": 67,
+    "length": "0/1",
+    "plaintext": "",
+    "position": 18,
+    "token": "music",
+    "tokens": [
+     "="
+    ]
+   }
+  ],
+  "cls": "Document",
+  "end": 67,
+  "length": "0/1",
+  "plaintext": "",
+  "position": -1,
+  "token": null,
+  "tokens": []
+ }
+}

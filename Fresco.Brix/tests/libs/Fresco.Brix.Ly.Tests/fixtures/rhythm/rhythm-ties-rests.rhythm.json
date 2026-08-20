@@ -1,0 +1,148 @@
+{
+ "extract": [
+  "4~",
+  "8",
+  "8",
+  "4",
+  "2",
+  "2~",
+  "4~",
+  "8",
+  "1"
+ ],
+ "music_items": [
+  [
+   30,
+   35,
+   32,
+   true,
+   [
+    "c",
+    "'",
+    "~"
+   ],
+   [
+    "4"
+   ]
+  ],
+  [
+   36,
+   39,
+   38,
+   true,
+   [
+    "c",
+    "'"
+   ],
+   [
+    "8"
+   ]
+  ],
+  [
+   40,
+   42,
+   41,
+   true,
+   [
+    "r"
+   ],
+   [
+    "8"
+   ]
+  ],
+  [
+   43,
+   45,
+   44,
+   true,
+   [
+    "r"
+   ],
+   [
+    "4"
+   ]
+  ],
+  [
+   47,
+   48,
+   47,
+   true,
+   [],
+   [
+    "2"
+   ]
+  ],
+  [
+   51,
+   56,
+   53,
+   true,
+   [
+    "d",
+    "'",
+    "~"
+   ],
+   [
+    "2"
+   ]
+  ],
+  [
+   57,
+   62,
+   59,
+   true,
+   [
+    "d",
+    "'",
+    "~"
+   ],
+   [
+    "4"
+   ]
+  ],
+  [
+   63,
+   66,
+   65,
+   true,
+   [
+    "d",
+    "'"
+   ],
+   [
+    "8"
+   ]
+  ],
+  [
+   67,
+   69,
+   68,
+   true,
+   [
+    "R"
+   ],
+   [
+    "1"
+   ]
+  ]
+ ],
+ "overwrite_durations": [
+  "4",
+  "8",
+  "",
+  "16."
+ ],
+ "results": {
+  "dot": "\\version \"2.27.2\"\nmusic = {\n  c'4. ~ c'8. r8. r4. s2.\n  d'2. ~ d'4. ~ d'8. R1.\n}\n",
+  "double": "\\version \"2.27.2\"\nmusic = {\n  c'2 ~ c'4 r4 r2 s1\n  d'1 ~ d'2 ~ d'4 R\\breve\n}\n",
+  "explicit": "\\version \"2.27.2\"\nmusic = {\n  c'4 ~ c'8 r8 r4 s2\n  d'2 ~ d'4 ~ d'8 R1\n}\n",
+  "halve": "\\version \"2.27.2\"\nmusic = {\n  c'8 ~ c'16 r16 r8 s4\n  d'4 ~ d'8 ~ d'16 R2\n}\n",
+  "implicit": "\\version \"2.27.2\"\nmusic = {\n  c'4 ~ c'8 r r4 s2\n  d' ~ d'4 ~ d'8 R1\n}\n",
+  "implicit_per_line": "\\version \"2.27.2\"\nmusic = {\n  c'4 ~ c'8 r r4 s2\n  d'2 ~ d'4 ~ d'8 R1\n}\n",
+  "overwrite": "\\version \"2.27.2\"\nmusic = {\n  c'4 ~ c'8 r r16. s4\n  d'8 ~ d' ~ d'16. R4\n}\n",
+  "remove": "\\version \"2.27.2\"\nmusic = {\n  c' ~ c' r r s\n  d' ~ d' ~ d' R\n}\n",
+  "remove_fraction_scaling": "\\version \"2.27.2\"\nmusic = {\n  c'4 ~ c'8 r8 r4 s2\n  d'2 ~ d'4 ~ d'8 R1\n}\n",
+  "remove_scaling": "\\version \"2.27.2\"\nmusic = {\n  c'4 ~ c'8 r8 r4 s2\n  d'2 ~ d'4 ~ d'8 R1\n}\n",
+  "undot": "\\version \"2.27.2\"\nmusic = {\n  c'4 ~ c'8 r8 r4 s2\n  d'2 ~ d'4 ~ d'8 R1\n}\n"
+ }
+}

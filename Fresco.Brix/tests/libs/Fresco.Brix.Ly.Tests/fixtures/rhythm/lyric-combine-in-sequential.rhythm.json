@@ -1,0 +1,39 @@
+{
+ "extract": [
+  "1"
+ ],
+ "music_items": [
+  [
+   141,
+   144,
+   143,
+   true,
+   [
+    "f",
+    "'"
+   ],
+   [
+    "1"
+   ]
+  ]
+ ],
+ "overwrite_durations": [
+  "4",
+  "8",
+  "",
+  "16."
+ ],
+ "results": {
+  "dot": "\\version \"2.21.7\"\n\n\\header {\n  texidoc = \"This tests @code{\\\\lyricsto} as the first element of\nsequential music.\"\n}\n\n<<\n  \\context Voice = V f'1.\n  \\context Lyrics { \\lyricsto V { \\lyricmode { eff } } }\n>>\n",
+  "double": "\\version \"2.21.7\"\n\n\\header {\n  texidoc = \"This tests @code{\\\\lyricsto} as the first element of\nsequential music.\"\n}\n\n<<\n  \\context Voice = V f'\\breve\n  \\context Lyrics { \\lyricsto V { \\lyricmode { eff } } }\n>>\n",
+  "explicit": "\\version \"2.21.7\"\n\n\\header {\n  texidoc = \"This tests @code{\\\\lyricsto} as the first element of\nsequential music.\"\n}\n\n<<\n  \\context Voice = V f'1\n  \\context Lyrics { \\lyricsto V { \\lyricmode { eff } } }\n>>\n",
+  "halve": "\\version \"2.21.7\"\n\n\\header {\n  texidoc = \"This tests @code{\\\\lyricsto} as the first element of\nsequential music.\"\n}\n\n<<\n  \\context Voice = V f'2\n  \\context Lyrics { \\lyricsto V { \\lyricmode { eff } } }\n>>\n",
+  "implicit": "\\version \"2.21.7\"\n\n\\header {\n  texidoc = \"This tests @code{\\\\lyricsto} as the first element of\nsequential music.\"\n}\n\n<<\n  \\context Voice = V f'1\n  \\context Lyrics { \\lyricsto V { \\lyricmode { eff } } }\n>>\n",
+  "implicit_per_line": "\\version \"2.21.7\"\n\n\\header {\n  texidoc = \"This tests @code{\\\\lyricsto} as the first element of\nsequential music.\"\n}\n\n<<\n  \\context Voice = V f'1\n  \\context Lyrics { \\lyricsto V { \\lyricmode { eff } } }\n>>\n",
+  "overwrite": "\\version \"2.21.7\"\n\n\\header {\n  texidoc = \"This tests @code{\\\\lyricsto} as the first element of\nsequential music.\"\n}\n\n<<\n  \\context Voice = V f'4\n  \\context Lyrics { \\lyricsto V { \\lyricmode { eff } } }\n>>\n",
+  "remove": "\\version \"2.21.7\"\n\n\\header {\n  texidoc = \"This tests @code{\\\\lyricsto} as the first element of\nsequential music.\"\n}\n\n<<\n  \\context Voice = V f'\n  \\context Lyrics { \\lyricsto V { \\lyricmode { eff } } }\n>>\n",
+  "remove_fraction_scaling": "\\version \"2.21.7\"\n\n\\header {\n  texidoc = \"This tests @code{\\\\lyricsto} as the first element of\nsequential music.\"\n}\n\n<<\n  \\context Voice = V f'1\n  \\context Lyrics { \\lyricsto V { \\lyricmode { eff } } }\n>>\n",
+  "remove_scaling": "\\version \"2.21.7\"\n\n\\header {\n  texidoc = \"This tests @code{\\\\lyricsto} as the first element of\nsequential music.\"\n}\n\n<<\n  \\context Voice = V f'1\n  \\context Lyrics { \\lyricsto V { \\lyricmode { eff } } }\n>>\n",
+  "undot": "\\version \"2.21.7\"\n\n\\header {\n  texidoc = \"This tests @code{\\\\lyricsto} as the first element of\nsequential music.\"\n}\n\n<<\n  \\context Voice = V f'1\n  \\context Lyrics { \\lyricsto V { \\lyricmode { eff } } }\n>>\n"
+ }
+}

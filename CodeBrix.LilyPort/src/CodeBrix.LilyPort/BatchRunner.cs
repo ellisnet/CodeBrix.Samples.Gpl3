@@ -8,6 +8,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading;
 using CodeBrix.LilyPort.Backends;
 using CodeBrix.LilyPort.Engine.Bootstrap;
 using CodeBrix.LilyPort.Engine.Layout;
@@ -248,6 +249,23 @@ public static class BatchRunner
     /// </remarks>
     public static BatchRunResult RunFile(
         string filePath, string outputDirectory, string outputBaseName)
+        => RunFile(filePath, outputDirectory, outputBaseName, null);
+
+    /// <summary>
+    /// Runs one <c>.ly</c> file with a host's per-run adjustments.
+    /// </summary>
+    /// <param name="filePath">The <c>.ly</c> file to run.</param>
+    /// <param name="outputDirectory">Where the <c>.svg</c> lands.</param>
+    /// <param name="outputBaseName">
+    /// The output base name, or <see langword="null"/> to take the input file's own.
+    /// </param>
+    /// <param name="runOptions">
+    /// The run's adjustments, or <see langword="null"/> for none.
+    /// </param>
+    /// <returns>What the run produced and reported.</returns>
+    public static BatchRunResult RunFile(
+        string filePath, string outputDirectory, string outputBaseName,
+        BatchRunOptions runOptions)
     {
         if (filePath == null)
         {
@@ -260,7 +278,8 @@ public static class BatchRunner
                 ? Path.GetFileNameWithoutExtension(filePath)
                 : outputBaseName,
             Path.GetDirectoryName(Path.GetFullPath(filePath)),
-            outputDirectory);
+            outputDirectory,
+            runOptions);
     }
 
     /// <summary>
@@ -344,6 +363,27 @@ public static class BatchRunner
         string baseName,
         string includeDirectory,
         string outputDirectory)
+        => RunText(text, baseName, includeDirectory, outputDirectory, null);
+
+    /// <summary>Runs one file's text through the full pipeline, with a host's per-run
+    /// adjustments.</summary>
+    /// <param name="text">The LilyPond source.</param>
+    /// <param name="baseName">The output base name, without extension.</param>
+    /// <param name="includeDirectory">
+    /// The directory the file's own <c>\include</c>s resolve against, or
+    /// <see langword="null"/>.
+    /// </param>
+    /// <param name="outputDirectory">Where the <c>.svg</c> lands.</param>
+    /// <param name="runOptions">
+    /// The run's adjustments, or <see langword="null"/> for none.
+    /// </param>
+    /// <returns>What the run produced and reported.</returns>
+    public static BatchRunResult RunText(
+        string text,
+        string baseName,
+        string includeDirectory,
+        string outputDirectory,
+        BatchRunOptions runOptions)
     {
         if (text == null)
         {
@@ -364,7 +404,7 @@ public static class BatchRunner
         {
             BatchRunResult result = null;
             Interpreter.RunWithLargeStack(() => result = RunLocked(
-                text, baseName, includeDirectory, outputDirectory));
+                text, baseName, includeDirectory, outputDirectory, runOptions));
             return result;
         }
     }
@@ -373,16 +413,65 @@ public static class BatchRunner
         string text,
         string baseName,
         string includeDirectory,
-        string outputDirectory)
+        string outputDirectory,
+        BatchRunOptions runOptions)
     {
         // Both layers, cached; this is also what guarantees an ambient interpreter.
         OutputDef defaultLayout = LilyPondInit.DefaultLayout();
-        Interpreter interpreter = LilyPondScheme.Current;
 
         // One process per input file is what upstream gets for free and a batch runner
         // has to arrange. Without this, `#(set-global-staff-size 30)` in one regression
         // file rescales every file engraved after it.
         LilyPondInit.RestoreDefaults();
+
+        // The host's adjustments go on AFTER the restore, so they hold for exactly this
+        // run and the NEXT run's restore takes them off again — the lifetime a
+        // per-process option has upstream. The message writer is swapped the same way
+        // and put back in the finally, wrapped in a LineTrackingWriter so the per-file
+        // boundary's EndOpenLine keeps working.
+        CancellationToken cancellationToken
+            = runOptions?.CancellationToken ?? CancellationToken.None;
+        cancellationToken.ThrowIfCancellationRequested();
+
+        if (runOptions?.PointAndClick != null)
+        {
+            LilyPondScheme.Options.Set("point-and-click", runOptions.PointAndClick);
+        }
+
+        TextWriter previousOutput = null;
+        bool outputSwapped = false;
+        if (runOptions?.MessageWriter != null)
+        {
+            previousOutput = Flower.Warn.Output;
+            Flower.Warn.Output = new Flower.LineTrackingWriter(runOptions.MessageWriter);
+            outputSwapped = true;
+        }
+
+        try
+        {
+            return RunConfigured(
+                defaultLayout, text, baseName, includeDirectory, outputDirectory,
+                cancellationToken);
+        }
+        finally
+        {
+            if (outputSwapped)
+            {
+                (Flower.Warn.Output as Flower.LineTrackingWriter)?.EndOpenLine();
+                Flower.Warn.Output = previousOutput;
+            }
+        }
+    }
+
+    private static BatchRunResult RunConfigured(
+        OutputDef defaultLayout,
+        string text,
+        string baseName,
+        string includeDirectory,
+        string outputDirectory,
+        CancellationToken cancellationToken)
+    {
+        Interpreter interpreter = LilyPondScheme.Current;
 
         List<string> diagnostics = new List<string>();
         List<Book> books = new List<Book>();
@@ -481,6 +570,13 @@ public static class BatchRunner
 
         int errorCount = RunLifecycle(session, text, baseName, includeDirectory, diagnostics);
 
+        // What the lexer recorded off the MAIN input's \version statement, for the
+        // host: an editor decides whether to offer convert-ly from exactly this
+        // string, and reading it back off the run costs nothing.
+        string declaredVersion = string.IsNullOrEmpty(session.MainInputVersionString)
+            ? null
+            : session.MainInputVersionString;
+
         // One stencil per PAGE, as the page breaker chose them.
         // Until this group it was one per SCORE, stacked at a fixed padding into a single
         // document per input file -- which is why every multi-page reference page in the
@@ -549,6 +645,10 @@ public static class BatchRunner
         {
         for (int bookIndex = 0; bookIndex < books.Count; bookIndex++)
         {
+            // A book is one uninterruptible engine call, so between books is the
+            // finest grain cancellation can honestly have here.
+            cancellationToken.ThrowIfCancellationRequested();
+
             Book book = books[bookIndex];
 
             // THE REAL ly:book-process PATH. D20's score-level
@@ -652,6 +752,7 @@ public static class BatchRunner
         string svgPath = null;
         List<string> svgPaths = new List<string>();
         List<string> midiPaths = new List<string>();
+        cancellationToken.ThrowIfCancellationRequested();
         if (bookOutputs.Exists(output => output.Pages.Count > 0) || performances.Count > 0)
         {
             Directory.CreateDirectory(outputRoot);
@@ -711,7 +812,8 @@ public static class BatchRunner
             errorCount,
             diagnostics,
             midiPaths,
-            svgPaths);
+            svgPaths,
+            declaredVersion);
     }
 
     /// <summary>
@@ -1207,6 +1309,8 @@ public sealed class BatchRunResult
     /// <param name="diagnostics">Everything reported along the way.</param>
     /// <param name="midiPaths">The MIDI files written, in performance order.</param>
     /// <param name="svgPaths">The SVG pages written, in page order.</param>
+    /// <param name="declaredVersion">The main input's <c>\version</c> string, or
+    /// <see langword="null"/> when it declared none.</param>
     public BatchRunResult(
         string svgPath,
         int bookCount,
@@ -1215,8 +1319,10 @@ public sealed class BatchRunResult
         int errorCount,
         IReadOnlyList<string> diagnostics,
         IReadOnlyList<string> midiPaths = null,
-        IReadOnlyList<string> svgPaths = null)
+        IReadOnlyList<string> svgPaths = null,
+        string declaredVersion = null)
     {
+        DeclaredVersion = declaredVersion;
         SvgPath = svgPath;
         SvgPaths = svgPaths ?? (svgPath != null
             ? new[] { svgPath }
@@ -1258,4 +1364,12 @@ public sealed class BatchRunResult
 
     /// <summary>Gets the MIDI files this run wrote, in performance order.</summary>
     public IReadOnlyList<string> MidiPaths { get; }
+
+    /// <summary>
+    /// Gets the <c>\version</c> string the MAIN input declared, or
+    /// <see langword="null"/> when it declared none — what the lexer recorded, so a
+    /// host deciding whether to offer a convert-ly update reads the engine's own
+    /// answer rather than re-scanning the text.
+    /// </summary>
+    public string DeclaredVersion { get; }
 }

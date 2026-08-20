@@ -1,0 +1,90 @@
+{
+ "extract": [
+  "4",
+  "",
+  "8",
+  "",
+  "2"
+ ],
+ "music_items": [
+  [
+   43,
+   47,
+   46,
+   true,
+   [
+    "cis"
+   ],
+   [
+    "4"
+   ]
+  ],
+  [
+   48,
+   53,
+   53,
+   true,
+   [
+    "des",
+    "='"
+   ],
+   []
+  ],
+  [
+   54,
+   59,
+   57,
+   true,
+   [
+    "eis",
+    "!"
+   ],
+   [
+    "8"
+   ]
+  ],
+  [
+   60,
+   64,
+   64,
+   true,
+   [
+    "fes",
+    "?"
+   ],
+   []
+  ],
+  [
+   65,
+   69,
+   68,
+   true,
+   [
+    "g",
+    "=,"
+   ],
+   [
+    "2"
+   ]
+  ]
+ ],
+ "overwrite_durations": [
+  "4",
+  "8",
+  "",
+  "16."
+ ],
+ "results": {
+  "dot": "\\version \"2.27.2\"\nmusic = \\relative c' {\n  cis4. des=' eis8.! fes? g=,2.\n}\n",
+  "double": "\\version \"2.27.2\"\nmusic = \\relative c' {\n  cis2 des=' eis4! fes? g=,1\n}\n",
+  "explicit": "\\version \"2.27.2\"\nmusic = \\relative c' {\n  cis4 des='4 eis8! fes?8 g=,2\n}\n",
+  "halve": "\\version \"2.27.2\"\nmusic = \\relative c' {\n  cis8 des=' eis16! fes? g=,4\n}\n",
+  "implicit": "\\version \"2.27.2\"\nmusic = \\relative c' {\n  cis4 des=' eis8! fes? g=,2\n}\n",
+  "implicit_per_line": "\\version \"2.27.2\"\nmusic = \\relative c' {\n  cis4 des=' eis8! fes? g=,2\n}\n",
+  "overwrite": "\\version \"2.27.2\"\nmusic = \\relative c' {\n  cis4 des='8 eis! fes?16. g=,4\n}\n",
+  "remove": "\\version \"2.27.2\"\nmusic = \\relative c' {\n  cis des=' eis! fes? g=,\n}\n",
+  "remove_fraction_scaling": "\\version \"2.27.2\"\nmusic = \\relative c' {\n  cis4 des=' eis8! fes? g=,2\n}\n",
+  "remove_scaling": "\\version \"2.27.2\"\nmusic = \\relative c' {\n  cis4 des=' eis8! fes? g=,2\n}\n",
+  "undot": "\\version \"2.27.2\"\nmusic = \\relative c' {\n  cis4 des=' eis8! fes? g=,2\n}\n"
+ }
+}

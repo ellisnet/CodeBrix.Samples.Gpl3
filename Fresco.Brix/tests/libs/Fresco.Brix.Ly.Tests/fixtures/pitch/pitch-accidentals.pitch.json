@@ -1,0 +1,38 @@
+{
+ "results": {
+  "abs2rel": "\\version \"2.27.2\"\nmusic = \\relative c' {\n  cis4 des eis fes\n  cisis4 deses beses' aisis\n}\n",
+  "abs2rel_no_startpitch": "\\version \"2.27.2\"\nmusic = \\relative {\n  cis4 des eis fes\n  cisis4 deses beses' aisis\n}\n",
+  "abs2rel_no_startpitch_first_absolute": "\\version \"2.27.2\"\nmusic = \\relative {\n  cis'4 des eis fes\n  cisis4 deses beses' aisis\n}\n",
+  "inversion": "\\version \"2.27.2\"\nmusic = {\n  cis'4 bisis a ais\n  deses'4 cisis' eis feses\n}\n",
+  "modal_down_three_g_major": "\\version \"2.27.2\"\nmusic = {\n  gis4 as bis ceses'\n  gisis4 ases fes' eisis'\n}\n",
+  "modal_up_two_c_major": "\\version \"2.27.2\"\nmusic = {\n  eis'4 fes' gis' as'\n  eisis'4 feses' deses'' cisis''\n}\n",
+  "mode_shift_a_minor_harmonic": "\\version \"2.27.2\"\nmusic = {\n  c'4 d' e' f'\n  c'4 d' b' a'\n}\n",
+  "mode_shift_c_major": "\\version \"2.27.2\"\nmusic = {\n  c'4 d' e' f'\n  c'4 d' b' a'\n}\n",
+  "rel2abs": "\\version \"2.27.2\"\nmusic = {\n  cis'4 des' eis' fes'\n  cisis'4 deses' beses' aisis'\n}\n",
+  "rel2abs_first_absolute": "\\version \"2.27.2\"\nmusic = {\n  cis'4 des' eis' fes'\n  cisis'4 deses' beses' aisis'\n}\n",
+  "retrograde": "\\version \"2.27.2\"\nmusic = {\n  aisis'4 beses' deses' cisis'\n  fes'4 eis' des' cis'\n}\n",
+  "simplify": "\\version \"2.27.2\"\nmusic = {\n  cis'4 des' f' e'\n  d'4 c' a' b'\n}\n",
+  "transpose_c_a_down": "\\version \"2.27.2\"\nmusic = {\n  ais4 bes cisis' des'\n  aisis4 beses ges' gis'\n}\n",
+  "transpose_c_d": "\\version \"2.27.2\"\nmusic = {\n  dis'4 es' fisis' ges'\n  disis'4 eses' ces'' bisis'\n}\n",
+  "transpose_c_d_relative_absolute": "\\version \"2.27.2\"\nmusic = {\n  dis'4 es' fisis' ges'\n  disis'4 eses' ces'' bisis'\n}\n",
+  "transpose_c_ees": "\\version \"2.27.2\"\nmusic = {\n  es'4 feses' g' ges'\n  e'4 eses' ces'' cis''\n}\n"
+ },
+ "translations": {
+  "deutsch": {
+   "changed": false,
+   "text": "\\version \"2.27.2\"\nmusic = {\n  cis'4 des' eis' fes'\n  cisis'4 deses' heses' aisis'\n}\n"
+  },
+  "english": {
+   "changed": false,
+   "text": "\\version \"2.27.2\"\nmusic = {\n  cs'4 df' es' ff'\n  css'4 dff' bff' ass'\n}\n"
+  },
+  "italiano": {
+   "changed": false,
+   "text": "\\version \"2.27.2\"\nmusic = {\n  dod'4 reb' mid' fab'\n  dodd'4 rebb' sibb' ladd'\n}\n"
+  },
+  "norsk": {
+   "changed": false,
+   "text": "\\version \"2.27.2\"\nmusic = {\n  cis'4 des' eis' fes'\n  cisis'4 deses' heses' aisis'\n}\n"
+  }
+ }
+}

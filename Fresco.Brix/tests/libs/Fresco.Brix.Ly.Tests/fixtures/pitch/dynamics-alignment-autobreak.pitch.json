@@ -1,0 +1,38 @@
+{
+ "results": {
+  "abs2rel": "\\version \"2.19.21\"\n\n\\header {\n  texidoc = \"If a dynamic has an explicit direction that differs from the \ndynamic line spanner's direction, automatically break the dynamic line spanner.\n\"\n}\n\n\\relative {\n  c'1^\\<\n  c1_\\>\n  f,1\\p\n\n  c'1^\\<\n  c1_\\p^\\>\n  c1\\!\n}\n",
+  "abs2rel_no_startpitch": "\\version \"2.19.21\"\n\n\\header {\n  texidoc = \"If a dynamic has an explicit direction that differs from the \ndynamic line spanner's direction, automatically break the dynamic line spanner.\n\"\n}\n\n\\relative {\n  c'1^\\<\n  c1_\\>\n  f,1\\p\n\n  c'1^\\<\n  c1_\\p^\\>\n  c1\\!\n}\n",
+  "abs2rel_no_startpitch_first_absolute": "\\version \"2.19.21\"\n\n\\header {\n  texidoc = \"If a dynamic has an explicit direction that differs from the \ndynamic line spanner's direction, automatically break the dynamic line spanner.\n\"\n}\n\n\\relative {\n  c'1^\\<\n  c1_\\>\n  f,1\\p\n\n  c'1^\\<\n  c1_\\p^\\>\n  c1\\!\n}\n",
+  "inversion": "\\version \"2.19.21\"\n\n\\header {\n  texidoc = \"If a dynamic has an explicit direction that differs from the \ndynamic line spanner's direction, automatically break the dynamic line spanner.\n\"\n}\n\n\\relative {\n  c'1^\\<\n  c''1_\\>\n  g''1\\p\n\n  c'1^\\<\n  c''1_\\p^\\>\n  c''1\\!\n}\n",
+  "modal_down_three_g_major": "\\version \"2.19.21\"\n\n\\header {\n  texidoc = \"If a dynamic has an explicit direction that differs from the \ndynamic line spanner's direction, automatically break the dynamic line spanner.\n\"\n}\n\n\\relative {\n  g'1^\\<\n  g1_\\>\n  ces,1\\p\n\n  g'1^\\<\n  g1_\\p^\\>\n  g1\\!\n}\n",
+  "modal_up_two_c_major": "\\version \"2.19.21\"\n\n\\header {\n  texidoc = \"If a dynamic has an explicit direction that differs from the \ndynamic line spanner's direction, automatically break the dynamic line spanner.\n\"\n}\n\n\\relative {\n  e'1^\\<\n  e1_\\>\n  a,1\\p\n\n  e'1^\\<\n  e1_\\p^\\>\n  e1\\!\n}\n",
+  "mode_shift_a_minor_harmonic": "\\version \"2.19.21\"\n\n\\header {\n  texidoc = \"If a dynamic has an explicit direction that differs from the \ndynamic line spanner's direction, automatically break the dynamic line spanner.\n\"\n}\n\n\\relative {\n  c'1^\\<\n  c1_\\>\n  f,1\\p\n\n  c'1^\\<\n  c1_\\p^\\>\n  c1\\!\n}\n",
+  "mode_shift_c_major": "\\version \"2.19.21\"\n\n\\header {\n  texidoc = \"If a dynamic has an explicit direction that differs from the \ndynamic line spanner's direction, automatically break the dynamic line spanner.\n\"\n}\n\n\\relative {\n  c'1^\\<\n  c1_\\>\n  f,1\\p\n\n  c'1^\\<\n  c1_\\p^\\>\n  c1\\!\n}\n",
+  "rel2abs": "\\version \"2.19.21\"\n\n\\header {\n  texidoc = \"If a dynamic has an explicit direction that differs from the \ndynamic line spanner's direction, automatically break the dynamic line spanner.\n\"\n}\n\n{\n  c''1^\\<\n  c''1_\\>\n  f'1\\p\n\n  c''1^\\<\n  c''1_\\p^\\>\n  c''1\\!\n}\n",
+  "rel2abs_first_absolute": "\\version \"2.19.21\"\n\n\\header {\n  texidoc = \"If a dynamic has an explicit direction that differs from the \ndynamic line spanner's direction, automatically break the dynamic line spanner.\n\"\n}\n\n{\n  c'1^\\<\n  c'1_\\>\n  f1\\p\n\n  c'1^\\<\n  c'1_\\p^\\>\n  c'1\\!\n}\n",
+  "retrograde": "\\version \"2.19.21\"\n\n\\header {\n  texidoc = \"If a dynamic has an explicit direction that differs from the \ndynamic line spanner's direction, automatically break the dynamic line spanner.\n\"\n}\n\n\\relative {\n  c1^\\<\n  c1_\\>\n  c'1\\p\n\n  f,1^\\<\n  c1_\\p^\\>\n  c'1\\!\n}\n",
+  "simplify": "\\version \"2.19.21\"\n\n\\header {\n  texidoc = \"If a dynamic has an explicit direction that differs from the \ndynamic line spanner's direction, automatically break the dynamic line spanner.\n\"\n}\n\n\\relative {\n  c'1^\\<\n  c1_\\>\n  f,1\\p\n\n  c'1^\\<\n  c1_\\p^\\>\n  c1\\!\n}\n",
+  "transpose_c_a_down": "\\version \"2.19.21\"\n\n\\header {\n  texidoc = \"If a dynamic has an explicit direction that differs from the \ndynamic line spanner's direction, automatically break the dynamic line spanner.\n\"\n}\n\n\\relative {\n  a'1^\\<\n  a1_\\>\n  d,1\\p\n\n  a'1^\\<\n  a1_\\p^\\>\n  a1\\!\n}\n",
+  "transpose_c_d": "\\version \"2.19.21\"\n\n\\header {\n  texidoc = \"If a dynamic has an explicit direction that differs from the \ndynamic line spanner's direction, automatically break the dynamic line spanner.\n\"\n}\n\n\\relative {\n  d'1^\\<\n  d1_\\>\n  g,1\\p\n\n  d'1^\\<\n  d1_\\p^\\>\n  d1\\!\n}\n",
+  "transpose_c_d_relative_absolute": "\\version \"2.19.21\"\n\n\\header {\n  texidoc = \"If a dynamic has an explicit direction that differs from the \ndynamic line spanner's direction, automatically break the dynamic line spanner.\n\"\n}\n\n\\relative {\n  d'1^\\<\n  d1_\\>\n  g,1\\p\n\n  d'1^\\<\n  d1_\\p^\\>\n  d1\\!\n}\n",
+  "transpose_c_ees": "\\version \"2.19.21\"\n\n\\header {\n  texidoc = \"If a dynamic has an explicit direction that differs from the \ndynamic line spanner's direction, automatically break the dynamic line spanner.\n\"\n}\n\n\\relative {\n  eses'1^\\<\n  eses1_\\>\n  ases,1\\p\n\n  eses'1^\\<\n  eses1_\\p^\\>\n  eses1\\!\n}\n"
+ },
+ "translations": {
+  "deutsch": {
+   "changed": false,
+   "text": "\\version \"2.19.21\"\n\n\\header {\n  texidoc = \"If a dynamic has an explicit direction that differs from the \ndynamic line spanner's direction, automatically break the dynamic line spanner.\n\"\n}\n\n\\relative {\n  c'1^\\<\n  c1_\\>\n  f,1\\p\n\n  c'1^\\<\n  c1_\\p^\\>\n  c1\\!\n}\n"
+  },
+  "english": {
+   "changed": false,
+   "text": "\\version \"2.19.21\"\n\n\\header {\n  texidoc = \"If a dynamic has an explicit direction that differs from the \ndynamic line spanner's direction, automatically break the dynamic line spanner.\n\"\n}\n\n\\relative {\n  c'1^\\<\n  c1_\\>\n  f,1\\p\n\n  c'1^\\<\n  c1_\\p^\\>\n  c1\\!\n}\n"
+  },
+  "italiano": {
+   "changed": false,
+   "text": "\\version \"2.19.21\"\n\n\\header {\n  texidoc = \"If a dynamic has an explicit direction that differs from the \ndynamic line spanner's direction, automatically break the dynamic line spanner.\n\"\n}\n\n\\relative {\n  do'1^\\<\n  do1_\\>\n  fa,1\\p\n\n  do'1^\\<\n  do1_\\p^\\>\n  do1\\!\n}\n"
+  },
+  "norsk": {
+   "changed": false,
+   "text": "\\version \"2.19.21\"\n\n\\header {\n  texidoc = \"If a dynamic has an explicit direction that differs from the \ndynamic line spanner's direction, automatically break the dynamic line spanner.\n\"\n}\n\n\\relative {\n  c'1^\\<\n  c1_\\>\n  f,1\\p\n\n  c'1^\\<\n  c1_\\p^\\>\n  c1\\!\n}\n"
+  }
+ }
+}

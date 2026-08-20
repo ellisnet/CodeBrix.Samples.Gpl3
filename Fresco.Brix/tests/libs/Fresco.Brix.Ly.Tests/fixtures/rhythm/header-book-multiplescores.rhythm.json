@@ -1,0 +1,53 @@
+{
+ "extract": [
+  "1",
+  "1"
+ ],
+ "music_items": [
+  [
+   316,
+   319,
+   318,
+   true,
+   [
+    "c",
+    "'"
+   ],
+   [
+    "1"
+   ]
+  ],
+  [
+   638,
+   641,
+   640,
+   true,
+   [
+    "c",
+    "'"
+   ],
+   [
+    "1"
+   ]
+  ]
+ ],
+ "overwrite_durations": [
+  "4",
+  "8",
+  "",
+  "16."
+ ],
+ "results": {
+  "dot": "\\version \"2.19.21\"\n\n\\header {\n  texidoc=\"\nChanging the header fields in a book or a bookpart shall not have any effect on the global default values.\n\"\n}\n\n\\markup \\vspace #2\n\\markup { \\bold Note: expect only title. }\n\\markup \\vspace #2\n\n\\header {\n  title = \"Title correct (set at top level)\"\n}\n\\score {\n  \\relative { c'1. }\n}\n\n\n\\book {\n  % This should NOT set a global subtitle for the first score above:\n  \\header {\n    subtitle = \"Subtitle (set at book level)\"\n  }\n  \\markup \\vspace #2\n  \\markup { \\bold Note: expect title and subtitle. }\n  \\markup \\vspace #2\n  %% Do we have a title, and is the subtitle set?\n  \\score {\n    \\new Staff { c'1. }\n  }\n}\n",
+  "double": "\\version \"2.19.21\"\n\n\\header {\n  texidoc=\"\nChanging the header fields in a book or a bookpart shall not have any effect on the global default values.\n\"\n}\n\n\\markup \\vspace #2\n\\markup { \\bold Note: expect only title. }\n\\markup \\vspace #2\n\n\\header {\n  title = \"Title correct (set at top level)\"\n}\n\\score {\n  \\relative { c'\\breve }\n}\n\n\n\\book {\n  % This should NOT set a global subtitle for the first score above:\n  \\header {\n    subtitle = \"Subtitle (set at book level)\"\n  }\n  \\markup \\vspace #2\n  \\markup { \\bold Note: expect title and subtitle. }\n  \\markup \\vspace #2\n  %% Do we have a title, and is the subtitle set?\n  \\score {\n    \\new Staff { c'\\breve }\n  }\n}\n",
+  "explicit": "\\version \"2.19.21\"\n\n\\header {\n  texidoc=\"\nChanging the header fields in a book or a bookpart shall not have any effect on the global default values.\n\"\n}\n\n\\markup \\vspace #2\n\\markup { \\bold Note: expect only title. }\n\\markup \\vspace #2\n\n\\header {\n  title = \"Title correct (set at top level)\"\n}\n\\score {\n  \\relative { c'1 }\n}\n\n\n\\book {\n  % This should NOT set a global subtitle for the first score above:\n  \\header {\n    subtitle = \"Subtitle (set at book level)\"\n  }\n  \\markup \\vspace #2\n  \\markup { \\bold Note: expect title and subtitle. }\n  \\markup \\vspace #2\n  %% Do we have a title, and is the subtitle set?\n  \\score {\n    \\new Staff { c'1 }\n  }\n}\n",
+  "halve": "\\version \"2.19.21\"\n\n\\header {\n  texidoc=\"\nChanging the header fields in a book or a bookpart shall not have any effect on the global default values.\n\"\n}\n\n\\markup \\vspace #2\n\\markup { \\bold Note: expect only title. }\n\\markup \\vspace #2\n\n\\header {\n  title = \"Title correct (set at top level)\"\n}\n\\score {\n  \\relative { c'2 }\n}\n\n\n\\book {\n  % This should NOT set a global subtitle for the first score above:\n  \\header {\n    subtitle = \"Subtitle (set at book level)\"\n  }\n  \\markup \\vspace #2\n  \\markup { \\bold Note: expect title and subtitle. }\n  \\markup \\vspace #2\n  %% Do we have a title, and is the subtitle set?\n  \\score {\n    \\new Staff { c'2 }\n  }\n}\n",
+  "implicit": "\\version \"2.19.21\"\n\n\\header {\n  texidoc=\"\nChanging the header fields in a book or a bookpart shall not have any effect on the global default values.\n\"\n}\n\n\\markup \\vspace #2\n\\markup { \\bold Note: expect only title. }\n\\markup \\vspace #2\n\n\\header {\n  title = \"Title correct (set at top level)\"\n}\n\\score {\n  \\relative { c'1 }\n}\n\n\n\\book {\n  % This should NOT set a global subtitle for the first score above:\n  \\header {\n    subtitle = \"Subtitle (set at book level)\"\n  }\n  \\markup \\vspace #2\n  \\markup { \\bold Note: expect title and subtitle. }\n  \\markup \\vspace #2\n  %% Do we have a title, and is the subtitle set?\n  \\score {\n    \\new Staff { c' }\n  }\n}\n",
+  "implicit_per_line": "\\version \"2.19.21\"\n\n\\header {\n  texidoc=\"\nChanging the header fields in a book or a bookpart shall not have any effect on the global default values.\n\"\n}\n\n\\markup \\vspace #2\n\\markup { \\bold Note: expect only title. }\n\\markup \\vspace #2\n\n\\header {\n  title = \"Title correct (set at top level)\"\n}\n\\score {\n  \\relative { c'1 }\n}\n\n\n\\book {\n  % This should NOT set a global subtitle for the first score above:\n  \\header {\n    subtitle = \"Subtitle (set at book level)\"\n  }\n  \\markup \\vspace #2\n  \\markup { \\bold Note: expect title and subtitle. }\n  \\markup \\vspace #2\n  %% Do we have a title, and is the subtitle set?\n  \\score {\n    \\new Staff { c'1 }\n  }\n}\n",
+  "overwrite": "\\version \"2.19.21\"\n\n\\header {\n  texidoc=\"\nChanging the header fields in a book or a bookpart shall not have any effect on the global default values.\n\"\n}\n\n\\markup \\vspace #2\n\\markup { \\bold Note: expect only title. }\n\\markup \\vspace #2\n\n\\header {\n  title = \"Title correct (set at top level)\"\n}\n\\score {\n  \\relative { c'4 }\n}\n\n\n\\book {\n  % This should NOT set a global subtitle for the first score above:\n  \\header {\n    subtitle = \"Subtitle (set at book level)\"\n  }\n  \\markup \\vspace #2\n  \\markup { \\bold Note: expect title and subtitle. }\n  \\markup \\vspace #2\n  %% Do we have a title, and is the subtitle set?\n  \\score {\n    \\new Staff { c'8 }\n  }\n}\n",
+  "remove": "\\version \"2.19.21\"\n\n\\header {\n  texidoc=\"\nChanging the header fields in a book or a bookpart shall not have any effect on the global default values.\n\"\n}\n\n\\markup \\vspace #2\n\\markup { \\bold Note: expect only title. }\n\\markup \\vspace #2\n\n\\header {\n  title = \"Title correct (set at top level)\"\n}\n\\score {\n  \\relative { c' }\n}\n\n\n\\book {\n  % This should NOT set a global subtitle for the first score above:\n  \\header {\n    subtitle = \"Subtitle (set at book level)\"\n  }\n  \\markup \\vspace #2\n  \\markup { \\bold Note: expect title and subtitle. }\n  \\markup \\vspace #2\n  %% Do we have a title, and is the subtitle set?\n  \\score {\n    \\new Staff { c' }\n  }\n}\n",
+  "remove_fraction_scaling": "\\version \"2.19.21\"\n\n\\header {\n  texidoc=\"\nChanging the header fields in a book or a bookpart shall not have any effect on the global default values.\n\"\n}\n\n\\markup \\vspace #2\n\\markup { \\bold Note: expect only title. }\n\\markup \\vspace #2\n\n\\header {\n  title = \"Title correct (set at top level)\"\n}\n\\score {\n  \\relative { c'1 }\n}\n\n\n\\book {\n  % This should NOT set a global subtitle for the first score above:\n  \\header {\n    subtitle = \"Subtitle (set at book level)\"\n  }\n  \\markup \\vspace #2\n  \\markup { \\bold Note: expect title and subtitle. }\n  \\markup \\vspace #2\n  %% Do we have a title, and is the subtitle set?\n  \\score {\n    \\new Staff { c'1 }\n  }\n}\n",
+  "remove_scaling": "\\version \"2.19.21\"\n\n\\header {\n  texidoc=\"\nChanging the header fields in a book or a bookpart shall not have any effect on the global default values.\n\"\n}\n\n\\markup \\vspace #2\n\\markup { \\bold Note: expect only title. }\n\\markup \\vspace #2\n\n\\header {\n  title = \"Title correct (set at top level)\"\n}\n\\score {\n  \\relative { c'1 }\n}\n\n\n\\book {\n  % This should NOT set a global subtitle for the first score above:\n  \\header {\n    subtitle = \"Subtitle (set at book level)\"\n  }\n  \\markup \\vspace #2\n  \\markup { \\bold Note: expect title and subtitle. }\n  \\markup \\vspace #2\n  %% Do we have a title, and is the subtitle set?\n  \\score {\n    \\new Staff { c'1 }\n  }\n}\n",
+  "undot": "\\version \"2.19.21\"\n\n\\header {\n  texidoc=\"\nChanging the header fields in a book or a bookpart shall not have any effect on the global default values.\n\"\n}\n\n\\markup \\vspace #2\n\\markup { \\bold Note: expect only title. }\n\\markup \\vspace #2\n\n\\header {\n  title = \"Title correct (set at top level)\"\n}\n\\score {\n  \\relative { c'1 }\n}\n\n\n\\book {\n  % This should NOT set a global subtitle for the first score above:\n  \\header {\n    subtitle = \"Subtitle (set at book level)\"\n  }\n  \\markup \\vspace #2\n  \\markup { \\bold Note: expect title and subtitle. }\n  \\markup \\vspace #2\n  %% Do we have a title, and is the subtitle set?\n  \\score {\n    \\new Staff { c'1 }\n  }\n}\n"
+ }
+}

@@ -1,0 +1,321 @@
+{
+ "has_output": true,
+ "node_positions": [
+  [
+   0,
+   "Document",
+   -1
+  ],
+  [
+   7,
+   "Version",
+   1
+  ],
+  [
+   14,
+   "String",
+   10
+  ],
+  [
+   21,
+   "Header",
+   20
+  ],
+  [
+   28,
+   "Header",
+   20
+  ],
+  [
+   35,
+   "Assignment",
+   32
+  ],
+  [
+   42,
+   "String",
+   42
+  ],
+  [
+   49,
+   "String",
+   42
+  ],
+  [
+   56,
+   "String",
+   42
+  ],
+  [
+   63,
+   "String",
+   42
+  ],
+  [
+   70,
+   "String",
+   42
+  ],
+  [
+   77,
+   "String",
+   42
+  ],
+  [
+   84,
+   "MusicList",
+   83
+  ],
+  [
+   91,
+   "Slur",
+   90
+  ],
+  [
+   98,
+   "Articulation",
+   98
+  ],
+  [
+   105,
+   "Articulation",
+   98
+  ],
+  [
+   111,
+   "Slur",
+   107
+  ]
+ ],
+ "time_positions": [
+  [
+   0,
+   null
+  ],
+  [
+   7,
+   null
+  ],
+  [
+   14,
+   null
+  ],
+  [
+   21,
+   null
+  ],
+  [
+   28,
+   null
+  ],
+  [
+   35,
+   null
+  ],
+  [
+   42,
+   null
+  ],
+  [
+   49,
+   null
+  ],
+  [
+   56,
+   null
+  ],
+  [
+   63,
+   null
+  ],
+  [
+   70,
+   null
+  ],
+  [
+   77,
+   null
+  ],
+  [
+   84,
+   "0/1"
+  ],
+  [
+   91,
+   "1/8"
+  ],
+  [
+   98,
+   "3/8"
+  ],
+  [
+   105,
+   "3/8"
+  ],
+  [
+   111,
+   null
+  ]
+ ],
+ "tree": {
+  "children": [
+   {
+    "children": [
+     {
+      "children": [],
+      "cls": "String",
+      "end": 18,
+      "length": "0/1",
+      "plaintext": "2.16.0",
+      "position": 10,
+      "token": "\"",
+      "tokens": [
+       "2.16.0",
+       "\""
+      ]
+     }
+    ],
+    "cls": "Version",
+    "end": 18,
+    "length": "0/1",
+    "plaintext": "",
+    "position": 1,
+    "token": "\\version",
+    "tokens": []
+   },
+   {
+    "children": [
+     {
+      "children": [
+       {
+        "children": [],
+        "cls": "String",
+        "end": 79,
+        "length": "0/1",
+        "plaintext": "Slurs handle avoid objects better.\n",
+        "position": 42,
+        "token": "\"",
+        "tokens": [
+         "Slurs handle avoid objects better.",
+         "\n",
+         "\""
+        ]
+       }
+      ],
+      "cls": "Assignment",
+      "end": 79,
+      "length": "0/1",
+      "plaintext": "",
+      "position": 32,
+      "token": "texidoc",
+      "tokens": [
+       "="
+      ]
+     }
+    ],
+    "cls": "Header",
+    "end": 81,
+    "length": "0/1",
+    "plaintext": "",
+    "position": 20,
+    "token": "\\header",
+    "tokens": [
+     "{",
+     "}"
+    ]
+   },
+   {
+    "children": [
+     {
+      "children": [
+       {
+        "children": [],
+        "cls": "Duration",
+        "end": 89,
+        "length": "0/1",
+        "plaintext": "",
+        "position": 88,
+        "token": "8",
+        "tokens": []
+       }
+      ],
+      "cls": "Note",
+      "end": 89,
+      "length": "1/8",
+      "plaintext": "",
+      "position": 86,
+      "token": "a",
+      "tokens": []
+     },
+     {
+      "children": [],
+      "cls": "Slur",
+      "end": 91,
+      "length": "0/1",
+      "plaintext": "",
+      "position": 90,
+      "token": "(",
+      "tokens": []
+     },
+     {
+      "children": [
+       {
+        "children": [],
+        "cls": "Duration",
+        "end": 97,
+        "length": "0/1",
+        "plaintext": "",
+        "position": 96,
+        "token": "4",
+        "tokens": []
+       }
+      ],
+      "cls": "Note",
+      "end": 97,
+      "length": "1/4",
+      "plaintext": "",
+      "position": 93,
+      "token": "b",
+      "tokens": []
+     },
+     {
+      "children": [],
+      "cls": "Articulation",
+      "end": 106,
+      "length": "0/1",
+      "plaintext": "",
+      "position": 98,
+      "token": "\\fermata",
+      "tokens": []
+     },
+     {
+      "children": [],
+      "cls": "Slur",
+      "end": 108,
+      "length": "0/1",
+      "plaintext": "",
+      "position": 107,
+      "token": ")",
+      "tokens": []
+     }
+    ],
+    "cls": "MusicList",
+    "end": 110,
+    "length": "3/8",
+    "plaintext": "",
+    "position": 83,
+    "token": "{",
+    "tokens": [
+     "}"
+    ]
+   }
+  ],
+  "cls": "Document",
+  "end": 110,
+  "length": "0/1",
+  "plaintext": "",
+  "position": -1,
+  "token": null,
+  "tokens": []
+ }
+}

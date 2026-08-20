@@ -1,0 +1,38 @@
+{
+ "results": {
+  "abs2rel": "\\header { texidoc = \"\n  lilypond should flip the tie's direction\n  to avoid a collision with the sharp.\n\" }\n\n\n\\version \"2.19.21\"\n\n\\paper {\n  debug-tie-scoring = ##t\n  ragged-right = ##t\n}\n\n\\relative {\n  \\override Tie.layer = #2\n  a' ~ <fis a>\n}\n\n% EOF\n",
+  "abs2rel_no_startpitch": "\\header { texidoc = \"\n  lilypond should flip the tie's direction\n  to avoid a collision with the sharp.\n\" }\n\n\n\\version \"2.19.21\"\n\n\\paper {\n  debug-tie-scoring = ##t\n  ragged-right = ##t\n}\n\n\\relative {\n  \\override Tie.layer = #2\n  a' ~ <fis a>\n}\n\n% EOF\n",
+  "abs2rel_no_startpitch_first_absolute": "\\header { texidoc = \"\n  lilypond should flip the tie's direction\n  to avoid a collision with the sharp.\n\" }\n\n\n\\version \"2.19.21\"\n\n\\paper {\n  debug-tie-scoring = ##t\n  ragged-right = ##t\n}\n\n\\relative {\n  \\override Tie.layer = #2\n  a' ~ <fis a>\n}\n\n% EOF\n",
+  "inversion": "\\header { texidoc = \"\n  lilypond should flip the tie's direction\n  to avoid a collision with the sharp.\n\" }\n\n\n\\version \"2.19.21\"\n\n\\paper {\n  debug-tie-scoring = ##t\n  ragged-right = ##t\n}\n\n\\relative {\n  \\override Tie.layer = #2\n  a' ~ <c''' a''>\n}\n\n% EOF\n",
+  "modal_down_three_g_major": "\\header { texidoc = \"\n  lilypond should flip the tie's direction\n  to avoid a collision with the sharp.\n\" }\n\n\n\\version \"2.19.21\"\n\n\\paper {\n  debug-tie-scoring = ##t\n  ragged-right = ##t\n}\n\n\\relative {\n  \\override Tie.layer = #2\n  e ~ <c e>\n}\n\n% EOF\n",
+  "modal_up_two_c_major": "\\header { texidoc = \"\n  lilypond should flip the tie's direction\n  to avoid a collision with the sharp.\n\" }\n\n\n\\version \"2.19.21\"\n\n\\paper {\n  debug-tie-scoring = ##t\n  ragged-right = ##t\n}\n\n\\relative {\n  \\override Tie.layer = #2\n  c' ~ <ais c>\n}\n\n% EOF\n",
+  "mode_shift_a_minor_harmonic": "\\header { texidoc = \"\n  lilypond should flip the tie's direction\n  to avoid a collision with the sharp.\n\" }\n\n\n\\version \"2.19.21\"\n\n\\paper {\n  debug-tie-scoring = ##t\n  ragged-right = ##t\n}\n\n\\relative {\n  \\override Tie.layer = #2\n  a' ~ <f a>\n}\n\n% EOF\n",
+  "mode_shift_c_major": "\\header { texidoc = \"\n  lilypond should flip the tie's direction\n  to avoid a collision with the sharp.\n\" }\n\n\n\\version \"2.19.21\"\n\n\\paper {\n  debug-tie-scoring = ##t\n  ragged-right = ##t\n}\n\n\\relative {\n  \\override Tie.layer = #2\n  a' ~ <f a>\n}\n\n% EOF\n",
+  "rel2abs": "\\header { texidoc = \"\n  lilypond should flip the tie's direction\n  to avoid a collision with the sharp.\n\" }\n\n\n\\version \"2.19.21\"\n\n\\paper {\n  debug-tie-scoring = ##t\n  ragged-right = ##t\n}\n\n{\n  \\override Tie.layer = #2\n  a' ~ <fis' a'>\n}\n\n% EOF\n",
+  "rel2abs_first_absolute": "\\header { texidoc = \"\n  lilypond should flip the tie's direction\n  to avoid a collision with the sharp.\n\" }\n\n\n\\version \"2.19.21\"\n\n\\paper {\n  debug-tie-scoring = ##t\n  ragged-right = ##t\n}\n\n{\n  \\override Tie.layer = #2\n  a' ~ <fis' a'>\n}\n\n% EOF\n",
+  "retrograde": "\\header { texidoc = \"\n  lilypond should flip the tie's direction\n  to avoid a collision with the sharp.\n\" }\n\n\n\\version \"2.19.21\"\n\n\\paper {\n  debug-tie-scoring = ##t\n  ragged-right = ##t\n}\n\n\\relative {\n  \\override Tie.layer = #2\n  a ~ <fis a'>\n}\n\n% EOF\n",
+  "simplify": "\\header { texidoc = \"\n  lilypond should flip the tie's direction\n  to avoid a collision with the sharp.\n\" }\n\n\n\\version \"2.19.21\"\n\n\\paper {\n  debug-tie-scoring = ##t\n  ragged-right = ##t\n}\n\n\\relative {\n  \\override Tie.layer = #2\n  a' ~ <fis a>\n}\n\n% EOF\n",
+  "transpose_c_a_down": "\\header { texidoc = \"\n  lilypond should flip the tie's direction\n  to avoid a collision with the sharp.\n\" }\n\n\n\\version \"2.19.21\"\n\n\\paper {\n  debug-tie-scoring = ##t\n  ragged-right = ##t\n}\n\n\\relative {\n  \\override Tie.layer = #2\n  fis ~ <dis fis>\n}\n\n% EOF\n",
+  "transpose_c_d": "\\header { texidoc = \"\n  lilypond should flip the tie's direction\n  to avoid a collision with the sharp.\n\" }\n\n\n\\version \"2.19.21\"\n\n\\paper {\n  debug-tie-scoring = ##t\n  ragged-right = ##t\n}\n\n\\relative {\n  \\override Tie.layer = #2\n  b' ~ <gis b>\n}\n\n% EOF\n",
+  "transpose_c_d_relative_absolute": "\\header { texidoc = \"\n  lilypond should flip the tie's direction\n  to avoid a collision with the sharp.\n\" }\n\n\n\\version \"2.19.21\"\n\n\\paper {\n  debug-tie-scoring = ##t\n  ragged-right = ##t\n}\n\n\\relative {\n  \\override Tie.layer = #2\n  b' ~ <gis b>\n}\n\n% EOF\n",
+  "transpose_c_ees": "\\header { texidoc = \"\n  lilypond should flip the tie's direction\n  to avoid a collision with the sharp.\n\" }\n\n\n\\version \"2.19.21\"\n\n\\paper {\n  debug-tie-scoring = ##t\n  ragged-right = ##t\n}\n\n\\relative {\n  \\override Tie.layer = #2\n  ces' ~ <as ces>\n}\n\n% EOF\n"
+ },
+ "translations": {
+  "deutsch": {
+   "changed": false,
+   "text": "\\header { texidoc = \"\n  lilypond should flip the tie's direction\n  to avoid a collision with the sharp.\n\" }\n\n\n\\version \"2.19.21\"\n\n\\paper {\n  debug-tie-scoring = ##t\n  ragged-right = ##t\n}\n\n\\relative {\n  \\override Tie.layer = #2\n  a' ~ <fis a>\n}\n\n% EOF\n"
+  },
+  "english": {
+   "changed": false,
+   "text": "\\header { texidoc = \"\n  lilypond should flip the tie's direction\n  to avoid a collision with the sharp.\n\" }\n\n\n\\version \"2.19.21\"\n\n\\paper {\n  debug-tie-scoring = ##t\n  ragged-right = ##t\n}\n\n\\relative {\n  \\override Tie.layer = #2\n  a' ~ <fs a>\n}\n\n% EOF\n"
+  },
+  "italiano": {
+   "changed": false,
+   "text": "\\header { texidoc = \"\n  lilypond should flip the tie's direction\n  to avoid a collision with the sharp.\n\" }\n\n\n\\version \"2.19.21\"\n\n\\paper {\n  debug-tie-scoring = ##t\n  ragged-right = ##t\n}\n\n\\relative {\n  \\override Tie.layer = #2\n  la' ~ <fad la>\n}\n\n% EOF\n"
+  },
+  "norsk": {
+   "changed": false,
+   "text": "\\header { texidoc = \"\n  lilypond should flip the tie's direction\n  to avoid a collision with the sharp.\n\" }\n\n\n\\version \"2.19.21\"\n\n\\paper {\n  debug-tie-scoring = ##t\n  ragged-right = ##t\n}\n\n\\relative {\n  \\override Tie.layer = #2\n  a' ~ <fis a>\n}\n\n% EOF\n"
+  }
+ }
+}

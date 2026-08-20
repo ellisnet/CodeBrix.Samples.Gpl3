@@ -1,0 +1,41 @@
+{
+ "complete": true,
+ "counted_tokens": {
+  "_token.Newline": 6,
+  "_token.Space": 7,
+  "lilypond.CloseBracket": 1,
+  "lilypond.DecimalValue": 1,
+  "lilypond.EqualSign": 2,
+  "lilypond.Keyword": 1,
+  "lilypond.LineComment": 1,
+  "lilypond.Name": 1,
+  "lilypond.OpenBracket": 1,
+  "lilypond.Paper": 1,
+  "lilypond.PaperVariable": 1,
+  "lilypond.String": 1,
+  "lilypond.StringQuotedEnd": 1,
+  "lilypond.StringQuotedStart": 1,
+  "lilypond.Unit": 1
+ },
+ "definitions": [
+  [
+   "myPaper",
+   58
+  ]
+ ],
+ "global_staff_size": null,
+ "has_output": false,
+ "include_args": [],
+ "language": null,
+ "markup_definitions": [],
+ "mode": "lilypond",
+ "output_args": [],
+ "scheme_load_args": [],
+ "token_count": 27,
+ "version": [
+  2,
+  18,
+  2
+ ],
+ "version_string": "2.18.2"
+}

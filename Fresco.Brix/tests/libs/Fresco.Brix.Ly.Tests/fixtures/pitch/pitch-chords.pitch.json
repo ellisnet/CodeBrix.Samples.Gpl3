@@ -1,0 +1,38 @@
+{
+ "results": {
+  "abs2rel": "\\version \"2.27.2\"\nmusic = \\relative c' {\n  <c e g>4 <d f a>4\n  <g, b d>2\n}\nabsChords = \\relative c' {\n  <c e g>4 <d f a>4\n}\n",
+  "abs2rel_no_startpitch": "\\version \"2.27.2\"\nmusic = \\relative c' {\n  <c e g>4 <d f a>4\n  <g, b d>2\n}\nabsChords = \\relative {\n  <c e g>4 <d f a>4\n}\n",
+  "abs2rel_no_startpitch_first_absolute": "\\version \"2.27.2\"\nmusic = \\relative c' {\n  <c e g>4 <d f a>4\n  <g, b d>2\n}\nabsChords = \\relative {\n  <c' e g>4 <d f a>4\n}\n",
+  "inversion": "\\version \"2.27.2\"\nmusic = \\relative c' {\n  <c'' as' f'>4 <bes' g' es'>4\n  <f'' des' bes'>2\n}\nabsChords = {\n  <c' as f>4 <bes g es>4\n}\n",
+  "modal_down_three_g_major": "\\version \"2.27.2\"\nmusic = \\relative c' {\n  <g b d>4 <a ces e>4\n  <d, fis a>2\n}\nabsChords = {\n  <g b d'>4 <a ces' e'>4\n}\n",
+  "modal_up_two_c_major": "\\version \"2.27.2\"\nmusic = \\relative c' {\n  <e g b>4 <f a c>4\n  <b, d f>2\n}\nabsChords = {\n  <e' g' b'>4 <f' a' c''>4\n}\n",
+  "mode_shift_a_minor_harmonic": "\\version \"2.27.2\"\nmusic = \\relative c' {\n  <c e gis>4 <d f a>4\n  <gis, b d>2\n}\nabsChords = {\n  <c' e' gis'>4 <d' f' a'>4\n}\n",
+  "mode_shift_c_major": "\\version \"2.27.2\"\nmusic = \\relative c' {\n  <c e g>4 <d f a>4\n  <g, b d>2\n}\nabsChords = {\n  <c' e' g'>4 <d' f' a'>4\n}\n",
+  "rel2abs": "\\version \"2.27.2\"\nmusic = {\n  <c' e' g'>4 <d' f' a'>4\n  <g b d'>2\n}\nabsChords = {\n  <c' e' g'>4 <d' f' a'>4\n}\n",
+  "rel2abs_first_absolute": "\\version \"2.27.2\"\nmusic = {\n  <c' e' g'>4 <d' f' a'>4\n  <g b d'>2\n}\nabsChords = {\n  <c' e' g'>4 <d' f' a'>4\n}\n",
+  "retrograde": "\\version \"2.27.2\"\nmusic = \\relative a' {\n  <f' d' g'>4 <e' c' d>4\n  <b g, a>2\n}\nabsChords = {\n  <f d g>4 <e c c'>4\n}\n",
+  "simplify": "\\version \"2.27.2\"\nmusic = \\relative c' {\n  <c e g>4 <d f a>4\n  <g, b d>2\n}\nabsChords = {\n  <c' e' g'>4 <d' f' a'>4\n}\n",
+  "transpose_c_a_down": "\\version \"2.27.2\"\nmusic = \\relative c' {\n  <a cis e>4 <b d fis>4\n  <e, gis b>2\n}\nabsChords = {\n  <a cis' e'>4 <b d' fis'>4\n}\n",
+  "transpose_c_d": "\\version \"2.27.2\"\nmusic = \\relative c' {\n  <d fis a>4 <e g b>4\n  <a, cis e>2\n}\nabsChords = {\n  <d' fis' a'>4 <e' g' b'>4\n}\n",
+  "transpose_c_d_relative_absolute": "\\version \"2.27.2\"\nmusic = \\relative c' {\n  <d fis a>4 <e g b>4\n  <a, cis e>2\n}\nabsChords = {\n  <d' fis' a'>4 <e' g' b'>4\n}\n",
+  "transpose_c_ees": "\\version \"2.27.2\"\nmusic = \\relative c' {\n  <eses ges beses>4 <fes ases ces>4\n  <beses, des fes>2\n}\nabsChords = {\n  <eses' ges' beses'>4 <fes' ases' ces''>4\n}\n"
+ },
+ "translations": {
+  "deutsch": {
+   "changed": false,
+   "text": "\\version \"2.27.2\"\nmusic = \\relative c' {\n  <c e g>4 <d f a>4\n  <g, h d>2\n}\nabsChords = {\n  <c' e' g'>4 <d' f' a'>4\n}\n"
+  },
+  "english": {
+   "changed": false,
+   "text": "\\version \"2.27.2\"\nmusic = \\relative c' {\n  <c e g>4 <d f a>4\n  <g, b d>2\n}\nabsChords = {\n  <c' e' g'>4 <d' f' a'>4\n}\n"
+  },
+  "italiano": {
+   "changed": false,
+   "text": "\\version \"2.27.2\"\nmusic = \\relative do' {\n  <do mi sol>4 <re fa la>4\n  <sol, si re>2\n}\nabsChords = {\n  <do' mi' sol'>4 <re' fa' la'>4\n}\n"
+  },
+  "norsk": {
+   "changed": false,
+   "text": "\\version \"2.27.2\"\nmusic = \\relative c' {\n  <c e g>4 <d f a>4\n  <g, h d>2\n}\nabsChords = {\n  <c' e' g'>4 <d' f' a'>4\n}\n"
+  }
+ }
+}

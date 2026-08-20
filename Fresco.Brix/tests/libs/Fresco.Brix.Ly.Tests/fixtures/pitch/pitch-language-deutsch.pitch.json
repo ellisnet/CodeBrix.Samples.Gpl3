@@ -1,0 +1,38 @@
+{
+ "results": {
+  "abs2rel": "\\version \"2.27.2\"\n\\language \"deutsch\"\nmusic = \\relative c' {\n  c4 h' b cis, des\n  fis4 ges as es\n}\n",
+  "abs2rel_no_startpitch": "\\version \"2.27.2\"\n\\language \"deutsch\"\nmusic = \\relative {\n  c4 h' b cis, des\n  fis4 ges as es\n}\n",
+  "abs2rel_no_startpitch_first_absolute": "\\version \"2.27.2\"\n\\language \"deutsch\"\nmusic = \\relative {\n  c'4 h' b cis, des\n  fis4 ges as es\n}\n",
+  "inversion": "\\version \"2.27.2\"\n\\language \"deutsch\"\nmusic = {\n  c'4 des d ces' h\n  ges4 fis e a\n}\n",
+  "modal_down_three_g_major": "\\version \"2.27.2\"\n\\language \"deutsch\"\nmusic = {\n  g4 fis' f' gis as\n  c'4 des' es' b\n}\n",
+  "modal_up_two_c_major": "\\version \"2.27.2\"\n\\language \"deutsch\"\nmusic = {\n  e'4 d'' des'' eis' fes'\n  ais'4 b' ces'' ges'\n}\n",
+  "mode_shift_a_minor_harmonic": "\\version \"2.27.2\"\n\\language \"deutsch\"\nmusic = {\n  c'4 h' h' c' d'\n  f'4 gis' a' e'\n}\n",
+  "mode_shift_c_major": "\\version \"2.27.2\"\n\\language \"deutsch\"\nmusic = {\n  c'4 h' h' c' d'\n  f'4 g' a' e'\n}\n",
+  "rel2abs": "\\version \"2.27.2\"\n\\language \"deutsch\"\nmusic = {\n  c'4 h' b' cis' des'\n  fis'4 ges' as' es'\n}\n",
+  "rel2abs_first_absolute": "\\version \"2.27.2\"\n\\language \"deutsch\"\nmusic = {\n  c'4 h' b' cis' des'\n  fis'4 ges' as' es'\n}\n",
+  "retrograde": "\\version \"2.27.2\"\n\\language \"deutsch\"\nmusic = {\n  es'4 as' ges' fis' des'\n  cis'4 b' h' c'\n}\n",
+  "simplify": "\\version \"2.27.2\"\n\\language \"deutsch\"\nmusic = {\n  c'4 h' b' cis' des'\n  fis'4 ges' as' es'\n}\n",
+  "transpose_c_a_down": "\\version \"2.27.2\"\n\\language \"deutsch\"\nmusic = {\n  a4 gis' g' ais b\n  dis'4 es' f' c'\n}\n",
+  "transpose_c_d": "\\version \"2.27.2\"\n\\language \"deutsch\"\nmusic = {\n  d'4 cis'' c'' dis' es'\n  gis'4 as' b' f'\n}\n",
+  "transpose_c_d_relative_absolute": "\\version \"2.27.2\"\n\\language \"deutsch\"\nmusic = {\n  d'4 cis'' c'' dis' es'\n  gis'4 as' b' f'\n}\n",
+  "transpose_c_ees": "\\version \"2.27.2\"\n\\language \"deutsch\"\nmusic = {\n  eses'4 des'' deses'' es' feses'\n  as'4 as' ceses'' geses'\n}\n"
+ },
+ "translations": {
+  "deutsch": {
+   "changed": true,
+   "text": "\\version \"2.27.2\"\n\\language \"deutsch\"\nmusic = {\n  c'4 h' b' cis' des'\n  fis'4 ges' as' es'\n}\n"
+  },
+  "english": {
+   "changed": true,
+   "text": "\\version \"2.27.2\"\n\\language \"english\"\nmusic = {\n  c'4 b' bf' cs' df'\n  fs'4 gf' af' ef'\n}\n"
+  },
+  "italiano": {
+   "changed": true,
+   "text": "\\version \"2.27.2\"\n\\language \"italiano\"\nmusic = {\n  do'4 si' sib' dod' reb'\n  fad'4 solb' lab' mib'\n}\n"
+  },
+  "norsk": {
+   "changed": true,
+   "text": "\\version \"2.27.2\"\n\\language \"norsk\"\nmusic = {\n  c'4 h' b' cis' des'\n  fis'4 ges' as' es'\n}\n"
+  }
+ }
+}

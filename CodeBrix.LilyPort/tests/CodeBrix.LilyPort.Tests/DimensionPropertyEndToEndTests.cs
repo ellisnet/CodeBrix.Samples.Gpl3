@@ -66,13 +66,16 @@ public class DimensionPropertyEndToEndTests
     /// Every render is given the SAME base name, in a directory of its own, so that
     /// nothing name-derived can differ between two renders being compared. The
     /// comparison here is of whole documents, so one leaked file name would make every
-    /// pair differ and the test would pass for the wrong reason.
+    /// pair differ and the test would pass for the wrong reason. Point-and-click is
+    /// OFF for the same reason the sweep turns it off: an anchor embeds the render's
+    /// own scratch directory, and this class compares LAYOUT, not anchors.
     /// </para>
     /// </summary>
     private static string Render(string source)
     {
         BatchRunResult result = BatchRunner.RunText(
-            source, "dimension-probe", null, ScratchDirectory());
+            source, "dimension-probe", null, ScratchDirectory(),
+            new BatchRunOptions { PointAndClick = false });
         result.SvgPath.Should().NotBeNull();
         return File.ReadAllText(result.SvgPath);
     }

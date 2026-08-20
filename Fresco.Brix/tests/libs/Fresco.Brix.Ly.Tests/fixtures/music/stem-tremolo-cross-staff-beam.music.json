@@ -1,0 +1,839 @@
+{
+ "has_output": true,
+ "node_positions": [
+  [
+   0,
+   "Version",
+   0
+  ],
+  [
+   7,
+   "Version",
+   0
+  ],
+  [
+   14,
+   "String",
+   9
+  ],
+  [
+   21,
+   "Header",
+   19
+  ],
+  [
+   28,
+   "Header",
+   19
+  ],
+  [
+   35,
+   "Assignment",
+   31
+  ],
+  [
+   42,
+   "String",
+   41
+  ],
+  [
+   49,
+   "String",
+   41
+  ],
+  [
+   56,
+   "String",
+   41
+  ],
+  [
+   63,
+   "String",
+   41
+  ],
+  [
+   70,
+   "String",
+   41
+  ],
+  [
+   77,
+   "String",
+   41
+  ],
+  [
+   84,
+   "String",
+   41
+  ],
+  [
+   91,
+   "String",
+   41
+  ],
+  [
+   98,
+   "String",
+   41
+  ],
+  [
+   105,
+   "String",
+   41
+  ],
+  [
+   112,
+   "String",
+   41
+  ],
+  [
+   119,
+   "Assignment",
+   117
+  ],
+  [
+   126,
+   "Relative",
+   125
+  ],
+  [
+   133,
+   "Relative",
+   125
+  ],
+  [
+   140,
+   "MusicList",
+   139
+  ],
+  [
+   147,
+   "Duration",
+   147
+  ],
+  [
+   154,
+   "Note",
+   154
+  ],
+  [
+   161,
+   "Tremolo",
+   161
+  ],
+  [
+   168,
+   "Change",
+   163
+  ],
+  [
+   175,
+   "Change",
+   163
+  ],
+  [
+   182,
+   "Change",
+   163
+  ],
+  [
+   189,
+   "Tremolo",
+   188
+  ],
+  [
+   196,
+   "Beam",
+   195
+  ],
+  [
+   203,
+   "Context",
+   200
+  ],
+  [
+   210,
+   "Context",
+   200
+  ],
+  [
+   217,
+   "MusicList",
+   216
+  ],
+  [
+   224,
+   "Context",
+   221
+  ],
+  [
+   231,
+   "Context",
+   221
+  ],
+  [
+   238,
+   "UserCommand",
+   237
+  ],
+  [
+   245,
+   "UserCommand",
+   237
+  ],
+  [
+   252,
+   "Context",
+   246
+  ],
+  [
+   259,
+   "Context",
+   246
+  ],
+  [
+   266,
+   "MusicList",
+   264
+  ],
+  [
+   273,
+   "Clef",
+   270
+  ],
+  [
+   280,
+   "Clef",
+   270
+  ],
+  [
+   287,
+   "Duration",
+   286
+  ],
+  [
+   294,
+   "Duration",
+   286
+  ],
+  [
+   295,
+   "Duration",
+   286
+  ]
+ ],
+ "time_positions": [
+  [
+   0,
+   null
+  ],
+  [
+   7,
+   null
+  ],
+  [
+   14,
+   null
+  ],
+  [
+   21,
+   null
+  ],
+  [
+   28,
+   null
+  ],
+  [
+   35,
+   null
+  ],
+  [
+   42,
+   null
+  ],
+  [
+   49,
+   null
+  ],
+  [
+   56,
+   null
+  ],
+  [
+   63,
+   null
+  ],
+  [
+   70,
+   null
+  ],
+  [
+   77,
+   null
+  ],
+  [
+   84,
+   null
+  ],
+  [
+   91,
+   null
+  ],
+  [
+   98,
+   null
+  ],
+  [
+   105,
+   null
+  ],
+  [
+   112,
+   null
+  ],
+  [
+   119,
+   "0/1"
+  ],
+  [
+   126,
+   "0/1"
+  ],
+  [
+   133,
+   "0/1"
+  ],
+  [
+   140,
+   "0/1"
+  ],
+  [
+   147,
+   "0/1"
+  ],
+  [
+   154,
+   "1/16"
+  ],
+  [
+   161,
+   "1/4"
+  ],
+  [
+   168,
+   "1/4"
+  ],
+  [
+   175,
+   "1/4"
+  ],
+  [
+   182,
+   "1/4"
+  ],
+  [
+   189,
+   "3/8"
+  ],
+  [
+   196,
+   "1/2"
+  ],
+  [
+   203,
+   "0/1"
+  ],
+  [
+   210,
+   "0/1"
+  ],
+  [
+   217,
+   "0/1"
+  ],
+  [
+   224,
+   "0/1"
+  ],
+  [
+   231,
+   "0/1"
+  ],
+  [
+   238,
+   "0/1"
+  ],
+  [
+   245,
+   "0/1"
+  ],
+  [
+   252,
+   "0/1"
+  ],
+  [
+   259,
+   "0/1"
+  ],
+  [
+   266,
+   "0/1"
+  ],
+  [
+   273,
+   "0/1"
+  ],
+  [
+   280,
+   "0/1"
+  ],
+  [
+   287,
+   "1/2"
+  ],
+  [
+   294,
+   "1/2"
+  ],
+  [
+   295,
+   null
+  ]
+ ],
+ "tree": {
+  "children": [
+   {
+    "children": [
+     {
+      "children": [],
+      "cls": "String",
+      "end": 17,
+      "length": "0/1",
+      "plaintext": "2.23.3",
+      "position": 9,
+      "token": "\"",
+      "tokens": [
+       "2.23.3",
+       "\""
+      ]
+     }
+    ],
+    "cls": "Version",
+    "end": 17,
+    "length": "0/1",
+    "plaintext": "",
+    "position": 0,
+    "token": "\\version",
+    "tokens": []
+   },
+   {
+    "children": [
+     {
+      "children": [
+       {
+        "children": [],
+        "cls": "String",
+        "end": 113,
+        "length": "0/1",
+        "plaintext": "Stem tremolos on cross-staff beams do not cause\ncircular dependencies.",
+        "position": 41,
+        "token": "\"",
+        "tokens": [
+         "Stem tremolos on cross-staff beams do not cause",
+         "\n",
+         "circular dependencies.",
+         "\""
+        ]
+       }
+      ],
+      "cls": "Assignment",
+      "end": 113,
+      "length": "0/1",
+      "plaintext": "",
+      "position": 31,
+      "token": "texidoc",
+      "tokens": [
+       "="
+      ]
+     }
+    ],
+    "cls": "Header",
+    "end": 115,
+    "length": "0/1",
+    "plaintext": "",
+    "position": 19,
+    "token": "\\header",
+    "tokens": [
+     "{",
+     "}"
+    ]
+   },
+   {
+    "children": [
+     {
+      "children": [
+       {
+        "children": [],
+        "cls": "Note",
+        "end": 138,
+        "length": "0/1",
+        "plaintext": "",
+        "position": 135,
+        "token": "c",
+        "tokens": []
+       },
+       {
+        "children": [
+         {
+          "children": [
+           {
+            "children": [],
+            "cls": "Duration",
+            "end": 149,
+            "length": "0/1",
+            "plaintext": "",
+            "position": 147,
+            "token": "16",
+            "tokens": []
+           }
+          ],
+          "cls": "Note",
+          "end": 149,
+          "length": "1/16",
+          "plaintext": "",
+          "position": 145,
+          "token": "f",
+          "tokens": []
+         },
+         {
+          "children": [
+           {
+            "children": [],
+            "cls": "Duration",
+            "end": 152,
+            "length": "0/1",
+            "plaintext": "",
+            "position": 150,
+            "token": "32",
+            "tokens": []
+           }
+          ],
+          "cls": "Tremolo",
+          "end": 152,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 149,
+          "token": ":",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "Beam",
+          "end": 153,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 152,
+          "token": "[",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "Note",
+          "end": 155,
+          "length": "1/16",
+          "plaintext": "",
+          "position": 154,
+          "token": "e",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "Tremolo",
+          "end": 156,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 155,
+          "token": ":",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "Note",
+          "end": 158,
+          "length": "1/16",
+          "plaintext": "",
+          "position": 157,
+          "token": "d",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "Tremolo",
+          "end": 159,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 158,
+          "token": ":",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "Note",
+          "end": 161,
+          "length": "1/16",
+          "plaintext": "",
+          "position": 160,
+          "token": "c",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "Tremolo",
+          "end": 162,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 161,
+          "token": ":",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "Change",
+          "end": 183,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 163,
+          "token": "\\change",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "Note",
+          "end": 185,
+          "length": "1/16",
+          "plaintext": "",
+          "position": 184,
+          "token": "b",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "Tremolo",
+          "end": 186,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 185,
+          "token": ":",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "Note",
+          "end": 188,
+          "length": "1/16",
+          "plaintext": "",
+          "position": 187,
+          "token": "a",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "Tremolo",
+          "end": 189,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 188,
+          "token": ":",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "Note",
+          "end": 191,
+          "length": "1/16",
+          "plaintext": "",
+          "position": 190,
+          "token": "g",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "Tremolo",
+          "end": 192,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 191,
+          "token": ":",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "Note",
+          "end": 194,
+          "length": "1/16",
+          "plaintext": "",
+          "position": 193,
+          "token": "f",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "Tremolo",
+          "end": 195,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 194,
+          "token": ":",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "Beam",
+          "end": 196,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 195,
+          "token": "]",
+          "tokens": []
+         }
+        ],
+        "cls": "MusicList",
+        "end": 198,
+        "length": "1/2",
+        "plaintext": "",
+        "position": 139,
+        "token": "{",
+        "tokens": [
+         "}"
+        ]
+       }
+      ],
+      "cls": "Relative",
+      "end": 198,
+      "length": "1/2",
+      "plaintext": "",
+      "position": 125,
+      "token": "\\relative",
+      "tokens": []
+     }
+    ],
+    "cls": "Assignment",
+    "end": 198,
+    "length": "0/1",
+    "plaintext": "",
+    "position": 117,
+    "token": "music",
+    "tokens": [
+     "="
+    ]
+   },
+   {
+    "children": [
+     {
+      "children": [
+       {
+        "children": [
+         {
+          "children": [],
+          "cls": "UserCommand",
+          "end": 243,
+          "length": "1/2",
+          "plaintext": "",
+          "position": 237,
+          "token": "\\music",
+          "tokens": []
+         }
+        ],
+        "cls": "Context",
+        "end": 243,
+        "length": "1/2",
+        "plaintext": "",
+        "position": 221,
+        "token": "\\new",
+        "tokens": []
+       },
+       {
+        "children": [
+         {
+          "children": [
+           {
+            "children": [],
+            "cls": "Clef",
+            "end": 280,
+            "length": "0/1",
+            "plaintext": "",
+            "position": 270,
+            "token": "\\clef",
+            "tokens": []
+           },
+           {
+            "children": [
+             {
+              "children": [],
+              "cls": "Duration",
+              "end": 287,
+              "length": "0/1",
+              "plaintext": "",
+              "position": 286,
+              "token": "2",
+              "tokens": []
+             }
+            ],
+            "cls": "Skip",
+            "end": 287,
+            "length": "1/2",
+            "plaintext": "",
+            "position": 285,
+            "token": "s",
+            "tokens": []
+           }
+          ],
+          "cls": "MusicList",
+          "end": 291,
+          "length": "1/2",
+          "plaintext": "",
+          "position": 264,
+          "token": "{",
+          "tokens": [
+           "}"
+          ]
+         }
+        ],
+        "cls": "Context",
+        "end": 291,
+        "length": "1/2",
+        "plaintext": "",
+        "position": 246,
+        "token": "\\new",
+        "tokens": []
+       }
+      ],
+      "cls": "MusicList",
+      "end": 294,
+      "length": "1/2",
+      "plaintext": "",
+      "position": 216,
+      "token": "<<",
+      "tokens": [
+       ">>"
+      ]
+     }
+    ],
+    "cls": "Context",
+    "end": 294,
+    "length": "1/2",
+    "plaintext": "",
+    "position": 200,
+    "token": "\\new",
+    "tokens": []
+   }
+  ],
+  "cls": "Document",
+  "end": 294,
+  "length": "0/1",
+  "plaintext": "",
+  "position": -1,
+  "token": null,
+  "tokens": []
+ }
+}

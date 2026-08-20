@@ -1,0 +1,1474 @@
+{
+ "has_output": true,
+ "node_positions": [
+  [
+   0,
+   "Version",
+   0
+  ],
+  [
+   7,
+   "Version",
+   0
+  ],
+  [
+   14,
+   "String",
+   9
+  ],
+  [
+   21,
+   "Header",
+   20
+  ],
+  [
+   28,
+   "Header",
+   20
+  ],
+  [
+   35,
+   "Assignment",
+   32
+  ],
+  [
+   42,
+   "String",
+   40
+  ],
+  [
+   49,
+   "String",
+   40
+  ],
+  [
+   56,
+   "String",
+   40
+  ],
+  [
+   63,
+   "String",
+   40
+  ],
+  [
+   70,
+   "String",
+   40
+  ],
+  [
+   77,
+   "String",
+   40
+  ],
+  [
+   84,
+   "String",
+   40
+  ],
+  [
+   91,
+   "String",
+   40
+  ],
+  [
+   98,
+   "String",
+   40
+  ],
+  [
+   105,
+   "String",
+   40
+  ],
+  [
+   112,
+   "String",
+   40
+  ],
+  [
+   119,
+   "String",
+   40
+  ],
+  [
+   126,
+   "String",
+   40
+  ],
+  [
+   133,
+   "String",
+   40
+  ],
+  [
+   140,
+   "String",
+   40
+  ],
+  [
+   147,
+   "String",
+   40
+  ],
+  [
+   154,
+   "Markup",
+   154
+  ],
+  [
+   161,
+   "Markup",
+   154
+  ],
+  [
+   168,
+   "MarkupCommand",
+   162
+  ],
+  [
+   175,
+   "Markup",
+   173
+  ],
+  [
+   182,
+   "MarkupList",
+   181
+  ],
+  [
+   189,
+   "MarkupWord",
+   189
+  ],
+  [
+   196,
+   "MarkupWord",
+   195
+  ],
+  [
+   203,
+   "MarkupWord",
+   202
+  ],
+  [
+   210,
+   "MarkupWord",
+   207
+  ],
+  [
+   217,
+   "Markup",
+   216
+  ],
+  [
+   224,
+   "MarkupCommand",
+   224
+  ],
+  [
+   231,
+   "MarkupCommand",
+   224
+  ],
+  [
+   238,
+   "Header",
+   236
+  ],
+  [
+   245,
+   "Header",
+   236
+  ],
+  [
+   252,
+   "Assignment",
+   248
+  ],
+  [
+   259,
+   "String",
+   256
+  ],
+  [
+   266,
+   "String",
+   256
+  ],
+  [
+   273,
+   "String",
+   256
+  ],
+  [
+   280,
+   "String",
+   256
+  ],
+  [
+   287,
+   "String",
+   256
+  ],
+  [
+   294,
+   "Score",
+   293
+  ],
+  [
+   301,
+   "Score",
+   293
+  ],
+  [
+   308,
+   "Relative",
+   304
+  ],
+  [
+   315,
+   "MusicList",
+   314
+  ],
+  [
+   322,
+   "Duration",
+   318
+  ],
+  [
+   329,
+   "Book",
+   326
+  ],
+  [
+   336,
+   "Book",
+   326
+  ],
+  [
+   343,
+   "Book",
+   326
+  ],
+  [
+   350,
+   "Book",
+   326
+  ],
+  [
+   357,
+   "Book",
+   326
+  ],
+  [
+   364,
+   "Book",
+   326
+  ],
+  [
+   371,
+   "Book",
+   326
+  ],
+  [
+   378,
+   "Book",
+   326
+  ],
+  [
+   385,
+   "Book",
+   326
+  ],
+  [
+   392,
+   "Book",
+   326
+  ],
+  [
+   399,
+   "Book",
+   326
+  ],
+  [
+   406,
+   "Header",
+   405
+  ],
+  [
+   413,
+   "Header",
+   405
+  ],
+  [
+   420,
+   "Assignment",
+   419
+  ],
+  [
+   427,
+   "Assignment",
+   419
+  ],
+  [
+   434,
+   "String",
+   430
+  ],
+  [
+   441,
+   "String",
+   430
+  ],
+  [
+   448,
+   "String",
+   430
+  ],
+  [
+   455,
+   "String",
+   430
+  ],
+  [
+   462,
+   "String",
+   430
+  ],
+  [
+   469,
+   "Markup",
+   467
+  ],
+  [
+   476,
+   "MarkupCommand",
+   475
+  ],
+  [
+   483,
+   "Scheme",
+   483
+  ],
+  [
+   490,
+   "Markup",
+   488
+  ],
+  [
+   497,
+   "MarkupList",
+   496
+  ],
+  [
+   504,
+   "MarkupWord",
+   504
+  ],
+  [
+   511,
+   "MarkupWord",
+   510
+  ],
+  [
+   518,
+   "MarkupWord",
+   517
+  ],
+  [
+   525,
+   "MarkupWord",
+   523
+  ],
+  [
+   532,
+   "MarkupWord",
+   527
+  ],
+  [
+   539,
+   "MarkupWord",
+   527
+  ],
+  [
+   546,
+   "Markup",
+   541
+  ],
+  [
+   553,
+   "MarkupCommand",
+   549
+  ],
+  [
+   560,
+   "SchemeItem",
+   558
+  ],
+  [
+   567,
+   "SchemeItem",
+   558
+  ],
+  [
+   574,
+   "SchemeItem",
+   558
+  ],
+  [
+   581,
+   "SchemeItem",
+   558
+  ],
+  [
+   588,
+   "SchemeItem",
+   558
+  ],
+  [
+   595,
+   "SchemeItem",
+   558
+  ],
+  [
+   602,
+   "SchemeItem",
+   558
+  ],
+  [
+   609,
+   "SchemeItem",
+   558
+  ],
+  [
+   616,
+   "Score",
+   612
+  ],
+  [
+   623,
+   "Score",
+   612
+  ],
+  [
+   630,
+   "Context",
+   625
+  ],
+  [
+   637,
+   "MusicList",
+   636
+  ],
+  [
+   644,
+   "Duration",
+   640
+  ],
+  [
+   650,
+   "Duration",
+   640
+  ]
+ ],
+ "time_positions": [
+  [
+   0,
+   null
+  ],
+  [
+   7,
+   null
+  ],
+  [
+   14,
+   null
+  ],
+  [
+   21,
+   null
+  ],
+  [
+   28,
+   null
+  ],
+  [
+   35,
+   null
+  ],
+  [
+   42,
+   null
+  ],
+  [
+   49,
+   null
+  ],
+  [
+   56,
+   null
+  ],
+  [
+   63,
+   null
+  ],
+  [
+   70,
+   null
+  ],
+  [
+   77,
+   null
+  ],
+  [
+   84,
+   null
+  ],
+  [
+   91,
+   null
+  ],
+  [
+   98,
+   null
+  ],
+  [
+   105,
+   null
+  ],
+  [
+   112,
+   null
+  ],
+  [
+   119,
+   null
+  ],
+  [
+   126,
+   null
+  ],
+  [
+   133,
+   null
+  ],
+  [
+   140,
+   null
+  ],
+  [
+   147,
+   null
+  ],
+  [
+   154,
+   null
+  ],
+  [
+   161,
+   null
+  ],
+  [
+   168,
+   null
+  ],
+  [
+   175,
+   null
+  ],
+  [
+   182,
+   null
+  ],
+  [
+   189,
+   null
+  ],
+  [
+   196,
+   null
+  ],
+  [
+   203,
+   null
+  ],
+  [
+   210,
+   null
+  ],
+  [
+   217,
+   null
+  ],
+  [
+   224,
+   null
+  ],
+  [
+   231,
+   null
+  ],
+  [
+   238,
+   null
+  ],
+  [
+   245,
+   null
+  ],
+  [
+   252,
+   null
+  ],
+  [
+   259,
+   null
+  ],
+  [
+   266,
+   null
+  ],
+  [
+   273,
+   null
+  ],
+  [
+   280,
+   null
+  ],
+  [
+   287,
+   null
+  ],
+  [
+   294,
+   null
+  ],
+  [
+   301,
+   null
+  ],
+  [
+   308,
+   "0/1"
+  ],
+  [
+   315,
+   "0/1"
+  ],
+  [
+   322,
+   null
+  ],
+  [
+   329,
+   null
+  ],
+  [
+   336,
+   null
+  ],
+  [
+   343,
+   null
+  ],
+  [
+   350,
+   null
+  ],
+  [
+   357,
+   null
+  ],
+  [
+   364,
+   null
+  ],
+  [
+   371,
+   null
+  ],
+  [
+   378,
+   null
+  ],
+  [
+   385,
+   null
+  ],
+  [
+   392,
+   null
+  ],
+  [
+   399,
+   null
+  ],
+  [
+   406,
+   null
+  ],
+  [
+   413,
+   null
+  ],
+  [
+   420,
+   null
+  ],
+  [
+   427,
+   null
+  ],
+  [
+   434,
+   null
+  ],
+  [
+   441,
+   null
+  ],
+  [
+   448,
+   null
+  ],
+  [
+   455,
+   null
+  ],
+  [
+   462,
+   null
+  ],
+  [
+   469,
+   null
+  ],
+  [
+   476,
+   null
+  ],
+  [
+   483,
+   null
+  ],
+  [
+   490,
+   null
+  ],
+  [
+   497,
+   null
+  ],
+  [
+   504,
+   null
+  ],
+  [
+   511,
+   null
+  ],
+  [
+   518,
+   null
+  ],
+  [
+   525,
+   null
+  ],
+  [
+   532,
+   null
+  ],
+  [
+   539,
+   null
+  ],
+  [
+   546,
+   null
+  ],
+  [
+   553,
+   null
+  ],
+  [
+   560,
+   null
+  ],
+  [
+   567,
+   null
+  ],
+  [
+   574,
+   null
+  ],
+  [
+   581,
+   null
+  ],
+  [
+   588,
+   null
+  ],
+  [
+   595,
+   null
+  ],
+  [
+   602,
+   null
+  ],
+  [
+   609,
+   null
+  ],
+  [
+   616,
+   null
+  ],
+  [
+   623,
+   null
+  ],
+  [
+   630,
+   "0/1"
+  ],
+  [
+   637,
+   "0/1"
+  ],
+  [
+   644,
+   null
+  ],
+  [
+   650,
+   null
+  ]
+ ],
+ "tree": {
+  "children": [
+   {
+    "children": [
+     {
+      "children": [],
+      "cls": "String",
+      "end": 18,
+      "length": "0/1",
+      "plaintext": "2.19.21",
+      "position": 9,
+      "token": "\"",
+      "tokens": [
+       "2.19.21",
+       "\""
+      ]
+     }
+    ],
+    "cls": "Version",
+    "end": 18,
+    "length": "0/1",
+    "plaintext": "",
+    "position": 0,
+    "token": "\\version",
+    "tokens": []
+   },
+   {
+    "children": [
+     {
+      "children": [
+       {
+        "children": [],
+        "cls": "String",
+        "end": 150,
+        "length": "0/1",
+        "plaintext": "\nChanging the header fields in a book or a bookpart shall not have any effect on the global default values.\n",
+        "position": 40,
+        "token": "\"",
+        "tokens": [
+         "\n",
+         "Changing the header fields in a book or a bookpart shall not have any effect on the global default values.",
+         "\n",
+         "\""
+        ]
+       }
+      ],
+      "cls": "Assignment",
+      "end": 150,
+      "length": "0/1",
+      "plaintext": "",
+      "position": 32,
+      "token": "texidoc",
+      "tokens": [
+       "="
+      ]
+     }
+    ],
+    "cls": "Header",
+    "end": 152,
+    "length": "0/1",
+    "plaintext": "",
+    "position": 20,
+    "token": "\\header",
+    "tokens": [
+     "{",
+     "}"
+    ]
+   },
+   {
+    "children": [
+     {
+      "children": [
+       {
+        "children": [
+         {
+          "children": [],
+          "cls": "SchemeItem",
+          "end": 172,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 171,
+          "token": "2",
+          "tokens": []
+         }
+        ],
+        "cls": "Scheme",
+        "end": 172,
+        "length": "0/1",
+        "plaintext": "",
+        "position": 170,
+        "token": "#",
+        "tokens": []
+       }
+      ],
+      "cls": "MarkupCommand",
+      "end": 172,
+      "length": "0/1",
+      "plaintext": "",
+      "position": 162,
+      "token": "\\vspace",
+      "tokens": []
+     }
+    ],
+    "cls": "Markup",
+    "end": 172,
+    "length": "0/1",
+    "plaintext": "",
+    "position": 154,
+    "token": "\\markup",
+    "tokens": []
+   },
+   {
+    "children": [
+     {
+      "children": [
+       {
+        "children": [
+         {
+          "children": [],
+          "cls": "MarkupWord",
+          "end": 194,
+          "length": "0/1",
+          "plaintext": "Note:",
+          "position": 189,
+          "token": "Note:",
+          "tokens": []
+         }
+        ],
+        "cls": "MarkupCommand",
+        "end": 194,
+        "length": "0/1",
+        "plaintext": "Note:",
+        "position": 183,
+        "token": "\\bold",
+        "tokens": []
+       },
+       {
+        "children": [],
+        "cls": "MarkupWord",
+        "end": 201,
+        "length": "0/1",
+        "plaintext": "expect",
+        "position": 195,
+        "token": "expect",
+        "tokens": []
+       },
+       {
+        "children": [],
+        "cls": "MarkupWord",
+        "end": 206,
+        "length": "0/1",
+        "plaintext": "only",
+        "position": 202,
+        "token": "only",
+        "tokens": []
+       },
+       {
+        "children": [],
+        "cls": "MarkupWord",
+        "end": 213,
+        "length": "0/1",
+        "plaintext": "title.",
+        "position": 207,
+        "token": "title.",
+        "tokens": []
+       }
+      ],
+      "cls": "MarkupList",
+      "end": 215,
+      "length": "0/1",
+      "plaintext": "Note: expect only title.",
+      "position": 181,
+      "token": "{",
+      "tokens": [
+       "}"
+      ]
+     }
+    ],
+    "cls": "Markup",
+    "end": 215,
+    "length": "0/1",
+    "plaintext": "Note: expect only title.",
+    "position": 173,
+    "token": "\\markup",
+    "tokens": []
+   },
+   {
+    "children": [
+     {
+      "children": [
+       {
+        "children": [
+         {
+          "children": [],
+          "cls": "SchemeItem",
+          "end": 234,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 233,
+          "token": "2",
+          "tokens": []
+         }
+        ],
+        "cls": "Scheme",
+        "end": 234,
+        "length": "0/1",
+        "plaintext": "",
+        "position": 232,
+        "token": "#",
+        "tokens": []
+       }
+      ],
+      "cls": "MarkupCommand",
+      "end": 234,
+      "length": "0/1",
+      "plaintext": "",
+      "position": 224,
+      "token": "\\vspace",
+      "tokens": []
+     }
+    ],
+    "cls": "Markup",
+    "end": 234,
+    "length": "0/1",
+    "plaintext": "",
+    "position": 216,
+    "token": "\\markup",
+    "tokens": []
+   },
+   {
+    "children": [
+     {
+      "children": [
+       {
+        "children": [],
+        "cls": "String",
+        "end": 290,
+        "length": "0/1",
+        "plaintext": "Title correct (set at top level)",
+        "position": 256,
+        "token": "\"",
+        "tokens": [
+         "Title correct (set at top level)",
+         "\""
+        ]
+       }
+      ],
+      "cls": "Assignment",
+      "end": 290,
+      "length": "0/1",
+      "plaintext": "",
+      "position": 248,
+      "token": "title",
+      "tokens": [
+       "="
+      ]
+     }
+    ],
+    "cls": "Header",
+    "end": 292,
+    "length": "0/1",
+    "plaintext": "",
+    "position": 236,
+    "token": "\\header",
+    "tokens": [
+     "{",
+     "}"
+    ]
+   },
+   {
+    "children": [
+     {
+      "children": [
+       {
+        "children": [
+         {
+          "children": [
+           {
+            "children": [],
+            "cls": "Duration",
+            "end": 319,
+            "length": "0/1",
+            "plaintext": "",
+            "position": 318,
+            "token": "1",
+            "tokens": []
+           }
+          ],
+          "cls": "Note",
+          "end": 319,
+          "length": "1/1",
+          "plaintext": "",
+          "position": 316,
+          "token": "c",
+          "tokens": []
+         }
+        ],
+        "cls": "MusicList",
+        "end": 321,
+        "length": "1/1",
+        "plaintext": "",
+        "position": 314,
+        "token": "{",
+        "tokens": [
+         "}"
+        ]
+       }
+      ],
+      "cls": "Relative",
+      "end": 321,
+      "length": "1/1",
+      "plaintext": "",
+      "position": 304,
+      "token": "\\relative",
+      "tokens": []
+     }
+    ],
+    "cls": "Score",
+    "end": 323,
+    "length": "0/1",
+    "plaintext": "",
+    "position": 293,
+    "token": "\\score",
+    "tokens": [
+     "{",
+     "}"
+    ]
+   },
+   {
+    "children": [
+     {
+      "children": [
+       {
+        "children": [
+         {
+          "children": [],
+          "cls": "String",
+          "end": 460,
+          "length": "0/1",
+          "plaintext": "Subtitle (set at book level)",
+          "position": 430,
+          "token": "\"",
+          "tokens": [
+           "Subtitle (set at book level)",
+           "\""
+          ]
+         }
+        ],
+        "cls": "Assignment",
+        "end": 460,
+        "length": "0/1",
+        "plaintext": "",
+        "position": 419,
+        "token": "subtitle",
+        "tokens": [
+         "="
+        ]
+       }
+      ],
+      "cls": "Header",
+      "end": 464,
+      "length": "0/1",
+      "plaintext": "",
+      "position": 405,
+      "token": "\\header",
+      "tokens": [
+       "{",
+       "}"
+      ]
+     },
+     {
+      "children": [
+       {
+        "children": [
+         {
+          "children": [
+           {
+            "children": [],
+            "cls": "SchemeItem",
+            "end": 485,
+            "length": "0/1",
+            "plaintext": "",
+            "position": 484,
+            "token": "2",
+            "tokens": []
+           }
+          ],
+          "cls": "Scheme",
+          "end": 485,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 483,
+          "token": "#",
+          "tokens": []
+         }
+        ],
+        "cls": "MarkupCommand",
+        "end": 485,
+        "length": "0/1",
+        "plaintext": "",
+        "position": 475,
+        "token": "\\vspace",
+        "tokens": []
+       }
+      ],
+      "cls": "Markup",
+      "end": 485,
+      "length": "0/1",
+      "plaintext": "",
+      "position": 467,
+      "token": "\\markup",
+      "tokens": []
+     },
+     {
+      "children": [
+       {
+        "children": [
+         {
+          "children": [
+           {
+            "children": [],
+            "cls": "MarkupWord",
+            "end": 509,
+            "length": "0/1",
+            "plaintext": "Note:",
+            "position": 504,
+            "token": "Note:",
+            "tokens": []
+           }
+          ],
+          "cls": "MarkupCommand",
+          "end": 509,
+          "length": "0/1",
+          "plaintext": "Note:",
+          "position": 498,
+          "token": "\\bold",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "MarkupWord",
+          "end": 516,
+          "length": "0/1",
+          "plaintext": "expect",
+          "position": 510,
+          "token": "expect",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "MarkupWord",
+          "end": 522,
+          "length": "0/1",
+          "plaintext": "title",
+          "position": 517,
+          "token": "title",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "MarkupWord",
+          "end": 526,
+          "length": "0/1",
+          "plaintext": "and",
+          "position": 523,
+          "token": "and",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "MarkupWord",
+          "end": 536,
+          "length": "0/1",
+          "plaintext": "subtitle.",
+          "position": 527,
+          "token": "subtitle.",
+          "tokens": []
+         }
+        ],
+        "cls": "MarkupList",
+        "end": 538,
+        "length": "0/1",
+        "plaintext": "Note: expect title and subtitle.",
+        "position": 496,
+        "token": "{",
+        "tokens": [
+         "}"
+        ]
+       }
+      ],
+      "cls": "Markup",
+      "end": 538,
+      "length": "0/1",
+      "plaintext": "Note: expect title and subtitle.",
+      "position": 488,
+      "token": "\\markup",
+      "tokens": []
+     },
+     {
+      "children": [
+       {
+        "children": [
+         {
+          "children": [
+           {
+            "children": [],
+            "cls": "SchemeItem",
+            "end": 559,
+            "length": "0/1",
+            "plaintext": "",
+            "position": 558,
+            "token": "2",
+            "tokens": []
+           }
+          ],
+          "cls": "Scheme",
+          "end": 559,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 557,
+          "token": "#",
+          "tokens": []
+         }
+        ],
+        "cls": "MarkupCommand",
+        "end": 559,
+        "length": "0/1",
+        "plaintext": "",
+        "position": 549,
+        "token": "\\vspace",
+        "tokens": []
+       }
+      ],
+      "cls": "Markup",
+      "end": 559,
+      "length": "0/1",
+      "plaintext": "",
+      "position": 541,
+      "token": "\\markup",
+      "tokens": []
+     },
+     {
+      "children": [
+       {
+        "children": [
+         {
+          "children": [
+           {
+            "children": [
+             {
+              "children": [],
+              "cls": "Duration",
+              "end": 641,
+              "length": "0/1",
+              "plaintext": "",
+              "position": 640,
+              "token": "1",
+              "tokens": []
+             }
+            ],
+            "cls": "Note",
+            "end": 641,
+            "length": "1/1",
+            "plaintext": "",
+            "position": 638,
+            "token": "c",
+            "tokens": []
+           }
+          ],
+          "cls": "MusicList",
+          "end": 643,
+          "length": "1/1",
+          "plaintext": "",
+          "position": 636,
+          "token": "{",
+          "tokens": [
+           "}"
+          ]
+         }
+        ],
+        "cls": "Context",
+        "end": 643,
+        "length": "1/1",
+        "plaintext": "",
+        "position": 625,
+        "token": "\\new",
+        "tokens": []
+       }
+      ],
+      "cls": "Score",
+      "end": 647,
+      "length": "0/1",
+      "plaintext": "",
+      "position": 612,
+      "token": "\\score",
+      "tokens": [
+       "{",
+       "}"
+      ]
+     }
+    ],
+    "cls": "Book",
+    "end": 649,
+    "length": "0/1",
+    "plaintext": "",
+    "position": 326,
+    "token": "\\book",
+    "tokens": [
+     "{",
+     "}"
+    ]
+   }
+  ],
+  "cls": "Document",
+  "end": 649,
+  "length": "0/1",
+  "plaintext": "",
+  "position": -1,
+  "token": null,
+  "tokens": []
+ }
+}

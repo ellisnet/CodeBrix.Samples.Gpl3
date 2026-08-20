@@ -1,0 +1,20 @@
+{
+ "complete": true,
+ "counted_tokens": {
+  "_token.Newline": 7,
+  "_token.Space": 8,
+  "_token.Unparsed": 15
+ },
+ "definitions": [],
+ "global_staff_size": null,
+ "has_output": false,
+ "include_args": [],
+ "language": null,
+ "markup_definitions": [],
+ "mode": "latex",
+ "output_args": [],
+ "scheme_load_args": [],
+ "token_count": 30,
+ "version": [],
+ "version_string": null
+}

@@ -8,10 +8,15 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
+using CodeBrix.LilyPort.Engine.Bootstrap;
 using CodeBrix.LilyPort.Engine.Fonts;
 using CodeBrix.LilyPort.Engine.Layout;
+using CodeBrix.LilyPort.Engine.Music;
+using CodeBrix.LilyPort.Engine.Objects;
+using CodeBrix.LilyPort.Engine.Origins;
 using CodeBrix.LilyPort.Flower;
 using CodeBrix.LilyScheme.Values;
 
@@ -60,6 +65,8 @@ public sealed class SvgBackend : IStencilSink
     private static readonly Symbol Utf8String = Symbol.Intern("utf-8-string");
     private static readonly Symbol UrlLink = Symbol.Intern("url-link");
     private static readonly Symbol GlyphOutline = Symbol.Intern("glyph-outline");
+    private static readonly Symbol CauseSymbol = Symbol.Intern("cause");
+    private static readonly Symbol OriginSymbol = Symbol.Intern("origin");
 
     // output-svg.scm's pango-description-regexp-comma / -nocomma. A Pango description
     // ends in its size, optionally preceded by style words; everything before the match
@@ -76,6 +83,11 @@ public sealed class SvgBackend : IStencilSink
     private const double PiOver180 = Math.PI / 180.0;
 
     private readonly StringBuilder _body = new StringBuilder();
+
+    // output-svg.scm's `have-grob-cause?': set when grob-cause opened an <a> anchor, so
+    // the matching no-origin knows whether it owes a </a>. A single boolean, not a
+    // depth counter, because that is exactly what upstream keeps.
+    private bool _haveGrobCause;
 
     /// <summary>Gets or sets the number of decimal places written for coordinates.</summary>
     public int Precision { get; set; } = 4;
@@ -112,6 +124,7 @@ public sealed class SvgBackend : IStencilSink
         _body.Clear();
         Causes.Clear();
         UnhandledCommands.Clear();
+        _haveGrobCause = false;
     }
 
     /// <summary>Renders a stencil into an SVG fragment.</summary>
@@ -292,12 +305,22 @@ public sealed class SvgBackend : IStencilSink
             Offset at = args.Count > 0 && args[0] is Pair point
                 ? new Offset(ToDouble(point.Car), ToDouble(point.Cdr))
                 : Offset.Zero;
-            Causes.Add((args.Count > 1 ? args[1] : null, at));
+            object grob = args.Count > 1 ? args[1] : null;
+            Causes.Add((grob, at));
+            _body.Append(GrobCauseAnchor(grob));
             return true;
         }
 
         if (ReferenceEquals(head, NoOrigin))
         {
+            // output-svg.scm's no-origin: a </a> when grob-cause opened an anchor,
+            // nothing at all when it did not.
+            if (_haveGrobCause)
+            {
+                _haveGrobCause = false;
+                _body.Append("</a>\n");
+            }
+
             return true;
         }
 
@@ -532,6 +555,126 @@ public sealed class SvgBackend : IStencilSink
     /// <returns>The interval's start and end.</returns>
     private static (double Start, double End) Interval(object value)
         => value is Pair pair ? (ToDouble(pair.Car), ToDouble(pair.Cdr)) : (0.0, 0.0);
+
+    /// <summary>
+    /// The point-and-click anchor one <c>grob-cause</c> opens, or the empty string —
+    /// <c>output-svg.scm</c>'s <c>grob-cause</c>, decision for decision.
+    /// <para>
+    /// The anchor is emitted only when the <c>point-and-click</c> option wants this
+    /// grob: a boolean answers for every grob, a symbol keeps only causes in that event
+    /// class, and a list keeps a cause in ANY of its classes — upstream's own
+    /// <c>cond</c> over the option's three declared shapes. The cause must be a stream
+    /// event whose <c>origin</c> is a real input location; a grob whose cause is
+    /// another grob (or nothing) gets no anchor and no diagnostic.
+    /// </para>
+    /// <para>
+    /// The URL is <c>textedit://&lt;file&gt;:&lt;line&gt;:&lt;char&gt;:&lt;column+1&gt;</c>
+    /// with the file made absolute against the CURRENT working directory when the parser
+    /// recorded a relative name — upstream reads <c>(ly-getcwd)</c> at DRAW time, and so
+    /// does this: the batch runner writes pages with the output directory current, so a
+    /// host that wants anchors pointing at its own file passes an absolute path in (or
+    /// engraves where it writes). Backslashes become slashes before percent-encoding
+    /// because backslashes are not valid file URI path separators (upstream's comment).
+    /// </para>
+    /// </summary>
+    /// <param name="grobValue">The grob the <c>grob-cause</c> command names.</param>
+    /// <returns>The <c>&lt;a&gt;</c> open tag, or the empty string.</returns>
+    private string GrobCauseAnchor(object grobValue)
+    {
+        object pointAndClick = LilyPondScheme.Options.Get("point-and-click");
+        if (!SchemeUtilities.IsSchemeTrue(pointAndClick))
+        {
+            return string.Empty;
+        }
+
+        // (ly:grob-property grob 'cause), and the origin only off a STREAM EVENT —
+        // upstream's (if (ly:stream-event? cause) ...) leaves anything else with no
+        // location at all.
+        Grob grob = (Grob)grobValue;
+        StreamEvent cause = grob.GetProperty(CauseSymbol) as StreamEvent;
+        if (cause == null || !(cause.GetProperty(OriginSymbol) is Input origin))
+        {
+            return string.Empty;
+        }
+
+        bool wanted;
+        if (pointAndClick is bool enabled)
+        {
+            wanted = enabled;
+        }
+        else if (pointAndClick is Symbol eventClass)
+        {
+            wanted = cause.IsInEventClass(eventClass);
+        }
+        else
+        {
+            wanted = false;
+            for (object cursor = pointAndClick; cursor is Pair pair; cursor = pair.Cdr)
+            {
+                if (cause.IsInEventClass((Symbol)pair.Car))
+                {
+                    wanted = true;
+                    break;
+                }
+            }
+        }
+
+        if (!wanted)
+        {
+            return string.Empty;
+        }
+
+        // ly:input-file-line-char-column, and the format's (1+ (cadddr location)):
+        // the URL carries the raw line and char and a ONE-BASED column.
+        origin.GetCounts(out int line, out int lineChar, out int column, out int _);
+        string rawFile = origin.FileString();
+        string file = IsAbsoluteFileName(rawFile)
+            ? rawFile
+            : LilyGetcwd() + "/" + rawFile;
+
+        _haveGrobCause = true;
+        return "<a style=\"color:inherit;\" xlink:href=\"textedit://"
+            + PointAndClick.PercentEncode(file.Replace('\\', '/'))
+            + ":" + line.ToString(CultureInfo.InvariantCulture)
+            + ":" + lineChar.ToString(CultureInfo.InvariantCulture)
+            + ":" + (column + 1).ToString(CultureInfo.InvariantCulture)
+            + "\">\n";
+    }
+
+    /// <summary>
+    /// <c>lily.scm</c>'s <c>is-absolute?</c>: a leading slash, or a Windows drive
+    /// letter followed by a separator.
+    /// </summary>
+    /// <param name="fileName">The file name to test.</param>
+    /// <returns>Whether the name is absolute.</returns>
+    private static bool IsAbsoluteFileName(string fileName)
+    {
+        if (string.IsNullOrEmpty(fileName))
+        {
+            return false;
+        }
+
+        if (fileName[0] == '/')
+        {
+            return true;
+        }
+
+        return OperatingSystem.IsWindows()
+            && fileName.Length > 2
+            && fileName[1] == ':'
+            && (fileName[2] == '\\' || fileName[2] == '/');
+    }
+
+    /// <summary>
+    /// <c>lily.scm</c>'s <c>ly-getcwd</c>: the working directory, slashified on
+    /// Windows.
+    /// </summary>
+    /// <returns>The current working directory.</returns>
+    private static string LilyGetcwd()
+    {
+        string cwd = Directory.GetCurrentDirectory();
+        return OperatingSystem.IsWindows() ? cwd.Replace('\\', '/') : cwd;
+    }
 
     /// <summary>
     /// Emits one music glyph as its outline, which is what

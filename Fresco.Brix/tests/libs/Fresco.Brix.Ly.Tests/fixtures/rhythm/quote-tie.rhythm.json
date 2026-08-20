@@ -1,0 +1,137 @@
+{
+ "extract": [
+  "1~",
+  "1",
+  "",
+  "1",
+  "",
+  "",
+  "1",
+  "1",
+  "1"
+ ],
+ "music_items": [
+  [
+   397,
+   402,
+   399,
+   true,
+   [
+    "a",
+    "'",
+    "~"
+   ],
+   [
+    "1"
+   ]
+  ],
+  [
+   405,
+   406,
+   405,
+   true,
+   [],
+   [
+    "1"
+   ]
+  ],
+  [
+   409,
+   410,
+   410,
+   true,
+   [
+    "a"
+   ],
+   []
+  ],
+  [
+   465,
+   467,
+   466,
+   true,
+   [
+    "R"
+   ],
+   [
+    "1"
+   ]
+  ],
+  [
+   470,
+   472,
+   472,
+   true,
+   [
+    "e",
+    "'"
+   ],
+   []
+  ],
+  [
+   475,
+   476,
+   476,
+   true,
+   [
+    "a"
+   ],
+   []
+  ],
+  [
+   561,
+   563,
+   562,
+   true,
+   [
+    "R"
+   ],
+   [
+    "1"
+   ]
+  ],
+  [
+   570,
+   572,
+   571,
+   true,
+   [
+    "R"
+   ],
+   [
+    "1"
+   ]
+  ],
+  [
+   600,
+   602,
+   601,
+   true,
+   [
+    "R"
+   ],
+   [
+    "1"
+   ]
+  ]
+ ],
+ "overwrite_durations": [
+  "4",
+  "8",
+  "",
+  "16."
+ ],
+ "results": {
+  "dot": "\\version \"2.19.21\"\n\n\\header {\n  texidoc = \"Voices from different cues must not be tied together.  In\nthis example, the first note has a tie.  This note should not be tied\nto the second visible note (following the rest).\nNote that this behavior will not hold for cues in direct succession,\nsince only one @code{CueVoice} context is created\n(with @code{context-id} `cue').\n\"\n}\n\ncueI = \\relative {\n  a'1. ~ | 1. | a |\n}\n\\addQuote \"cueI\" { \\cueI }\n\ncueII = \\relative {\n  R1. | e' | a |\n}\n\\addQuote \"cueII\" { \\cueII }\n\n\\new Staff \\new Voice {\n  \\cueDuring \"cueI\" #UP { R1. } |\n  R1.\n  \\cueDuring \"cueII\" #UP { R1. } |\n}\n",
+  "double": "\\version \"2.19.21\"\n\n\\header {\n  texidoc = \"Voices from different cues must not be tied together.  In\nthis example, the first note has a tie.  This note should not be tied\nto the second visible note (following the rest).\nNote that this behavior will not hold for cues in direct succession,\nsince only one @code{CueVoice} context is created\n(with @code{context-id} `cue').\n\"\n}\n\ncueI = \\relative {\n  a'\\breve ~ | \\breve | a |\n}\n\\addQuote \"cueI\" { \\cueI }\n\ncueII = \\relative {\n  R\\breve | e' | a |\n}\n\\addQuote \"cueII\" { \\cueII }\n\n\\new Staff \\new Voice {\n  \\cueDuring \"cueI\" #UP { R\\breve } |\n  R\\breve\n  \\cueDuring \"cueII\" #UP { R\\breve } |\n}\n",
+  "explicit": "\\version \"2.19.21\"\n\n\\header {\n  texidoc = \"Voices from different cues must not be tied together.  In\nthis example, the first note has a tie.  This note should not be tied\nto the second visible note (following the rest).\nNote that this behavior will not hold for cues in direct succession,\nsince only one @code{CueVoice} context is created\n(with @code{context-id} `cue').\n\"\n}\n\ncueI = \\relative {\n  a'1 ~ | 1 | a1 |\n}\n\\addQuote \"cueI\" { \\cueI }\n\ncueII = \\relative {\n  R1 | e'1 | a1 |\n}\n\\addQuote \"cueII\" { \\cueII }\n\n\\new Staff \\new Voice {\n  \\cueDuring \"cueI\" #UP { R1 } |\n  R1\n  \\cueDuring \"cueII\" #UP { R1 } |\n}\n",
+  "halve": "\\version \"2.19.21\"\n\n\\header {\n  texidoc = \"Voices from different cues must not be tied together.  In\nthis example, the first note has a tie.  This note should not be tied\nto the second visible note (following the rest).\nNote that this behavior will not hold for cues in direct succession,\nsince only one @code{CueVoice} context is created\n(with @code{context-id} `cue').\n\"\n}\n\ncueI = \\relative {\n  a'2 ~ | 2 | a |\n}\n\\addQuote \"cueI\" { \\cueI }\n\ncueII = \\relative {\n  R2 | e' | a |\n}\n\\addQuote \"cueII\" { \\cueII }\n\n\\new Staff \\new Voice {\n  \\cueDuring \"cueI\" #UP { R2 } |\n  R2\n  \\cueDuring \"cueII\" #UP { R2 } |\n}\n",
+  "implicit": "\\version \"2.19.21\"\n\n\\header {\n  texidoc = \"Voices from different cues must not be tied together.  In\nthis example, the first note has a tie.  This note should not be tied\nto the second visible note (following the rest).\nNote that this behavior will not hold for cues in direct succession,\nsince only one @code{CueVoice} context is created\n(with @code{context-id} `cue').\n\"\n}\n\ncueI = \\relative {\n  a'1 ~ |  | a |\n}\n\\addQuote \"cueI\" { \\cueI }\n\ncueII = \\relative {\n  R | e' | a |\n}\n\\addQuote \"cueII\" { \\cueII }\n\n\\new Staff \\new Voice {\n  \\cueDuring \"cueI\" #UP { R } |\n  R\n  \\cueDuring \"cueII\" #UP { R } |\n}\n",
+  "implicit_per_line": "\\version \"2.19.21\"\n\n\\header {\n  texidoc = \"Voices from different cues must not be tied together.  In\nthis example, the first note has a tie.  This note should not be tied\nto the second visible note (following the rest).\nNote that this behavior will not hold for cues in direct succession,\nsince only one @code{CueVoice} context is created\n(with @code{context-id} `cue').\n\"\n}\n\ncueI = \\relative {\n  a'1 ~ |  | a |\n}\n\\addQuote \"cueI\" { \\cueI }\n\ncueII = \\relative {\n  R1 | e' | a |\n}\n\\addQuote \"cueII\" { \\cueII }\n\n\\new Staff \\new Voice {\n  \\cueDuring \"cueI\" #UP { R1 } |\n  R1\n  \\cueDuring \"cueII\" #UP { R1 } |\n}\n",
+  "overwrite": "\\version \"2.19.21\"\n\n\\header {\n  texidoc = \"Voices from different cues must not be tied together.  In\nthis example, the first note has a tie.  This note should not be tied\nto the second visible note (following the rest).\nNote that this behavior will not hold for cues in direct succession,\nsince only one @code{CueVoice} context is created\n(with @code{context-id} `cue').\n\"\n}\n\ncueI = \\relative {\n  a'4 ~ | 8 | a |\n}\n\\addQuote \"cueI\" { \\cueI }\n\ncueII = \\relative {\n  R16. | e'4 | a8 |\n}\n\\addQuote \"cueII\" { \\cueII }\n\n\\new Staff \\new Voice {\n  \\cueDuring \"cueI\" #UP { R } |\n  R16.\n  \\cueDuring \"cueII\" #UP { R4 } |\n}\n",
+  "remove": "\\version \"2.19.21\"\n\n\\header {\n  texidoc = \"Voices from different cues must not be tied together.  In\nthis example, the first note has a tie.  This note should not be tied\nto the second visible note (following the rest).\nNote that this behavior will not hold for cues in direct succession,\nsince only one @code{CueVoice} context is created\n(with @code{context-id} `cue').\n\"\n}\n\ncueI = \\relative {\n  a' ~ |  | a |\n}\n\\addQuote \"cueI\" { \\cueI }\n\ncueII = \\relative {\n  R | e' | a |\n}\n\\addQuote \"cueII\" { \\cueII }\n\n\\new Staff \\new Voice {\n  \\cueDuring \"cueI\" #UP { R } |\n  R\n  \\cueDuring \"cueII\" #UP { R } |\n}\n",
+  "remove_fraction_scaling": "\\version \"2.19.21\"\n\n\\header {\n  texidoc = \"Voices from different cues must not be tied together.  In\nthis example, the first note has a tie.  This note should not be tied\nto the second visible note (following the rest).\nNote that this behavior will not hold for cues in direct succession,\nsince only one @code{CueVoice} context is created\n(with @code{context-id} `cue').\n\"\n}\n\ncueI = \\relative {\n  a'1 ~ | 1 | a |\n}\n\\addQuote \"cueI\" { \\cueI }\n\ncueII = \\relative {\n  R1 | e' | a |\n}\n\\addQuote \"cueII\" { \\cueII }\n\n\\new Staff \\new Voice {\n  \\cueDuring \"cueI\" #UP { R1 } |\n  R1\n  \\cueDuring \"cueII\" #UP { R1 } |\n}\n",
+  "remove_scaling": "\\version \"2.19.21\"\n\n\\header {\n  texidoc = \"Voices from different cues must not be tied together.  In\nthis example, the first note has a tie.  This note should not be tied\nto the second visible note (following the rest).\nNote that this behavior will not hold for cues in direct succession,\nsince only one @code{CueVoice} context is created\n(with @code{context-id} `cue').\n\"\n}\n\ncueI = \\relative {\n  a'1 ~ | 1 | a |\n}\n\\addQuote \"cueI\" { \\cueI }\n\ncueII = \\relative {\n  R1 | e' | a |\n}\n\\addQuote \"cueII\" { \\cueII }\n\n\\new Staff \\new Voice {\n  \\cueDuring \"cueI\" #UP { R1 } |\n  R1\n  \\cueDuring \"cueII\" #UP { R1 } |\n}\n",
+  "undot": "\\version \"2.19.21\"\n\n\\header {\n  texidoc = \"Voices from different cues must not be tied together.  In\nthis example, the first note has a tie.  This note should not be tied\nto the second visible note (following the rest).\nNote that this behavior will not hold for cues in direct succession,\nsince only one @code{CueVoice} context is created\n(with @code{context-id} `cue').\n\"\n}\n\ncueI = \\relative {\n  a'1 ~ | 1 | a |\n}\n\\addQuote \"cueI\" { \\cueI }\n\ncueII = \\relative {\n  R1 | e' | a |\n}\n\\addQuote \"cueII\" { \\cueII }\n\n\\new Staff \\new Voice {\n  \\cueDuring \"cueI\" #UP { R1 } |\n  R1\n  \\cueDuring \"cueII\" #UP { R1 } |\n}\n"
+ }
+}

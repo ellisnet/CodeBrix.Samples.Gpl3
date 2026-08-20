@@ -1,0 +1,185 @@
+{
+ "extract": [
+  "8",
+  "",
+  "",
+  "",
+  "2",
+  "4",
+  "",
+  "2",
+  "4",
+  "",
+  "2",
+  "2",
+  ""
+ ],
+ "music_items": [
+  [
+   308,
+   312,
+   311,
+   true,
+   [
+    "g",
+    "''"
+   ],
+   [
+    "8"
+   ]
+  ],
+  [
+   313,
+   314,
+   314,
+   true,
+   [
+    "g"
+   ],
+   []
+  ],
+  [
+   315,
+   316,
+   316,
+   true,
+   [
+    "g"
+   ],
+   []
+  ],
+  [
+   317,
+   318,
+   318,
+   true,
+   [
+    "r"
+   ],
+   []
+  ],
+  [
+   319,
+   321,
+   320,
+   true,
+   [
+    "r"
+   ],
+   [
+    "2"
+   ]
+  ],
+  [
+   341,
+   343,
+   342,
+   true,
+   [
+    "a"
+   ],
+   [
+    "4"
+   ]
+  ],
+  [
+   349,
+   350,
+   350,
+   true,
+   [
+    "c"
+   ],
+   []
+  ],
+  [
+   351,
+   353,
+   352,
+   true,
+   [
+    "r"
+   ],
+   [
+    "2"
+   ]
+  ],
+  [
+   373,
+   377,
+   376,
+   true,
+   [
+    "c",
+    "''"
+   ],
+   [
+    "4"
+   ]
+  ],
+  [
+   378,
+   379,
+   379,
+   true,
+   [
+    "c"
+   ],
+   []
+  ],
+  [
+   380,
+   382,
+   381,
+   true,
+   [
+    "f"
+   ],
+   [
+    "2"
+   ]
+  ],
+  [
+   407,
+   409,
+   408,
+   true,
+   [
+    "r"
+   ],
+   [
+    "2"
+   ]
+  ],
+  [
+   410,
+   412,
+   412,
+   true,
+   [
+    "g",
+    "'"
+   ],
+   []
+  ]
+ ],
+ "overwrite_durations": [
+  "4",
+  "8",
+  "",
+  "16."
+ ],
+ "results": {
+  "dot": "\\header {\n\n  texidoc = \"Rests avoid notes.  Each rest is moved in the direction\nof the stems in its voice.  Rests may overlap other rests in voices\nwith the same stem direction, in which case a warning is given, but\nis suppressed if the rest has a pitch.\"\n\n}\n\n\\version \"2.19.21\"\n\n\\new Staff <<\n  \\relative { g''8. g g r r2. } \\\\\n  \\relative { a4.\\rest c r2. } \\\\\n  \\relative { c''4. c f2.\\rest } \\\\\n  \\relative { r2. g' }\n>>\n\n\n",
+  "double": "\\header {\n\n  texidoc = \"Rests avoid notes.  Each rest is moved in the direction\nof the stems in its voice.  Rests may overlap other rests in voices\nwith the same stem direction, in which case a warning is given, but\nis suppressed if the rest has a pitch.\"\n\n}\n\n\\version \"2.19.21\"\n\n\\new Staff <<\n  \\relative { g''4 g g r r1 } \\\\\n  \\relative { a2\\rest c r1 } \\\\\n  \\relative { c''2 c f1\\rest } \\\\\n  \\relative { r1 g' }\n>>\n\n\n",
+  "explicit": "\\header {\n\n  texidoc = \"Rests avoid notes.  Each rest is moved in the direction\nof the stems in its voice.  Rests may overlap other rests in voices\nwith the same stem direction, in which case a warning is given, but\nis suppressed if the rest has a pitch.\"\n\n}\n\n\\version \"2.19.21\"\n\n\\new Staff <<\n  \\relative { g''8 g8 g8 r8 r2 } \\\\\n  \\relative { a4\\rest c4 r2 } \\\\\n  \\relative { c''4 c4 f2\\rest } \\\\\n  \\relative { r2 g'2 }\n>>\n\n\n",
+  "halve": "\\header {\n\n  texidoc = \"Rests avoid notes.  Each rest is moved in the direction\nof the stems in its voice.  Rests may overlap other rests in voices\nwith the same stem direction, in which case a warning is given, but\nis suppressed if the rest has a pitch.\"\n\n}\n\n\\version \"2.19.21\"\n\n\\new Staff <<\n  \\relative { g''16 g g r r4 } \\\\\n  \\relative { a8\\rest c r4 } \\\\\n  \\relative { c''8 c f4\\rest } \\\\\n  \\relative { r4 g' }\n>>\n\n\n",
+  "implicit": "\\header {\n\n  texidoc = \"Rests avoid notes.  Each rest is moved in the direction\nof the stems in its voice.  Rests may overlap other rests in voices\nwith the same stem direction, in which case a warning is given, but\nis suppressed if the rest has a pitch.\"\n\n}\n\n\\version \"2.19.21\"\n\n\\new Staff <<\n  \\relative { g''8 g g r r2 } \\\\\n  \\relative { a4\\rest c r2 } \\\\\n  \\relative { c''4 c f2\\rest } \\\\\n  \\relative { r g' }\n>>\n\n\n",
+  "implicit_per_line": "\\header {\n\n  texidoc = \"Rests avoid notes.  Each rest is moved in the direction\nof the stems in its voice.  Rests may overlap other rests in voices\nwith the same stem direction, in which case a warning is given, but\nis suppressed if the rest has a pitch.\"\n\n}\n\n\\version \"2.19.21\"\n\n\\new Staff <<\n  \\relative { g''8 g g r r2 } \\\\\n  \\relative { a4\\rest c r2 } \\\\\n  \\relative { c''4 c f2\\rest } \\\\\n  \\relative { r2 g' }\n>>\n\n\n",
+  "overwrite": "\\header {\n\n  texidoc = \"Rests avoid notes.  Each rest is moved in the direction\nof the stems in its voice.  Rests may overlap other rests in voices\nwith the same stem direction, in which case a warning is given, but\nis suppressed if the rest has a pitch.\"\n\n}\n\n\\version \"2.19.21\"\n\n\\new Staff <<\n  \\relative { g''4 g8 g r16. r4 } \\\\\n  \\relative { a8\\rest c r16. } \\\\\n  \\relative { c''4 c8 f\\rest } \\\\\n  \\relative { r16. g'4 }\n>>\n\n\n",
+  "remove": "\\header {\n\n  texidoc = \"Rests avoid notes.  Each rest is moved in the direction\nof the stems in its voice.  Rests may overlap other rests in voices\nwith the same stem direction, in which case a warning is given, but\nis suppressed if the rest has a pitch.\"\n\n}\n\n\\version \"2.19.21\"\n\n\\new Staff <<\n  \\relative { g'' g g r r } \\\\\n  \\relative { a\\rest c r } \\\\\n  \\relative { c'' c f\\rest } \\\\\n  \\relative { r g' }\n>>\n\n\n",
+  "remove_fraction_scaling": "\\header {\n\n  texidoc = \"Rests avoid notes.  Each rest is moved in the direction\nof the stems in its voice.  Rests may overlap other rests in voices\nwith the same stem direction, in which case a warning is given, but\nis suppressed if the rest has a pitch.\"\n\n}\n\n\\version \"2.19.21\"\n\n\\new Staff <<\n  \\relative { g''8 g g r r2 } \\\\\n  \\relative { a4\\rest c r2 } \\\\\n  \\relative { c''4 c f2\\rest } \\\\\n  \\relative { r2 g' }\n>>\n\n\n",
+  "remove_scaling": "\\header {\n\n  texidoc = \"Rests avoid notes.  Each rest is moved in the direction\nof the stems in its voice.  Rests may overlap other rests in voices\nwith the same stem direction, in which case a warning is given, but\nis suppressed if the rest has a pitch.\"\n\n}\n\n\\version \"2.19.21\"\n\n\\new Staff <<\n  \\relative { g''8 g g r r2 } \\\\\n  \\relative { a4\\rest c r2 } \\\\\n  \\relative { c''4 c f2\\rest } \\\\\n  \\relative { r2 g' }\n>>\n\n\n",
+  "undot": "\\header {\n\n  texidoc = \"Rests avoid notes.  Each rest is moved in the direction\nof the stems in its voice.  Rests may overlap other rests in voices\nwith the same stem direction, in which case a warning is given, but\nis suppressed if the rest has a pitch.\"\n\n}\n\n\\version \"2.19.21\"\n\n\\new Staff <<\n  \\relative { g''8 g g r r2 } \\\\\n  \\relative { a4\\rest c r2 } \\\\\n  \\relative { c''4 c f2\\rest } \\\\\n  \\relative { r2 g' }\n>>\n\n\n"
+ }
+}

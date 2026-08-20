@@ -1,0 +1,237 @@
+{
+ "has_output": false,
+ "node_positions": [
+  [
+   0,
+   "Version",
+   0
+  ],
+  [
+   7,
+   "Version",
+   0
+  ],
+  [
+   14,
+   "String",
+   9
+  ],
+  [
+   21,
+   "String",
+   9
+  ],
+  [
+   28,
+   "String",
+   9
+  ],
+  [
+   35,
+   "String",
+   9
+  ],
+  [
+   42,
+   "String",
+   9
+  ],
+  [
+   49,
+   "String",
+   9
+  ],
+  [
+   56,
+   "String",
+   9
+  ],
+  [
+   63,
+   "Assignment",
+   58
+  ],
+  [
+   70,
+   "Paper",
+   68
+  ],
+  [
+   77,
+   "Paper",
+   68
+  ],
+  [
+   84,
+   "Assignment",
+   79
+  ],
+  [
+   91,
+   "Command",
+   89
+  ],
+  [
+   95,
+   "Command",
+   89
+  ]
+ ],
+ "time_positions": [
+  [
+   0,
+   null
+  ],
+  [
+   7,
+   null
+  ],
+  [
+   14,
+   null
+  ],
+  [
+   21,
+   null
+  ],
+  [
+   28,
+   null
+  ],
+  [
+   35,
+   null
+  ],
+  [
+   42,
+   null
+  ],
+  [
+   49,
+   null
+  ],
+  [
+   56,
+   null
+  ],
+  [
+   63,
+   null
+  ],
+  [
+   70,
+   null
+  ],
+  [
+   77,
+   null
+  ],
+  [
+   84,
+   null
+  ],
+  [
+   91,
+   null
+  ],
+  [
+   95,
+   null
+  ]
+ ],
+ "tree": {
+  "children": [
+   {
+    "children": [
+     {
+      "children": [],
+      "cls": "String",
+      "end": 17,
+      "length": "0/1",
+      "plaintext": "2.18.2",
+      "position": 9,
+      "token": "\"",
+      "tokens": [
+       "2.18.2",
+       "\""
+      ]
+     }
+    ],
+    "cls": "Version",
+    "end": 17,
+    "length": "0/1",
+    "plaintext": "",
+    "position": 0,
+    "token": "\\version",
+    "tokens": []
+   },
+   {
+    "children": [
+     {
+      "children": [
+       {
+        "children": [
+         {
+          "children": [],
+          "cls": "Number",
+          "end": 89,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 88,
+          "token": "0",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "Command",
+          "end": 92,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 89,
+          "token": "\\mm",
+          "tokens": []
+         }
+        ],
+        "cls": "Assignment",
+        "end": 92,
+        "length": "0/1",
+        "plaintext": "",
+        "position": 79,
+        "token": "indent",
+        "tokens": [
+         "="
+        ]
+       }
+      ],
+      "cls": "Paper",
+      "end": 94,
+      "length": "0/1",
+      "plaintext": "",
+      "position": 68,
+      "token": "\\paper",
+      "tokens": [
+       "{",
+       "}"
+      ]
+     }
+    ],
+    "cls": "Assignment",
+    "end": 94,
+    "length": "0/1",
+    "plaintext": "",
+    "position": 58,
+    "token": "myPaper",
+    "tokens": [
+     "="
+    ]
+   }
+  ],
+  "cls": "Document",
+  "end": 94,
+  "length": "0/1",
+  "plaintext": "",
+  "position": -1,
+  "token": null,
+  "tokens": []
+ }
+}

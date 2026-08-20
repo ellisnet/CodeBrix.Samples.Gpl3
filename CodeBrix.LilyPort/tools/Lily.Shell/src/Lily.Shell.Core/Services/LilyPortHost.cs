@@ -172,7 +172,11 @@ public sealed class LilyPortHost
         string outputBaseName,
         CancellationToken cancellationToken) =>
         RunOnEngineAsync(
-            _ => BatchRunner.RunFile(path, outputDirectory, outputBaseName),
+            // The token reaches the RUN, not only this host's queue: the runner
+            // honours it at its own boundaries (before the parse, between books,
+            // before output), which is as fine as in-process cancellation gets.
+            _ => BatchRunner.RunFile(path, outputDirectory, outputBaseName,
+                new BatchRunOptions { CancellationToken = cancellationToken }),
             cancellationToken);
 
     /// <summary>

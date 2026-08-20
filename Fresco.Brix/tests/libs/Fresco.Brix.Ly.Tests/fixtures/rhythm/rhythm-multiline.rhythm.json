@@ -1,0 +1,137 @@
+{
+ "extract": [
+  "4",
+  "4",
+  "4",
+  "4",
+  "8",
+  "8",
+  "8",
+  "8"
+ ],
+ "music_items": [
+  [
+   30,
+   33,
+   32,
+   true,
+   [
+    "c",
+    "'"
+   ],
+   [
+    "4"
+   ]
+  ],
+  [
+   34,
+   37,
+   36,
+   true,
+   [
+    "d",
+    "'"
+   ],
+   [
+    "4"
+   ]
+  ],
+  [
+   40,
+   43,
+   42,
+   true,
+   [
+    "e",
+    "'"
+   ],
+   [
+    "4"
+   ]
+  ],
+  [
+   44,
+   47,
+   46,
+   true,
+   [
+    "f",
+    "'"
+   ],
+   [
+    "4"
+   ]
+  ],
+  [
+   50,
+   53,
+   52,
+   true,
+   [
+    "g",
+    "'"
+   ],
+   [
+    "8"
+   ]
+  ],
+  [
+   54,
+   57,
+   56,
+   true,
+   [
+    "a",
+    "'"
+   ],
+   [
+    "8"
+   ]
+  ],
+  [
+   60,
+   63,
+   62,
+   true,
+   [
+    "b",
+    "'"
+   ],
+   [
+    "8"
+   ]
+  ],
+  [
+   64,
+   68,
+   67,
+   true,
+   [
+    "c",
+    "''"
+   ],
+   [
+    "8"
+   ]
+  ]
+ ],
+ "overwrite_durations": [
+  "4",
+  "8",
+  "",
+  "16."
+ ],
+ "results": {
+  "dot": "\\version \"2.27.2\"\nmusic = {\n  c'4. d'4.\n  e'4. f'4.\n  g'8. a'8.\n  b'8. c''8.\n}\n",
+  "double": "\\version \"2.27.2\"\nmusic = {\n  c'2 d'2\n  e'2 f'2\n  g'4 a'4\n  b'4 c''4\n}\n",
+  "explicit": "\\version \"2.27.2\"\nmusic = {\n  c'4 d'4\n  e'4 f'4\n  g'8 a'8\n  b'8 c''8\n}\n",
+  "halve": "\\version \"2.27.2\"\nmusic = {\n  c'8 d'8\n  e'8 f'8\n  g'16 a'16\n  b'16 c''16\n}\n",
+  "implicit": "\\version \"2.27.2\"\nmusic = {\n  c'4 d'\n  e' f'\n  g'8 a'\n  b' c''\n}\n",
+  "implicit_per_line": "\\version \"2.27.2\"\nmusic = {\n  c'4 d'\n  e'4 f'\n  g'8 a'\n  b'8 c''\n}\n",
+  "overwrite": "\\version \"2.27.2\"\nmusic = {\n  c'4 d'8\n  e' f'16.\n  g'4 a'8\n  b' c''16.\n}\n",
+  "remove": "\\version \"2.27.2\"\nmusic = {\n  c' d'\n  e' f'\n  g' a'\n  b' c''\n}\n",
+  "remove_fraction_scaling": "\\version \"2.27.2\"\nmusic = {\n  c'4 d'4\n  e'4 f'4\n  g'8 a'8\n  b'8 c''8\n}\n",
+  "remove_scaling": "\\version \"2.27.2\"\nmusic = {\n  c'4 d'4\n  e'4 f'4\n  g'8 a'8\n  b'8 c''8\n}\n",
+  "undot": "\\version \"2.27.2\"\nmusic = {\n  c'4 d'4\n  e'4 f'4\n  g'8 a'8\n  b'8 c''8\n}\n"
+ }
+}

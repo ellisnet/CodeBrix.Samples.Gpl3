@@ -1,0 +1,1446 @@
+{
+ "has_output": true,
+ "node_positions": [
+  [
+   0,
+   "Version",
+   0
+  ],
+  [
+   7,
+   "Version",
+   0
+  ],
+  [
+   14,
+   "String",
+   9
+  ],
+  [
+   21,
+   "Header",
+   20
+  ],
+  [
+   28,
+   "Header",
+   20
+  ],
+  [
+   35,
+   "Assignment",
+   32
+  ],
+  [
+   42,
+   "String",
+   42
+  ],
+  [
+   49,
+   "String",
+   42
+  ],
+  [
+   56,
+   "String",
+   42
+  ],
+  [
+   63,
+   "String",
+   42
+  ],
+  [
+   70,
+   "String",
+   42
+  ],
+  [
+   77,
+   "String",
+   42
+  ],
+  [
+   84,
+   "String",
+   42
+  ],
+  [
+   91,
+   "String",
+   42
+  ],
+  [
+   98,
+   "String",
+   42
+  ],
+  [
+   105,
+   "String",
+   42
+  ],
+  [
+   112,
+   "String",
+   42
+  ],
+  [
+   119,
+   "String",
+   42
+  ],
+  [
+   126,
+   "String",
+   42
+  ],
+  [
+   133,
+   "String",
+   42
+  ],
+  [
+   140,
+   "String",
+   42
+  ],
+  [
+   147,
+   "String",
+   42
+  ],
+  [
+   154,
+   "String",
+   42
+  ],
+  [
+   161,
+   "String",
+   42
+  ],
+  [
+   168,
+   "String",
+   42
+  ],
+  [
+   175,
+   "String",
+   42
+  ],
+  [
+   182,
+   "String",
+   42
+  ],
+  [
+   189,
+   "String",
+   42
+  ],
+  [
+   196,
+   "String",
+   42
+  ],
+  [
+   203,
+   "String",
+   42
+  ],
+  [
+   210,
+   "String",
+   42
+  ],
+  [
+   217,
+   "String",
+   42
+  ],
+  [
+   224,
+   "String",
+   42
+  ],
+  [
+   231,
+   "String",
+   42
+  ],
+  [
+   238,
+   "String",
+   42
+  ],
+  [
+   245,
+   "String",
+   42
+  ],
+  [
+   252,
+   "String",
+   42
+  ],
+  [
+   259,
+   "String",
+   42
+  ],
+  [
+   266,
+   "String",
+   42
+  ],
+  [
+   273,
+   "String",
+   42
+  ],
+  [
+   280,
+   "String",
+   42
+  ],
+  [
+   287,
+   "String",
+   42
+  ],
+  [
+   294,
+   "String",
+   42
+  ],
+  [
+   301,
+   "String",
+   42
+  ],
+  [
+   308,
+   "String",
+   42
+  ],
+  [
+   315,
+   "String",
+   42
+  ],
+  [
+   322,
+   "String",
+   42
+  ],
+  [
+   329,
+   "String",
+   42
+  ],
+  [
+   336,
+   "String",
+   42
+  ],
+  [
+   343,
+   "String",
+   42
+  ],
+  [
+   350,
+   "String",
+   42
+  ],
+  [
+   357,
+   "String",
+   42
+  ],
+  [
+   364,
+   "String",
+   42
+  ],
+  [
+   371,
+   "String",
+   42
+  ],
+  [
+   378,
+   "Assignment",
+   376
+  ],
+  [
+   385,
+   "Relative",
+   383
+  ],
+  [
+   392,
+   "Relative",
+   383
+  ],
+  [
+   399,
+   "Duration",
+   399
+  ],
+  [
+   406,
+   "Duration",
+   405
+  ],
+  [
+   413,
+   "PipeSymbol",
+   411
+  ],
+  [
+   420,
+   "Command",
+   415
+  ],
+  [
+   427,
+   "String",
+   425
+  ],
+  [
+   434,
+   "UserCommand",
+   434
+  ],
+  [
+   441,
+   "UserCommand",
+   434
+  ],
+  [
+   448,
+   "Assignment",
+   443
+  ],
+  [
+   455,
+   "Relative",
+   451
+  ],
+  [
+   462,
+   "MusicList",
+   461
+  ],
+  [
+   469,
+   "PipeSymbol",
+   468
+  ],
+  [
+   476,
+   "Note",
+   475
+  ],
+  [
+   483,
+   "Command",
+   481
+  ],
+  [
+   490,
+   "Command",
+   481
+  ],
+  [
+   497,
+   "String",
+   491
+  ],
+  [
+   504,
+   "UserCommand",
+   501
+  ],
+  [
+   511,
+   "Context",
+   511
+  ],
+  [
+   518,
+   "Context",
+   511
+  ],
+  [
+   525,
+   "Context",
+   522
+  ],
+  [
+   532,
+   "Context",
+   522
+  ],
+  [
+   539,
+   "Command",
+   537
+  ],
+  [
+   546,
+   "Command",
+   537
+  ],
+  [
+   553,
+   "String",
+   548
+  ],
+  [
+   560,
+   "MusicList",
+   559
+  ],
+  [
+   567,
+   "PipeSymbol",
+   566
+  ],
+  [
+   574,
+   "Duration",
+   571
+  ],
+  [
+   581,
+   "Command",
+   575
+  ],
+  [
+   588,
+   "String",
+   586
+  ],
+  [
+   595,
+   "SchemeItem",
+   595
+  ],
+  [
+   602,
+   "Duration",
+   601
+  ],
+  [
+   609,
+   "PipeSymbol",
+   605
+  ]
+ ],
+ "time_positions": [
+  [
+   0,
+   null
+  ],
+  [
+   7,
+   null
+  ],
+  [
+   14,
+   null
+  ],
+  [
+   21,
+   null
+  ],
+  [
+   28,
+   null
+  ],
+  [
+   35,
+   null
+  ],
+  [
+   42,
+   null
+  ],
+  [
+   49,
+   null
+  ],
+  [
+   56,
+   null
+  ],
+  [
+   63,
+   null
+  ],
+  [
+   70,
+   null
+  ],
+  [
+   77,
+   null
+  ],
+  [
+   84,
+   null
+  ],
+  [
+   91,
+   null
+  ],
+  [
+   98,
+   null
+  ],
+  [
+   105,
+   null
+  ],
+  [
+   112,
+   null
+  ],
+  [
+   119,
+   null
+  ],
+  [
+   126,
+   null
+  ],
+  [
+   133,
+   null
+  ],
+  [
+   140,
+   null
+  ],
+  [
+   147,
+   null
+  ],
+  [
+   154,
+   null
+  ],
+  [
+   161,
+   null
+  ],
+  [
+   168,
+   null
+  ],
+  [
+   175,
+   null
+  ],
+  [
+   182,
+   null
+  ],
+  [
+   189,
+   null
+  ],
+  [
+   196,
+   null
+  ],
+  [
+   203,
+   null
+  ],
+  [
+   210,
+   null
+  ],
+  [
+   217,
+   null
+  ],
+  [
+   224,
+   null
+  ],
+  [
+   231,
+   null
+  ],
+  [
+   238,
+   null
+  ],
+  [
+   245,
+   null
+  ],
+  [
+   252,
+   null
+  ],
+  [
+   259,
+   null
+  ],
+  [
+   266,
+   null
+  ],
+  [
+   273,
+   null
+  ],
+  [
+   280,
+   null
+  ],
+  [
+   287,
+   null
+  ],
+  [
+   294,
+   null
+  ],
+  [
+   301,
+   null
+  ],
+  [
+   308,
+   null
+  ],
+  [
+   315,
+   null
+  ],
+  [
+   322,
+   null
+  ],
+  [
+   329,
+   null
+  ],
+  [
+   336,
+   null
+  ],
+  [
+   343,
+   null
+  ],
+  [
+   350,
+   null
+  ],
+  [
+   357,
+   null
+  ],
+  [
+   364,
+   null
+  ],
+  [
+   371,
+   null
+  ],
+  [
+   378,
+   "0/1"
+  ],
+  [
+   385,
+   "0/1"
+  ],
+  [
+   392,
+   "0/1"
+  ],
+  [
+   399,
+   "0/1"
+  ],
+  [
+   406,
+   "2/1"
+  ],
+  [
+   413,
+   "3/1"
+  ],
+  [
+   420,
+   null
+  ],
+  [
+   427,
+   null
+  ],
+  [
+   434,
+   "0/1"
+  ],
+  [
+   441,
+   "3/1"
+  ],
+  [
+   448,
+   "0/1"
+  ],
+  [
+   455,
+   "0/1"
+  ],
+  [
+   462,
+   "0/1"
+  ],
+  [
+   469,
+   "1/1"
+  ],
+  [
+   476,
+   "3/1"
+  ],
+  [
+   483,
+   null
+  ],
+  [
+   490,
+   null
+  ],
+  [
+   497,
+   null
+  ],
+  [
+   504,
+   "0/1"
+  ],
+  [
+   511,
+   "0/1"
+  ],
+  [
+   518,
+   "0/1"
+  ],
+  [
+   525,
+   "0/1"
+  ],
+  [
+   532,
+   "0/1"
+  ],
+  [
+   539,
+   "0/1"
+  ],
+  [
+   546,
+   "0/1"
+  ],
+  [
+   553,
+   "0/1"
+  ],
+  [
+   560,
+   "0/1"
+  ],
+  [
+   567,
+   "1/1"
+  ],
+  [
+   574,
+   "2/1"
+  ],
+  [
+   581,
+   "2/1"
+  ],
+  [
+   588,
+   "2/1"
+  ],
+  [
+   595,
+   "2/1"
+  ],
+  [
+   602,
+   "3/1"
+  ],
+  [
+   609,
+   null
+  ]
+ ],
+ "tree": {
+  "children": [
+   {
+    "children": [
+     {
+      "children": [],
+      "cls": "String",
+      "end": 18,
+      "length": "0/1",
+      "plaintext": "2.19.21",
+      "position": 9,
+      "token": "\"",
+      "tokens": [
+       "2.19.21",
+       "\""
+      ]
+     }
+    ],
+    "cls": "Version",
+    "end": 18,
+    "length": "0/1",
+    "plaintext": "",
+    "position": 0,
+    "token": "\\version",
+    "tokens": []
+   },
+   {
+    "children": [
+     {
+      "children": [
+       {
+        "children": [],
+        "cls": "String",
+        "end": 372,
+        "length": "0/1",
+        "plaintext": "Voices from different cues must not be tied together.  In\nthis example, the first note has a tie.  This note should not be tied\nto the second visible note (following the rest).\nNote that this behavior will not hold for cues in direct succession,\nsince only one @code{CueVoice} context is created\n(with @code{context-id} `cue').\n",
+        "position": 42,
+        "token": "\"",
+        "tokens": [
+         "Voices from different cues must not be tied together.  In",
+         "\n",
+         "this example, the first note has a tie.  This note should not be tied",
+         "\n",
+         "to the second visible note (following the rest).",
+         "\n",
+         "Note that this behavior will not hold for cues in direct succession,",
+         "\n",
+         "since only one @code{CueVoice} context is created",
+         "\n",
+         "(with @code{context-id} `cue').",
+         "\n",
+         "\""
+        ]
+       }
+      ],
+      "cls": "Assignment",
+      "end": 372,
+      "length": "0/1",
+      "plaintext": "",
+      "position": 32,
+      "token": "texidoc",
+      "tokens": [
+       "="
+      ]
+     }
+    ],
+    "cls": "Header",
+    "end": 374,
+    "length": "0/1",
+    "plaintext": "",
+    "position": 20,
+    "token": "\\header",
+    "tokens": [
+     "{",
+     "}"
+    ]
+   },
+   {
+    "children": [
+     {
+      "children": [
+       {
+        "children": [
+         {
+          "children": [
+           {
+            "children": [],
+            "cls": "Duration",
+            "end": 400,
+            "length": "0/1",
+            "plaintext": "",
+            "position": 399,
+            "token": "1",
+            "tokens": []
+           }
+          ],
+          "cls": "Note",
+          "end": 400,
+          "length": "1/1",
+          "plaintext": "",
+          "position": 397,
+          "token": "a",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "Tie",
+          "end": 402,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 401,
+          "token": "~",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "PipeSymbol",
+          "end": 404,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 403,
+          "token": "|",
+          "tokens": []
+         },
+         {
+          "children": [
+           {
+            "children": [],
+            "cls": "Duration",
+            "end": 406,
+            "length": "0/1",
+            "plaintext": "",
+            "position": 405,
+            "token": "1",
+            "tokens": []
+           }
+          ],
+          "cls": "Unpitched",
+          "end": 406,
+          "length": "1/1",
+          "plaintext": "",
+          "position": 405,
+          "token": null,
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "PipeSymbol",
+          "end": 408,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 407,
+          "token": "|",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "Note",
+          "end": 410,
+          "length": "1/1",
+          "plaintext": "",
+          "position": 409,
+          "token": "a",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "PipeSymbol",
+          "end": 412,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 411,
+          "token": "|",
+          "tokens": []
+         }
+        ],
+        "cls": "MusicList",
+        "end": 414,
+        "length": "3/1",
+        "plaintext": "",
+        "position": 393,
+        "token": "{",
+        "tokens": [
+         "}"
+        ]
+       }
+      ],
+      "cls": "Relative",
+      "end": 414,
+      "length": "3/1",
+      "plaintext": "",
+      "position": 383,
+      "token": "\\relative",
+      "tokens": []
+     }
+    ],
+    "cls": "Assignment",
+    "end": 414,
+    "length": "0/1",
+    "plaintext": "",
+    "position": 376,
+    "token": "cueI",
+    "tokens": [
+     "="
+    ]
+   },
+   {
+    "children": [],
+    "cls": "Command",
+    "end": 424,
+    "length": "0/1",
+    "plaintext": "",
+    "position": 415,
+    "token": "\\addQuote",
+    "tokens": []
+   },
+   {
+    "children": [],
+    "cls": "String",
+    "end": 431,
+    "length": "0/1",
+    "plaintext": "cueI",
+    "position": 425,
+    "token": "\"",
+    "tokens": [
+     "cueI",
+     "\""
+    ]
+   },
+   {
+    "children": [
+     {
+      "children": [],
+      "cls": "UserCommand",
+      "end": 439,
+      "length": "3/1",
+      "plaintext": "",
+      "position": 434,
+      "token": "\\cueI",
+      "tokens": []
+     }
+    ],
+    "cls": "MusicList",
+    "end": 441,
+    "length": "3/1",
+    "plaintext": "",
+    "position": 432,
+    "token": "{",
+    "tokens": [
+     "}"
+    ]
+   },
+   {
+    "children": [
+     {
+      "children": [
+       {
+        "children": [
+         {
+          "children": [
+           {
+            "children": [],
+            "cls": "Duration",
+            "end": 467,
+            "length": "0/1",
+            "plaintext": "",
+            "position": 466,
+            "token": "1",
+            "tokens": []
+           }
+          ],
+          "cls": "Rest",
+          "end": 467,
+          "length": "1/1",
+          "plaintext": "",
+          "position": 465,
+          "token": "R",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "PipeSymbol",
+          "end": 469,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 468,
+          "token": "|",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "Note",
+          "end": 472,
+          "length": "1/1",
+          "plaintext": "",
+          "position": 470,
+          "token": "e",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "PipeSymbol",
+          "end": 474,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 473,
+          "token": "|",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "Note",
+          "end": 476,
+          "length": "1/1",
+          "plaintext": "",
+          "position": 475,
+          "token": "a",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "PipeSymbol",
+          "end": 478,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 477,
+          "token": "|",
+          "tokens": []
+         }
+        ],
+        "cls": "MusicList",
+        "end": 480,
+        "length": "3/1",
+        "plaintext": "",
+        "position": 461,
+        "token": "{",
+        "tokens": [
+         "}"
+        ]
+       }
+      ],
+      "cls": "Relative",
+      "end": 480,
+      "length": "3/1",
+      "plaintext": "",
+      "position": 451,
+      "token": "\\relative",
+      "tokens": []
+     }
+    ],
+    "cls": "Assignment",
+    "end": 480,
+    "length": "0/1",
+    "plaintext": "",
+    "position": 443,
+    "token": "cueII",
+    "tokens": [
+     "="
+    ]
+   },
+   {
+    "children": [],
+    "cls": "Command",
+    "end": 490,
+    "length": "0/1",
+    "plaintext": "",
+    "position": 481,
+    "token": "\\addQuote",
+    "tokens": []
+   },
+   {
+    "children": [],
+    "cls": "String",
+    "end": 498,
+    "length": "0/1",
+    "plaintext": "cueII",
+    "position": 491,
+    "token": "\"",
+    "tokens": [
+     "cueII",
+     "\""
+    ]
+   },
+   {
+    "children": [
+     {
+      "children": [],
+      "cls": "UserCommand",
+      "end": 507,
+      "length": "3/1",
+      "plaintext": "",
+      "position": 501,
+      "token": "\\cueII",
+      "tokens": []
+     }
+    ],
+    "cls": "MusicList",
+    "end": 509,
+    "length": "3/1",
+    "plaintext": "",
+    "position": 499,
+    "token": "{",
+    "tokens": [
+     "}"
+    ]
+   },
+   {
+    "children": [
+     {
+      "children": [
+       {
+        "children": [
+         {
+          "children": [],
+          "cls": "Command",
+          "end": 547,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 537,
+          "token": "\\cueDuring",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "String",
+          "end": 554,
+          "length": "0/1",
+          "plaintext": "cueI",
+          "position": 548,
+          "token": "\"",
+          "tokens": [
+           "cueI",
+           "\""
+          ]
+         },
+         {
+          "children": [
+           {
+            "children": [],
+            "cls": "SchemeItem",
+            "end": 558,
+            "length": "0/1",
+            "plaintext": "",
+            "position": 556,
+            "token": "UP",
+            "tokens": []
+           }
+          ],
+          "cls": "Scheme",
+          "end": 558,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 555,
+          "token": "#",
+          "tokens": []
+         },
+         {
+          "children": [
+           {
+            "children": [
+             {
+              "children": [],
+              "cls": "Duration",
+              "end": 563,
+              "length": "0/1",
+              "plaintext": "",
+              "position": 562,
+              "token": "1",
+              "tokens": []
+             }
+            ],
+            "cls": "Rest",
+            "end": 563,
+            "length": "1/1",
+            "plaintext": "",
+            "position": 561,
+            "token": "R",
+            "tokens": []
+           }
+          ],
+          "cls": "MusicList",
+          "end": 565,
+          "length": "1/1",
+          "plaintext": "",
+          "position": 559,
+          "token": "{",
+          "tokens": [
+           "}"
+          ]
+         },
+         {
+          "children": [],
+          "cls": "PipeSymbol",
+          "end": 567,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 566,
+          "token": "|",
+          "tokens": []
+         },
+         {
+          "children": [
+           {
+            "children": [],
+            "cls": "Duration",
+            "end": 572,
+            "length": "0/1",
+            "plaintext": "",
+            "position": 571,
+            "token": "1",
+            "tokens": []
+           }
+          ],
+          "cls": "Rest",
+          "end": 572,
+          "length": "1/1",
+          "plaintext": "",
+          "position": 570,
+          "token": "R",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "Command",
+          "end": 585,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 575,
+          "token": "\\cueDuring",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "String",
+          "end": 593,
+          "length": "0/1",
+          "plaintext": "cueII",
+          "position": 586,
+          "token": "\"",
+          "tokens": [
+           "cueII",
+           "\""
+          ]
+         },
+         {
+          "children": [
+           {
+            "children": [],
+            "cls": "SchemeItem",
+            "end": 597,
+            "length": "0/1",
+            "plaintext": "",
+            "position": 595,
+            "token": "UP",
+            "tokens": []
+           }
+          ],
+          "cls": "Scheme",
+          "end": 597,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 594,
+          "token": "#",
+          "tokens": []
+         },
+         {
+          "children": [
+           {
+            "children": [
+             {
+              "children": [],
+              "cls": "Duration",
+              "end": 602,
+              "length": "0/1",
+              "plaintext": "",
+              "position": 601,
+              "token": "1",
+              "tokens": []
+             }
+            ],
+            "cls": "Rest",
+            "end": 602,
+            "length": "1/1",
+            "plaintext": "",
+            "position": 600,
+            "token": "R",
+            "tokens": []
+           }
+          ],
+          "cls": "MusicList",
+          "end": 604,
+          "length": "1/1",
+          "plaintext": "",
+          "position": 598,
+          "token": "{",
+          "tokens": [
+           "}"
+          ]
+         },
+         {
+          "children": [],
+          "cls": "PipeSymbol",
+          "end": 606,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 605,
+          "token": "|",
+          "tokens": []
+         }
+        ],
+        "cls": "MusicList",
+        "end": 608,
+        "length": "3/1",
+        "plaintext": "",
+        "position": 533,
+        "token": "{",
+        "tokens": [
+         "}"
+        ]
+       }
+      ],
+      "cls": "Context",
+      "end": 608,
+      "length": "3/1",
+      "plaintext": "",
+      "position": 522,
+      "token": "\\new",
+      "tokens": []
+     }
+    ],
+    "cls": "Context",
+    "end": 608,
+    "length": "3/1",
+    "plaintext": "",
+    "position": 511,
+    "token": "\\new",
+    "tokens": []
+   }
+  ],
+  "cls": "Document",
+  "end": 608,
+  "length": "0/1",
+  "plaintext": "",
+  "position": -1,
+  "token": null,
+  "tokens": []
+ }
+}

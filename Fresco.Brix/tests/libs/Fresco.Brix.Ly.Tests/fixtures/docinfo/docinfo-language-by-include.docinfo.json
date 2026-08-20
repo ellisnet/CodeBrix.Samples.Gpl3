@@ -1,0 +1,41 @@
+{
+ "complete": true,
+ "counted_tokens": {
+  "_token.Newline": 4,
+  "_token.Space": 11,
+  "lilypond.EqualSign": 1,
+  "lilypond.Keyword": 2,
+  "lilypond.Name": 1,
+  "lilypond.Note": 5,
+  "lilypond.Octave": 1,
+  "lilypond.PitchCommand": 1,
+  "lilypond.SequentialEnd": 1,
+  "lilypond.SequentialStart": 1,
+  "lilypond.String": 2,
+  "lilypond.StringQuotedEnd": 2,
+  "lilypond.StringQuotedStart": 2
+ },
+ "definitions": [
+  [
+   "melodia",
+   42
+  ]
+ ],
+ "global_staff_size": null,
+ "has_output": true,
+ "include_args": [
+  "italiano.ly"
+ ],
+ "language": "italiano",
+ "markup_definitions": [],
+ "mode": "lilypond",
+ "output_args": [],
+ "scheme_load_args": [],
+ "token_count": 34,
+ "version": [
+  2,
+  22,
+  1
+ ],
+ "version_string": "2.22.1"
+}

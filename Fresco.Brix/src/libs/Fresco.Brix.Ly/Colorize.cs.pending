@@ -1,0 +1,1194 @@
+// This file is part of python-ly, https://pypi.python.org/pypi/python-ly
+//
+// Copyright (c) 2013 - 2015 by Wilbert Berendsen
+//
+// This program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License
+// as published by the Free Software Foundation; either version 3
+// of the License, or (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, write to the Free Software
+// Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+// See http://www.gnu.org/licenses/ for more information.
+
+using HtmlMode = Fresco.Brix.Ly.Lex.HtmlMode;
+using LilyPondMode = Fresco.Brix.Ly.Lex.LilyPondMode;
+using MupMode = Fresco.Brix.Ly.Lex.MupMode;
+using SchemeMode = Fresco.Brix.Ly.Lex.SchemeMode;
+using TexinfoMode = Fresco.Brix.Ly.Lex.TexinfoMode;
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Reflection;
+using System.Text;
+
+namespace Fresco.Brix.Ly; //was previously: ly/colorize.py;
+
+// Modified by Jeremy Ellis - 2026 - as part of the Fresco.Brix port.
+
+/// <summary>
+/// A style assignment within a mapping group — upstream's <c>style</c> named
+/// tuple with its three fields: name, base and classes.
+/// </summary>
+/// <param name="Name">The style name (becomes the mode-specific CSS class).</param>
+/// <param name="Base">The base style name the style inherits from, or
+/// <see langword="null"/> for none.</param>
+/// <param name="Classes">The token classes the style applies to.</param>
+public sealed record Style(string Name, string Base, Type[] Classes);
+
+/// <summary>
+/// Describes a CSS class for a token — upstream's <c>css_class</c> named tuple
+/// with its three fields: mode, name, base. E.g.
+/// <c>("lilypond", "articulation", "keyword")</c>. The base field may be
+/// <see langword="null"/>. Value equality (the named tuple's) is preserved by
+/// the record, which <see cref="Colorize.MeltMappedTokens{TValue}"/> relies on.
+/// </summary>
+/// <param name="Mode">The mode name (e.g. "lilypond").</param>
+/// <param name="Name">The style name within the mode.</param>
+/// <param name="Base">The base style name, or <see langword="null"/>.</param>
+public sealed record CssClass(string Mode, string Name, string Base);
+
+/// <summary>
+/// Maps token classes to arbitrary values, which can be highlighting styles.
+/// <para>
+/// Mapper behaves like a dict, you set items with a token class as key to an
+/// arbitrary value.
+/// </para>
+/// <para>
+/// But getting items can be done using a token. Upstream walks the token
+/// class's python method resolution order; here the
+/// <see cref="Type.BaseType"/> chain is the C# spelling of that walk (the C#
+/// hierarchy keeps python's FIRST base as the base chain), and the value for
+/// the first available class found in the keys is returned. The class is also
+/// cached to speed up requests for other tokens.
+/// </para>
+/// </summary>
+/// <typeparam name="TValue">The mapped value type; upstream maps to arbitrary
+/// values (for CSS highlighting a <see cref="CssClass"/>).</typeparam>
+public class Mapper<TValue> : Dictionary<Type, TValue>
+    where TValue : class
+{
+    /// <summary>Initializes an empty mapper.</summary>
+    public Mapper()
+    {
+    }
+
+    /// <summary>Initializes the mapper from class/value pairs; a later pair
+    /// with the same class wins, like python's dict construction.</summary>
+    /// <param name="items">The class/value pairs.</param>
+    public Mapper(IEnumerable<KeyValuePair<Type, TValue>> items)
+    {
+        foreach (KeyValuePair<Type, TValue> item in items)
+        {
+            this[item.Key] = item.Value;
+        }
+    }
+
+    /// <summary>
+    /// Gets the value for the token: the token class's base-class chain is
+    /// walked up and the value for the first available class found in the keys
+    /// is returned, or <see langword="null"/> when none of the ancestry is
+    /// mapped. The answer is cached under the token's concrete class.
+    /// </summary>
+    /// <param name="token">The token to look up.</param>
+    public TValue this[Slexing.Token token]
+    {
+        get
+        {
+            Type cls = token.GetType();
+            if (TryGetValue(cls, out TValue value))
+            {
+                return value;
+            }
+
+            //upstream note: _token_mro_slice — upstream's walk skips the class
+            // itself (tried above) and stops before ly.lex.Token.__mro__ (the
+            // Token base classes are not tested); stopping the BaseType walk at
+            // Lex.Token excludes exactly the same classes here.
+            value = null;
+            for (Type c = cls.BaseType; c != null && c != typeof(Lex.Token); c = c.BaseType)
+            {
+                if (TryGetValue(c, out TValue found))
+                {
+                    value = found;
+                    break;
+                }
+            }
+
+            this[cls] = value;
+            return value;
+        }
+    }
+}
+
+/// <summary>
+/// Classes and functions to colorize (syntax-highlight) parsed source.
+/// <para>
+/// Highlighting is based on CSS properties and their values, although the
+/// <see cref="Mapper{TValue}"/> object can map a token's class to any object or
+/// value.
+/// </para>
+/// <para>
+/// The mapper normally maps a token's class basically to a CSS class and
+/// possibly a base CSS class. This way you can define base styles (e.g.
+/// string, comment, etc) and have specific classes (e.g. LilyPond string,
+/// Scheme comment) inherit from that base style. This CSS class is described
+/// by the <see cref="CssClass"/> record, with its three fields: mode, name,
+/// base. E.g. <c>("lilypond", "articulation", "keyword")</c>. The base field
+/// may be <see langword="null"/>.
+/// </para>
+/// <para>
+/// The css classes are mapped to dictionaries of css properties, like
+/// <c>{"font-weight": "bold", "color": "#4800ff"}</c>, etc.
+/// </para>
+/// <para>
+/// A scheme (a collection of styles) is simply a dictionary mapping the mode
+/// to a dictionary of CSS dictionaries. The base styles are in the
+/// <see cref="BaseStylesKey"/> item of the scheme dictionary.
+/// </para>
+/// </summary>
+public static class Colorize
+{
+    /// <summary>
+    /// The key of the base-styles entry in a scheme dictionary.
+    /// </summary>
+    //upstream note: upstream keys the base styles under None; a C# string
+    // dictionary cannot hold a null key, so the empty string stands in for it —
+    // it sorts first and is "falsy" in the same places None is upstream.
+    public const string BaseStylesKey = "";
+
+    /// <summary>
+    /// Returns a good default mapping from token class(es) to style and
+    /// default style, per group.
+    /// </summary>
+    /// <returns>The (mode, styles) groups, in the upstream order.</returns>
+    public static (string Mode, Style[] Styles)[] DefaultMapping()
+    {
+        //from ly.lex import latex   (commented out upstream)
+        //from ly.lex import docbook (commented out upstream)
+
+        return new (string Mode, Style[] Styles)[]
+        {
+            ("lilypond", new Style[]
+            {
+                new Style("keyword", "keyword", new Type[] { typeof(LilyPondMode.Keyword) }),
+                new Style("command", "function", new Type[] { typeof(LilyPondMode.Command), typeof(LilyPondMode.Skip) }),
+                new Style("pitch", null, new Type[] { typeof(LilyPondMode.MusicItem) }),
+                new Style("octave", null, new Type[] { typeof(LilyPondMode.Octave) }),
+                new Style("accidental", null, new Type[] { typeof(LilyPondMode.Accidental), typeof(LilyPondMode.FigureAccidental) }),
+                new Style("duration", null, new Type[] { typeof(LilyPondMode.Duration) }),
+                new Style("dynamic", null, new Type[] { typeof(LilyPondMode.Dynamic) }),
+                new Style("check", null, new Type[] { typeof(LilyPondMode.OctaveCheck), typeof(LilyPondMode.PipeSymbol) }),
+                new Style("articulation", null, new Type[] { typeof(LilyPondMode.Direction), typeof(LilyPondMode.Articulation) }),
+                new Style("fingering", null, new Type[] { typeof(LilyPondMode.Fingering) }),
+                new Style("stringnumber", null, new Type[] { typeof(LilyPondMode.StringNumber) }),
+                new Style("slur", null, new Type[] { typeof(LilyPondMode.Slur) }),
+                new Style("beam", null, new Type[] { typeof(LilyPondMode.Beam), typeof(LilyPondMode.FigureBracket) }),
+                new Style("chord", null, new Type[] { typeof(LilyPondMode.Chord), typeof(LilyPondMode.ChordItem) }),
+                new Style("markup", "function", new Type[] { typeof(LilyPondMode.Markup) }),
+                new Style("lyricmode", "function", new Type[] { typeof(LilyPondMode.LyricMode) }),
+                new Style("lyrictext", null, new Type[] { typeof(LilyPondMode.Lyric) }),
+                new Style("repeat", "function", new Type[] { typeof(LilyPondMode.Repeat), typeof(LilyPondMode.Tremolo) }),
+                new Style("specifier", "variable", new Type[] { typeof(LilyPondMode.Specifier) }),
+                new Style("usercommand", "variable", new Type[] { typeof(LilyPondMode.UserCommand) }),
+                new Style("figbass", null, new Type[] { typeof(LilyPondMode.Figure) }),
+                new Style("figbstep", null, new Type[] { typeof(LilyPondMode.FigureStep) }),
+                new Style("figbmodif", null, new Type[] { typeof(LilyPondMode.FigureModifier) }),
+                new Style("delimiter", "keyword", new Type[] { typeof(LilyPondMode.Delimiter) }),
+                new Style("context", null, new Type[] { typeof(LilyPondMode.ContextName) }),
+                new Style("grob", null, new Type[] { typeof(LilyPondMode.GrobName) }),
+                new Style("property", "variable", new Type[] { typeof(LilyPondMode.ContextProperty) }),
+                new Style("variable", "variable", new Type[] { typeof(LilyPondMode.Variable) }),
+                new Style("uservariable", null, new Type[] { typeof(LilyPondMode.UserVariable) }),
+                new Style("value", "value", new Type[] { typeof(LilyPondMode.Value) }),
+                new Style("string", "string", new Type[]
+                {
+                    typeof(LilyPondMode.StringBase),
+                    //upstream note: upstream maps only lilypond.String here; its
+                    // StringQuotedStart/StringQuotedEnd subclasses reach the style
+                    // through their python FIRST base (String), but their C# base
+                    // chain is the Lex.StringStart/Lex.StringEnd side, so they are
+                    // mapped explicitly to keep the same resolution.
+                    typeof(LilyPondMode.StringQuotedStart),
+                    typeof(LilyPondMode.StringQuotedEnd),
+                }),
+                new Style("stringescape", "escape", new Type[] { typeof(LilyPondMode.StringQuoteEscape) }),
+                new Style("comment", "comment", new Type[]
+                {
+                    typeof(LilyPondMode.Comment),
+                    //upstream note: upstream maps only lilypond.Comment here; the
+                    // four subclasses reach the style through their python FIRST
+                    // base (Comment), but their C# base chain is the Lex.* block
+                    // and line comment side, so they are mapped explicitly to keep
+                    // the same resolution.
+                    typeof(LilyPondMode.BlockCommentStart),
+                    typeof(LilyPondMode.BlockCommentEnd),
+                    typeof(LilyPondMode.BlockComment),
+                    typeof(LilyPondMode.LineComment),
+                }),
+                new Style("error", "error", new Type[] { typeof(LilyPondMode.Error) }),
+            }),
+            ("scheme", new Style[]
+            {
+                new Style("scheme", null, new Type[] { typeof(LilyPondMode.SchemeStart), typeof(SchemeMode.Scheme) }),
+                new Style("string", "string", new Type[]
+                {
+                    typeof(SchemeMode.StringBase),
+                    //upstream note: upstream maps only scheme.String here; its
+                    // StringQuotedStart/StringQuotedEnd subclasses reach the style
+                    // through their python FIRST base (String), but their C# base
+                    // chain is the Lex.StringStart/Lex.StringEnd side, so they are
+                    // mapped explicitly to keep the same resolution.
+                    typeof(SchemeMode.StringQuotedStart),
+                    typeof(SchemeMode.StringQuotedEnd),
+                }),
+                new Style("stringescape", "escape", new Type[] { typeof(SchemeMode.StringQuoteEscape) }),
+                new Style("comment", "comment", new Type[]
+                {
+                    typeof(SchemeMode.Comment),
+                    //upstream note: upstream maps only scheme.Comment here; the
+                    // four subclasses reach the style through their python FIRST
+                    // base (Comment), but their C# base chain is the Lex.* block
+                    // and line comment side, so they are mapped explicitly to keep
+                    // the same resolution.
+                    typeof(SchemeMode.LineComment),
+                    typeof(SchemeMode.BlockCommentStart),
+                    typeof(SchemeMode.BlockCommentEnd),
+                    typeof(SchemeMode.BlockComment),
+                }),
+                new Style("number", "value", new Type[] { typeof(SchemeMode.Number) }),
+                new Style("lilypond", null, new Type[] { typeof(SchemeMode.LilyPond) }),
+                new Style("keyword", "keyword", new Type[] { typeof(SchemeMode.Keyword) }),
+                new Style("function", "function", new Type[] { typeof(SchemeMode.Function) }),
+                new Style("variable", "variable", new Type[] { typeof(SchemeMode.Variable) }),
+                new Style("constant", "variable", new Type[] { typeof(SchemeMode.Constant) }),
+                new Style("delimiter", null, new Type[] { typeof(SchemeMode.OpenParen), typeof(SchemeMode.CloseParen) }),
+            }),
+            ("html", new Style[]
+            {
+                new Style("tag", "keyword", new Type[] { typeof(HtmlMode.Tag) }),
+                new Style("attribute", "variable", new Type[] { typeof(HtmlMode.AttrName) }),
+                new Style("value", "value", new Type[] { typeof(HtmlMode.Value) }),
+                new Style("string", "string", new Type[] { typeof(HtmlMode.StringBase) }),
+                new Style("entityref", "escape", new Type[] { typeof(HtmlMode.EntityRef) }),
+                new Style("comment", "comment", new Type[] { typeof(HtmlMode.Comment) }),
+                new Style("lilypondtag", "function", new Type[] { typeof(HtmlMode.LilyPondTag) }),
+            }),
+            ("texinfo", new Style[]
+            {
+                new Style("keyword", "keyword", new Type[] { typeof(TexinfoMode.Keyword) }),
+                new Style("block", "function", new Type[] { typeof(TexinfoMode.Block) }),
+                new Style("attribute", "variable", new Type[] { typeof(TexinfoMode.Attribute) }),
+                new Style("escapechar", "escape", new Type[] { typeof(TexinfoMode.EscapeChar) }),
+                new Style("verbatim", "string", new Type[] { typeof(TexinfoMode.Verbatim) }),
+                new Style("comment", "comment", new Type[] { typeof(TexinfoMode.Comment) }),
+            }),
+            ("mup", new Style[]
+            {
+                new Style("string", "string", new Type[] { typeof(MupMode.StringBase) }),
+                new Style("stringescape", "escape", new Type[] { typeof(MupMode.StringQuoteEscape) }),
+                new Style("comment", "comment", new Type[] { typeof(MupMode.Comment) }),
+                new Style("macro", "variable", new Type[] { typeof(MupMode.Macro) }),
+                new Style("preprocessor", "keyword", new Type[] { typeof(MupMode.Preprocessor) }),
+            }),
+        }; // end of mapping
+    }
+
+    /// <summary>
+    /// The default scheme: mode (or <see cref="BaseStylesKey"/> for the base
+    /// styles) to style name to a dictionary of CSS properties.
+    /// </summary>
+    public static readonly Dictionary<string, Dictionary<string, Dictionary<string, string>>> DefaultScheme
+        = new Dictionary<string, Dictionary<string, Dictionary<string, string>>>
+        {
+            // the base styles
+            [BaseStylesKey] = new Dictionary<string, Dictionary<string, string>>
+            {
+                ["keyword"] = new Dictionary<string, string>
+                {
+                    ["font-weight"] = "bold",
+                },
+                ["function"] = new Dictionary<string, string>
+                {
+                    ["font-weight"] = "bold",
+                    ["color"] = "#0000c0",
+                },
+                ["variable"] = new Dictionary<string, string>
+                {
+                    ["color"] = "#0000ff",
+                },
+                ["value"] = new Dictionary<string, string>
+                {
+                    ["color"] = "#808000",
+                },
+                ["string"] = new Dictionary<string, string>
+                {
+                    ["color"] = "#c00000",
+                },
+                ["escape"] = new Dictionary<string, string>
+                {
+                    ["color"] = "#008080",
+                },
+                ["comment"] = new Dictionary<string, string>
+                {
+                    ["color"] = "#808080",
+                    ["font-style"] = "italic",
+                },
+                ["error"] = new Dictionary<string, string>
+                {
+                    ["color"] = "#ff0000",
+                    ["text-decoration"] = "underline",
+                    ["text-decoration-color"] = "#ff0000",
+                },
+            },
+            ["lilypond"] = new Dictionary<string, Dictionary<string, string>>
+            {
+                ["duration"] = new Dictionary<string, string>
+                {
+                    ["color"] = "#008080",
+                },
+                ["markup"] = new Dictionary<string, string>
+                {
+                    ["color"] = "#008000",
+                    ["font-weight"] = "normal",
+                },
+                ["lyricmode"] = new Dictionary<string, string>
+                {
+                    ["color"] = "#006000",
+                },
+                ["lyrictext"] = new Dictionary<string, string>
+                {
+                    ["color"] = "#006000",
+                },
+                ["grob"] = new Dictionary<string, string>
+                {
+                    ["color"] = "#c000c0",
+                },
+                ["context"] = new Dictionary<string, string>
+                {
+                    ["font-weight"] = "bold",
+                },
+                ["slur"] = new Dictionary<string, string>
+                {
+                    ["font-weight"] = "bold",
+                },
+                ["articulation"] = new Dictionary<string, string>
+                {
+                    ["font-weight"] = "bold",
+                    ["color"] = "#ff8000",
+                },
+                ["dynamic"] = new Dictionary<string, string>
+                {
+                    ["font-weight"] = "bold",
+                    ["color"] = "#ff8000",
+                },
+                ["fingering"] = new Dictionary<string, string>
+                {
+                    ["color"] = "#ff8000",
+                },
+                ["stringnumber"] = new Dictionary<string, string>
+                {
+                    ["color"] = "#ff8000",
+                },
+            },
+            ["scheme"] = new Dictionary<string, Dictionary<string, string>>(),
+            ["html"] = new Dictionary<string, Dictionary<string, string>>(),
+            ["texinfo"] = new Dictionary<string, Dictionary<string, string>>(),
+            ["mup"] = new Dictionary<string, Dictionary<string, string>>(),
+        }; // end of default_css_styles
+
+    /// <summary>
+    /// Returns the list of tokens for the cursor.
+    /// <para>
+    /// Tokens that are partially inside the cursor's selection are re-created
+    /// so that they fall exactly within the selection.
+    /// </para>
+    /// <para>
+    /// This can be used to convert a highlighted part of a document to e.g.
+    /// HTML.
+    /// </para>
+    /// </summary>
+    /// <param name="cursor">The cursor.</param>
+    /// <returns>The tokens, with document positions.</returns>
+    public static List<Slexing.Token> GetTokens(Cursor cursor)
+    {
+        List<Slexing.Token> tokens = new List<Slexing.Token>(
+            new Source(cursor, null, partial: OverlapMode.Partial, tokensWithPosition: true));
+        if (tokens.Count > 0)
+        {
+            if (cursor.End != null && tokens[tokens.Count - 1].End > cursor.End.Value)
+            {
+                Slexing.Token t = tokens[tokens.Count - 1];
+                // t[:cursor.end - t.end] — drop the part past the cursor's end.
+                tokens[tokens.Count - 1] = RecreateToken(
+                    t, t.Text.Substring(0, t.Text.Length + (cursor.End.Value - t.End)), t.Pos);
+            }
+
+            if (cursor.Start > tokens[0].Pos)
+            {
+                Slexing.Token t = tokens[0];
+                // t[cursor.start - t.pos:] — drop the part before the cursor's start.
+                tokens[0] = RecreateToken(
+                    t, t.Text.Substring(cursor.Start - t.Pos), cursor.Start);
+            }
+        }
+
+        return tokens;
+    }
+
+    /// <summary>
+    /// Yields a two-tuple (text, style) for every token.
+    /// <para>
+    /// The style is what <c>mapper[token]</c> returns. Style may be
+    /// <see langword="null"/>, which also happens with unparsed (not-tokenized)
+    /// text. Upstream yields the token object itself (a python string); the
+    /// typed pair here carries the token's text.
+    /// </para>
+    /// </summary>
+    /// <typeparam name="TValue">The mapper's value type.</typeparam>
+    /// <param name="cursor">The cursor.</param>
+    /// <param name="mapper">The mapper.</param>
+    /// <returns>The (text, style) pairs.</returns>
+    public static IEnumerable<(string Text, TValue Style)> MapTokens<TValue>(Cursor cursor, Mapper<TValue> mapper)
+        where TValue : class
+    {
+        string text = cursor.Document.PlainText();
+        int start = cursor.Start;
+        List<Slexing.Token> tokens = GetTokens(cursor);
+        Slexing.Token t = null;
+        foreach (Slexing.Token token in tokens)
+        {
+            t = token;
+            if (t.Pos > start)
+            {
+                yield return (text.Substring(start, t.Pos - start), null);
+            }
+
+            yield return (t.Text, mapper[t]);
+            start = t.End;
+        }
+
+        if (t != null && t.Length != 0 && cursor.End != null && cursor.End.Value > t.End)
+        {
+            //upstream note: upstream yields a bare string here (the ", None" is
+            // missing); the typed stream forces the pair — the null style is the
+            // obvious intent.
+            yield return (text.Substring(t.End, cursor.End.Value - t.End), null);
+        }
+    }
+
+    /// <summary>Melts adjacent tokens with the same mapping together.</summary>
+    /// <typeparam name="TValue">The mapper's value type.</typeparam>
+    /// <param name="mappedTokens">The (text, style) pairs, e.g. from
+    /// <see cref="MapTokens{TValue}"/>.</param>
+    /// <returns>The melted (text, style) pairs.</returns>
+    public static IEnumerable<(string Text, TValue Style)> MeltMappedTokens<TValue>(
+        IEnumerable<(string Text, TValue Style)> mappedTokens)
+        where TValue : class
+    {
+        List<string> prevTokens = new List<string>();
+        TValue prevStyle = null;
+        foreach ((string t, TValue s) in mappedTokens)
+        {
+            if (EqualityComparer<TValue>.Default.Equals(s, prevStyle) || IsSpace(t))
+            {
+                prevTokens.Add(t);
+            }
+            else
+            {
+                if (prevTokens.Count > 0)
+                {
+                    if (prevTokens[prevTokens.Count - 1] == " ")
+                    {
+                        yield return (string.Concat(prevTokens.GetRange(0, prevTokens.Count - 1)), prevStyle);
+                        yield return (" ", null);
+                    }
+                    else
+                    {
+                        yield return (string.Concat(prevTokens), prevStyle);
+                    }
+                }
+
+                prevTokens = new List<string> { t };
+                prevStyle = s;
+            }
+        }
+
+        if (prevTokens.Count > 0)
+        {
+            yield return (string.Concat(prevTokens), prevStyle);
+        }
+    }
+
+    /// <summary>
+    /// Returns a <see cref="Mapper{TValue}"/>, mapping token classes to two CSS
+    /// classes.
+    /// <para>
+    /// By default the mapping returned by <see cref="DefaultMapping"/> is used.
+    /// </para>
+    /// </summary>
+    /// <param name="mapping">The (mode, styles) groups, or
+    /// <see langword="null"/> for the default mapping.</param>
+    /// <returns>The mapper.</returns>
+    public static Mapper<CssClass> CssMapper((string Mode, Style[] Styles)[] mapping = null)
+    {
+        if (mapping == null)
+        {
+            mapping = DefaultMapping();
+        }
+
+        Mapper<CssClass> mapper = new Mapper<CssClass>();
+        foreach ((string mode, Style[] styles) in mapping)
+        {
+            foreach (Style style in styles)
+            {
+                foreach (Type cls in style.Classes)
+                {
+                    mapper[cls] = new CssClass(mode, style.Name, style.Base);
+                }
+            }
+        }
+
+        return mapper;
+    }
+
+    /// <summary>
+    /// Returns the css properties dict for the style, taken from the scheme.
+    /// <para>This can be used for inline style attributes.</para>
+    /// </summary>
+    /// <param name="cssStyle">The style to look up.</param>
+    /// <param name="scheme">The scheme, or <see langword="null"/> for
+    /// <see cref="DefaultScheme"/>.</param>
+    /// <returns>The css properties.</returns>
+    public static Dictionary<string, string> CssDict(
+        CssClass cssStyle,
+        Dictionary<string, Dictionary<string, Dictionary<string, string>>> scheme = null)
+    {
+        if (scheme == null)
+        {
+            scheme = DefaultScheme;
+        }
+
+        Dictionary<string, string> d = new Dictionary<string, string>();
+        if (cssStyle.Base != null
+            && scheme.TryGetValue(BaseStylesKey, out Dictionary<string, Dictionary<string, string>> baseStyles)
+            && baseStyles.TryGetValue(cssStyle.Base, out Dictionary<string, string> baseProperties))
+        {
+            foreach (KeyValuePair<string, string> item in baseProperties)
+            {
+                d[item.Key] = item.Value;
+            }
+        }
+
+        // A null mode selects the base-styles entry, as upstream's scheme[None]
+        // lookup does; a missing mode or style name is skipped (KeyError pass).
+        if (cssStyle.Name != null
+            && scheme.TryGetValue(cssStyle.Mode ?? BaseStylesKey, out Dictionary<string, Dictionary<string, string>> modeStyles)
+            && modeStyles.TryGetValue(cssStyle.Name, out Dictionary<string, string> modeProperties))
+        {
+            foreach (KeyValuePair<string, string> item in modeProperties)
+            {
+                d[item.Key] = item.Value;
+            }
+        }
+
+        return d;
+    }
+
+    /// <summary>Returns "name: value;" for the (name, value) pair.</summary>
+    /// <param name="i">The (name, value) pair.</param>
+    /// <returns>The formatted css item.</returns>
+    public static string CssItem(KeyValuePair<string, string> i)
+        => i.Key + ": " + i.Value + ";";
+
+    /// <summary>
+    /// Returns a dictionary with a "style" key.
+    /// <para>
+    /// The value is the style items in <paramref name="d"/> formatted with
+    /// <see cref="CssItem"/> joined with spaces. If <paramref name="d"/> is
+    /// empty, an empty dictionary is returned.
+    /// </para>
+    /// </summary>
+    /// <param name="d">The css properties.</param>
+    /// <returns>The attribute dictionary.</returns>
+    public static Dictionary<string, string> CssAttr(IDictionary<string, string> d)
+    {
+        if (d != null && d.Count > 0)
+        {
+            List<string> items = new List<string>();
+            foreach (KeyValuePair<string, string> i in SortedItems(d))
+            {
+                items.Add(CssItem(i));
+            }
+
+            return new Dictionary<string, string> { ["style"] = string.Join(" ", items) };
+        }
+
+        return new Dictionary<string, string>();
+    }
+
+    /// <summary>Returns a "selector { items... }" part of a CSS stylesheet.</summary>
+    /// <param name="selector">The selector.</param>
+    /// <param name="d">The css properties.</param>
+    /// <returns>The stylesheet group.</returns>
+    public static string CssGroup(string selector, IDictionary<string, string> d)
+    {
+        List<string> items = new List<string>();
+        foreach (KeyValuePair<string, string> i in SortedItems(d))
+        {
+            items.Add(CssItem(i));
+        }
+
+        return selector + " {\n  " + string.Join("\n  ", items) + "\n}\n";
+    }
+
+    /// <summary>Returns a string like <c>class="mode-style base"</c> for the
+    /// specified style.</summary>
+    /// <param name="cssStyle">The style.</param>
+    /// <returns>The class attribute.</returns>
+    public static string FormatCssSpanClass(CssClass cssStyle)
+    {
+        string c = cssStyle.Mode + "-" + cssStyle.Name;
+        if (!string.IsNullOrEmpty(cssStyle.Base))
+        {
+            c += " " + cssStyle.Base;
+        }
+
+        return "class=\"" + c + "\"";
+    }
+
+    //upstream note: css_style_attribute_formatter is defined here upstream; the
+    // C# class CssStyleAttributeFormatter follows this static class below.
+
+    /// <summary>Returns a formatted stylesheet for the stylesheet scheme
+    /// dictionary.</summary>
+    /// <param name="scheme">The scheme, or <see langword="null"/> for
+    /// <see cref="DefaultScheme"/>.</param>
+    /// <returns>The stylesheet text.</returns>
+    public static string FormatStylesheet(
+        Dictionary<string, Dictionary<string, Dictionary<string, string>>> scheme = null)
+    {
+        if (scheme == null)
+        {
+            scheme = DefaultScheme;
+        }
+
+        List<string> sheet = new List<string>();
+        foreach (KeyValuePair<string, Dictionary<string, Dictionary<string, string>>> modePair in SortedItems(scheme))
+        {
+            string mode = modePair.Key;
+            Dictionary<string, Dictionary<string, string>> styles = modePair.Value;
+            if (styles.Count > 0)
+            {
+                sheet.Add("/* " + (mode.Length != 0 ? "mode: " + mode : "base styles") + " */");
+            }
+
+            foreach (KeyValuePair<string, Dictionary<string, string>> stylePair in SortedItems(styles))
+            {
+                string cssClass = stylePair.Key;
+                string selector = mode.Length != 0
+                    ? "span." + mode + "-" + cssClass
+                    : "." + cssClass;
+                sheet.Add(CssGroup(selector, stylePair.Value));
+            }
+        }
+
+        return string.Join("\n", sheet);
+    }
+
+    /// <summary>Escapes <c>&amp;</c>, <c>&lt;</c> and <c>&gt;</c>.</summary>
+    /// <param name="text">The text to escape.</param>
+    /// <returns>The escaped text.</returns>
+    public static string HtmlEscape(string text)
+        => text.Replace("&", "&amp;").Replace("<", "&lt;").Replace(">", "&gt;");
+
+    /// <summary>Escapes <c>&amp;</c>, <c>"</c>, <c>&lt;</c> and <c>&gt;</c>.</summary>
+    /// <param name="text">The text to escape.</param>
+    /// <returns>The escaped text.</returns>
+    public static string HtmlEscapeAttr(string text)
+        => HtmlEscape(text).Replace("\"", "&quot;");
+
+    /// <summary>
+    /// Formats the attributes dict as a string.
+    /// <para>
+    /// The attributes are escaped correctly. A space is prepended for every
+    /// assignment.
+    /// </para>
+    /// </summary>
+    /// <param name="d">The attributes, in their insertion order.</param>
+    /// <returns>The formatted attributes.</returns>
+    public static string HtmlFormatAttrs(IEnumerable<KeyValuePair<string, string>> d)
+    {
+        StringBuilder result = new StringBuilder();
+        foreach (KeyValuePair<string, string> item in d)
+        {
+            result.Append(' ').Append(item.Key).Append("=\"")
+                .Append(HtmlEscapeAttr(item.Value)).Append('"');
+        }
+
+        return result.ToString();
+    }
+
+    /// <summary>
+    /// Returns a HTML string with the tokens wrapped in <c>&lt;span class=&gt;</c>
+    /// elements.
+    /// <para>
+    /// The span argument is a function returning an attribute for the span tag
+    /// for the specified style. By default the <see cref="FormatCssSpanClass"/>
+    /// function is used, that returns a <c>class="group style base"</c> string.
+    /// You'll want to wrap the HTML inside pre tokens and add a CSS stylesheet.
+    /// </para>
+    /// </summary>
+    /// <param name="cursor">The cursor.</param>
+    /// <param name="mapper">The mapper.</param>
+    /// <param name="span">The span attribute formatter, or
+    /// <see langword="null"/> for <see cref="FormatCssSpanClass"/>.</param>
+    /// <returns>The HTML string.</returns>
+    public static string Html(Cursor cursor, Mapper<CssClass> mapper, Func<CssClass, string> span = null)
+    {
+        if (span == null)
+        {
+            span = FormatCssSpanClass;
+        }
+
+        StringBuilder result = new StringBuilder();
+        foreach ((string t, CssClass style) in MeltMappedTokens(MapTokens(cursor, mapper)))
+        {
+            string arg = style != null ? span(style) : null;
+            if (!string.IsNullOrEmpty(arg))
+            {
+                result.Append("<span ").Append(arg).Append('>');
+                result.Append(HtmlEscape(t));
+                result.Append("</span>");
+            }
+            else
+            {
+                result.Append(HtmlEscape(t));
+            }
+        }
+
+        return result.ToString();
+    }
+
+    /// <summary>
+    /// Combines the html (returned by <see cref="Html"/>) with the line numbers
+    /// in a HTML table.
+    /// <para>
+    /// The linenum attrs are put in the td tag for the line numbers. The
+    /// default value is: <c>{"style": "background: #eeeeee;"}</c>. The document
+    /// attrs are put in the td tag for the document. The default is empty.
+    /// </para>
+    /// <para>
+    /// By default, the id for the linenumbers td is set to "linenumbers", and
+    /// the id for the document td is set to "document".
+    /// </para>
+    /// </summary>
+    /// <param name="cursor">The cursor.</param>
+    /// <param name="html">The highlighted HTML body.</param>
+    /// <param name="linenumAttrs">The line numbers cell attributes, or
+    /// <see langword="null"/> (or empty, like upstream's falsy check) for the
+    /// default.</param>
+    /// <param name="documentAttrs">The document cell attributes, or
+    /// <see langword="null"/> (or empty) for the default.</param>
+    /// <returns>The HTML table.</returns>
+    public static string AddLineNumbers(
+        Cursor cursor,
+        string html,
+        IDictionary<string, string> linenumAttrs = null,
+        IDictionary<string, string> documentAttrs = null)
+    {
+        // dict(linenum_attrs) if linenum_attrs else {...} — an EMPTY dict also
+        // selects the default, exactly like upstream's truthiness test.
+        OrderedDictionary<string, string> numAttrs = new OrderedDictionary<string, string>();
+        if (linenumAttrs != null && linenumAttrs.Count > 0)
+        {
+            foreach (KeyValuePair<string, string> item in linenumAttrs)
+            {
+                numAttrs[item.Key] = item.Value;
+            }
+        }
+        else
+        {
+            numAttrs["style"] = "background: #eeeeee;";
+        }
+
+        OrderedDictionary<string, string> docAttrs = new OrderedDictionary<string, string>();
+        if (documentAttrs != null && documentAttrs.Count > 0)
+        {
+            foreach (KeyValuePair<string, string> item in documentAttrs)
+            {
+                docAttrs[item.Key] = item.Value;
+            }
+        }
+
+        if (!numAttrs.ContainsKey("id"))
+        {
+            numAttrs["id"] = "linenumbers";
+        }
+
+        if (!docAttrs.ContainsKey("id"))
+        {
+            docAttrs["id"] = "document";
+        }
+
+        numAttrs["valign"] = "top";
+        numAttrs["align"] = "right";
+        numAttrs["style"] = (numAttrs.TryGetValue("style", out string numStyle) ? numStyle : string.Empty)
+            + "vertical-align: top; text-align: right;";
+        docAttrs["valign"] = "top";
+        docAttrs["style"] = (docAttrs.TryGetValue("style", out string docStyle) ? docStyle : string.Empty)
+            + "vertical-align: top;";
+
+        int startNum = cursor.Document.Index(cursor.StartBlock()) + 1;
+        int endNum = cursor.Document.Index(cursor.EndBlock()) + 1;
+        //upstream note: range(start_num, end_num) excludes end_num, so the last
+        // selected line gets no number; ported as-is.
+        List<string> numbers = new List<string>();
+        for (int i = startNum; i < endNum; i++)
+        {
+            numbers.Add(i.ToString(CultureInfo.InvariantCulture));
+        }
+
+        string linenumbers = "<pre>" + string.Join("\n", numbers) + "</pre>";
+        string body = "<pre>" + html + "</pre>";
+        return "<table border=\"0\" cellpadding=\"4\" cellspacing=\"0\">"
+            + "<tbody><tr>"
+            + "<td" + HtmlFormatAttrs(numAttrs) + ">"
+            + "\n" + linenumbers + "\n"
+            + "</td>"
+            + "<td" + HtmlFormatAttrs(docAttrs) + ">"
+            + "\n" + body + "\n"
+            + "</td></tr></tbody></table>\n";
+    }
+
+    /// <summary>
+    /// Returns a complete HTML document.
+    /// <para>
+    /// The body is put inside body tags unchanged. The title is html-escaped.
+    /// If <paramref name="stylesheetRef"/> is given, it is put as a link
+    /// reference in the HTML; if <paramref name="stylesheet"/> is given, it is
+    /// put verbatim in a style section in the HTML. The encoding is set in the
+    /// meta http-equiv field, but the returned HTML is a normal string; you
+    /// should encode it yourself in the same encoding (by default utf-8) when
+    /// writing it to a file.
+    /// </para>
+    /// </summary>
+    /// <param name="body">The document body.</param>
+    /// <param name="title">The title.</param>
+    /// <param name="stylesheet">The stylesheet text, or <see langword="null"/>.</param>
+    /// <param name="stylesheetRef">The stylesheet reference, or
+    /// <see langword="null"/>.</param>
+    /// <param name="encoding">The encoding name.</param>
+    /// <returns>The HTML document.</returns>
+    public static string FormatHtmlDocument(
+        string body,
+        string title = "",
+        string stylesheet = null,
+        string stylesheetRef = null,
+        string encoding = "UTF-8")
+    {
+        string css = string.Empty;
+        if (!string.IsNullOrEmpty(stylesheetRef))
+        {
+            css += "<link rel=\"stylesheet\" type=\"text/css\" href=\"" + HtmlEscapeAttr(stylesheetRef) + "\"/>\n";
+        }
+
+        if (!string.IsNullOrEmpty(stylesheet))
+        {
+            css += "<style type=\"text/css\">\n" + stylesheet + "\n</style>\n";
+        }
+
+        return "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">\n"
+            + "<html><head>\n"
+            + "<title>" + HtmlEscape(title) + "</title>\n"
+            + "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=" + encoding + "\" />\n"
+            + css
+            + "</head>\n"
+            + "<body>\n" + body + "</body>\n</html>\n";
+    }
+
+    /// <summary>Sorts dictionary items by key, python's <c>sorted(d.items())</c>
+    /// (ordinal, like python's string comparison).</summary>
+    /// <typeparam name="TValue">The dictionary's value type.</typeparam>
+    /// <param name="d">The dictionary.</param>
+    /// <returns>The sorted items.</returns>
+    internal static List<KeyValuePair<string, TValue>> SortedItems<TValue>(
+        IEnumerable<KeyValuePair<string, TValue>> d)
+    {
+        List<KeyValuePair<string, TValue>> items = new List<KeyValuePair<string, TValue>>(d);
+        items.Sort((a, b) => string.CompareOrdinal(a.Key, b.Key));
+        return items;
+    }
+
+    /// <summary>Recreates a token of the same exact class over different text —
+    /// upstream's <c>type(t)(text, pos)</c>.</summary>
+    /// <param name="token">The token whose class to keep.</param>
+    /// <param name="text">The new text.</param>
+    /// <param name="pos">The new position.</param>
+    /// <returns>The re-created token.</returns>
+    private static Slexing.Token RecreateToken(Slexing.Token token, string text, int pos)
+    {
+        ConstructorInfo constructor = token.GetType().GetConstructor(
+            BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic,
+            null,
+            new[] { typeof(string), typeof(int) },
+            null);
+        return (Slexing.Token)constructor.Invoke(new object[] { text, pos });
+    }
+
+    /// <summary>Answers python's <c>str.isspace()</c>: non-empty and all
+    /// whitespace.</summary>
+    /// <param name="text">The text to test.</param>
+    /// <returns>Whether the text is all whitespace.</returns>
+    private static bool IsSpace(string text)
+    {
+        if (string.IsNullOrEmpty(text))
+        {
+            return false;
+        }
+
+        foreach (char c in text)
+        {
+            // python's isspace() also counts the file/group/record/unit
+            // separators U+001C..U+001F, which char.IsWhiteSpace does not.
+            if (!char.IsWhiteSpace(c) && (c < '\x1c' || c > '\x1f'))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+}
+
+/// <summary>Returns the inline style attribute for a specified style —
+/// upstream's callable <c>css_style_attribute_formatter</c> class (its
+/// <c>__call__</c> is <see cref="Format"/>, pass the
+/// <see cref="Format"/> method group where upstream passes the object).</summary>
+public sealed class CssStyleAttributeFormatter
+{
+    /// <summary>Initializes the formatter over a scheme.</summary>
+    /// <param name="scheme">The scheme, or <see langword="null"/> for
+    /// <see cref="Colorize.DefaultScheme"/>.</param>
+    public CssStyleAttributeFormatter(
+        Dictionary<string, Dictionary<string, Dictionary<string, string>>> scheme = null)
+    {
+        Scheme = scheme ?? Colorize.DefaultScheme;
+    }
+
+    /// <summary>Gets or sets the scheme the properties are taken from.</summary>
+    public Dictionary<string, Dictionary<string, Dictionary<string, string>>> Scheme { get; set; }
+
+    /// <summary>Returns the inline style attribute for the style, or
+    /// <see langword="null"/> when the style has no properties.</summary>
+    /// <param name="cssStyle">The style.</param>
+    /// <returns>The <c>style="..."</c> attribute, or <see langword="null"/>.</returns>
+    public string Format(CssClass cssStyle)
+    {
+        Dictionary<string, string> d = Colorize.CssDict(cssStyle, Scheme);
+        if (d.Count > 0)
+        {
+            List<string> items = new List<string>();
+            foreach (KeyValuePair<string, string> i in Colorize.SortedItems(d))
+            {
+                items.Add(Colorize.CssItem(i));
+            }
+
+            return "style=\"" + string.Join(" ", items) + "\"";
+        }
+
+        return null;
+    }
+}
+
+/// <summary>
+/// A do-it-all object to create syntax highlighted HTML.
+/// <para>
+/// You can set the instance attributes to configure the behaviour in all
+/// details. Then call the <see cref="Html"/> method to get the HTML.
+/// </para>
+/// </summary>
+public class HtmlWriter
+{
+    /// <summary>Gets or sets the document foreground color, or
+    /// <see langword="null"/> for none.</summary>
+    public string Fgcolor { get; set; }
+
+    /// <summary>Gets or sets the document background color, or
+    /// <see langword="null"/> for none.</summary>
+    public string Bgcolor { get; set; }
+
+    /// <summary>Gets or sets the line numbers foreground color, or
+    /// <see langword="null"/> for none.</summary>
+    public string LinenumbersFgcolor { get; set; }
+
+    /// <summary>Gets or sets the line numbers background color.</summary>
+    public string LinenumbersBgcolor { get; set; } = "#eeeeee";
+
+    /// <summary>Gets or sets whether styles are put inline instead of in a
+    /// stylesheet.</summary>
+    public bool InlineStyle { get; set; }
+
+    /// <summary>Gets or sets whether line numbers are added.</summary>
+    public bool NumberLines { get; set; }
+
+    /// <summary>Gets or sets the tag wrapping the content.</summary>
+    public string WrapperTag { get; set; } = "pre";
+
+    /// <summary>Gets or sets the attribute name for the wrapper tag ("id" or
+    /// "class").</summary>
+    public string WrapperAttribute { get; set; } = "id";
+
+    /// <summary>Gets or sets the document wrapper's id/class value.</summary>
+    public string DocumentId { get; set; } = "document";
+
+    /// <summary>Gets or sets the line numbers wrapper's id/class value.</summary>
+    public string LinenumbersId { get; set; } = "linenumbers";
+
+    /// <summary>Gets or sets the document title.</summary>
+    public string Title { get; set; } = "";
+
+    /// <summary>Gets or sets the scheme the styles are taken from.</summary>
+    public Dictionary<string, Dictionary<string, Dictionary<string, string>>> CssScheme { get; set; }
+        = Colorize.DefaultScheme;
+
+    /// <summary>Gets or sets the mapper, or <see langword="null"/> for the
+    /// default <see cref="Colorize.CssMapper"/>.</summary>
+    public Mapper<CssClass> CssMapper { get; set; }
+
+    /// <summary>Gets or sets the encoding named in the meta http-equiv field.</summary>
+    public string Encoding { get; set; } = "UTF-8";
+
+    /// <summary>Gets or sets the stylesheet reference put as a link in the
+    /// HTML, or <see langword="null"/> to embed the stylesheet.</summary>
+    public string StylesheetRef { get; set; }
+
+    /// <summary>Gets or sets whether a full HTML document is returned instead
+    /// of the body content only.</summary>
+    public bool FullHtml { get; set; } = true;
+
+    /// <summary>Chooses the attribute name for the wrapper tag.</summary>
+    /// <param name="attr">The attribute name ("id" or "class").</param>
+    public void SetWrapperAttribute(string attr)
+    {
+        if (attr == "id" || attr == "class")
+        {
+            WrapperAttribute = attr;
+        }
+        else
+        {
+            //upstream note: upstream prints the python list repr of the valid
+            // attributes; the message is kept verbatim.
+            Console.WriteLine("Invalid attribute, has to be one of ['id', 'class']");
+        }
+    }
+
+    /// <summary>Defines the tag to be used for wrapping the content.</summary>
+    /// <param name="tag">The tag name ("pre", "code" or "div").</param>
+    public void SetWrapperTag(string tag)
+    {
+        if (tag == "pre" || tag == "code" || tag == "div")
+        {
+            WrapperTag = tag;
+        }
+        else
+        {
+            //upstream note: upstream prints the python list repr of the valid
+            // tags; the message is kept verbatim.
+            Console.WriteLine("Invalid tag, has to be one of ['pre', 'code', 'div']");
+        }
+    }
+
+    /// <summary>Returns the output HTML.</summary>
+    /// <param name="cursor">The cursor.</param>
+    /// <returns>The HTML.</returns>
+    public string Html(Cursor cursor)
+    {
+        Dictionary<string, string> docStyle = new Dictionary<string, string>();
+        if (!string.IsNullOrEmpty(Fgcolor))
+        {
+            docStyle["color"] = Fgcolor;
+        }
+
+        if (!string.IsNullOrEmpty(Bgcolor))
+        {
+            docStyle["background"] = Bgcolor;
+        }
+
+        Dictionary<string, string> numStyle = new Dictionary<string, string>();
+        if (!string.IsNullOrEmpty(LinenumbersFgcolor))
+        {
+            numStyle["color"] = LinenumbersFgcolor;
+        }
+
+        if (!string.IsNullOrEmpty(LinenumbersBgcolor))
+        {
+            numStyle["background"] = LinenumbersBgcolor;
+        }
+
+        OrderedDictionary<string, string> numAttrs = new OrderedDictionary<string, string>
+        {
+            [WrapperAttribute] = LinenumbersId,
+        };
+        OrderedDictionary<string, string> docAttrs = new OrderedDictionary<string, string>
+        {
+            [WrapperAttribute] = DocumentId,
+        };
+
+        List<string> css = new List<string>();
+        Func<CssClass, string> formatter;
+        if (InlineStyle)
+        {
+            formatter = new CssStyleAttributeFormatter(CssScheme).Format;
+            foreach (KeyValuePair<string, string> item in Colorize.CssAttr(numStyle))
+            {
+                numAttrs[item.Key] = item.Value;
+            }
+
+            foreach (KeyValuePair<string, string> item in Colorize.CssAttr(docStyle))
+            {
+                docAttrs[item.Key] = item.Value;
+            }
+        }
+        else
+        {
+            formatter = Colorize.FormatCssSpanClass;
+            string wrapType = WrapperAttribute == "id" ? "#" : ".";
+            css.Add(Colorize.CssGroup(wrapType + DocumentId, docStyle));
+            if (NumberLines)
+            {
+                css.Add(Colorize.CssGroup(wrapType + LinenumbersId, numStyle));
+            }
+
+            css.Add(Colorize.FormatStylesheet(CssScheme));
+        }
+
+        string body = Colorize.Html(cursor, CssMapper ?? Colorize.CssMapper(), formatter);
+
+        if (NumberLines)
+        {
+            body = Colorize.AddLineNumbers(cursor, body, numAttrs, docAttrs);
+        }
+        else
+        {
+            body = "<" + WrapperTag + Colorize.HtmlFormatAttrs(docAttrs) + ">"
+                + body + "</" + WrapperTag + ">";
+        }
+
+        if (!FullHtml)
+        {
+            return body;
+        }
+
+        string stylesheet = !string.IsNullOrEmpty(StylesheetRef)
+            ? null
+            : string.Join("\n", css);
+        return Colorize.FormatHtmlDocument(body, Title, stylesheet, StylesheetRef, Encoding);
+    }
+}

@@ -1,5 +1,6 @@
 using Fresco.Brix.Helpers;
 using CodeBrix.Platform.Simple;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -26,7 +27,8 @@ public partial class App : Application
         SimpleServiceResolver.CreateInstance(HostHelper.GetHost(), services =>
         {
             //Register the app's services here
-
+            services.AddSingleton<Services.SettingsStore>();
+            services.AddSingleton<Services.RecentFiles>();
         });
         SimpleViewModel.SetIsDesignMode(false);
 

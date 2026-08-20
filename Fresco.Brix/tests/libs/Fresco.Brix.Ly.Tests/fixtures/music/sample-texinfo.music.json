@@ -1,0 +1,319 @@
+{
+ "has_output": true,
+ "node_positions": [
+  [
+   0,
+   "Document",
+   -1
+  ],
+  [
+   7,
+   "Document",
+   -1
+  ],
+  [
+   14,
+   "Document",
+   -1
+  ],
+  [
+   21,
+   "Document",
+   -1
+  ],
+  [
+   28,
+   "Document",
+   -1
+  ],
+  [
+   35,
+   "Document",
+   -1
+  ],
+  [
+   42,
+   "Document",
+   -1
+  ],
+  [
+   49,
+   "Document",
+   -1
+  ],
+  [
+   56,
+   "Document",
+   -1
+  ],
+  [
+   63,
+   "Document",
+   -1
+  ],
+  [
+   70,
+   "Document",
+   -1
+  ],
+  [
+   77,
+   "Document",
+   -1
+  ],
+  [
+   84,
+   "Document",
+   -1
+  ],
+  [
+   91,
+   "Document",
+   -1
+  ],
+  [
+   98,
+   "Document",
+   -1
+  ],
+  [
+   105,
+   "Document",
+   -1
+  ],
+  [
+   112,
+   "Relative",
+   112
+  ],
+  [
+   119,
+   "Relative",
+   112
+  ],
+  [
+   126,
+   "MusicList",
+   125
+  ],
+  [
+   133,
+   "Note",
+   132
+  ],
+  [
+   140,
+   "Note",
+   134
+  ],
+  [
+   147,
+   "Note",
+   134
+  ],
+  [
+   154,
+   "Note",
+   134
+  ],
+  [
+   157,
+   "Note",
+   134
+  ]
+ ],
+ "time_positions": [
+  [
+   0,
+   null
+  ],
+  [
+   7,
+   null
+  ],
+  [
+   14,
+   null
+  ],
+  [
+   21,
+   null
+  ],
+  [
+   28,
+   null
+  ],
+  [
+   35,
+   null
+  ],
+  [
+   42,
+   null
+  ],
+  [
+   49,
+   null
+  ],
+  [
+   56,
+   null
+  ],
+  [
+   63,
+   null
+  ],
+  [
+   70,
+   null
+  ],
+  [
+   77,
+   null
+  ],
+  [
+   84,
+   null
+  ],
+  [
+   91,
+   null
+  ],
+  [
+   98,
+   null
+  ],
+  [
+   105,
+   null
+  ],
+  [
+   112,
+   "0/1"
+  ],
+  [
+   119,
+   "0/1"
+  ],
+  [
+   126,
+   "0/1"
+  ],
+  [
+   133,
+   "3/4"
+  ],
+  [
+   140,
+   null
+  ],
+  [
+   147,
+   null
+  ],
+  [
+   154,
+   null
+  ],
+  [
+   157,
+   null
+  ]
+ ],
+ "tree": {
+  "children": [
+   {
+    "children": [
+     {
+      "children": [],
+      "cls": "Note",
+      "end": 124,
+      "length": "0/1",
+      "plaintext": "",
+      "position": 122,
+      "token": "c",
+      "tokens": []
+     },
+     {
+      "children": [
+       {
+        "children": [
+         {
+          "children": [],
+          "cls": "Duration",
+          "end": 129,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 128,
+          "token": "4",
+          "tokens": []
+         }
+        ],
+        "cls": "Note",
+        "end": 129,
+        "length": "1/4",
+        "plaintext": "",
+        "position": 127,
+        "token": "c",
+        "tokens": []
+       },
+       {
+        "children": [],
+        "cls": "Note",
+        "end": 131,
+        "length": "1/4",
+        "plaintext": "",
+        "position": 130,
+        "token": "d",
+        "tokens": []
+       },
+       {
+        "children": [],
+        "cls": "Note",
+        "end": 133,
+        "length": "1/4",
+        "plaintext": "",
+        "position": 132,
+        "token": "e",
+        "tokens": []
+       },
+       {
+        "children": [],
+        "cls": "Note",
+        "end": 135,
+        "length": "1/4",
+        "plaintext": "",
+        "position": 134,
+        "token": "f",
+        "tokens": []
+       }
+      ],
+      "cls": "MusicList",
+      "end": 137,
+      "length": "1/1",
+      "plaintext": "",
+      "position": 125,
+      "token": "{",
+      "tokens": [
+       "}"
+      ]
+     }
+    ],
+    "cls": "Relative",
+    "end": 137,
+    "length": "1/1",
+    "plaintext": "",
+    "position": 112,
+    "token": "\\relative",
+    "tokens": []
+   }
+  ],
+  "cls": "Document",
+  "end": 137,
+  "length": "0/1",
+  "plaintext": "",
+  "position": -1,
+  "token": null,
+  "tokens": []
+ }
+}

@@ -1,0 +1,542 @@
+{
+ "has_output": false,
+ "node_positions": [
+  [
+   0,
+   "Version",
+   0
+  ],
+  [
+   7,
+   "Version",
+   0
+  ],
+  [
+   14,
+   "String",
+   9
+  ],
+  [
+   21,
+   "Assignment",
+   18
+  ],
+  [
+   28,
+   "Relative",
+   26
+  ],
+  [
+   35,
+   "Relative",
+   26
+  ],
+  [
+   42,
+   "MusicList",
+   39
+  ],
+  [
+   49,
+   "Note",
+   48
+  ],
+  [
+   56,
+   "Note",
+   55
+  ],
+  [
+   63,
+   "Chord",
+   63
+  ],
+  [
+   70,
+   "Note",
+   69
+  ],
+  [
+   77,
+   "Assignment",
+   75
+  ],
+  [
+   84,
+   "Assignment",
+   75
+  ],
+  [
+   91,
+   "Chord",
+   91
+  ],
+  [
+   98,
+   "Note",
+   98
+  ],
+  [
+   105,
+   "Note",
+   104
+  ],
+  [
+   112,
+   "Note",
+   110
+  ],
+  [
+   117,
+   "Duration",
+   113
+  ]
+ ],
+ "time_positions": [
+  [
+   0,
+   null
+  ],
+  [
+   7,
+   null
+  ],
+  [
+   14,
+   null
+  ],
+  [
+   21,
+   "0/1"
+  ],
+  [
+   28,
+   "0/1"
+  ],
+  [
+   35,
+   "0/1"
+  ],
+  [
+   42,
+   "0/1"
+  ],
+  [
+   49,
+   "0/1"
+  ],
+  [
+   56,
+   "1/4"
+  ],
+  [
+   63,
+   "1/2"
+  ],
+  [
+   70,
+   "1/2"
+  ],
+  [
+   77,
+   "0/1"
+  ],
+  [
+   84,
+   "0/1"
+  ],
+  [
+   91,
+   "0/1"
+  ],
+  [
+   98,
+   "0/1"
+  ],
+  [
+   105,
+   "1/4"
+  ],
+  [
+   112,
+   "1/4"
+  ],
+  [
+   117,
+   null
+  ]
+ ],
+ "tree": {
+  "children": [
+   {
+    "children": [
+     {
+      "children": [],
+      "cls": "String",
+      "end": 17,
+      "length": "0/1",
+      "plaintext": "2.27.2",
+      "position": 9,
+      "token": "\"",
+      "tokens": [
+       "2.27.2",
+       "\""
+      ]
+     }
+    ],
+    "cls": "Version",
+    "end": 17,
+    "length": "0/1",
+    "plaintext": "",
+    "position": 0,
+    "token": "\\version",
+    "tokens": []
+   },
+   {
+    "children": [
+     {
+      "children": [
+       {
+        "children": [],
+        "cls": "Note",
+        "end": 38,
+        "length": "0/1",
+        "plaintext": "",
+        "position": 36,
+        "token": "c",
+        "tokens": []
+       },
+       {
+        "children": [
+         {
+          "children": [
+           {
+            "children": [],
+            "cls": "Note",
+            "end": 45,
+            "length": "0/1",
+            "plaintext": "",
+            "position": 44,
+            "token": "c",
+            "tokens": []
+           },
+           {
+            "children": [],
+            "cls": "Note",
+            "end": 47,
+            "length": "0/1",
+            "plaintext": "",
+            "position": 46,
+            "token": "e",
+            "tokens": []
+           },
+           {
+            "children": [],
+            "cls": "Note",
+            "end": 49,
+            "length": "0/1",
+            "plaintext": "",
+            "position": 48,
+            "token": "g",
+            "tokens": []
+           },
+           {
+            "children": [],
+            "cls": "Duration",
+            "end": 51,
+            "length": "0/1",
+            "plaintext": "",
+            "position": 50,
+            "token": "4",
+            "tokens": []
+           }
+          ],
+          "cls": "Chord",
+          "end": 51,
+          "length": "1/4",
+          "plaintext": "",
+          "position": 43,
+          "token": "<",
+          "tokens": [
+           ">"
+          ]
+         },
+         {
+          "children": [
+           {
+            "children": [],
+            "cls": "Note",
+            "end": 54,
+            "length": "0/1",
+            "plaintext": "",
+            "position": 53,
+            "token": "d",
+            "tokens": []
+           },
+           {
+            "children": [],
+            "cls": "Note",
+            "end": 56,
+            "length": "0/1",
+            "plaintext": "",
+            "position": 55,
+            "token": "f",
+            "tokens": []
+           },
+           {
+            "children": [],
+            "cls": "Note",
+            "end": 58,
+            "length": "0/1",
+            "plaintext": "",
+            "position": 57,
+            "token": "a",
+            "tokens": []
+           },
+           {
+            "children": [],
+            "cls": "Duration",
+            "end": 60,
+            "length": "0/1",
+            "plaintext": "",
+            "position": 59,
+            "token": "4",
+            "tokens": []
+           }
+          ],
+          "cls": "Chord",
+          "end": 60,
+          "length": "1/4",
+          "plaintext": "",
+          "position": 52,
+          "token": "<",
+          "tokens": [
+           ">"
+          ]
+         },
+         {
+          "children": [
+           {
+            "children": [],
+            "cls": "Note",
+            "end": 66,
+            "length": "0/1",
+            "plaintext": "",
+            "position": 64,
+            "token": "g",
+            "tokens": []
+           },
+           {
+            "children": [],
+            "cls": "Note",
+            "end": 68,
+            "length": "0/1",
+            "plaintext": "",
+            "position": 67,
+            "token": "b",
+            "tokens": []
+           },
+           {
+            "children": [],
+            "cls": "Note",
+            "end": 70,
+            "length": "0/1",
+            "plaintext": "",
+            "position": 69,
+            "token": "d",
+            "tokens": []
+           },
+           {
+            "children": [],
+            "cls": "Duration",
+            "end": 72,
+            "length": "0/1",
+            "plaintext": "",
+            "position": 71,
+            "token": "2",
+            "tokens": []
+           }
+          ],
+          "cls": "Chord",
+          "end": 72,
+          "length": "1/2",
+          "plaintext": "",
+          "position": 63,
+          "token": "<",
+          "tokens": [
+           ">"
+          ]
+         }
+        ],
+        "cls": "MusicList",
+        "end": 74,
+        "length": "1/1",
+        "plaintext": "",
+        "position": 39,
+        "token": "{",
+        "tokens": [
+         "}"
+        ]
+       }
+      ],
+      "cls": "Relative",
+      "end": 74,
+      "length": "1/1",
+      "plaintext": "",
+      "position": 26,
+      "token": "\\relative",
+      "tokens": []
+     }
+    ],
+    "cls": "Assignment",
+    "end": 74,
+    "length": "0/1",
+    "plaintext": "",
+    "position": 18,
+    "token": "music",
+    "tokens": [
+     "="
+    ]
+   },
+   {
+    "children": [
+     {
+      "children": [
+       {
+        "children": [
+         {
+          "children": [],
+          "cls": "Note",
+          "end": 94,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 92,
+          "token": "c",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "Note",
+          "end": 97,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 95,
+          "token": "e",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "Note",
+          "end": 100,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 98,
+          "token": "g",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "Duration",
+          "end": 102,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 101,
+          "token": "4",
+          "tokens": []
+         }
+        ],
+        "cls": "Chord",
+        "end": 102,
+        "length": "1/4",
+        "plaintext": "",
+        "position": 91,
+        "token": "<",
+        "tokens": [
+         ">"
+        ]
+       },
+       {
+        "children": [
+         {
+          "children": [],
+          "cls": "Note",
+          "end": 106,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 104,
+          "token": "d",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "Note",
+          "end": 109,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 107,
+          "token": "f",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "Note",
+          "end": 112,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 110,
+          "token": "a",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "Duration",
+          "end": 114,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 113,
+          "token": "4",
+          "tokens": []
+         }
+        ],
+        "cls": "Chord",
+        "end": 114,
+        "length": "1/4",
+        "plaintext": "",
+        "position": 103,
+        "token": "<",
+        "tokens": [
+         ">"
+        ]
+       }
+      ],
+      "cls": "MusicList",
+      "end": 116,
+      "length": "1/2",
+      "plaintext": "",
+      "position": 87,
+      "token": "{",
+      "tokens": [
+       "}"
+      ]
+     }
+    ],
+    "cls": "Assignment",
+    "end": 116,
+    "length": "0/1",
+    "plaintext": "",
+    "position": 75,
+    "token": "absChords",
+    "tokens": [
+     "="
+    ]
+   }
+  ],
+  "cls": "Document",
+  "end": 116,
+  "length": "0/1",
+  "plaintext": "",
+  "position": -1,
+  "token": null,
+  "tokens": []
+ }
+}

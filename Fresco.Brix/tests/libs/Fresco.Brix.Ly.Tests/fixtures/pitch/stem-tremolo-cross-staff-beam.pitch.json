@@ -1,0 +1,38 @@
+{
+ "results": {
+  "abs2rel": "\\version \"2.23.3\"\n\n\\header {\n  texidoc = \"Stem tremolos on cross-staff beams do not cause\ncircular dependencies.\"\n}\n\nmusic = \\relative c'' {\n    f,16:32[ e: d: c: \\change Staff = down b: a: g: f:]\n}\n\n\\new PianoStaff <<\n  \\new Staff = up \\music\n  \\new Staff = down {\n    \\clef bass\n    s2\n  }\n>>\n",
+  "abs2rel_no_startpitch": "\\version \"2.23.3\"\n\n\\header {\n  texidoc = \"Stem tremolos on cross-staff beams do not cause\ncircular dependencies.\"\n}\n\nmusic = \\relative c'' {\n    f,16:32[ e: d: c: \\change Staff = down b: a: g: f:]\n}\n\n\\new PianoStaff <<\n  \\new Staff = up \\music\n  \\new Staff = down {\n    \\clef bass\n    s2\n  }\n>>\n",
+  "abs2rel_no_startpitch_first_absolute": "\\version \"2.23.3\"\n\n\\header {\n  texidoc = \"Stem tremolos on cross-staff beams do not cause\ncircular dependencies.\"\n}\n\nmusic = \\relative c'' {\n    f,16:32[ e: d: c: \\change Staff = down b: a: g: f:]\n}\n\n\\new PianoStaff <<\n  \\new Staff = up \\music\n  \\new Staff = down {\n    \\clef bass\n    s2\n  }\n>>\n",
+  "inversion": "\\version \"2.23.3\"\n\n\\header {\n  texidoc = \"Stem tremolos on cross-staff beams do not cause\ncircular dependencies.\"\n}\n\nmusic = \\relative c'' {\n    g''''16:32[ as''': bes''': c'''': \\change Staff = down des''': es''': f''': g''':]\n}\n\n\\new PianoStaff <<\n  \\new Staff = up \\music\n  \\new Staff = down {\n    \\clef bass\n    s2\n  }\n>>\n",
+  "modal_down_three_g_major": "\\version \"2.23.3\"\n\n\\header {\n  texidoc = \"Stem tremolos on cross-staff beams do not cause\ncircular dependencies.\"\n}\n\nmusic = \\relative c' {\n    ces16:32[ b: a: g: \\change Staff = down fis: e: d: ces:]\n}\n\n\\new PianoStaff <<\n  \\new Staff = up \\music\n  \\new Staff = down {\n    \\clef bass\n    s2\n  }\n>>\n",
+  "modal_up_two_c_major": "\\version \"2.23.3\"\n\n\\header {\n  texidoc = \"Stem tremolos on cross-staff beams do not cause\ncircular dependencies.\"\n}\n\nmusic = \\relative c'' {\n    a16:32[ g: f: e: \\change Staff = down d: c: b: a:]\n}\n\n\\new PianoStaff <<\n  \\new Staff = up \\music\n  \\new Staff = down {\n    \\clef bass\n    s2\n  }\n>>\n",
+  "mode_shift_a_minor_harmonic": "\\version \"2.23.3\"\n\n\\header {\n  texidoc = \"Stem tremolos on cross-staff beams do not cause\ncircular dependencies.\"\n}\n\nmusic = \\relative c' {\n    f16:32[ e: d: c: \\change Staff = down b: a: gis: f:]\n}\n\n\\new PianoStaff <<\n  \\new Staff = up \\music\n  \\new Staff = down {\n    \\clef bass\n    s2\n  }\n>>\n",
+  "mode_shift_c_major": "\\version \"2.23.3\"\n\n\\header {\n  texidoc = \"Stem tremolos on cross-staff beams do not cause\ncircular dependencies.\"\n}\n\nmusic = \\relative c' {\n    f16:32[ e: d: c: \\change Staff = down b: a: g: f:]\n}\n\n\\new PianoStaff <<\n  \\new Staff = up \\music\n  \\new Staff = down {\n    \\clef bass\n    s2\n  }\n>>\n",
+  "rel2abs": "\\version \"2.23.3\"\n\n\\header {\n  texidoc = \"Stem tremolos on cross-staff beams do not cause\ncircular dependencies.\"\n}\n\nmusic = {\n    f'16:32[ e': d': c': \\change Staff = down b: a: g: f:]\n}\n\n\\new PianoStaff <<\n  \\new Staff = up \\music\n  \\new Staff = down {\n    \\clef bass\n    s2\n  }\n>>\n",
+  "rel2abs_first_absolute": "\\version \"2.23.3\"\n\n\\header {\n  texidoc = \"Stem tremolos on cross-staff beams do not cause\ncircular dependencies.\"\n}\n\nmusic = {\n    f'16:32[ e': d': c': \\change Staff = down b: a: g: f:]\n}\n\n\\new PianoStaff <<\n  \\new Staff = up \\music\n  \\new Staff = down {\n    \\clef bass\n    s2\n  }\n>>\n",
+  "retrograde": "\\version \"2.23.3\"\n\n\\header {\n  texidoc = \"Stem tremolos on cross-staff beams do not cause\ncircular dependencies.\"\n}\n\nmusic = \\relative f {\n    g16:32[ a: b: c: \\change Staff = down d: e: f,: c'':]\n}\n\n\\new PianoStaff <<\n  \\new Staff = up \\music\n  \\new Staff = down {\n    \\clef bass\n    s2\n  }\n>>\n",
+  "simplify": "\\version \"2.23.3\"\n\n\\header {\n  texidoc = \"Stem tremolos on cross-staff beams do not cause\ncircular dependencies.\"\n}\n\nmusic = \\relative c' {\n    f16:32[ e: d: c: \\change Staff = down b: a: g: f:]\n}\n\n\\new PianoStaff <<\n  \\new Staff = up \\music\n  \\new Staff = down {\n    \\clef bass\n    s2\n  }\n>>\n",
+  "transpose_c_a_down": "\\version \"2.23.3\"\n\n\\header {\n  texidoc = \"Stem tremolos on cross-staff beams do not cause\ncircular dependencies.\"\n}\n\nmusic = \\relative c' {\n    d16:32[ cis: b: a: \\change Staff = down gis: fis: e: d:]\n}\n\n\\new PianoStaff <<\n  \\new Staff = up \\music\n  \\new Staff = down {\n    \\clef bass\n    s2\n  }\n>>\n",
+  "transpose_c_d": "\\version \"2.23.3\"\n\n\\header {\n  texidoc = \"Stem tremolos on cross-staff beams do not cause\ncircular dependencies.\"\n}\n\nmusic = \\relative c'' {\n    g16:32[ fis: e: d: \\change Staff = down cis: b: a: g:]\n}\n\n\\new PianoStaff <<\n  \\new Staff = up \\music\n  \\new Staff = down {\n    \\clef bass\n    s2\n  }\n>>\n",
+  "transpose_c_d_relative_absolute": "\\version \"2.23.3\"\n\n\\header {\n  texidoc = \"Stem tremolos on cross-staff beams do not cause\ncircular dependencies.\"\n}\n\nmusic = \\relative c'' {\n    g16:32[ fis: e: d: \\change Staff = down cis: b: a: g:]\n}\n\n\\new PianoStaff <<\n  \\new Staff = up \\music\n  \\new Staff = down {\n    \\clef bass\n    s2\n  }\n>>\n",
+  "transpose_c_ees": "\\version \"2.23.3\"\n\n\\header {\n  texidoc = \"Stem tremolos on cross-staff beams do not cause\ncircular dependencies.\"\n}\n\nmusic = \\relative c'' {\n    ases16:32[ ges: fes: eses: \\change Staff = down des: ces: beses: ases:]\n}\n\n\\new PianoStaff <<\n  \\new Staff = up \\music\n  \\new Staff = down {\n    \\clef bass\n    s2\n  }\n>>\n"
+ },
+ "translations": {
+  "deutsch": {
+   "changed": false,
+   "text": "\\version \"2.23.3\"\n\n\\header {\n  texidoc = \"Stem tremolos on cross-staff beams do not cause\ncircular dependencies.\"\n}\n\nmusic = \\relative c'' {\n    f,16:32[ e: d: c: \\change Staff = down h: a: g: f:]\n}\n\n\\new PianoStaff <<\n  \\new Staff = up \\music\n  \\new Staff = down {\n    \\clef bass\n    s2\n  }\n>>\n"
+  },
+  "english": {
+   "changed": false,
+   "text": "\\version \"2.23.3\"\n\n\\header {\n  texidoc = \"Stem tremolos on cross-staff beams do not cause\ncircular dependencies.\"\n}\n\nmusic = \\relative c'' {\n    f,16:32[ e: d: c: \\change Staff = down b: a: g: f:]\n}\n\n\\new PianoStaff <<\n  \\new Staff = up \\music\n  \\new Staff = down {\n    \\clef bass\n    s2\n  }\n>>\n"
+  },
+  "italiano": {
+   "changed": false,
+   "text": "\\version \"2.23.3\"\n\n\\header {\n  texidoc = \"Stem tremolos on cross-staff beams do not cause\ncircular dependencies.\"\n}\n\nmusic = \\relative do'' {\n    fa,16:32[ mi: re: do: \\change Staff = down si: la: sol: fa:]\n}\n\n\\new PianoStaff <<\n  \\new Staff = up \\music\n  \\new Staff = down {\n    \\clef bass\n    s2\n  }\n>>\n"
+  },
+  "norsk": {
+   "changed": false,
+   "text": "\\version \"2.23.3\"\n\n\\header {\n  texidoc = \"Stem tremolos on cross-staff beams do not cause\ncircular dependencies.\"\n}\n\nmusic = \\relative c'' {\n    f,16:32[ e: d: c: \\change Staff = down h: a: g: f:]\n}\n\n\\new PianoStaff <<\n  \\new Staff = up \\music\n  \\new Staff = down {\n    \\clef bass\n    s2\n  }\n>>\n"
+  }
+ }
+}

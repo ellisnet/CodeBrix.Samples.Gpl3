@@ -1,0 +1,38 @@
+{
+ "results": {
+  "abs2rel": "\\header {\n  texidoc = \"beamlets don't run to end of line if there are no other\n  beamlets on the same height.\"\n\n}\n\\version \"2.19.21\"\n\n\\paper {\n  ragged-right = ##t\n}\n\n\\relative {\n  \\time 1/4\n  \\override Beam.breakable = ##t\n  r16 r16. c'32[ c16 \\break c8. ] r16\n}\n",
+  "abs2rel_no_startpitch": "\\header {\n  texidoc = \"beamlets don't run to end of line if there are no other\n  beamlets on the same height.\"\n\n}\n\\version \"2.19.21\"\n\n\\paper {\n  ragged-right = ##t\n}\n\n\\relative {\n  \\time 1/4\n  \\override Beam.breakable = ##t\n  r16 r16. c'32[ c16 \\break c8. ] r16\n}\n",
+  "abs2rel_no_startpitch_first_absolute": "\\header {\n  texidoc = \"beamlets don't run to end of line if there are no other\n  beamlets on the same height.\"\n\n}\n\\version \"2.19.21\"\n\n\\paper {\n  ragged-right = ##t\n}\n\n\\relative {\n  \\time 1/4\n  \\override Beam.breakable = ##t\n  r16 r16. c'32[ c16 \\break c8. ] r16\n}\n",
+  "inversion": "\\header {\n  texidoc = \"beamlets don't run to end of line if there are no other\n  beamlets on the same height.\"\n\n}\n\\version \"2.19.21\"\n\n\\paper {\n  ragged-right = ##t\n}\n\n\\relative {\n  \\time 1/4\n  \\override Beam.breakable = ##t\n  r16 r16. c'32[ c''16 \\break c''8. ] r16\n}\n",
+  "modal_down_three_g_major": "\\header {\n  texidoc = \"beamlets don't run to end of line if there are no other\n  beamlets on the same height.\"\n\n}\n\\version \"2.19.21\"\n\n\\paper {\n  ragged-right = ##t\n}\n\n\\relative {\n  \\time 1/4\n  \\override Beam.breakable = ##t\n  r16 r16. g'32[ g16 \\break g8. ] r16\n}\n",
+  "modal_up_two_c_major": "\\header {\n  texidoc = \"beamlets don't run to end of line if there are no other\n  beamlets on the same height.\"\n\n}\n\\version \"2.19.21\"\n\n\\paper {\n  ragged-right = ##t\n}\n\n\\relative {\n  \\time 1/4\n  \\override Beam.breakable = ##t\n  r16 r16. e'32[ e16 \\break e8. ] r16\n}\n",
+  "mode_shift_a_minor_harmonic": "\\header {\n  texidoc = \"beamlets don't run to end of line if there are no other\n  beamlets on the same height.\"\n\n}\n\\version \"2.19.21\"\n\n\\paper {\n  ragged-right = ##t\n}\n\n\\relative {\n  \\time 1/4\n  \\override Beam.breakable = ##t\n  r16 r16. c'32[ c16 \\break c8. ] r16\n}\n",
+  "mode_shift_c_major": "\\header {\n  texidoc = \"beamlets don't run to end of line if there are no other\n  beamlets on the same height.\"\n\n}\n\\version \"2.19.21\"\n\n\\paper {\n  ragged-right = ##t\n}\n\n\\relative {\n  \\time 1/4\n  \\override Beam.breakable = ##t\n  r16 r16. c'32[ c16 \\break c8. ] r16\n}\n",
+  "rel2abs": "\\header {\n  texidoc = \"beamlets don't run to end of line if there are no other\n  beamlets on the same height.\"\n\n}\n\\version \"2.19.21\"\n\n\\paper {\n  ragged-right = ##t\n}\n\n{\n  \\time 1/4\n  \\override Beam.breakable = ##t\n  r16 r16. c''32[ c''16 \\break c''8. ] r16\n}\n",
+  "rel2abs_first_absolute": "\\header {\n  texidoc = \"beamlets don't run to end of line if there are no other\n  beamlets on the same height.\"\n\n}\n\\version \"2.19.21\"\n\n\\paper {\n  ragged-right = ##t\n}\n\n{\n  \\time 1/4\n  \\override Beam.breakable = ##t\n  r16 r16. c'32[ c'16 \\break c'8. ] r16\n}\n",
+  "retrograde": "\\header {\n  texidoc = \"beamlets don't run to end of line if there are no other\n  beamlets on the same height.\"\n\n}\n\\version \"2.19.21\"\n\n\\paper {\n  ragged-right = ##t\n}\n\n\\relative {\n  \\time 1/4\n  \\override Beam.breakable = ##t\n  r16 r16. c32[ c16 \\break c'8. ] r16\n}\n",
+  "simplify": "\\header {\n  texidoc = \"beamlets don't run to end of line if there are no other\n  beamlets on the same height.\"\n\n}\n\\version \"2.19.21\"\n\n\\paper {\n  ragged-right = ##t\n}\n\n\\relative {\n  \\time 1/4\n  \\override Beam.breakable = ##t\n  r16 r16. c'32[ c16 \\break c8. ] r16\n}\n",
+  "transpose_c_a_down": "\\header {\n  texidoc = \"beamlets don't run to end of line if there are no other\n  beamlets on the same height.\"\n\n}\n\\version \"2.19.21\"\n\n\\paper {\n  ragged-right = ##t\n}\n\n\\relative {\n  \\time 1/4\n  \\override Beam.breakable = ##t\n  r16 r16. a'32[ a16 \\break a8. ] r16\n}\n",
+  "transpose_c_d": "\\header {\n  texidoc = \"beamlets don't run to end of line if there are no other\n  beamlets on the same height.\"\n\n}\n\\version \"2.19.21\"\n\n\\paper {\n  ragged-right = ##t\n}\n\n\\relative {\n  \\time 1/4\n  \\override Beam.breakable = ##t\n  r16 r16. d'32[ d16 \\break d8. ] r16\n}\n",
+  "transpose_c_d_relative_absolute": "\\header {\n  texidoc = \"beamlets don't run to end of line if there are no other\n  beamlets on the same height.\"\n\n}\n\\version \"2.19.21\"\n\n\\paper {\n  ragged-right = ##t\n}\n\n\\relative {\n  \\time 1/4\n  \\override Beam.breakable = ##t\n  r16 r16. d'32[ d16 \\break d8. ] r16\n}\n",
+  "transpose_c_ees": "\\header {\n  texidoc = \"beamlets don't run to end of line if there are no other\n  beamlets on the same height.\"\n\n}\n\\version \"2.19.21\"\n\n\\paper {\n  ragged-right = ##t\n}\n\n\\relative {\n  \\time 1/4\n  \\override Beam.breakable = ##t\n  r16 r16. eses'32[ eses16 \\break eses8. ] r16\n}\n"
+ },
+ "translations": {
+  "deutsch": {
+   "changed": false,
+   "text": "\\header {\n  texidoc = \"beamlets don't run to end of line if there are no other\n  beamlets on the same height.\"\n\n}\n\\version \"2.19.21\"\n\n\\paper {\n  ragged-right = ##t\n}\n\n\\relative {\n  \\time 1/4\n  \\override Beam.breakable = ##t\n  r16 r16. c'32[ c16 \\break c8. ] r16\n}\n"
+  },
+  "english": {
+   "changed": false,
+   "text": "\\header {\n  texidoc = \"beamlets don't run to end of line if there are no other\n  beamlets on the same height.\"\n\n}\n\\version \"2.19.21\"\n\n\\paper {\n  ragged-right = ##t\n}\n\n\\relative {\n  \\time 1/4\n  \\override Beam.breakable = ##t\n  r16 r16. c'32[ c16 \\break c8. ] r16\n}\n"
+  },
+  "italiano": {
+   "changed": false,
+   "text": "\\header {\n  texidoc = \"beamlets don't run to end of line if there are no other\n  beamlets on the same height.\"\n\n}\n\\version \"2.19.21\"\n\n\\paper {\n  ragged-right = ##t\n}\n\n\\relative {\n  \\time 1/4\n  \\override Beam.breakable = ##t\n  r16 r16. do'32[ do16 \\break do8. ] r16\n}\n"
+  },
+  "norsk": {
+   "changed": false,
+   "text": "\\header {\n  texidoc = \"beamlets don't run to end of line if there are no other\n  beamlets on the same height.\"\n\n}\n\\version \"2.19.21\"\n\n\\paper {\n  ragged-right = ##t\n}\n\n\\relative {\n  \\time 1/4\n  \\override Beam.breakable = ##t\n  r16 r16. c'32[ c16 \\break c8. ] r16\n}\n"
+  }
+ }
+}
