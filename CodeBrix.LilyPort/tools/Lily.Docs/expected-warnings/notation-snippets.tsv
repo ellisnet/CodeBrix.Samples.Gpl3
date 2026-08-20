@@ -1,0 +1,46 @@
+# The Notation Reference's engraving, MEASURED 2026-08-19 (wave LD3, re-frozen the same
+# day after two ENGINE fixes) and READ before freezing. ⚠ ASKED and FAILED are the
+# load-bearing rows: the Texinfo package catches a renderer that throws and shows the
+# snippet's source instead, so "the manual rendered" is compatible with every engraving
+# having failed. The Texinfo warning profile in notation.tsv is IDENTICAL across runs
+# with 114, 28 and 12 failures -- measured, not supposed -- which is why this file exists.
+#
+# HISTORY OF THIS NUMBER, so a later session can see which way it has been moving:
+#   114  first full render (wave LD3)
+#    28  after the snippet include path and the explicit-\book handler, both docs-layer
+#    12  after ly:system-font-load and the lexer's catch-all rule, both ENGINE fixes
+#         ruled by Jeremy 2026-08-19 and verified by the full Phase-4 battery
+#
+# THE 12, every one of them accounted for:
+#
+#   11  notation-appendices.itely, the "Modern glyph charts" appendix -- the ELEVEN of
+#       its 26 snippets whose glyph names run past 24 characters. font-table.ly's
+#       doc-char splits a long name at a dot, and only that branch calls
+#         (string-rindex name #\. 0 middle-pos)   and   (string-index name #\. middle-pos)
+#       ⚠ THE PORT'S SCHEME HAS NEITHER FORM. CodeBrix.LilyScheme defines string-index
+#       with arity 2 and does not define string-rindex at all, while Guile's are
+#       (string-index s char_pred [start [end]]) and the matching rindex. The engine
+#       reports "wrong-number-of-args (string-index)" and the book is lost.
+#
+#       The other 15 of the 26 engrave, which is what ly:system-font-load bought: the
+#       appendix's short-named charts are IN the manual now.
+#
+#       ⚠ FOR JEREMY: the fix is in CodeBrix.LilyScheme -- a different repository, a
+#       package republish, and BOTH LilyPort pins moving together. It was NOT in the GO
+#       that covered ly:system-font-load and the lexer, so it is recorded and not done.
+#
+#    1  rhythms.itely:912, { \skip 1 \skip1 \skip 1 } -- which produces no picture
+#       because it produces no music. The manual's own prose introduces it with "The
+#       \skip command simply skips musical time; it creates no output of any kind", and
+#       the snippet carries the comment "This is valid input, but does nothing". It is
+#       [quote,verbatim], so the reader sees the source either way.
+#
+#       ⚠ IT IS LEFT AS A FAILURE ON PURPOSE. "Ran clean and produced nothing" is also
+#       exactly what the 35 silent \book losses looked like before wave LD3 found them.
+#       Teaching the renderer to call an empty result legitimate would have hidden all 35.
+ASKED	2555
+DECLINED	0
+DOCUMENT_IMAGES	2548
+ENGRAVED	2543
+FAILED	12
+PICTURES	2546

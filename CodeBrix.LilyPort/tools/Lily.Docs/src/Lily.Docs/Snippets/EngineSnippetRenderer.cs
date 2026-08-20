@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Text;
 using CodeBrix.LilyPort;
 using CodeBrix.Texinfo2Html;
 
@@ -53,9 +54,31 @@ public sealed class EngineSnippetRenderer : ILilypondSnippetRenderer, IDisposabl
     /// diagnostic, no picture. Saving the runner's handler here and restoring it after the
     /// music is what puts the engraving back on the page path the port does implement.
     /// </para>
+    /// <para>
+    /// ⚠ AND RESTORING IT AT THE END IS NOT ENOUGH — MEASURED 2026-08-19, THIRTY-FIVE
+    /// SNIPPETS. The epilogue's restore comes after the whole file has been read, which is
+    /// in time for the IMPLICIT toplevel book (collected at end of parse) and far too late
+    /// for an EXPLICIT one: a snippet that writes <c>\book { … }</c> hands it over the
+    /// moment the block closes, through <c>toplevel-book-handler</c> — which the preamble
+    /// has by then pointed at <c>print-book-with-defaults</c>, a route that bypasses the
+    /// runner's collector entirely. Thirty-five of the notation manual's snippets do exactly
+    /// that, and every one of them vanished in the same silence.
+    /// </para>
+    /// <para>
+    /// So the prologue does not merely SAVE the handler: it re-points the two functions the
+    /// preamble's handlers CALL — <c>print-book-with-defaults-as-systems</c> and
+    /// <c>print-book-with-defaults</c> — at the collector. Whatever the preamble installs
+    /// afterwards therefore still arrives here. This is the same substitution as before,
+    /// made at the place that survives being overwritten: the port implements the page
+    /// output path and not the systems one, so every book takes the page path.
+    /// <c>LilyPondInit.RestoreDefaults</c> reverts a run's toplevel definitions, so all
+    /// three definitions are per-snippet and leak into nothing.
+    /// </para>
     /// </summary>
     private const string EngravingPrologue =
-        "#(define lily-docs-page-handler default-toplevel-book-handler)\n";
+        "#(define lily-docs-page-handler default-toplevel-book-handler)\n"
+        + "#(define print-book-with-defaults-as-systems lily-docs-page-handler)\n"
+        + "#(define print-book-with-defaults lily-docs-page-handler)\n";
 
     /// <summary>
     /// Restores the page handler and asks for ONE PAGE SIZED TO THE MUSIC.
@@ -95,7 +118,22 @@ public sealed class EngineSnippetRenderer : ILilypondSnippetRenderer, IDisposabl
 
     private static readonly object EngineGate = new object();
 
+    /// <summary>
+    /// The directories already appended to the engine's include path, PROCESS-WIDE.
+    /// <para>
+    /// ⚠ The engine's parser session is cached and shared — <c>LilyPondInit.Session()</c>
+    /// returns the same object every run, and <c>RestoreDefaults</c> restores paper, layout
+    /// and the toplevel scope but NOT the include path. So an append made for one snippet
+    /// is still there for the next, which is what makes installing once correct and
+    /// installing per snippet a leak: this manual would have appended six directories two
+    /// and a half thousand times, and every <c>\include</c> in it searches the whole list.
+    /// </para>
+    /// </summary>
+    private static readonly HashSet<string> InstalledIncludeDirectories =
+        new HashSet<string>(StringComparer.Ordinal);
+
     private readonly LilypondSourceComposer _composer;
+    private readonly IReadOnlyList<string> _includeDirectories;
     private readonly string _scratchRoot;
     private readonly bool _ownsScratchRoot;
     private readonly List<SnippetFailure> _failures = new List<SnippetFailure>();
@@ -110,9 +148,16 @@ public sealed class EngineSnippetRenderer : ILilypondSnippetRenderer, IDisposabl
     /// supplies lilypond-book's formatter defaults.</param>
     /// <param name="scratchRoot">A directory to engrave into, or null to take a temporary
     /// one and delete it on disposal.</param>
-    public EngineSnippetRenderer(TexinfoPageGeometry geometry, string scratchRoot)
+    /// <param name="includeDirectories">Where the engine looks for the files a snippet's own
+    /// <c>\include</c> and <c>\epsfile</c> name — upstream's
+    /// <c>LILYPOND_BOOK_INCLUDE_DIRS</c>, which arrives here as
+    /// <c>RenderPaths.SnippetIncludePaths</c>. Null or empty for a snippet set that names no
+    /// files, which is what the probe document is.</param>
+    public EngineSnippetRenderer(TexinfoPageGeometry geometry, string scratchRoot,
+        IReadOnlyList<string> includeDirectories = null)
     {
         _composer = new LilypondSourceComposer(geometry);
+        _includeDirectories = includeDirectories ?? Array.Empty<string>();
         if (string.IsNullOrEmpty(scratchRoot))
         {
             _scratchRoot = Path.Combine(Path.GetTempPath(),
@@ -249,6 +294,55 @@ public sealed class EngineSnippetRenderer : ILilypondSnippetRenderer, IDisposabl
         }
     }
 
+    /// <summary>
+    /// Appends this renderer's include directories to the engine's own include path, once
+    /// per process, the way upstream's <c>-I</c> flags do it for a LilyPond process.
+    /// <para>
+    /// The lever is <c>ly:parser-append-to-include-path</c> — an UPSTREAM primitive
+    /// (<c>lily/lily-parser-scheme.cc</c>) the port implements, not something invented here.
+    /// It is reached through a Scheme-only run because that is the whole of what a run needs
+    /// to be: <c>BatchRunner.RunText</c> takes ONE include directory and scopes it to the
+    /// run, and a snippet needs several.
+    /// </para>
+    /// <para>
+    /// ⚠ THE EFFECT IS PROCESS-WIDE AND PERMANENT, deliberately. That is what a real
+    /// LilyPond process gets from its command line, and the engine here IS the process. It
+    /// is also why <see cref="InstalledIncludeDirectories"/> is static: appending the same
+    /// directory once per renderer would grow the path every time a manual is rendered.
+    /// </para>
+    /// </summary>
+    private void InstallIncludeDirectories()
+    {
+        List<string> pending = new List<string>();
+        foreach (string directory in _includeDirectories)
+        {
+            if (!string.IsNullOrEmpty(directory)
+                && !InstalledIncludeDirectories.Contains(directory))
+            {
+                pending.Add(directory);
+            }
+        }
+
+        if (pending.Count == 0)
+        {
+            return;
+        }
+
+        StringBuilder text = new StringBuilder();
+        foreach (string directory in pending)
+        {
+            text.Append("#(ly:parser-append-to-include-path \"")
+                .Append(directory.Replace("\\", "\\\\").Replace("\"", "\\\""))
+                .Append("\")\n");
+        }
+
+        BatchRunner.RunText(text.ToString(), "lily-docs-include-path", null, _scratchRoot);
+        foreach (string directory in pending)
+        {
+            InstalledIncludeDirectories.Add(directory);
+        }
+    }
+
     private LilypondSnippetResult Engrave(LilypondSnippet snippet, ComposedSnippet composed)
     {
         _counter++;
@@ -267,6 +361,7 @@ public sealed class EngineSnippetRenderer : ILilypondSnippetRenderer, IDisposabl
                 // the sweep gives each file one.
                 Directory.SetCurrentDirectory(directory);
                 BatchRunner.ReportWorkingDirectoryChange(directory);
+                InstallIncludeDirectories();
 
                 BatchRunResult result = BatchRunner.RunText(
                     EngravingTextFor(composed.Source), name, IncludeDirectoryFor(snippet),

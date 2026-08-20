@@ -12,6 +12,7 @@ using System.IO;
 using CodeBrix.Texinfo2Html;
 using CodeBrix.Texinfo2Pdf;
 using Lily.Docs.Manuals;
+using Lily.Docs.Snippets;
 
 namespace Lily.Docs.Rendering;
 
@@ -37,6 +38,43 @@ public sealed class ManualRenderer
         _paths = paths ?? throw new ArgumentNullException(nameof(paths));
     }
 
+    /// <summary>
+    /// The engraver a manual's music snippets are handed to, or null to render with none.
+    /// <para>
+    /// ⚠ NULL IS NOT A NEUTRAL SETTING. With no engraver registered the package shows every
+    /// snippet as source text and says so in ONE warning — which is precisely what a manual
+    /// whose every engraving failed also looks like. A manual that carries music is rendered
+    /// with an engraver AND gated on its invocation and failure counts;
+    /// <see cref="ManualDefinition.EngravesSnippets"/> is where each manual states which of
+    /// the two it is.
+    /// </para>
+    /// </summary>
+    public ILilypondSnippetRenderer SnippetRenderer { get; set; }
+
+    /// <summary>
+    /// The page geometry a manual implies, read from its own root source file the way
+    /// lilypond-book's <c>get_texinfo_width_indent</c> reads it — from the page-size command
+    /// the document declares.
+    /// </summary>
+    /// <param name="manual">The manual.</param>
+    /// <returns>The geometry its own text implies.</returns>
+    /// <remarks>
+    /// Read rather than assumed. All nine manuals in D48's scope declare
+    /// <c>@afourpaper</c>, but a geometry taken as read is a constant that stops tracking
+    /// its source: the width it yields is written into every snippet's composed source, so a
+    /// manual that ever declared a different page size would engrave at the wrong width with
+    /// nothing to say so.
+    /// </remarks>
+    public TexinfoPageGeometry GeometryOf(ManualDefinition manual)
+    {
+        if (manual == null)
+        {
+            throw new ArgumentNullException(nameof(manual));
+        }
+
+        return TexinfoPageGeometry.ForSource(File.ReadAllText(_paths.ResolveSource(manual)));
+    }
+
     /// <summary>Renders a manual to HTML.</summary>
     /// <param name="manual">The manual to render.</param>
     /// <param name="outputDirectory">Directory to write the HTML and CSS into.</param>
@@ -50,7 +88,7 @@ public sealed class ManualRenderer
 
         string sourcePath = _paths.ResolveSource(manual);
         TexinfoHtmlRenderer renderer = new TexinfoHtmlRenderer();
-        ApplyIncludePaths(renderer.Options);
+        ApplyOptions(renderer.Options);
 
         Stopwatch clock = Stopwatch.StartNew();
         TexinfoHtmlResult result = renderer.GenerateFromFile(sourcePath);
@@ -79,7 +117,7 @@ public sealed class ManualRenderer
         // therefore the same act as setting them for the HTML render above, which is
         // what keeps the two outputs made from the same resolution of the same
         // includes.
-        ApplyIncludePaths(renderer.Options.Texinfo);
+        ApplyOptions(renderer.Options.Texinfo);
 
         Stopwatch clock = Stopwatch.StartNew();
         TexinfoPdfResult result = renderer.RenderFile(sourcePath, outputPdfPath);
@@ -88,18 +126,28 @@ public sealed class ManualRenderer
         return new ManualPdfRender(result, outputPdfPath, clock.Elapsed);
     }
 
-    private void ApplyIncludePaths(TexinfoHtmlOptions options)
+    private void ApplyOptions(TexinfoHtmlOptions options)
     {
         // ⚠ ORDER DECIDES WHAT A MANUAL MEANS. A wrong order silently resolves an
         // include to the wrong file, which reads as content loss rather than as an
         // error. Generated output comes FIRST — the port's own bytes are the
         // specification — then the corpus, then the vendored assets, then the
         // version stand-in.
+        //
+        // ⚠ AND THIS LIST IS NOT THE WHOLE SEARCH PATH. The package puts the source
+        // file's own directory and that directory's PARENT ahead of everything here
+        // (TexinfoHtmlRenderer.BuildFileSearchPaths), which for a corpus manual means
+        // Documentation/en and Documentation come before the generated files. That is
+        // harmless only because the mirror holds NONE of the port's nineteen outputs —
+        // they are build products there exactly as they are upstream. CorpusMirrorTests
+        // asserts that, because it is the assumption "generated first" actually rests on.
         options.IncludeSearchPaths.Clear();
         foreach (string path in _paths.IncludeSearchPaths)
         {
             options.IncludeSearchPaths.Add(path);
         }
+
+        options.SnippetRenderer = SnippetRenderer;
     }
 }
 
@@ -108,34 +156,125 @@ public sealed class ManualRenderer
 /// </summary>
 public sealed class RenderPaths
 {
+    /// <summary>
+    /// The directory name the port's generated files must sit in.
+    /// <para>
+    /// The manuals include them by LANGUAGE-QUALIFIED name —
+    /// <c>@include en/markup-commands.tely</c>, eighteen times over — while the generator
+    /// writes them by bare name into whatever directory it is given. The two are reconciled
+    /// the way upstream reconciles them: the output directory is called <c>en</c> and its
+    /// PARENT goes on the search path, which is exactly what <c>Documentation/GNUmakefile</c>
+    /// does with <c>-I $(outdir)/en -I $(outdir)</c>.
+    /// </para>
+    /// </summary>
+    public const string GeneratedDirectoryName = "en";
+
     /// <summary>Creates a path set.</summary>
-    /// <param name="generatedDirectory">Where the port's nineteen files were written.</param>
+    /// <param name="generatedDirectory">Where the port's nineteen files were written. It must
+    /// be a directory named <c>en</c> — see <see cref="GeneratedDirectoryName"/>.</param>
     /// <param name="assetsDirectory">The vendored-asset ROOT — the directory CONTAINING
     /// <c>en/</c>, because manuals include <c>en/macros.itexi</c> by that path.</param>
     /// <param name="versionDirectory">Where the <c>version.itexi</c> stand-in was written.</param>
     /// <param name="corpusDirectory">The repository's Documentation mirror, or null when a
     /// manual needs no corpus text.</param>
+    /// <exception cref="ArgumentException">The generated directory is not named <c>en</c>,
+    /// so eighteen of the port's own files could not be included by the name the manuals
+    /// use for them.</exception>
     public RenderPaths(string generatedDirectory, string assetsDirectory,
         string versionDirectory, string corpusDirectory)
     {
-        GeneratedDirectory = generatedDirectory;
+        GeneratedDirectory = Path.GetFullPath(generatedDirectory);
         AssetsDirectory = assetsDirectory;
         VersionDirectory = versionDirectory;
         CorpusDirectory = corpusDirectory;
 
-        List<string> paths = new List<string> { generatedDirectory };
+        // Checked rather than documented. Getting this wrong does not fail: the eighteen
+        // generated fragments simply do not resolve, the render finishes, and the manual is
+        // missing its appendices behind eighteen Include warnings among however many others
+        // the baseline already tolerates.
+        if (!string.Equals(Path.GetFileName(GeneratedDirectory), GeneratedDirectoryName,
+            StringComparison.Ordinal))
+        {
+            throw new ArgumentException(
+                "the generated directory must be named '" + GeneratedDirectoryName
+                + "', because the manuals include the port's own files as '"
+                + GeneratedDirectoryName + "/<name>'; it is " + GeneratedDirectory,
+                nameof(generatedDirectory));
+        }
+
+        GeneratedIncludeRoot = Path.GetDirectoryName(GeneratedDirectory);
+
+        // The order below reproduces Documentation/GNUmakefile's own two lists —
+        // DOCUMENTATION_INCLUDE_DIRS for @include and LILYPOND_BOOK_INCLUDE_DIRS for the
+        // files @lilypondfile names, which this package resolves from the same set:
+        //
+        //     $(outdir)/en          the port's generated files, by bare name
+        //     $(outdir)             the same files, by the en/ name the manuals use
+        //     $(src-dir)            the corpus root: en/... and snippets/... resolve here
+        //     $(src-dir)/en/included    the manuals' own .ly companions, by BARE name —
+        //                               one @lilypondfile in chords.itely needs exactly this
+        //
+        // then this port's own two additions: the vendored GFDL macro root and the directory
+        // the version.itexi stand-in was written into.
+        List<string> paths = new List<string> { GeneratedDirectory };
+        if (!string.IsNullOrEmpty(GeneratedIncludeRoot))
+        {
+            paths.Add(GeneratedIncludeRoot);
+        }
+
         if (!string.IsNullOrEmpty(corpusDirectory))
         {
             paths.Add(corpusDirectory);
+            paths.Add(Path.Combine(corpusDirectory, "en", "included"));
         }
 
         paths.Add(assetsDirectory);
         paths.Add(versionDirectory);
         IncludeSearchPaths = paths;
+
+        // ── The ENGINE's include path, which is a different list ──────────────────
+        //
+        // The list above is where the TEXINFO renderer looks for @include files and for
+        // the files @lilypondfile names. This one is where the ENGINE looks for the files
+        // a snippet's own \include and \epsfile name, and it reproduces
+        // Documentation/GNUmakefile's LILYPOND_BOOK_INCLUDE_DIRS:
+        //
+        //     $(outdir)                 the generated directory and its parent
+        //     $(src-dir)/en             the manual's own language directory
+        //     $(src-dir)/pictures       \epsfile targets
+        //     $(src-dir)/en/included    the manuals' .ly companions, by BARE name
+        //     $(src-dir)                paths written as en/included/x.ly or snippets/x.ly
+        //
+        // ⚠ MEASURED, NOT ANTICIPATED. Without it the notation manual lost 76 engravings:
+        // 46 \include "neume-demo-layout.ly", 26 \include "en/included/font-table.ly",
+        // and four more — and NOT as missing-file errors. An unresolved \include leaves
+        // the identifiers it would have defined undefined, so what the engine reports is a
+        // SYNTAX ERROR at the line that uses one. Nothing in the message says "include".
+        List<string> snippetPaths = new List<string> { GeneratedDirectory };
+        if (!string.IsNullOrEmpty(GeneratedIncludeRoot))
+        {
+            snippetPaths.Add(GeneratedIncludeRoot);
+        }
+
+        if (!string.IsNullOrEmpty(corpusDirectory))
+        {
+            snippetPaths.Add(Path.Combine(corpusDirectory, "en"));
+            snippetPaths.Add(Path.Combine(corpusDirectory, "pictures"));
+            snippetPaths.Add(Path.Combine(corpusDirectory, "en", "included"));
+            snippetPaths.Add(corpusDirectory);
+        }
+
+        SnippetIncludePaths = snippetPaths;
     }
 
-    /// <summary>Where the port's nineteen generated files live.</summary>
+    /// <summary>Where the port's nineteen generated files live. Always named <c>en</c>.</summary>
     public string GeneratedDirectory { get; }
+
+    /// <summary>
+    /// The PARENT of <see cref="GeneratedDirectory"/> — what an
+    /// <c>@include en/markup-commands.tely</c> resolves against.
+    /// </summary>
+    public string GeneratedIncludeRoot { get; }
 
     /// <summary>The vendored-asset root.</summary>
     public string AssetsDirectory { get; }
@@ -148,6 +287,14 @@ public sealed class RenderPaths
 
     /// <summary>The include search paths, in resolution order.</summary>
     public IReadOnlyList<string> IncludeSearchPaths { get; }
+
+    /// <summary>
+    /// Where the ENGINE looks for the files a snippet's own <c>\include</c> and
+    /// <c>\epsfile</c> name — upstream's <c>LILYPOND_BOOK_INCLUDE_DIRS</c>, which is a
+    /// different list from <see cref="IncludeSearchPaths"/> and reaches a different
+    /// consumer.
+    /// </summary>
+    public IReadOnlyList<string> SnippetIncludePaths { get; }
 
     /// <summary>Resolves a manual's root source file.</summary>
     /// <param name="manual">The manual.</param>

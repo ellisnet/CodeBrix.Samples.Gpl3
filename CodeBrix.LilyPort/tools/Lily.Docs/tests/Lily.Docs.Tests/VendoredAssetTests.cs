@@ -15,9 +15,19 @@ using Xunit;
 namespace Lily.Docs.Tests;
 
 /// <summary>
-/// The vendored GFDL assets (decision D49(a)) and the Documentation mirror (D49(b))
-/// hold the SAME three files. Two copies of one file can drift; these gates make that
-/// impossible to do quietly.
+/// Everywhere this repository holds a SECOND copy of a file, and the gates that stop the
+/// two drifting apart quietly.
+/// <para>
+/// Two sets are covered. The vendored GFDL assets (decision D49(a)) and the Documentation
+/// mirror (D49(b)) hold the same three files. The <c>svg-dialect/</c> folder holds
+/// reference copies of the SVG inventory's scanner and gate, so that folder can be read on
+/// its own without opening anything outside it.
+/// </para>
+/// <para>
+/// ⚠ Both sets exist for reasons that are individually right, and in both cases the reason
+/// evaporates the moment the copies disagree. A copy that CAN drift WILL drift, so it is
+/// fenced rather than trusted.
+/// </para>
 /// </summary>
 public sealed class VendoredAssetTests
 {
@@ -154,6 +164,82 @@ public sealed class VendoredAssetTests
     /// <c>version.itexi</c> is BUILD-GENERATED and deliberately never vendored;
     /// Lily.Docs writes a stand-in at render time.
     /// </summary>
+    /// <summary>
+    /// The sources <c>svg-dialect/</c> keeps a reference copy of, as
+    /// <c>copy name -&gt; path of the live original, relative to tools/Lily.Docs</c>.
+    /// <para>
+    /// The copies are there so the folder answers "what is this inventory and what is
+    /// asserted about it?" without the reader leaving it. They are NOT compiled: both
+    /// projects glob sources from their own directories and that folder is a sibling of
+    /// neither, which is also why nothing else would notice them going stale.
+    /// </para>
+    /// </summary>
+    private static readonly Dictionary<string, string[]> SvgDialectReferenceCopies =
+        new Dictionary<string, string[]>
+        {
+            { "SvgDialectInventory.cs", new[] { "src", "Lily.Docs", "Snippets" } },
+            { "SvgDialectInventoryTests.cs", new[] { "tests", "Lily.Docs.Tests" } },
+        };
+
+    /// <summary>Every source the svg-dialect folder claims to copy is actually there.</summary>
+    [Fact]
+    public void every_svg_dialect_reference_copy_is_present()
+    {
+        //Arrange
+        string folder = ToolPaths.SvgDialectDirectory;
+
+        //Act
+        List<string> missing = new List<string>();
+        foreach (string name in SvgDialectReferenceCopies.Keys)
+        {
+            if (!File.Exists(Path.Combine(folder, name)))
+            {
+                missing.Add(name);
+            }
+        }
+
+        //Assert
+        // The folder's own README promises it can be read without opening anything outside
+        // it. A copy that was never made breaks that promise silently.
+        missing.Should().BeEmpty();
+    }
+
+    /// <summary>
+    /// Each svg-dialect reference copy is byte identical to the live source it names.
+    /// </summary>
+    [Fact]
+    public void each_svg_dialect_reference_copy_is_byte_identical_to_its_source()
+    {
+        //Arrange
+        string folder = ToolPaths.SvgDialectDirectory;
+        string toolRoot = Path.GetDirectoryName(folder);
+
+        //Act
+        List<string> differing = new List<string>();
+        foreach (KeyValuePair<string, string[]> entry in SvgDialectReferenceCopies)
+        {
+            string source = toolRoot;
+            foreach (string segment in entry.Value)
+            {
+                source = Path.Combine(source, segment);
+            }
+
+            source = Path.Combine(source, entry.Key);
+            if (!File.Exists(source)
+                || !ByteEquals(File.ReadAllBytes(Path.Combine(folder, entry.Key)),
+                    File.ReadAllBytes(source)))
+            {
+                differing.Add(entry.Key);
+            }
+        }
+
+        //Assert
+        // Editing the live source without refreshing the copy fails HERE, which is the
+        // whole point: nothing else in the build would ever notice, because the copies are
+        // not compiled and nothing imports them.
+        differing.Should().BeEmpty();
+    }
+
     private const string VersionItexiName = "version.itexi";
 
     /// <summary>Version itexi is not vendored.</summary>

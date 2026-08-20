@@ -33,8 +33,14 @@ public sealed class InternalsReferenceFixture : IDisposable
             "lily-docs-tests-" + Guid.NewGuid().ToString("N").Substring(0, 12));
         Directory.CreateDirectory(WorkDirectory);
 
-        string generatedDirectory = Path.Combine(WorkDirectory, "generated");
-        Generation = new DocumentationGenerator().Generate(generatedDirectory);
+        // ⚠ SHARED WITH THE NOTATION FIXTURE, AND IT HAS TO BE. Generation is a
+        // once-per-process act: a second call in the same process writes nothing and
+        // reports all nineteen files missing, without throwing. Both fixtures generating
+        // for themselves gave whichever ran second an EMPTY directory and a manual with no
+        // appendices — see GeneratedDocumentation.
+        GeneratedDocumentation.EnsureGenerated();
+        string generatedDirectory = GeneratedDocumentation.Directory;
+        Generation = GeneratedDocumentation.Result;
 
         string versionDirectory = Path.Combine(WorkDirectory, "version");
         VersionItexiWriter.Write(versionDirectory);

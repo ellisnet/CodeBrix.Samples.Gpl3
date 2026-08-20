@@ -2652,7 +2652,7 @@ Copyright: Copyright (C) 1996--2026 the LilyPond authors
 
 Source derived from Documentation/ (in this repository):
 
-  Documentation/            633 files, 3.21 MB, byte-identical partial mirror
+  Documentation/            636 files, 3.37 MB, byte-identical partial mirror
                             of lilypond/Documentation at v2.27.2. Every file's
                             sha256 is recorded in Documentation/MANIFEST.sha256;
                             the tree's own README.txt records what was copied and
@@ -2663,11 +2663,18 @@ Source derived from Documentation/ (in this repository):
                                          (@lilypondfile targets).
                             ly-examples/ 18 files -- @image targets.
                             bib/          5 files -- bibliography sources.
+                            pictures/     3 files -- two @sourceimage targets and
+                                         one \epsfile target named from inside a
+                                         music snippet, added at wave LD3
+                                         (2026-08-19) for the notation manual.
                             snippets/   533 files -- SEE SECTION 5, these are
                                          PUBLIC DOMAIN, not FDL.
 
-                            NOT copied: pictures/ (11 MB), referenced only by
-                            web.texi, which is out of scope.
+                            NOT copied: the other 272 files of pictures/ (11 MB).
+                            The claim that it was "referenced only by web.texi"
+                            was wrong: @sourceimage expands to @image{pictures/...}
+                            and the notation manual uses it twice. Wave LD5 needs
+                            more of the same for learning and essay.
 
   tools/Lily.Docs/assets/en/
                             3 files, 57,795 bytes, byte-identical copies of

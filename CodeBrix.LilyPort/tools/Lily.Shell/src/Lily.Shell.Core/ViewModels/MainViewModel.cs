@@ -9,10 +9,8 @@ using System.Diagnostics;
 
 namespace Lily.Shell.ViewModels;
 
-public interface ICopyToClipboard { Action<string> CopyTextToClipboard { get; set; } }
-
 [Microsoft.UI.Xaml.Data.Bindable]
-public class MainViewModel : SimpleViewModel, ICopyToClipboard
+public class MainViewModel : SimpleViewModel
 {
     private const string NormalTitle = "Lily.Shell";
     private const string LoadingTitleBase = "Lily.Shell - loading Scheme ";
@@ -86,14 +84,8 @@ public class MainViewModel : SimpleViewModel, ICopyToClipboard
     /// <summary>Set by the page to the terminal control's Feed method.</summary>
     public Action<string> FeedToTerminal { get; set; }
 
-    /// <summary>Set by the page to place text on the system clipboard.</summary>
-    public Action<string> CopyTextToClipboard { get; set; }
-
     /// <summary>Routes the terminal's keyboard input into the shell session.</summary>
     public void OnTerminalInput(string data) => _session?.SendInput(data);
-
-    /// <summary>Routes the terminal's copy request (selected text) to the clipboard.</summary>
-    public void OnTerminalCopyRequested(string text) => CopyTextToClipboard?.Invoke(text);
 
     /// <summary>
     /// Called once the terminal control is on screen: starts the shell and

@@ -82,6 +82,20 @@ public static class ToolPaths
     public static string ExpectedWarningsDirectory =>
         Path.Combine(RepositoryRoot, "tools", "Lily.Docs", "expected-warnings");
 
+    /// <summary>
+    /// Where the frozen SVG dialect inventory and its specification live — what the port's
+    /// engine actually emits for a documentation snippet, written down so a downstream
+    /// renderer can implement against it.
+    /// <para>
+    /// ⚠ THE INVENTORY LIVES IN THIS REPOSITORY AND NOWHERE ELSE. It is measured over
+    /// engraved output derived from the GFDL corpus mirror, and this repository is the
+    /// GPL-3 one; the MIT-licensed package repositories that consume the specification read
+    /// it, and never take a copy of the pictures it was measured from.
+    /// </para>
+    /// </summary>
+    public static string SvgDialectDirectory =>
+        Path.Combine(RepositoryRoot, "tools", "Lily.Docs", "svg-dialect");
+
     private static string FindRepositoryRoot()
     {
         DirectoryInfo directory = new DirectoryInfo(AppContext.BaseDirectory);

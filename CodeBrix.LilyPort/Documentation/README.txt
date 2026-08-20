@@ -5,7 +5,7 @@ CodeBrix.LilyPort -- Documentation/
 A BYTE-IDENTICAL PARTIAL MIRROR of LilyPond's documentation SOURCES, at the
 pinned release v2.27.2 (commit 2d621459bd44cb1758f822a69757242eab843060).
 
-    633 files, 3.21 MB, mirrored from lilypond/Documentation/
+    636 files, 3.37 MB, mirrored from lilypond/Documentation/
     Every file's sha256 is recorded in MANIFEST.sha256 (this directory).
 
 GNU Free Documentation License -- see ../THIRD-PARTY-NOTICES.txt section 4 and
@@ -78,9 +78,29 @@ WHAT WAS COPIED, AND WHY EACH PART
                  files do not exist in the checkout, so wave LD5 either generates
                  them from these sources or baselines three include warnings.
 
-  NOT copied:    pictures/ (11 MB) -- referenced only by web.texi, which is out
-                 of scope (a package non-goal). If a future wave needs an image
-                 from it, copy it in the same way and update MANIFEST.sha256.
+  pictures/      3 files, 163 KB, added at wave LD3 (2026-08-19). Two kinds of
+                 reference, and BOTH were missed by the original closure
+                 measurement because both reach a picture through something other
+                 than a literal @image:
+
+                   Gonville_after.png, Gonville_before.png -- the notation
+                   manual's own pictures, named by the @sourceimage MACRO, which
+                   expands to @image{pictures/...}. The survey looked for @image
+                   and found only macro DEFINITIONS. The two Include warnings the
+                   first render earned are what found them.
+
+                   context-example.eps -- named from INSIDE a music snippet,
+                   \epsfile #X #10 "./context-example.eps" in text.itely, and so
+                   invisible to any survey of the Texinfo source's own commands.
+                   The failed engraving is what found it. Upstream reaches it the
+                   same way, with -I $(src-dir)/pictures on lilypond-book's
+                   command line (Documentation/GNUmakefile).
+
+                 ⚠ THE REST OF pictures/ IS STILL NOT COPIED (11 MB, 273 files).
+                 Wave LD5 needs more of it: learning uses 6 @sourceimage pictures
+                 and essay uses about 30. Measure that closure -- @sourceimage,
+                 @exampleImage and @help all expand to @image{pictures/...} -- and
+                 copy exactly what those manuals name, the same way.
 
 --------------------------------------------------------------------------------
 THE ORACLE DOES NOT READ THIS DIRECTORY

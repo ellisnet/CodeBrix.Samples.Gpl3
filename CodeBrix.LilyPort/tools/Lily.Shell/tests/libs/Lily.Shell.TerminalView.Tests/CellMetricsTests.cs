@@ -5,7 +5,7 @@
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
-using Lily.Shell.TerminalView.Rendering;
+using CodeBrix.Platform.UI.TerminalView.Rendering;
 using SilverAssertions;
 using Xunit;
 

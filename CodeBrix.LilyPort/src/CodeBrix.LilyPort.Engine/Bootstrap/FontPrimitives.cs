@@ -365,9 +365,48 @@ public static class FontPrimitives
             "writes one face out of an OpenType collection to a file, for PostScript "
             + "embedding; the port's faces are vendored individually (D15)");
 
-        NotApplicable(interpreter, "ly:system-font-load", 1, 1,
-            "loads a font by name from the host's font configuration; D23 forbids "
-            + "system-font fallback outright, so there is no host lookup to make");
+        // ⚠ NOT A HOST LOOKUP, DESPITE THE NAME. This entry point was filed as a D25
+        // N/A on the reading that "system font" meant the host's font configuration and
+        // that D23 therefore forbade it. That reading was WRONG, and it was taken from
+        // the primitive's NAME rather than from what it does.
+        //
+        // Upstream (all-font-metrics-scheme.cc:46) is all_fonts_global->find_otf_font,
+        // and find_otf_font (all-font-metrics.cc:163) is a FILE search:
+        // search_path_.find (name + ".otf") over LilyPond's own data directory — the
+        // fonts LilyPond SHIPS. Its own documentation says as much: "Fonts loaded with
+        // this command must contain two additional SFNT font tables called LILC and
+        // LILY... Currently, only the Emmentaler and the Emmentaler-Brace fonts fulfill
+        // these requirements." Those are this port's vendored assets, read here by the
+        // same name, through the same cache, as every music glyph the port has ever
+        // engraved (FontInterface goes through AllFontMetrics.FindOtfFont too).
+        //
+        // D23 is untouched by this. Its prohibition — amended and restated by R16 on
+        // 2026-08-17 — is on falling back to fonts the port assumes the MACHINE has,
+        // and it governs the TEXT chain (URW face -> TeX Gyre face -> tofu). No host
+        // lookup is added here, because there was never one to add.
+        //
+        // Found by wave LD3 of Phase 5: the notation manual's "Modern glyph charts"
+        // appendix is 26 snippets that all \include en/included/font-table.ly, whose
+        // third line is (ly:system-font-load "emmentaler-20"). Ruled by Jeremy
+        // 2026-08-19.
+        interpreter.DefinePrimitive("ly:system-font-load", 1, 1, a =>
+        {
+            string name = StringPrimitives.Text(a[0], "ly:system-font-load");
+            OpenTypeFontMetric font = AllFontMetrics.FindOtfFont(name);
+            if (font == null)
+            {
+                // Upstream ERRORS here rather than answering false, and the difference
+                // is load-bearing: the caller's next move is ly:otf-glyph-list, so a
+                // null would surface as a wrong-type argument naming a different
+                // procedure. AllFontMetrics.FindOtfFont has already WARNED by this
+                // point — that is its contract for the internal path, where a missing
+                // font is recoverable — so the two messages together say what upstream's
+                // single error says.
+                Flower.Warn.Error("cannot find font '" + name + "'");
+            }
+
+            return font;
+        });
     }
 
     private static void NotApplicable(

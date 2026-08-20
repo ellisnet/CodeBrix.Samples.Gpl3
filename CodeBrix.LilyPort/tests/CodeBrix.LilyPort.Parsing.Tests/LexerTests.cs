@@ -7,6 +7,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using CodeBrix.LilyPort.Engine.Music;
 using CodeBrix.LilyPort.Parsing.Driver;
 using CodeBrix.LilyPort.Parsing.Lexing;
@@ -91,6 +92,103 @@ public class LexerTests
         {
             // The ported rules produce no tokens yet; this runs them for their effects.
         }
+    }
+
+    /// <summary>
+    /// A printable Latin-1 symbol is TEXT, not an invalid character.
+    /// <para>
+    /// The last rule in the file is upstream's <c>&lt;*&gt;.[\200-\277]*</c>, whose class
+    /// is BYTES — the UTF-8 continuation bytes — so that a stray lead byte and its
+    /// continuations are reported as one character. Written over .NET chars as
+    /// <c>[\u0080-\u00bf]</c> it became the printable Latin-1 symbols instead, and
+    /// because the class FOLLOWED the dot the rule swallowed the PRECEDING character
+    /// too: length two where the whitespace rule matched one, so it won the
+    /// longest-match contest and turned <c>Copyright © 2026</c> into an error AT THE
+    /// SPACE.
+    /// </para>
+    /// <para>
+    /// ⚠ THE SYMPTOM NAMED THE WRONG PLACE TWICE OVER. What reached the user was
+    /// "syntax error, unexpected token -1" — the grammar has no terminal for the
+    /// <c>'%'</c> the rule returns, so <c>Terminal</c> answered -1 — reported one
+    /// character before the one at fault, in a document whose only unusual feature
+    /// looked like a multi-line <c>\font-select</c> argument.
+    /// </para>
+    /// </summary>
+    [Fact]
+    public void a_printable_latin1_symbol_lexes_as_text_rather_than_as_an_invalid_character()
+    {
+        //Arrange
+        ModalScanner scanner = Scan("\\markup { Copyright \u00A9 2026 }");
+
+        //Act
+        Drain(scanner);
+
+        //Assert
+        // Filtered to THIS rule's diagnostic rather than asserted empty: the scanner is
+        // built with no host tables here, so `\markup' itself is an unknown command and
+        // says so. That is the harness, not the subject.
+        scanner.Diagnostics.Where(d => d.Contains("invalid character"))
+            .Should().BeEmpty();
+    }
+
+    /// <summary>
+    /// Every character the old class covered lexes cleanly, and its neighbours outside
+    /// the class still did.
+    /// </summary>
+    [Fact]
+    public void every_character_the_old_class_covered_lexes_cleanly()
+    {
+        //Arrange
+        List<int> broken = new List<int>();
+
+        //Act
+        // U+00A0 to U+00CF spans the whole of the mis-translated class and reaches past
+        // its far edge, so the gate covers the characters that failed AND the ones that
+        // never did. Asserted as a RANGE rather than as the one character the notation
+        // manual happened to use: © was the messenger, not the subject.
+        for (int codePoint = 0x00A0; codePoint <= 0x00CF; codePoint++)
+        {
+            ModalScanner scanner = Scan("\\markup { x " + (char)codePoint + " y }");
+            Drain(scanner);
+            if (scanner.Diagnostics.Any(d => d.Contains("invalid character")))
+            {
+                broken.Add(codePoint);
+            }
+        }
+
+        //Assert
+        broken.Should().BeEmpty();
+    }
+
+    /// <summary>
+    /// An unmatched character is still reported, and reported WHOLE.
+    /// <para>
+    /// THE CONTROL for the two gates above: a rule that had simply stopped reporting
+    /// would pass both of them. It also fences the half the fix had to keep — upstream's
+    /// "Better not return half a utf8 character" — in the only form that means anything
+    /// over UTF-16, which is a surrogate PAIR.
+    /// </para>
+    /// </summary>
+    [Fact]
+    public void an_unmatched_astral_character_is_reported_once_and_whole()
+    {
+        //Arrange
+        // U+1D11E, the G clef: two UTF-16 code units, and no rule matches it outside a
+        // markup word.
+        string clef = char.ConvertFromUtf32(0x1D11E);
+        ModalScanner scanner = Scan(clef);
+
+        //Act
+        Drain(scanner);
+
+        //Assert
+        // ONCE: a rule consuming one code unit at a time would report twice.
+        scanner.Diagnostics.Should().ContainSingle();
+        scanner.Diagnostics[0].Should().Contain("invalid character");
+
+        // WHOLE: the message carries both code units, so it names the character rather
+        // than half of one.
+        scanner.Diagnostics[0].Should().Contain(clef);
     }
 
     [Fact]

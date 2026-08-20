@@ -12,6 +12,7 @@ using System.IO;
 using Lily.Docs.Generation;
 using Lily.Docs.Manuals;
 using Lily.Docs.Rendering;
+using Lily.Docs.Snippets;
 
 namespace Lily.Docs;
 
@@ -68,6 +69,7 @@ public static class Program
         bool wantPdf = false;
         bool freezeBaseline = false;
         bool listWarnings = false;
+        bool withoutSnippets = false;
         string outputDirectory = null;
         string generatedDirectory = null;
 
@@ -86,6 +88,9 @@ public static class Program
                     break;
                 case "--warnings":
                     listWarnings = true;
+                    break;
+                case "--no-snippets":
+                    withoutSnippets = true;
                     break;
                 case "-o":
                 case "--output":
@@ -127,7 +132,10 @@ public static class Program
         // re-run an eighty-second engine job twenty times.
         if (generatedDirectory == null)
         {
-            generatedDirectory = Path.Combine(outputDirectory, "generated");
+            // Named 'en' because the manuals include the port's own files as
+            // 'en/<name>' — RenderPaths.GeneratedDirectoryName carries the reasoning.
+            generatedDirectory = Path.Combine(
+                outputDirectory, "generated", RenderPaths.GeneratedDirectoryName);
             Console.WriteLine($"generating the nineteen documentation files into {generatedDirectory} ...");
             DocumentationGenerationResult generation =
                 new DocumentationGenerator().Generate(generatedDirectory);
@@ -160,8 +168,26 @@ public static class Program
             manual.SourceKind == ManualSourceKind.Corpus ? ToolPaths.CorpusDirectory : null);
         ManualRenderer renderer = new ManualRenderer(paths);
 
+        // A manual that carries music is rendered WITH an engraver, and one that carries
+        // none is rendered without — because registering an engraver a manual never calls
+        // proves nothing, and omitting one it needs produces a plausible manual in which
+        // every snippet is source text. The counts printed afterwards are what tell the
+        // two apart.
+        using EngineSnippetRenderer snippets = manual.EngravesSnippets && !withoutSnippets
+            ? new EngineSnippetRenderer(renderer.GeometryOf(manual),
+                Path.Combine(outputDirectory, "snippets"), paths.SnippetIncludePaths)
+            : null;
+        renderer.SnippetRenderer = snippets;
+        if (snippets != null)
+        {
+            string lineWidth = renderer.GeometryOf(manual).LineWidth;
+            Console.WriteLine(
+                $"engraving snippets at line-width {lineWidth} into {snippets.ScratchRoot}");
+        }
+
         List<string> warningsForBaseline = new List<string>();
         ManualPdfRender pdfRender = null;
+        int htmlImageCount = 0;
 
         if (wantHtml)
         {
@@ -178,6 +204,9 @@ public static class Program
             }
 
             warningsForBaseline.AddRange(html.Warnings);
+            htmlImageCount = html.Result.Images.Count;
+            WriteSnippetCounts(snippets);
+            WriteFailedSources(snippets, Path.Combine(outputDirectory, "failed-snippets"));
         }
 
         if (wantPdf)
@@ -206,6 +235,15 @@ public static class Program
             Console.WriteLine($"pdf baseline written to {pdfBaselinePath}");
         }
 
+        if (freezeBaseline && wantHtml && snippets != null)
+        {
+            string snippetBaselinePath = Path.Combine(
+                ToolPaths.ExpectedWarningsDirectory, manual.Name + "-snippets.tsv");
+            WarningSummary.WriteSnippetBaseline(snippetBaselinePath,
+                SnippetCountsOf(snippets, htmlImageCount));
+            Console.WriteLine($"snippet baseline written to {snippetBaselinePath}");
+        }
+
         if (freezeBaseline && wantHtml)
         {
             string baselinePath = Path.Combine(
@@ -217,6 +255,88 @@ public static class Program
         }
 
         return 0;
+    }
+
+    /// <summary>
+    /// Reports what the engraver actually did. ⚠ INVOCATIONS AND FAILURES, NEVER
+    /// COMPLETION: the package CATCHES a renderer that throws and falls back to showing the
+    /// snippet's source, so a render that finished is compatible with every engraving having
+    /// failed.
+    /// </summary>
+    private static void WriteSnippetCounts(EngineSnippetRenderer snippets)
+    {
+        if (snippets == null)
+        {
+            return;
+        }
+
+        Console.WriteLine(string.Format(CultureInfo.InvariantCulture,
+            "    snippets: {0} asked, {1} engraved, {2} pictures, {3} failed, {4} declined",
+            snippets.InvocationCount, snippets.EngravedCount, snippets.PageCount,
+            snippets.FailureCount, snippets.DeclineCount));
+        foreach (SnippetFailure failure in snippets.Failures)
+        {
+            Console.Error.WriteLine("      FAILED\t" + failure);
+        }
+
+        foreach (string decline in snippets.Declines)
+        {
+            Console.Error.WriteLine("      DECLINED\t" + decline);
+        }
+    }
+
+    /// <summary>
+    /// The engraving counts a baseline freezes, and the gates assert.
+    /// </summary>
+    /// <param name="snippets">The engraver.</param>
+    /// <param name="imageCount">How many pictures the document placed in total — engravings
+    /// plus the pictures an <c>@image</c> named.</param>
+    /// <returns>The counts, by name.</returns>
+    internal static SortedDictionary<string, int> SnippetCountsOf(
+        EngineSnippetRenderer snippets, int imageCount)
+    {
+        return new SortedDictionary<string, int>(StringComparer.Ordinal)
+        {
+            { "ASKED", snippets.InvocationCount },
+            { "ENGRAVED", snippets.EngravedCount },
+            { "PICTURES", snippets.PageCount },
+            { "FAILED", snippets.FailureCount },
+            { "DECLINED", snippets.DeclineCount },
+            { "DOCUMENT_IMAGES", imageCount },
+        };
+    }
+
+    /// <summary>
+    /// Writes every failed snippet's COMPOSED SOURCE to a file, one per failure.
+    /// <para>
+    /// A failure message names a line in a file that was never on disk — the engine is
+    /// handed the composed text in memory — so the message alone cannot be acted on. The
+    /// composed source is also the half a failure is usually IN: composing is this tool's
+    /// job, engraving is the engine's, and the engine's parity is a closed claim.
+    /// </para>
+    /// </summary>
+    /// <param name="snippets">The engraver, or null when none was registered.</param>
+    /// <param name="directory">Where to write them.</param>
+    private static void WriteFailedSources(EngineSnippetRenderer snippets, string directory)
+    {
+        if (snippets == null || snippets.FailureCount == 0)
+        {
+            return;
+        }
+
+        Directory.CreateDirectory(directory);
+        int index = 0;
+        foreach (SnippetFailure failure in snippets.Failures)
+        {
+            index++;
+            string path = Path.Combine(directory,
+                "failure-" + index.ToString("D4", CultureInfo.InvariantCulture) + ".ly");
+            File.WriteAllText(path,
+                "%% " + failure.Location + "\n%% " + failure.Message + "\n"
+                + failure.ComposedSource);
+        }
+
+        Console.Error.WriteLine("      " + index + " composed source(s) written to " + directory);
     }
 
     private static void WriteCategories(IReadOnlyList<string> messages)
@@ -249,6 +369,10 @@ public static class Program
         Console.WriteLine("               instead of generating them again");
         Console.WriteLine("  --baseline   freeze the expected-warnings baseline from this run");
         Console.WriteLine("  --warnings   print every warning message, not just the counts");
+        Console.WriteLine("  --no-snippets");
+        Console.WriteLine("               render with NO engraver — the CONTROL run. Every");
+        Console.WriteLine("               snippet becomes source text, which is also what a");
+        Console.WriteLine("               manual whose engravings all failed looks like.");
     }
 
     private static IEnumerable<string> ManualNames()

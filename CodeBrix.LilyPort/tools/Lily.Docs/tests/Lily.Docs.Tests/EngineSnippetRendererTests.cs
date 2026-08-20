@@ -232,6 +232,8 @@ public sealed class EngineSnippetRendererTests
         engraved.Should().Contain(composed.Source);
         engraved.Replace(composed.Source, string.Empty)
             .Should().Be("#(define lily-docs-page-handler default-toplevel-book-handler)\n"
+                + "#(define print-book-with-defaults-as-systems lily-docs-page-handler)\n"
+                + "#(define print-book-with-defaults lily-docs-page-handler)\n"
                 + "\n#(set! default-toplevel-book-handler lily-docs-page-handler)\n"
                 + "\\paper { page-breaking = #ly:one-page-breaking }\n");
     }
@@ -243,6 +245,15 @@ public sealed class EngineSnippetRendererTests
     /// <para>
     /// This is the failure the directives exist to prevent, and it is silent — no error, no
     /// diagnostic, no picture — so it is pinned here rather than described in a comment.
+    /// </para>
+    /// <para>
+    /// ⚠ WAVE LD3 FOUND A SECOND DOOR INTO THE SAME SILENCE, which is why the prologue now
+    /// carries three definitions rather than one. Restoring the handler in the EPILOGUE is
+    /// in time for the implicit toplevel book and far too late for an EXPLICIT
+    /// <c>\book { … }</c>, which is handed over the moment its block closes — thirty-five
+    /// of the notation manual's snippets, all lost the same way. The prologue therefore
+    /// also re-points the two functions the preamble's handlers CALL, so that whatever the
+    /// preamble installs afterwards still reaches the collector.
     /// </para>
     /// </summary>
     [Fact]

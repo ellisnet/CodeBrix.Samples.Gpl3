@@ -647,7 +647,36 @@ public static class LilyPondLexerRules
         // <*>.[\200-\277]* -- the last rule in the file, and the reason a stray byte
         // reports rather than scanning as text. It returns '%' deliberately: "Better
         // not return half a utf8 character."
-        rules.Add(new LexerRule("(?s).[\u0080-\u00bf]*", null, (s, t) =>
+        //
+        // ⚠ UPSTREAM'S [\200-\277] IS A **BYTE** CLASS WITH NO UTF-16 MEANING, AND
+        // TRANSLATING IT LITERALLY BROKE VALID TEXT. flex scans bytes, so \200-\277 is
+        // 0x80-0xBF: the UTF-8 CONTINUATION bytes. The rule consumes a stray lead byte
+        // together with its continuation bytes so that one error covers one whole
+        // character -- which is precisely what the comment above says it is for.
+        //
+        // This port scans .NET chars, where continuation bytes do not exist. Written as
+        // `.[\u0080-\u00bf]*' the class became "the characters U+0080 to U+00BF" --
+        // © « » ¼ ½ ¾ ¿ ° ± µ ¶ § £ ¢ ¥ and the rest of the printable Latin-1 symbols --
+        // and because it FOLLOWED the `.', the rule matched the PRECEDING character plus
+        // the Latin-1 one. Length two where the correct rule (whitespace, or an opening
+        // quote) matched one, so it won the longest-match contest, called a valid
+        // character invalid, and returned '%'. The grammar has no terminal of that name,
+        // so Terminal answered -1 and the driver reported "syntax error, unexpected
+        // token -1" AT THE CHARACTER BEFORE the one actually at fault.
+        //
+        // MEASURED 2026-08-19: every character from U+00A9 to U+00BF failed as a leading
+        // character and U+00C0 upward passed, which is why `é' and `ø' were fine and `©'
+        // and `°' were not; `x©y' passed because the word rule matched three characters
+        // there and won. Found by wave LD3 of Phase 5 -- the notation manual sets
+        // `Copyright © John Doe' -- after the failure had been misfiled twice, first as a
+        // \font-select divergence and then as a multi-line one.
+        //
+        // The faithful UTF-16 translation of "one whole character" is one whole CODE
+        // POINT: a surrogate pair, or a single char. That keeps the rule's purpose --
+        // never report half a character -- and cannot reach past the character it starts
+        // on. The pair comes first because .NET alternation takes the first match, not
+        // the longest.
+        rules.Add(new LexerRule(@"(?s)(?:[\uD800-\uDBFF][\uDC00-\uDFFF]|.)", null, (s, t) =>
         {
             s.Error("invalid character: `" + t + "'");
             return s.CharacterToken('%');

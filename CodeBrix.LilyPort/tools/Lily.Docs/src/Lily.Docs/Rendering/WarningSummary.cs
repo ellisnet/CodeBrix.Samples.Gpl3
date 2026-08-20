@@ -154,6 +154,32 @@ public static class WarningSummary
         File.WriteAllText(path, text.ToString(), new UTF8Encoding(false));
     }
 
+    /// <summary>
+    /// Writes the engraving baseline: what the manual's snippet renderer was ASKED to do and
+    /// what came back.
+    /// <para>
+    /// ⚠ ASKED AND FAILED ARE THE LOAD-BEARING NUMBERS. The Texinfo package CATCHES a
+    /// renderer that throws and shows the snippet's source instead, so a render that
+    /// completed is compatible with every engraving having failed. A count of what was
+    /// produced cannot tell those apart; a count of what was asked for, paired with a count
+    /// of what failed, can.
+    /// </para>
+    /// </summary>
+    /// <param name="path">The file to write.</param>
+    /// <param name="counts">The engraving counts, by name.</param>
+    public static void WriteSnippetBaseline(string path, IReadOnlyDictionary<string, int> counts)
+    {
+        StringBuilder text = new StringBuilder();
+        foreach (KeyValuePair<string, int> entry in Ordered(counts))
+        {
+            text.Append(entry.Key).Append('\t')
+                .Append(entry.Value.ToString(CultureInfo.InvariantCulture)).Append('\n');
+        }
+
+        Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(path)));
+        File.WriteAllText(path, text.ToString(), new UTF8Encoding(false));
+    }
+
     /// <summary>Reads a PDF baseline written by <see cref="WritePdfBaseline"/>.</summary>
     /// <param name="path">The file to read.</param>
     /// <returns>Key to value, e.g. PAGES and PDF_WARNINGS.</returns>
