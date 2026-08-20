@@ -1,0 +1,133 @@
+Prebuilt Documentation and packages are available from:
+
+    http://www.lilypond.org
+
+LilyPond development is hosted at:
+
+    https://gitlab.com/lilypond/
+
+Here is a simple explanation of the directory layout for
+LilyPond's source files.
+
+
+.                        Toplevel READMEs, files for
+|                          configuration and building, etc.
+|
+|-- Documentation/       Top sources for most of the manuals
+|   |
+|   |
+|   |   INDIVIDUAL CHAPTERS FOR EACH MANUAL:
+|   |     Note: "Snippets" and "Internals Reference" are
+|   |     auto-generated during the Documentation Build process.
+|   |
+|   |
+|   |-- en/contributor/  Contributor's Guide
+|   |-- en/essay/        Essay on automated music engraving
+|   |-- en/extending/    Extending the functionality of LilyPond
+|   |-- en/included/     Doc files that are used more than once
+|   |-- en/learning/     Learning Manual
+|   |-- en/notation/     Notation Reference
+|   |-- en/usage/        How to run the programs that come with LilyPond
+|   |-- en/web/          Website files
+|   |
+|   |
+|   |   TRANSLATED MANUALS:
+|   |     Each language's directory can contain...
+|   |       1) translated versions of:
+|   |          * "en/*" sources for manuals
+|   |          * individual chapters for each manual
+|   |       2) a texidocs/ directory for snippet translations
+|   |
+|   |-- ca/              Catalan
+|   |-- de/              German
+|   |-- es/              Spanish
+|   |-- fr/              French
+|   |-- it/              Italian
+|   |-- ja/              Japanese
+|   |-- tr/              Turkish
+|   |-- zh/              Chinese
+|   |
+|   |
+|   |   MISCELLANEOUS DOC STUFF:
+|   |
+|   |-- bib/             Bibliography files for documentation
+|   |-- css/             CSS files for HTML docs
+|   |-- logo/            Web logo and "note" icon
+|   |-- ly-examples/     `.ly` example files for the webpage
+|   |-- misc/            Old announcements, ChangeLogs and NEWS
+|   |-- pictures/        Images (eps/jpg/png/svg) for the webpage
+|   |   `-- pdf/         (pdf)
+|   |-- po/              Translations for build/maintenance scripts
+|   |-- snippets/        Auto-generated from the LSR and from ./new/
+|   |   `-- new/         Snippets too new for the LSR
+|   |-- tex/             TeX and texinfo library files
+|   |-- topdocs/         AUTHORS, INSTALL
+|   `-- webserver        Support files for the lilypond.org web server
+|
+|
+|   C++ SOURCES:
+|
+|-- flower/              A simple C++ library
+|   `-- include/         C++ header files for basic LilyPond structures
+|-- lily/                C++ sources for the LilyPond binary
+|   `-- include/         C++ header files for higher-level stuff
+|
+|
+|   LIBRARIES:
+|
+|-- ly/                  `.ly` \include files
+|-- mf/                  MetaFont sources and scripts for Emmentaler fonts
+|-- ps/                  PostScript library files
+|-- scm/                 Scheme sources for LilyPond and subroutine files
+|
+|
+|   SCRIPTS:
+|
+|-- config/              Autoconf helpers for configure script
+|-- m4/                  Files used while generating the configure script
+|-- python/              Python modules, MIDI module
+|   `-- auxiliar/        Python modules for build/maintenance
+|       `-- vendored/    External Python packages used during build
+|-- scripts/             End-user scripts (--> lilypond/usr/bin/)
+|   |-- auxiliar/        Maintenance and non-essential build scripts
+|   `-- build/           Essential build scripts
+|
+|
+|   BUILD PROCESS:
+|   (also see SCRIPTS section above)
+|
+|-- make/                Specific make subroutine files
+|
+|-- docker/
+|   |-- base/            CI Docker files used for running `make`
+|   |-- ci/              Support for continuous integration (CI) on gitlab
+|   `-- doc/             CI Docker files used for running `make doc`
+|
+|-- release/             Scripts to generate and upload release packages
+|   |-- binaries/        Scripts to build binaries
+|   |   |-- ansible/     Ansible playbooks for building binaries
+|   |   |-- lib/         Auxiliary files for building binaries
+|   |   |-- patches/     Patch files for external programs
+|   |   `-- relocate/    Relocation data for lilypond binary
+|   `-- doc              Scripts to build documentation
+|
+|
+|   REGRESSION TESTS:
+|
+|-- input/
+|   `-- regression/      `.ly` regression tests
+|       |-- abc2ly/      `.abc` regression tests
+|       |-- include-path-modification/
+|       |                Regression test directory for include paths
+|       |-- lilypond-book/
+|       |                `lilypond-book` regression tests
+|       |-- midi/        `midi2ly` regression tests
+|       |-- musicxml/    MusicXML regression tests (for `musicxml2ly`)
+|       `-- other/       Regression tests without graphical output
+|
+|
+|   MISCELLANEOUS:
+|
+|-- elisp/               Emacs LilyPond mode and syntax coloring
+|-- vim/                 Vi(M) LilyPond mode and syntax coloring
+`-- po/                  Translations for binaries and end-user scripts

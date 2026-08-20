@@ -23,6 +23,12 @@ namespace Lily.Docs.Tests;
 /// per-test run would turn one suite into several minutes for no extra evidence — every
 /// gate here is a question about the SAME run.
 /// </para>
+/// <para>
+/// ⚠ Both outputs come from ONE pass over the source (wave LD4), which is also the page
+/// size this manual is set on: A4, because every manual in decision D48's scope declares
+/// <c>@afourpaper</c>. Wave LD1 rendered it at US Letter and nothing went red, which is why
+/// the size is now both applied and asserted from the written file.
+/// </para>
 /// </summary>
 public sealed class InternalsReferenceFixture : IDisposable
 {
@@ -55,9 +61,16 @@ public sealed class InternalsReferenceFixture : IDisposable
             generatedDirectory, ToolPaths.AssetsDirectory, versionDirectory, null);
         ManualRenderer renderer = new ManualRenderer(paths);
 
-        Html = renderer.RenderHtml(Manual, Path.Combine(WorkDirectory, "html"));
+        // ONE pass over the Texinfo source for both outputs. The Internals Reference carries
+        // no music, so this costs it nothing — but it is the same call the Notation Reference
+        // makes, where rendering the two formats separately would engrave the manual twice,
+        // and a fixture that took the cheap route here would leave that path untested.
+        ManualRender render = renderer.RenderBoth(Manual, Path.Combine(WorkDirectory, "html"),
+            Path.Combine(WorkDirectory, "pdf", "internals.pdf"));
+        Html = render.Html;
+        Pdf = render.Pdf;
         HtmlText = File.ReadAllText(Html.HtmlPath);
-        Pdf = renderer.RenderPdf(Manual, Path.Combine(WorkDirectory, "pdf", "internals.pdf"));
+        PdfBytes = File.ReadAllBytes(Pdf.PdfPath);
     }
 
     /// <summary>The temporary directory this fixture's outputs live in.</summary>
@@ -77,6 +90,12 @@ public sealed class InternalsReferenceFixture : IDisposable
 
     /// <summary>The PDF render.</summary>
     public ManualPdfRender Pdf { get; }
+
+    /// <summary>
+    /// The written PDF's own bytes — so a gate can ask the FILE what page size it carries
+    /// rather than asking the options object what it was told to use.
+    /// </summary>
+    public byte[] PdfBytes { get; }
 
     /// <summary>Deletes the working directory.</summary>
     public void Dispose()

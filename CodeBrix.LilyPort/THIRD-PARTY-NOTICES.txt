@@ -137,7 +137,16 @@ STATUS
                                    python/book_snippets.py, which section 1.5
                                    already records. Added at wave LD2,
                                    2026-08-19. Sections 1 and 1.5.
-    Documentation/                 633 files, byte-identical PARTIAL mirror of
+    tools/Lily.Docs/assets/bib/    5 Texinfo bibliographies (37,420 bytes, 160
+                                   entries) TRANSLATED ONCE from the FDL .bib
+                                   sources by the BibTeX oracle -- generated
+                                   output, not a copy; FDL, section 4 -- plus
+                                   lily-bib.bst, the GPL style program that
+                                   produced them, section 1.5. Decision D57.
+    tools/Lily.Docs/assets/staged/ ROADMAP and code-review-checklist.md, GPL
+                                   LilyPond SOURCE files the Contributor's Guide
+                                   prints verbatim. Section 1.5. Decision D57.
+    Documentation/                 690 files, byte-identical PARTIAL mirror of
                                    lilypond/Documentation -- the manual sources
                                    the port's generated documentation is
                                    rendered into. GNU FDL 1.3-or-later EXCEPT
@@ -2317,6 +2326,38 @@ Copyright: Copyright (C) 1996--2026 Han-Wen Nienhuys <hanwen@xs4all.nl>
            Copyright (C) 1997--2026 Han-Wen Nienhuys
            Jan Nieuwenhuizen
 
+  ── VERBATIM COPIES THAT ARE NOT PORTED CODE (decision D57, 2026-08-19) ──
+
+  Three GPL LilyPond SOURCE files are held byte-identical in this repository
+  because the documentation needs them and they are not manual text. None is
+  executed here, and none is a port of anything.
+
+    tools/Lily.Docs/assets/bib/lily-bib.bst
+        <- Documentation/lily-bib.bst
+           Copyright (C) 2011--2026 Phil Holmes
+           The BibTeX style program that produced the five bibliographies in
+           section 4. Kept as the RECIPE: without it those files are bytes
+           nobody can re-derive or check, and on a corpus re-sync diffing it
+           against the new checkout is what says whether regeneration is owed
+           at all. Reference only -- nothing in this repository runs BibTeX.
+
+    tools/Lily.Docs/assets/staged/ROADMAP
+        <- ROADMAP  (the lilypond SOURCE TREE ROOT, not Documentation/)
+           Copyright (C) 1996--2026 the LilyPond authors
+    tools/Lily.Docs/assets/staged/code-review-checklist.md
+        <- .agents/skills/lilypond-code-review/assets/checklist.md
+           Copyright (C) 1996--2026 the LilyPond authors
+           The Contributor's Guide prints both VERBATIM, with
+           @verbatiminclude, and upstream's doc build copies them into its
+           output directory before rendering (Documentation/GNUmakefile
+           573-584). This reproduces that staging.
+
+  ⚠ WHY THESE THREE ARE NOT IN Documentation/, WHICH IS WHERE TWO OF THEM LIVE
+  UPSTREAM: section 4 declares this repository's Documentation/ tree cleanly
+  separated GNU FDL material, never intermixed with GPL source. These are GPL
+  source. Their CONTENT then appears inside an FDL manual, which is upstream's
+  own arrangement and not something this port introduces.
+
 --------------------------------------------------------------------------------
 1.6  LILYPOND LICENSE TEXT
 --------------------------------------------------------------------------------
@@ -2652,29 +2693,67 @@ Copyright: Copyright (C) 1996--2026 the LilyPond authors
 
 Source derived from Documentation/ (in this repository):
 
-  Documentation/            636 files, 3.37 MB, byte-identical partial mirror
+  Documentation/            690 files, 5.20 MB, byte-identical partial mirror
                             of lilypond/Documentation at v2.27.2. Every file's
                             sha256 is recorded in Documentation/MANIFEST.sha256;
                             the tree's own README.txt records what was copied and
-                            why. Decision D49(b), Jeremy, 2026-08-18.
+                            why. Decision D49(b), Jeremy, 2026-08-18; extended at
+                            wave LD5, 2026-08-19, for the remaining seven manuals.
 
-                            en/          77 files -- the @include closure of the
-                                         eight corpus manuals, plus en/included/
-                                         (@lilypondfile targets).
+                            en/          91 files -- the @include closure of the
+                                         NINE corpus manuals, plus en/included/
+                                         (@lilypondfile targets). The 14 added at
+                                         wave LD5 are contributor.texi and its
+                                         thirteen contributor/*.itexi chapters,
+                                         which decision D48 ruled into scope.
                             ly-examples/ 18 files -- @image targets.
                             bib/          5 files -- bibliography sources.
-                            pictures/     3 files -- two @sourceimage targets and
-                                         one \epsfile target named from inside a
-                                         music snippet, added at wave LD3
-                                         (2026-08-19) for the notation manual.
+                            pictures/    43 files -- @sourceimage targets plus one
+                                         \epsfile target named from inside a music
+                                         snippet. Three were added at wave LD3 for
+                                         the notation manual; the other forty at
+                                         wave LD5 -- 34 for essay, 5 for learning
+                                         and 1 for contributor.
                             snippets/   533 files -- SEE SECTION 5, these are
                                          PUBLIC DOMAIN, not FDL.
 
-                            NOT copied: the other 272 files of pictures/ (11 MB).
-                            The claim that it was "referenced only by web.texi"
-                            was wrong: @sourceimage expands to @image{pictures/...}
-                            and the notation manual uses it twice. Wave LD5 needs
-                            more of the same for learning and essay.
+                            NOT copied: the other 242 files of pictures/ (8.6 MB),
+                            which belong to web.texi (excluded by D48) and to the
+                            translated manuals (excluded by D17/D27), plus the ten
+                            pictures/pdf/*.pdf TeX-branch variants -- deliberately,
+                            because the Texinfo package's @image extension probe
+                            excludes .pdf by design and the same pictures reach
+                            the document from the @ifnottex branch.
+
+                            ⚠ THE PICTURE CLOSURE IS MACRO EXPANSION, NOT @image.
+                            @sourceimage expands to @image{pictures/...}, so a
+                            survey of literal @image commands sees none of these
+                            forty-three. Wave LD3 learned that for notation; wave
+                            LD5 found one more the phase plan had recorded as
+                            "ZERO real @image uses" -- contributor's
+                            architecture-diagram, at programming-work.itexi:52.
+
+  tools/Lily.Docs/assets/bib/
+                            5 files, 37,420 bytes, 160 bibliography entries --
+                            colorado.itexi, computer-notation.itexi,
+                            engravingbib.itexi, we-wrote.itexi and
+                            others-did.itexi. Decision D57, Jeremy, 2026-08-19.
+
+                            ⚠ THESE ARE NOT COPIES OF ANYTHING. They are GENERATED
+                            OUTPUT, derived from Documentation/bib/*.bib (FDL, and
+                            mirrored in this repository) by BibTeX interpreting
+                            Documentation/lily-bib.bst. Upstream makes them at
+                            build time and ships neither the output nor a way to
+                            make it without a TeX installation. Translated ONCE
+                            here, with the bibtex on the build machine run as an
+                            ORACLE -- the same standing texi2any and lilypond-book
+                            have under decision D28 -- and held byte-identical to
+                            what it produced. Content is FDL, from the .bib
+                            sources; the command that made them and the exact
+                            provenance are in that directory's README.txt, and
+                            every hash is in its MANIFEST.sha256.
+
+                            ⚠ THE .bst BESIDE THEM IS *NOT* FDL -- see section 1.
 
   tools/Lily.Docs/assets/en/
                             3 files, 57,795 bytes, byte-identical copies of

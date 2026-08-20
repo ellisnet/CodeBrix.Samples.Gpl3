@@ -186,56 +186,86 @@ public static class Program
         }
 
         List<string> warningsForBaseline = new List<string>();
-        ManualPdfRender pdfRender = null;
         int htmlImageCount = 0;
+        ManualHtmlRender htmlRender = null;
+        ManualPdfRender pdfRender = null;
+        string pdfPath = Path.Combine(outputDirectory, manual.Name + ".pdf");
 
-        if (wantHtml)
+        // ⚠ BOTH FORMATS ARE ONE RENDER, NOT TWO. Rendering HTML and then PDF runs the
+        // Texinfo source twice, and the package's snippet coordinator dedupes only WITHIN a
+        // render — so a manual that carries music would be engraved once per format, at five
+        // minutes and two and a half thousand engravings a time, with every count in the
+        // engraving baseline doubled. It is also what makes decision D51's premise true as
+        // stated: the SAME SVG reaches both outputs, rather than each output receiving its
+        // own separately engraved copy of the same music.
+        if (wantHtml && wantPdf)
+        {
+            Console.WriteLine($"rendering {manual.Title} to HTML and PDF (one Texinfo pass) ...");
+            ManualRender render = renderer.RenderBoth(manual, outputDirectory, pdfPath);
+            htmlRender = render.Html;
+            pdfRender = render.Pdf;
+        }
+        else if (wantHtml)
         {
             Console.WriteLine($"rendering {manual.Title} to HTML ...");
-            ManualHtmlRender html = renderer.RenderHtml(manual, outputDirectory);
-            Console.WriteLine(string.Format(CultureInfo.InvariantCulture,
-                "  {0}  ({1:0.0}s, {2} warnings, {3} images)",
-                html.HtmlPath, html.Elapsed.TotalSeconds, html.Warnings.Count,
-                html.Result.Images.Count));
-            WriteCategories(html.Warnings);
-            if (listWarnings)
-            {
-                WriteMessages(html.Warnings);
-            }
-
-            warningsForBaseline.AddRange(html.Warnings);
-            htmlImageCount = html.Result.Images.Count;
-            WriteSnippetCounts(snippets);
-            WriteFailedSources(snippets, Path.Combine(outputDirectory, "failed-snippets"));
+            htmlRender = renderer.RenderHtml(manual, outputDirectory);
         }
-
-        if (wantPdf)
+        else
         {
             Console.WriteLine($"rendering {manual.Title} to PDF ...");
-            string pdfPath = Path.Combine(outputDirectory, manual.Name + ".pdf");
-            ManualPdfRender pdf = renderer.RenderPdf(manual, pdfPath);
-            pdfRender = pdf;
+            pdfRender = renderer.RenderPdf(manual, pdfPath);
+        }
+
+        if (htmlRender != null)
+        {
             Console.WriteLine(string.Format(CultureInfo.InvariantCulture,
-                "  {0}  ({1:0.0}s, {2} pages, {3} texinfo + {4} pdf warnings)",
-                pdf.PdfPath, pdf.Elapsed.TotalSeconds, pdf.PageCount,
-                pdf.TexinfoWarnings.Count, pdf.PdfWarnings.Count));
-            WriteCategories(pdf.PdfWarnings);
+                "  {0}  ({1:0.0}s, {2} warnings, {3} images)",
+                htmlRender.HtmlPath, htmlRender.Elapsed.TotalSeconds, htmlRender.Warnings.Count,
+                htmlRender.Result.Images.Count));
+            WriteCategories(htmlRender.Warnings);
             if (listWarnings)
             {
-                WriteMessages(pdf.PdfWarnings);
+                WriteMessages(htmlRender.Warnings);
+            }
+
+            warningsForBaseline.AddRange(htmlRender.Warnings);
+            htmlImageCount = htmlRender.Result.Images.Count;
+        }
+
+        if (pdfRender != null)
+        {
+            Console.WriteLine(string.Format(CultureInfo.InvariantCulture,
+                "  {0}  ({1:0.0}s, {2} pages at {3:0.##}x{4:0.##}pt, {5} texinfo + {6} pdf warnings)",
+                pdfRender.PdfPath, pdfRender.Elapsed.TotalSeconds, pdfRender.PageCount,
+                pdfRender.Settings.PageWidthPoints, pdfRender.Settings.PageHeightPoints,
+                pdfRender.TexinfoWarnings.Count, pdfRender.PdfWarnings.Count));
+            Console.WriteLine(string.Format(CultureInfo.InvariantCulture,
+                "    svg raster scale {0:0.##}, uncovered characters {1}",
+                pdfRender.Settings.SvgRasterScale,
+                pdfRender.Settings.KeepUncoveredCharacters ? "KEPT as boxes" : "removed"));
+            WriteCategories(pdfRender.PdfWarnings);
+            WriteDropItems(pdfRender);
+            if (listWarnings)
+            {
+                WriteMessages(pdfRender.PdfWarnings);
             }
         }
 
-        if (freezeBaseline && wantPdf && pdfRender != null)
+        // Reported AFTER both outputs, because with one render feeding both there is one
+        // set of counts rather than one per format.
+        WriteSnippetCounts(snippets);
+        WriteFailedSources(snippets, Path.Combine(outputDirectory, "failed-snippets"));
+
+        if (freezeBaseline && pdfRender != null)
         {
             string pdfBaselinePath = Path.Combine(
                 ToolPaths.ExpectedWarningsDirectory, manual.Name + "-pdf.tsv");
             WarningSummary.WritePdfBaseline(
-                pdfBaselinePath, pdfRender.PageCount, pdfRender.PdfWarnings.Count);
+                pdfBaselinePath, pdfRender.BaselineValues(), pdfRender.DropRows());
             Console.WriteLine($"pdf baseline written to {pdfBaselinePath}");
         }
 
-        if (freezeBaseline && wantHtml && snippets != null)
+        if (freezeBaseline && snippets != null)
         {
             string snippetBaselinePath = Path.Combine(
                 ToolPaths.ExpectedWarningsDirectory, manual.Name + "-snippets.tsv");
@@ -244,7 +274,7 @@ public static class Program
             Console.WriteLine($"snippet baseline written to {snippetBaselinePath}");
         }
 
-        if (freezeBaseline && wantHtml)
+        if (freezeBaseline && htmlRender != null)
         {
             string baselinePath = Path.Combine(
                 ToolPaths.ExpectedWarningsDirectory, manual.Name + ".tsv");
@@ -337,6 +367,23 @@ public static class Program
         }
 
         Console.Error.WriteLine("      " + index + " composed source(s) written to " + directory);
+    }
+
+    /// <summary>
+    /// Reports the PDF stage's STRUCTURED warnings — one line per distinct code point, with
+    /// its stable code and an exact occurrence count.
+    /// </summary>
+    /// <param name="pdf">The PDF render.</param>
+    /// <remarks>
+    /// The prose form of these warnings names only the first code point seen and carries no
+    /// count, so it can say that something dropped and not what, nor how much.
+    /// </remarks>
+    private static void WriteDropItems(ManualPdfRender pdf)
+    {
+        foreach (string row in pdf.DropRows())
+        {
+            Console.WriteLine("      " + row.Replace('\t', ' '));
+        }
     }
 
     private static void WriteCategories(IReadOnlyList<string> messages)

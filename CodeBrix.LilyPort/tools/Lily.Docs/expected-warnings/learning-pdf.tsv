@@ -1,0 +1,30 @@
+# learning's PDF, MEASURED at wave LD5 (2026-08-19) and READ before freezing. Rendered
+# from the SAME Texinfo pass as the HTML, so its pictures are the very files the HTML shows
+# rather than a second engraving of the same music (decision D51, and trap (t)).
+#
+# PAGES            253 at A4. ⚠ Frozen BESIDE the page size on purpose: a manual that
+#                  silently reverted to US Letter would move this number and nothing else.
+#                  Also asserted from the FILE's own /MediaBox values, because an
+#                  options-side check could never fail -- wave LD1 shipped the Internals
+#                  Reference at US Letter for a day with every gate green.
+# PAGE_*_PT        595 x 842, from HtmlRenderOptions.SetPageSize("A4"). True A4 is
+#                  595.276 x 841.890; the helper is a tenth of a millimetre narrow.
+# SVG_RASTER_SCALE 2.0, the package's shipped default, RECORDED not chosen. 96 CSS dpi x 2
+#                  = 192 ppi effective; placement is the SVG's own physical millimetres.
+# KEEP_UNCOVERED   TRUE -- decision D56, RULED at wave LD5. ⚠ It changes NOTHING measurable
+#                  in any of the nine manuals: this file's empty drop list is why. The
+#                  ruling is about the NEXT uncovered character, which is drawn as a
+#                  visible box rather than removed, because a character that silently
+#                  disappears is invisible to the visual QA this phase is accepted on.
+#
+# ⚠ NO DROP ROWS, AND THAT IS THE WAVE'S FONT RESULT RATHER THAN AN ABSENCE OF ONE. Nothing
+# in this manual drops -- not a music symbol, not a Greek letter, not an arrow. The rows are
+# asserted as ROWS rather than as a zero so that a character which STARTED dropping would
+# arrive named, with its code point and an exact occurrence count, instead of as "1 != 0".
+KEEP_UNCOVERED	true
+PAGES	253
+PAGE_HEIGHT_PT	842
+PAGE_WIDTH_PT	595
+PDF_ITEMS	0
+PDF_WARNINGS	0
+SVG_RASTER_SCALE	2

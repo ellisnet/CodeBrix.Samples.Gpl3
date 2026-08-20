@@ -11,6 +11,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using CodeBrix.PdfDocCreate.Html2Pdf;
 using CodeBrix.Texinfo2Html;
 using Lily.Docs;
 using Lily.Docs.Generation;
@@ -315,6 +316,14 @@ public sealed class NotationReferenceRenderTests : IClassFixture<NotationReferen
         //Assert
         // The engraver's own count of pictures produced has to equal the document's count of
         // pictures placed, or something was engraved and then dropped on the way in.
+        //
+        // ⚠ AND THIS IS ALSO THE FENCE AGAINST ENGRAVING THE MANUAL TWICE. The fixture now
+        // produces BOTH formats, and it does so from one Texinfo pass; rendering them
+        // separately would engrave every snippet once per format, because the package's
+        // coordinator dedupes only within a render. That failure cannot be seen in the
+        // engraving baseline alone — re-freezing it would simply record the doubled numbers —
+        // but it shows up HERE, because the count on the left is the DOCUMENT's and the count
+        // on the right is the ENGRAVER's, and only the second one doubles.
         engraved.Should().Be(_fixture.Snippets.PageCount);
 
         // The remaining two are the manual's own @sourceimage pictures — Gonville_before and
@@ -479,4 +488,130 @@ public sealed class NotationReferenceRenderTests : IClassFixture<NotationReferen
 
         return builder.ToString();
     }
+
+    /// <summary>Pdf facts match the frozen baseline exactly.</summary>
+    [Fact]
+    public void pdf_facts_match_the_frozen_baseline_exactly()
+    {
+        //Arrange
+        string baselinePath = Path.Combine(
+            ToolPaths.ExpectedWarningsDirectory, _fixture.Manual.Name + "-pdf.tsv");
+        SortedDictionary<string, string> expected =
+            WarningSummary.ReadPdfBaselineValues(baselinePath);
+
+        //Act
+        SortedDictionary<string, string> actual = _fixture.Pdf.BaselineValues();
+
+        //Assert
+        // Page count, warning counts, the page size actually used and the two shipped
+        // defaults this wave deliberately left alone — asserted together and in both
+        // directions. Freezing the SETTINGS beside the results is what keeps a page count
+        // that moved from having two candidate explanations: if the size row still says A4
+        // and the page count changed, the layout changed.
+        actual.Should().BeEquivalentTo(expected, ReportPdf(_fixture.Pdf));
+    }
+
+    /// <summary>Pdf drops match the frozen baseline per code point.</summary>
+    [Fact]
+    public void pdf_drops_match_the_frozen_baseline_per_code_point()
+    {
+        //Arrange
+        string baselinePath = Path.Combine(
+            ToolPaths.ExpectedWarningsDirectory, _fixture.Manual.Name + "-pdf.tsv");
+        List<string> expected = WarningSummary.ReadPdfBaselineDrops(baselinePath);
+
+        //Act
+        List<string> actual = _fixture.Pdf.DropRows();
+
+        //Assert
+        // ⚠ PER CODE POINT, NOT A TOTAL. Decision D47 tolerates coverage gaps, but tolerating
+        // them is not the same as not knowing what they are: a total would go on passing
+        // while a different character started dropping and an old one stopped. Each row
+        // carries the warning's stable code, the code point and an exact occurrence count,
+        // which is the surface TexinfoPdfWarnings.PdfItems was added to give this gate.
+        actual.Should().BeEquivalentTo(expected, ReportPdf(_fixture.Pdf));
+    }
+
+    /// <summary>Every page of the pdf is a4.</summary>
+    [Fact]
+    public void every_page_of_the_pdf_is_a4()
+    {
+        //Arrange
+        SortedSet<string> sizes = PdfPageBoxes.DistinctPageSizes(_fixture.PdfBytes);
+
+        //Act
+        int pagesMeasured = PdfPageBoxes.ReadMediaBoxes(_fixture.PdfBytes).Count;
+
+        //Assert
+        // ⚠ ASKED OF THE FILE, NOT OF THE OPTIONS. The manual declares @afourpaper and its
+        // music was engraved to the 160 mm line width that declaration implies, so a US
+        // Letter page would carry A4-measure music and look entirely plausible. Reading the
+        // boxes back out of the bytes is the only form of this check that could ever fail.
+        pagesMeasured.Should().Be(_fixture.Pdf.PageCount);
+        sizes.Should().BeEquivalentTo(new SortedSet<string>(StringComparer.Ordinal) { "595x842" });
+    }
+
+    /// <summary>No picture was skipped by the pdf stage.</summary>
+    [Fact]
+    public void no_picture_was_skipped_by_the_pdf_stage()
+    {
+        //Arrange
+        IReadOnlyList<RenderWarning> items = _fixture.Pdf.PdfItems;
+
+        //Act
+        List<string> imageWarnings = items
+            .Where(item => item.Code != null
+                && item.Code.StartsWith("image.", StringComparison.Ordinal))
+            .Select(item => item.Code + " x" + item.Occurrences + ": " + item.Message)
+            .ToList();
+
+        //Assert
+        // ⚠ THIS IS DECISION D51'S WHOLE RULING, AS A GATE. Until Html2Pdf gained SVG
+        // placement it answered an SVG with "not in a supported format and was skipped" and
+        // carried on, producing a complete music manual containing no music. Two and a half
+        // thousand of those would have been two and a half thousand warnings and a green
+        // page count.
+        imageWarnings.Should().BeEmpty();
+    }
+
+    /// <summary>The pdf embeds a raster for every picture the document places.</summary>
+    [Fact]
+    public void the_pdf_embeds_a_raster_for_every_picture_the_document_places()
+    {
+        //Arrange
+        string text = Encoding.Latin1.GetString(_fixture.PdfBytes);
+
+        //Act
+        int embedded = Regex.Matches(text, @"/Subtype\s*/Image").Count;
+
+        //Assert
+        // ⚠ COUNTED IN THE FILE, because "nothing warned" is not evidence that anything
+        // arrived — and a music manual containing no music is precisely the artefact the old
+        // Html2Pdf produced when handed an SVG.
+        //
+        // ⚠ A LOWER BOUND ON PURPOSE, and the bound is the honest part. Html2Pdf rasterizes
+        // each SVG through Skia and embeds the result, but how many XObjects that costs is
+        // the writer's business, not ours: MEASURED at wave LD4, one engraved picture also
+        // brings a soft mask, and the count in the file is neither the picture count nor a
+        // fixed multiple of it. Freezing a number whose structure this repository cannot
+        // explain would be a baseline that fails for reasons nobody could read. What IS
+        // knowable is that a document placing N pictures cannot be correct with fewer than N
+        // rasters in it, and that is what this asserts.
+        embedded.Should().BeGreaterThanOrEqualTo(_fixture.Html.Result.Images.Count);
+    }
+
+    private static string ReportPdf(ManualPdfRender pdf)
+    {
+        StringBuilder report = new StringBuilder();
+        report.Append("pdf: ").Append(pdf.PageCount).Append(" pages, ")
+            .Append(pdf.PdfWarnings.Count).Append(" warnings, ")
+            .Append(pdf.PdfItems.Count).Append(" structured items");
+        foreach (string row in pdf.DropRows())
+        {
+            report.Append('\n').Append("  ").Append(row.Replace('\t', ' '));
+        }
+
+        return report.ToString();
+    }
+
 }

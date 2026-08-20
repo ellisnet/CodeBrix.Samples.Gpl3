@@ -1,0 +1,50 @@
+# ⚠ THE NINE WARNINGS EVERY MANUAL IN SCOPE EARNS, and they are furniture rather than
+# findings -- they come from the three VENDORED GFDL macro files, not from this manual:
+#   RawBlockSkipped 8   @tex blocks in common-macros.itexi (5), macros.itexi (1) and
+#                       cyrillic.itexi (1) -- raw TeX, which this chain has no typesetter
+#                       for and renders nothing for, by design. ⚠ The eighth belongs to
+#                       whichever of the two @tex blocks in common-macros.itexi the manual
+#                       reaches; every manual reaches the same set.
+#   Macro           1   common-macros.itexi:330 defines @macro cindex over the built-in
+#                       @cindex; the package keeps the built-in and says so.
+# Anything ABOVE that floor is this manual's own, and is explained below.
+# essay -- MEASURED at wave LD5 (2026-08-19), RE-FROZEN the same day for decision D57,
+# and READ before freezing.
+#
+#   Include 9   pictures/pdf/NAME -- OpusAndFeta, bwv861-finale2008a, bwv861mm28-29,
+#               bwv861mm33-34-annotate, lily14-sarabande, nestedboxes,
+#               page-layout-comparison, size11, size26. Each is the @iftex twin of a plate
+#               the @ifnottex branch also names.
+#
+#     ⚠ THE PLATE IS IN THE DOCUMENT. The renderer's Print conditional profile deliberately
+#     reads BOTH branches (real manuals put document structure in @ifnottex), and the
+#     package's @image extension probe deliberately EXCLUDES .pdf -- its own words: "a
+#     manual that keeps pdf/NAME variants for its TeX branch would then hand Html2Pdf a file
+#     it cannot decode". So copying those ten .pdf files into the mirror would change
+#     nothing, and is why they were not copied.
+#
+# ⚠ IT WAS TWELVE UNTIL DECISION D57 (ruled 2026-08-19). The three that left were the
+# bibliography -- colorado.itexi, computer-notation.itexi and engravingbib.itexi, which
+# upstream generates from Documentation/bib/*.bib and ships nowhere. They are now VENDORED
+# in assets/bib/, translated ONCE by the BibTeX oracle, together with the lily-bib.bst style
+# program that produced them.
+#
+#   ⚠ AND "PORTING bib2texi" WAS NEVER THE JOB. scripts/build/bib2texi.py is thirty lines
+#   that write a fake .aux and shell out to the bibtex BINARY; the translation is BibTeX
+#   interpreting an 8.5 KB .bst program. MEASURED against thirty years of upstream history:
+#   five .bib files, 160 entries, seven commits out of 35,717. Static reference data.
+#
+# ⚠ PAGES MOVED 47 -> 63 IN THE SAME RE-FREEZE, FOR THAT ONE KNOWN REASON: the three
+# bibliographies carry 147 entries between them. Nothing else about this manual changed --
+# the snippet counts, the picture count and the empty drop list are all unmoved -- so the
+# page move has exactly one explanation, which is what rule 7 asks for.
+#
+# THIRTY-ONE PLATES PLACED, and three deliberately not: engraving.itely names
+# henle-flat-bw, baer-flat-bw and lily-flat-bw inside an @ifinfo branch. Info output is out
+# of scope and the Print profile turns it off. They are in the mirror because the mirror is
+# the manual's SOURCE closure; their absence from the document is asserted as its own gate,
+# because it is what says the conditional profile is the one this phase renders.
+Include	9
+Macro	1
+RawBlockSkipped	8
+TOTAL	18

@@ -1,0 +1,25 @@
+# ⚠ THE NINE WARNINGS EVERY MANUAL IN SCOPE EARNS, and they are furniture rather than
+# findings -- they come from the three VENDORED GFDL macro files, not from this manual:
+#   RawBlockSkipped 8   @tex blocks in common-macros.itexi (5), macros.itexi (1) and
+#                       cyrillic.itexi (1) -- raw TeX, which this chain has no typesetter
+#                       for and renders nothing for, by design. ⚠ The eighth belongs to
+#                       whichever of the two @tex blocks in common-macros.itexi the manual
+#                       reaches; every manual reaches the same set.
+#   Macro           1   common-macros.itexi:330 defines @macro cindex over the built-in
+#                       @cindex; the package keeps the built-in and says so.
+# Anything ABOVE that floor is this manual's own, and is explained below.
+# usage -- MEASURED at wave LD5 (2026-08-19) and READ before freezing.
+#
+#   Emit 1   lilypond-book.itely uses @math, and this chain has no mathematical
+#            typesetter; the package renders it as styled text and says so. Content is
+#            present and legible, not lost.
+#
+# ⚠ THIRTEEN SNIPPETS ASKED FOR, AGAINST 32 @lilypond + 6 @lilypondfile DIRECTIVES IN THE
+# SOURCE, and the difference is not a loss. This manual's lilypond-book chapter DOCUMENTS
+# the snippet syntax, so most of those occurrences are inside @example and @verbatim blocks
+# -- text about snippets rather than snippets. The Phase-5 plan's per-manual table called
+# its own figures an upper bound for this reason; ASKED is the measured truth.
+Emit	1
+Macro	1
+RawBlockSkipped	8
+TOTAL	10

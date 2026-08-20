@@ -26,10 +26,12 @@ namespace Lily.Docs.Tests;
 /// paid for once.
 /// </para>
 /// <para>
-/// ⚠ PDF IS NOT RENDERED HERE. The notation PDF is wave LD4's exit, not this one's: it
-/// needs decision D51 (Html2Pdf places raster images only, so the snippet SVGs have to be
-/// rasterized) and decision D50 (no font in the Html2Pdf chain carries the seven music
-/// symbols the manual's prose uses). Both are open.
+/// ⚠ BOTH FORMATS COME OUT OF ONE PASS — wave LD4. Rendering them separately would run the
+/// Texinfo source twice and engrave the manual's music twice, because the package's snippet
+/// coordinator dedupes only within a render: five extra minutes, and every count in
+/// <c>notation-snippets.tsv</c> doubled. It is also what decision D51's ruling actually
+/// says — that Lily.Docs hands THE SAME SVG to both outputs — so a fixture that engraved
+/// once per format would be gating something weaker than the ruling.
 /// </para>
 /// </summary>
 public sealed class NotationReferenceFixture : IDisposable
@@ -81,8 +83,15 @@ public sealed class NotationReferenceFixture : IDisposable
             Paths.SnippetIncludePaths);
         renderer.SnippetRenderer = Snippets;
 
-        Html = renderer.RenderHtml(Manual, Path.Combine(WorkDirectory, "html"));
+        // ⚠ The engraver hands its pictures over as FILE paths, so its scratch directory has
+        // to outlive BOTH stages. It does: RenderBoth finishes the PDF before it returns, and
+        // Dispose runs later.
+        ManualRender render = renderer.RenderBoth(Manual, Path.Combine(WorkDirectory, "html"),
+            Path.Combine(WorkDirectory, "pdf", "notation.pdf"));
+        Html = render.Html;
+        Pdf = render.Pdf;
         HtmlText = File.ReadAllText(Html.HtmlPath);
+        PdfBytes = File.ReadAllBytes(Pdf.PdfPath);
     }
 
     /// <summary>The temporary directory this fixture's outputs live in.</summary>
@@ -111,6 +120,15 @@ public sealed class NotationReferenceFixture : IDisposable
 
     /// <summary>The rendered HTML, read once. Roughly ten megabytes with the pictures in.</summary>
     public string HtmlText { get; }
+
+    /// <summary>The PDF render, made from the HTML render's own markup and pictures.</summary>
+    public ManualPdfRender Pdf { get; }
+
+    /// <summary>
+    /// The written PDF's own bytes, read once — so a gate can ask the FILE what page size it
+    /// carries rather than asking the options object what it was told to use.
+    /// </summary>
+    public byte[] PdfBytes { get; }
 
     /// <summary>Deletes the working directory.</summary>
     public void Dispose()

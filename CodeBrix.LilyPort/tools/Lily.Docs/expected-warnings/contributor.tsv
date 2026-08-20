@@ -1,0 +1,47 @@
+# ⚠ THE NINE WARNINGS EVERY MANUAL IN SCOPE EARNS, and they are furniture rather than
+# findings -- they come from the three VENDORED GFDL macro files, not from this manual:
+#   RawBlockSkipped 8   @tex blocks in common-macros.itexi (5), macros.itexi (1) and
+#                       cyrillic.itexi (1) -- raw TeX, which this chain has no typesetter
+#                       for and renders nothing for, by design. ⚠ The eighth belongs to
+#                       whichever of the two @tex blocks in common-macros.itexi the manual
+#                       reaches; every manual reaches the same set.
+#   Macro           1   common-macros.itexi:330 defines @macro cindex over the built-in
+#                       @cindex; the package keeps the built-in and says so.
+# Anything ABOVE that floor is this manual's own, and is explained below.
+# contributor -- MEASURED at wave LD5 (2026-08-19), RE-FROZEN the same day for decision
+# D57, and READ before freezing.
+#
+# ⚠ NOTHING ABOVE THE FLOOR, AND IT IS THE ONLY MANUAL OF THE NINE THAT GETS THERE WITH
+# NOTHING EXPLAINED AWAY. Include is ZERO: every file this manual names resolves.
+#
+# ⚠ IT WAS TWO UNTIL DECISION D57 (ruled 2026-08-19). Both were @verbatiminclude targets --
+# ROADMAP at source-code.itexi:770 and code-review-checklist.md at
+# programming-work.itexi:2764 -- and NEITHER LIVES IN Documentation/ UPSTREAM. ROADMAP is at
+# the lilypond source tree ROOT; the checklist is at
+# .agents/skills/lilypond-code-review/assets/checklist.md. The doc build COPIES both into
+# $(outdir)/en/ before rendering (Documentation/GNUmakefile 573-584). They are now vendored
+# in assets/staged/, which reproduces that staging, and are kept OUT of this repository's
+# Documentation mirror because they are GPL source rather than FDL manual text.
+#
+#   ⚠ NEITHER WAS FOUND BY THE CLOSURE MEASUREMENT. The wave-LD5 closure script followed
+#   @include, @lilypondfile, @image, @sourceimage and snippet \include/\epsfile -- and not
+#   @verbatiminclude. The first render's own warnings named them. Sixth firing of trap (n),
+#   and the sixth time the render found what the survey missed.
+#
+# ⚠ PAGES MOVED 186 -> 189 IN THE SAME RE-FREEZE, for that one known reason: the two
+# verbatim blocks are 7.8 KB of @smallformat text. Nothing else changed.
+#
+# ⚠ ZERO SNIPPETS, AND IT IS A CHECKED CLAIM. This manual's twenty files hold NINETEEN
+# occurrences of the letters @lilypond, every one of them an ESCAPED mention (@@lilypond,
+# or inside @code{}) in the chapter that documents how to write snippets. A survey that
+# counted those would have called this the heaviest manual of the seven. The catalogue
+# declares engravesSnippets: false and the fixture renders the manual a SECOND time with an
+# engraver registered, asserting the engraver was never called -- because a manual rendered
+# with no engraver looks exactly like a manual whose every engraving failed.
+#
+# ⚠ ONE PICTURE, WHERE THE PHASE PLAN RECORDED "ZERO real @image uses":
+# programming-work.itexi:52 is @sourceimage{architecture-diagram,,}, and @sourceimage
+# EXPANDS to @image{pictures/...}. Fifth firing of the same trap.
+Macro	1
+RawBlockSkipped	8
+TOTAL	9

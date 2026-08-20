@@ -5,6 +5,7 @@
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -176,23 +177,47 @@ public sealed class InternalsReferenceRenderTests : IClassFixture<InternalsRefer
         count.Should().Be(0);
     }
 
-    /// <summary>Pdf page count matches the recorded baseline.</summary>
+    /// <summary>Pdf facts match the recorded baseline.</summary>
     [Fact]
-    public void pdf_page_count_matches_the_recorded_baseline()
+    public void pdf_facts_match_the_recorded_baseline()
     {
         //Arrange
         string baselinePath = Path.Combine(
             ToolPaths.ExpectedWarningsDirectory, _fixture.Manual.Name + "-pdf.tsv");
-        SortedDictionary<string, int> baseline = WarningSummary.ReadPdfBaseline(baselinePath);
+        SortedDictionary<string, string> baseline =
+            WarningSummary.ReadPdfBaselineValues(baselinePath);
 
         //Act
-        int pages = _fixture.Pdf.PageCount;
+        SortedDictionary<string, string> actual = _fixture.Pdf.BaselineValues();
 
         //Assert
         // Recorded rather than reasoned about: a page count that moves is a signal that
         // something upstream of the layout changed, and it is cheap to notice.
-        pages.Should().Be(baseline["PAGES"]);
-        _fixture.Pdf.PdfWarnings.Count.Should().Be(baseline["PDF_WARNINGS"]);
+        //
+        // ⚠ IT MOVED AT WAVE LD4, 1,349 -> 1,266, FOR TWO KNOWN REASONS AT ONCE — the page
+        // size became A4 and the packages' line-metrics fix rode along in the same pin bump.
+        // Two known reasons is one too many to tell apart after the fact, which is why the
+        // page SIZE is now frozen in this same file: the next time this number moves, the
+        // size row says whether the page changed or the layout did.
+        actual.Should().BeEquivalentTo(baseline);
+    }
+
+    /// <summary>Every page of the pdf is a4.</summary>
+    [Fact]
+    public void every_page_of_the_pdf_is_a4()
+    {
+        //Arrange
+        SortedSet<string> sizes = PdfPageBoxes.DistinctPageSizes(_fixture.PdfBytes);
+
+        //Act
+        int pagesMeasured = PdfPageBoxes.ReadMediaBoxes(_fixture.PdfBytes).Count;
+
+        //Assert
+        // ⚠ ASKED OF THE FILE. Wave LD1 shipped this manual at US Letter for a day with every
+        // gate green, because nothing in the suite ever looked at the paper — the size was
+        // settable, was left at the package default, and no count depends on it.
+        pagesMeasured.Should().Be(_fixture.Pdf.PageCount);
+        sizes.Should().BeEquivalentTo(new SortedSet<string>(StringComparer.Ordinal) { "595x842" });
     }
 
     /// <summary>The manual contains no engraved snippets.</summary>

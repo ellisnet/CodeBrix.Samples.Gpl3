@@ -5,7 +5,7 @@ CodeBrix.LilyPort -- Documentation/
 A BYTE-IDENTICAL PARTIAL MIRROR of LilyPond's documentation SOURCES, at the
 pinned release v2.27.2 (commit 2d621459bd44cb1758f822a69757242eab843060).
 
-    636 files, 3.37 MB, mirrored from lilypond/Documentation/
+    690 files, 5.20 MB, mirrored from lilypond/Documentation/
     Every file's sha256 is recorded in MANIFEST.sha256 (this directory).
 
 GNU Free Documentation License -- see ../THIRD-PARTY-NOTICES.txt section 4 and
@@ -52,17 +52,24 @@ Two consequences worth knowing:
 WHAT WAS COPIED, AND WHY EACH PART
 --------------------------------------------------------------------------------
 
-  en/            77 files, 2.5 MB
-                 The @include closure of the eight corpus manuals -- notation,
-                 learning, usage, extending, essay, changes, music-glossary and
-                 snippets -- plus en/included/, whose 25 .ly files are targets of
-                 @lilypondfile in the manual prose.
+  en/            91 files, 2.8 MB
+                 The @include closure of the NINE corpus manuals -- notation,
+                 learning, usage, extending, essay, changes, music-glossary,
+                 contributor and snippets -- plus en/included/, whose 25 .ly
+                 files are targets of @lilypondfile in the manual prose.
 
-                 The closure was computed by resolving @include transitively; it
-                 is 54 files. Files it does NOT contain are the port's own
-                 nineteen generated outputs, which are build products here just
-                 as they are upstream and are supplied at render time from the
-                 generation directory (that is the whole point of Phase 5).
+                 The closure was computed by resolving @include transitively.
+                 Files it does NOT contain are the port's own nineteen generated
+                 outputs, which are build products here just as they are upstream
+                 and are supplied at render time from the generation directory
+                 (that is the whole point of Phase 5).
+
+                 The 14 files added at wave LD5 (2026-08-19) are contributor.texi
+                 and its thirteen contributor/*.itexi chapters, 302 KB. Decision
+                 D48 ruled contributor.texi into scope on 2026-08-19; it is the
+                 one in-scope manual that consumes none of the port's generated
+                 files, which is a fact about the mission's origin rather than
+                 about cost.
 
   snippets/      533 files, 2.3 MB
                  Targets of @lilypondfile in the manuals -- 192 references from
@@ -75,19 +82,35 @@ WHAT WAS COPIED, AND WHY EACH PART
   bib/           5 files, 68 KB
                  Bibliography sources. The essay manual includes three .itexi
                  files generated FROM these by bib2texi upstream; those generated
-                 files do not exist in the checkout, so wave LD5 either generates
-                 them from these sources or baselines three include warnings.
+                 files do not exist in the checkout.
 
-  pictures/      3 files, 163 KB, added at wave LD3 (2026-08-19). Two kinds of
-                 reference, and BOTH were missed by the original closure
-                 measurement because both reach a picture through something other
-                 than a literal @image:
+                 ⚠ THEY DO NOW EXIST IN THIS REPOSITORY, at
+                 ../tools/Lily.Docs/assets/bib/ -- all FIVE of them, translated
+                 once by the bibtex on the build machine run as an ORACLE, and
+                 held byte-identical to what it produced. Decision D57, ruled
+                 2026-08-19. The .bib SOURCES stay here because they are FDL
+                 documentation text; the lily-bib.bst style program that consumes
+                 them is GPL LilyPond source and is vendored beside its output
+                 instead, so this tree stays cleanly FDL.
 
-                   Gonville_after.png, Gonville_before.png -- the notation
-                   manual's own pictures, named by the @sourceimage MACRO, which
-                   expands to @image{pictures/...}. The survey looked for @image
-                   and found only macro DEFINITIONS. The two Include warnings the
-                   first render earned are what found them.
+                 ⚠ ON A RE-SYNC, DIFF BOTH: if neither these .bib files nor
+                 upstream's Documentation/lily-bib.bst moved, nothing in
+                 assets/bib/ needs regenerating. On thirty years of upstream
+                 history that is the usual answer -- seven commits have touched
+                 this directory, five have touched the .bst.
+
+  pictures/      43 files, 1.7 MB. Every one of them is named by the
+                 @sourceimage MACRO, which expands to @image{pictures/...}, or --
+                 in one case -- from inside a music snippet. NONE of them is a
+                 literal @image in any manual, which is why the original closure
+                 measurement found no pictures at all.
+
+                 Three were added at wave LD3 (2026-08-19), for notation:
+
+                   Gonville_after.png, Gonville_before.png -- @sourceimage
+                   targets. The survey looked for @image and found only macro
+                   DEFINITIONS. The two Include warnings the first render earned
+                   are what found them.
 
                    context-example.eps -- named from INSIDE a music snippet,
                    \epsfile #X #10 "./context-example.eps" in text.itely, and so
@@ -96,11 +119,45 @@ WHAT WAS COPIED, AND WHY EACH PART
                    same way, with -I $(src-dir)/pictures on lilypond-book's
                    command line (Documentation/GNUmakefile).
 
-                 ⚠ THE REST OF pictures/ IS STILL NOT COPIED (11 MB, 273 files).
-                 Wave LD5 needs more of it: learning uses 6 @sourceimage pictures
-                 and essay uses about 30. Measure that closure -- @sourceimage,
-                 @exampleImage and @help all expand to @image{pictures/...} -- and
-                 copy exactly what those manuals name, the same way.
+                 Forty more were added at wave LD5 (2026-08-19), by MEASURING the
+                 @sourceimage closure of the seven remaining manuals rather than
+                 by surveying @image again:
+
+                   34 for essay (en/essay/engraving.itely), 1.3 MB -- the
+                   engraving-comparison plates.
+                   5 for learning (en/learning/installing.itely), 336 KB -- the
+                   Frescobaldi_* screenshots.
+                   1 for contributor (en/contributor/programming-work.itexi),
+                   58 KB -- architecture-diagram.png. ⚠ The Phase-5 plan recorded
+                   contributor as having "ZERO real @image uses"; that survey had
+                   looked for @image, and this is a @sourceimage. Same trap, fifth
+                   firing.
+
+                 TWO KINDS OF PICTURE ARE DELIBERATELY *NOT* HERE:
+
+                   pictures/pdf/*.pdf (10 files) -- the @iftex variants of nine
+                   of essay's plates. The Texinfo package's @image extension probe
+                   excludes .pdf BY DESIGN ("a manual that keeps pdf/NAME variants
+                   for its TeX branch would then hand Html2Pdf a file it cannot
+                   decode"), so copying them would buy nothing. The renderer's
+                   Print conditional profile reads both @iftex and @ifnottex, so
+                   each of those pictures still reaches the document -- from the
+                   other branch -- and the unresolved TeX-branch variant is one
+                   baselined warning apiece.
+
+                   pictures/context-example.png -- does not exist upstream. It is
+                   a BUILD PRODUCT there, made from the .eps that IS here.
+                   learning's @sourceimage{context-example,6cm,} therefore cannot
+                   resolve, and is one baselined warning. The same .eps resolves
+                   perfectly well for the notation manual, because there it is
+                   reached by \epsfile from inside a snippet, where the ENGINE
+                   reads it rather than the image resolver.
+
+                 ⚠ THE REST OF pictures/ IS STILL NOT COPIED (242 files, 8.6 MB),
+                 and after wave LD5 that is a CLOSED question rather than an open
+                 one: what remains belongs to web.texi, which decision D48
+                 excluded, and to the translated manuals, which D17 and D27
+                 excluded. No in-scope manual names any of it.
 
 --------------------------------------------------------------------------------
 THE ORACLE DOES NOT READ THIS DIRECTORY

@@ -1,0 +1,363 @@
+@c -*- coding: utf-8; mode: texinfo; -*-
+
+@node Quick start
+@chapter Quick start
+
+Want to submit a patch for LilyPond?  Great!  Never created a patch
+before? Never compiled software before? No problem!  This chapter is
+for you and will help you do this as quickly and easily as possible.
+
+
+@node LilyDev
+@section LilyDev
+
+@c This text was written based on LilyDev repository.
+
+@warning{The following sections are based on LilyDev v2 and are
+not necessarily correct for different releases.}
+
+@qq{LilyDev} is a custom GNU/Linux operating system which includes all
+the necessary software and tools to compile LilyPond, the documentation
+and the website (also see @ref{Website work}).
+
+While compiling LilyPond on macOS and Windows is possible, both
+environments are complex to set up.  LilyDev can be easily run
+inside a @q{virtual machine} on either of these operating
+systems relatively easily using readily available virtualization
+software.  We recommend using VirtualBox as it is available for all
+major operating systems and is very easy to install & configure.
+
+LilyDev comes in two @q{flavours}: containers and a standard disk image.
+Windows or macOS users should choose the Debian disk image
+(to be run in a virtual machine), that is the file named
+@file{LilyDev-VERSION-debian-vm.zip}.  GNU/Linux users are recommended
+to choose one of the containers (currently Debian or
+Fedora), which are smaller in size, lightweight and easier to manage.
+The Fedora disk image has currently not been released, you can
+create it from the sources located in the @file{/mkosi} subdirectory
+of the LilyDev repository, however.
+
+@noindent
+Download the appropriate file from here:
+
+@example
+@uref{https://github.com/fedelibre/LilyDev/releases/latest}
+@end example
+
+@warning{Apart from installing and configuring LilyDev in VirtualBox,
+the rest of the chapter assumes that you are comfortable using the
+command line and is intended for users who may have never created a
+patch or compiled software before.  More experienced developers (who
+prefer to use their own development environment) may still find it
+instructive to skim over the following information.}
+
+If you are not familiar with GNU/Linux, it may be beneficial to read a
+few @qq{introduction to Linux} type web pages.
+
+
+@node Installing LilyDev in VirtualBox
+@unnumberedsubsec Installing LilyDev in VirtualBox
+
+This section discusses how to install and use LilyDev with VirtualBox.
+
+@warning{If you already know how to install a virtual machine using a
+disc image inside VirtualBox (or your own virtualization software) then
+you can skip this section.}
+
+@enumerate
+@item
+Download VirtualBox from here:
+
+@example
+@uref{https://www.virtualbox.org/wiki/Downloads}
+@end example
+
+@warning{In virtualization terminology, the operating system where
+VirtualBox is installed is known as the @strong{host}.  LilyDev
+will be installed @q{inside} VirtualBox as a @strong{guest}.}
+
+@item
+The zip archive you downloaded contains the raw disk image and
+its SHA256 checksum.  You can verify the integrity of the downloaded
+archive with any hashing tool your OS does support.
+On Linux, run the following command in the directory where you have
+extracted the files (this may take some time):
+
+@example
+sha256sum -c SHA256SUMS
+@end example
+
+For Windows, look for the tools @command{FCIV} or @command{certutil}
+to compute the archive's hash.
+
+@item
+As VirtualBox does not support the raw format, you have to
+extract it and then convert it to VDI format.  Make sure
+that @q{VBoxManage} is in your @code{PATH} or call it from your
+VirtualBox installation directory:
+
+@example
+VBoxManage convertfromraw LilyDev-VERSION-debian-vm.img \
+  LilyDev-VERSION-debian-vm.vdi
+@end example
+
+@warning{You need a fair amount of disk space (around 30@dmn{GB}) to
+extract the raw image.  After converting to a dynamic VirtualBox image
+it will take up much less space (only the amount of space that is
+actually allocated by the guest filesystem)}
+
+@item
+Start the VirtualBox software and click @q{New} to create a new
+@qq{virtual machine}.
+
+The @q{New Virtual Machine Wizard} walks you through setting up your
+guest virtual machine.  Choose an appropriate name for your LilyDev
+installation and select the @q{Linux} operating system.  When selecting
+the @q{version} choose @q{Debian (64-bit)}.  If you do not have that
+specific option choose @q{Linux 2.6/3.x/4.x (64-bit)}.
+
+@item
+Select the amount of RAM you allow the LilyDev guest to use from
+your host operating system when it is running.  If possible, use at
+least 1@dmn{GB} of RAM; the more RAM you can spare from your host the
+better
+
+@item
+In the @q{Hard Disk} step, you use the VDI file you have previously
+created.  You may move it within the virtual machine's folder already
+created by the wizard (in GNU/Linux the default should be
+@file{~/VirtualBox VMs/NAME}).  Click on @q{Use an existing virtual
+hard disk file} and browse to the VDI file.
+
+@item
+Verify the summary details and click @q{Create} as soon as you are
+satisfied.  Your new guest shall be displayed in the VirtualBox
+window now.
+
+@item
+Enable EFI within the virtual machine's settings -- click on
+@clicksequence{System @click{} Motherboard} and select
+@q{Extended features: Enable EFI}.  Otherwise, you won't be
+able to boot the image.
+
+@item
+VirtualBox @q{guest additions}, which are installed by default
+in the debian image, provide some additional features such
+as being able to dynamically resize the LilyDev window, allow seamless
+interaction with your mouse pointer on both the host and guest, and let
+you copy/paste between your host and guest if needed.
+It seems that dynamic window resizing works only with
+the @q{VBoxVGA} graphics controller, which you can choose in
+@clicksequence{Display @click{} Graphics Controller}.
+To enable clipboard sharing between guest and host,
+choose @clicksequence{General @click{} Advanced @click{}
+Shared Clipboard @click{} Bidirectional}.
+
+@item
+Click the @q{Start} button and wait until the login screen appears.
+Log in as @code{dev} user then; type the password @code{lilypond}.
+Before starting any work, be sure to complete the next steps.
+
+@warning{Since the default keyboard layout is US (American), you
+may have to type the password differently if you are using another
+layout, like @q{lilzpond} on a German keyboard, for example.}
+
+@item
+Open a terminal by clicking @clicksequence{Applications @click{}
+Terminal} at the upper left of the screen.  You may want to change
+the password of user @q{dev} before doing further work with the command
+@command{passwd}.
+
+@item
+You might need to change the keyboard layout from default US (American)
+to your national layout.  Therefore open a terminal and run
+
+@example
+sudo dpkg-reconfigure keyboard-configuration
+@end example
+
+@warning{You need superuser rights to change certain aspects of
+the system configuration.  The @command{sudo} tool allows to gain
+superuser rights temporarily.  It does show you a warning message
+on its first use that reminds you to use your extended rights
+carefully.}
+
+At first, you are prompted for the model of your keyboard.
+Press Enter to show further models.  In most cases, it is
+sufficient to choose @q{Generic, 105 keys}.  After that,
+choose your keyboard layout.  Now, you can customize the function of
+your @key{AltGr} key.  Normally, the default layout settings fit well,
+so take number@tie{}1.  The same holds for the question of whether you want
+to configure a @q{compose} key.
+At last, you are asked if you want to configure
+@key{Ctrl+Alt+Backspace} as a shortcut to terminate the X server.
+Presumably, you do not need this, so you can safely type @q{no}.
+
+@item
+To set up your system language (charset, localized messages etc.),
+continue with
+
+@example
+sudo dpkg-reconfigure locales
+@end example
+
+@warning{Restarting is required in order to take the changes
+into effect.}
+
+@item
+
+Finally, you should run a setup script.  If you are on the command line
+already, simply type @command{./setup.sh} to run the interactive script
+that does set up git and downloads all the repositories needed to build
+LilyPond.
+
+@end enumerate
+
+
+@node Configuring LilyDev in VirtualBox
+@unnumberedsubsec Configuring LilyDev in VirtualBox
+
+@itemize
+
+@item
+In the settings for the virtual machine, set the network to
+Bridged mode to allow you to access shared folders when using Windows
+hosts.
+
+@item
+Set up any additional features, such as @q{Shared Folders} between
+your main operating system and LilyDev.  This is distinct from the
+networked share folders in Windows.  Consult the external documentation
+for this.
+
+Some longtime contributors have reported that @q{shared folders}
+are rarely useful and not worth the fuss, particularly since files
+can be shared over a network instead.
+
+@item
+Pasting into a terminal is done with @code{Ctrl+Shift+v}.
+
+@item
+Right-click allows you to edit a file with the text editor (default
+is Leafpad).
+
+@end itemize
+
+@knownissues
+Not all hardware is supported in all virtualization tools.  In
+particular, some contributors have reported problems with USB network
+adapters.  If you have problems with network connection (for example
+Internet connection in the host system is lost when you launch virtual
+system), try installing and running LilyDev with your computer's
+built-in network adapter used to connect to the network.  Refer to the
+help documentation that comes with your virtualization software.
+
+
+@node Compiling with LilyDev
+@section Compiling with LilyDev
+
+LilyDev is our custom GNU/Linux which contains all the
+necessary dependencies to do LilyPond development; for more
+information, see @ref{LilyDev}.
+
+@subsubheading Preparing the build
+
+To prepare the build directory, enter (or copy&paste) the below
+text.  This should take less than a minute.
+
+@c we heavily recommend the out-of-tree build; do not change this!
+
+@example
+cd $LILYPOND_GIT
+sh autogen.sh --noconfigure
+mkdir -p build/
+cd build/
+../configure
+@end example
+
+@subsubheading Building @code{lilypond}
+
+Compiling LilyPond will take anywhere between 1 and 15 minutes on most
+@q{modern} computers -- depending on CPU and available RAM.  We also
+recommend that you minimize the terminal window while it is building;
+this can help speed up on compilation times.
+
+@example
+cd $LILYPOND_GIT/build/
+make
+@end example
+
+@noindent
+It is possible to run @code{make} with the @code{-j} option to help
+speed up compilation times even more.  See @ref{Compiling LilyPond}
+
+You may run the compiled @code{lilypond} with:
+
+@example
+cd $LILYPOND_GIT/build/
+out/bin/lilypond my-file.ly
+@end example
+
+@subsubheading Building the documentation
+
+Compiling the documentation is a much more involved process, and
+will likely take 2 to 10 hours.
+
+@example
+cd $LILYPOND_GIT/build/
+make
+make doc
+@end example
+
+The documentation is put in @file{out-www/offline-root/}.  You may
+view the html files by entering the below text; we recommend that
+you bookmark the resulting page:
+
+@example
+firefox $LILYPOND_GIT/build/out-www/offline-root/index.html
+@end example
+
+@subsubheading Installing
+
+Don't.  There is no reason to install LilyPond within LilyDev.
+All development work can (and should) stay within the
+@file{$LILYPOND_GIT} directory, and any personal composition
+or typesetting work should be done with an official release.
+
+
+@subsubheading Problems and other options
+
+To select different build options, or isolate certain parts of the
+build, or to use multiple CPUs while building, read
+@ref{Compiling}.
+
+In particular, contributors working on the documentation should be
+aware of some bugs in the build system, and should read the
+workarounds in @ref{Generating documentation}.
+
+
+@node Now start work!
+@section Now start work!
+
+LilyDev users may now skip to the chapter which is aimed at
+their intended contributions:
+
+@itemize
+@item @ref{Documentation work}
+@item @ref{Translating the documentation}
+@item @ref{Website work}
+@item @ref{Regression tests}
+@item @ref{Programming work}
+@end itemize
+
+These chapters are mainly intended for people not using LilyDev,
+but they contain extra information about the
+@qq{behind-the-scenes} activities.  We recommend that you read
+these at your leisure, a few weeks after beginning work with
+LilyDev.
+
+@itemize
+@item @ref{Working with source code}
+@item @ref{Compiling}
+@end itemize
+

@@ -1,0 +1,380 @@
+@c bib -> itexi intro
+@itemize
+
+@item
+Harald Banter.
+@strong{Akkord-Lexikon}.
+Schott's Söhne, Mainz, Germany, 1987 (in German).
+Comprehensive overview of commonly used chords. Suggests (and uses) a
+  unification for all different kinds of chord names.
+
+
+
+
+@item
+A.@tie{}Beverly Barksdale.
+@strong{The Printed Note: 500 Years of Music Printing and Engraving}.
+The Toledo Museum of Art, Toledo, Ohio, January 1957.
+“The exhibition ‘The Printed Note’ attempts to show the various processes
+  used since the second of the 15th century for reproducing music mechanically
+  ...”. The illustrations mostly feature ancient music. It is available as a
+  reprint from Da Capo Press, New York (1981).
+
+
+
+
+@item
+Laszlo Boehm.
+@strong{Modern Music Notation}.
+G. Schirmer, Inc., New York, 1961.
+Heussenstamm writes: A handy compact reference book in basic notation.
+
+
+
+
+@item
+H.@tie{}Elliot Button.
+@strong{System in Musical Notation}.
+Novello & Co, Ltd., London, 1920.
+
+
+
+
+
+@item
+Herbert Chlapik.
+@strong{Die Praxis des Notengraphikers}.
+Doblinger, 1987 (in German).
+A clearly written book for the casually interested reader. It shows some of the
+  conventions and difficulties in printing music (HWN).
+
+
+
+
+@item
+Anthony Donato.
+@strong{Preparing Music Manuscript}.
+Prentice-Hall, Englewood Cliffs, NJ, 1963.
+
+
+
+
+
+@item
+Donemus.
+@strong{Uitgeven van muziek}: Handleiding voor componisten en copiisten.
+Donemus Amsterdam, 1982 (in Dutch).
+Manual on copying for composers and copyists at the Dutch publishing house
+  Donemus. Besides general comments on copying, it also contains a lot of
+  hands-on advice for making performance material for modern pieces.
+
+
+
+
+@item
+William Gamble.
+@strong{Music Engraving and Printing}: Historical and Technical Treatise.
+Sir Isaac Pitman & Sons, Ltd., 1923.
+This patriotic book was an attempt to promote and help British music engravers.
+  It is somewhat similar to Hader's book [hader48] in scope and style, but
+  Gamble focuses more on technical details (which French punch cutters are
+  worth buying from, etc.), and does not treat typographical details, such as
+  optical illusions. It is available as a reprint from Da Capo Press, New York
+  (1971).
+
+
+
+
+@item
+Tom Gerou and Linda Lusk.
+@strong{Essential Dictionary of Music Notation}.
+Alfred Publishing, Van Nuys CA, 1996.
+A cheap, concise, alphabetically ordered list of typesetting and music
+  (notation) issues with a rather simplistic attitude but in most cases
+  “good-enough” answers (JCN).
+
+
+
+
+@item
+Elaine Gould.
+@strong{Behind Bars}.
+Faber Music Ltd., 2011.
+A comprehensive guide to the rules and conventions of music notation. Covering
+  everything from basic themes to complex techniques and providing a
+  comprehensive grounding in notational principles.
+
+
+
+
+@item
+Elaine Gould.
+@strong{Hals über Kopf}.
+Edition Peters, 2014 (in German, translated by Arne Muus and Jens Berger).
+Ein vollständiges Regelwerk für den Modernen Notensatz auf höchstem Niveau,
+  ein Meilenstein der Notationskunde und ein Leitfaden für jeden Musiker, der
+  sich auf diesem Gebiet umfassende Kenntnisse aneignen möchte.
+
+
+
+
+@item
+Karl Hader.
+@strong{Aus der Werkstatt eines Notenstechers}.
+Verlag Waldheim-Eberle, Vienna, 1948 (in German).
+Hader was a chief engraver in a Viennese engraving workshop. This beautiful
+  booklet was intended as an introduction for laymen on the art of engraving.
+  It contains a step by step, in-depth explanation of how to cut and stamp
+  music into zinc plates. It also contains a few compactly formulated rules on
+  musical orthography. Out of print.
+
+
+
+
+@item
+George Heussenstamm.
+@strong{The Norton Manual of Music Notation}.
+Norton, New York, 1987.
+Hands-on instruction book for copying (i.e., handwriting) music. Fairly
+  complete (HWN).
+
+
+
+
+@item
+Klaus Ignatzek.
+@strong{Die Jazzmethode für Klavier 1}.
+Schott, 1995 (in German).
+This book contains a system for denoting chords that is used in LilyPond.
+
+
+
+
+@item
+Andreas Jaschinski, editor.
+@strong{Notation}.
+Number BVK1625. Bärenreiter-Verlag, 2000 (in German).
+Articles from “Musik in Geschichte und Gegenwart” pertaining to notation.
+  Both ‘alternative’ notation and ancient notation is treated in depth,
+  while ‘common’ notation is not.
+
+
+
+
+@item
+Harold@tie{}M. Johnson.
+@strong{How to write music manuscript}: An exercise-method handbook for the
+  music student, copyist, arranger, composer, teacher.
+Carl Fischer, Inc., New York, 1946.
+
+
+
+
+
+@item
+Erhard Karkoschka.
+@strong{Notation in New Music}: A Critical Guide to Interpretation and
+  Realisation.
+Praeger Publishers, New York, 1972 (translated by Ruth Koenig).
+Out of print.
+
+
+
+
+@item
+М.@tie{}Е. Кунин.
+@strong{Из истории нотопечатания}.
+Издательство “Советский композитор”, 1963
+  (in Russian).
+[M. E. Kunin. From the history of music score printing. Publisher “Soviet
+  composer”, Moscow 1963.] The book outlines the history of music printing
+  from Octavianus Scotus' experiments in 1482 (Venice), to Simon Gutovsky in
+  1679 (Moscow), and those in Russia who were after him: Stellovsky, Bessel,
+  Yurgenson and Belyaev (among others). It then describes how music printing
+  developed in the USSR. The photos illustrate the methods of music printing
+  that were in use in the USSR in the sixties: the metal plate engraving,
+  stamping, and a patended method called “notonabor”, together with its
+  slight upgrade 20 years later.
+
+
+
+
+@item
+М.@tie{}Е. Кунин.
+@strong{Нотопечатание}.
+Издательство “Музыка”, 1966 (in Russian).
+[M. E. Kunin. Music score printing. Publisher “Music”, Moscow 1966.] This
+  book is a new edition of [kunin63], with different photos.
+
+
+
+
+@item
+Mark McGrain.
+@strong{Music notation}.
+Hal Leonard Publishing Corporation, 1991.
+Obviously a ‘book’ edition of lecture notes. The book looks like it is
+  xeroxed from bad printouts. The content has nothing you won't find in other
+  books like [read79] or [heussenstamm87] (HWN).
+
+
+
+
+@item
+Music@tie{}Publishers'@tie{}Association of@tie{}the United@tie{}States.
+@strong{Standard music notation specifications for computer programming}.
+December 1996.
+Pamphlet explaining a few fine points in music font design (HWN).
+
+
+
+
+@item
+Richard Rastall.
+@strong{The Notation of Western Music: an Introduction}.
+J. M. Dent & Sons London, 1983.
+Interesting account of the evolution and origin of common notation starting
+  from neumes, and ending with modern innovations (HWN).
+
+
+
+
+@item
+Gardner Read.
+@strong{Modern Rhythmic Notation}.
+Indiana University Press, 1978.
+Sound (boring) review of the various hairy rhythmic notations used by
+  avant-garde composers (HWN).
+
+
+
+
+@item
+Gardner Read.
+@strong{Music Notation: a Manual of Modern Practice}.
+Taplinger Publishing, New York, Second edition, 1979.
+This is as close to the “standard” reference work for music notation issues
+  as one is likely to get.
+
+
+
+
+@item
+Clinton Roemer.
+@strong{The Art of Music Copying}.
+Roerick music co., Sherman Oaks (CA), Second edition, 1984.
+Out of print. Heussenstamm writes: an instructional manual which specializes in
+  methods used in the commercial field.
+
+
+
+
+@item
+Glen Rosecrans.
+@strong{Music Notation Primer}.
+Passantino, New York, 1979.
+Heussenstamm writes: Limited in scope, similar to [Roemer84].
+
+
+
+
+@item
+Carl@tie{}A. Rosenthal.
+@strong{A Practical Guide to Music Notation}: for Composers, Arrangers and
+  Editors.
+MCA Music, New York, 1967.
+Heussenstamm writes: Informative in terms of traditional notation. Does not
+  concern score preparation.
+
+
+
+
+@item
+Ted Ross.
+@strong{Teach yourself the art of music engraving and processing}: a complete
+  manual, reference and text book on preparing music for reproduction and
+  print.
+Hansen House, Miami, Florida, Third edition, 1987.
+This is about engraving, i.e., professional typesetting. It contains directions
+  on good typesetting, but the sections on reproduction technicalities, how to
+  use pens and history are interesting. Especially the section on Music
+  Typewriters is amusing (HWN).
+
+
+
+
+@item
+Schirmer.
+@strong{The G. Schirmer Manual/AMP of Style and Usage}.
+G. Schirmer Inc., New York, Fourth edition, 2009.
+Expanded and updated by David Fetherolf. This is the style guide for Schirmer
+  publications. This manual specifically focuses on preparing print for
+  publication by Schirmer. It discusses many details that are not in other,
+  normal notation books. It also gives a good idea of what is necessary to
+  bring printouts to publication quality. It can be ordered from the rental
+  department.
+
+
+
+
+@item
+Kurt Stone.
+@strong{Music Notation in the Twentieth Century}: A Practical Guidebook.
+Norton, New York, 1980.
+Heussenstamm writes: The most important book on notation in recent years.
+
+
+
+
+@item
+Börje Tyboni.
+@strong{Noter}: Handbok i traditionell notering.
+Gehrmans Musikförlag, Stockholm, 1996 (in Swedish).
+Swedish book on music notation.
+
+
+
+
+@item
+Albert@tie{}C. Vinci.
+@strong{Fundamentals of Traditional Music Notation}.
+Kent State University Press, 1989.
+
+
+
+
+
+@item
+Helene Wanske.
+@strong{Musiknotation}: Von der Syntax des Notenstichs zum EDV-gesteuerten
+  Notensatz.
+Schott-Verlag, Mainz, 1988 (in German).
+I. A very thorough overview of engraving practices of various craftsmen. It
+  includes detailed specs of characters, dimensions, etc. II. A thorough
+  overview of an anonymous (by now antiquated) automated system. EDV means
+  ‘e(lektronische) D(aten)v(erarbeitung)’, electronic data processing
+  (HWN).
+
+
+
+
+@item
+Maxwell Weaner and Walter Boelke.
+@strong{Standard Music Notation Practice}.
+Music Publisher's Association of the United States Inc., New York, 1993.
+Revised edition by Arnold Broido and Daniel Dorff.
+
+
+
+
+@item
+Johannes Wolf.
+@strong{Handbuch der Notationskunde}.
+Breitkopf & Härtel, Leipzig, 1919 (in German).
+Very thorough treatment (in two volumes) of the history of music notation.
+
+
+
+
+@end itemize
+@c bib -> itexi end

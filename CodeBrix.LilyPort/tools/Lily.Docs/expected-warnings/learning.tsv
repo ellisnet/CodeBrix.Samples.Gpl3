@@ -1,0 +1,34 @@
+# ⚠ THE NINE WARNINGS EVERY MANUAL IN SCOPE EARNS, and they are furniture rather than
+# findings -- they come from the three VENDORED GFDL macro files, not from this manual:
+#   RawBlockSkipped 8   @tex blocks in common-macros.itexi (5), macros.itexi (1) and
+#                       cyrillic.itexi (1) -- raw TeX, which this chain has no typesetter
+#                       for and renders nothing for, by design. ⚠ The eighth belongs to
+#                       whichever of the two @tex blocks in common-macros.itexi the manual
+#                       reaches; every manual reaches the same set.
+#   Macro           1   common-macros.itexi:330 defines @macro cindex over the built-in
+#                       @cindex; the package keeps the built-in and says so.
+# Anything ABOVE that floor is this manual's own, and is explained below.
+# learning -- MEASURED at wave LD5 (2026-08-19) and READ before freezing.
+#
+#   Emit 1      an @math use in common-notation.itely rendered as styled text; this chain
+#               has no mathematical typesetter. Content present, not lost.
+#   Include 1   Image 'pictures/context-example', named by @sourceimage at
+#               fundamental.itely:1450.
+#
+#     ⚠ UPSTREAM SHIPS ONLY THE .eps AND BUILDS THE .png. The .eps IS in the mirror, so
+#     this is a build product missing exactly as essay's bibliography files are, and it is
+#     baselined for the same reason. Its alternate text is used instead.
+#
+#     ⚠ BEFORE ANYONE "FIXES" THIS: the very same .eps resolves perfectly well for the
+#     Notation Reference. There it is reached by \epsfile from INSIDE a music snippet, so
+#     the ENGINE reads it rather than the image resolver -- and the engine reads EPS. Two
+#     different consumers of one file, and only one of them can take it.
+#
+# The other five pictures this manual names -- the Frescobaldi_* screenshots -- are in the
+# mirror and are placed. 253 snippets asked for and 253 engraved, which is the largest
+# engraving load of the seven and the only one over a hundred.
+Emit	1
+Include	1
+Macro	1
+RawBlockSkipped	8
+TOTAL	11

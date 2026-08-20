@@ -1,0 +1,286 @@
+@c -*- coding: utf-8; mode: texinfo; -*-
+
+@include en/included/helpus.itexi
+
+@node Introduction to contributing
+@chapter Introduction to contributing
+
+This chapter presents a quick overview how people can help
+LilyPond.
+
+
+@node Help us
+@section Help us
+
+@helpusNeed
+
+@helpusSimple
+
+@helpusAdvanced
+
+
+@node Overview of work flow
+@section Overview of work flow
+
+@advanced{Experienced developers should skip to
+@ref{Summary for experienced developers}.}
+
+Git is a @dfn{version control system} that tracks the history of
+a program's source code.  The LilyPond source code is maintained
+as a Git repository, which contains:
+
+@itemize
+@item
+all of the source files needed to build LilyPond, and
+
+@item
+a record of the entire history of every change made to every file
+since the program was born.
+@end itemize
+
+The @q{official} LilyPond Git repository is hosted by the GNU
+Savannah software forge at @uref{https://git.sv.gnu.org}.
+The server provides two separate interfaces for viewing the
+LilyPond Git repository online:
+@uref{https://git.sv.gnu.org/cgit/lilypond.git/, cgit} and
+@uref{https://git.sv.gnu.org/gitweb/?p=lilypond.git, gitweb}.
+
+However, the main development takes place at
+@uref{https://gitlab.com/lilypond/lilypond/}, which also hosts the
+project's issues.  Automatic mirroring ensures that @q{important}
+branches (such as @code{master} and @code{stable/*}) are up to date
+on the @q{official} repository at GNU Savannah, so you can also base
+your development on a clone from there.
+
+@dfn{Compiling} (@q{building}) LilyPond allows developers to see
+how changes to the source code affect the program itself.
+Compiling is also needed to package the program for specific
+operating systems or distributions.  LilyPond can be compiled from
+a local Git repository (for developers), or from a downloaded
+tarball (for packagers).  Compiling LilyPond is a rather involved
+process, and most contributor tasks do not require it.
+
+Contributors can contact the developers through the
+@q{lilypond-devel} mailing list.  The mailing list archive is
+located at
+@uref{https://lists.gnu.org/archive/html/lilypond-devel/}.  If you
+have a question for the developers, search the archives first to
+see if the issue has already been discussed.  Otherwise, send an
+email to @email{lilypond-devel@@gnu.org}.  You can subscribe to
+the developers' mailing list here:
+@uref{https://lists.gnu.org/mailman/listinfo/lilypond-devel}.
+
+@warning{Contributors on Windows or macOS wishing to compile
+code or documentation are strongly advised to use our Debian
+LilyPond Developer Remix, as discussed in @ref{Quick start}.}
+
+
+@node Summary for experienced developers
+@section Summary for experienced developers
+
+If you are already familiar with typical open-source tools, here's
+what you need to know:
+
+@itemize
+@item
+@strong{@q{Official} source repository:}
+hosted by GNU Savannah
+
+@example
+@uref{https://git.savannah.gnu.org/gitweb/?p=lilypond.git}
+@end example
+
+@item
+@strong{Development platform:}
+hosted by GitLab; also includes the issue tracker (@pxref{Issues})
+
+@example
+@uref{https://gitlab.com/lilypond/lilypond/}
+@end example
+
+@item
+@strong{Environment variables:}
+needed by many maintenance scripts, and many instructions in this
+guide rely on them; @pxref{Environment variables}.
+
+@item
+@strong{Mailing lists:}
+given in @rweb{Contact}.
+
+@item
+@strong{Git branches:}
+
+@itemize @minus{}
+@item @code{master}:
+always base your work on this branch, but @strong{never push}
+directly to it.
+
+@item @code{dev/foo}:
+feel free to push any new branches under @code{dev/} and use
+GitLab to create @dfn{Merge Requests} (MR), which eventually get
+merged into @code{master} after they have passed automatic testing
+(see below).
+@end itemize
+
+@item
+@strong{Regression tests:}
+also known as @qq{regtests}.  A collection of around two thousand
+@code{.ly} files that are used to track LilyPond's engraving output
+between released stable and unstable versions as well as checked for all
+patches submitted for testing.
+
+If a patch introduces any unintentional changes to any of the
+regtests it is very likely it will be rejected (to be fixed) -- if
+you expect any regression test changes, always make sure that they
+are explained clearly as part of the patch description when
+submitting for testing.  For more information, @pxref{Regression
+tests}.
+
+@item
+@strong{Reviews:}
+after finishing work on a patch or branch you should do the following.
+
+@enumerate
+@item
+Commit the changes and create a Merge Request.  @xref{Uploading a
+patch for review} for more information.
+
+@item
+A Merge Request is usually automatically tested within an hour of
+submission.  Once it has passed the basic tests -- @command{make
+check}, @command{make}, @command{make doc} -- the tracker will be
+updated and the patch's status will change to @code{Patch::review}
+for other developers to examine.
+
+@item
+Every third day, the @qq{Patch Meister} will examine all Merge Requests
+currently under review, looking for any comments by other developers.
+Depending on what has been posted, the patch will be either @qq{moved on}
+to the next patch status (@code{Patch::countdown}), set back to
+@code{Patch::needs_work}, or if more discussion is needed, left at
+@code{Patch::review}.  In all cases the Merge Request will be updated by
+the Patch Meister accordingly.
+
+@item
+Once another three days have passed, any patch that has been given
+@code{Patch::countdown} status will be changed to @code{Patch::push}, the
+Merge Request is updated, and the developer can now rebase and merge to
+the @code{master} branch (or ask one of the other developers to merge it
+for you).
+
+@end enumerate
+
+@advanced{This process means that most patches will take about a
+week before finally being merged into @code{master}.  With the limited
+resources for reviewing patches available and a history of unintended
+breakages in the @code{master} branch (from patches that have
+not had time to be reviewed properly), this is the best compromise we
+have found.}
+
+@end itemize
+
+
+@node Mentors
+@section Mentors
+
+We have a semi-formal system of mentorship, similar to the
+medieval @qq{journeyman/master} training system.  New contributors
+will have a dedicated mentor to help them @qq{learn the ropes}.
+
+@warning{This is subject to the availability of mentors; certain
+jobs have more potential mentors than others.}
+
+@subheading Contributor responsibilities
+
+@enumerate
+
+@item
+Ask your mentor which sections of the CG you should read.
+
+@item
+If you get stuck for longer than ten minutes, ask your mentor.
+They might not be able to help you with all problems, but we find
+that new contributors often get stuck with something that could be
+solved or explained with two or three sentences from a mentor.
+
+@item
+If you have been working on a task much longer than was originally
+estimated, stop and ask your mentor.  There may have been a
+miscommunication, or there may be some time-saving tips that could
+vastly simplify your task.
+
+@item
+Send patches to your mentor for initial comments.
+
+@item
+Inform your mentor if you're going to be away for a month, or if
+you leave entirely.  Contributing to LilyPond isn't for everybody;
+just let your mentor know so that we can reassign that work to
+somebody else.
+
+@item
+Inform your mentor if you're willing to do more work -- we always
+have way more work than we have helpers available.  We try to
+avoid overwhelming new contributors, so you'll be given less work
+than we think you can handle.
+
+@end enumerate
+
+
+@subheading Mentor responsibilities
+
+@enumerate
+
+@item
+Respond to questions from your contributor(s) promptly, even if
+the response is just @qq{sorry, I don't know} or @qq{sorry, I'm
+very busy for the next 3 days; I'll get back to you then}.  Make
+sure they feel valued.
+
+@item
+Inform your contributor(s) about the expected turnaround for your
+emails -- do you work on LilyPond every day, or every weekend, or
+what?  Also, if you'll be unavailable for longer than usual (say,
+if you normally reply within 24 hours, but you'll be at a
+conference for a week), let your contributors know.  Again, make
+sure they feel valued, and that your silence (if they ask a
+question during that period) isn't their fault.
+
+@item
+Inform your contributor(s) if they need to do anything unusual for
+the builds, such as doing a @code{make clean} or @code{make
+doc-clean}, or switching git branches (not expected, but just in
+case).
+
+@item
+You don't need to be able to completely approve patches.  Make
+sure the patch meets whatever you know of the guidelines
+(documentation style, code indentation, whatever).
+
+@item
+Keep track of patches from your contributor.  Either open Merge
+Requests by yourself or help and encourage them to upload the
+patches themselves.
+
+@item
+Encourage your contributor to review patches, particularly your
+own!  It doesn't matter if they're not familiar with C++, Scheme,
+the build system, or the documentation guidelines -- simply going
+through the process is valuable.  Besides, anybody can find a
+typo!
+
+@item
+Contact your contributor at least once a week.  The goal is just
+to get a conversation started -- there's nothing wrong with simply
+copying & pasting this into an email:
+
+@example
+Hey there,
+
+How are things going?  If you sent a patch and got a review, do
+you know what you need to fix?  If you sent a patch but have no
+reviews yet, do you know when you will get reviews?  If you are
+working on a patch, what step(s) are you working on?
+@end example
+
+@end enumerate

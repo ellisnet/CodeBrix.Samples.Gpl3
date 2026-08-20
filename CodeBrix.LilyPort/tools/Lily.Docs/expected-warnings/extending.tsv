@@ -1,0 +1,20 @@
+# ⚠ THE NINE WARNINGS EVERY MANUAL IN SCOPE EARNS, and they are furniture rather than
+# findings -- they come from the three VENDORED GFDL macro files, not from this manual:
+#   RawBlockSkipped 8   @tex blocks in common-macros.itexi (5), macros.itexi (1) and
+#                       cyrillic.itexi (1) -- raw TeX, which this chain has no typesetter
+#                       for and renders nothing for, by design. ⚠ The eighth belongs to
+#                       whichever of the two @tex blocks in common-macros.itexi the manual
+#                       reaches; every manual reaches the same set.
+#   Macro           1   common-macros.itexi:330 defines @macro cindex over the built-in
+#                       @cindex; the package keeps the built-in and says so.
+# Anything ABOVE that floor is this manual's own, and is explained below.
+# extending -- MEASURED at wave LD5 (2026-08-19) and READ before freezing.
+#
+#   Emit 1   an @math use rendered as styled text; this chain has no mathematical
+#            typesetter. Content present, not lost.
+#
+# Thirty-four snippets, all engraved. Seventy-six pages.
+Emit	1
+Macro	1
+RawBlockSkipped	8
+TOTAL	10

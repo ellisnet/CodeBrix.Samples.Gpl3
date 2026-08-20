@@ -84,7 +84,7 @@
     and then fails at runtime unable to load the interpreter assembly.
   -->
   <ItemGroup>
-    <PackageReference Include="CodeBrix.LilyScheme.LgplLicenseForever" Version="1.0.231.206" />
+    <PackageReference Include="CodeBrix.LilyScheme.LgplLicenseForever" Version="1.0.232.256" />
   </ItemGroup>
 
   <PropertyGroup>

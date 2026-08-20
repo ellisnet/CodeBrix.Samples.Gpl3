@@ -55,6 +55,40 @@ public static class ToolPaths
     }
 
     /// <summary>
+    /// The five translated bibliographies and the BibTeX style program that produced
+    /// them — <c>assets/bib/</c> (decision D57, ruled 2026-08-19).
+    /// <para>
+    /// The essay manual's literature list <c>@include</c>s three of them by BARE NAME, so
+    /// this directory goes on the include search path in its own right rather than being
+    /// reachable through the assets root.
+    /// </para>
+    /// <para>
+    /// ⚠ THEY ARE ORACLE OUTPUT, VENDORED, AND THAT IS THE WHOLE RULING. Upstream generates
+    /// them from <c>Documentation/bib/*.bib</c> with <c>bib2texi.py</c>, which is thirty
+    /// lines that shell out to the BibTeX BINARY with an 8.5&#160;KB <c>.bst</c> style
+    /// program — so writing "our own" would mean writing a BibTeX style-language
+    /// interpreter. MEASURED against thirty years of upstream history: five files, 160
+    /// entries, seven commits out of 35,717. Static reference data, not a living format.
+    /// </para>
+    /// </summary>
+    public static string BibliographyAssetsDirectory =>
+        Path.Combine(AssetsDirectory, "bib");
+
+    /// <summary>
+    /// The two source-tree files the Contributor's Guide prints verbatim —
+    /// <c>assets/staged/</c> (decision D57, ruled 2026-08-19).
+    /// </summary>
+    /// <remarks>
+    /// ⚠ NEITHER LIVES IN <c>Documentation/</c> UPSTREAM: <c>ROADMAP</c> is at the source
+    /// tree ROOT and the checklist under <c>.agents/</c>, and the doc build COPIES both into
+    /// its output directory before rendering. They are kept out of this repository's
+    /// Documentation mirror because they are GPL source rather than FDL manual text, and the
+    /// notices file declares that tree cleanly separated.
+    /// </remarks>
+    public static string StagedAssetsDirectory =>
+        Path.Combine(AssetsDirectory, "staged");
+
+    /// <summary>
     /// The repository's Documentation mirror — the corpus manuals' own source text
     /// (decision D49(b)).
     /// <para>

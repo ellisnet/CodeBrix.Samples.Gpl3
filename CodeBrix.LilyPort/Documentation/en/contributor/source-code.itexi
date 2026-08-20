@@ -1,0 +1,772 @@
+@c -*- coding: utf-8; mode: texinfo; -*-
+
+@node Working with source code
+@chapter Working with source code
+
+The LilyPond project uses @uref{https://git-scm.com/, Git} as a version
+control system.  This section is intended at getting new contributors
+started with Git, and helping senior developers with less frequently
+used procedures.
+
+
+@need 1500
+@node Setting up
+@section Setting up
+
+
+@node Installing Git
+@subsection Installing Git
+
+On UNIX systems (such as GNU/Linux, macOS, FreeBSD), the easiest way
+to download and install Git is through a package manager.  Alternatively,
+you can visit the @uref{https://git-scm.com/, Git website} for downloadable
+installers.
+
+For convenience, you may also install a graphical front-end to Git.
+Packaged in the installers come @code{gitk} (for browsing the history)
+and @code{git-gui} (for committing).  Git's official website provides a
+@uref{https://git-scm.com/downloads/guis/, list of GUI clients},
+including free software for various platforms.
+
+
+@node Creating a GitLab account and setting up SSH
+@subsection Creating a GitLab account and setting up SSH
+
+First of all, since the patch review happens on GitLab, you need
+to create an account there if you do not already have one.  Visit
+@uref{https://gitlab.com} and register.
+
+Second, you have to configure SSH keys for your GitLab account.
+The GitLab documentation has a
+@uref{https://docs.gitlab.com/ee/user/ssh.html,dedicated page}
+explaining the full steps.  (Although this initial setup may look
+a little tedious, it ensures that you will not need to log in with
+your GitLab credentials every time you need to create or modify a
+merge request.)
+
+Note that on the first Git operation you perform that involves
+connecting with GitLab (namely @code{git clone} if you follow the
+rest of this section in order), SSH will issue the following
+warning:
+
+@smallexample
+The authenticity of host 'gitlab.com' can't be established.
+ECDSA key fingerprint is SHA256:HbW3g8zUjNSksFbqTiUWPWg2Bq1x8xdGUrliXFzSnUw.
+Are you sure you want to continue connecting (yes/no/[fingerprint])?
+@end smallexample
+
+When you see this, make sure the key fingerprint displayed matches
+the one above or one of the
+@uref{https://docs.gitlab.com/ee/user/gitlab_com/index.html#ssh-host-keys-fingerprints,
+others published by GitLab}.  If it doesn't, respond @qq{no} and
+check that you configured Git properly in the previous step.  If
+it does match, respond @qq{yes}.  SSH should then issue another
+warning:
+
+@smallexample
+Warning: Permanently added 'gitlab.com' (ECDSA) to the list of known hosts.
+@end smallexample
+
+The list of known hosts is stored in the file
+@file{~/.ssh/known_hosts}.
+
+You might see error messages like these:
+
+@smallexample
+Permission denied (publickey).
+fatal: The remote end hung up unexpectedly
+@end smallexample
+
+If you get the above error, you may have made a mistake when
+registering your SSH key -- for example, a common problem is to
+inadvertently add a final newline while copying and pasting the
+long key string.  If the key is properly registered and it still
+doesn't work after an hour, ask for help on the mailing list.
+
+If you would like to work on LilyPond from several machines,
+you may simply copy the @code{.ssh} folder contents from one to
+the other.
+
+
+@node Cloning and forking the repository
+@subsection Cloning and forking the repository
+
+Clone the @uref{https://gitlab.com/lilypond/lilypond, LilyPond repository}
+to get the source code and its history:
+
+@example
+git clone git@@gitlab.com:lilypond/lilypond.git
+@end example
+
+New contributors need to fork it in order to push branches.  Using
+a fork is no longer necessary (but may be convenient) when you are
+given developer access.  Visit
+@uref{https://gitlab.com/lilypond/lilypond} and press @qq{Fork} on
+the top right.  After the fork is created, set up a new remote:
+
+@example
+cd lilypond
+git remote add fork git@@gitlab.com:@var{your-username}/lilypond.git
+@end example
+
+To list remote repositories that are configured, along with their URLs:
+
+@example
+git remote -v
+@end example
+
+You should have @code{origin} pointing to the official LilyPond repository,
+and @code{fork} pointing to your your private fork.
+
+
+@node Configuring Git
+@subsection Configuring Git
+
+Settings apply to any repository on your computer, unless you leave out
+the @code{--global} option.
+
+You first need configure some basic settings required for keeping track of
+commit authors:
+
+@example
+git config --global user.name "@var{John Smith}"
+git config --global user.email @var{john@@example.com}
+@end example
+
+It is also recommended to enable colored output:
+
+@example
+git config --global color.ui auto
+@end example
+
+If none of your editor-related environment variables are set, the default
+text editor used for writing commit messages, etc., is usually @command{vim}.
+If your are not familiar with it, change it to an editor that you are
+comfortable with; for example, Gedit:
+
+@example
+git config --global core.editor "gedit --wait --new-window"
+@end example
+
+Finally, and in some ways most importantly, let's make sure that
+we can easily see the state of our working copy.  If you are not using
+LilyDev or Windows, add the following lines to your @file{~/.bashrc}:
+
+@example
+export PS1="\u@@\h \w\$(__git_ps1)$ "
+export GIT_PS1_SHOWDIRTYSTATE=true
+export GIT_PS1_SHOWUNTRACKEDFILES=true
+export GIT_PS1_SHOWUPSTREAM=auto
+@end example
+
+After starting a new terminal, your prompt will show the current
+branch (this term and others are explained below).  Additionally, some
+symbols next to the branch name indicate certain states.  A star @qq{*}
+means that there are unstaged changes.  With a plus @qq{+}, the changes
+are staged.  If there are untracked files, a percent @qq{%} will appear.
+Finally, we can also see the state of the local repository compared
+to upstream: @qq{=} means up to date, @qq{<} is behind, @qq{>} is ahead,
+@qq{<>} means they have diverged.
+
+You may need to install the additional @code{bash-completion}
+package.
+
+
+
+
+@node Git cheat sheet
+@section Git cheat sheet
+
+The intent of this section is to get you working on LilyPond
+quickly.  If you want to learn about Git,
+@pxref{Further Git documentation resources}.
+
+Also, these instructions are designed to eliminate the most common
+problems we have found in using Git.  If you already know Git and
+have a different way of working, great!  Feel free to ignore this
+advice.
+
+
+@subheading Pulling recent changes
+
+As LilyPond's source code is continously improved, it is wise to
+integrate recent changes into your local copy whenever you start a
+working session.  On the @code{master} branch (this term is explained
+below), run:
+
+@example
+git pull
+@end example
+
+
+@subheading Viewing the history
+
+Each change is contained in a @emph{commit} with an explanatory message.
+To list commits starting from the latest:
+
+@example
+git log
+@end example
+
+Press @key{Enter} to see more or @key{Q} to exit.
+
+
+@subheading Start work: make a new branch
+
+The Git workflow is based on branches, which can be viewed as different
+copies of the source code with concurrent changes that are eventually
+merged.  You start a contribution by creating a branch, freezing the
+initial state of the source code you will base your work onto.  Ultimately,
+your branch will be @dfn{merged} into @code{master}.  This latter, special
+branch centralizes all features developed simultaneously and is the
+source for unstable releases.
+
+@warning{Remember, @strong{never} directly commit to @code{master}.}
+
+Let's pretend you want to add a section to the Contributor's Guide
+about using branches.  To create a new branch for this:
+
+@example
+git branch cg-add-branches
+@end example
+
+
+@subheading Switching branches
+
+Switching branches is somehow like @qq{loading a file}, although in this
+case it is really @qq{loading a directory and subdirectories full of
+files}.  The command to use is @code{git switch}.@footnote{If you are
+using an outdated version of Git (older than 2.23), you need to use
+@code{git checkout} instead.}
+
+@example
+git switch master
+git switch cg-add-branches
+git switch origin/release/unstable
+@end example
+
+Branches that begin with @code{origin/} are part of the remote
+repository, rather than your local repository, so when you check them
+out you get a  temporary local branch.  Therefore, do not commit to
+these either.  Always work in a local branch.
+
+
+@subheading Listing branches
+
+To list local branches:
+
+@example
+git branch
+@end example
+
+If you want remote branches too:
+
+@example
+git branch -a
+@end example
+
+In the output, the current branch is prefixed with a star.
+
+
+@subheading Staging and committing files
+
+Now edit files.  To show a summary of your edits:
+
+@example
+git status
+@end example
+
+For every file that you modified or added, first preview your changes:
+
+@example
+git diff @var{file}
+@end example
+
+If everything looks right:
+
+@example
+git add @var{file}
+@end example
+
+Then commit your changes:
+
+@example
+git commit
+@end example
+
+A text editor window appears for you to write a commit message. See
+@ref{Writing good commit messages}.
+
+
+@subheading Amending and reverting changes
+
+To add some more changes to the latest commit, stage them using
+@code{git add}, then run:
+
+@example
+git commit --amend
+@end example
+
+@noindent
+This also works for rephrasing the commit message.
+
+You might want to use @code{git add -p} instead of @code{git add};
+this allows you to add changes incrementally in an interactive
+way.
+
+To revert changes to a file that have not been committed yet, use
+@code{git restore}:@footnote{If you are using an outdated version of Git
+(older than 2.23), you need to use @code{git checkout} instead.}
+
+@example
+git restore @var{filename}
+@end example
+
+You might want to use @code{git reset -p} instead of @code{git
+restore}; this allows you to revert changes incrementally in an
+interactive way.
+
+To get back to the last commit, @emph{discarding all changes}:
+
+@example
+git reset --hard HEAD
+@end example
+
+If the commit to edit is not the top one, you need to perform an
+@emph{interactive rebase} with @code{git rebase -i $(git
+merge-base master HEAD)}.  The full functionality of @code{git
+rebase -i} is not covered here; please try it and follow Git's
+instructions or read any tutorial on the Web.
+
+
+@subheading Uploading your branch for review
+
+To upload the current branch on the remote repository:
+
+@example
+git push -u fork cg-add-branches
+@end example
+
+This sets the remote branch so subsequent pushes are simpler:
+
+@example
+git push
+@end example
+
+The next section covers how to create a @dfn{Merge
+Request}@footnote{You may probably know this already under the
+name @dfn{Pull Request}, as it is called on the GitHub platform.
+It's not exactly the same, though.} from your branch.
+
+In response to review comments, you may need to amend your
+changes.  Do @emph{not} close your merge request and open a new
+one; instead, amend your commits, which can be done with @code{git
+commit --amend} or @code{git rebase -i} as explained above.  Note
+that Git will by default refuse a push when you have amended your
+commits.  This is because this kind of push is a destructive
+operation: once it is done, the old commits are no longer
+available on the remote branch.  Git prevents this as a safety
+measure against deleting commits added by someone else without you
+realizing it.  Do not follow Git's advice to do @code{git pull}
+(which would try to integrate the remote changes into the local
+ones); instead, just force it with
+
+@example
+git push --force-with-lease
+@end example
+
+Also note that due to the way GitLab compares successive revisions
+of a merge request, it is preferable if you do not mix catching up
+with @code{master} and changing your commits.  In other words, use
+@code{git rebase -i $(git merge-base master HEAD)} rather than
+@code{git rebase -i master}.  Alternatively, first rebase on
+@code{master} and push, then do the interactive rebase and push
+again.
+
+
+@subheading Deleting branches
+
+After the merge request has passed testing and was merged to
+@code{master}, or after a failed experiment, you can delete your
+local branch.
+
+@example
+git switch master
+git branch -d cg-add-branches
+@end example
+
+As a safety measure, this will fail if the commits of
+@code{cg-add-branches} are not present in @code{master}.  This can be
+because you used GitLab to rebase your branch, which modifies the commit
+data and changes the hash.  If you are sure that the branch is not needed
+anymore, replace the @code{-d} on the final line with a @code{-D} instead.
+
+Over time, remote branches of accepted merge requests may accumulate in your
+local repository. If you want to delete these and get back to the state of the
+official repository, run
+
+@example
+git fetch -p origin
+@end example
+
+@noindent
+(short for @code{--prune}) once in a while.
+
+
+@need 1500
+@node Lifecycle of a merge request
+@section Lifecycle of a merge request
+
+
+@node Uploading a patch for review
+@subsection Uploading a patch for review
+
+@itemize
+@item
+Any non-trivial change should be reviewed as a merge request:
+
+@example
+@uref{https://gitlab.com/lilypond/lilypond/-/merge_requests}
+@end example
+
+@item
+Before uploading, you might wish to scan @ref{Code review
+checklist} or have a coding agent do it for you.
+
+@item
+Ensure your branch differs from latest @code{master} by just the changes
+to be uploaded.
+
+@item
+Make sure that @code{make}, @code{make test}, and @code{make doc} succeed.
+Even if the individual commits contain incomplete features, they must
+@strong{all} pass these tests.
+
+@item
+The names of branches pushed on the main repository should start
+with @code{dev/}.
+
+@item
+After pushing, create a merge request to start the review cycle.  There
+are multiple options for this as
+@uref{https://docs.gitlab.com/ee/user/project/merge_requests/,
+outlined in GitLab's documentation}.  This will also ask you for a message
+that will accompany your patch.
+
+@item
+If you are not a member of the team and create the merge request
+from a fork, consider enabling the box to @qq{Allow commits from
+members who can merge to the target branch}.  This makes it possible
+for somebody with permissions to rebase your changes and merge them
+for you.  Please refer to @ref{Merging to master} for more details.
+@end itemize
+
+@warning{When commenting on GitLab, be careful if you talk about
+Texinfo markup.  An @samp{@@} sign starts a reference to a person
+or a group.  If you leave it without special markup, @samp{@@foo}
+makes the person who has @code{foo} as a GitLab username receive
+unsolicited notifications.  To avoid this, enclose the markup in
+backticks: @code{`@@lilypond`}.  For code suggestions, there is
+also a dedicated feature, see
+@uref{https://docs.gitlab.com/ee/user/project/merge_requests/reviews/suggestions.html,
+the GitLab documentation} for information.}
+
+
+@node Automated testing
+@subsection Automated testing
+
+When a merge request is opened, a bot automatically adds the
+@code{Patch::new} label to it, and it enters the countdown cycle.
+GitLab triggers automated testing, which ensures that the patch
+completes @code{make}, @code{make check}, and @code{make doc}.
+
+After the CI pipeline has succeeded, the patch meister or any
+developer (even the author) should check the regression test
+comparison.  When there are no differences, the @qq{Test summary}
+section of the merge request page has a green check mark.  If it
+instead has a yellow exclamation mark, click the caret to expand
+the section, then click the @qq{View details} link next to the
+@qq{Machine review} entry.  A window pops up with a link to the
+regression test visual comparison page.
+
+If tests display no obviously bad differences, the patch can be
+advanced to @code{Patch::review}.  If the size of the regression
+test visual differences allows it, please paste screenshots of
+them on the merge request page for easier review.  Otherwise,
+simply paste a link to the that page.  Also, for changes that are
+by nature not expected to yield regression test differences, such
+as documentation improvements, it is not necessary to leave a
+comment at all.  In case any of the testing steps fails, the patch
+should be set to @code{Patch::needs_work}.  When revisions are
+made, this process repeats (if the regression test diff is not
+changed by the latest iteration, a comment stating so can replace
+posting screenshots again).
+
+
+@node Patch countdown
+@subsection Patch countdown
+
+The @dfn{Patch Meister} is the person who advances patches in the
+countdown process based on review comments.
+
+@warning{The Patch Meister's role is a purely administrative one and no
+programming skill or judgement is assumed or required.}
+
+The current Patch Meister is Colin Campbell
+(@email{cpkc.music@@shaw.ca}).
+
+The Patch Meister reviews the tracker periodically, to list
+patches which have been on review for at least 24 hours.  For each
+patch, the Patch Meister reviews any discussion on the merge
+request, to determine whether the patch can go forward.  If there
+is any indication that a developer thinks the patch is not ready,
+the Patch Meister marks it with @code{Patch::needs_work} and makes
+a comment regarding the reason, referring to the comment if
+needed.
+
+@enumerate
+@item
+Patches in @code{Patch::push} are waiting to be merged.
+Developers with permission merge their own patches, @pxref{Merging
+to master} and @ref{Commit access}.  New contributors should ask
+for their patches to be merged.  If a patch has remained long in
+this state, a nudge might be helpful.
+
+@item
+Patches in @code{Patch::countdown} for 48 hours advance to
+@code{Patch::push} if no problems have been found.
+
+@item
+Patches in @code{Patch::review} for 24 hours advance to
+@code{Patch::countdown} conditionally.  A patch with any amount of
+@q{AI-generated} material does not advance until a trusted
+developer (which may be the author) has vouched for it.  Other
+uses of AI (e.g., analysis, diagnostic testing) are not
+concerning; other patches advance if there have been no negative
+comments.
+
+@item
+Patches in @code{Patch::new} are handled as in @ref{Automated
+testing}.
+
+@end enumerate
+
+After updating patches in GitLab, the Patch Meister sends an email
+to the developer list.  The subject line has a fixed formatting,
+to enable filtering by email clients, like so:
+
+@example
+PATCHES: Countdown for February 30th
+@end example
+
+The text of the email sets the deadline for this countdown batch.  At
+present, batches are done on Tuesday, Thursday and Sunday evenings.
+
+At the next countdown, if no problems were found, the patch will be
+set to @code{Patch::push}.  New contributors should ask for it to be
+merged.  Developers merge their patches themselves, @pxref{Merging
+to master} and @ref{Commit access}.
+
+Alternately, your patch may be set to @code{Patch::needs_work},
+indicating that you should fix something (or at least discuss why the
+patch needs no modification).  It also happens that patches waiting
+for minor fixes are put on countdown a second time.
+
+Successive revisions made in response to comments are uploaded by
+pushing to the same branch.  GitLab automatically keeps track of all
+pushed commits and allows to compare revisions with each other.
+
+As in most organisations of unpaid volunteers, fixed procedures are
+useful in as much as they get the job done.  In our community, there
+is room for senior developers to bypass normal patch handling flows,
+particularly now that the testing of patches is largely automated.
+Similarly, the minimum age of 24 hours can reasonably be waived if
+the patch is minor and from an experienced developer.
+
+
+@node Merging to master
+@subsection Merging to master
+
+Before allowing a merge request to be merged, GitLab ensures the
+following:
+
+@enumerate
+@item
+The merge must be of type @q{fast-forward}.  In most cases, this
+can be achieved by @q{rebasing} the branch with the most recent
+commits from @code{master}.  GitLab provides a convenient button
+for that if no conflicts arise.  Otherwise, or if preferred, the
+operation can be (or has to be) performed locally.
+
+Please don't combine a rebase operation with changes of the merge
+request!  Do it in two steps instead (usually first committing
+changes to the merge request, then rebasing).  This makes it
+easier to review the changes.
+
+@item
+The (possibly rebased) changes must have passed automatic testing.
+This ensures that the @code{master} branch is always clean and ready
+for development and translation.
+
+@end enumerate
+
+After rebasing, GitLab will immediately start the automatic testing
+pipeline.  At the moment, all steps may take up to one hour to
+complete.  If you are confident about the rebased result of your
+changes, you may click @qq{Merge when pipeline succeeds} to avoid
+waiting for the tests.  On failure, the merge will be aborted and
+no harm is done to the @code{master} branch.
+
+Because GitLab enforces fast-forward merges, this means only one
+set of changes can be rebased and merged at once.  A second merge
+request would be rejected later on because it does not contain the
+commit(s) merged first.  To avoid wasting testing resources, please
+prevent this situation by checking first whether a pipeline with a scheduled
+merge is already running.  View the
+@uref{https://gitlab.com/lilypond/lilypond/-/merge_requests, list of
+merge requests} and verify that no merge request with @code{Patch::push}
+status has a blue @qq{timer} icon.
+
+
+@subsubheading How to merge a branch without rebasing
+
+It is generally recommended to rebase commits before merging to get
+a linear history.  However, this is not always possible or wanted.
+This particularly holds for translations and the
+@code{release/unstable} branch, which cannot be force-pushed.  For these
+cases, use the following procedure:
+
+@enumerate
+@item
+Merge the branch manually using the command line. The example
+merges the @code{dev/@/translation} branch, assuming no pending changes
+in the local @code{master} branch:
+
+@example
+git switch master
+git pull
+git merge dev/translation
+git push origin HEAD:dev/translation
+@end example
+
+@item
+Open a merge request at GitLab.  This will immediately trigger
+automatic testing as described above.
+
+@item
+Accept the merge request once the testing finishes, or use the
+button to @qq{Merge when pipeline succeeds}.
+
+@end enumerate
+
+
+@node Abandoned patches
+@subsection Abandoned patches
+
+Roughly at six month intervals, the Patch Meister can list the
+patches which have been set to @code{Patch::needs_work} and send the
+results to the developer list for review.  In most cases, these
+patches should be marked @code{Patch::abandoned} but this should come
+from the developer if possible.
+
+
+@node Writing good commit messages
+@section Writing good commit messages
+
+Your commit message should begin with a one-line summary describing the
+change (no more than 50 characters long), and if necessary a blank line
+followed by more explanatory text (wrapped at 72 characters).  Here is
+how a good commit message looks like:
+
+@example
+Doc: add Baerenreiter and Henle solo cello suites
+
+Added comparison of solo cello suite engravings to new essay with
+high-resolution images.  Fixed cropping on Finale example.
+
+Closes #1234.
+@end example
+
+The @qq{Closes} part is specially recognized by GitLab.  See the
+documentation for
+@uref{https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically,
+closing issues automatically}.
+
+Commit messages often start with a short prefix describing the general
+location of the changes.  Commits affecting the documentation in English
+(or in several languages simultaneously) should be prefixed with
+@qq{Doc:}.  When the commit affects only one of the translations, use
+@qq{Doc-**:}, where @var{**} is the two-letter language code.  For the
+website, this is @qq{Web:} or @qq{Web-**}.  Commits that change CSS files
+should use @qq{Web:@tie{}CSS} or @qq{Doc:@tie{}CSS:}.  Finally, changes
+to a single file are often prefixed with the name of the file involved.
+
+The imperative form, e.g. @qq{Include this in that}, is strongly
+preferred over the descriptive form @qq{That is now included in this}.
+
+See also @uref{https://chris.beams.io/posts/git-commit/, this blog post}
+for details on how to write good commit messages.
+
+
+
+
+@node Commit access
+@section Commit access
+
+New contributors are not able to push branches directly to the main
+repository -- only members of the LilyPond development team have
+@dfn{commit access}.  If you are a contributor and are interested in
+joining the development team, contact the Project Manager through the
+mailing list (@email{lilypond-devel@@gnu.org}).  Generally, only
+contributors who have already provided a number of patches which have
+been merged to the main repository will be considered for membership.
+
+If you have been approved by the Project Manager, navigate to
+@uref{https://gitlab.com/lilypond} and @q{Request access} to the
+group.  Make sure that your account can be related to your
+activity on the mailing list.  If in doubt, please post the user
+name after requesting access.
+
+Note that you will not have commit access until the Project Manager
+activates your membership.  Once your membership is activated, LilyPond
+should appear under the heading @qq{Groups} on your profile page.
+When this is done, you can test your commit access with a dry run:
+
+@example
+git push --dry-run --verbose
+@end example
+
+
+@node Further Git documentation resources
+@section Further Git documentation resources
+
+The following page on the Git website provides links to the Pro
+Git book and a variety of tutorials, as well as the official man
+pages (also available with @command{man git @dots{}}).
+
+@example
+@uref{https://git-scm.com/doc}
+@end example
+
+The GitLab user documentation contains tutorials on using Git and
+GitLab:
+
+@example
+@uref{https://docs.gitlab.com/ee/tutorials/#use-git}
+@end example
+
+
+
+@node Repository directory structure
+@section Repository directory structure
+
+The following is a verbatim output of the file @file{ROADMAP},
+which can be found in the top-level directory of LilyPond's git
+repository.
+
+@c TODO: integrate the roadmap better
+@indentedblock
+@smallformat
+@verbatiminclude ROADMAP
+@end smallformat
+@end indentedblock

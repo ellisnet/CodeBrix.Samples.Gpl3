@@ -1,0 +1,540 @@
+@c -*- coding: utf-8; mode: texinfo; -*-
+
+@need 1500
+@node Release work
+@chapter Release work
+
+
+@node Development phases
+@section Development phases
+
+There are 2 states of development on @code{master}:
+
+@enumerate
+
+@item @strong{Normal development}:
+Any commits are fine.
+
+@item @strong{Build-frozen}:
+Do not require any additional or updated libraries or make
+non-trivial changes to the build process.  Any such patch (or
+branch) may not be merged with master during this period.
+
+This should occur approximately 1 month before any alpha version
+of the next stable release, and ends when the next unstable branch
+begins.
+
+@end enumerate
+
+
+After announcing a beta release, branch @code{stable/2.x}.  There
+are 2 states of development for this branch:
+
+@enumerate
+@item @strong{Normal maintenance}:
+The following patches @strong{MAY NOT} be merged with this branch:
+
+@itemize
+@item Any change to the input syntax.  If a file compiled with a
+previous @code{2.x} (beta) version, then it must compile in the
+new version.
+
+Exception: any bugfix to a Critical issue.
+
+@item New features with new syntax @emph{may be committed},
+although once committed that syntax cannot change during the
+remainder of the stable phase.
+
+@item Any change to the build dependencies (including programming
+libraries, documentation process programs, or python modules used
+in the buildscripts).  If a contributor could compile a previous
+lilypond @code{2.x}, then he must be able to compile the new
+version.
+
+@end itemize
+
+@item @strong{Release prep}:
+Only translation updates and important bugfixes are allowed.
+
+@end enumerate
+
+
+
+@node Release checklist
+@section Release checklist
+
+A @qq{minor release} means an update of @code{@var{y}} in
+@code{2.@var{x}.@var{y}}.
+
+
+@subheading Preparing the release
+
+@enumerate
+
+@item
+Prepare the release branch (@code{release/unstable} for unstable
+releases or @code{stable/2.@var{x}} for stable releases).  It is
+recommended to use a separate repository for this, or at least a
+worktree.  The checked out repository must have no changes to
+tracked files.
+
+@itemize
+@item
+Pull the latest changes in the remote repository, then switch to
+and update the branch:
+@example
+git fetch origin
+git rebase origin/master release/unstable
+@end example
+(adapt as necessary for @code{stable/2.@var{x}})
+
+@item
+Remove untracked files from the repository, especially the
+@file{configure} script:
+@example
+git clean -dfx --exclude release/
+@end example
+(Keep untracked files in the @file{release/} directory, such as
+@file{release/binaries/downloads/} and local test builds.)
+
+@end itemize
+
+@item
+Generate the @file{configure} script and run it:
+@example
+./autogen.sh
+@end example
+
+@item
+Update the translation template @file{po/lilypond.pot}:
+@example
+make po-replace
+@end example
+
+@item
+Edit the news files:
+@itemize
+@item
+Copy the previous announcement from
+@file{Documentation/en/web/news-new.itexi} to
+@file{Documentation/en/web/news-old.itexi}.
+
+@item
+Create a new announcement in
+@file{Documentation/en/web/news-new.itexi}
+by adjusting the version number and the date.
+
+@item
+Adjust the headlines in
+@file{Documentation/en/web/news-headlines.itexi}
+accordingly.
+
+@end itemize
+
+@item
+Adjust version numbers in @file{VERSION}.  In most cases, this
+means setting @code{VERSION_DEVEL} to the current version.  Only
+change @code{VERSION_STABLE} if releasing a stable version.
+
+@item
+Commit the changes:
+@example
+git commit -m "po: Update template" -- po/lilypond.pot
+git commit -m "web: Update news" -- Documentation/en/web/
+git commit -m "Bump VERSION_DEVEL" -- VERSION
+@end example
+
+@end enumerate
+
+
+@subheading Creating the source release
+
+@enumerate
+@item
+Remove untracked files from the repository (see above):
+@example
+git clean -dfx --exclude release/
+@end example
+
+@item
+Generate the @file{configure} script and run it:
+@example
+./autogen.sh
+@end example
+
+@item
+Create the source tarball:
+@example
+make dist
+@end example
+
+@end enumerate
+
+The last step creates @file{out/lilypond-2.@var{x}.@var{y}.tar.gz},
+which will be the @qq{single source of truth} for the following
+steps.  Put it into a directory for the final upload step.
+
+
+@subheading Building the binaries and documentation
+
+These steps can be run in any order, or in parallel, with the exception of the
+Windows (mingw) build, that needs a run of the Linux build before.
+
+@itemize
+@item
+Build binaries on @qq{native} platforms (Linux and macOS) with
+the scripts in @file{release/binaries/} @emph{from the tarball}:
+@example
+./build-dependencies && ./build-lilypond /path/to/lilypond-2.@var{x}.@var{y}.tar.gz
+@end example
+
+@item
+Build binaries for Windows (needs a run of the previous step on
+Linux):
+@example
+./build-dependencies --mingw && ./build-lilypond --mingw /path/to/lilypond-2.@var{x}.@var{y}.tar.gz
+@end example
+
+@item
+Build the documentation using @file{release/doc/build-doc.sh}:
+@example
+./build-doc.sh /path/to/lilypond-2.@var{x}.@var{y}.tar.gz
+@end example
+
+@end itemize
+
+Collect all created binaries (@file{.tar.gz} and @file{.zip}) and
+documentation archives (@file{.tar.xz}) in the directory next to
+the source tarball.  If possible, give them some short testing
+to make sure everything works as expected.
+
+
+@subheading Uploading the release
+
+During this step, the artifacts from the previous steps are uploaded
+to @code{lilypond.org} and GitLab for the world to see.  Make sure
+everything is ready before proceeding.
+
+@enumerate
+@item
+Create a personal access token at
+@uref{https://gitlab.com/-/user_settings/personal_access_tokens}
+and select the @q{api} scope (complete read/write access).
+The token can be limited to auto-expire the next day.
+
+@item
+Upload the source tarball to @code{lilypond.org}:
+@example
+scp lilypond-2.@var{x}.@var{y}.tar.gz graham@@gcp.lilypond.org:/var/www/lilypond/downloads/sources/v2.@var{x}/lilypond-2.@var{x}.@var{y}.tar.gz
+@end example
+
+@item
+In the directory where you collected the binaries, run the script to
+upload the files to GitLab:
+@example
+/path/to/lilypond/release/upload.py --token @var{TOKEN} 2.@var{x}.@var{y}
+@end example
+
+@item
+Upload the documentation to @code{lilypond.org}:
+@example
+/path/to/lilypond/release/doc/upload-webdoc.sh 2.@var{x}.@var{y}
+@end example
+
+@end enumerate
+
+
+@subheading Tagging and announcing the release
+
+@enumerate
+@item
+In the repository that was used to create the release (check that
+@code{git log} has the expected commits;  @qq{Bump VERSION_DEVEL}
+should be the last one), tag the release:
+@example
+git tag -am "LilyPond 2.@var{x}.@var{y}" v2.@var{x}.@var{y}
+@end example
+
+@item
+Push the changes and the tag:
+@example
+git push origin HEAD:release/unstable v2.@var{x}.@var{y}
+@end example
+(adapt as necessary for @code{stable/2.@var{x}})
+
+@item
+Create a file @file{description.md} with a copy of the release
+announcement (may be formatted as Markdown for links).
+
+@item
+Create the release on GitLab:
+@example
+/path/to/lilypond/release/create-release.py --token @var{TOKEN} --description description.md 2.@var{x}.@var{y}
+@end example
+
+@end enumerate
+
+Creating a release on GitLab will automatically send an email to
+everbody who subscribed to release notifications.
+
+
+@subheading Post unstable release
+
+In this case, the release branch is @code{release/unstable}.
+
+@enumerate
+@item
+Update the @code{master} branch with the latest changes:
+@example
+git fetch origin
+git rebase origin/master master
+@end example
+
+@item
+Merge the release branch:
+@example
+git merge --no-ff release/unstable
+@end example
+
+@item
+Bump @code{PATCH_LEVEL} in the @file{VERSION} file and commit:
+@example
+git commit -m "Bump VERSION" -- VERSION
+@end example
+
+@item
+Push the branch to GitLab:
+@example
+git push origin HEAD:release/unstable
+@end example
+
+@item
+Create a merge request from @code{release/unstable} to merge the changes
+into @code{master}.
+
+@item Update the website as described in @ref{Uploading website}.
+
+@item Update the milestones at GitLab:
+@enumerate
+@item
+Make sure all merge requests and issues are added to the milestone
+of the released version.  Fill in the due date and close it.
+
+@item
+Create a new milestone for the next release (unless no more bugfix
+release is planned) and set the start date.
+
+@end enumerate
+
+@item
+Check open merge requests and remind people to update the
+@code{\version} statement in conversion rules and regression
+tests.
+
+@end enumerate
+
+@emph{After the website update appears on @code{lilypond.org}},
+send a release notice to @code{lilypond-devel} and @code{lilypond-user}
+with the same announcement text and possibly further instructions.
+
+
+
+@node Major release checklist
+@section Major release checklist
+
+A @qq{major release} means an update of @code{x} in @code{2.x.0}.
+
+@subheading Main requirements
+
+These are the current official guidelines.
+
+@itemize
+@item
+0 Critical issues for two weeks (14 days) after the latest release
+candidate.
+
+@end itemize
+
+
+@subheading Potential requirements
+
+These might become official guidelines in the future.
+
+@itemize
+@item
+Check reg test
+
+@item
+Check all 2ly scripts
+
+@item
+Check for emergencies the docs:
+
+@example
+grep FIXME --exclude "misc/*" --exclude "*GNUmakefile" \
+  --exclude "snippets/*" ????*/*
+@end example
+
+@item
+Check for altered regtests, and document as necessary:
+
+@example
+git diff -u -r release/2.@var{FIRST-CURRENT-STABLE} \
+  -r release/2.@var{LAST-CURRENT-DEVELOPMENT} input/regression/
+@end example
+
+@end itemize
+
+
+@subheading Housekeeping requirements
+
+Before the release:
+
+@itemize
+@item
+write release notes.  note: stringent size requirements for
+various websites, so be brief.
+
+@item
+Run convert-ly on all files, bump parser minimum version.
+
+@item
+Update lilypond.pot:
+
+@example
+make -C $LILYPOND_BUILD_DIR po-replace
+mv $LILYPOND_BUILD_DIR/po/lilypond.pot po/
+@end example
+
+@item
+Make directories on lilypond.org:
+
+@example
+~/download/sources/v2.@var{NEW-STABLE}
+~/download/sources/v2.@var{NEW-DEVELOPMENT}
+@end example
+
+@end itemize
+
+Shortly after the release:
+
+@itemize
+@item
+Move all current contributors to previous contributors in
+@file{Documentation/en/included/authors.itexi}.
+
+@item
+Delete old material in @file{Documentation/en/changes.tely}, but
+don't forget to check it still compiles!  Also update the version
+numbers:
+
+@example
+@@node Top
+@@top New features in 2.@var{NEW-STABLE} since 2.@var{OLD-STABLE}
+@end example
+
+@item
+Update the version of the search boxes in the Table of Contents sidebar to
+2.@var{NEW-DEVELOPMENT} (in @file{Documentation/lilypond.init}).
+
+@item
+Prevent crawlers from indexing the old documentation by adding lines
+to @file{Documentation/webserver/robots.txt} until:
+
+@example
+Disallow: /doc/v2.@var{OLD-STABLE}/
+@end example
+
+Do @emph{not} yet add a line for 2.@var{OLD-DEVELOPMENT} because the
+search for the documentation of 2.@var{NEW-STABLE} relies on it!
+
+@item
+Update the htaccess redirections (@code{/latest/}, @code{/stable/}, etc.@:)
+in @file{Documentation/webserver/lilypond.org.htaccess}.
+
+@item
+Add a link to the previous stable version's
+announcement, list of changes and contributors
+acknowledgements to the @q{Attic} page, in
+@file{Documentation/en/web/community.itexi}.
+
+@item
+Add a link to the previous stable version's documentation
+to @file{Documentation/en/web/manuals.itexi}.
+
+@end itemize
+
+@subheading Unsorted
+
+@itemize
+@item
+submit po template for translation: send url of tarball to
+@email{coordinator@@translationproject.org}, mentioning
+lilypond-VERSION.pot
+
+@item
+Send announcements to...
+
+News:
+
+@example
+comp.music.research
+comp.os.linux.announce
+
+comp.text.tex
+rec.music.compose
+@end example
+
+Mail:
+
+@example
+info-lilypond@@gnu.org
+info-gnu@@gnu.org
+planet@@gnu.org
+
+linux-audio-announce@@lists.linuxaudio.org
+linux-audio-user@@lists.linuxaudio.org
+linux-audio-dev@@lists.linuxaudio.org
+consortium@@lists.linuxaudio.org
+planetccrma@@ccrma.stanford.edu
+
+tex-music@@tug.org
+
+rosegarden-user@@lists.sourceforge.net
+denemo-devel@@gnu.org
+
+@end example
+
+Web (forums):
+
+@example
+imslpforums.org
+abcusers (Yahoo group)
+canorus (Github? Freenode IRC?)
+musescore.org/forum
+reddit.com/lilypond
+linuxquestions.org
+Slashdot
+
+@end example
+
+Web (websites and aggregators):
+
+@example
+lilypond.org
+https://savannah.gnu.org/news/submit.php?group_id=1673  @c => planet.gnu.org
+
+freshmeat.sourceforge.net
+linuxtoday.com
+lxer.com
+fossmint.com
+fsdaily.com
+freesoftwaremagazine.com
+lwn.net
+hitsquad.com/smm
+
+in French: linuxfr.org; framalibre.org
+
+@end example
+
+@end itemize

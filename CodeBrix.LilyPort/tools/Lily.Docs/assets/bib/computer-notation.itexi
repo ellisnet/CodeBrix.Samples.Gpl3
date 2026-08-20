@@ -1,0 +1,627 @@
+@c bib -> itexi intro
+@itemize
+
+@item
+G. Assayaag and D. Timis.
+@strong{A Toolbox for music notation}.
+In @emph{Proceedings of the 1986 International Computer Music Conference},
+  1986.
+
+
+
+
+
+@item
+M. Balaban.
+@strong{A Music Workstation Based on Multiple Hierarchical Views of Music}.
+San Francisco, In @emph{Proceedings of the 1988 International Computer Music
+  Conference}, 1988.
+
+
+
+
+
+@item
+Alan Belkin.
+@strong{Macintosh Notation Software: Present and Future}.
+@emph{Computer Music Journal}, 18(1), 1994.
+Some music notation systems are analysed for ease of use, MIDI handling. The
+  article ends with a plea for a standard notation format. HWN.
+
+
+
+
+@item
+Herbert Bielawa.
+@strong{Review of Sibelius 7}.
+@emph{Computer Music Journal}, 1993?.
+A raving review/tutorial of Sibelius 7 for Acorn. (And did they seriously
+  program a RISC chip in ... assembler ?!) HWN.
+
+
+
+
+@item
+Dorothea Blostein and Lippold Haken.
+@strong{Justification of Printed Music}.
+@emph{Communications of the ACM}, J34(3):88-99, March 1991.
+This paper provides an overview of the algorithm used in LIME for spacing
+  individual lines. HWN.
+
+
+
+
+@item
+Dorothea Blostein and Lippold Haken.
+@strong{The Lime Music Editor: A Diagram Editor Involving Complex
+  Translations}.
+@emph{Software Practice and Experience}, 24(3):289--306, march 1994.
+A description of various conversions, decisions and issues relating to this
+  interactive editor HWN.
+
+
+
+
+@item
+Nabil Bouzaiene, Loïc@tie{}Le Gall, and Emmanuel Saint@tie{}James.
+@strong{Une bibliothèque pour la notation musicale baroque}.
+LNCS. In @emph{EP '98}, 1998.
+Describes ATYS, an extension to Berlioz, that can mimick handwritten baroque
+  style beams.
+
+
+
+
+@item
+Donald Byrd.
+@strong{A System for Music Printing by Computer}.
+@emph{Computers and the Humanities}, 8:161-72, 1974.
+
+
+
+
+
+@item
+Donald Byrd.
+@strong{Music Notation by Computer}.
+PhD thesis, Indiana University, 1985.
+Describes the SMUT (sic) system for automated music printout.
+
+
+
+
+@item
+Donald Byrd.
+@strong{Music Notation Software and Intelligence}.
+@emph{Computer Music Journal}, 18(1):17--20, 1994.
+Byrd (author of Nightingale) shows four problematic fragments of notation, and
+  rants about notation programs that try to exhibit intelligent behaviour. HWN.
+
+
+
+
+@item
+Walter@tie{}B Hewlett and Eleanor Selfridge@tie{}Field.
+@strong{Directory of Computer Assisted Research in Musicology}.
+.
+Annual editions since 1985, many containing surveys of music typesetting
+  technology. SP.
+
+
+
+
+@item
+Alyssa Lamb.
+@strong{The University of Colorado Music Engraving page}.
+1996.
+Webpages about engraving (designed with finale users in mind) (sic) HWN.
+
+
+
+
+@item
+Roger@tie{}B. Dannenberg.
+@strong{Music Representation: Issues, Techniques, and Systems}.
+@emph{Computer Music Journal}, 17(3), 1993.
+This article points to some problems and solutions with music representation.
+  HWN.
+
+
+
+
+@item
+Michael Droettboom.
+@strong{Study of music Notation Description Languages}.
+Technical Report, 2000.
+GUIDO and lilypond compared. LilyPond wins on practical issues as usability and
+  availability of tools, GUIDO wins on implementation simplicity.
+
+
+
+
+@item
+R.@tie{}F. Ericson.
+@strong{The DARMS Project: A status report}.
+@emph{Computing in the humanities}, 9(6):291--298, 1975.
+Gourlay [gourlay86] writes: A discussion of the design and potential uses of
+  the DARMS music-description language.
+
+
+
+
+@item
+H.S. Field@tie{}Richards.
+@strong{Cadenza: A Music Description Language}.
+@emph{Computer Music Journal}, 17(4), 1993.
+A description through examples of a music entry language. Apparently it has no
+  formal semantics. There is also no implementation of notation convertor. HWN.
+
+
+
+
+@item
+Miguel Filgueiras.
+@strong{Some Music Typesetting Algorithms}.
+.
+
+
+
+
+
+@item
+Miguel Filgueiras and José@tie{}Paulo Leal.
+@strong{Representation and manipulation of music documents in SceX}.
+@emph{Electronic Publishing}, 6(4):507--518, 1993.
+
+
+
+
+
+@item
+Miguel Filgueiras.
+@strong{Implementing a Symbolic Music Processing System}.
+1996.
+
+
+
+
+
+@item
+Eric Foxley.
+@strong{Music --- A language for typesetting music scores}.
+@emph{Software --- Practice and Experience}, 17(8):485-502, 1987.
+A paper on a simple TROFF preprocessor to typeset music.
+
+
+
+
+@item
+Loïc@tie{}Le Gall.
+@strong{Création d'une police adaptée à la notation musicale baroque}.
+Master's thesis, École Estienne, 1997.
+
+
+
+
+
+@item
+Martin Gieseking.
+@strong{Code-basierte Generierung interaktiver Notengraphik}.
+PhD thesis, Universität Osnabrück, 2001.
+
+
+
+
+
+@item
+David@tie{}A. Gomberg.
+@strong{A Computer-Oriented System for Music Printing}.
+PhD thesis, Washington University, 1975.
+
+
+
+
+
+@item
+David@tie{}A. Gomberg.
+@strong{A Computer-oriented System for Music Printing}.
+@emph{Computing and the Humanities}, 11:63-80, march 1977.
+Gourlay [gourlay86] writes: "A discussion of the problems of representing the
+  conventions of musical notation in computer algorithms.".
+
+
+
+
+@item
+John.@tie{}S. Gourlay.
+@strong{A language for music printing}.
+@emph{Communications of the ACM}, 29(5):388--401, 1986.
+This paper describes the MusiCopy musicsetting system and an input language to
+  go with it.
+
+
+
+
+@item
+John@tie{}S. Gourlay, A. Parrish, D. Roush, F. Sola, and Y. Tien.
+@strong{Computer Formatting of Music}.
+Technical Report OSU-CISRC-2/87-TR3, Department of Computer and Information
+  Science, The Ohio State University, 1987.
+This paper discusses the development of algorithms for the formatting of
+  musical scores (from abstract). It also appeared at PROTEXT III, Ireland
+  1986.
+
+
+
+
+@item
+John@tie{}S. Gourlay.
+@strong{Spacing a Line of Music,}.
+Technical Report OSU-CISRC-10/87-TR35, Department of Computer and Information
+  Science, The Ohio State University, 1987.
+
+
+
+
+
+@item
+John Grøver.
+@strong{A computer-oriented description of Music Notation. Part III: Accidental
+  Positioning}.
+Technical Report 135, Department of informatics, University of Oslo, 1989.
+Placement of accidentals crystallised in an enormous set of rules. Same remarks
+  as for [grover89-twovoices] applies.
+
+
+
+
+@item
+John Grøver.
+@strong{A computer-oriented description of Music Notation. Part I. The Symbol
+  Inventory}.
+Technical Report 133, Department of informatics, University of Oslo, 1989.
+The goal of this series of reports is a full description of music formatting.
+  As these largely depend on parameters of fonts, it starts with a verbose
+  description of music symbols. The subject is treated backwards: from general
+  rules of typesetting the author tries to extract dimensions for characters,
+  whereas the rules of typesetting (in a particular font) follow from the
+  dimensions of the symbols. His symbols do not match (the stringent)
+  constraints formulated by eg. [wanske].
+
+
+
+
+@item
+John Grøver.
+@strong{A computer-oriented description of Music Notation. Part II: Two Voice
+  Sharing a Staff, Leger Line Rules, Dot Positioning}.
+Technical Report 134, Department of informatics, University of Oslo, 1989.
+A lot rules for what is in the title are formulated. The descriptions are long
+  and verbose. The verbosity shows that formulating specific rules is not the
+  proper way to approach the problem. Instead, the formulated rules should
+  follow from more general rules, similar to [parrish87-simultaneities].
+
+
+
+
+@item
+Lippold Haken and Dorothea Blostein.
+@strong{The Tilia Music Representation: Extensibility, Abstraction, and
+  Notation Contexts for the Lime Music Editor}.
+@emph{Computer Music Journal}, 17(3):43--58, 1993.
+
+
+
+
+
+@item
+Lippold Haken and Dorothea Blostein.
+@strong{A New Algorithm for Horizontal Spacing of Printed Music}.
+Banff, In @emph{International Computer Music Conference}, pages 118-119, Sept
+  1995.
+This describes an algorithm which uses springs between adjacent columns.
+
+
+
+
+@item
+Wael@tie{}A. Hegazy.
+@strong{On the Implementation of the MusiCopy Language Processor,}.
+Technical Report OSU-CISRC-10/87-TR34, Department of Computer and Information
+  Science, The Ohio State University, 1987.
+Describes the "parser" which converts MusiCopy MDL to MusiCopy Simultaneities
+  and columns. MDL is short for Music Description Language [gourlay86]. It
+  accepts music descriptions that are organised into measures filled with
+  voices, which are filled with notes. The measures can be arranged
+  simultaneously or sequentially. To address the 2-dimensionality, almost all
+  constructs in MDL must be labeled. MDL uses begin/end markers for attribute
+  values and spanners. Rightfully the author concludes that MusiCopy must
+  administrate a "state" variable containing both properties and current
+  spanning symbols. MusiCopy attaches graphic information to the objects
+  constructed in the input: the elements of the input are partially complete
+  graphic objects.
+
+
+
+
+@item
+Wael@tie{}A. Hegazy and John@tie{}S. Gourlay.
+@strong{Optimal line breaking in music}.
+Technical Report OSU-CISRC-8/87-TR33, Department of Computer and Information
+  Science, The Ohio State University,, 1987.
+
+
+
+
+
+@item
+Wael@tie{}A. Hegazy and John@tie{}S. Gourlay. (J.@tie{}C. van Vliet, editor).
+@strong{Optimal line breaking in music}.
+Cambridge University Press, In @emph{Proceedings of the International
+  Conference on Electronic Publishing, Document Manipulation and Typography.
+  Nice (France)}, April 1988.
+
+
+
+
+
+@item
+Walter@tie{}B. Hewlett and Eleanor Selfridge@tie{}Field, editors.
+@strong{The Virtual Score; representation, retrieval and restoration}.
+Computing in Musicology. MIT Press, 2001.
+
+
+
+
+
+@item
+H.@tie{}H. Hoos, K.@tie{}A. Hamel, K. Renz, and J. Kilian.
+@strong{The GUIDO Music Notation Format---A Novel Approach for Adequately
+  Representing Score-level Music}.
+In @emph{Proceedings of International Computer Music Conference}, pages
+  451--454, 1998.
+
+
+
+
+
+@item
+Peter@tie{}S. Langston.
+@strong{Unix music tools at Bellcore}.
+@emph{Software --- Practice and Experience}, 20(S1):47--61, 1990.
+This paper deals with some command-line tools for music editing and playback.
+
+
+
+
+@item
+Dominique Montel.
+@strong{La gravure de la musique, lisibilité esthétique, respect de l'oevre}.
+Lyon, In @emph{Musique & Notations}, 1997.
+
+
+
+
+
+@item
+Giovanni Müller.
+@strong{Interaktive Bearbeitung konventioneller Musiknotation}.
+PhD thesis, Eidgenössische Technische Hochschule Zürich, 1990.
+This is about engraver-quality typesetting with computers. It accepts the axiom
+  that notation is too difficult to generate automatically. The result is that
+  a notation program should be a WYSIWYG editor that allows one to tweak
+  everything.
+
+
+
+
+@item
+Cindy Grande.
+@strong{NIFF6a Notation Interchange File Format}.
+Grande Software Inc., 1995.
+Specs for NIFF, a reasonably comprehensive but binary format for notation HWN.
+
+
+
+
+@item
+Severo@tie{}M. Ornstein and John@tie{}Turner@tie{}Maxwell III.
+@strong{Mockingbird: A Composer's Amanuensis}.
+Technical Report CSL-83-2, Xerox Palo Alto Research Center, 3333 Coyote Hill
+  Road, Palo Alto, CA, 94304, January 1983.
+
+
+
+
+
+@item
+Severo@tie{}M. Ornstein and John@tie{}Turner@tie{}Maxwell III.
+@strong{Mockingbird: A Composer's Amanuensis}.
+@emph{Byte}, 9, January 1984.
+A discussion of an interactive and graphical computer system for music
+  composition.
+
+
+
+
+@item
+Stephen@tie{}Dowland Page.
+@strong{Computer Tools for Music Information Retrieval}.
+PhD thesis, Dissertation University of Oxford, 1988.
+Don't ask Stephen for a copy. Write to the Bodleian Library, Oxford, or to the
+  British Library, instead. SP.
+
+
+
+
+@item
+Allen Parish, Wael@tie{}A. Hegazy, John@tie{}S. Gourlay, Dean@tie{}K. Roush,
+  and F.@tie{}Javier Sola.
+@strong{MusiCopy: An automated Music Formatting System}.
+Technical Report, 1987.
+
+
+
+
+
+@item
+A. Parrish and John@tie{}S. Gourlay.
+@strong{Computer Formatting of Musical Simultaneities,}.
+Technical Report OSU-CISRC-10/87-TR28, Department of Computer and Information
+  Science, The Ohio State University, 1987.
+This note discusses placement of balls, stems, dots which occur at the same
+  moment ("Simultaneity").
+
+
+
+
+@item
+Steven Powell.
+@strong{Music engraving today}.
+Brichtmark, 2002.
+A "How Steven uses Finale" manual.
+
+
+
+
+@item
+Gary@tie{}M. Rader.
+@strong{Creating Printed Music Automatically}.
+@emph{Computer}, 29(6):61--69, June 1996.
+Describes a system called MusicEase, and explains that it uses "constraints"
+  (which go unexplained) to automatically position various elements.
+
+
+
+
+@item
+Kai Renz.
+@strong{Algorithms and data structures for a music notation system based on
+  GUIDO music notation}.
+PhD thesis, Universität Darmstadt, 2002.
+
+
+
+
+
+@item
+René Roelofs.
+@strong{Een Geautomatiseerd Systeem voor het Afdrukken van Muziek}.
+Number 45327. Master's thesis, Erasmus Universiteit Rotterdam, 1991.
+This dutch thesis describes a monophonic typesetting system, and focuses on the
+  breaking algorithm, which is taken from Hegazy & Gourlay.
+
+
+
+
+@item
+Joseph Rothstein.
+@strong{Review of Passport Designs' Encore Music Notation Software}.
+@emph{Computer Music Journal}, ?.
+
+
+
+
+
+@item
+Dean@tie{}K. Roush.
+@strong{Using MusiCopy}.
+Technical Report OSU-CISRC-18/87-TR31, Department of Computer and Information
+  Science, The Ohio State University, 1987.
+User manual of MusiCopy.
+
+
+
+
+@item
+D. Roush.
+@strong{Music Formatting Guidelines}.
+Technical Report OSU-CISRC-3/88-TR10, Department of Computer and Information
+  Science, The Ohio State University, 1988.
+Rules on formatting music formulated for use in computers. Mainly distilled
+  from [Ross] HWN.
+
+
+
+
+@item
+Eleanor Selfridge@tie{}Field, editor.
+@strong{Beyond MIDI: the handbook of musical codes}.
+MIT Press, 1997.
+A description of various music interchange formats.
+
+
+
+
+@item
+Donald Sloan.
+@strong{Aspects of Music Representation in HyTime/SMDL}.
+@emph{Computer Music Journal}, 17(4), 1993.
+An introduction into HyTime and its score description variant SMDL. With a
+  short example that is quite lengthy in SMDL.
+
+
+
+
+@item
+International@tie{}Organization for Standardization@tie{}(ISO).
+@strong{Information Technology - Document Description and Processing Languages
+  - Standard Music Description Language (SMDL)}.
+Number ISO/IEC DIS 10743. 1992.
+
+
+
+
+
+@item
+Leland Smith.
+@strong{Editing and Printing Music by Computer}, volume 17.
+1973.
+Gourlay [gourlay86] writes: A discussion of Smith's music-printing system
+  SCORE.
+
+
+
+
+@item
+F. Sola.
+@strong{Computer Design of Musical Slurs, Ties and Phrase Marks,}.
+Technical Report OSU-CISRC-10/87-TR32, Department of Computer and Information
+  Science, The Ohio State University, 1987.
+Overview of a procedure for generating slurs.
+
+
+
+
+@item
+F. Sola and D. Roush.
+@strong{Design of Musical Beams,}.
+Technical Report OSU-CISRC-10/87-TR30, Department of Computer and Information
+  Science, The Ohio State University, 1987.
+Calculating beam slopes HWN.
+
+
+
+
+@item
+Howard Wright.
+@strong{how to read and write tab: a guide to tab notation}.
+.
+FAQ (with answers) about TAB, the ASCII variant of Tablature. HWN.
+
+
+
+
+@item
+Geraint Wiggins, Eduardo Miranda, Alaaaan Smaill, and Mitch Harris.
+@strong{A Framework for the evaluation of music representation systems}.
+@emph{Computer Music Journal}, 17(3), 1993.
+A categorisation of music representation systems (languages, OO systems etc)
+  split into high level and low level expressiveness. The discussion of Charm
+  and parallel processing for music representation is rather vague. HWN.
+
+
+
+
+@end itemize
+@c bib -> itexi end

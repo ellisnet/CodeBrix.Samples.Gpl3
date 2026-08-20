@@ -56,7 +56,16 @@ format is enormous and what the engine actually uses is a small corner of it.
 HOW IT WAS MEASURED
 --------------------------------------------------------------------------------
 
-Over the notation manual's complete engraved output -- 2,546 SVG files, every
+⚠ RE-SCANNED 2026-08-19 after the CodeBrix.LilyScheme 1.0.232.256 pin bump, which
+took notation's engraving failures from 12 to 1 and so ADDED eleven pictures
+(2,546 -> 2,557): the eleven "Modern glyph charts" of notation-appendices.itely,
+which had been failing on a ranged SRFI-13 call. THE VOCABULARY DID NOT MOVE --
+eleven elements, thirty-four attributes and eleven font families, nothing added
+and nothing removed. Only the corpus size and the per-member counts changed. That
+is the outcome this gate exists to establish: eleven pictures that had never been
+scanned before demanded nothing new of a renderer.
+
+Over the notation manual's complete engraved output -- 2,557 SVG files, every
 picture the manual places -- not a sample. The scanner is SvgDialectInventory.cs
 in this folder, and the same code both froze the baseline and checks it, so the
 two cannot drift apart in interpretation.
@@ -168,7 +177,7 @@ example, and it happens to contain nearly the whole dialect in 23 lines.
 
 (3) PLACEMENT IS A FLAT LIST OF TRANSFORMED SIBLINGS. Each object sits in its
     own <g transform="translate(...)"> under the colour root. Nesting is shallow
-    but there is a LOT of it: 108,484 <g> elements across the 2,546 files -- a
+    but there is a LOT of it: 109,427 <g> elements across the 2,557 files -- a
     median of 17 per picture, a mean of 43, and the largest single picture
     carries 3,893. A renderer that recurses per group wants that number in mind.
 
@@ -199,7 +208,7 @@ THE FIVE THINGS THAT DECIDE WHETHER THE PICTURE IS RIGHT
 
    <svg width="135.6800mm" height="13.5824mm" viewBox="21.1461 8.0691 77.2094 7.7291">
 
-   All 2,546 files carry mm on the root and a viewBox in a DIFFERENT coordinate
+   All 2,557 files carry mm on the root and a viewBox in a DIFFERENT coordinate
    space. The engraver has already decided how big the picture is on paper, so a
    renderer that honours the mm size needs no DPI setting and no scaling
    heuristic: place it at the size it declares, and map the viewBox onto that
@@ -270,8 +279,8 @@ WHEN THIS FILE IS WRONG
 
 The gate (SvgDialectInventoryTests.cs, in this folder) fences the notation
 manual, which is by far the largest engraving load
-(2,546 of roughly 2,990 pictures across all nine manuals). The remaining eight
-manuals are rendered at wave LD5 and carry about 442 snippets between them; when
+(2,557 of 2,995 pictures across all nine manuals). The remaining eight manuals
+were rendered at wave LD5 and carry 438 snippets between them; when
 they run, re-scan and expect this vocabulary to hold. If it does not, the new
 member is the finding -- update inventory.tsv and this file together, in the same
 session, and tell whoever is implementing the renderer.

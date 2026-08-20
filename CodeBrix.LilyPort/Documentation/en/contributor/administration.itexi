@@ -1,0 +1,60 @@
+@c -*- coding: utf-8; mode: texinfo; -*-
+
+@node Administrative policies
+@chapter Administrative policies
+
+This chapter discusses miscellaneous administrative issues which
+don't fit anywhere else.
+
+
+@node LilyPond is GNU Software
+@section LilyPond is GNU Software
+
+LilyPond is a GNU software package.  As such, it falls under the
+requirements found in the
+@uref{https://www.gnu.org/@/prep/@/standards/,GNU Coding
+Standards}.  All suggested changes should move toward increased
+compliance with these Standards.
+
+
+@node Environment variables
+@section Environment variables
+
+Some maintenance scripts and instructions in this guide rely on
+the following environment variables.  They should be predefined in
+LilyDev distribution (see @ref{LilyDev}); if you set up your own
+development environment, you can set them by appending these settings to
+your @file{~/.bashrc} (or whatever defines your default environment
+variables for the user account for LilyPond development), then logging
+out and in (adapt directories to your setup):
+
+@example
+LILYPOND_GIT=~/lilypond-git
+export LILYPOND_GIT
+LILYPOND_BUILD_DIR=~/lilypond-git/build
+export LILYPOND_BUILD_DIR
+@end example
+
+The standard build and install procedure (with @code{autogen.sh},
+@code{configure}, @code{make}, @code{make install}, @code{make doc}
+@dots{}) does not rely on them.
+
+
+@node Performing yearly copyright update (grand-replace)
+@section Performing yearly copyright update (@qq{grand-replace})
+
+At the start of each year, copyright notices for all source files
+should be refreshed by running the following command from the top of
+the source tree:
+
+@example
+make grand-replace
+@end example
+
+Internally, this invokes the script @file{scripts/build/grand-replace.py},
+which performs a regular expression substitution for old-year -> new-year
+wherever it finds a valid copyright notice.
+
+Note that snapshots of third party files such as @file{texinfo.tex} should
+not be included in the automatic update; @file{grand-replace.py} ignores these
+files if they are listed in the variable @code{copied_files}.

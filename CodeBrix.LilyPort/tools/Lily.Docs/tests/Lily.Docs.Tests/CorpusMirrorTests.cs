@@ -84,10 +84,18 @@ public sealed class CorpusMirrorTests
         // in this tool is frozen against these exact bytes: an edited input changes what a
         // manual MEANS, and would show up as a baseline that "needed" re-freezing.
         wrong.Should().BeEmpty();
-        // 636 at wave LD3: the 633 D49(b) copied in, plus the three pictures this wave
-        // found — two @sourceimage targets and one \epsfile target named from inside a
-        // music snippet.
-        recorded.Count.Should().Be(636);
+        // HOW THE NUMBER GOT HERE, so a session that moves it can tell a re-sync from a
+        // mistake:
+        //   633  decision D49(b)'s original copy, 2026-08-18 -- the @include closure of the
+        //        eight corpus manuals then in the checkout, plus @lilypondfile targets.
+        //   636  wave LD3 -- three pictures, TWO of them @sourceimage targets and one an
+        //        \epsfile target named from inside a music snippet. Both routes were missed
+        //        by a survey that looked for literal @image commands.
+        //   690  wave LD5 -- contributor.texi and its thirteen chapters (decision D48 ruled
+        //        it in scope), plus forty more pictures measured the same way: 34 for essay,
+        //        5 for learning, and 1 for contributor, which the phase plan had recorded as
+        //        having none.
+        recorded.Count.Should().Be(690);
     }
 
     /// <summary>The manifest names every file in the mirror.</summary>

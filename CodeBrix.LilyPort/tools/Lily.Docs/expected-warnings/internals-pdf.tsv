@@ -1,2 +1,29 @@
-PAGES	1349
+# The Internals Reference's PDF, re-frozen at wave LD4 (2026-08-19) and READ before
+# freezing. Rendered from the same Texinfo pass as the HTML.
+#
+# ⚠ PAGES MOVED 1,349 -> 1,266, FOR TWO KNOWN REASONS AT ONCE, and that is one reason too
+# many to separate after the fact:
+#   (a) the page became A4 (595 x 842) where wave LD1 left it at the package default of
+#       US Letter (612 x 792) -- taller pages, fewer of them; and
+#   (b) the packages' latent line-metrics fix arrived in the same pin bump to 1.0.232.110.
+# Both were expected (the pair's own changes document predicted page counts would move).
+# The page SIZE is now frozen in this file precisely so the NEXT move has one explanation:
+# if the size rows are unchanged and PAGES moves, the layout changed.
+#
+# PDF_WARNINGS 0 and PDF_ITEMS 0: this manual's entire non-ASCII inventory is seven
+# Latin-1 code points, all covered. It carries no snippets, so SVG_RASTER_SCALE and
+# KEEP_UNCOVERED are recorded here as the settings the render RAN with rather than as
+# anything this manual exercises.
+#
+# ⚠ KEEP_UNCOVERED WENT false -> true AT WAVE LD5 (decision D56, ruled), AND PAGES DID NOT
+# MOVE. That pairing is the point: the flag is the only row that changed, so the re-freeze
+# has exactly one explanation. It changes nothing for this manual -- there is nothing here
+# for it to keep -- and it is ruled so that the next character no package font covers is
+# drawn as a visible box rather than removed.
+KEEP_UNCOVERED	true
+PAGES	1266
+PAGE_HEIGHT_PT	842
+PAGE_WIDTH_PT	595
+PDF_ITEMS	0
 PDF_WARNINGS	0
+SVG_RASTER_SCALE	2

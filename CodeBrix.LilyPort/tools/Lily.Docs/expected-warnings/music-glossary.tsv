@@ -1,0 +1,32 @@
+# ⚠ THE NINE WARNINGS EVERY MANUAL IN SCOPE EARNS, and they are furniture rather than
+# findings -- they come from the three VENDORED GFDL macro files, not from this manual:
+#   RawBlockSkipped 8   @tex blocks in common-macros.itexi (5), macros.itexi (1) and
+#                       cyrillic.itexi (1) -- raw TeX, which this chain has no typesetter
+#                       for and renders nothing for, by design. ⚠ The eighth belongs to
+#                       whichever of the two @tex blocks in common-macros.itexi the manual
+#                       reaches; every manual reaches the same set.
+#   Macro           1   common-macros.itexi:330 defines @macro cindex over the built-in
+#                       @cindex; the package keeps the built-in and says so.
+# Anything ABOVE that floor is this manual's own, and is explained below.
+# music-glossary -- MEASURED at wave LD5 (2026-08-19) and READ before freezing.
+#
+# NOTHING above the floor, which is a stronger result here than anywhere else in the phase.
+#
+# ⚠ THIS IS THE MANUAL DECISION D50 WAS ABOUT, AND THE ONLY PLACE IN NINE MANUALS THE
+# QUESTION CAN BE ASKED. Every other music symbol in scope is LilyPond markup inside a
+# @lilypond snippet -- drawn by the engine into an SVG and never handed to a text renderer
+# at all. These five are PROSE: a flat four times and a sharp once, inline in a chord-name
+# @multitable that the stylesheet sets in Merriweather, which carries neither character.
+#
+# They survive into BOTH formats. CodeBrix.Platform.Fonts.NotoMusic is on Html2Pdf's
+# per-glyph fallback chain, and coverage is decided against the resolved face's own cmap,
+# so the flat splits into a one-character Noto Music run without the prose changing font.
+# Before that shipped, the PDF removed them with a warning while the HTML kept them.
+#
+# Its 21 Greek characters render too. ⚠ Twenty of them, not twenty-one: the missing one is
+# a capital delta at music-glossary.tely:7077, inside a @multitable's column-width
+# PROTOTYPE row, which Texinfo measures and never prints. Recorded so the difference is not
+# read as a drop.
+Macro	1
+RawBlockSkipped	8
+TOTAL	9

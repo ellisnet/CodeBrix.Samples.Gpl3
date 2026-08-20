@@ -1,0 +1,91 @@
+\input texinfo @c -*- coding: utf-8; mode: texinfo; -*-
+@ignore
+    Translation of GIT committish: FILL-IN-HEAD-COMMITTISH
+
+    When revising a translation, copy the HEAD committish of the
+    version that you are working on.  For details, see the Contributors'
+    Guide, node Updating translation committishes..
+@end ignore
+
+@settitle LilyPond Contributor's Guide
+@documentencoding UTF-8
+@documentlanguage en
+@afourpaper
+
+@macro manualIntro
+This manual documents contributing to LilyPond version
+@version{}.  It discusses technical issues and policies that
+contributors should follow.
+
+This manual is not intended to be read sequentially; new contributors
+should only read the sections which are relevant to them.  For more
+information about different jobs, @pxref{Help us}.
+@end macro
+
+@c 'Contributor's Guide' was born 2007-09-15 with this commit:
+@c Add developers resources page
+@c author: John Mandereau
+@c commit: 135a5beef5c4cf893d02947cdfcb5bb90c854486
+@c   file: Documentation/devel.html.in
+
+@macro copyrightDeclare
+Copyright @copyright{} 2007--2026 by the authors.
+@end macro
+
+@dircategory LilyPond -- the music typesetter
+@direntry
+* Contributing: (lilypond-contributor). How to contribute to LilyPond.
+@end direntry
+
+@set FDL
+@include en/macros.itexi
+
+
+@lilyTitlePage{Contributor's Guide}
+
+
+@c TOC -- non-tex
+@ifnottex
+
+@menu
+* Introduction to contributing::
+* Quick start::
+* Working with source code::
+* Compiling::
+* Documentation work::
+* Website work::
+* LilyPond Wiki work::
+* Issues::
+* Regression tests::
+* Programming work::
+* Release work::
+* Modifying the Emmentaler font::
+* Administrative policies::
+
+Appendices
+
+* GNU Free Documentation License:: License of this document.
+@end menu
+
+@docMain
+@end ifnottex
+
+@contents
+
+@include en/contributor/introduction.itexi
+@include en/contributor/quick-start.itexi
+@include en/contributor/source-code.itexi
+@include en/contributor/compiling.itexi
+@include en/contributor/doc-work.itexi
+@include en/contributor/website-work.itexi
+@include en/contributor/lsr-work.itexi
+@include en/contributor/issues.itexi
+@include en/contributor/regressions.itexi
+@include en/contributor/programming-work.itexi
+@include en/contributor/release-work.itexi
+@include en/contributor/emmentaler-font.itexi
+@include en/contributor/administration.itexi
+
+@include en/fdl.itexi
+
+@bye

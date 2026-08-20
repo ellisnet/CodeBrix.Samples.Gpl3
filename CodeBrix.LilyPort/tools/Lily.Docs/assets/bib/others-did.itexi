@@ -1,0 +1,57 @@
+@c bib -> itexi intro
+@itemize
+
+@item
+Kevin@tie{}C. Baird.
+@strong{Real-time Generation of Music Notation via Audience Interaction Using
+  Python and GNU Lilypond}.
+In @emph{New Interfaces for Music Expression}, May 2005.
+(@uref{https://www.nime.org/proceedings/2005/nime2005_240.pdf,PDF 180kB}).
+
+
+
+
+@item
+Andrew@tie{}A. Cashner.
+@strong{Lilypond Music-Notation Software in the Digital-Humanities Toolbox}.
+@emph{Digital Humanities Quarterly}, 18(2), 2024.
+(@uref{http://www.digitalhumanities.org/dhq/vol/18/2/000573/000573.html,HTML}).
+
+
+
+
+@item
+Alexandre@tie{}Tachard Passos, Marcos Sampaio, Pedro Kröger, and Givaldo de
+  Cidra.
+@strong{Functional Harmonic Analysis and Computational Musicology in Rameau}.
+In @emph{Proceedings of the 12th Brazilian Symposium on Computer Music}, pages
+  207--210, 2009.
+(@uref{https://www.ic.unicamp.br/~tachard/docs/sbcm2009.pdf,PDF 97kB}).
+
+
+
+
+@item
+Graham Percival, Torsten Anders, and George Tzanetakis.
+@strong{Generating Targeted Rhythmic Exercises for Music Students with
+  Constraint Satisfaction Programming}.
+In @emph{International Computer Music Conference}, 2008.
+(@uref{https://webhome.cs.uvic.ca/~gtzan/work/pubs/icmc08gtzanB.pdf,PDF
+  196kB}).
+
+
+
+
+@item
+Alberto Simões, Anália Lourenço, and José@tie{}João Almeida.
+  (J.@tie{}Neves et al., editor).
+@strong{Using Text Mining Techniques for Classical Music Scores Analysis}.
+In @emph{New Trends in Artificial Intelligence}, 2007.
+(@uref{https://scispace.com/pdf/using-text-mining-techniques-for-classical-music-scores-3doiixbw0j.pdf,PDF
+  107kB}).
+
+
+
+
+@end itemize
+@c bib -> itexi end

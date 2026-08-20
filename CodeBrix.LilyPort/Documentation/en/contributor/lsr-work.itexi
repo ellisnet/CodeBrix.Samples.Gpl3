@@ -1,0 +1,451 @@
+@c -*- coding: utf-8; mode: texinfo; -*-
+
+@need 1500
+@node LilyPond Wiki work
+@chapter LilyPond Wiki work
+
+
+@node Introduction to the LilyPond Wiki
+@section Introduction to the LilyPond Wiki
+
+The @uref{https://wiki.lilypond.community/, LilyPond Wiki}, which
+is the successor of the LilyPond Snippet Repository (LSR), has a
+large collection of LilyPond examples.  A subset of these examples
+are automatically imported into the documentation, making it easy
+for users to contribute to the documentation without learning Git
+and Texinfo.
+
+
+@need 1000
+@node Adding and editing snippets
+@section Adding and editing snippets
+
+@subheading General guidelines
+
+When you create (or find!) a nice snippet, please add it to the
+Wiki.  Go to @uref{https://wiki.lilypond.community/, the LilyPond
+Wiki} and optionally log in -- if you haven't already, create an
+account.  Follow the help instructions on the website so that you
+know how to proceed.
+
+You should always tag a newly created page with a
+@uref{https://wiki.lilypond.community/wiki/Special:Categories,
+category} at the end of a page.  If you think a snippet is
+particularly informative and should be included in the
+documentation, suggest it in the snippet's @q{Discussion} page.
+Note that snippets intended for the LilyPond documentation must
+have a
+@uref{https://wiki.lilypond.community/wiki/Category:Included_in_the_official_documentation,
+special layout}.
+
+Please make sure that the LilyPond code follows our formatting
+guidelines, @pxref{LilyPond formatting}.
+
+If a new snippet created for documentation purposes compiles with
+the current stable LilyPond version, it should be added to the
+Wiki.  If a new snippet created for documentation purposes uses
+features that are not available in the current stable release of
+LilyPond, it should be put into directory
+@file{Documentation/@/snippets/@/new/} instead.  In both cases, a
+reference to the snippet should be added to the documentation.
+Please ask a documentation editor to add a reference to it in an
+appropriate place in the docs.  (Note -- it should appear in the
+@q{Snippets} manual automatically, once it has been imported into
+git and built.  @xref{LilyPond Wiki to Git}.)
+
+Snippets created or updated in
+@file{Documentation/@/snippets/@/new/} must be adjusted and copied
+to directory @file{Documentation/@/snippets/}.  This should be done
+by invoking the @command{makelsr.pl} script -- @emph{after} you
+have compiled LilyPond.  Assuming that your LilyPond build is in
+the top-level subdirectory @file{build/}, a proper invocation is
+
+@example
+cd /your/lilypond/git/top/dir
+scripts/auxiliar/makelsr.pl --new
+@end example
+
+@xref{The makelsr script}, for more details.
+
+Be sure that @samp{make doc} runs successfully before submitting a
+patch, to prevent breaking compilation (@pxref{Generating
+documentation}).
+
+
+@subheading Formatting snippets in @file{Documentation/snippets/new/}
+
+When adding a file to this directory, please use the following
+template (omitting the explanatory comments) @dots{}
+
+@example
+\version "2.xx.yy"
+
+\header @{
+  % Use existing Wiki categories other than 'Category:Included in
+  % the official documentation' and 'Category:Snippet' (see
+  % 'https://wiki.lilypond.community/wiki/Special:Categories' for
+  % a list) and omit the 'Category:' prefix.
+  categories = "Rhythms, Expressive marks"
+
+  % The documentation string must use Texinfo syntax.  In
+  % addition, `\` and `"` must be written as `\\` and `\"`,
+  % respectively.
+  texidoc = "
+This snippet demonstrates @@code@{\\foo@} ...
+"
+
+  % The snippet title string must be formatted similar to
+  % `texidoc`.  However, don't use markup commands like `@@emph`
+  % or `@@code` so that the title can be directly converted to a
+  % Wiki page title, which doesn't allow formatting.
+  doctitle = "Snippet title"
+@}
+
+<LilyPond code starts here>
+@end example
+
+@noindent
+@dots{} and name the file @file{snippet-title.ly}.
+
+It is important that the version number you use at the top of the
+snippet is the minimum LilyPond version that the file compiles
+with; for example, if the snippet requires 2.25.24, use
+@code{\version "2.25.24"}.
+
+Particular attention is also necessary for the @code{categories}
+and @code{doctitle} fields: the categories must match
+@uref{https://wiki.lilypond.community/wiki/Special:Categories,
+category names used in the Wiki}, and the @code{doctitle} must
+match the file name (@command{makelsr.pl} shows a helpful error
+message if it doesn't).
+
+The order of @code{\version}, @code{\header}, and the LilyPond
+code must be as shown above, otherwise @command{makelsr.pl} aborts
+with an error.  The same holds for the order of the
+@code{categories}, @code{texidoc}, and @code{doctitle} fields
+within @code{\header}.
+
+
+@node Snippet administration
+@section Snippet administration
+
+Wiki administrators should shepherd users who create or modify
+snippets.  An atom feed is available to track changes in the Wiki;
+see @uref{https://wiki.lilypond.community/wiki/Meta:About, the
+@q{about} info page} for more.
+
+Here is a checklist of the necessary tasks.
+
+@enumerate
+
+@item
+All snippets should have the @q{Category:Snippet} category set.
+
+@item
+Does the snippet make sense and does it actually do what the
+author claims that it does?  If you think the snippet is suited to
+be included into the LilyPond documentation, add the
+@q{Category:Included in the official documentation} category and
+at least one other category to classify it by topic.
+
+@item
+If the snippet is tagged with the @q{Category:Included in the
+official documentation} category, check whether the LilyPond
+source code matches our formatting guidelines, @pxref{LilyPond
+formatting}.
+
+Also, snippets tagged with this category should not be explaining
+(or replicating) existing material in the documentation.  They
+should not refer to the documentation either; the documentation
+should rather refer to them.
+
+@item
+If the snippet uses Scheme code, check that everything looks good
+and that there are no security risks.
+
+@warning{Somebody could add code like @code{#'(system "rm -rf /")}
+to a snippet, which would cause catastrophic results if executed!
+Take this step @strong{VERY SERIOUSLY}.}
+
+@end enumerate
+
+
+@node The makelsr script
+@section The @command{makelsr.pl} script
+
+As you might have guessed already, @command{makelsr.pl} is a
+@uref{https://perl.org, Perl} script.  Obviously, you need Perl to
+execute it, which you should now install in case it isn't already
+available on your system.
+
+There is a dependency on the @uref{https://pandoc.org,
+@command{pandoc} program}.  The script uses it to convert Wiki
+pages, which are formatted with
+@uref{https://www.mediawiki.org/wiki/Help:Formatting, MediaWiki
+Syntax}, to the Texinfo format.  This program must be installed,
+too.
+
+Furthermore, @command{makelsr.pl} needs a few additional modules
+that are not Perl core modules:
+
+@itemize
+@item File::Which
+@item IPC::Run3
+@item Pandoc
+@item Parallel::ForkManager
+@end itemize
+
+@noindent
+Either install missing modules with your package manager (if
+available) or use the @command{cpanm} command.@footnote{Most Perl
+distributions have this command included; if not, try to install a
+package named @q{cpanminus} or having @q{cpanminus} in its name.}
+
+A typical call might me
+
+@example
+cpanm --sudo Parallel::ForkManager
+@end example
+
+@noindent
+to download, compile, and install module
+@q{Parallel::@/ForkManager}.@footnote{Note that the program
+@command{cpanm} might be called differently; it sometimes has the
+Perl version appended to its name, for example
+@command{cpanm-5.34}.}
+
+The @option{--sudo} option makes the modules install into a system
+directory, for example @file{/usr/@/lib/@/perl5/@/site_perl/@/...}
+-- you need the superuser password for this.  If you don't want to
+do that for whatever reason, just omit @option{--sudo} and follow
+the instructions shown in @command{cpanm}'s error message to
+install Perl modules locally (i.e., without @command{sudo}
+rights).
+
+Finally, it needs to find the @command{convert-ly} script from the
+current LilyPond development build.
+
+By default, executing @command{makelsr.pl} performs the following
+actions.
+
+@itemize
+@item
+Download documentation snippets from the LilyPond Wiki.
+
+@item
+Delete all snippet and snippet list files in directory
+@file{Documentation/@/snippets/} (but not in
+@file{Documentation/@/snippets/@/new/}).
+
+@item
+Convert the snippets' documentation parts from MediaWiki syntax to
+Texinfo with the @command{pandoc} program, run the script
+@command{convert-ly} to update their LilyPond code parts to
+current syntax, and store them in
+@file{Documentation/@/snippets/}.
+
+@item
+Create snippet list files (with extension @file{.snippet-list})
+that group snippets by Wiki categories.  These files are used to
+structure LilyPond's @q{Snippets} manual.
+
+@item
+Convert all snippet files in
+@file{Documentation/@/snippets/@/new/} with @command{convert-ly}
+and output them to @file{Documentation/@/snippets/}, possibly
+overwriting existing files.
+@end itemize
+
+This flow of actions can be adjusted; say
+@samp{scripts/@/auxiliar/@/makelsr.pl --help} to get a detailed
+description of the provided command-line options and used
+environment variables.
+
+
+@c The value 1000 used elsewhere for holding `@section` and
+@c @subheading` together on one page is not sufficient here
+@c because of the footnote on the same page.  This is a bug in
+@c `texinfo.tex`; however, it is unclear whether it can ever be
+@c fixed in Texinfo because of very deep issues in the TeX engine.
+@need 1500
+@node LilyPond Wiki to Git
+@section LilyPond Wiki to Git
+
+Snippets used in the documentation are located in
+@file{$LILYPOND_GIT/@/Documentation/@/snippets/}.  This directory
+contains a set of all snippets in the LilyPond Wiki that are
+tagged with the category @q{Category:Included in the official
+documentation}.  An import is done with the @code{makelsr.pl}
+script, which downloads all documentation snippets from the Wiki
+to update this directory.
+
+Snippets that need a newer LilyPond version than the current
+stable release are located in directory
+@file{$LILYPOND_GIT/@/Documentation/@/snippets/@/new/}.  Once
+LilyPond gets upgraded to the next stable version that can
+actually compile them, they are transferred to the Wiki and
+deleted from @file{snippets/@/new/}.
+
+@q{Git} is the shorthand name for LilyPond's git repository, which
+contains all the development code.  For further information on
+setting this up, @pxref{Working with source code}.  An alternative
+to setting up a git repository for people wanting to do LilyPond
+Wiki work is to get the source code from
+@uref{https://lilypond.org/development.html}.  However, we don't
+recommend this since it doesn't allow easy submission of patches
+as merge requests.
+
+
+@subheading Importing the LilyPond Wiki into Git
+
+@enumerate
+
+@item
+Make sure that the @command{convert-ly} script is a bleeding edge
+version -- the latest development release, or even better, freshly
+compiled from git master, with the environment variable
+@code{LILYPOND_BUILD_DIR} correctly set up (@pxref{Environment
+variables}) in case your build directory isn't
+@file{$LILYPOND_GIT/@/build/}.
+
+@item
+Check the other prerequisites necessary for executing the
+@command{makelsr.pl} script (@pxref{The makelsr script}).
+
+@item
+If you are using a git repository, create and check out a branch,
+for example
+
+@example
+git checkout -b wiki-import
+@end example
+
+@item
+From the top source directory, execute
+
+@example
+scripts/auxiliar/makelsr.pl --diff-version-update
+@end example
+
+Say @samp{scripts/auxiliar/makelsr.pl --help} to find out how to
+modify this call; for example, command-line option @option{--dump}
+makes the script create a dump file of the Wiki that can be read
+in a later run with option @option{--input}.
+
+@item
+Carefully check the output of the script for warnings and errors,
+then carefully check the file differences in the git repository.
+@samp{git diff} is your friend.
+
+@item
+Rebuild the documentation.  If some snippets from
+@file{Documentation/@/snippets/} cause the documentation
+compilation to fail, try the following steps to fix it.
+
+@itemize
+
+@item
+Look up the snippet file name @file{@var{foo}.ly} in the error
+output or log file, then fix the file
+@file{Documentation/@/snippets/@/@var{foo}.ly} to make the
+documentation build successfully.
+
+@item
+Determine where the snippet comes from by looking at its first two
+lines, e.g., run
+
+@example
+head -2 Documentation/snippets/@var{foo}.ly
+@end example
+
+@item
+If the snippet comes from the LilyPond Wiki, also apply the fix to
+the snippet in the Wiki, @pxref{Adding and editing snippets}.
+
+Note that the failure may sometimes not be caused by the snippet
+in the Wiki but by LilyPond syntax changes that
+@command{convert-ly} can't handle automatically.  Such files
+@emph{must} be added to the @file{new/} directory.
+
+@item
+If the snippet comes from directory
+@file{Documentation/@/snippets/@/new/}, apply the fix in
+@file{Documentation/@/snippets/@/new/@/@var{foo}.ly} and run
+@command{makelsr.pl} as follows:
+
+@example
+scripts/auxiliar/makelsr.pl --new
+@end example
+
+Then, inspect @file{Documentation/@/snippets/@/@var{foo}.ly} to
+check that the fix has been propagated correctly.
+
+@item
+If the build failure was caused by a translation string, you may
+have to fix some
+@file{Documentation/@/@var{lang}/@/texidocs/@/@var{foo}.texidoc}
+files instead.
+
+@end itemize
+
+@item
+When you are done, commit your changes to your git branch and
+create a merge request (@pxref{Lifecycle of a merge request}).
+
+@end enumerate
+
+
+Below is a simple shell script to process all @file{.ly} files in
+a directory sequentially (i.e., no support for parallel
+execution); this might help you find problems with snippets.  If
+you pass option @option{-s} to the script, it runs silently except
+for reporting failed files.  If run with option @option{-c} it
+also executes @command{convert-ly} prior to running
+@command{lilypond}.  You need to set the @env{LILYPOND_BUILD_DIR}
+environment variable so that the two programs are found.
+
+@smallexample
+#!/bin/bash
+
+while getopts sc opt; do
+    case $opt in
+        s) silent=true ;;
+        c) convert=true ;;
+    esac
+done
+
+param=$@
+if [ $silent ]; then
+    param=$@{param:3@}
+fi
+if [ $convert ]; then
+    param=$@{param:3@}
+fi
+filter=$@{param:-"*.ly"@}
+
+for LILYFILE in $filter; do
+    STEM=$(basename "$LILYFILE" .ly)
+    if [ $convert ]; then
+        if [ $silent ]; then
+            $LILYPOND_BUILD_DIR/out/bin/convert-ly \
+		-e "$LILYFILE" >& "$STEM".con.txt
+        else
+            $LILYPOND_BUILD_DIR/out/bin/convert-ly \
+		-e "$LILYFILE"
+        fi
+    fi
+    if [ ! $silent ]; then
+        echo "processing $LILYFILE..."
+    fi
+    $LILYPOND_BUILD_DIR/out/bin/lilypond \
+	--format=png "$LILYFILE" >& "$STEM".txt
+    RetVal=$?
+    if [ $RetVal -gt 0 ]; then
+       echo "$LILYFILE failed"
+    fi
+done
+@end smallexample
+
+This script stores logging output from @command{lilypond} and
+@command{convert-ly} in files @file{@var{filename}.txt} and
+@file{@var{filename}.con.txt}, respectively.

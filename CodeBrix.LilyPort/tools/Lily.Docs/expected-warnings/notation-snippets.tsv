@@ -5,11 +5,17 @@
 # having failed. The Texinfo warning profile in notation.tsv is IDENTICAL across runs
 # with 114, 28 and 12 failures -- measured, not supposed -- which is why this file exists.
 #
+# ⚠ UNCHANGED AT WAVE LD4, AND THAT IS ITSELF A RESULT. LD4 added the PDF, and both
+# formats now come out of ONE pass over the Texinfo source. Rendering them separately
+# would have engraved every snippet once per format -- the package's coordinator dedupes
+# only WITHIN a render -- and every number below would have doubled. They did not.
+#
 # HISTORY OF THIS NUMBER, so a later session can see which way it has been moving:
 #   114  first full render (wave LD3)
 #    28  after the snippet include path and the explicit-\book handler, both docs-layer
 #    12  after ly:system-font-load and the lexer's catch-all rule, both ENGINE fixes
 #         ruled by Jeremy 2026-08-19 and verified by the full Phase-4 battery
+#    12  wave LD4, HTML + PDF from one pass -- no change, as intended
 #
 # THE 12, every one of them accounted for:
 #
@@ -17,17 +23,73 @@
 #       its 26 snippets whose glyph names run past 24 characters. font-table.ly's
 #       doc-char splits a long name at a dot, and only that branch calls
 #         (string-rindex name #\. 0 middle-pos)   and   (string-index name #\. middle-pos)
-#       ⚠ THE PORT'S SCHEME HAS NEITHER FORM. CodeBrix.LilyScheme defines string-index
-#       with arity 2 and does not define string-rindex at all, while Guile's are
-#       (string-index s char_pred [start [end]]) and the matching rindex. The engine
-#       reports "wrong-number-of-args (string-index)" and the book is lost.
+#       against Guile's (string-index s char_pred [start [end]]) and the matching rindex.
+#       MEASURED at their exact locations by wave LD4's render: notation-appendices.itely
+#       lines 703, 721, 739, 811, 871, 880, 889, 898, 907, 916 and 925, every one of them
+#       reporting wrong-number-of-args ("string-index").
+#
+#       ⚠ AN EARLIER NOTE HERE SAID CodeBrix.LilyScheme "does not define string-rindex at
+#       all". THAT IS WRONG, and the truth is worse. MEASURED 2026-08-19 against the
+#       PINNED package 1.0.231.206, with the oracle's own Guile as the reference:
+#         * string-index is arity 2..2, so the three-argument call THROWS. Loud. This is
+#           what loses the book, and it is the only half that has ever been seen.
+#         * string-rindex EXISTS, declares arity 2..4, ACCEPTS start and end -- and then
+#           ignores them. (string-rindex "accidentals.doublesharp.arrowdown" #\. 0 16)
+#           answers 23; Guile answers 11. Silent.
+#       So fixing only the loud half would make these eleven charts RENDER, and render
+#       WRONG: left-dot-pos comes back 23 instead of 11, the (> left-distance
+#       right-distance) test flips, and the name breaks at the wrong dot with no error,
+#       no warning and no count able to see it. Both halves have to move together, and
+#       the gate needs a case whose ranged answer differs from its unranged one.
+#       The same "declares the optional range, ignores it" pattern is in seven more
+#       SRFI-13 primitives there (string-count, string-pad, string-pad-right,
+#       string-reverse, string-titlecase, string-delete, string-filter);
+#       font-table.ly:162-163 is the only ranged call site in this whole repository.
 #
 #       The other 15 of the 26 engrave, which is what ly:system-font-load bought: the
 #       appendix's short-named charts are IN the manual now.
 #
-#       ⚠ FOR JEREMY: the fix is in CodeBrix.LilyScheme -- a different repository, a
-#       package republish, and BOTH LilyPort pins moving together. It was NOT in the GO
-#       that covered ly:system-font-load and the lexer, so it is recorded and not done.
+#       ✅ THE LILYSCHEME FIX IS PUBLISHED --
+#       CodeBrix.LilyScheme.LgplLicenseForever 1.0.232.256 IS LIVE ON NUGET.ORG
+#       (Jeremy, 2026-08-19; verified against the flat-container index the same day).
+#       That session implemented the optional [start [end]] ranges across the whole
+#       SRFI-13 family, widened string-index to 2..4 and moved it beside its twin, and
+#       gated it with Srfi13RangeTests (12 cases, every one ranged-differs-from-unranged
+#       -- the control the silent half requires). Suite 349/349.
+#
+#       ✅ THE BUMP WAS TAKEN 2026-08-19 AND THIS FILE NOW READS 1. Both pins moved
+#       together to 1.0.232.256 (src/CodeBrix.LilyPort.Engine and src/CodeBrix.LilyPort)
+#       and the FULL Phase-4 battery was re-run green, every figure reproducing the
+#       board: sweep 2,121/25/0 with 2,317 pages, comparator MATCH 2,294, ratchet 0
+#       regressions and 0 improvements, gate 2,305 + 11, ledger 155 rows with worst
+#       0.044635 mm, diagnostics 2,146/2,146, docs G8 19/19 byte-identical, MIDI 90/90
+#       fresh, LilyPort suites 1,760. ⚠ THE CORPUS DID NOT MOVE, AND THAT IS THE CORRECT
+#       READING: the ranged SRFI-13 calls are reached from font-table.ly's doc-char,
+#       which lives in the DOCUMENTATION build and in no regression input.
+#
+#       ENGRAVED 2543 -> 2554, PICTURES 2546 -> 2557, DOCUMENT_IMAGES 2548 -> 2559,
+#       FAILED 12 -> 1, ASKED and DECLINED unchanged. The PDF went 1,272 -> 1,280 pages
+#       and its 22 Hebrew drops did not move.
+#
+#       ✅ AND THE ELEVEN WERE CHECKED FOR CORRECTNESS, NOT MERELY FOR APPEARING --
+#       which is what the note below demanded, and it was the whole point. The loud half
+#       of the defect (string-index throwing on three arguments) is what lost the books;
+#       the SILENT half (string-rindex accepting start/end and ignoring them) would have
+#       made the same eleven charts render with their long glyph names split at the WRONG
+#       dot, with no error, no warning, and no count able to see it. A chart that appears
+#       is not evidence that it is right.
+#
+#       HOW IT WAS PROVEN: all eleven charts were engraved by the PINNED ORACLE
+#       (lilypond 2.27.2, -dbackend=svg over the same doc-chars lists) and its text runs
+#       frozen as the reference -- 516 runs across the eleven, 100 of them split-name
+#       continuations. The port's own engravings then matched ALL ELEVEN EXACTLY, run
+#       for run: clefs 19, numbers 66, accidentals 55, scripts 91, vaticana 47,
+#       medicaea 19, hufnagel 19, mensural 123, neomensural 40, petrucci 23, solesmes 14.
+#       The decisive shape is visible by eye in the accidentals chart: a correct split
+#       puts the break at the FIRST dot, so the continuation run reads ".doublesharp.-
+#       arrowdown" (two dots), where the silent bug would have produced ".arrowdown"
+#       (one). All 100 continuations carry the oracle's own split point.
+#       Evidence + the comparison script: ~/ClaudeHome/lilydocs-pinbump-evidence/.
 #
 #    1  rhythms.itely:912, { \skip 1 \skip1 \skip 1 } -- which produces no picture
 #       because it produces no music. The manual's own prose introduces it with "The
@@ -40,7 +102,7 @@
 #       Teaching the renderer to call an empty result legitimate would have hidden all 35.
 ASKED	2555
 DECLINED	0
-DOCUMENT_IMAGES	2548
-ENGRAVED	2543
-FAILED	12
-PICTURES	2546
+DOCUMENT_IMAGES	2559
+ENGRAVED	2554
+FAILED	1
+PICTURES	2557

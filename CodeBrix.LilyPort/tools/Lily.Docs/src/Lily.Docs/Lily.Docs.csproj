@@ -45,4 +45,26 @@
           CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
+  <!--
+    Decision D57 (2026-08-19). Two more vendored sets, copied beside the assembly for
+    the same reason assets/en is: the tool must run out of its output directory with no
+    repository present.
+
+      bib/     the five bibliographies translated ONCE by the BibTeX oracle, plus the
+               .bst style program that produced them (reference only — nothing executes
+               it). The essay manual cannot render its literature list without three of
+               these; upstream makes them at build time and they exist in no checkout.
+      staged/  ROADMAP and code-review-checklist.md, which the Contributor's Guide prints
+               verbatim. Upstream stages them out of the source tree the same way.
+
+    ⚠ Globbed rather than named so a re-sync that adds a file does not silently fail to
+    copy it — the MANIFEST.sha256 gates are what fence the CONTENT.
+  -->
+  <ItemGroup>
+    <None Include="..\..\assets\bib\*" Link="assets\bib\%(Filename)%(Extension)"
+          CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\assets\staged\*" Link="assets\staged\%(Filename)%(Extension)"
+          CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>
