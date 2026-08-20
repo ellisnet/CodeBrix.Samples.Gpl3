@@ -364,8 +364,8 @@ ENGRAVING SEAM above.
 PACKAGE PINS -- THE TWO MOVE TOGETHER
 --------------------------------------------------------------------------------
 
-    CodeBrix.Texinfo2Html.MitLicenseForever   1.0.220.120
-    CodeBrix.Texinfo2Pdf.MitLicenseForever    1.0.220.120
+    CodeBrix.Texinfo2Html.MitLicenseForever   1.0.232.110
+    CodeBrix.Texinfo2Pdf.MitLicenseForever    1.0.232.110
 
 Both are named in src/Lily.Docs/Lily.Docs.csproj even though the PDF package
 brings the HTML one transitively, so the pin is visible in one place. Bumping

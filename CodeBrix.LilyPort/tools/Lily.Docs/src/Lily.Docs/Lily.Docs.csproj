@@ -19,8 +19,8 @@
     place and so neither can drift.
   -->
   <ItemGroup>
-    <PackageReference Include="CodeBrix.Texinfo2Html.MitLicenseForever" Version="1.0.220.120" />
-    <PackageReference Include="CodeBrix.Texinfo2Pdf.MitLicenseForever" Version="1.0.220.120" />
+    <PackageReference Include="CodeBrix.Texinfo2Html.MitLicenseForever" Version="1.0.232.110" />
+    <PackageReference Include="CodeBrix.Texinfo2Pdf.MitLicenseForever" Version="1.0.232.110" />
   </ItemGroup>
 
   <!--
