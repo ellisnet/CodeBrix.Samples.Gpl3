@@ -191,6 +191,24 @@ public sealed class LilyPortHost
             return LilyPortEngraver.EngraveToSvg((MusicObject)music);
         }, cancellationToken);
 
+    /// <summary>
+    /// Runs work that drives the engine but needs no interpreter handle of its own —
+    /// documentation generation and manual rendering, whose engine calls go through
+    /// BatchRunner rather than through this host's interpreter.
+    /// </summary>
+    /// <typeparam name="T">What the work returns.</typeparam>
+    /// <param name="work">The work to run.</param>
+    /// <param name="cancellationToken">Cancels the WAIT for the engine gate; a running
+    /// evaluation cannot be interrupted.</param>
+    /// <returns>The work's result.</returns>
+    /// <remarks>
+    /// It still goes through the engine gate and the big-stack thread, because the engine
+    /// is process-global in both senses: two engine operations at once corrupt each other's
+    /// state, and the Scheme layer overflows a default CLR stack wherever it is called from.
+    /// </remarks>
+    public Task<T> RunEngineWorkAsync<T>(Func<T> work, CancellationToken cancellationToken) =>
+        RunOnEngineAsync(_ => work(), cancellationToken);
+
     private Task EnsureLoadTask()
     {
         lock (_gate)

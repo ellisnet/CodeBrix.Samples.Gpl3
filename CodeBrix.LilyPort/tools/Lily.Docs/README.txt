@@ -70,6 +70,56 @@ half of it is under a second; all of the time is music. Asking for BOTH formats
 does not double that: one pass over the source feeds both outputs.
 
 --------------------------------------------------------------------------------
+THE SAME CAPABILITY FROM THE SHELL -- Lily.Shell's `docs' COMMAND
+--------------------------------------------------------------------------------
+
+Decision D52 ruled Lily.Docs a repo tool that ships nothing AND a `docs' command
+in Lily.Shell, so the manuals are reachable without building a separate tool. The
+command lives in tools/Lily.Shell/src/Lily.Shell.Core/Commands/DocsCommand.cs and
+drives THIS project in-process:
+
+    lily> docs                        list the nine manuals, and say whether the
+                                      nineteen files have been generated yet
+    lily> docs contributor            both formats, into /tmp/lily-shell-docs/
+    lily> docs notation --html        one format
+    lily> docs learning -o ~/manuals  somewhere else
+    lily> docs notation --no-snippets the control run: no engraver, seconds
+
+The manual names are read from ManualCatalog rather than repeated, so a manual
+added there is renderable from the shell with no edit here. A hand-kept second
+list is exactly how the tool and the shell would come to disagree about what
+"nine manuals" means.
+
+⚠ THE SHELL RENDERS; IT DOES NOT FREEZE. Lily.Docs' --baseline switch is
+deliberately absent from the command, and Lily.Shell.Core.Tests asserts that
+`--baseline' is rejected as an unknown option so the omission cannot be read
+later as an oversight. A baseline is frozen from a run that was READ, in the
+repository, by the tool that owns the file.
+
+⚠ GENERATION IS ONCE PER SESSION THERE, BECAUSE IT IS ONCE PER PROCESS HERE (see
+AND GENERATION HAPPENS ONCE PER PROCESS above). A shell is where the trap is
+easiest to hit -- `docs internals' followed by `docs notation' is two calls in one
+process -- so DocsRunner generates on the first command and every later one reuses
+those bytes. The second generation would not throw; it would report all nineteen
+files missing and let the next manual render out of an empty directory.
+
+⚠ THE EIGHT CORPUS MANUALS NEED THE REPOSITORY; internals does not. The corpus
+mirror is found by walking up from the running assembly to CodeBrix.LilyPort.slnx
+(ToolPaths), so a copy of Lily.Shell moved out of its build tree can still render
+`internals' -- the vendored assets travel beside the assembly -- and answers any
+other manual with "could not find CodeBrix.LilyPort.slnx above ...". That is the
+honest failure: the corpus is 3.4 MB of FDL source that the tool reads, not carries.
+
+⚠ AND IT IS THE REASON Lily.Shell CARRIES THE Texinfo -> Html2Pdf -> SkiaSharp
+CHAIN. That chain is refused for CodeBrix.LilyPort because the shipped package
+must not carry it; Lily.Shell ships nothing, and MEASURED 2026-08-19 its heads
+already carried 561 MB of the identical SkiaSharp 4.151.0 native assets through
+CodeBrix.Platform, so the reference cost 45 MB of managed assemblies and two more
+font packages rather than the native payload. Roboto and Roboto Mono resolved at
+the versions Lily.Shell already pinned, so the app's own font surface did not
+move.
+
+--------------------------------------------------------------------------------
 TESTS -- THE VSTest DIALECT, CHOSEN DELIBERATELY
 --------------------------------------------------------------------------------
 
@@ -515,7 +565,7 @@ is on the path for `en/macros.itexi'. Last is deliberate: if a corpus mirror eve
 carried a real colorado.itexi, the corpus copy should win -- we are standing in for
 a build product, not overriding a source.
 
-WHAT THE MANUAL-SPECIFIC GATES SAYWHAT THE MANUAL-SPECIFIC GATES SAY
+WHAT THE MANUAL-SPECIFIC GATES SAY
 
   contributor is rendered TWICE. Its catalogue entry declares engravesSnippets:
   false, and a manual rendered with no engraver is exactly what a manual whose
@@ -597,19 +647,36 @@ MANUALS
     internals    LilyPond Internals Reference -- one of the port's own nineteen
                  generated files, and the only one that is a complete standalone
                  manual. Zero snippets, one @include, 810 nodes. Wave LD1.
+                                                   0 snippets  1266 pages
 
     notation     LilyPond Notation Reference -- corpus prose whose APPENDICES are
                  the port's other eighteen generated files, so rendering it is the
                  act the whole phase is named for. HTML at wave LD3, PDF at wave
                  LD4.
+                                                2555 snippets  1280 pages
 
     learning     LilyPond Learning Manual        253 snippets   253 pages
     usage        LilyPond Application Usage       13 snippets    96 pages
     extending    Extending LilyPond               34 snippets    76 pages
-    essay        Essay on automated music engr.   32 snippets    47 pages
+    essay        Essay on automated music engr.   32 snippets    63 pages
     changes      LilyPond Changes                 13 snippets    10 pages
     music-glossary  LilyPond Music Glossary       93 snippets   135 pages
-    contributor  LilyPond Contributor's Guide      0 snippets   186 pages
+    contributor  LilyPond Contributor's Guide      0 snippets   189 pages
+
+⚠ EVERY NUMBER ABOVE IS READ OFF THE FROZEN BASELINES IN expected-warnings/, not
+off a run and not off a plan. Two of them moved after the wave that first wrote
+them and this table did not: essay went 47 -> 63 pages and contributor 186 -> 189
+when decision D57 recovered their absent build products, and notation went 1,272
+-> 1,280 at the CodeBrix.LilyScheme 1.0.232.256 pin bump, which took its failed
+engravings from 12 to 1. If you change a baseline, change this table in the same
+edit -- a stale figure here reads as a measurement.
+
+    NINE MANUALS, BOTH FORMATS:  3,368 PDF pages carrying 2,995 engraved pictures,
+    from 2,993 snippets asked -- 2,992 engraved, ONE failed, none declined. The
+    one failure is deliberate: notation's `{ \skip 1 \skip1 \skip 1 }', which
+    the manual's own prose introduces as producing "no output of any kind", is
+    left as a FAILURE because "ran clean and produced nothing" is exactly what a
+    real engraving loss looks like.
 
                  All seven at wave LD5, both formats, ZERO engraving failures
                  between them. ⚠ They consume NONE of the port's nineteen

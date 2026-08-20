@@ -1991,6 +1991,74 @@ Copyright: Copyright (C) 1996--2026 Han-Wen Nienhuys <hanwen@xs4all.nl>
            leaves the demand loop forced forward (ly:grob-pure-height,
            ly:grob-pure-property, ly:grob-pure-relative-coordinate).
 
+    -- page breaking and page layout --
+
+    All ten files below are derived from LilyPond 2.27.2 and carry upstream's
+    copyright header verbatim, per section 1.3.  (The header said NINE until
+    2026-08-20; PageLayoutSpacing.cs became an entry of its own at PARITY 12 --
+    see its note below -- and the count was not moved with it.)
+
+    src/CodeBrix.LilyPort.Engine/Layout/PageBreaking.cs
+           lily/page-breaking.cc + lily/include/page-breaking.hh
+           Copyright (C) 2006--2026 Joe Neeman <joeneeman@gmail.com>
+           The shared machinery every page-breaking strategy is built on, plus
+           System_spec and Break_position.
+    src/CodeBrix.LilyPort.Engine/Layout/PageBreakers.cs
+           lily/optimal-page-breaking.cc, lily/minimal-page-breaking.cc,
+           lily/one-page-breaking.cc, lily/one-line-page-breaking.cc,
+           lily/one-line-auto-height-breaking.cc
+           Copyright (C) 2006--2026 Joe Neeman <joeneeman@gmail.com>
+           Five strategies in one file: each is a single solve() over the
+           machinery above.
+    src/CodeBrix.LilyPort.Engine/Layout/PageTurnPageBreaking.cs
+           lily/page-turn-page-breaking.cc
+           + lily/include/page-turn-page-breaking.hh
+           Copyright (C) 2006--2026 Joe Neeman <joeneeman@gmail.com>
+    src/CodeBrix.LilyPort.Engine/Layout/PageSpacing.cs
+           lily/page-spacing.cc + lily/include/page-spacing.hh
+           Copyright (C) 2006--2026 Joe Neeman <joeneeman@gmail.com>
+           Page_spacing and Page_spacer.
+    src/CodeBrix.LilyPort.Engine/Layout/PageSpacingResult.cs
+           lily/page-spacing-result.cc + lily/include/page-spacing-result.hh
+           Copyright (C) 2007--2026 Han-Wen Nienhuys <hanwen@lilypond.org>
+    src/CodeBrix.LilyPort.Engine/Layout/PageLayoutProblem.cs
+           lily/page-layout-problem.cc
+           Copyright (C) 2009--2026 Joe Neeman <joeneeman@gmail.com>
+           The per-page vertical spacing solver.  The spacing-spec readers of
+           the same upstream file live in Layout/PageLayoutSpacing.cs, listed
+           next, where the vertical-organization group pulled them forward.
+    src/CodeBrix.LilyPort.Engine/Layout/PageLayoutSpacing.cs
+           lily/page-layout-problem.cc (is_spaceable, read_spacing_spec,
+           get_spacing_spec, get_fixed_spacing, add_stretchability)
+           Copyright (C) 2009--2026 Joe Neeman <joeneeman@gmail.com>
+           The spacing-spec readers of the same upstream file, in a file of
+           their own because Align_interface reads every adjacent pair of staves
+           through them.  Entry added at PARITY 12; the file was named only in
+           the prose of the entry above, which did not carry its copyright line
+           as an entry of its own.
+    src/CodeBrix.LilyPort.Engine/Layout/PaperBook.cs
+           lily/paper-book.cc + lily/include/paper-book.hh
+           Copyright (C) 2004--2026 Jan Nieuwenhuizen <janneke@gnu.org>
+           Page assembly, and since PARITY 11 the PAGE half of output ()/
+           output_aux () -- the bookpart walk that carries first-page-number
+           across parts and marks the last one.  The MIDI half of output_aux
+           and the file-writing half of output () are still not ported; the
+           port's MIDI is driven separately (PORT-COVERAGE).
+    src/CodeBrix.LilyPort.Engine/Translation/PageTurnEngraver.cs
+           lily/page-turn-engraver.cc
+           Copyright (C) 2006--2026 Joe Neeman <joeneeman@gmail.com>
+    src/CodeBrix.LilyPort.Engine/Translation/FootnoteEngraver.cs
+           lily/footnote-engraver.cc
+           Copyright (C) 2012--2026 Mike Solomon <mike@mikesolomon.org>
+
+    New-in-family binding code for this group carries NO upstream header, per
+    section 1.3: src/CodeBrix.LilyPort.Engine/Bootstrap/PageBreakingCallbacks.cs holds
+    the six page-breaking strategies, the Paper_book accessors,
+    ly:get-spacing-spec, ly:paper-get-number and the two ly:book-process entry
+    points, all derived from lily/page-breaking-scheme.cc,
+    lily/paper-book-scheme.cc, lily/page-layout-problem-scheme.cc,
+    lily/output-def-scheme.cc and lily/book-scheme.cc.
+
   THE PAGE-BREAKING CLOSE-OUT added NO new upstream files. Every change was a
   BINDING over a type this repository had already ported, so the derivation was
   already recorded above and no attribution moves:
@@ -2771,6 +2839,29 @@ Source derived from Documentation/ (in this repository):
                             support file added upstream fails a test rather than
                             degrading a render.
 
+  tools/Lily.Docs/svg-dialect/inventory.tsv
+                            NOT a copy of anything, and named here for what it
+                            was MEASURED OVER: the complete engraved output of
+                            the Notation Reference -- 2,557 SVG pictures,
+                            engraved by this port from the FDL sources mirrored
+                            above. The file is a VOCABULARY -- element,
+                            attribute and font-family names with counts, 57
+                            lines. It holds no corpus text and no picture
+                            content.
+
+                            ⚠ IT IS THE DELIVERABLE THAT TRAVELS IN PLACE OF THE
+                            PICTURES. The MIT-licensed packages that place these
+                            images are written against this specification and
+                            must NOT take copies of the pictures as test
+                            fixtures: the pictures are derived from FDL material
+                            and this is the GPL-3 repository. Reading the file
+                            across repositories is fine; a build or test
+                            dependency on it is not. Verification against the
+                            real pictures happens HERE, in Lily.Docs' gates.
+                            That folder's README.txt carries the rule in full,
+                            and its two .cs files are reference copies of this
+                            repository's own sources, fenced byte-identical.
+
   COPYING.FDL               The GNU Free Documentation License 1.3, verbatim.
 
   ⚠ These files are INPUT, not output. The port's own nineteen generated
@@ -3354,6 +3445,42 @@ Fresco.Brix, the Frescobaldi port that shares this repository, is a
 separate work with its own upstream (Frescobaldi, GPL-2.0-or-later) and
 will carry its own attribution records. Nothing in this document covers it.
 
+--------------------------------------------------------------------------------
+12.1  WHAT THE PHASE-5 DOCUMENTATION TOOLING CONSUMES, AND WHERE IT STOPS
+--------------------------------------------------------------------------------
+
+tools/Lily.Docs renders the port's manuals through published packages rather
+than converting Texinfo itself, and tools/Lily.Shell's `docs' command drives the
+same code. The chain they pull in, all consumed as NuGet packages and none of it
+incorporated as source:
+
+    CodeBrix.Texinfo2Html.MitLicenseForever    MIT   the renderers
+    CodeBrix.Texinfo2Pdf.MitLicenseForever     MIT
+    CodeBrix.PdfDocCreate[.Html2Pdf]           MIT   what Texinfo2Pdf writes with
+    CodeBrix.MarkupParse / StyleSheetParse     MIT   HTML and CSS for that layer
+    SkiaSharp (+ NativeAssets)                 MIT   how an engraved SVG is
+                                                     rasterized into the PDF
+    CodeBrix.Platform.Fonts.Roboto,            OFL   the text and music faces
+      RobotoMono, Merriweather, NotoMusic            that layer embeds
+
+NOTHING ABOVE REACHES THE SHIPPED PACKAGE, and that is a ruling rather than an
+accident. Decision D52 (Jeremy, 2026-08-18) refuses CodeBrix.LilyPort any
+dependency on this chain, which is why tools/Lily.Docs has its own solution file
+rather than living in CodeBrix.LilyPort.slnx, why it carries IsPackable=false
+explicitly, and why -- VERIFIED 2026-08-19 -- the ONE packable project in this
+repository, src/CodeBrix.LilyPort, references nothing under tools/ at all. A
+future session that wants a shipped documentation assembly must re-open D52
+rather than assume it.
+
+⚠ Lily.Shell carries the chain too, since 2026-08-19, for its `docs' command.
+It also ships nothing. MEASURED the same day: its heads already carried the
+identical SkiaSharp native assets through CodeBrix.Platform, so the reference
+added managed assemblies and two font packages rather than a new native payload.
+
+These are DEPENDENCIES, not incorporated material: no file in this repository is
+derived from any of them, which is why they are recorded here rather than in
+section 1.5. Their own notices travel with their own packages.
+
 ================================================================================
 
 Jeremy Ellis and contributors license the CodeBrix.LilyPort project
@@ -3367,72 +3494,6 @@ If you have any questions about any third-party code or services referenced
 here, or if you believe that any third-party code has been included in
 CodeBrix.LilyPort in error, please open a new issue at:
 https://github.com/ellisnet/CodeBrix.Samples.Gpl3/issues
-
-    -- page breaking and page layout --
-
-    All nine files below are derived from LilyPond 2.27.2 and carry upstream's
-    copyright header verbatim, per section 1.3.
-
-    src/CodeBrix.LilyPort.Engine/Layout/PageBreaking.cs
-           lily/page-breaking.cc + lily/include/page-breaking.hh
-           Copyright (C) 2006--2026 Joe Neeman <joeneeman@gmail.com>
-           The shared machinery every page-breaking strategy is built on, plus
-           System_spec and Break_position.
-    src/CodeBrix.LilyPort.Engine/Layout/PageBreakers.cs
-           lily/optimal-page-breaking.cc, lily/minimal-page-breaking.cc,
-           lily/one-page-breaking.cc, lily/one-line-page-breaking.cc,
-           lily/one-line-auto-height-breaking.cc
-           Copyright (C) 2006--2026 Joe Neeman <joeneeman@gmail.com>
-           Five strategies in one file: each is a single solve() over the
-           machinery above.
-    src/CodeBrix.LilyPort.Engine/Layout/PageTurnPageBreaking.cs
-           lily/page-turn-page-breaking.cc
-           + lily/include/page-turn-page-breaking.hh
-           Copyright (C) 2006--2026 Joe Neeman <joeneeman@gmail.com>
-    src/CodeBrix.LilyPort.Engine/Layout/PageSpacing.cs
-           lily/page-spacing.cc + lily/include/page-spacing.hh
-           Copyright (C) 2006--2026 Joe Neeman <joeneeman@gmail.com>
-           Page_spacing and Page_spacer.
-    src/CodeBrix.LilyPort.Engine/Layout/PageSpacingResult.cs
-           lily/page-spacing-result.cc + lily/include/page-spacing-result.hh
-           Copyright (C) 2007--2026 Han-Wen Nienhuys <hanwen@lilypond.org>
-    src/CodeBrix.LilyPort.Engine/Layout/PageLayoutProblem.cs
-           lily/page-layout-problem.cc
-           Copyright (C) 2009--2026 Joe Neeman <joeneeman@gmail.com>
-           The per-page vertical spacing solver.  The spacing-spec readers of
-           the same upstream file live in Layout/PageLayoutSpacing.cs, listed
-           next, where the vertical-organization group pulled them forward.
-    src/CodeBrix.LilyPort.Engine/Layout/PageLayoutSpacing.cs
-           lily/page-layout-problem.cc (is_spaceable, read_spacing_spec,
-           get_spacing_spec, get_fixed_spacing, add_stretchability)
-           Copyright (C) 2009--2026 Joe Neeman <joeneeman@gmail.com>
-           The spacing-spec readers of the same upstream file, in a file of
-           their own because Align_interface reads every adjacent pair of staves
-           through them.  Entry added at PARITY 12; the file was named only in
-           the prose of the entry above, which did not carry its copyright line
-           as an entry of its own.
-    src/CodeBrix.LilyPort.Engine/Layout/PaperBook.cs
-           lily/paper-book.cc + lily/include/paper-book.hh
-           Copyright (C) 2004--2026 Jan Nieuwenhuizen <janneke@gnu.org>
-           Page assembly, and since PARITY 11 the PAGE half of output ()/
-           output_aux () -- the bookpart walk that carries first-page-number
-           across parts and marks the last one.  The MIDI half of output_aux
-           and the file-writing half of output () are still not ported; the
-           port's MIDI is driven separately (PORT-COVERAGE).
-    src/CodeBrix.LilyPort.Engine/Translation/PageTurnEngraver.cs
-           lily/page-turn-engraver.cc
-           Copyright (C) 2006--2026 Joe Neeman <joeneeman@gmail.com>
-    src/CodeBrix.LilyPort.Engine/Translation/FootnoteEngraver.cs
-           lily/footnote-engraver.cc
-           Copyright (C) 2012--2026 Mike Solomon <mike@mikesolomon.org>
-
-    New-in-family binding code for this group carries NO upstream header, per
-    section 1.3: src/CodeBrix.LilyPort.Engine/Bootstrap/PageBreakingCallbacks.cs holds
-    the six page-breaking strategies, the Paper_book accessors,
-    ly:get-spacing-spec, ly:paper-get-number and the two ly:book-process entry
-    points, all derived from lily/page-breaking-scheme.cc,
-    lily/paper-book-scheme.cc, lily/page-layout-problem-scheme.cc,
-    lily/output-def-scheme.cc and lily/book-scheme.cc.
 
 ================================================================================
 

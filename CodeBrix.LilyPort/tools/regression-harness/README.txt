@@ -876,6 +876,24 @@ WHY IT BELONGS BESIDE THE SWEEP
   So: run the docs comparison whenever the Scheme layer, an entry point, a print
   representation or anything in the module system moves. It costs forty seconds.
 
+WHERE THOSE NINETEEN FILES GO NEXT
+
+  G8 grades the BYTES. Phase 5 renders them: tools/Lily.Docs takes the same
+  nineteen files -- internals.texi standalone, the other eighteen as the Notation
+  Reference's appendices -- to print-shaped HTML and PDF through the published
+  CodeBrix.Texinfo packages, and Lily.Shell's `docs' command does it from the
+  shell. See tools/Lily.Docs/README.txt.
+
+  ⚠ THE TWO RUNS ARE DELIBERATELY THE SAME RUN. Lily.Docs generates through
+  BatchRunner.RunText over the vendored ly/generate-documentation.ly, which is what
+  DocsDriver does, so a rendered manual is rendered from the bytes this gate covers
+  rather than from bytes that merely resemble them.
+
+  ⚠ AND GENERATION IS ONCE PER PROCESS. The first call writes all nineteen files;
+  every later call in the same process returns in a tenth of a second having
+  written NOTHING, reports all nineteen missing, and does NOT throw. DocsDriver
+  never meets this because it generates once and exits -- a long-lived host does.
+
 A SHARP EDGE WORTH KNOWING BEFORE READING A DIFF
 
   Upstream's own procedure printer has a re-entry latch it never clears

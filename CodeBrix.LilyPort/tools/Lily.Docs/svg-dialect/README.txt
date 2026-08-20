@@ -34,13 +34,21 @@ a change to the dialect would break.
 WHY THIS FILE EXISTS, AND WHY IT LIVES HERE AND NOWHERE ELSE
 --------------------------------------------------------------------------------
 
-CodeBrix.PdfDocCreate.Html2Pdf places raster images only -- hand it an SVG and it
-answers "not in a supported format and was skipped", so the picture is simply
-absent from the PDF. The port's snippets are SVG. The open question (decision D51
-of the Phase-5 board) is whether Html2Pdf learns to place SVG directly or
-Lily.Docs grows a rasterizer that converts to PNG first. Either way somebody has
-to know exactly what these files contain, and "SVG" is not an answer -- the
-format is enormous and what the engine actually uses is a small corner of it.
+The port's snippets are SVG, and a renderer that places them has to know exactly
+what these files contain: "SVG" is not an answer, because the format is enormous
+and what the engine actually uses is a small corner of it.
+
+⚠ THE QUESTION THIS FOLDER WAS WRITTEN TO SETTLE IS SETTLED, AND THE FOLDER IS
+NOT OBSOLETE. It read: "Html2Pdf places raster images only -- hand it an SVG and
+it answers 'not in a supported format and was skipped'. The open question
+(decision D51) is whether Html2Pdf learns to place SVG directly or Lily.Docs
+grows a rasterizer." Decision D51 was RULED 2026-08-19 and dissolved: Html2Pdf
+1.0.232.60 places the SVG itself, rasterizing it through Skia at 96 CSS dpi times
+Options.Html.SvgRasterScale (2.0, so 192 ppi) and at the SVG's own physical
+millimetres. Lily.Docs builds no rasterizer and hands the SAME file to both
+outputs. What survives the ruling is this specification: the renderer that now
+places these pictures is implemented against the vocabulary below, and the gate
+that keeps the vocabulary from growing under it is the standing part of the deal.
 
 +-----------------------------------------------------------------------------+
 | THE ENGRAVED SVGs ARE NOT SHAREABLE. They are derived from the GFDL corpus    |

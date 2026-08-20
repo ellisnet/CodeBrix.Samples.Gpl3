@@ -10,11 +10,16 @@
   <Project Path="src/Lily.Shell.MacOS/Lily.Shell.MacOS.csproj" />
   <Project Path="src/Lily.Shell.Win32Skia/Lily.Shell.Win32Skia.csproj" />
   <Project Path="src/Lily.Shell.WinWpfSkia/Lily.Shell.WinWpfSkia.csproj" />
+  <Folder Name="/Solution Items/">
+    <File Path="README.txt" />
+    <File Path="global.json" />
+  </Folder>
   <Folder Name="/Libraries/">
     <Project Path="src/libs/Lily.Shell.Kernel/Lily.Shell.Kernel.csproj" />
     <Project Path="src/libs/Lily.Shell.TerminalView/Lily.Shell.TerminalView.csproj" />
   </Folder>
   <Folder Name="/Tests/">
+    <Project Path="tests/Lily.Shell.Core.Tests/Lily.Shell.Core.Tests.csproj" />
     <Project Path="tests/libs/Lily.Shell.Kernel.Tests/Lily.Shell.Kernel.Tests.csproj" />
     <Project Path="tests/libs/Lily.Shell.TerminalView.Tests/Lily.Shell.TerminalView.Tests.csproj" />
   </Folder>

@@ -31,6 +31,22 @@
     <ProjectReference Include="..\..\..\..\src\CodeBrix.LilyPort.Parsing\CodeBrix.LilyPort.Parsing.csproj" />
   </ItemGroup>
 
+  <!-- Lily.Docs - the Phase-5 documentation vehicle, so the shell's `docs'
+       command renders manuals in this process rather than shelling out to a
+       tool the user may not have built (decision D52: a repo tool PLUS a
+       Lily.Shell command).
+
+       ⚠ THIS REFERENCE BRINGS THE Texinfo -> Html2Pdf -> SkiaSharp CHAIN IN.
+       That chain is refused for CodeBrix.LilyPort (D52) because the shipped
+       package must not carry it; Lily.Shell ships nothing, and MEASURED
+       2026-08-19 its heads already carry the same SkiaSharp 4.151.0 native
+       assets through CodeBrix.Platform - 561 MB of runtimes/ before this
+       reference existed - so the incremental cost here is managed assemblies
+       and two more font packages, not the native payload. -->
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Lily.Docs\src\Lily.Docs\Lily.Docs.csproj" />
+  </ItemGroup>
+
   <!-- The Emmentaler faces: the engine's font layer probes <appdir>/fonts/otf.
        CopyToOutputDirectory content flows to every head through the
        ProjectReference chain. -->

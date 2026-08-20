@@ -64,6 +64,11 @@ public class MainViewModel : SimpleViewModel
         registry.Register(new DemoCommand(_host));
         registry.Register(new IncludeCommand(_host));
 
+        // Phase 5's capability in the shell (decision D52): the port's own manuals,
+        // rendered from the documentation the port generates. One command instance per
+        // session, because it owns the once-per-process documentation generation.
+        registry.Register(new DocsCommand(_host));
+
         _session.OutputProduced += text => FeedToTerminal?.Invoke(text);
     }
 
