@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- SymbolIcons - a REPO TOOL. It ships nothing: it engraves Frescobaldi's
+       symbol sources with LilyPort and writes the resulting SVGs into
+       src/Fresco.Brix.Core/assets/symbols/, which the application does ship.
+       It is deliberately NOT in Fresco.Brix.slnx: it is run by hand when the
+       icons need regenerating, and a normal build must not depend on it.
+       (Lily.Docs precedent.) -->
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>Fresco.Brix.Tools.SymbolIcons</RootNamespace>
+    <AssemblyName>SymbolIcons</AssemblyName>
+    <Nullable>disable</Nullable>
+    <IsPackable>false</IsPackable>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\CodeBrix.LilyPort\src\CodeBrix.LilyPort\CodeBrix.LilyPort.csproj" />
+    <ProjectReference Include="..\..\..\CodeBrix.LilyPort\src\CodeBrix.LilyPort.Engine\CodeBrix.LilyPort.Engine.csproj" />
+    <ProjectReference Include="..\..\..\CodeBrix.LilyPort\src\CodeBrix.LilyPort.Backends\CodeBrix.LilyPort.Backends.csproj" />
+    <ProjectReference Include="..\..\..\CodeBrix.LilyPort\src\CodeBrix.LilyPort.Parsing\CodeBrix.LilyPort.Parsing.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -9,6 +9,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using CodeBrix.LilyPort.Engine.Bootstrap;
 using SilverAssertions;
 using Xunit;
 
@@ -33,7 +34,7 @@ namespace CodeBrix.LilyPort.Tests;
 [Collection("engine-global-state")]
 public class PageBreakingEndToEndTests
 {
-    private const string Version = "\\version \"2.27.2\"\n";
+    private const string Version = "\\version \"" + LilyVersion.CompatibleWithVersion + "\"\n";
 
     /// <summary>A page small enough that a handful of systems cannot share it.</summary>
     private const string SmallPaper =

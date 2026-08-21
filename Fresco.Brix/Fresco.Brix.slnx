@@ -12,9 +12,11 @@
   <Project Path="src/Fresco.Brix.WinWpfSkia/Fresco.Brix.WinWpfSkia.csproj" />
   <Folder Name="/Libraries/">
     <Project Path="src/libs/Fresco.Brix.Ly/Fresco.Brix.Ly.csproj" />
+    <Project Path="src/libs/Fresco.Brix.MusicView/Fresco.Brix.MusicView.csproj" />
   </Folder>
   <Folder Name="/Tests/">
     <Project Path="tests/Fresco.Brix.Core.Tests/Fresco.Brix.Core.Tests.csproj" />
     <Project Path="tests/libs/Fresco.Brix.Ly.Tests/Fresco.Brix.Ly.Tests.csproj" />
+    <Project Path="tests/libs/Fresco.Brix.MusicView.Tests/Fresco.Brix.MusicView.Tests.csproj" />
   </Folder>
 </Solution>

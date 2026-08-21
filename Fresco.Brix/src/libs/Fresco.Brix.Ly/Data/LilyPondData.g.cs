@@ -32,9 +32,6 @@ namespace Fresco.Brix.Ly.Data; //was previously: ly/data/_lilypond_data.py (REGE
 /// the Emmentaler glyph list — from the engine this application embeds.</summary>
 internal static class LilyPondData
 {
-    /// <summary>The engine version the data was generated from.</summary>
-    internal const string Version = "2.27.2";
-
     /// <summary>Interface name to its user-property names.</summary>
     internal static readonly Dictionary<string, string[]> Interfaces = new Dictionary<string, string[]>
     {

@@ -9,6 +9,7 @@ internal class Program
     public static void Main(string[] args)
     {
         App.InitializeLogging();
+        App.CommandLinePaths = args ?? Array.Empty<string>();
 
         var host = CodeBrixPlatformHostBuilder.Create()
             .App(() => new App())

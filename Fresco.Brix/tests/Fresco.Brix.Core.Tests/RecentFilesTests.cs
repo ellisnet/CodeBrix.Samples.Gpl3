@@ -11,6 +11,7 @@ using System;
 using System.IO;
 using System.Linq;
 using Xunit;
+using CodeBrix.LilyPort;
 
 namespace Fresco.Brix.Core.Tests;
 
@@ -50,7 +51,7 @@ public class RecentFilesTests : IDisposable
     private string MakeFile(string name)
     {
         var path = Path.Combine(_directory, name);
-        File.WriteAllText(path, "\\version \"2.27.2\"\n");
+        File.WriteAllText(path, "\\version \"" + LilyPortInfo.CompatibleWithVersion + "\"\n");
         return path;
     }
 

@@ -20,6 +20,7 @@
 using LilyPondMode = Fresco.Brix.Ly.Lex.LilyPondMode;
 using PitchTable = Fresco.Brix.Ly.Pitching.Pitches;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -76,11 +77,15 @@ public static class Pitches
         "portugues", "vlaams", "norsk", "suomi", "catalan",
     };
 
-    private static readonly Dictionary<string, PitchReader> PitchReaders
-        = new Dictionary<string, PitchReader>(StringComparer.Ordinal);
+    //⚠ CONCURRENT: these two caches are process-wide and are reached from
+    //whatever thread is reading a music tree. Two documents parsed at once
+    //corrupted a plain Dictionary here (found by the W3 tests, which were the
+    //first to build music trees in parallel).
+    private static readonly ConcurrentDictionary<string, PitchReader> PitchReaders
+        = new ConcurrentDictionary<string, PitchReader>(StringComparer.Ordinal);
 
-    private static readonly Dictionary<string, PitchWriter> PitchWriters
-        = new Dictionary<string, PitchWriter>(StringComparer.Ordinal);
+    private static readonly ConcurrentDictionary<string, PitchWriter> PitchWriters
+        = new ConcurrentDictionary<string, PitchWriter>(StringComparer.Ordinal);
 
     private static Dictionary<string, Info> BuildPitchInfo()
     {
@@ -164,35 +169,25 @@ public static class Pitches
     /// <param name="language">The language name.</param>
     /// <returns>The reader.</returns>
     public static PitchReader PitchReaderFor(string language)
-    {
-        if (!PitchReaders.TryGetValue(language, out PitchReader reader))
+        => PitchReaders.GetOrAdd(language, name =>
         {
-            Info info = PitchInfo[language];
-            reader = new PitchReader(info.Names, info.Accs, info.Replacements);
-            PitchReaders[language] = reader;
-        }
-
-        return reader;
-    }
+            Info info = PitchInfo[name];
+            return new PitchReader(info.Names, info.Accs, info.Replacements);
+        });
 
     /// <summary>Returns the (cached) <see cref="PitchWriter"/> for the
     /// specified language.</summary>
     /// <param name="language">The language name.</param>
     /// <returns>The writer, with its language name set.</returns>
     public static PitchWriter PitchWriterFor(string language)
-    {
-        if (!PitchWriters.TryGetValue(language, out PitchWriter writer))
+        => PitchWriters.GetOrAdd(language, name =>
         {
-            Info info = PitchInfo[language];
-            writer = new PitchWriter(info.Names, info.Accs, info.Replacements)
+            Info info = PitchInfo[name];
+            return new PitchWriter(info.Names, info.Accs, info.Replacements)
             {
-                Language = language,
+                Language = name,
             };
-            PitchWriters[language] = writer;
-        }
-
-        return writer;
-    }
+        });
 }
 
 /// <summary>

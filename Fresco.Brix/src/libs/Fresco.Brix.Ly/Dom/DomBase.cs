@@ -41,6 +41,9 @@ namespace Fresco.Brix.Ly.Dom; //was previously: ly/dom.py;
 /// </summary>
 public class LyNode : WeakNode
 {
+    private int? _before;
+    private int? _after;
+
     /// <summary>Initializes the node, optionally attaching it to a parent.</summary>
     /// <param name="parent">The parent to attach to.</param>
     public LyNode(Node parent = null)
@@ -53,11 +56,39 @@ public class LyNode : WeakNode
     /// can be removed.</summary>
     public virtual bool IsAtom => false;
 
-    /// <summary>Gets how many newlines this object wants before it.</summary>
-    public virtual int Before => 0;
+    /// <summary>
+    /// Gets or sets how many newlines this object wants before it; setting it
+    /// speaks for THIS node only, leaving the type's own answer alone.
+    /// </summary>
+    /// <remarks>
+    /// //was previously: a read-only virtual property. Upstream's
+    /// <c>before</c>/<c>after</c> are plain CLASS attributes that a caller
+    /// shadows on one instance — <c>ly.dom.KeySignature(…).after = 1</c> is
+    /// how the score wizard spaces its output — and a read-only property has
+    /// nowhere to put that. The type's answer moved to
+    /// <see cref="DefaultBefore"/>, which subclasses override as before.
+    /// </remarks>
+    public int Before
+    {
+        get => _before ?? DefaultBefore;
+        set => _before = value;
+    }
 
-    /// <summary>Gets how many newlines this object wants after it.</summary>
-    public virtual int After => 0;
+    /// <summary>
+    /// Gets or sets how many newlines this object wants after it; setting it
+    /// speaks for THIS node only.
+    /// </summary>
+    public int After
+    {
+        get => _after ?? DefaultAfter;
+        set => _after = value;
+    }
+
+    /// <summary>Gets the type's own answer for <see cref="Before"/>.</summary>
+    protected virtual int DefaultBefore => 0;
+
+    /// <summary>Gets the type's own answer for <see cref="After"/>.</summary>
+    protected virtual int DefaultAfter => 0;
 
     /// <summary>Answers the printable output for this object.</summary>
     /// <param name="printer">The printer, asked for settings such as the pitch
@@ -105,10 +136,10 @@ public class Container : LyNode
     public virtual string DefaultSpace => " ";
 
     /// <inheritdoc/>
-    public override int Before => ContainerBefore;
+    protected override int DefaultBefore => ContainerBefore;
 
     /// <inheritdoc/>
-    public override int After => ContainerAfter;
+    protected override int DefaultAfter => ContainerAfter;
 
     /// <summary>Gets what the first child wants before it — upstream's
     /// <c>Container.before</c>, which subclasses reach past their own
@@ -269,10 +300,10 @@ public class Block : Container
     public override string DefaultSpace => "\n";
 
     /// <inheritdoc/>
-    public override int Before => 1;
+    protected override int DefaultBefore => 1;
 
     /// <inheritdoc/>
-    public override int After => 1;
+    protected override int DefaultAfter => 1;
 }
 
 /// <summary>A whole LilyPond document: everything on a new line.</summary>
@@ -289,7 +320,7 @@ public class Document : Container
     public override string DefaultSpace => "\n";
 
     /// <inheritdoc/>
-    public override int After => 1;
+    protected override int DefaultAfter => 1;
 }
 
 /// <summary>A leaf node with arbitrary text.</summary>
@@ -345,10 +376,10 @@ public class Line : Text
     }
 
     /// <inheritdoc/>
-    public override int Before => 1;
+    protected override int DefaultBefore => 1;
 
     /// <inheritdoc/>
-    public override int After => 1;
+    protected override int DefaultAfter => 1;
 }
 
 /// <summary>A LilyPond comment at the end of a line.</summary>
@@ -363,7 +394,7 @@ public class Comment : Text
     }
 
     /// <inheritdoc/>
-    public override int After => 1;
+    protected override int DefaultAfter => 1;
 
     /// <inheritdoc/>
     public override string Ly(Printer printer)
@@ -382,7 +413,7 @@ public class LineComment : Comment
     }
 
     /// <inheritdoc/>
-    public override int Before => 1;
+    protected override int DefaultBefore => 1;
 }
 
 /// <summary>A block comment between <c>%{</c> and <c>%}</c>.</summary>
@@ -397,10 +428,10 @@ public class BlockComment : Comment
     }
 
     /// <inheritdoc/>
-    public override int Before => Format(TextValue).Contains('\n') ? 1 : 0;
+    protected override int DefaultBefore => Format(TextValue).Contains('\n') ? 1 : 0;
 
     /// <inheritdoc/>
-    public override int After => Format(TextValue).Contains('\n') ? 1 : 0;
+    protected override int DefaultAfter => Format(TextValue).Contains('\n') ? 1 : 0;
 
     /// <inheritdoc/>
     public override string Ly(Printer printer)
@@ -436,7 +467,7 @@ public class Newline : LyNode
     public Newline(Node parent = null) => parent?.Append(this);
 
     /// <inheritdoc/>
-    public override int After => 1;
+    protected override int DefaultAfter => 1;
 }
 
 /// <summary>A blank line.</summary>
@@ -450,7 +481,7 @@ public class BlankLine : Newline
     }
 
     /// <inheritdoc/>
-    public override int Before => 1;
+    protected override int DefaultBefore => 1;
 }
 
 /// <summary>A scheme expression, written with the <c>#</c> prepended.</summary>
@@ -525,10 +556,10 @@ public class Assignment : Container
     public object Name { get; set; }
 
     /// <inheritdoc/>
-    public override int Before => 1;
+    protected override int DefaultBefore => 1;
 
     /// <inheritdoc/>
-    public override int After => 1;
+    protected override int DefaultAfter => 1;
 
     /// <summary>Sets the assigned value.</summary>
     /// <param name="value">The value node.</param>

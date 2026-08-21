@@ -8,6 +8,7 @@
 using System;
 using System.Text.RegularExpressions;
 using CodeBrix.LilyPort.Backends;
+using CodeBrix.LilyPort.Engine.Bootstrap;
 using CodeBrix.LilyPort.Engine.Fonts;
 using CodeBrix.LilyPort.Engine.Layout;
 using CodeBrix.LilyPort.Engine.Objects;
@@ -113,7 +114,7 @@ public class TextInterfaceTests
         //Arrange
         OutputDef paper = Paper();
         Stencil stencil = TextInterface.InterpretMarkup(
-            paper, Props(paper), new MutableString("LilyPond v2.27.2"));
+            paper, Props(paper), new MutableString("LilyPond v" + LilyVersion.CompatibleWithVersion));
         SvgBackend backend = new SvgBackend
         {
             UnitLength = paper.GetDimension("output-scale"),
@@ -127,7 +128,7 @@ public class TextInterfaceTests
         fragment.Should().Contain(
             "<text font-family=\"serif\" font-size=\"2.2000\""
             + " text-anchor=\"start\" fill=\"currentColor\">\n"
-            + "<tspan>LilyPond v2.27.2</tspan>\n</text>");
+            + "<tspan>LilyPond v" + LilyVersion.CompatibleWithVersion + "</tspan>\n</text>");
         backend.UnhandledCommands.Should().BeEmpty();
     }
 

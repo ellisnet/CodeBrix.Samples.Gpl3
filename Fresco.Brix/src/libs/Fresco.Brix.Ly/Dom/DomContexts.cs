@@ -445,8 +445,11 @@ public class ContextProperty : Leaf
     /// <param name="context">The context name, if any.</param>
     public ContextProperty(string property, string context = null)
     {
-        //Upstream never attaches this leaf to the parent it accepts; neither
-        //does this, so the argument is not offered.
+        //⚠ DELIBERATE DIVERGENCE FROM UPSTREAM (ruling FR14). Upstream's
+        //signature takes a parent and then never attaches the leaf to it, so a
+        //caller who passes one gets a node that silently is not in the tree.
+        //The argument is simply not offered here; a caller appends the leaf
+        //itself, as it would any other.
         Property = property;
         Context = context;
     }
@@ -635,13 +638,13 @@ public class AddLyrics : InputLyrics
     public override object Name { get; set; } = "addlyrics";
 
     /// <inheritdoc/>
-    public override bool MayRemoveBrackets => false;
+    protected override bool DefaultMayRemoveBrackets => false;
 
     /// <inheritdoc/>
-    public override int Before => 1;
+    protected override int DefaultBefore => 1;
 
     /// <inheritdoc/>
-    public override int After => 1;
+    protected override int DefaultAfter => 1;
 }
 
 /// <summary>A <c>\lyricsto</c> expression.</summary>
@@ -867,10 +870,10 @@ public class Partial : Duration
     }
 
     /// <inheritdoc/>
-    public override int Before => 1;
+    protected override int DefaultBefore => 1;
 
     /// <inheritdoc/>
-    public override int After => 1;
+    protected override int DefaultAfter => 1;
 
     /// <inheritdoc/>
     public override string Ly(Printer printer) => "\\partial " + base.Ly(printer);
@@ -898,10 +901,10 @@ public class Tempo : Container
     public object Value { get; set; }
 
     /// <inheritdoc/>
-    public override int Before => 1;
+    protected override int DefaultBefore => 1;
 
     /// <inheritdoc/>
-    public override int After => 1;
+    protected override int DefaultAfter => 1;
 
     /// <inheritdoc/>
     public override string Ly(Printer printer)

@@ -8,6 +8,7 @@
 using System;
 using System.IO;
 using System.Text.RegularExpressions;
+using CodeBrix.LilyPort.Engine.Bootstrap;
 using SilverAssertions;
 using Xunit;
 
@@ -79,14 +80,14 @@ public class ToplevelLayoutEndToEndTests
         //Arrange
         // The control is the same override written in the music, which reaches the
         // context through \override rather than through $defaultlayout.
-        string plain = RunToSvg("\\version \"2.27.2\"\n{ b'2 }\n", "layout-plain");
+        string plain = RunToSvg("\\version \"" + LilyVersion.CompatibleWithVersion + "\"\n{ b'2 }\n", "layout-plain");
         string inMusic = RunToSvg(
-            "\\version \"2.27.2\"\n{ \\override NoteHead.font-size = #-6 b'2 }\n",
+            "\\version \"" + LilyVersion.CompatibleWithVersion + "\"\n{ \\override NoteHead.font-size = #-6 b'2 }\n",
             "layout-in-music");
 
         //Act
         string inLayout = RunToSvg(
-            "\\version \"2.27.2\"\n"
+            "\\version \"" + LilyVersion.CompatibleWithVersion + "\"\n"
             + "\\layout { \\context { \\Voice \\override NoteHead.font-size = #-6 } }\n"
             + "{ b'2 }\n",
             "layout-in-block");
@@ -104,14 +105,14 @@ public class ToplevelLayoutEndToEndTests
         // THE spelling script-custom-definition.ly uses, and the half that made it fail:
         // a bare `name = value' line inside \context is an `assign' operation, and
         // \layout is the only place a regression file can write one for the Score.
-        string plain = RunToSvg("\\version \"2.27.2\"\n{ b'2 }\n", "assign-plain");
+        string plain = RunToSvg("\\version \"" + LilyVersion.CompatibleWithVersion + "\"\n{ b'2 }\n", "assign-plain");
         string inMusic = RunToSvg(
-            "\\version \"2.27.2\"\n{ \\set Voice.fontSize = #-6 b'2 }\n",
+            "\\version \"" + LilyVersion.CompatibleWithVersion + "\"\n{ \\set Voice.fontSize = #-6 b'2 }\n",
             "assign-in-music");
 
         //Act
         string inLayout = RunToSvg(
-            "\\version \"2.27.2\"\n"
+            "\\version \"" + LilyVersion.CompatibleWithVersion + "\"\n"
             + "\\layout { \\context { \\Voice fontSize = #-6 } }\n"
             + "{ b'2 }\n",
             "assign-in-block");
@@ -132,7 +133,7 @@ public class ToplevelLayoutEndToEndTests
         // That is why the toplevel block still shrinks this note.
         //Act
         string svg = RunToSvg(
-            "\\version \"2.27.2\"\n"
+            "\\version \"" + LilyVersion.CompatibleWithVersion + "\"\n"
             + "\\layout { \\context { \\Voice fontSize = #-6 } }\n"
             + "\\score { { b'2 } \\layout { } }\n",
             "assign-score-inherits");
@@ -150,7 +151,7 @@ public class ToplevelLayoutEndToEndTests
         // walks the list in order, so the later value is the one that survives.
         //Act
         string svg = RunToSvg(
-            "\\version \"2.27.2\"\n"
+            "\\version \"" + LilyVersion.CompatibleWithVersion + "\"\n"
             + "\\layout { \\context { \\Voice fontSize = #-6 } }\n"
             + "\\score { { b'2 } \\layout { \\context { \\Voice fontSize = #0 } } }\n",
             "assign-score-overrides");
@@ -168,7 +169,7 @@ public class ToplevelLayoutEndToEndTests
         // book-processing time is what gives that for free.
         //Act
         string svg = RunToSvg(
-            "\\version \"2.27.2\"\n"
+            "\\version \"" + LilyVersion.CompatibleWithVersion + "\"\n"
             + "\\layout { \\context { \\Voice fontSize = #-6 } }\n"
             + "\\layout { \\context { \\Voice fontSize = #0 } }\n"
             + "{ b'2 }\n",

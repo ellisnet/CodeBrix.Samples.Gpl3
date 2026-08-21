@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.2"
+     width="5.6234mm" height="5.6234mm"
+     viewBox="0.0000 -0.0000 3.2000 3.2000">
+<g fill="currentColor" color="black">
+<g transform="translate(1.6000, 1.6000)">
+<path transform="scale(0.0040, -0.0040)" d="M145 26c-29 0 -54 22 -54 53c0 32 33 53 68 53c67 0 114 -62 114 -132c0 -74 -61 -132 -136 -132c-133 0 -201 186 -319 186c-33 0 -61 -23 -61 -54s23 -53 50 -57c9 21 28 31 48 31c29 0 54 -22 54 -53c0 -32 -33 -53 -68 -53c-67 0 -114 62 -114 132
+c0 74 61 132 136 132c133 0 201 -186 319 -186c33 0 61 23 61 54s-23 53 -50 57c-9 -21 -28 -31 -48 -31z" fill="currentColor"/>
+</g>
+</g>
+</svg>

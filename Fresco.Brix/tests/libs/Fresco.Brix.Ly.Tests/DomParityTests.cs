@@ -129,6 +129,12 @@ public class DomParityTests
     private static LyNode BuildDocument()
     {
         var d = new DomDocument();
+        //THE ONE DELIBERATE 2.27.2 LITERAL LEFT IN FRESCO.BRIX C#. This document is
+        //compared against fixtures/dom/dom.json, which python-ly v0.9.10 itself
+        //produced from this exact input — so the input has to match the recording,
+        //byte for byte, and cannot be derived from LilyPort's compatible-with version.
+        //If the recording is ever regenerated, regenerate it with whatever version the
+        //probe feeds and change this line to match; never change one without the other.
         _ = new DomVersion("2.27.2", d);
         _ = new Include("articulate.ly", d);
         _ = new BlankLine(d);

@@ -29,6 +29,10 @@ public partial class App : Application
             //Register the app's services here
             services.AddSingleton<Services.SettingsStore>();
             services.AddSingleton<Services.RecentFiles>();
+
+            //One engine per process. It is a singleton because the engine's
+            //state is process-global, not because one is convenient.
+            services.AddSingleton<Engrave.LilyPortEngine>();
         });
         SimpleViewModel.SetIsDesignMode(false);
 
@@ -37,12 +41,26 @@ public partial class App : Application
 
     protected Window MainWindow { get; private set; }
 
+    /// <summary>
+    /// The application's window, so the page can put the current document's
+    /// name — and the engine's loading state — in its title bar.
+    /// </summary>
+    public static Window Shell { get; private set; }
+
+    /// <summary>
+    /// The documents named on the command line. Each head's Program.Main fills
+    /// this in before the host is built; the window opens them at startup, and
+    /// opens one empty document when there are none.
+    /// </summary>
+    public static string[] CommandLinePaths { get; set; } = Array.Empty<string>();
+
     protected override void OnLaunched(LaunchActivatedEventArgs args)
     {
         MainWindow = new Window
         {
             Title = "Fresco.Brix"
         };
+        Shell = MainWindow;
 
         if (MainWindow.Content is not Frame rootFrame)
         {

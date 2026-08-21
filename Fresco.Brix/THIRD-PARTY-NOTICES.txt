@@ -1,0 +1,281 @@
+THIRD-PARTY SOFTWARE NOTICES AND INFORMATION
+
+Fresco.Brix is a CodeBrix.Platform application inspired by, and in large part
+ported from, Frescobaldi -- the LilyPond music editor by Wilbert Berendsen and
+contributors. It also carries ports of python-ly and qpageview, data files
+taken from Frescobaldi, and a set of hyphenation dictionaries that are the work
+of many other people.
+
+This document is the attribution and licensing-compliance record for the
+application. Every piece of third-party code, data or asset that has been
+adapted, copied, generated from, or bundled with Fresco.Brix is recorded here
+with its authors, its upstream location, its license, and the files in this
+repository derived from it.
+
+--------------------------------------------------------------------------------
+HOW THIS FILE IS MAINTAINED
+--------------------------------------------------------------------------------
+
+  1. This is a LIVING LEDGER, kept in step with the code. A wave that brings in
+     third-party material adds its entry in the same session.
+
+  2. Fresco.Brix's OWN sources are GPL-3.0-or-later; every file carries that
+     header. The application as CONVEYED is GPL-3.0-only, because
+     CodeBrix.LilyPort is (ruling FR1, and LilyPort's own notices file records
+     why). The two statements look contradictory and are not: the aggregate
+     takes the narrower of the terms it combines.
+
+  3. Ported files carry a `//was previously:' note on their namespace line
+     naming the upstream file they came from, so provenance is checkable from
+     the source as well as from here.
+
+  4. Material is filed by its ACTUAL license, not by the project it arrived
+     with. Section 5 is the case in point: the hyphenation dictionaries came
+     from Frescobaldi, and not one of them is under Frescobaldi's license.
+
+  5. Section 5 also records what is NOT settled. A row whose license cannot be
+     established from what upstream ships says so, rather than being assumed
+     into the same bucket as its neighbours.
+
+  6. Sections are added as waves land. Rows still owed at the time of writing
+     are listed in section 8, so the gaps are visible rather than implied.
+
+================================================================================
+1. FRESCOBALDI
+================================================================================
+
+  Upstream:   https://github.com/frescobaldi/frescobaldi
+  Revision:   cec205b9 (v4.0.7 plus 7 commits), read-only checkout
+  Authors:    Wilbert Berendsen and contributors
+  License:    GPL-2.0-or-later
+              (pyproject.toml declares `license = "GPL-2.0-or-later"'; 327 of
+              342 .py files carry the or-later header. The 15 without it are
+              four trivial __init__ files, two generated data files, the
+              public-domain portmidi/ctypes_pypm.py, the unlicensed
+              portmidi/pm_ctypes.py, hyphenator.py -- section 4 -- and
+              headerless project files covered by the project declaration.)
+
+  Fresco.Brix is a port of Frescobaldi. The application presents as its own
+  program and never as Frescobaldi (Help > About says so), but the design, the
+  feature set, the menu structure, the command names, the user-visible strings
+  and a great deal of the logic are Frescobaldi's.
+
+  Derived from it: most of src/Fresco.Brix.Core (see the `//was previously:'
+  notes), src/Fresco.Brix.UI/Views/MainPage.xaml.cs, and the assets in
+  sections 2, 6 and 7.
+
+================================================================================
+2. FRESCOBALDI LAYOUT-CONTROL FORMATTERS AND SYMBOL SOURCES
+================================================================================
+
+2.1 Layout-control formatters
+  Upstream:   frescobaldi/layoutcontrol/*.ily and debug-layout-options.ly
+  License:    GPL-2.0-or-later, with Frescobaldi
+  Shipped as: src/Fresco.Brix.Core/assets/layoutcontrol/ (copied verbatim)
+
+  These are LilyPond include files that Frescobaldi wrote for its own debug
+  modes, pulled into an engrave run with -dinclude-settings. They are shipped
+  as assets exactly as upstream ships them beside its module.
+
+2.2 Symbol sources
+  Upstream:   frescobaldi/symbols/*.ly and *.ily (135 sources)
+  License:    GPL-2.0-or-later, with Frescobaldi
+  Derived:    src/Fresco.Brix.Core/assets/symbols/*.svg
+
+  Upstream ships pre-generated SVGs beside these sources. Fresco.Brix instead
+  ENGRAVES the sources with CodeBrix.LilyPort (tools/symbolicons), so the SVGs
+  in this repository are generated output whose input is upstream's. Two of the
+  sources are 2.18 grammar and the tool carries the two rewrites that go with
+  that; both are commented at their site.
+
+================================================================================
+3. PYTHON-LY AND QPAGEVIEW
+================================================================================
+
+3.1 python-ly
+  Upstream:   https://github.com/frescobaldi/python-ly, tag v0.9.10
+  Authors:    Wilbert Berendsen and contributors
+  License:    GPL-3.0-or-later
+  Derived:    src/libs/Fresco.Brix.Ly/ (the whole project), and the fixtures
+              under tests/libs/Fresco.Brix.Ly.Tests/fixtures/, which python-ly
+              itself produced.
+
+3.2 qpageview
+  Upstream:   https://github.com/frescobaldi/qpageview, tag v1.0.5
+  Authors:    Wilbert Berendsen and contributors
+  License:    GPL-3.0-or-later
+  Derived:    src/libs/Fresco.Brix.MusicView/ (the paged-view subset; see
+              PLAN section 6.3 for what was ported and what was not).
+
+================================================================================
+4. THE HYPHENATOR
+================================================================================
+
+  Upstream:   frescobaldi/hyphenator.py
+  Author:     Wilbert Berendsen, March 2008 <info@wilbertberendsen.nl>
+  Origin:     http://python-hyphenator.googlecode.com/ (inspired by Ruby's
+              Text::Hyphen)
+  License:    LGPL -- stated in the module's own docstring, and the ONE file in
+              Frescobaldi that is not under Frescobaldi's license. The LGPL
+              permits its use here under the GPL.
+  Derived:    src/Fresco.Brix.Core/Editor/Hyphenation.cs
+
+  The port is a faithful one: the pattern reader, the non-standard-alternative
+  parsing, the position search and all three ways of spending the answer
+  (inserted / iterate / wrap). Its verification replays what upstream's own
+  module answered -- tools/hyphenprobe/gen-hyphen-fixtures.py imports and runs
+  hyphenator.py directly, and tests/Fresco.Brix.Core.Tests/fixtures/
+  hyphenation.json is what it said.
+
+================================================================================
+5. HYPHENATION DICTIONARIES -- PER-DICTIONARY AUDIT
+================================================================================
+
+  Shipped as: src/Fresco.Brix.Core/assets/hyphdicts/*.dic, copied to
+              <appdir>/assets/hyphdicts beside the program, together with every
+              README file upstream ships for them.
+  Origin:     Frescobaldi's own hyphdicts folder, which took them from the
+              openoffice.org-hyphenation package. Frescobaldi's README there
+              says: "These hyphenation dictionaries are taken from the
+              openoffice.org-hyphenation package, including their licensing
+              information."
+
+  HOW THEY ARE CONVEYED, AND WHY IT IS RECORDED HERE.
+  These 24 files are DATA, not code. They are not compiled in, not linked, and
+  nothing in Fresco.Brix is derived from them; the application reads whichever
+  ones it finds in a directory at run time, and works with none of them
+  installed (offering no languages to hyphenate in). They are conveyed as an
+  AGGREGATE in the sense of GPLv3 section 5: separate and independent works,
+  distributed on the same medium, each keeping its own license notice, which is
+  why every README upstream ships travels with them. Frescobaldi documents the
+  same arrangement from the other side -- its hyphdicts README tells packagers
+  they may delete the whole folder and depend on the system's dictionaries
+  instead, which is exactly what the folder being separable means.
+
+  ⚠ FIVE ROWS ARE NOT SETTLED, and are marked ⚠ below. Three are dictionaries
+  whose stated terms are GPL-2 without an "or later" (or amount to that), and
+  two arrived from upstream with no license documentation at all. Under the
+  aggregate reading above none of them is a problem; if Fresco.Brix ever needs
+  them to be part of a combined work instead, the first three would have to go
+  and the last two would need their provenance established. This is board
+  decision FD11.
+
+  Language  File                Stated license                    Author
+  --------  ------------------  --------------------------------  ------------
+  cs_CZ     hyph_cs_CZ.dic      GNU GPL, no version named         Pavel Janík
+            Converted from csTeX's TeX patterns (GNU GPL) with the
+            lingucomponent-tools scripts (LGPL/SISSL).
+  da_DK     hyph_da_DK.dic      GNU LGPL                          Marco Huggenberger (conversion)
+  de_DE     hyph_de_DE.dic      LGPL-2.0-or-later                 M. Huggenberger, D. Naber, K. Zeiler
+  el_GR     hyph_el_GR.dic      LGPL                              InterZone <info@interzone.gr>
+  en_CA     hyph_en_CA.dic      GNU LGPL                          Peter Novodvorsky (conversion)
+  en_GB     hyph_en_GB.dic      GNU LGPL                          Peter Novodvorsky (conversion)
+  en_US     hyph_en_US.dic      GNU LGPL                          Peter Novodvorsky (conversion)
+            No README of its own; the en_CA and en_GB READMEs are one and the
+            same text and name hyph_en_US as the same pattern set.
+  es_ES     hyph_es_ES.dic      GNU LGPL (2.1 text included)      Marcelo Garrone
+  ⚠ fi_FI   hyph_fi_FI.dic      NO LICENSE NAMED                  Jarno Elonen (conversion)
+            The README carries the original fihyph.tex acknowledgements
+            (Kauko Saarinen, Fred Karlsson) and the single line "Patterns may
+            be freely distributed" -- a permission to distribute, but not a
+            license, and it says nothing about modification.
+  ⚠ fr      hyph_fr.dic         NO DOCUMENTATION SHIPPED          unknown
+            Upstream ships no README for this file. Its provenance is the
+            openoffice.org-hyphenation package and nothing more specific can
+            be established from what is in hand.
+  ga_IE     hyph_ga_IE.dic      GNU GPL, no version named         Kevin P. Scannell
+  hu        hyph_hu.dic         GNU GPL, no version named         László Németh
+            README is named README_hyph_hu_HU.txt.
+  ⚠ id_ID   hyph_id_ID.dic      GNU GPL -- v2 text reproduced     Benitius Brevoort
+            "under the terms of the GNU General Public License, reproduced
+            below": what is reproduced is version 2, with no "or later".
+  is_IS     hyph_is_IS.dic      LGPL/SISSL (dual)                 Áki G. Karlsson
+  ⚠ it      hyph_it.dic         NO DOCUMENTATION SHIPPED          unknown
+            As for fr.
+  ⚠ nl_NL   hyph_nl_NL.dic      GPL VERSION 2, no "or later"      Piet Tutelaer; Arthur Buijs (conversion)
+            "It is made available under the conditions of the GPL version 2
+            license." The README also REQUIRES that a copy of itself travel
+            with every copy of the dictionary, which is honoured.
+  nn_NO     hyph_nn_NO.dic      GNU GPL, no version named         spell-norwegian project
+  pl        hyph_pl.dic         GNU LGPL                          Artur Polaczyński
+            README is named README_hyph_pl_PL.txt. Patterns from plhyph.tex
+            (Kołodziejska; Jackowski & Ryćko).
+  pt_BR     hyph_pt_BR.dic      GNU GPL, no version named         Paulo Morgado (conversion)
+  pt_PT     hyph_pt_PT.dic      GNU GPL, no version named         Paulo Morgado (conversion)
+  ru_RU     hyph_ru_RU.dic      GNU LGPL                          Peter Novodvorsky (conversion)
+  sk_SK     hyph_sk_SK.dic      GNU GPL, no version named         Pavel Janík
+  sv_SE     hyph_sv_SE.dic      LGPL-2.1 (explicitly 2.1)         Skåne Sjælland Linux User Group
+  uk_UA     hyph_uk_UA.dic      GPL-2.0-or-later                  Maksym Polyakov
+
+  A NOTE ON "GNU GPL, no version named". Where a work says only "the GNU
+  General Public License" and names no version, the GPL's own terms let the
+  recipient choose any version the FSF has published -- which includes 3. Those
+  rows are therefore not flagged. The flagged rows are the ones where a version
+  IS fixed at 2, or where there is no license to read.
+
+================================================================================
+6. GENERATED FROM FRESCOBALDI DATA
+================================================================================
+
+  Each of these is a C# file GENERATED by a repo tool from a Frescobaldi source
+  file. The tools read the read-only checkout; they are not part of any build.
+
+  Editor/UnicodeBlocks.g.cs      from frescobaldi/unicode_blocks.py
+                                 (itself derived from the Unicode Character
+                                 Database, http://www.unicode.org/Public/5.2.0/
+                                 ucd/Blocks.txt -- Unicode, Inc. license)
+                                 tool: tools/unicodeblocks/
+
+  Snippets/BuiltinSnippets.g.cs  from frescobaldi/snippet/builtin.py
+                                 (GPL-2.0-or-later, with Frescobaldi)
+                                 tool: tools/snippetdata/
+                                 29 of upstream's 51 snippets ship; the 22
+                                 Python-code ones are excluded by ruling FR5.3.
+
+  Ly/Data/LilyPondData.g.cs      NOT from Frescobaldi or python-ly: regenerated
+                                 from the live CodeBrix.LilyPort engine
+                                 (tools/datagen/), which is why it is current
+                                 rather than the 2.24 data python-ly carries.
+
+  tests/.../fixtures/           The parity fixtures are OUTPUT that upstream's
+                                 own code produced when a repo tool ran it:
+                                 python-ly's tokenizer, reader, printer and
+                                 hyphenator, and -- from W7 --
+                                 Frescobaldi's Score Wizard, run under the
+                                 PyQt6 stand-in in tools/scorewizprobe/. They
+                                 are test data, they ship in nothing, and they
+                                 carry the license of the code that produced
+                                 them (sections 1 and 3).
+
+  Editor/CharsetTables.g.cs      NOT third-party content: decoding tables read
+                                 out of Python's own codec registry by
+                                 tools/charsettables/. The tables describe
+                                 published character-set standards (ISO 8859-x,
+                                 KOI8-R/U, and the Windows code pages); the
+                                 mappings are facts, not authorship.
+
+================================================================================
+7. CODEBRIX.LILYPORT
+================================================================================
+
+  Fresco.Brix engraves with CodeBrix.LilyPort, which is a port of GNU LilyPond
+  and is conveyed GPL-3.0-only. Its own attribution record --  every LilyPond
+  file it derives from, the fonts it vendors, and the third-party components
+  LilyPond itself redistributes -- is CodeBrix.LilyPort/THIRD-PARTY-NOTICES.txt
+  in this repository. Nothing is duplicated here.
+
+  It is LilyPort's GPL-3.0-only conveyance that makes the Fresco.Brix aggregate
+  GPL-3.0-only (see "HOW THIS FILE IS MAINTAINED", point 2).
+
+================================================================================
+8. STILL OWED
+================================================================================
+
+  Entries that will be added by the wave that brings the material in:
+
+  - LilyPond's convert-ly rules (python/convertrules.py, GPL-3.0), at W8.
+  - Frescobaldi's translation catalogs (i18n/frescobaldi/*.po, GPL), at W-I18N.
+  - A General-MIDI SoundFont, at W9 -- its license is board decision FD2, and
+    the audit happens before anything is bundled.
+  - Frescobaldi's icon assets, if any are reused; the audit is W13's.
+  - The hyphenation dictionaries' unsettled rows, section 5 (FD11).

@@ -7,6 +7,7 @@
 
 using System;
 using System.IO;
+using CodeBrix.LilyPort.Engine.Bootstrap;
 using SilverAssertions;
 using Xunit;
 
@@ -39,7 +40,7 @@ namespace CodeBrix.LilyPort.Tests;
 [Collection("engine-global-state")]
 public class DimensionPropertyEndToEndTests
 {
-    private const string Version = "\\version \"2.27.2\"\n";
+    private const string Version = "\\version \"" + LilyVersion.CompatibleWithVersion + "\"\n";
 
     /// <summary>
     /// One score whose only variable is the <c>baseline-skip</c> override, or its

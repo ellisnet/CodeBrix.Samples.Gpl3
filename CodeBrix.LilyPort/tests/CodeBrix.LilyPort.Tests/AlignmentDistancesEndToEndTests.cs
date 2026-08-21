@@ -11,6 +11,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using CodeBrix.LilyPort.Engine.Bootstrap;
 using SilverAssertions;
 using Xunit;
 
@@ -34,7 +35,7 @@ namespace CodeBrix.LilyPort.Tests;
 [Collection("engine-global-state")]
 public class AlignmentDistancesEndToEndTests
 {
-    private const string Version = "\\version \"2.27.2\"\n";
+    private const string Version = "\\version \"" + LilyVersion.CompatibleWithVersion + "\"\n";
 
     private static string ScratchDirectory()
     {

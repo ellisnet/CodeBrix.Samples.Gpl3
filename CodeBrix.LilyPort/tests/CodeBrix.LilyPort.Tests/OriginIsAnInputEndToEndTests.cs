@@ -8,6 +8,7 @@
 using System;
 using System.IO;
 using System.Text.RegularExpressions;
+using CodeBrix.LilyPort.Engine.Bootstrap;
 using SilverAssertions;
 using Xunit;
 
@@ -47,7 +48,7 @@ namespace CodeBrix.LilyPort.Tests;
 [Collection("engine-global-state")]
 public class OriginIsAnInputEndToEndTests
 {
-    private const string Version = "\\version \"2.27.2\"\n";
+    private const string Version = "\\version \"" + LilyVersion.CompatibleWithVersion + "\"\n";
 
     /// <summary>
     /// Asks <c>ly:input-location?</c> about five origins and renders the answers as one

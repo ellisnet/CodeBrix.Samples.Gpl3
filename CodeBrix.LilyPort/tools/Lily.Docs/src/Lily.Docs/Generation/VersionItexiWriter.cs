@@ -24,8 +24,10 @@ namespace Lily.Docs.Generation;
 /// It is DELIBERATELY NOT VENDORED (decision D49). A generated file that names a
 /// version has exactly one correct value, and vendoring it would freeze a copy that
 /// silently disagrees with the port the moment the port's version moves. Writing it
-/// from <see cref="LilyPortInfo.UpstreamVersion"/> instead means the manuals always
-/// state the version of the engine that generated them.
+/// from <see cref="LilyPortInfo.CompatibleWithVersion"/> instead means the manuals always
+/// state the LilyPond version of the engine that generated them. It is the COMPATIBLE-WITH
+/// version and not <see cref="LilyPortInfo.Version"/> that belongs here: these are
+/// LilyPond's own manuals, and their @version{} is the LilyPond release they document.
 /// </para>
 /// </summary>
 public static class VersionItexiWriter
@@ -66,7 +68,7 @@ public static class VersionItexiWriter
         // @version{} and friends; the spacing does not, and is matched only so that a
         // diff against an upstream-built version.itexi shows version differences rather
         // than whitespace ones.
-        string development = LilyPortInfo.UpstreamVersion;
+        string development = LilyPortInfo.CompatibleWithVersion;
 
         StringBuilder text = new StringBuilder();
         text.Append("@c Stand-in for the build-generated version.itexi, written by\n");

@@ -36,7 +36,8 @@ public class MainViewModel : SimpleViewModel
             Prompt = "lily> ",
             Banner =
             [
-                $"Lily.Shell for CodeBrix.LilyPort - a port of GNU LilyPond {LilyPortInfo.UpstreamVersion}",
+                $"Lily.Shell for CodeBrix.LilyPort {LilyPortInfo.Version} - a port of GNU LilyPond "
+                + LilyPortInfo.CompatibleWithVersion,
                 "Copyright (c) 2026 Jeremy Ellis and contributors. This is free software",
                 "under the GNU GPL v3, with ABSOLUTELY NO WARRANTY.",
                 "",

@@ -8,6 +8,7 @@
 using System;
 using System.IO;
 using System.Text.RegularExpressions;
+using CodeBrix.LilyPort.Engine.Bootstrap;
 using SilverAssertions;
 using Xunit;
 
@@ -46,7 +47,7 @@ public class ScriptsAndDynamicsEndToEndTests
 
     private static string RunToSvg(string body, string name)
     {
-        string source = "\\version \"2.27.2\"\n\\score { \\new Staff { " + body + " } }\n";
+        string source = "\\version \"" + LilyVersion.CompatibleWithVersion + "\"\n\\score { \\new Staff { " + body + " } }\n";
         BatchRunResult result = BatchRunner.RunText(
             source, name, null, ScratchDirectory());
 

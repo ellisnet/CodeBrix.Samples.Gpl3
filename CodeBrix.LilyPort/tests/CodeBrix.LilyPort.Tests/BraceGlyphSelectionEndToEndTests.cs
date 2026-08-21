@@ -8,6 +8,7 @@
 using System;
 using System.IO;
 using System.Text.RegularExpressions;
+using CodeBrix.LilyPort.Engine.Bootstrap;
 using SilverAssertions;
 using Xunit;
 
@@ -47,7 +48,7 @@ namespace CodeBrix.LilyPort.Tests;
 [Collection("engine-global-state")]
 public class BraceGlyphSelectionEndToEndTests
 {
-    private const string Version = "\\version \"2.27.2\"\n";
+    private const string Version = "\\version \"" + LilyVersion.CompatibleWithVersion + "\"\n";
 
     /// <summary>
     /// Reports the brace font's glyph count and the index the binary search picks at two

@@ -8,6 +8,7 @@
 using System;
 using System.IO;
 using System.Text.RegularExpressions;
+using CodeBrix.LilyPort.Engine.Bootstrap;
 using SilverAssertions;
 using Xunit;
 
@@ -50,7 +51,7 @@ public class RemoveLayerEndToEndTests
     /// <param name="secondLayer">The second staff's <c>remove-layer</c>.</param>
     /// <returns>The score source.</returns>
     private static string Source(string secondLayer) =>
-        "\\version \"2.27.2\"\n"
+        "\\version \"" + LilyVersion.CompatibleWithVersion + "\"\n"
         + "\\score {\n"
         + "  \\new StaffGroup \\with { \\consists Keep_alive_together_engraver } <<\n"
         + "    \\new Staff \\with {\n"

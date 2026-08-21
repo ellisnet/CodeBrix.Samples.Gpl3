@@ -9,6 +9,7 @@ using System;
 using System.IO;
 using System.Text.RegularExpressions;
 using System.Threading;
+using CodeBrix.LilyPort.Engine.Bootstrap;
 using CodeBrix.LilyScheme.Values;
 using SilverAssertions;
 using Xunit;
@@ -38,7 +39,7 @@ namespace CodeBrix.LilyPort.Tests;
 [Collection("engine-global-state")]
 public class PointAndClickEndToEndTests
 {
-    private const string Version = "\\version \"2.27.2\"\n";
+    private const string Version = "\\version \"" + LilyVersion.CompatibleWithVersion + "\"\n";
     private const string NoteAndRest = Version + "{ c'4 r4 }\n";
 
     private const string AnchorOpen = "<a style=\"color:inherit;\" xlink:href=\"textedit://";

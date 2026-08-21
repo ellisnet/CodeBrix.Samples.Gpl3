@@ -663,13 +663,21 @@ public class Reader
                 AppendRead(item, token);
             }
 
-            //Upstream writes `t in ('\\tag')` — a STRING, not a tuple, so this
-            //is a substring test, and it is kept as one.
-            else if (token is LilyPondMode.Command && "\\tag".Contains(token.Text))
+            //⚠ DELIBERATE DIVERGENCE FROM UPSTREAM (ruling FR14).
+            //Upstream writes `t in ('\\tag')` — parentheses with no comma make
+            //a STRING, not a tuple, so python runs a SUBSTRING test and the
+            //branch also takes `\\t` and `\\ta`, which are not commands at all.
+            //The tuple was plainly meant (the line reads as "is this \\tag"),
+            //and the same slip is one line below it for `\\tweak`. Both are
+            //compared for equality here. The difference shows only on input
+            //that is already malformed, which is why no recorded fixture moves.
+            else if (token is LilyPondMode.Command
+                && string.Equals(token.Text, "\\tag", StringComparison.Ordinal))
             {
                 AppendRead(item, token);
             }
-            else if (token is LilyPondMode.Keyword && "\\tweak".Contains(token.Text))
+            else if (token is LilyPondMode.Keyword
+                && string.Equals(token.Text, "\\tweak", StringComparison.Ordinal))
             {
                 AppendRead(item, token);
             }

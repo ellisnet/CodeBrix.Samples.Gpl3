@@ -8,6 +8,7 @@
 using System;
 using System.IO;
 using System.Text.RegularExpressions;
+using CodeBrix.LilyPort.Engine.Bootstrap;
 using SilverAssertions;
 using Xunit;
 
@@ -56,7 +57,7 @@ public class BeamsEndToEndTests
         // The Auto_beam_engraver's whole job in one line of music. Before EPG10 it was an
         // unknown translator, so this produced four separate flags and no beam at all.
         string source =
-            "\\version \"2.27.2\"\n"
+            "\\version \"" + LilyVersion.CompatibleWithVersion + "\"\n"
             + "\\score { \\new Staff { c'8 c'8 c'8 c'8 } }\n";
 
         //Act
@@ -74,7 +75,7 @@ public class BeamsEndToEndTests
         // The control for the test above: same notes, autobeaming switched off. If the
         // first test passed because something else drew a polygon, this one catches it.
         string source =
-            "\\version \"2.27.2\"\n"
+            "\\version \"" + LilyVersion.CompatibleWithVersion + "\"\n"
             + "\\score { \\new Staff { \\set Staff.autoBeaming = ##f c'8 c'8 c'8 c'8 } }\n";
 
         //Act
@@ -93,7 +94,7 @@ public class BeamsEndToEndTests
         // the autobeamer would have grouped differently, with autobeaming off so the
         // only beam on the page is the one that was asked for.
         string source =
-            "\\version \"2.27.2\"\n"
+            "\\version \"" + LilyVersion.CompatibleWithVersion + "\"\n"
             + "\\score { \\new Staff { \\set Staff.autoBeaming = ##f c'8[ d'8 e'8] f'8 } }\n";
 
         //Act
@@ -111,7 +112,7 @@ public class BeamsEndToEndTests
         // Two beam ranks, so calc_beam_segments has to emit a segment at each vertical
         // count rather than merging them. Four sixteenths make one group of two beams.
         string source =
-            "\\version \"2.27.2\"\n"
+            "\\version \"" + LilyVersion.CompatibleWithVersion + "\"\n"
             + "\\score { \\new Staff { c'16 c'16 c'16 c'16 } }\n";
 
         //Act
@@ -129,7 +130,7 @@ public class BeamsEndToEndTests
         // Chord_tremolo_engraver makes a Beam of its own, and it is the only engraver
         // that sets gap-count, which is what makes a tremolo beam detached from its stems.
         string source =
-            "\\version \"2.27.2\"\n"
+            "\\version \"" + LilyVersion.CompatibleWithVersion + "\"\n"
             + "\\score { \\new Staff { \\repeat tremolo 4 { c'16 e'16 } } }\n";
 
         //Act

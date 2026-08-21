@@ -32,8 +32,10 @@ namespace CodeBrix.LilyPort.Engine.Bootstrap;
 /// </summary>
 public static class GeneralPrimitives
 {
-    /// <summary>The LilyPond version this port targets.</summary>
-    public const string LilyPondVersion = "2.27.2";
+    //was previously: public const string LilyPondVersion = "2.27.2"; — a SECOND literal
+    //  statement of the ported release, mirroring upstream, which names it in
+    //  lily/general-scheme.cc as well as in lily/lily-version.cc. The release is now
+    //  stated once, in LilyVersion.CompatibleWithVersion, and ly:version reads it there.
 
     /// <summary>Installs the primitives, replacing the corresponding stubs.</summary>
     /// <param name="interpreter">The interpreter to extend.</param>
@@ -477,7 +479,7 @@ public static class GeneralPrimitives
 
         interpreter.DefinePrimitive("ly:version", 0, 0, a =>
         {
-            string[] parts = LilyPondVersion.Split('.');
+            string[] parts = LilyVersion.CompatibleWithVersion.Split('.');
             List<object> numbers = new List<object>(parts.Length);
             foreach (string part in parts)
             {

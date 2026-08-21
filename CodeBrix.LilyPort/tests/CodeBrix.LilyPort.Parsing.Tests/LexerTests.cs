@@ -8,6 +8,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using CodeBrix.LilyPort.Engine.Bootstrap;
 using CodeBrix.LilyPort.Engine.Music;
 using CodeBrix.LilyPort.Parsing.Driver;
 using CodeBrix.LilyPort.Parsing.Lexing;
@@ -239,13 +240,13 @@ public class LexerTests
         // \version pushes a start condition whose only job is to read one quoted
         // string. Doing it with a state rather than a pattern is what lets the string
         // contain characters that mean something else everywhere in the file.
-        ModalScanner scanner = Scan("\\version \"2.27.2\"\n");
+        ModalScanner scanner = Scan("\\version \"" + LilyVersion.CompatibleWithVersion + "\"\n");
 
         //Act
         Drain(scanner);
 
         //Assert
-        scanner.LastVersionString.AsText().Should().Be("2.27.2");
+        scanner.LastVersionString.AsText().Should().Be(LilyVersion.CompatibleWithVersion);
         scanner.State.Should().Be(LexerState.Initial);
         scanner.StateDepth.Should().Be(0);
     }

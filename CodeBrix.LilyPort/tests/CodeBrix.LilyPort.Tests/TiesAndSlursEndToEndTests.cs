@@ -8,6 +8,7 @@
 using System;
 using System.IO;
 using System.Text.RegularExpressions;
+using CodeBrix.LilyPort.Engine.Bootstrap;
 using SilverAssertions;
 using Xunit;
 
@@ -80,7 +81,7 @@ public class TiesAndSlursEndToEndTests
         // Tie_engraver's whole job in one bar. Before EPG11 it was an unknown translator,
         // so the two heads were engraved and nothing joined them.
         string source =
-            "\\version \"2.27.2\"\n"
+            "\\version \"" + LilyVersion.CompatibleWithVersion + "\"\n"
             + "\\score { \\new Staff { c'2 ~ c'2 } }\n";
 
         //Act
@@ -99,7 +100,7 @@ public class TiesAndSlursEndToEndTests
         // between c and d is an unterminated tie, which upstream warns about and kills.
         // If the first test passed because something else drew a curve, this catches it.
         string source =
-            "\\version \"2.27.2\"\n"
+            "\\version \"" + LilyVersion.CompatibleWithVersion + "\"\n"
             + "\\score { \\new Staff { c'2 d'2 } }\n";
 
         //Act
@@ -118,7 +119,7 @@ public class TiesAndSlursEndToEndTests
         // cross, placed together by one run of the scorer. It also exercises the path
         // where Tie_engraver makes the column at all — a single tie never does.
         string source =
-            "\\version \"2.27.2\"\n"
+            "\\version \"" + LilyVersion.CompatibleWithVersion + "\"\n"
             + "\\score { \\new Staff { <c' e' g'>2 ~ <c' e' g'>2 } }\n";
 
         //Act
@@ -136,7 +137,7 @@ public class TiesAndSlursEndToEndTests
         // Laissez_vibrer_engraver plus Semi_tie_column: a tie with a head on one side only,
         // which goes through the same formatting problem with use_horizontal_spacing off.
         string source =
-            "\\version \"2.27.2\"\n"
+            "\\version \"" + LilyVersion.CompatibleWithVersion + "\"\n"
             + "\\score { \\new Staff { c'1\\laissezVibrer } }\n";
 
         //Act
@@ -155,7 +156,7 @@ public class TiesAndSlursEndToEndTests
         // different code path only in which event class it listens for and which grobs it
         // makes — so this is the fence on the subclass actually overriding all three.
         string source =
-            "\\version \"2.27.2\"\n"
+            "\\version \"" + LilyVersion.CompatibleWithVersion + "\"\n"
             + "\\score { \\new Staff { c'1\\repeatTie } }\n";
 
         //Act
@@ -173,7 +174,7 @@ public class TiesAndSlursEndToEndTests
         // Slur_engraver, the enumeration of candidate endpoints, the four scorers and
         // Slur::print, in one line.
         string source =
-            "\\version \"2.27.2\"\n"
+            "\\version \"" + LilyVersion.CompatibleWithVersion + "\"\n"
             + "\\score { \\new Staff { c'4( d' e' f') } }\n";
 
         //Act
@@ -190,7 +191,7 @@ public class TiesAndSlursEndToEndTests
         //Arrange
         // The control for the test above.
         string source =
-            "\\version \"2.27.2\"\n"
+            "\\version \"" + LilyVersion.CompatibleWithVersion + "\"\n"
             + "\\score { \\new Staff { c'4 d' e' f' } }\n";
 
         //Act
@@ -210,7 +211,7 @@ public class TiesAndSlursEndToEndTests
         // must both appear. This is also the one case where the phrasing engraver's extra
         // acknowledger matters: it shapes itself around the inner slur.
         string source =
-            "\\version \"2.27.2\"\n"
+            "\\version \"" + LilyVersion.CompatibleWithVersion + "\"\n"
             + "\\score { \\new Staff { c'4\\( d'( e') f'\\) } }\n";
 
         //Act
@@ -229,7 +230,7 @@ public class TiesAndSlursEndToEndTests
         // double_property to false — and it makes create_slur emit a SECOND spanner with
         // the opposite direction. Two curves where the same music otherwise gives one.
         string source =
-            "\\version \"2.27.2\"\n"
+            "\\version \"" + LilyVersion.CompatibleWithVersion + "\"\n"
             + "\\score { \\new Staff { \\set doubleSlurs = ##t c'4( d' e' f') } }\n";
 
         //Act
@@ -248,7 +249,7 @@ public class TiesAndSlursEndToEndTests
         // slur's encompass objects, and score_extra_encompass then keeps the slur's ends
         // away from the tie's. Both curves must survive that.
         string source =
-            "\\version \"2.27.2\"\n"
+            "\\version \"" + LilyVersion.CompatibleWithVersion + "\"\n"
             + "\\score { \\new Staff { c'4( c' ~ c' d') } }\n";
 
         //Act

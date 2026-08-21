@@ -236,8 +236,10 @@ instead of appearing as one warning among twelve.
 
 version.itexi is NOT vendored and never will be. Upstream generates it at build
 time from its VERSION file; Lily.Docs writes its own stand-in at render time from
-LilyPortInfo.UpstreamVersion, so the manuals always state the version of the
-engine that generated them. A vendored copy would freeze a version string that
+LilyPortInfo.CompatibleWithVersion, so the manuals always state the LilyPond
+version of the engine that generated them. (That is the compatible-with version,
+not LilyPortInfo.Version, which is LilyPort's own package version -- these are
+LilyPond's manuals and their @version{} means the LilyPond release.) A vendored copy would freeze a version string that
 disagrees with the engine the moment the port's version moves, and do it
 silently.
 

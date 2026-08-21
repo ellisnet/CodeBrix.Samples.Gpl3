@@ -21,5 +21,59 @@
 
   <ItemGroup>
     <ProjectReference Include="..\libs\Fresco.Brix.Ly\Fresco.Brix.Ly.csproj" />
+    <ProjectReference Include="..\libs\Fresco.Brix.MusicView\Fresco.Brix.MusicView.csproj" />
+  </ItemGroup>
+
+  <!-- The in-process LilyPond engine (FR2). The facade nuget packs its
+       sub-assemblies with PrivateAssets="all", so an in-repo ProjectReference
+       consumer must name all four projects explicitly; a consumer of the
+       published package needs only CodeBrix.LilyPort.GplLicenseForever, which
+       is board row W13b. -->
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\CodeBrix.LilyPort\src\CodeBrix.LilyPort\CodeBrix.LilyPort.csproj" />
+    <ProjectReference Include="..\..\..\CodeBrix.LilyPort\src\CodeBrix.LilyPort.Engine\CodeBrix.LilyPort.Engine.csproj" />
+    <ProjectReference Include="..\..\..\CodeBrix.LilyPort\src\CodeBrix.LilyPort.Backends\CodeBrix.LilyPort.Backends.csproj" />
+    <ProjectReference Include="..\..\..\CodeBrix.LilyPort\src\CodeBrix.LilyPort.Parsing\CodeBrix.LilyPort.Parsing.csproj" />
+  </ItemGroup>
+
+  <!-- The Emmentaler faces: the engine's font layer probes <appdir>/fonts/otf,
+       and the Music View's SVG renderer will resolve the score's text fonts
+       from the same place (board trap 9). CopyToOutputDirectory content flows
+       to every head through the ProjectReference chain. -->
+  <ItemGroup>
+    <None Include="..\..\..\CodeBrix.LilyPort\assets\fonts\otf\*.otf"
+          Link="fonts\otf\%(Filename)%(Extension)"
+          CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <!-- The layout-control formatter files, which a layout-control run pulls in
+       with -dinclude-settings. They are Frescobaldi's own .ily sources (GPL),
+       shipped as assets exactly as upstream ships them beside its module. -->
+  <ItemGroup>
+    <None Include="assets\layoutcontrol\*.il*"
+          Link="assets\layoutcontrol\%(Filename)%(Extension)"
+          CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <!-- The hyphenation dictionaries, which the Hyphenate Lyrics Text command
+       reads. They are third-party data files, each with its own license and
+       its own README, aggregated with the application rather than built into
+       it: the folder can be emptied and the application still runs, offering
+       whatever dictionaries the machine itself has. See THIRD-PARTY-NOTICES.txt
+       section 5 for the per-dictionary audit. Content, not embedded, because
+       the notices have to travel WITH the files and because the search that
+       finds them is a directory search either way. -->
+  <ItemGroup>
+    <None Include="assets\hyphdicts\*"
+          Link="assets\hyphdicts\%(Filename)%(Extension)"
+          CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <!-- The Quick Insert panel's button icons, engraved by LilyPort itself from
+       Frescobaldi's symbol sources (GPL). Regenerate with
+       tools/symbolicons; the tool ships nothing and is not in the solution. -->
+  <ItemGroup>
+    <EmbeddedResource Include="assets\symbols\*.svg"
+                      LogicalName="Fresco.Brix.Symbols.%(Filename).svg" />
   </ItemGroup>
 </Project>

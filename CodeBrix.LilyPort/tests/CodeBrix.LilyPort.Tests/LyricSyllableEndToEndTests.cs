@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using CodeBrix.LilyPort.Engine.Bootstrap;
 using SilverAssertions;
 using Xunit;
 
@@ -162,7 +163,7 @@ public class LyricSyllableEndToEndTests
     // the oracle answers "cannot find context: Voice = V" to that and writes no lyrics at
     // all, so it fenced nothing.)
     private const string FourNotesFourSyllables = @"
-\version ""2.27.2""
+\version """ + LilyVersion.CompatibleWithVersion + @"""
 \score {
   <<
     \new Staff = ""S"" { \clef ""treble"" \new Voice = ""V"" \relative { c''4 c c c } }
@@ -175,7 +176,7 @@ public class LyricSyllableEndToEndTests
     // The control: the SAME staff with no stanza at all. Every count below has to come
     // out different here, or it would be satisfied by a file that simply drew nothing.
     private const string FourNotesNoLyrics = @"
-\version ""2.27.2""
+\version """ + LilyVersion.CompatibleWithVersion + @"""
 \score {
   <<
     \new Staff = ""S"" { \clef ""treble"" \new Voice = ""V"" \relative { c''4 c c c } }
@@ -254,7 +255,7 @@ public class LyricSyllableEndToEndTests
         // context-creation order, so each Lyrics track lands directly after its own
         // Staff track; the port emitted both staves and then both stanzas.
         const string source = @"
-\version ""2.27.2""
+\version """ + LilyVersion.CompatibleWithVersion + @"""
 \score {
   <<
     \new Staff = ""A"" { \new Voice = ""AV"" \relative { c''4 c } }

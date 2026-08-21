@@ -39,8 +39,19 @@ public static class LyData
     /// </summary>
     private static readonly Dictionary<string, string[]> Interfaces = Patch();
 
-    /// <summary>Gets the version of the engine the data was generated from.</summary>
-    public static string Version => LilyPondData.Version;
+    /// <summary>
+    /// Gets or sets the LilyPond version the data describes — python-ly's
+    /// <c>ly.data.version()</c>.
+    /// </summary>
+    /// <remarks>
+    /// //was previously: a <c>const</c> written into the generated data file by
+    /// tools/datagen. Fresco.Brix names the LilyPond release in exactly ONE C#
+    /// place — LilyPort's <c>LilyVersion.CompatibleWithVersion</c> — and
+    /// Fresco.Brix.Ly must not reference LilyPort (plan §5.1), so the host injects
+    /// it instead. Fresco.Brix.Core sets it; a host that never does gets the empty
+    /// string rather than a number that could go stale.
+    /// </remarks>
+    public static string Version { get; set; } = string.Empty;
 
     /// <summary>Returns the sorted list of all grob names.</summary>
     /// <returns>The grob names.</returns>

@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <RootNamespace>Fresco.Brix.MusicView</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- The view is a CodeBrix.Platform control; it never references LilyPort
+         (architecture §5.1) — the engine reaches it only through the SVG files
+         it wrote and the typeface seam the host fills in. -->
+    <PackageReference Include="CodeBrix.Platform.ApacheLicenseForever" Version="1.0.231.233" />
+    <!-- SKXamlCanvas - the SkiaSharp drawing surface the pages are painted on -->
+    <PackageReference Include="CodeBrix.Platform.SkiaSharp.Views.MitLicenseForever" Version="4.151.0" />
+    <!-- The SVG engine (FR11, board trap 13): parses a page once into an
+         SKPicture that redraws at any zoom, and hands back the point-and-click
+         anchors with their page-coordinate bounds. -->
+    <PackageReference Include="CodeBrix.SkiaSvg.MitLicenseForever" Version="1.0.214.1201" />
+  </ItemGroup>
+</Project>

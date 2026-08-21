@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.2"
+     width="7.7321mm" height="7.7321mm"
+     viewBox="0.0000 -0.0000 4.4000 4.4000">
+<g fill="currentColor" color="black">
+<g transform="translate(3.8009, 2.4362)">
+<rect x="-0.0650" y="-2.4362" width="0.1300" height="2.7500" ry="0.0400" fill="currentColor"/>
+</g>
+<g transform="translate(2.5617, 2.9362)">
+<path transform="scale(0.0040, -0.0040)" d="M0 -46c0 91 116 182 217 182c63 0 109 -35 109 -90c0 -87 -110 -182 -220 -182c-67 0 -106 39 -106 90z" fill="currentColor"/>
+</g>
+<g transform="translate(2.1967, 2.4362)">
+<rect x="-0.0650" y="-1.1283" width="0.1300" height="2.0139" ry="0.0400" fill="currentColor"/>
+</g>
+<g transform="translate(1.3438, 3.4362)">
+<path transform="scale(0.0028, -0.0028)" d="M0 -40c0 92 109 179 208 179c67 0 117 -40 117 -99c0 -88 -103 -179 -211 -179c-71 0 -114 43 -114 99z" fill="currentColor"/>
+</g>
+<g transform="translate(0.9138, 1.5782)">
+<polygon stroke-linejoin="round" stroke-linecap="round" stroke-width="0.0800" fill="currentColor" stroke="currentColor" points="1.3079 -0.4360 1.3079 -0.1320 0.0400 0.1520 0.0400 -0.1520"/>
+</g>
+<g transform="translate(0.9788, 2.4362)">
+<rect x="-0.0650" y="-0.8717" width="0.1300" height="2.2573" ry="0.0400" fill="currentColor"/>
+</g>
+<g transform="translate(0.1258, 3.9362)">
+<path transform="scale(0.0028, -0.0028)" d="M0 -40c0 92 109 179 208 179c67 0 117 -40 117 -99c0 -88 -103 -179 -211 -179c-71 0 -114 43 -114 99z" fill="currentColor"/>
+</g>
+</g>
+</svg>

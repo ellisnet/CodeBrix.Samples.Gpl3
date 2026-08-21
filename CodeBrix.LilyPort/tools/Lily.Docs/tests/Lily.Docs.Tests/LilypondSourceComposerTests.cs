@@ -8,6 +8,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using CodeBrix.LilyPort.Engine.Bootstrap;
 using Lily.Docs;
 using Lily.Docs.Snippets;
 using SilverAssertions;
@@ -226,7 +227,7 @@ public sealed class LilypondSourceComposerTests
     public void relevant_contents_drops_position_lines_and_keeps_the_music()
     {
         //Arrange
-        string source = "\\version \"2.27.2\"\n\\sourcefilename \"a.ly\"\n"
+        string source = "\\version \"" + LilyVersion.CompatibleWithVersion + "\"\n\\sourcefilename \"a.ly\"\n"
             + "\\sourcefileline 0\nc'4 d'4\n";
 
         //Act

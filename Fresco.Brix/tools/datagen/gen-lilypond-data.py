@@ -108,9 +108,11 @@ namespace Fresco.Brix.Ly.Data; //was previously: ly/data/_lilypond_data.py (REGE
 internal static class LilyPondData
 {''')
 
-    print('    /// <summary>The engine version the data was generated from.</summary>')
-    print(f'    internal const string Version = {cs_str(scope["version"])};')
-    print()
+    # The engine version is NOT written into the generated C# as a literal.
+    # Fresco.Brix names the LilyPond release in exactly ONE C# place — LilyPort's
+    # LilyVersion.CompatibleWithVersion — and the host injects it into
+    # LyData.Version at startup. The value is recorded in the header comment above
+    # so a reader can still see which engine this data came from.
     emit_dict('Interfaces', 'Interface name to its user-property names.', scope['interfaces'])
     emit_dict('Grobs', 'Grob name to the interfaces it implements.', scope['grobs'])
     emit_array('Contextproperties', 'All user translation properties.', scope['contextproperties'])

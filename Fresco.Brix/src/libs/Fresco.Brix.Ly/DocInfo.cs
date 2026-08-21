@@ -204,7 +204,10 @@ public class DocInfo
     /// <see langword="null"/> when the document declares none.
     /// </summary>
     /// <returns>The version string.</returns>
-    public string VersionString() => Cached(nameof(VersionString), () =>
+    /// <remarks>Virtual because the application's own DocInfo also looks in the
+    /// document variables and in non-LilyPond comments, exactly as upstream's
+    /// <c>lydocinfo.DocInfo</c> overrides <c>version_string</c>.</remarks>
+    public virtual string VersionString() => Cached(nameof(VersionString), () =>
     {
         int i = Find("\\version", typeof(LilyPondMode.Keyword));
         if (i == -1) { return null; }
@@ -537,7 +540,17 @@ public class DocInfo
     private static bool IsSpace(Token token)
         => token.Text.Length > 0 && token.Text.All(char.IsWhiteSpace);
 
-    private T Cached<T>(string key, Func<T> compute)
+    /// <summary>
+    /// Answers a computed value, working it out once and remembering it.
+    /// </summary>
+    /// <typeparam name="T">The value's type.</typeparam>
+    /// <param name="key">The value's name.</param>
+    /// <param name="compute">How to work it out.</param>
+    /// <returns>The value.</returns>
+    /// <remarks>Protected so a derived DocInfo caches its own answers in the
+    /// same place — upstream's <c>@_cache</c> decorator, which a subclass
+    /// applies to its overrides.</remarks>
+    protected T Cached<T>(string key, Func<T> compute)
     {
         if (_cache.TryGetValue(key, out object value)) { return (T)value; }
 

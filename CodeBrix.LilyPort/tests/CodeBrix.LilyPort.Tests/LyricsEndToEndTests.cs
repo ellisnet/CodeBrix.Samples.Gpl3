@@ -7,6 +7,7 @@
 
 using System;
 using System.IO;
+using CodeBrix.LilyPort.Engine.Bootstrap;
 using SilverAssertions;
 using Xunit;
 
@@ -50,7 +51,7 @@ public class LyricsEndToEndTests
     {
         //Arrange
         string source =
-            "\\version \"2.27.2\"\n"
+            "\\version \"" + LilyVersion.CompatibleWithVersion + "\"\n"
             + "\\score { \\new Staff { \\new Voice = \"tune\" { c'4 d'4 e'4 f'4 } }\n"
             + "  \\addlyrics { A B C D } }\n";
 
@@ -74,7 +75,7 @@ public class LyricsEndToEndTests
     {
         //Arrange
         string source =
-            "\\version \"2.27.2\"\n"
+            "\\version \"" + LilyVersion.CompatibleWithVersion + "\"\n"
             + "\\score { \\new Staff { \\new Voice = \"tune\" { c'4 d'4 e'4 f'4 } }\n"
             + "  \\addlyrics { Ly -- ric Word ing } }\n";
 
@@ -99,7 +100,7 @@ public class LyricsEndToEndTests
         // implicit binding, which is the other half of Lyric_combine_music_iterator's
         // find_voice.
         string source =
-            "\\version \"2.27.2\"\n"
+            "\\version \"" + LilyVersion.CompatibleWithVersion + "\"\n"
             + "\\score { <<\n"
             + "  \\new Staff \\new Voice = \"melody\" { c'4 d'4 e'4 f'4 }\n"
             + "  \\new Lyrics \\lyricsto \"melody\" { Sing these four notes }\n"
@@ -123,7 +124,7 @@ public class LyricsEndToEndTests
         // syllable slots. This is the whole reason melisma_busy exists, and it is the
         // function context.cc declared and the port had never carried.
         string source =
-            "\\version \"2.27.2\"\n"
+            "\\version \"" + LilyVersion.CompatibleWithVersion + "\"\n"
             + "\\score { \\new Staff { \\new Voice = \"tune\" { c'4( d'4) e'4 f'4 } }\n"
             + "  \\addlyrics { One Two Three } }\n";
 
@@ -145,7 +146,7 @@ public class LyricsEndToEndTests
     {
         //Arrange
         string source =
-            "\\version \"2.27.2\"\n"
+            "\\version \"" + LilyVersion.CompatibleWithVersion + "\"\n"
             + "\\score { <<\n"
             + "  \\new Staff \\new Voice = \"melody\" { c'4 d'4 }\n"
             + "  \\new Lyrics \\lyricsto \"nosuchvoice\" { Nobodyhome } \n"

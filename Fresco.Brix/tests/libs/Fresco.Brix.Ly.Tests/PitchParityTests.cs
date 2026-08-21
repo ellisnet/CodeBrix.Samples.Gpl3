@@ -206,14 +206,18 @@ public class PitchParityTests
     public void a_language_command_is_inserted_below_the_version_line()
     {
         //Arrange
-        var document = new Document("\\version \"2.27.2\"\nmusic = { c'4 }\n");
+        //The number here is DELIBERATELY not the release LilyPort is compatible
+        //with: this case exercises a document operation on arbitrary .ly text, and
+        //Fresco.Brix.Ly does not reference LilyPort (plan §5.1) so it could not read
+        //that release anyway. Any version at or above the \language cutoff will do.
+        var document = new Document("\\version \"2.24.0\"\nmusic = { c'4 }\n");
 
         //Act
         Translating.InsertLanguage(document, "deutsch");
 
         //Assert
         document.PlainText()
-            .Should().Be("\\version \"2.27.2\"\n\\language \"deutsch\"\nmusic = { c'4 }\n");
+            .Should().Be("\\version \"2.24.0\"\n\\language \"deutsch\"\nmusic = { c'4 }\n");
     }
 
     [Fact]

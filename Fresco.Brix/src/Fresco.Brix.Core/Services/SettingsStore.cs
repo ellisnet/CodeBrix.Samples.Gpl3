@@ -7,6 +7,7 @@
 
 using CodeBrix.Sqlite;
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 
@@ -110,6 +111,57 @@ public sealed class SettingsStore : IDisposable
     /// <param name="value">The value.</param>
     public void SetInt(string key, int value)
         => SetString(key, value.ToString(CultureInfo.InvariantCulture));
+
+    /// <summary>
+    /// Lists the keys that start with a prefix, in key order — the store's
+    /// answer to QSettings' <c>allKeys()</c> within a group.
+    /// </summary>
+    /// <param name="prefix">The key prefix, e.g. <c>shortcuts/default/main/</c>.</param>
+    /// <returns>The matching keys.</returns>
+    public IReadOnlyList<string> KeysWithPrefix(string prefix)
+    {
+        List<string> keys = new List<string>();
+        using var command = _database.CreateCommand(
+            "SELECT key FROM settings WHERE key LIKE '"
+            + Escape(prefix ?? string.Empty) + "%' ESCAPE '\\' ORDER BY key;");
+        using var reader = command.ExecuteReader();
+        while (reader.Read())
+        {
+            keys.Add(reader.GetString(0));
+        }
+
+        return keys;
+    }
+
+    /// <summary>Removes a setting.</summary>
+    /// <param name="key">The setting key.</param>
+    public void Remove(string key) => SetString(key, null);
+
+    /// <summary>Removes every setting whose key starts with a prefix.</summary>
+    /// <param name="prefix">The key prefix.</param>
+    public void RemoveWithPrefix(string prefix)
+        => _database.ExecuteNonQuery(
+            "DELETE FROM settings WHERE key LIKE '"
+            + Escape(prefix ?? string.Empty) + "%' ESCAPE '\\';");
+
+    /// <summary>Reads a floating-point setting.</summary>
+    /// <param name="key">The setting key.</param>
+    /// <param name="defaultValue">The value when unset.</param>
+    /// <returns>The value.</returns>
+    public double GetDouble(string key, double defaultValue = 0.0)
+    {
+        var text = GetString(key);
+        return text != null
+            && double.TryParse(text, NumberStyles.Float, CultureInfo.InvariantCulture, out var value)
+            ? value
+            : defaultValue;
+    }
+
+    /// <summary>Writes a floating-point setting.</summary>
+    /// <param name="key">The setting key.</param>
+    /// <param name="value">The value.</param>
+    public void SetDouble(string key, double value)
+        => SetString(key, value.ToString("R", CultureInfo.InvariantCulture));
 
     /// <summary>Closes the store.</summary>
     public void Dispose() => _database.Dispose();

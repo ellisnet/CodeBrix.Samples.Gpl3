@@ -40,22 +40,28 @@ public sealed class VersionItexiWriterTests
         hasDevel.Should().BeTrue();
     }
 
-    /// <summary>The version macro carries the ports own version.</summary>
+    /// <summary>The version macro carries the ported LilyPond version.</summary>
     [Fact]
-    public void the_version_macro_carries_the_ports_own_version()
+    public void the_version_macro_carries_the_compatible_with_version()
     {
         //Arrange
         string content = InvokeBuildContent();
 
         //Act
-        bool statesPortVersion = content.Contains("\n" + LilyPortInfo.UpstreamVersion + "\n");
+        bool statesCompatibleWith = content.Contains("\n" + LilyPortInfo.CompatibleWithVersion + "\n");
+        bool statesPackageVersion = content.Contains(LilyPortInfo.Version);
 
         //Assert
         // Read off LilyPortInfo rather than written as a literal: the manuals must state
         // the version of the engine that generated them, and a literal here would drift
         // the moment the port's version moves.
-        statesPortVersion.Should().BeTrue();
-        LilyPortInfo.UpstreamVersion.Should().Be("2.27.2");
+        //
+        // These are LilyPond's own manuals, so @version{} means the LILYPOND release --
+        // LilyPortInfo.CompatibleWithVersion. LilyPortInfo.Version is LilyPort's own
+        // date-stamped package version and has no business in a LilyPond manual; it is
+        // asserted absent so the two can never quietly swap places.
+        statesCompatibleWith.Should().BeTrue();
+        statesPackageVersion.Should().BeFalse();
     }
 
     /// <summary>Every macro is closed.</summary>

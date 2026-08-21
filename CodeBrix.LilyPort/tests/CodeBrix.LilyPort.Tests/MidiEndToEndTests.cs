@@ -8,6 +8,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using CodeBrix.LilyPort.Engine.Bootstrap;
 using SilverAssertions;
 using Xunit;
 
@@ -86,7 +87,7 @@ public class MidiEndToEndTests
     {
         //Arrange
         string source =
-            "\\version \"2.27.2\"\n"
+            "\\version \"" + LilyVersion.CompatibleWithVersion + "\"\n"
             + "\\score { \\new Staff { c'4 } \\midi { } }\n";
 
         //Act
@@ -112,7 +113,7 @@ public class MidiEndToEndTests
         // wrote a MIDI file for every score in the suite -- which would give all 2,146
         // regression files an output the oracle does not have.
         string source =
-            "\\version \"2.27.2\"\n"
+            "\\version \"" + LilyVersion.CompatibleWithVersion + "\"\n"
             + "\\score { \\new Staff { c'4 } }\n";
 
         //Act
@@ -130,7 +131,7 @@ public class MidiEndToEndTests
         // then a delta of 384 ticks, then the same note at velocity zero. 384 is one
         // quarter note, and 0x83 0x00 is 384 as a variable-length quantity.
         string source =
-            "\\version \"2.27.2\"\n"
+            "\\version \"" + LilyVersion.CompatibleWithVersion + "\"\n"
             + "\\score { \\new Staff { c'4 } \\midi { } }\n";
 
         //Act
@@ -150,7 +151,7 @@ public class MidiEndToEndTests
         //Arrange
         // The control for the note test: same length of music, no note-on anywhere.
         string source =
-            "\\version \"2.27.2\"\n"
+            "\\version \"" + LilyVersion.CompatibleWithVersion + "\"\n"
             + "\\score { \\new Staff { r4 } \\midi { } }\n";
 
         //Act
@@ -168,7 +169,7 @@ public class MidiEndToEndTests
         // quantity that is 0x8C 0x00. If AudioMoment.ToTicks were scaled wrongly this
         // would be the first thing to move.
         string source =
-            "\\version \"2.27.2\"\n"
+            "\\version \"" + LilyVersion.CompatibleWithVersion + "\"\n"
             + "\\score { \\new Staff { c'1 } \\midi { } }\n";
 
         //Act
@@ -185,7 +186,7 @@ public class MidiEndToEndTests
         // Control_track_performer writes "creator: " and then the padded version string.
         // The oracle's own files open their first track with FF 01 09 "creator: ".
         string source =
-            "\\version \"2.27.2\"\n"
+            "\\version \"" + LilyVersion.CompatibleWithVersion + "\"\n"
             + "\\score { \\new Staff { c'4 } \\midi { } }\n";
 
         //Act
@@ -203,7 +204,7 @@ public class MidiEndToEndTests
         //Arrange
         // Lyric_performer's whole job. FF 05 is the lyric meta event; "la" is two bytes.
         string source =
-            "\\version \"2.27.2\"\n"
+            "\\version \"" + LilyVersion.CompatibleWithVersion + "\"\n"
             + "\\score {\n"
             + "  <<\n"
             + "    \\new Voice = \"one\" { c'4 }\n"
@@ -226,7 +227,7 @@ public class MidiEndToEndTests
         //Arrange
         // The control: FF 05 must not appear at all when nothing is sung.
         string source =
-            "\\version \"2.27.2\"\n"
+            "\\version \"" + LilyVersion.CompatibleWithVersion + "\"\n"
             + "\\score { \\new Staff { c'4 } \\midi { } }\n";
 
         //Act
@@ -248,7 +249,7 @@ public class MidiEndToEndTests
         // the parser does not resolve the string-named identifier "~", and a test that
         // needs it would be fencing a Track P gap rather than this performer.
         string source =
-            "\\version \"2.27.2\"\n"
+            "\\version \"" + LilyVersion.CompatibleWithVersion + "\"\n"
             + "\\score { \\new Staff { c'2 } \\midi { } }\n";
 
         //Act
@@ -272,11 +273,11 @@ public class MidiEndToEndTests
         // it. Measured through MIDI because that is where it is unmissable: ticks move,
         // where a page's glyph inventory does not.
         string wholeNotes =
-            "\\version \"2.27.2\"\n"
+            "\\version \"" + LilyVersion.CompatibleWithVersion + "\"\n"
             + "\\score { \\new Staff { c'1 } \\midi { } }\n";
 
         string noWrittenDuration =
-            "\\version \"2.27.2\"\n"
+            "\\version \"" + LilyVersion.CompatibleWithVersion + "\"\n"
             + "\\score { \\new Staff { c' } \\midi { } }\n";
 
         //Act

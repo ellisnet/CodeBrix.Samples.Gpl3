@@ -5,6 +5,7 @@
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
+using CodeBrix.LilyPort.Engine.Bootstrap;
 using CodeBrix.LilyPort.Engine.Fonts;
 using CodeBrix.LilyPort.Engine.Layout;
 using SilverAssertions;
@@ -183,7 +184,13 @@ public class KerningTableTests
         const double RawSumEm = 7.7810;
 
         //Act
-        Stencil tagline = metric.TextStencil("LilyPond v2.27.2");
+        // The 7.7299 em below is an ORACLE MEASUREMENT of this exact string, so the
+        // string is built from LilyVersion.CompatibleWithVersion rather than pinned to a
+        // literal: advancing the port onto a newer LilyPond changes the tagline's glyphs
+        // and therefore its width, and this assertion should FAIL loudly and be
+        // re-measured against the new oracle instead of quietly measuring a string the
+        // engine no longer emits.
+        Stencil tagline = metric.TextStencil("LilyPond v" + LilyVersion.CompatibleWithVersion);
         double width = tagline.XExtent.Right;
         double widthEm = width / (4.0 / 1000.0) / 1000.0;
 

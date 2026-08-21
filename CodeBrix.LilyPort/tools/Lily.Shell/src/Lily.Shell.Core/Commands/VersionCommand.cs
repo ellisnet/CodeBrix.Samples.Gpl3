@@ -38,11 +38,12 @@ public sealed class VersionCommand : IShellCommand
     /// <inheritdoc/>
     public Task ExecuteAsync(ShellCommandContext context)
     {
-        var assemblyVersion = typeof(LilyPortEngraver).Assembly.GetName().Version;
-
-        context.IO.WriteLine($"CodeBrix.LilyPort - a port of GNU LilyPond {LilyPortInfo.UpstreamVersion}");
+        //was previously: the first line read "CodeBrix.LilyPort - a port of GNU LilyPond
+        //  {LilyPortInfo.UpstreamVersion}", which named the LilyPond release and never named
+        //  LilyPort's own version at all. The two are separate facts and both are reported.
+        context.IO.WriteLine($"CodeBrix.LilyPort {LilyPortInfo.Version}");
+        context.IO.WriteLine($"  compatible with: GNU LilyPond {LilyPortInfo.CompatibleWithVersion}");
         context.IO.WriteLine($"  upstream: {LilyPortInfo.UpstreamUrl} @ {LilyPortInfo.UpstreamCommit[..10]}");
-        context.IO.WriteLine($"  engine assembly: {assemblyVersion}");
         context.IO.WriteLine($"  scheme layer: {(_host.IsReady ? "loaded" : "loading...")}");
         return Task.CompletedTask;
     }

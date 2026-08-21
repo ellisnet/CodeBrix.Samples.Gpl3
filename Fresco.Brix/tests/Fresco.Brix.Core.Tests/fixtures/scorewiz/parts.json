@@ -1,0 +1,517 @@
+[
+ {
+  "title": "Strings",
+  "items": [
+   {
+    "name": "Violin",
+    "title": "Violin",
+    "short": "Vl."
+   },
+   {
+    "name": "Viola",
+    "title": "Viola",
+    "short": "Vla."
+   },
+   {
+    "name": "Cello",
+    "title": "Cello",
+    "short": "Cl."
+   },
+   {
+    "name": "Contrabass",
+    "title": "Contrabass",
+    "short": "Cb."
+   },
+   {
+    "name": "BassoContinuo",
+    "title": "Basso continuo",
+    "short": "B.C."
+   }
+  ]
+ },
+ {
+  "title": "Plucked strings",
+  "items": [
+   {
+    "name": "Mandolin",
+    "title": "Mandolin",
+    "short": "Mdl."
+   },
+   {
+    "name": "Banjo",
+    "title": "Banjo",
+    "short": "Bj."
+   },
+   {
+    "name": "Ukulele",
+    "title": "Ukulele",
+    "short": "Uk."
+   },
+   {
+    "name": "Guitar",
+    "title": "Guitar",
+    "short": "Gt."
+   },
+   {
+    "name": "AcousticGuitar",
+    "title": "Acoustic guitar",
+    "short": "A.Gt."
+   },
+   {
+    "name": "ElectricGuitar",
+    "title": "Electric guitar",
+    "short": "E.Gt."
+   },
+   {
+    "name": "AcousticBass",
+    "title": "Acoustic bass",
+    "short": "A.Bs."
+   },
+   {
+    "name": "ElectricBass",
+    "title": "Electric bass",
+    "short": "E.Bs."
+   },
+   {
+    "name": "Harp",
+    "title": "Harp",
+    "short": "Hp."
+   }
+  ]
+ },
+ {
+  "title": "Woodwinds",
+  "items": [
+   {
+    "name": "Flute",
+    "title": "Flute",
+    "short": "Fl."
+   },
+   {
+    "name": "Piccolo",
+    "title": "Piccolo",
+    "short": "Pic."
+   },
+   {
+    "name": "AltoFlute",
+    "title": "Alto flute",
+    "short": "A.Fl."
+   },
+   {
+    "name": "BassFlute",
+    "title": "Bass flute",
+    "short": "B.Fl."
+   },
+   {
+    "name": "Oboe",
+    "title": "Oboe",
+    "short": "Ob."
+   },
+   {
+    "name": "OboeDAmore",
+    "title": "Oboe d'amore",
+    "short": "Ob.D'am."
+   },
+   {
+    "name": "EnglishHorn",
+    "title": "English horn",
+    "short": "Eng.H."
+   },
+   {
+    "name": "Bassoon",
+    "title": "Bassoon",
+    "short": "Bn."
+   },
+   {
+    "name": "ContraBassoon",
+    "title": "Contrabassoon",
+    "short": "C.Bn."
+   },
+   {
+    "name": "Clarinet",
+    "title": "Clarinet",
+    "short": "Cl."
+   },
+   {
+    "name": "EflatClarinet",
+    "title": "E-flat clarinet",
+    "short": "Cl. in Eb"
+   },
+   {
+    "name": "AClarinet",
+    "title": "A clarinet",
+    "short": "Cl. in A"
+   },
+   {
+    "name": "BassClarinet",
+    "title": "Bass clarinet",
+    "short": "B.Cl."
+   },
+   {
+    "name": "SopraninoSax",
+    "title": "Sopranino saxophone",
+    "short": "Si.Sax."
+   },
+   {
+    "name": "SopranoSax",
+    "title": "Soprano saxophone",
+    "short": "So.Sax."
+   },
+   {
+    "name": "AltoSax",
+    "title": "Alto saxophone",
+    "short": "A.Sax."
+   },
+   {
+    "name": "TenorSax",
+    "title": "Tenor saxophone",
+    "short": "T.Sax."
+   },
+   {
+    "name": "BaritoneSax",
+    "title": "Baritone saxophone",
+    "short": "B.Sax."
+   },
+   {
+    "name": "BassSax",
+    "title": "Bass saxophone",
+    "short": "Bs.Sax."
+   },
+   {
+    "name": "C_MelodySax",
+    "title": "C-melody saxophone",
+    "short": "C-Mel Sax"
+   },
+   {
+    "name": "SopraninoRecorder",
+    "title": "Sopranino recorder",
+    "short": "Si.Rec."
+   },
+   {
+    "name": "SopranoRecorder",
+    "title": "Soprano recorder",
+    "short": "S.Rec."
+   },
+   {
+    "name": "AltoRecorder",
+    "title": "Alto recorder",
+    "short": "A.Rec."
+   },
+   {
+    "name": "TenorRecorder",
+    "title": "Tenor recorder",
+    "short": "T.Rec."
+   },
+   {
+    "name": "BassRecorder",
+    "title": "Bass recorder",
+    "short": "B.Rec."
+   },
+   {
+    "name": "ContraBassRecorder",
+    "title": "Contrabass recorder",
+    "short": "Cb.Rec."
+   },
+   {
+    "name": "SubContraBassRecorder",
+    "title": "Subcontrabass recorder",
+    "short": "Scb.Rec."
+   }
+  ]
+ },
+ {
+  "title": "Brass",
+  "items": [
+   {
+    "name": "HornF",
+    "title": "Horn in F",
+    "short": "Hn.F."
+   },
+   {
+    "name": "TrumpetC",
+    "title": "Trumpet in C",
+    "short": "Tr.C."
+   },
+   {
+    "name": "TrumpetBb",
+    "title": "Trumpet in Bb",
+    "short": "Tr.Bb."
+   },
+   {
+    "name": "CornetBb",
+    "title": "Cornet in Bb",
+    "short": "Crt.Bb."
+   },
+   {
+    "name": "Flugelhorn",
+    "title": "Flugelhorn",
+    "short": "Fgh."
+   },
+   {
+    "name": "Mellophone",
+    "title": "Mellophone",
+    "short": "Mph."
+   },
+   {
+    "name": "Trombone",
+    "title": "Trombone",
+    "short": "Trb."
+   },
+   {
+    "name": "TromboneBb",
+    "title": "Trombone in Bb",
+    "short": "Trb.Bb."
+   },
+   {
+    "name": "AltoTrombone",
+    "title": "Alto trombone",
+    "short": "A.Trb."
+   },
+   {
+    "name": "BassTrombone",
+    "title": "Bass trombone",
+    "short": "B.Trb."
+   },
+   {
+    "name": "TenorHorn",
+    "title": "Tenor horn",
+    "short": "T.Hn."
+   },
+   {
+    "name": "Baritone",
+    "title": "Baritone",
+    "short": "Bar."
+   },
+   {
+    "name": "Euphonium",
+    "title": "Euphonium",
+    "short": "Euph."
+   },
+   {
+    "name": "Tuba",
+    "title": "Tuba",
+    "short": "Tb."
+   },
+   {
+    "name": "TubaEb",
+    "title": "Tuba in Eb",
+    "short": "Tb.Eb."
+   },
+   {
+    "name": "TubaBb",
+    "title": "Tuba in Bb",
+    "short": "Tb.Bb."
+   },
+   {
+    "name": "BassTuba",
+    "title": "Bass tuba",
+    "short": "B.Tb."
+   }
+  ]
+ },
+ {
+  "title": "Vocal",
+  "items": [
+   {
+    "name": "LeadSheet",
+    "title": "Lead sheet",
+    "short": ""
+   },
+   {
+    "name": "SopranoVoice",
+    "title": "Soprano",
+    "short": "S."
+   },
+   {
+    "name": "MezzoSopranoVoice",
+    "title": "Mezzo-soprano",
+    "short": "Ms."
+   },
+   {
+    "name": "AltoVoice",
+    "title": "Alto",
+    "short": "A."
+   },
+   {
+    "name": "TenorVoice",
+    "title": "Tenor",
+    "short": "T."
+   },
+   {
+    "name": "BassVoice",
+    "title": "Bass",
+    "short": "B."
+   },
+   {
+    "name": "Choir",
+    "title": "Choir",
+    "short": ""
+   }
+  ]
+ },
+ {
+  "title": "Keyboard instruments",
+  "items": [
+   {
+    "name": "Piano",
+    "title": "Piano",
+    "short": "Pno."
+   },
+   {
+    "name": "ElectricPiano",
+    "title": "Electric piano",
+    "short": "E.Pno."
+   },
+   {
+    "name": "Harpsichord",
+    "title": "Harpsichord",
+    "short": "Hs."
+   },
+   {
+    "name": "Clavichord",
+    "title": "Clavichord",
+    "short": "Clv."
+   },
+   {
+    "name": "Organ",
+    "title": "Organ",
+    "short": "Org."
+   },
+   {
+    "name": "Celesta",
+    "title": "Celesta",
+    "short": "Cel."
+   },
+   {
+    "name": "SynthLead",
+    "title": "Synth lead",
+    "short": "Syn.Ld."
+   },
+   {
+    "name": "SynthPad",
+    "title": "Synth pad",
+    "short": "Syn.Pad"
+   },
+   {
+    "name": "SynthBass",
+    "title": "Synth bass",
+    "short": "Syn.Bs."
+   },
+   {
+    "name": "SynthStrings",
+    "title": "Synth strings",
+    "short": "Syn.Str."
+   },
+   {
+    "name": "SynthBrass",
+    "title": "Synth brass",
+    "short": "Syn.Br."
+   },
+   {
+    "name": "SynthFx",
+    "title": "Synth effects",
+    "short": "Syn.Fx."
+   }
+  ]
+ },
+ {
+  "title": "Percussion",
+  "items": [
+   {
+    "name": "Timpani",
+    "title": "Timpani",
+    "short": "Tmp."
+   },
+   {
+    "name": "Xylophone",
+    "title": "Xylophone",
+    "short": "Xyl."
+   },
+   {
+    "name": "Marimba",
+    "title": "Marimba",
+    "short": "Mar."
+   },
+   {
+    "name": "Vibraphone",
+    "title": "Vibraphone",
+    "short": "Vib."
+   },
+   {
+    "name": "TubularBells",
+    "title": "Tubular bells",
+    "short": "Tub."
+   },
+   {
+    "name": "Steelpan",
+    "title": "Steelpan",
+    "short": "Pan"
+   },
+   {
+    "name": "Dulcimer",
+    "title": "Dulcimer",
+    "short": "Dul."
+   },
+   {
+    "name": "Glockenspiel",
+    "title": "Glockenspiel",
+    "short": "Gls."
+   },
+   {
+    "name": "Carillon",
+    "title": "Carillon",
+    "short": "Car."
+   },
+   {
+    "name": "Drums",
+    "title": "Drums",
+    "short": "Dr."
+   }
+  ]
+ },
+ {
+  "title": "Special",
+  "items": [
+   {
+    "name": "Structure",
+    "title": "Structure",
+    "short": ""
+   },
+   {
+    "name": "Chords",
+    "title": "Chord names",
+    "short": ""
+   },
+   {
+    "name": "BassFigures",
+    "title": "Figured bass",
+    "short": ""
+   }
+  ]
+ },
+ {
+  "title": "Containers",
+  "items": [
+   {
+    "name": "StaffGroup",
+    "title": "Staff group",
+    "short": ""
+   },
+   {
+    "name": "Score",
+    "title": "Score",
+    "short": ""
+   },
+   {
+    "name": "BookPart",
+    "title": "Book part",
+    "short": ""
+   },
+   {
+    "name": "Book",
+    "title": "Book",
+    "short": ""
+   }
+  ]
+ }
+]

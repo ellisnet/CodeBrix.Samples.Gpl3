@@ -45,7 +45,7 @@ public class Statement : Container
 
     /// <summary>Gets zero: unlike a container, a statement does not take its
     /// leading newlines from its first child.</summary>
-    public override int Before => 0;
+    protected override int DefaultBefore => 0;
 
     /// <inheritdoc/>
     public override string Ly(Printer printer)
@@ -70,6 +70,10 @@ public class Command : Statement
 /// </summary>
 public class Enclosed : Container
 {
+    private bool? _mayRemoveBrackets;
+    private string _pre;
+    private string _post;
+
     /// <summary>Initializes the node, optionally attaching it to a parent.</summary>
     /// <param name="parent">The parent to attach to.</param>
     public Enclosed(Node parent = null)
@@ -77,20 +81,51 @@ public class Enclosed : Container
     {
     }
 
-    /// <summary>Gets whether the brackets may be dropped.</summary>
-    public virtual bool MayRemoveBrackets => false;
+    /// <summary>
+    /// Gets or sets whether the brackets may be dropped; setting it speaks for
+    /// THIS node only.
+    /// </summary>
+    /// <remarks>
+    /// //was previously: a read-only virtual property. Upstream's
+    /// <c>may_remove_brackets</c>, <c>pre</c> and <c>post</c> are class
+    /// attributes callers shadow per instance (the score wizard's vocal parts
+    /// pin a stub's brackets on, and its rehearsal-MIDI function opens its
+    /// scheme list with <c>#\n(</c>).
+    /// </remarks>
+    public bool MayRemoveBrackets
+    {
+        get => _mayRemoveBrackets ?? DefaultMayRemoveBrackets;
+        set => _mayRemoveBrackets = value;
+    }
 
-    /// <summary>Gets the opening bracket.</summary>
-    public virtual string Pre => "{";
+    /// <summary>Gets or sets the opening bracket for THIS node.</summary>
+    public string Pre
+    {
+        get => _pre ?? DefaultPre;
+        set => _pre = value;
+    }
 
-    /// <summary>Gets the closing bracket.</summary>
-    public virtual string Post => "}";
+    /// <summary>Gets or sets the closing bracket for THIS node.</summary>
+    public string Post
+    {
+        get => _post ?? DefaultPost;
+        set => _post = value;
+    }
+
+    /// <summary>Gets the type's own answer for <see cref="MayRemoveBrackets"/>.</summary>
+    protected virtual bool DefaultMayRemoveBrackets => false;
+
+    /// <summary>Gets the type's own opening bracket.</summary>
+    protected virtual string DefaultPre => "{";
+
+    /// <summary>Gets the type's own closing bracket.</summary>
+    protected virtual string DefaultPost => "}";
 
     /// <inheritdoc/>
-    public override int Before => 0;
+    protected override int DefaultBefore => 0;
 
     /// <inheritdoc/>
-    public override int After => 0;
+    protected override int DefaultAfter => 0;
 
     /// <inheritdoc/>
     public override bool IsAtom => true;
@@ -143,10 +178,10 @@ public class Sim : Enclosed
     }
 
     /// <inheritdoc/>
-    public override string Pre => "<<";
+    protected override string DefaultPre => "<<";
 
     /// <inheritdoc/>
-    public override string Post => ">>";
+    protected override string DefaultPost => ">>";
 }
 
 /// <summary>A sequential expression whose brackets may be dropped.</summary>
@@ -160,7 +195,7 @@ public class Seqr : Seq
     }
 
     /// <inheritdoc/>
-    public override bool MayRemoveBrackets => true;
+    protected override bool DefaultMayRemoveBrackets => true;
 }
 
 /// <summary>A simultaneous expression whose brackets may be dropped.</summary>
@@ -174,7 +209,7 @@ public class Simr : Sim
     }
 
     /// <inheritdoc/>
-    public override bool MayRemoveBrackets => true;
+    protected override bool DefaultMayRemoveBrackets => true;
 }
 
 /// <summary>A LilyPond expression between <c>#{</c> and <c>#}</c>, in scheme.</summary>
@@ -188,10 +223,10 @@ public class SchemeLily : Enclosed
     }
 
     /// <inheritdoc/>
-    public override string Pre => "#{";
+    protected override string DefaultPre => "#{";
 
     /// <inheritdoc/>
-    public override string Post => "#}";
+    protected override string DefaultPost => "#}";
 }
 
 /// <summary>A list of items enclosed in parentheses.</summary>
@@ -205,10 +240,10 @@ public class SchemeList : Enclosed
     }
 
     /// <inheritdoc/>
-    public override string Pre => "(";
+    protected override string DefaultPre => "(";
 
     /// <inheritdoc/>
-    public override string Post => ")";
+    protected override string DefaultPost => ")";
 
     /// <inheritdoc/>
     public override string Ly(Printer printer) => Pre + ContainerLy(printer) + Post;
@@ -231,7 +266,7 @@ public class StatementEnclosed : Enclosed
     public virtual object Name { get; set; } = string.Empty;
 
     /// <inheritdoc/>
-    public override bool MayRemoveBrackets => true;
+    protected override bool DefaultMayRemoveBrackets => true;
 
     /// <inheritdoc/>
     public override string Ly(Printer printer)
@@ -264,13 +299,13 @@ public class Section : StatementEnclosed
     }
 
     /// <inheritdoc/>
-    public override bool MayRemoveBrackets => false;
+    protected override bool DefaultMayRemoveBrackets => false;
 
     /// <inheritdoc/>
-    public override int Before => 1;
+    protected override int DefaultBefore => 1;
 
     /// <inheritdoc/>
-    public override int After => 1;
+    protected override int DefaultAfter => 1;
 }
 
 /// <summary>
@@ -457,10 +492,10 @@ public class With : VariableSection
     public override object Name { get; set; } = "with";
 
     /// <inheritdoc/>
-    public override int Before => 0;
+    protected override int DefaultBefore => 0;
 
     /// <inheritdoc/>
-    public override int After => 0;
+    protected override int DefaultAfter => 0;
 
     /// <inheritdoc/>
     public override string Ly(Printer printer)
@@ -528,10 +563,10 @@ public class ContextType : Container
     public virtual string ContextTypeName => null; //was previously: ctype
 
     /// <inheritdoc/>
-    public override int Before => 1;
+    protected override int DefaultBefore => 1;
 
     /// <inheritdoc/>
-    public override int After => 1;
+    protected override int DefaultAfter => 1;
 
     /// <inheritdoc/>
     public override bool IsAtom => true;

@@ -269,9 +269,12 @@ public class Runner
             return pos;
         }
 
-        //upstream note: python reads self._d here, an attribute that does not
-        //exist (the field is _doc) — an upstream bug reachable only on a block
-        //with no tokens; the intended value is the block's position.
+        //⚠ DELIBERATE DIVERGENCE FROM UPSTREAM (ruling FR14). Python reads
+        //`self._d` here — an attribute that does not exist, the field being
+        //`_doc` — so upstream raises AttributeError on a block with no tokens.
+        //The intended value is plainly the block's position, which is what
+        //every other path in this method answers, and it is what is answered
+        //here. Nothing recorded moves: no fixture reaches an empty block.
         return Document.Position(Block);
     }
 

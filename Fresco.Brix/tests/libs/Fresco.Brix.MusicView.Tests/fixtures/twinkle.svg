@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.2"
+     width="210.0000mm" height="297.0000mm"
+     viewBox="0.0000 -0.0000 119.5016 169.0094">
+<g fill="currentColor" color="black">
+<g transform="translate(51.2491, 162.8656)">
+<text font-family="serif" font-size="2.2000" text-anchor="start" fill="currentColor">
+<tspan>LilyPond v2.27.2</tspan>
+</text>
+</g>
+<g transform="translate(51.2491, 162.8656)">
+<a xlink:href="https://lilypond.org">
+<rect x="0.0000" y="-0.4532" width="17.0034" height="2.0747" fill="none" stroke="none" stroke-width="0.0"/>
+</a>
+</g>
+<g transform="translate(8.5358, 23.0733)">
+<rect x="61.2323" y="-0.1000" width="2.0661" height="0.2000" ry="0.1000" fill="currentColor"/>
+</g>
+<g transform="translate(8.5358, 23.0733)">
+<rect x="19.7970" y="-0.1000" width="1.9563" height="0.2000" ry="0.1000" fill="currentColor"/>
+</g>
+<g transform="translate(8.5358, 23.0733)">
+<rect x="16.7948" y="-0.1000" width="1.9563" height="0.2000" ry="0.1000" fill="currentColor"/>
+</g>
+<g transform="translate(38.1166, 20.0733)">
+<rect x="0.0000" y="-2.0000" width="0.1900" height="4.0000" ry="0.0000" fill="currentColor"/>
+</g>
+<g transform="translate(49.6823, 20.0733)">
+<rect x="0.0000" y="-2.0000" width="0.1900" height="4.0000" ry="0.0000" fill="currentColor"/>
+</g>
+<g transform="translate(74.5665, 20.0733)">
+<rect x="0.0000" y="-2.0000" width="0.1900" height="4.0000" ry="0.0000" fill="currentColor"/>
+</g>
+<g transform="translate(63.0180, 20.0733)">
+<rect x="0.0000" y="-2.0000" width="0.1900" height="4.0000" ry="0.0000" fill="currentColor"/>
+</g>
+<g transform="translate(17.0717, 22.0733)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="0.0500" y1="-0.0000" x2="57.6349" y2="-0.0000"/>
+</g>
+<g transform="translate(17.0717, 21.0733)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="0.0500" y1="-0.0000" x2="57.6349" y2="-0.0000"/>
+</g>
+<g transform="translate(17.0717, 20.0733)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="0.0500" y1="-0.0000" x2="57.6349" y2="-0.0000"/>
+</g>
+<g transform="translate(17.0717, 19.0733)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="0.0500" y1="-0.0000" x2="57.6349" y2="-0.0000"/>
+</g>
+<g transform="translate(17.0717, 18.0733)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1000" stroke="currentColor" x1="0.0500" y1="-0.0000" x2="57.6349" y2="-0.0000"/>
+</g>
+<g transform="translate(52.0115, 20.0733)">
+<rect x="-0.0650" y="-2.0000" width="0.1300" height="3.3138" ry="0.0400" fill="currentColor"/>
+</g>
+<a style="color:inherit;" xlink:href="textedit:///scores/twinkle.ly:4:49:50">
+<g transform="translate(64.1080, 22.5733)">
+<path transform="scale(0.0040, -0.0040)" d="M0 -46c0 91 116 182 217 182c63 0 109 -35 109 -90c0 -87 -110 -182 -220 -182c-67 0 -106 39 -106 90z" fill="currentColor"/>
+</g>
+</a>
+<g transform="translate(61.0183, 20.0733)">
+<rect x="-0.0650" y="-1.5000" width="0.1300" height="3.3138" ry="0.0400" fill="currentColor"/>
+</g>
+<a style="color:inherit;" xlink:href="textedit:///scores/twinkle.ly:4:45:46">
+<g transform="translate(59.7791, 22.0733)">
+<path transform="scale(0.0040, -0.0040)" d="M0 -46c0 91 116 182 217 182c63 0 109 -35 109 -90c0 -87 -110 -182 -220 -182c-67 0 -106 39 -106 90z" fill="currentColor"/>
+</g>
+</a>
+<g transform="translate(58.0160, 20.0733)">
+<rect x="-0.0650" y="-1.5000" width="0.1300" height="3.3138" ry="0.0400" fill="currentColor"/>
+</g>
+<a style="color:inherit;" xlink:href="textedit:///scores/twinkle.ly:4:43:44">
+<g transform="translate(56.7768, 22.0733)">
+<path transform="scale(0.0040, -0.0040)" d="M0 -46c0 91 116 182 217 182c63 0 109 -35 109 -90c0 -87 -110 -182 -220 -182c-67 0 -106 39 -106 90z" fill="currentColor"/>
+</g>
+</a>
+<g transform="translate(55.0138, 20.0733)">
+<rect x="-0.0650" y="-2.0000" width="0.1300" height="3.3138" ry="0.0400" fill="currentColor"/>
+</g>
+<a style="color:inherit;" xlink:href="textedit:///scores/twinkle.ly:4:41:42">
+<g transform="translate(53.7746, 21.5733)">
+<path transform="scale(0.0040, -0.0040)" d="M0 -46c0 91 116 182 217 182c63 0 109 -35 109 -90c0 -87 -110 -182 -220 -182c-67 0 -106 39 -106 90z" fill="currentColor"/>
+</g>
+</a>
+<g transform="translate(71.4249, 20.0733)">
+<rect x="-0.0650" y="-0.5000" width="0.1300" height="3.2410" ry="0.0400" fill="currentColor"/>
+</g>
+<a style="color:inherit;" xlink:href="textedit:///scores/twinkle.ly:4:53:54">
+<g transform="translate(70.1125, 23.0733)">
+<path transform="scale(0.0040, -0.0040)" d="M72 -106c40 0 204 110 231 143c7 9 11 19 11 28c0 22 -18 41 -42 41c-40 0 -204 -110 -231 -143c-7 -9 -10 -19 -10 -28c0 -22 17 -41 41 -41zM0 -67c0 71 46 203 258 203c41 0 86 -10 86 -69c0 -71 -46 -203 -258 -203c-41 0 -86 10 -86 69z" fill="currentColor"/>
+</g>
+</a>
+<g transform="translate(68.3495, 20.0733)">
+<rect x="-0.0650" y="-1.0000" width="0.1300" height="3.3138" ry="0.0400" fill="currentColor"/>
+</g>
+<a style="color:inherit;" xlink:href="textedit:///scores/twinkle.ly:4:51:52">
+<g transform="translate(67.1103, 22.5733)">
+<path transform="scale(0.0040, -0.0040)" d="M0 -46c0 91 116 182 217 182c63 0 109 -35 109 -90c0 -87 -110 -182 -220 -182c-67 0 -106 39 -106 90z" fill="currentColor"/>
+</g>
+</a>
+<g transform="translate(65.3472, 20.0733)">
+<rect x="-0.0650" y="-1.0000" width="0.1300" height="3.3138" ry="0.0400" fill="currentColor"/>
+</g>
+<a style="color:inherit;" xlink:href="textedit:///scores/twinkle.ly:4:38:39">
+<g transform="translate(50.7723, 21.5733)">
+<path transform="scale(0.0040, -0.0040)" d="M0 -46c0 91 116 182 217 182c63 0 109 -35 109 -90c0 -87 -110 -182 -220 -182c-67 0 -106 39 -106 90z" fill="currentColor"/>
+</g>
+</a>
+<g transform="translate(36.1526, 20.0733)">
+<rect x="-0.0650" y="-2.5000" width="0.1300" height="3.3138" ry="0.0400" fill="currentColor"/>
+</g>
+<a style="color:inherit;" xlink:href="textedit:///scores/twinkle.ly:4:25:26">
+<g transform="translate(34.9134, 21.0733)">
+<path transform="scale(0.0040, -0.0040)" d="M0 -46c0 91 116 182 217 182c63 0 109 -35 109 -90c0 -87 -110 -182 -220 -182c-67 0 -106 39 -106 90z" fill="currentColor"/>
+</g>
+</a>
+<g transform="translate(33.1503, 20.0733)">
+<rect x="-0.0650" y="-2.5000" width="0.1300" height="3.3138" ry="0.0400" fill="currentColor"/>
+</g>
+<a style="color:inherit;" xlink:href="textedit:///scores/twinkle.ly:4:22:23">
+<g transform="translate(31.9111, 21.0733)">
+<path transform="scale(0.0040, -0.0040)" d="M0 -46c0 91 116 182 217 182c63 0 109 -35 109 -90c0 -87 -110 -182 -220 -182c-67 0 -106 39 -106 90z" fill="currentColor"/>
+</g>
+</a>
+<g transform="translate(29.8981, 20.0733)">
+<rect x="-0.0650" y="-0.5000" width="0.1300" height="3.3138" ry="0.0400" fill="currentColor"/>
+</g>
+<a style="color:inherit;" xlink:href="textedit:///scores/twinkle.ly:4:20:21">
+<g transform="translate(28.6589, 23.0733)">
+<path transform="scale(0.0040, -0.0040)" d="M0 -46c0 91 116 182 217 182c63 0 109 -35 109 -90c0 -87 -110 -182 -220 -182c-67 0 -106 39 -106 90z" fill="currentColor"/>
+</g>
+</a>
+<g transform="translate(26.8959, 20.0733)">
+<rect x="-0.0650" y="-0.5000" width="0.1300" height="3.3138" ry="0.0400" fill="currentColor"/>
+</g>
+<g transform="translate(21.9567, 20.0733)">
+<path transform="scale(0.0040, -0.0040)" d="M433 -89c0 -22 -50 -174 -183 -174c-59 0 -250 19 -250 263c0 62 18 262 250 262c116 0 176 -106 176 -163c0 -40 -30 -72 -67 -72c-31 0 -75 25 -75 75c0 38 27 77 72 77c4 0 9 0 14 -1c-28 37 -72 59 -120 59c-106 0 -113 -73 -113 -186v-51v-51
+c0 -113 7 -186 113 -186c80 0 139 69 158 150c2 7 7 10 12 10c6 0 13 -4 13 -12z" fill="currentColor"/>
+</g>
+<g transform="translate(17.8717, 21.0733)">
+<path transform="scale(0.0040, -0.0040)" d="M266 -635h-6c-108 0 -195 88 -195 197c0 58 53 103 112 103c54 0 95 -47 95 -103c0 -52 -43 -95 -95 -95c-11 0 -21 2 -31 6c26 -39 68 -65 117 -65h4zM401 151c19 -89 48 -242 60 -354c76 27 112 94 112 163c0 89 -60 179 -172 191zM74 28c0 -112 98 -247 278 -247
+c21 0 44 2 68 6c-7 64 -29 203 -63 364c-79 -8 -124 -61 -124 -119c0 -44 25 -91 81 -123c5 -5 7 -10 7 -15c0 -11 -10 -22 -22 -22c-15 0 -126 62 -126 187c0 88 58 174 160 197c-14 58 -29 117 -46 175c-107 -121 -213 -243 -213 -403zM357 1194c28 0 143 -206 143 -361
+c0 -143 -86 -255 -180 -364c21 -68 39 -138 56 -207c5 0 10 1 14 1c155 0 255 -129 255 -262c0 -113 -74 -212 -180 -245c3 -35 5 -70 5 -105c0 -19 -1 -39 -2 -58c-7 -119 -88 -225 -202 -228l1 43c93 2 153 92 159 191c1 18 2 37 2 55c0 31 -1 61 -4 92
+c-28 -5 -55 -8 -80 -8c-239 0 -342 217 -342 374c0 177 131 306 248 441c-29 96 -52 170 -52 346c0 189 144 295 159 295zM247 782c0 -55 12 -115 35 -190c83 100 147 202 147 326c0 40 -6 82 -21 127c-49 -24 -161 -97 -161 -263z" fill="currentColor"/>
+</g>
+<a style="color:inherit;" xlink:href="textedit:///scores/twinkle.ly:4:17:18">
+<g transform="translate(25.6567, 23.0733)">
+<path transform="scale(0.0040, -0.0040)" d="M0 -46c0 91 116 182 217 182c63 0 109 -35 109 -90c0 -87 -110 -182 -220 -182c-67 0 -106 39 -106 90z" fill="currentColor"/>
+</g>
+</a>
+<a style="color:inherit;" xlink:href="textedit:///scores/twinkle.ly:4:31:32">
+<g transform="translate(42.2089, 20.5733)">
+<path transform="scale(0.0040, -0.0040)" d="M0 -46c0 91 116 182 217 182c63 0 109 -35 109 -90c0 -87 -110 -182 -220 -182c-67 0 -106 39 -106 90z" fill="currentColor"/>
+</g>
+</a>
+<g transform="translate(43.4481, 20.0733)">
+<rect x="-0.0650" y="-3.0000" width="0.1300" height="3.3138" ry="0.0400" fill="currentColor"/>
+</g>
+<g transform="translate(40.4458, 20.0733)">
+<rect x="-0.0650" y="-3.0000" width="0.1300" height="3.3138" ry="0.0400" fill="currentColor"/>
+</g>
+<g transform="translate(46.5235, 20.0733)">
+<rect x="-0.0650" y="-2.5000" width="0.1300" height="3.2410" ry="0.0400" fill="currentColor"/>
+</g>
+<a style="color:inherit;" xlink:href="textedit:///scores/twinkle.ly:4:29:30">
+<g transform="translate(39.2066, 20.5733)">
+<path transform="scale(0.0040, -0.0040)" d="M0 -46c0 91 116 182 217 182c63 0 109 -35 109 -90c0 -87 -110 -182 -220 -182c-67 0 -106 39 -106 90z" fill="currentColor"/>
+</g>
+</a>
+<a style="color:inherit;" xlink:href="textedit:///scores/twinkle.ly:4:33:34">
+<g transform="translate(45.2111, 21.0733)">
+<path transform="scale(0.0040, -0.0040)" d="M72 -106c40 0 204 110 231 143c7 9 11 19 11 28c0 22 -18 41 -42 41c-40 0 -204 -110 -231 -143c-7 -9 -10 -19 -10 -28c0 -22 17 -41 41 -41zM0 -67c0 71 46 203 258 203c41 0 86 -10 86 -69c0 -71 -46 -203 -258 -203c-41 0 -86 10 -86 69z" fill="currentColor"/>
+</g>
+</a>
+<g transform="translate(52.2222, 12.2643)">
+<text font-family="serif" font-weight="bold" font-size="3.4923" text-anchor="start" fill="currentColor">
+<tspan>Twinkle</tspan>
+</text>
+</g>
+<g transform="translate(99.4595, 15.7643)">
+<text font-family="serif" font-size="2.2000" text-anchor="start" fill="currentColor">
+<tspan>Traditional</tspan>
+</text>
+</g>
+</g>
+</svg>

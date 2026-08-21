@@ -1,0 +1,24 @@
+# mode: lilypond
+0	29	LineComment	lilypond	comment	comment
+29	30	Space	None	None	None
+30	35	Name	lilypond	uservariable	None
+35	36	Space	None	None	None
+36	37	EqualSign	None	None	None
+37	38	Space	None	None	None
+38	39	SequentialStart	lilypond	delimiter	keyword
+39	40	Space	None	None	None
+40	41	Note	lilypond	pitch	None
+41	42	Octave	lilypond	octave	None
+42	43	Length	lilypond	duration	None
+43	44	Space	None	None	None
+44	45	Note	lilypond	pitch	None
+45	46	Octave	lilypond	octave	None
+46	47	Space	None	None	None
+47	48	Note	lilypond	pitch	None
+48	49	Octave	lilypond	octave	None
+49	50	Space	None	None	None
+50	51	Note	lilypond	pitch	None
+51	53	Octave	lilypond	octave	None
+53	54	Space	None	None	None
+54	55	SequentialEnd	lilypond	delimiter	keyword
+55	56	Space	None	None	None

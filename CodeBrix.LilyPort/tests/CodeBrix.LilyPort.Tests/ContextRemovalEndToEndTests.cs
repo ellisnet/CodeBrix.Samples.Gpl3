@@ -7,6 +7,7 @@
 
 using System;
 using System.IO;
+using CodeBrix.LilyPort.Engine.Bootstrap;
 using SilverAssertions;
 using Xunit;
 
@@ -57,7 +58,7 @@ public class ContextRemovalEndToEndTests
         // newest-first, so its FIRST entry is the last moment in time — and that entry
         // is the one only RemoveContext can produce.
         string source =
-            "\\version \"2.27.2\"\n"
+            "\\version \"" + LilyVersion.CompatibleWithVersion + "\"\n"
             + "#(define seen #f)\n"
             + "#(define orig recording-group-emulate)\n"
             + "#(set! recording-group-emulate\n"
@@ -93,7 +94,7 @@ public class ContextRemovalEndToEndTests
         // whole path were broken, both fail and the test says so rather than passing
         // for the wrong reason.
         string control =
-            "\\version \"2.27.2\"\n"
+            "\\version \"" + LilyVersion.CompatibleWithVersion + "\"\n"
             + "\\context PianoStaff <<\n"
             + "  \\context Staff = \"up\" { \\new Voice"
             + " << \\relative { g4 c e d c8 r r4 a g } >> }\n"

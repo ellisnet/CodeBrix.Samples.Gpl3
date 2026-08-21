@@ -8,6 +8,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using CodeBrix.LilyPort.Engine.Bootstrap;
 using SilverAssertions;
 using Xunit;
 
@@ -54,12 +55,12 @@ public class BatchRunnerTests
 
         //Act
         BatchRunner.RunText(
-            "\\version \"2.27.2\"\n\\language \"italiano\"\n\\score { { do'4 } }\n",
+            "\\version \"" + LilyVersion.CompatibleWithVersion + "\"\n\\language \"italiano\"\n\\score { { do'4 } }\n",
             "batch-language-italiano",
             null,
             output);
         BatchRunResult after = BatchRunner.RunText(
-            "\\version \"2.27.2\"\n\\score { { c'4 d'4 e'4 g'4 } }\n",
+            "\\version \"" + LilyVersion.CompatibleWithVersion + "\"\n\\score { { c'4 d'4 e'4 g'4 } }\n",
             "batch-language-after",
             null,
             output);
@@ -82,7 +83,7 @@ public class BatchRunnerTests
         // break there.
         string output = ScratchDirectory();
         string source = Path.Combine(output, "the-input-name.ly");
-        File.WriteAllText(source, "\\version \"2.27.2\"\n\\score { { c'4 } }\n");
+        File.WriteAllText(source, "\\version \"" + LilyVersion.CompatibleWithVersion + "\"\n\\score { { c'4 } }\n");
 
         //Act
         BatchRunResult named = BatchRunner.RunFile(source, output, "the-output-name");
@@ -106,7 +107,7 @@ public class BatchRunnerTests
 
         //Act
         BatchRunResult result = BatchRunner.RunText(
-            "\\version \"2.27.2\"\n\\score { { c'4 } }\n",
+            "\\version \"" + LilyVersion.CompatibleWithVersion + "\"\n\\score { { c'4 } }\n",
             "batch-first-light",
             null,
             output);
@@ -131,7 +132,7 @@ public class BatchRunnerTests
         // collect-music-for-book → scores, which is a longer stretch of
         // scm/lily-library.scm than the explicit form exercises.
         BatchRunResult result = BatchRunner.RunText(
-            "\\version \"2.27.2\"\n{ c'4 d'4 }\n",
+            "\\version \"" + LilyVersion.CompatibleWithVersion + "\"\n{ c'4 d'4 }\n",
             "batch-toplevel-music",
             null,
             output);
@@ -150,9 +151,9 @@ public class BatchRunnerTests
 
         //Act
         BatchRunResult first = BatchRunner.RunText(
-            "\\version \"2.27.2\"\n\\score { { e'4 } }\n", "batch-a", null, output);
+            "\\version \"" + LilyVersion.CompatibleWithVersion + "\"\n\\score { { e'4 } }\n", "batch-a", null, output);
         BatchRunResult second = BatchRunner.RunText(
-            "\\version \"2.27.2\"\n\\score { { g'4 } }\n", "batch-b", null, output);
+            "\\version \"" + LilyVersion.CompatibleWithVersion + "\"\n\\score { { g'4 } }\n", "batch-b", null, output);
 
         //Assert
         // The prologue re-defines the collection state per run; a leak here would

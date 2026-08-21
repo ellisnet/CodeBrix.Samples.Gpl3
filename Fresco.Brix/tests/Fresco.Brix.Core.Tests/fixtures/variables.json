@@ -1,0 +1,88 @@
+{
+  "blank-value": {
+    "text": "% -*- coding: ; -*-\nc\n",
+    "variables": {
+      "coding": ""
+    }
+  },
+  "both-ends": {
+    "text": "% -*- indent-width: 2; -*-\nc1\nc2\nc3\nc4\nc5\nc6\nc7\nc8\nc9\nc10\nc11\nc12\nc13\nc14\nc15\nc16\nc17\nc18\nc19\nc20\n% -*- indent-width: 6; -*-",
+    "variables": {
+      "indent-width": "6"
+    }
+  },
+  "continuation": {
+    "text": "% -*- indent-width: 4;\n% coding: latin1;\n\\relative c' { c }\n",
+    "variables": {
+      "coding": "latin1",
+      "indent-width": "4"
+    }
+  },
+  "eleven-lines": {
+    "text": "c1\nc2\nc3\nc4\nc5\n% -*- indent-width: 5; -*-\nc7\nc8\nc9\nc10\nc11",
+    "variables": {}
+  },
+  "empty": {
+    "text": "",
+    "variables": {}
+  },
+  "exactly-ten-lines": {
+    "text": "c1\nc2\nc3\nc4\nc5\n% -*- indent-width: 5; -*-\nc7\nc8\nc9\nc10",
+    "variables": {
+      "indent-width": "5"
+    }
+  },
+  "hyphenated-name": {
+    "text": "% -*- document-tab-width: 12; -*-\nc\n",
+    "variables": {
+      "document-tab-width": "12"
+    }
+  },
+  "interrupted": {
+    "text": "% -*- indent-width: 4;\n\\relative c' { c }\n% coding: latin1;\n",
+    "variables": {
+      "indent-width": "4"
+    }
+  },
+  "many-on-one-line": {
+    "text": "%% -*- indent-tabs: no; indent-width: 3; tab-width: 4; -*-\n",
+    "variables": {
+      "indent-tabs": "no",
+      "indent-width": "3",
+      "tab-width": "4"
+    }
+  },
+  "marker-mid-line": {
+    "text": "\\version \"2.27.2\"  % -*- indent-width: 9; -*-\nc\n",
+    "variables": {
+      "indent-width": "9"
+    }
+  },
+  "middle-ignored": {
+    "text": "c1\nc2\nc3\nc4\nc5\nc6\nc7\nc8\nc9\nc10\n% -*- indent-width: 8; -*-\nc11\nc12\nc13\nc14\nc15\nc16\nc17\nc18\nc19\nc20",
+    "variables": {}
+  },
+  "no-comment-prefix": {
+    "text": "-*- indent-width: 7; -*-\nc\n",
+    "variables": {
+      "indent-width": "7"
+    }
+  },
+  "no-marker": {
+    "text": "% indent-width: 4;\n\\relative c' { c d e }\n",
+    "variables": {}
+  },
+  "simple": {
+    "text": "% -*- indent-width: 4; coding: utf-8; -*-\n\\relative c' { c d e }\n",
+    "variables": {
+      "coding": "utf-8",
+      "indent-width": "4"
+    }
+  },
+  "tail-only": {
+    "text": "c1\nc2\nc3\nc4\nc5\nc6\nc7\nc8\nc9\nc10\nc11\nc12\nc13\nc14\nc15\nc16\nc17\nc18\nc19\nc20\n% -*- indent-width: 8; -*-",
+    "variables": {
+      "indent-width": "8"
+    }
+  }
+}
