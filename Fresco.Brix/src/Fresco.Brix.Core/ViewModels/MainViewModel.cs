@@ -10,6 +10,7 @@ using Fresco.Brix.Commands;
 using Fresco.Brix.Completion;
 using Fresco.Brix.Documents;
 using Fresco.Brix.Engrave;
+using Fresco.Brix.Midi;
 using Fresco.Brix.Services;
 using Fresco.Brix.Sessions;
 using Fresco.Brix.Shell;
@@ -65,6 +66,7 @@ public class MainViewModel : SimpleViewModel
     private RecentFiles _recentFiles;
     private Backup _backup;
     private AutoCompiler _autoCompiler;
+    private MidiPlayerService _midiPlayer;
     private ScoreWizardDialog _scoreWizard;
 
     /// <summary>Creates the window's state.</summary>
@@ -93,6 +95,7 @@ public class MainViewModel : SimpleViewModel
         RhythmActions = new RhythmActions(_settings);
         LyricsActions = new LyricsActions(_settings);
         ScoreWizardActions = new ScoreWizardActions(_settings);
+        MidiActions = new MidiActions(_settings);
 
         //The editor tools. Each is a service the window's panels and menus
         //reach through; what only a view can do arrives as a delegate.
@@ -118,6 +121,7 @@ public class MainViewModel : SimpleViewModel
         ActionManager.Add(RhythmActions);
         ActionManager.Add(LyricsActions);
         ActionManager.Add(ScoreWizardActions);
+        ActionManager.Add(MidiActions);
         ActionManager.Add(Browser.Actions);
         ActionManager.Add(SnippetShortcuts);
         ActionManager.Add(SessionManager.Actions);
@@ -195,6 +199,17 @@ public class MainViewModel : SimpleViewModel
 
     /// <summary>Gets the Score Wizard's commands.</summary>
     public ScoreWizardActions ScoreWizardActions { get; }
+
+    /// <summary>Gets the MIDI player's transport commands.</summary>
+    public MidiActions MidiActions { get; }
+
+    /// <summary>
+    /// Gets the MIDI player, built the first time it is asked for.
+    /// </summary>
+    /// <remarks>One per window, and it opens no audio device until something
+    /// is loaded into it — which the MIDI panel only does once it has been
+    /// opened.</remarks>
+    public IMidiPlayer MidiPlayer => _midiPlayer ??= new MidiPlayerService(_settings);
 
     /// <summary>
     /// Gets the Score Wizard, built the first time it is asked for.

@@ -38,7 +38,7 @@ HOW THIS FILE IS MAINTAINED
      into the same bucket as its neighbours.
 
   6. Sections are added as waves land. Rows still owed at the time of writing
-     are listed in section 8, so the gaps are visible rather than implied.
+     are listed in section 9, so the gaps are visible rather than implied.
 
 ================================================================================
 1. FRESCOBALDI
@@ -268,14 +268,133 @@ HOW THIS FILE IS MAINTAINED
   GPL-3.0-only (see "HOW THIS FILE IS MAINTAINED", point 2).
 
 ================================================================================
-8. STILL OWED
+8. THE IN-BOX GENERAL MIDI SOUNDFONT -- GeneralUser GS
+================================================================================
+
+  What:      the General MIDI SoundFont bank Fresco.Brix ships for MIDI
+             playback. Board decision FD2, ruled 2026-08-20.
+  Where:     src/Fresco.Brix.Core/assets/soundfonts/
+             FIVE files, each taken VERBATIM from the upstream distribution
+             and renamed only by prefix. This is NOT a copy of upstream's
+             repository (see the exclusions below):
+
+               GeneralUser-GS.sf2                 <- GeneralUser-GS.sf2
+               GeneralUser-GS_LICENSE.txt         <- documentation/LICENSE.txt
+               GeneralUser-GS_README.md           <- documentation/README.md
+               GeneralUser-GS_CHANGELOG.md        <- documentation/CHANGELOG.md
+               GeneralUser-GS_percussion-map.pdf  <- documentation/percussion map.pdf
+
+             plus assets/soundfonts/README.txt, which is Fresco.Brix's own
+             record of what each file is and where it came from. The whole
+             folder is copied to the build output as-is, so the license
+             travels beside the data.
+  Retrieved: 2026-08-20, from branch main
+  Version:   GeneralUser GS v2.0.3, released 2026-02-22
+  File:      GeneralUser-GS.sf2, 32,319,396 bytes
+             md5    bfe69fe5b2702ef7c12c44bd0d34f8f1
+             sha256 9575028c7a1f589f5770fccc8cff2734566af40cd26ed836944e9a5152688cfe
+  Author:    S. Christian Collins
+  Copyright: 1997-2025 by S. Christian Collins (the file's own ICOP chunk)
+  License:   "GeneralUser GS License v2.0", the author's own terms. Not a
+             standard identifier; ScanCode records it as
+             LicenseRef-scancode-generaluser-gs-2.0 and classifies it
+             PERMISSIVE. The full text is at
+             assets/soundfonts/GeneralUser-GS/documentation/LICENSE.txt AND
+             is embedded in the SoundFont's own ICMT metadata chunk, so the
+             notice cannot be separated from the data.
+  Upstream:  https://github.com/mrbumpy409/GeneralUser-GS
+             https://www.schristiancollins.com
+
+  The operative grant:
+
+    "You may use GeneralUser GS without restriction for your own music
+     creation, private or commercial. This SoundFont bank is provided to the
+     community free of charge. Please feel free to use it in your software
+     projects, and to modify the SoundFont bank or its packaging to suit your
+     needs."
+
+  Permissive, so unlike the hyphenation dictionaries of section 5 this bank
+  needs no aggregate argument: it may be part of the combined GPL-3.0-only
+  work outright. It is nonetheless SHIPPED as a separable file that the
+  application merely reads, because Fresco.Brix lets the user choose any .sf2
+  or .sfz they like -- the folder can be emptied and the application still
+  runs.
+
+  ONE OBLIGATION, and it is met by vendoring: "If you plan to feature
+  GeneralUser GS on your own website, please do not link directly to my
+  download files. Either link to my website, or provide your own local copy
+  instead." This repository provides its own local copy.
+
+  DISCLOSED BY THE AUTHOR, recorded here rather than paraphrased away:
+
+    "Many of the samples are original, but some were taken from other banks
+     freely (and legally) available on the Internet from various SoundFont
+     websites. Because GeneralUser GS originated as a personal project with no
+     intention for publication, I cannot be 100% sure where all of the samples
+     originated, although I do know that none of them came from commercially
+     published SoundFont packages or sample CDs. ... If you become aware of
+     any restricted samples being used in GeneralUser GS, please let me know
+     so I can replace them."
+
+  He adds that no complaint has reached him since the original publication in
+  2000, nor, as far as he is aware, any of the commercial products that use
+  it. The uncertainty is the author's own statement and is reproduced so a
+  reader can weigh it rather than discover it.
+
+  ⚠ TWO PARTS OF THE UPSTREAM REPOSITORY ARE DELIBERATELY EXCLUDED, and this
+  is why only the five files above are vendored rather than the distribution
+  as a whole:
+
+  1. THE "demo MIDIs" FOLDER (nine .mid files and nine .ogg renderings,
+     31 MB). The GeneralUser GS license covers the SOUNDFONT BANK and its
+     samples; it says nothing about those musical compositions, and several
+     are plainly third-party copyrighted works -- "Santa Claus is Comin' to
+     Town" (Coots/Gillespie 1934, still in US copyright), "Umi no Mieru Machi"
+     (Joe Hisaishi 1989), and "Bond" (the Monty Norman theme). Nothing in
+     Fresco.Brix reads them. Vendoring them would put unlicensed third-party
+     music into this repository, which is precisely what choosing this bank
+     was meant to avoid.
+  2. THE "support" FOLDER: launcher configuration for FluidSynth, a different
+     application Fresco.Brix does not use, including a macOS .app bundle
+     containing a compiled AppleScript droplet binary that is not Collins' to
+     license, plus a Cakewalk .ins file and a timing-test recording.
+
+  The standing rule for this folder: keep the licensed work and the documents
+  that describe it, and keep nothing whose license cannot be pointed at. If
+  any excluded file is ever wanted, it needs its own per-file audit first --
+  the way section 5 treats the hyphenation dictionaries.
+
+  ⚠ THE FILE'S OWN INAM STRING IS STALE and reads "GeneralUser GS 2.0.3 BETA",
+  with an ICRD date of 2024-10-15. Upstream last refreshed those strings at
+  v2.0.1; its changelog dates v2.0.3 to 2026-02-22 as a normal release. No UI
+  may surface INAM as the bank's version, or the application will report a
+  beta to its users.
+
+  WHY A BANK SHIPS AT ALL: Frescobaldi ships none, because it does not
+  synthesize -- it sends MIDI to an external port and tells the user to run
+  TiMidity or FluidSynth. Ruling FR6 removed that mechanism in favour of
+  in-process synthesis with no MIDI ports, so upstream's empty state is not
+  available here as parity behaviour. Shipping a bank is a deliberate,
+  necessary divergence from Frescobaldi.
+
+  CONSIDERED AND REJECTED: TimGM6mb (5.97 MB) is what Doom.Brix uses and was
+  the obvious first candidate, but Debian's DEP-5 record for it reads
+  "License: GPL-2" -- not "GPL-2+" -- and the debian/* rows in that same file
+  read "GPL-3+", so the packagers withheld the "+" deliberately. In a
+  GPL-3.0-only application that would have been a fourth GPL-2-only row
+  carried on section 5's aggregate reading, for the file a user hears first.
+  MuseScore_General (MIT) and FluidR3_GM are 206 MB and 145 MB as uncompressed
+  SF2; every permissive bank small enough to bundle (FluidR3Mono, the
+  MuseScore General variants) is SF3, whose Vorbis-compressed sample data
+  CodeBrix.Audio does not read.
+
+================================================================================
+9. STILL OWED
 ================================================================================
 
   Entries that will be added by the wave that brings the material in:
 
   - LilyPond's convert-ly rules (python/convertrules.py, GPL-3.0), at W8.
   - Frescobaldi's translation catalogs (i18n/frescobaldi/*.po, GPL), at W-I18N.
-  - A General-MIDI SoundFont, at W9 -- its license is board decision FD2, and
-    the audit happens before anything is bundled.
   - Frescobaldi's icon assets, if any are reused; the audit is W13's.
   - The hyphenation dictionaries' unsettled rows, section 5 (FD11).

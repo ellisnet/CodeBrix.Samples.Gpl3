@@ -40,6 +40,30 @@ public class MusicParityTests
             { "ContextItem", "Context" },
         };
 
+    /// <summary>
+    /// The FR14 divergences the music oracle is generated with, mirroring
+    /// <c>tools/musicprobe/gen-music-fixtures.py</c>'s <c>KNOWN_FIXES</c> entry for
+    /// entry. The oracle answers what python-ly produces with its demonstrable
+    /// defects fixed, because that is what the port implements; every fixture
+    /// records the list it was generated with, and
+    /// <see cref="every_fixture_declares_the_known_fixes_it_was_generated_with"/>
+    /// holds the two together. A fixture regenerated without a fix, a fix added to
+    /// the tool and not declared here, or a declaration that drifts from the tool
+    /// all fail that test.
+    /// </summary>
+    private static readonly (string Module, string Old, string New, string Why)[] KnownFixes
+        = new[]
+        {
+            (
+                "ly.music.read",
+                "elif not item.specifier and isinstance(t, lex.StringStart):",
+                "elif not item._specifier and isinstance(t, lex.StringStart):",
+                "handle_repeat guards on the bound method item.specifier instead "
+                + "of the field item._specifier, so a quoted repeat specifier is "
+                + "never read and the repeat ends at the string (FR14)"
+            ),
+        };
+
     private static string FixturesDirectory()
         => Path.Combine(AppContext.BaseDirectory, "fixtures", "music");
 
@@ -112,6 +136,61 @@ public class MusicParityTests
         string.Join("\n", producedTimes).Should().Be(string.Join("\n", referenceTimes));
 
         music.HasOutput().Should().Be(expected.RootElement.GetProperty("has_output").GetBoolean());
+    }
+
+    [Theory]
+    [MemberData(nameof(FixtureNames))]
+    public void every_fixture_declares_the_known_fixes_it_was_generated_with(string name)
+    {
+        //Arrange
+        (string _, JsonDocument fixture) = Load(name);
+        using JsonDocument expected = fixture;
+
+        //Act
+        var declared = new List<string>();
+        foreach (JsonElement fix in expected.RootElement.GetProperty("known_fixes")
+            .EnumerateArray())
+        {
+            declared.Add(string.Join("\n", new[]
+            {
+                fix.GetProperty("module").GetString(),
+                fix.GetProperty("old").GetString(),
+                fix.GetProperty("new").GetString(),
+                fix.GetProperty("why").GetString(),
+            }));
+        }
+
+        //Assert
+        string.Join("\n\n", declared).Should().Be(string.Join("\n\n",
+            KnownFixes.Select(f => string.Join("\n", new[] { f.Module, f.Old, f.New, f.Why }))));
+    }
+
+    /// <summary>
+    /// ⚠ DELIBERATE DIVERGENCE FROM UPSTREAM (ruling FR14) — the corrected parse
+    /// this wave's first item exists for. As python-ly v0.9.10 ships, this document
+    /// gives a <c>Repeat</c> with no specifier, a count of 1 and a
+    /// <c>String</c> for its only child, with the number and the whole body left as
+    /// SIBLINGS of the repeat and its length 0; see the note in
+    /// <c>Reader.HandleRepeat</c>. The fixture corpus covers the same fix through
+    /// <c>drums</c>, whose four repeats are spelled this way.
+    /// </summary>
+    [Fact]
+    public void a_quoted_repeat_specifier_is_read_with_its_count_and_its_body()
+    {
+        //Arrange
+        var document = new LyDocument("\\relative c' { \\repeat \"unfold\" 5 { c4 d e f } }\n");
+
+        //Act
+        MusicDocument music = MusicReader.ReadDocument(document);
+        Repeat repeat = music.Find<Repeat>(depth: -1).Single();
+
+        //Assert
+        repeat.Specifier().Should().Be("unfold");
+        repeat.RepeatCount().Should().Be(5);
+        repeat.Count.Should().Be(1);
+        repeat[0].Should().BeOfType<MusicList>();
+        //Five times a body of four quarter notes: 5 x 1, where upstream answers 0.
+        repeat.Length().Should().Be(new Fraction(5));
     }
 
     [Fact]

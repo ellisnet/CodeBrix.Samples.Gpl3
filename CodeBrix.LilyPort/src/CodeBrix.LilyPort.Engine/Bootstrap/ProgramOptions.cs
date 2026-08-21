@@ -34,6 +34,45 @@ public enum MessageSeverity
 }
 
 /// <summary>
+/// How the TEXT of a <c>-d</c> argument becomes an option VALUE.
+/// <para>
+/// Upstream records this per option as the Guile object property
+/// <c>program-option-type</c>, set by <c>ly:add-option</c>'s <c>#:type</c> keyword
+/// (<c>lily/program-option-scheme.cc:281-297</c>), and the command-line reader in
+/// <c>scm/lily.scm</c> branches on it four ways. The port mirrors it into the option
+/// store for the same reason it mirrors <c>#:accumulative?</c> — so the store can
+/// answer without a Scheme lookup — and <see cref="CommandLineOptions"/> is the
+/// reader that branches on it.
+/// </para>
+/// </summary>
+public enum OptionValueSyntax
+{
+    /// <summary>
+    /// <c>#:type string-or-boolean</c>, and ALSO an option that was never declared —
+    /// which is upstream's <c>type #f</c> arm, and the one Frescobaldi's invented
+    /// debug-mode names take. Only the exact texts <c>#t</c> and <c>#f</c> are read as
+    /// booleans; anything else stays the string it arrived as.
+    /// </summary>
+    StringOrBoolean,
+
+    /// <summary><c>#:type string</c>: the text is the value, never read as Scheme.</summary>
+    String,
+
+    /// <summary>
+    /// <c>#:type string-or-false</c>: the exact text <c>#f</c> is false, anything else
+    /// is the string.
+    /// </summary>
+    StringOrFalse,
+
+    /// <summary>
+    /// Every other declared type — a predicate procedure or a list of allowed values,
+    /// and the DEFAULT when <c>#:type</c> is absent (upstream stores <c>boolean?</c>
+    /// there). The text is read as a Scheme datum.
+    /// </summary>
+    Read,
+}
+
+/// <summary>
 /// LilyPond's program-option table, and the diagnostic sink the <c>ly:warning</c> family
 /// writes to.
 /// <para>
@@ -54,6 +93,8 @@ public sealed class ProgramOptions
     private readonly Dictionary<string, string> _documentation = new Dictionary<string, string>(StringComparer.Ordinal);
     private readonly List<string> _order = new List<string>();
     private readonly HashSet<string> _accumulative = new HashSet<string>(StringComparer.Ordinal);
+    private readonly Dictionary<string, OptionValueSyntax> _valueSyntax
+        = new Dictionary<string, OptionValueSyntax>(StringComparer.Ordinal);
 
     /// <summary>Gets or sets where diagnostics are written. Defaults to discarding them.</summary>
     public TextWriter Output { get; set; } = TextWriter.Null;
@@ -108,6 +149,74 @@ public sealed class ProgramOptions
     public void MarkAccumulative(string name) => _accumulative.Add(name);
 
     /// <summary>
+    /// Records how an option's <c>-d</c> TEXT is to be turned into a value — upstream's
+    /// <c>program-option-type</c> object property, mirrored into the store.
+    /// </summary>
+    /// <param name="name">The option name.</param>
+    /// <param name="syntax">The syntax its declared type asks for.</param>
+    public void DeclareValueSyntax(string name, OptionValueSyntax syntax)
+        => _valueSyntax[name] = syntax;
+
+    /// <summary>
+    /// Answers how an option's <c>-d</c> text is to be read.
+    /// <para>
+    /// An option NOBODY declared answers <see cref="OptionValueSyntax.StringOrBoolean"/>,
+    /// which is upstream's <c>type #f</c> arm: a name the engine has never heard of is
+    /// "probably used privately by the user", so <c>-dfoo</c>, <c>-dno-foo</c>,
+    /// <c>-dfoo=#t</c> and <c>-dfoo=#f</c> work and any other text stays a string. That
+    /// is exactly the arm Frescobaldi's seven layout-control modes take — their names
+    /// are read by ITS OWN formatter files, not by the engine.
+    /// </para>
+    /// </summary>
+    /// <param name="name">The option name.</param>
+    /// <returns>The syntax.</returns>
+    public OptionValueSyntax ValueSyntaxOf(string name)
+        => _valueSyntax.TryGetValue(name, out OptionValueSyntax syntax)
+            ? syntax
+            : OptionValueSyntax.StringOrBoolean;
+
+    /// <summary>
+    /// Sets an option the way <c>ly:set-option</c> does — honouring the <c>no-</c>
+    /// prefix and refusing to overwrite an accumulative option.
+    /// </summary>
+    /// <param name="name">The option name, possibly <c>no-</c> prefixed.</param>
+    /// <param name="value">The value to set.</param>
+    /// <remarks>
+    /// //was previously: the <c>ly:set-option</c> primitive did the accumulative check
+    /// itself and called <see cref="Set"/>, and NOTHING stripped the <c>no-</c> prefix —
+    /// so <c>#(ly:set-option 'no-point-and-click)</c> in a document invented an option
+    /// literally called <c>no-point-and-click</c> and left <c>point-and-click</c> alone.
+    /// Upstream strips it inside <c>ly_set_option</c> itself
+    /// (<c>lily/program-option-scheme.cc:367-372</c>) and NEGATES the value, which is
+    /// also what makes <c>-dno-SYM</c> work at all, since the command line hands the
+    /// prefix straight through. Both callers — the primitive and
+    /// <see cref="CommandLineOptions"/> — now come through here.
+    /// </remarks>
+    public void SetFromOptionName(string name, object value)
+    {
+        if (name.StartsWith("no-", StringComparison.Ordinal))
+        {
+            name = name.Substring(3);
+
+            // Guile counts only #f as false, which is what IsTrue answers.
+            value = !IsTrue(value);
+        }
+
+        // Upstream WARNS and changes nothing rather than overwriting an accumulative
+        // option's gathered list with a single value.
+        if (IsAccumulative(name))
+        {
+            Report(
+                MessageSeverity.Warning,
+                "option " + name + " is accumulative; use ly:append-to-option instead "
+                + "of ly:set-option");
+            return;
+        }
+
+        Set(name, value);
+    }
+
+    /// <summary>
     /// Takes a snapshot of every option's VALUE, for a host that runs many input files
     /// through one process.
     /// <para>
@@ -154,6 +263,7 @@ public sealed class ProgramOptions
             _order.Remove(name);
             _documentation.Remove(name);
             _accumulative.Remove(name);
+            _valueSyntax.Remove(name);
         }
     }
 

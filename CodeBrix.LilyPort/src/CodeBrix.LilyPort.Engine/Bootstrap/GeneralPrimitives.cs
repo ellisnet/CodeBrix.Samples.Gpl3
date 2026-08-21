@@ -175,19 +175,35 @@ public static class GeneralPrimitives
     private static void InstallOptions(Interpreter interpreter, ProgramOptions options)
     {
         // Three required arguments plus a keyword rest, which carries #:type and friends
-        // for command-line parsing. #:type and #:internal? are still accepted and
-        // ignored -- nothing in the port's load path reads them back, and rejecting them
-        // would abort lily.scm outright.
+        // for command-line parsing.
         //
         // #:accumulative? IS read. It has to be: the vendored lily.scm asks
         // `(object-property key 'program-option-accumulative?)' to decide between
         // ly:append-to-option and ly:set-option, so leaving the property unset routes
         // every accumulative option to the wrong binding. Upstream sets exactly this
         // object property from exactly this keyword.
+        //
+        // //was previously: `#:type' was accepted and IGNORED, on the reasoning that
+        // nothing in the port's load path read it back. That was true only while the
+        // port had no way to set an option from TEXT: `-dSYM=VAL' is a string, and what
+        // turns it into a value is precisely this declared type (see
+        // CommandLineOptions and OptionValueSyntax). With BatchRunOptions.Options
+        // carrying per-run options, an unrecorded type would silently make every
+        // `-dresolution=300' set the STRING "300", so the type is now recorded in the
+        // store -- and, when one was given, mirrored onto the option's symbol as
+        // upstream's object property too.
         interpreter.DefinePrimitive("ly:add-option", 3, -1, a =>
         {
             string name = AsSymbolName(a[0]);
             options.Add(name, a[1], TextOf(a[2]));
+
+            object type = ReadKeywordValue(a, "type");
+            options.DeclareValueSyntax(name, ValueSyntaxOf(type));
+            if (!ReferenceEquals(type, KeywordUnbound))
+            {
+                SetObjectProperty(
+                    interpreter, Symbol.Intern(name), OptionTypeSymbol, type);
+            }
 
             if (ReadKeywordFlag(a, "accumulative?"))
             {
@@ -199,22 +215,15 @@ public static class GeneralPrimitives
             return Unspecified.Instance;
         });
 
+        // The `no-' prefix and the accumulative guard both live in SetFromOptionName,
+        // which is where upstream keeps them (ly_set_option itself) and which the
+        // per-run option seam therefore shares. //was previously: the guard was written
+        // out here and nothing stripped `no-'.
         interpreter.DefinePrimitive("ly:set-option", 1, 2, a =>
         {
-            string name = AsSymbolName(a[0]);
-
-            // Upstream WARNS and changes nothing rather than overwriting an accumulative
-            // option's gathered list with a single value.
-            if (options.IsAccumulative(name))
-            {
-                options.Report(
-                    MessageSeverity.Warning,
-                    "option " + name + " is accumulative; use ly:append-to-option instead "
-                    + "of ly:set-option");
-                return Unspecified.Instance;
-            }
-
-            options.Set(name, a.Length > 1 && !(a[1] is DefaultArgument) ? a[1] : true);
+            options.SetFromOptionName(
+                AsSymbolName(a[0]),
+                a.Length > 1 && !(a[1] is DefaultArgument) ? a[1] : true);
             return Unspecified.Instance;
         });
 
@@ -285,6 +294,56 @@ public static class GeneralPrimitives
 
     private static readonly Symbol AccumulativeOptionSymbol
         = Symbol.Intern("program-option-accumulative?");
+
+    private static readonly Symbol OptionTypeSymbol
+        = Symbol.Intern("program-option-type");
+
+    /// <summary>Stands for a keyword argument that was not given at all.</summary>
+    private static readonly object KeywordUnbound = new object();
+
+    /// <summary>
+    /// Reads the VALUE that follows a keyword in an <c>ly:add-option</c> style rest
+    /// argument, or <see cref="KeywordUnbound"/> when the keyword is absent.
+    /// </summary>
+    /// <param name="arguments">The full argument array.</param>
+    /// <param name="keyword">The keyword name, without its <c>#:</c> prefix.</param>
+    /// <returns>The value, or <see cref="KeywordUnbound"/>.</returns>
+    private static object ReadKeywordValue(object[] arguments, string keyword)
+    {
+        for (int i = 3; i + 1 < arguments.Length; i++)
+        {
+            if (arguments[i] is Keyword given
+                && string.Equals(given.Name.Name, keyword, StringComparison.Ordinal))
+            {
+                return arguments[i + 1];
+            }
+        }
+
+        return KeywordUnbound;
+    }
+
+    /// <summary>
+    /// Turns an <c>ly:add-option</c> <c>#:type</c> argument into the syntax its
+    /// <c>-d</c> text is read with.
+    /// </summary>
+    /// <param name="type">The declared type, or <see cref="KeywordUnbound"/>.</param>
+    /// <returns>The syntax.</returns>
+    /// <remarks>
+    /// Upstream names three type SYMBOLS that suppress Scheme reading and keep the text
+    /// (program-option-scheme.cc:284-289); every other declared type is a predicate
+    /// procedure or a list of allowed values, and an ABSENT #:type stores the
+    /// <c>boolean?</c> procedure — all three of which land on the reading arm.
+    /// </remarks>
+    private static OptionValueSyntax ValueSyntaxOf(object type)
+        => type is Symbol symbol
+            ? symbol.Name switch
+            {
+                "string" => OptionValueSyntax.String,
+                "string-or-boolean" => OptionValueSyntax.StringOrBoolean,
+                "string-or-false" => OptionValueSyntax.StringOrFalse,
+                _ => OptionValueSyntax.Read,
+            }
+            : OptionValueSyntax.Read;
 
     /// <summary>
     /// Reads a boolean keyword flag out of an <c>ly:add-option</c> style rest argument.

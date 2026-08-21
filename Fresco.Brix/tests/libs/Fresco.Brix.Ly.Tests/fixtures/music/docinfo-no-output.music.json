@@ -1,5 +1,13 @@
 {
  "has_output": false,
+ "known_fixes": [
+  {
+   "module": "ly.music.read",
+   "new": "elif not item._specifier and isinstance(t, lex.StringStart):",
+   "old": "elif not item.specifier and isinstance(t, lex.StringStart):",
+   "why": "handle_repeat guards on the bound method item.specifier instead of the field item._specifier, so a quoted repeat specifier is never read and the repeat ends at the string (FR14)"
+  }
+ ],
  "node_positions": [
   [
    0,

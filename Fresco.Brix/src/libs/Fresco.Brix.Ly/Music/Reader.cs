@@ -1052,8 +1052,26 @@ public class Reader
                 item.SpecifierValue = token;
             }
 
-            //Upstream's `not item.specifier` tests a BOUND METHOD, always
-            //truthy, so its string-specifier branch never runs; kept dead.
+            //⚠ DELIBERATE DIVERGENCE FROM UPSTREAM (ruling FR14).
+            //Upstream (ly/music/read.py:646) guards this branch with
+            //`not item.specifier` -- the BOUND METHOD, which is always truthy --
+            //where the line above it and the branch itself both use the FIELD
+            //`item._specifier`. The guard can therefore never be true and the
+            //branch is dead, so a quoted specifier is never read: in
+            //`\repeat "unfold" 5 { ... }` the repeat takes the String as its one
+            //child and ENDS there, which spills the count and the whole body into
+            //the surrounding music and leaves the repeat's own length at 0.
+            //Upstream plainly meant the field (it assigns `item._specifier` on
+            //every other arm of this same loop), and `\repeat "unfold"` is legal
+            //LilyPond, so the port compares the FIELD and parses the specifier,
+            //the count and the body as one repeat.
+            //The music oracle is regenerated with this same one-line fix applied
+            //to python-ly in memory -- tools/musicprobe's KNOWN_FIXES, declared
+            //in every fixture's header and asserted by MusicParityTests.
+            else if (item.SpecifierValue == null && token is Lex.StringStart)
+            {
+                item.SpecifierValue = Factory<StringItem>(token, consume: true);
+            }
             else if (token is LilyPondMode.RepeatCount)
             {
                 item.RepeatCountValue = token;

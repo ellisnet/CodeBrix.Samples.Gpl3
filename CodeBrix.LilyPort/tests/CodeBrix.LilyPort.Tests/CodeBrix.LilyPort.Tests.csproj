@@ -47,4 +47,14 @@
           CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
+  <!--
+    The convert-ly parity corpus: what LilyPond's own convert-ly produced for 149 real
+    input files, recorded by tools/convertlyprobe. ConvertLyParityTests replays them.
+  -->
+  <ItemGroup>
+    <None Include="fixtures\convertly\*.json"
+          Link="fixtures\convertly\%(Filename)%(Extension)"
+          CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>

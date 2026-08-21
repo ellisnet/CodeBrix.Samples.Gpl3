@@ -1,5 +1,13 @@
 {
  "has_output": true,
+ "known_fixes": [
+  {
+   "module": "ly.music.read",
+   "new": "elif not item._specifier and isinstance(t, lex.StringStart):",
+   "old": "elif not item.specifier and isinstance(t, lex.StringStart):",
+   "why": "handle_repeat guards on the bound method item.specifier instead of the field item._specifier, so a quoted repeat specifier is never read and the repeat ends at the string (FR14)"
+  }
+ ],
  "node_positions": [
   [
    0,
@@ -253,8 +261,8 @@
   ],
   [
    350,
-   "String",
-   344
+   "Repeat",
+   336
   ],
   [
    357,
@@ -303,13 +311,13 @@
   ],
   [
    420,
-   "String",
-   417
+   "Repeat",
+   409
   ],
   [
    427,
-   "Number",
-   426
+   "Repeat",
+   409
   ],
   [
    434,
@@ -388,8 +396,8 @@
   ],
   [
    539,
-   "String",
-   533
+   "Repeat",
+   525
   ],
   [
    546,
@@ -448,8 +456,8 @@
   ],
   [
    623,
-   "String",
-   618
+   "Repeat",
+   610
   ],
   [
    630,
@@ -991,11 +999,11 @@
   ],
   [
    378,
-   "1/1"
+   "3/1"
   ],
   [
    385,
-   "5/4"
+   "13/4"
   ],
   [
    392,
@@ -1039,31 +1047,31 @@
   ],
   [
    462,
-   "9/8"
+   "25/8"
   ],
   [
    469,
-   "5/4"
+   "13/4"
   ],
   [
    476,
-   "3/2"
+   "7/2"
   ],
   [
    483,
-   "13/8"
+   "29/8"
   ],
   [
    490,
-   "15/8"
+   "31/8"
   ],
   [
    497,
-   "31/16"
+   "63/16"
   ],
   [
    504,
-   "2/1"
+   "4/1"
   ],
   [
    511,
@@ -1115,7 +1123,7 @@
   ],
   [
    595,
-   "2/1"
+   "4/1"
   ],
   [
    602,
@@ -1331,7 +1339,7 @@
   ],
   [
    973,
-   "2/1"
+   "4/1"
   ],
   [
    980,
@@ -1343,7 +1351,7 @@
   ],
   [
    994,
-   "2/1"
+   "4/1"
   ],
   [
    1001,
@@ -1573,132 +1581,109 @@
          {
           "children": [
            {
-            "children": [],
-            "cls": "String",
-            "end": 352,
-            "length": "0/1",
-            "plaintext": "unfold",
-            "position": 344,
-            "token": "\"",
+            "children": [
+             {
+              "children": [
+               {
+                "children": [],
+                "cls": "Duration",
+                "end": 360,
+                "length": "0/1",
+                "plaintext": "",
+                "position": 359,
+                "token": "8",
+                "tokens": []
+               }
+              ],
+              "cls": "DrumNote",
+              "end": 360,
+              "length": "1/8",
+              "plaintext": "",
+              "position": 356,
+              "token": "hhc",
+              "tokens": []
+             },
+             {
+              "children": [],
+              "cls": "DrumNote",
+              "end": 364,
+              "length": "1/8",
+              "plaintext": "",
+              "position": 361,
+              "token": "hho",
+              "tokens": []
+             },
+             {
+              "children": [
+               {
+                "children": [],
+                "cls": "Duration",
+                "end": 369,
+                "length": "0/1",
+                "plaintext": "",
+                "position": 368,
+                "token": "8",
+                "tokens": []
+               }
+              ],
+              "cls": "DrumNote",
+              "end": 369,
+              "length": "1/8",
+              "plaintext": "",
+              "position": 365,
+              "token": "hhc",
+              "tokens": []
+             },
+             {
+              "children": [
+               {
+                "children": [],
+                "cls": "Duration",
+                "end": 374,
+                "length": "0/1",
+                "plaintext": "",
+                "position": 372,
+                "token": "16",
+                "tokens": []
+               }
+              ],
+              "cls": "DrumNote",
+              "end": 374,
+              "length": "1/16",
+              "plaintext": "",
+              "position": 370,
+              "token": "hh",
+              "tokens": []
+             },
+             {
+              "children": [],
+              "cls": "DrumNote",
+              "end": 377,
+              "length": "1/16",
+              "plaintext": "",
+              "position": 375,
+              "token": "hh",
+              "tokens": []
+             }
+            ],
+            "cls": "MusicList",
+            "end": 378,
+            "length": "1/2",
+            "plaintext": "",
+            "position": 355,
+            "token": "{",
             "tokens": [
-             "unfold",
-             "\""
+             "}"
             ]
            }
           ],
           "cls": "Repeat",
-          "end": 352,
-          "length": "0/1",
+          "end": 378,
+          "length": "5/2",
           "plaintext": "",
           "position": 336,
           "token": "\\repeat",
           "tokens": []
-         },
-         {
-          "children": [],
-          "cls": "Number",
-          "end": 354,
-          "length": "0/1",
-          "plaintext": "",
-          "position": 353,
-          "token": "5",
-          "tokens": []
-         },
-         {
-          "children": [
-           {
-            "children": [
-             {
-              "children": [],
-              "cls": "Duration",
-              "end": 360,
-              "length": "0/1",
-              "plaintext": "",
-              "position": 359,
-              "token": "8",
-              "tokens": []
-             }
-            ],
-            "cls": "DrumNote",
-            "end": 360,
-            "length": "1/8",
-            "plaintext": "",
-            "position": 356,
-            "token": "hhc",
-            "tokens": []
-           },
-           {
-            "children": [],
-            "cls": "DrumNote",
-            "end": 364,
-            "length": "1/8",
-            "plaintext": "",
-            "position": 361,
-            "token": "hho",
-            "tokens": []
-           },
-           {
-            "children": [
-             {
-              "children": [],
-              "cls": "Duration",
-              "end": 369,
-              "length": "0/1",
-              "plaintext": "",
-              "position": 368,
-              "token": "8",
-              "tokens": []
-             }
-            ],
-            "cls": "DrumNote",
-            "end": 369,
-            "length": "1/8",
-            "plaintext": "",
-            "position": 365,
-            "token": "hhc",
-            "tokens": []
-           },
-           {
-            "children": [
-             {
-              "children": [],
-              "cls": "Duration",
-              "end": 374,
-              "length": "0/1",
-              "plaintext": "",
-              "position": 372,
-              "token": "16",
-              "tokens": []
-             }
-            ],
-            "cls": "DrumNote",
-            "end": 374,
-            "length": "1/16",
-            "plaintext": "",
-            "position": 370,
-            "token": "hh",
-            "tokens": []
-           },
-           {
-            "children": [],
-            "cls": "DrumNote",
-            "end": 377,
-            "length": "1/16",
-            "plaintext": "",
-            "position": 375,
-            "token": "hh",
-            "tokens": []
-           }
-          ],
-          "cls": "MusicList",
-          "end": 378,
-          "length": "1/2",
-          "plaintext": "",
-          "position": 355,
-          "token": "{",
-          "tokens": [
-           "}"
-          ]
          },
          {
           "children": [
@@ -1766,7 +1751,7 @@
         ],
         "cls": "MusicList",
         "end": 391,
-        "length": "2/1",
+        "length": "4/1",
         "plaintext": "",
         "position": 303,
         "token": "{",
@@ -1777,7 +1762,7 @@
       ],
       "cls": "DrumMode",
       "end": 391,
-      "length": "2/1",
+      "length": "4/1",
       "plaintext": "",
       "position": 293,
       "token": "\\drummode",
@@ -1803,155 +1788,132 @@
          {
           "children": [
            {
-            "children": [],
-            "cls": "String",
-            "end": 425,
-            "length": "0/1",
-            "plaintext": "unfold",
-            "position": 417,
-            "token": "\"",
-            "tokens": [
-             "unfold",
-             "\""
-            ]
-           }
-          ],
-          "cls": "Repeat",
-          "end": 425,
-          "length": "0/1",
-          "plaintext": "",
-          "position": 409,
-          "token": "\\repeat",
-          "tokens": []
-         },
-         {
-          "children": [],
-          "cls": "Number",
-          "end": 427,
-          "length": "0/1",
-          "plaintext": "",
-          "position": 426,
-          "token": "3",
-          "tokens": []
-         },
-         {
-          "children": [
-           {
             "children": [
              {
-              "children": [],
-              "cls": "Duration",
-              "end": 432,
-              "length": "0/1",
-              "plaintext": "",
-              "position": 431,
-              "token": "4",
-              "tokens": []
-             }
-            ],
-            "cls": "DrumNote",
-            "end": 432,
-            "length": "1/4",
-            "plaintext": "",
-            "position": 429,
-            "token": "bd",
-            "tokens": []
-           },
-           {
-            "children": [
-             {
-              "children": [],
-              "cls": "Duration",
-              "end": 436,
-              "length": "0/1",
-              "plaintext": "",
-              "position": 435,
-              "token": "8",
-              "tokens": []
-             }
-            ],
-            "cls": "DrumNote",
-            "end": 436,
-            "length": "1/8",
-            "plaintext": "",
-            "position": 433,
-            "token": "sn",
-            "tokens": []
-           },
-           {
-            "children": [],
-            "cls": "DrumNote",
-            "end": 439,
-            "length": "1/8",
-            "plaintext": "",
-            "position": 437,
-            "token": "bd",
-            "tokens": []
-           },
-           {
-            "children": [
-             {
-              "children": [],
-              "cls": "Duration",
-              "end": 443,
-              "length": "0/1",
-              "plaintext": "",
-              "position": 442,
-              "token": "4",
-              "tokens": []
-             }
-            ],
-            "cls": "DrumNote",
-            "end": 443,
-            "length": "1/4",
-            "plaintext": "",
-            "position": 440,
-            "token": "bd",
-            "tokens": []
-           },
-           {
-            "children": [
-             {
-              "children": [],
+              "children": [
+               {
+                "children": [],
+                "cls": "Duration",
+                "end": 432,
+                "length": "0/1",
+                "plaintext": "",
+                "position": 431,
+                "token": "4",
+                "tokens": []
+               }
+              ],
               "cls": "DrumNote",
-              "end": 449,
+              "end": 432,
               "length": "1/4",
               "plaintext": "",
-              "position": 447,
+              "position": 429,
               "token": "bd",
+              "tokens": []
+             },
+             {
+              "children": [
+               {
+                "children": [],
+                "cls": "Duration",
+                "end": 436,
+                "length": "0/1",
+                "plaintext": "",
+                "position": 435,
+                "token": "8",
+                "tokens": []
+               }
+              ],
+              "cls": "DrumNote",
+              "end": 436,
+              "length": "1/8",
+              "plaintext": "",
+              "position": 433,
+              "token": "sn",
               "tokens": []
              },
              {
               "children": [],
               "cls": "DrumNote",
-              "end": 452,
+              "end": 439,
+              "length": "1/8",
+              "plaintext": "",
+              "position": 437,
+              "token": "bd",
+              "tokens": []
+             },
+             {
+              "children": [
+               {
+                "children": [],
+                "cls": "Duration",
+                "end": 443,
+                "length": "0/1",
+                "plaintext": "",
+                "position": 442,
+                "token": "4",
+                "tokens": []
+               }
+              ],
+              "cls": "DrumNote",
+              "end": 443,
               "length": "1/4",
               "plaintext": "",
-              "position": 450,
-              "token": "ss",
+              "position": 440,
+              "token": "bd",
               "tokens": []
+             },
+             {
+              "children": [
+               {
+                "children": [],
+                "cls": "DrumNote",
+                "end": 449,
+                "length": "1/4",
+                "plaintext": "",
+                "position": 447,
+                "token": "bd",
+                "tokens": []
+               },
+               {
+                "children": [],
+                "cls": "DrumNote",
+                "end": 452,
+                "length": "1/4",
+                "plaintext": "",
+                "position": 450,
+                "token": "ss",
+                "tokens": []
+               }
+              ],
+              "cls": "MusicList",
+              "end": 455,
+              "length": "1/4",
+              "plaintext": "",
+              "position": 444,
+              "token": "<<",
+              "tokens": [
+               ">>"
+              ]
              }
             ],
             "cls": "MusicList",
-            "end": 455,
-            "length": "1/4",
+            "end": 457,
+            "length": "1/1",
             "plaintext": "",
-            "position": 444,
-            "token": "<<",
+            "position": 428,
+            "token": "{",
             "tokens": [
-             ">>"
+             "}"
             ]
            }
           ],
-          "cls": "MusicList",
+          "cls": "Repeat",
           "end": 457,
-          "length": "1/1",
+          "length": "3/1",
           "plaintext": "",
-          "position": 428,
-          "token": "{",
-          "tokens": [
-           "}"
-          ]
+          "position": 409,
+          "token": "\\repeat",
+          "tokens": []
          },
          {
           "children": [
@@ -2068,7 +2030,7 @@
         ],
         "cls": "MusicList",
         "end": 505,
-        "length": "2/1",
+        "length": "4/1",
         "plaintext": "",
         "position": 408,
         "token": "{",
@@ -2079,7 +2041,7 @@
       ],
       "cls": "DrumMode",
       "end": 505,
-      "length": "2/1",
+      "length": "4/1",
       "plaintext": "",
       "position": 398,
       "token": "\\drummode",
@@ -2105,240 +2067,217 @@
          {
           "children": [
            {
-            "children": [],
-            "cls": "String",
-            "end": 541,
-            "length": "0/1",
-            "plaintext": "unfold",
-            "position": 533,
-            "token": "\"",
+            "children": [
+             {
+              "children": [
+               {
+                "children": [],
+                "cls": "Duration",
+                "end": 550,
+                "length": "0/1",
+                "plaintext": "",
+                "position": 549,
+                "token": "4",
+                "tokens": []
+               }
+              ],
+              "cls": "DrumNote",
+              "end": 550,
+              "length": "1/4",
+              "plaintext": "",
+              "position": 545,
+              "token": "timh",
+              "tokens": []
+             },
+             {
+              "children": [],
+              "cls": "DrumNote",
+              "end": 554,
+              "length": "1/4",
+              "plaintext": "",
+              "position": 551,
+              "token": "ssh",
+              "tokens": []
+             },
+             {
+              "children": [
+               {
+                "children": [],
+                "cls": "Duration",
+                "end": 560,
+                "length": "0/1",
+                "plaintext": "",
+                "position": 559,
+                "token": "8",
+                "tokens": []
+               }
+              ],
+              "cls": "DrumNote",
+              "end": 560,
+              "length": "1/8",
+              "plaintext": "",
+              "position": 555,
+              "token": "timl",
+              "tokens": []
+             },
+             {
+              "children": [],
+              "cls": "DrumNote",
+              "end": 564,
+              "length": "1/8",
+              "plaintext": "",
+              "position": 561,
+              "token": "ssh",
+              "tokens": []
+             },
+             {
+              "children": [],
+              "cls": "Rest",
+              "end": 566,
+              "length": "1/8",
+              "plaintext": "",
+              "position": 565,
+              "token": "r",
+              "tokens": []
+             },
+             {
+              "children": [],
+              "cls": "DrumNote",
+              "end": 571,
+              "length": "1/8",
+              "plaintext": "",
+              "position": 567,
+              "token": "timh",
+              "tokens": []
+             },
+             {
+              "children": [
+               {
+                "children": [],
+                "cls": "Duration",
+                "end": 574,
+                "length": "0/1",
+                "plaintext": "",
+                "position": 573,
+                "token": "4",
+                "tokens": []
+               }
+              ],
+              "cls": "Rest",
+              "end": 574,
+              "length": "1/4",
+              "plaintext": "",
+              "position": 572,
+              "token": "r",
+              "tokens": []
+             },
+             {
+              "children": [
+               {
+                "children": [],
+                "cls": "Duration",
+                "end": 579,
+                "length": "0/1",
+                "plaintext": "",
+                "position": 578,
+                "token": "8",
+                "tokens": []
+               }
+              ],
+              "cls": "DrumNote",
+              "end": 579,
+              "length": "1/8",
+              "plaintext": "",
+              "position": 575,
+              "token": "ssh",
+              "tokens": []
+             },
+             {
+              "children": [],
+              "cls": "DrumNote",
+              "end": 584,
+              "length": "1/8",
+              "plaintext": "",
+              "position": 580,
+              "token": "timl",
+              "tokens": []
+             },
+             {
+              "children": [
+               {
+                "children": [],
+                "cls": "Duration",
+                "end": 587,
+                "length": "0/1",
+                "plaintext": "",
+                "position": 586,
+                "token": "4",
+                "tokens": []
+               }
+              ],
+              "cls": "Rest",
+              "end": 587,
+              "length": "1/4",
+              "plaintext": "",
+              "position": 585,
+              "token": "r",
+              "tokens": []
+             },
+             {
+              "children": [
+               {
+                "children": [],
+                "cls": "Duration",
+                "end": 591,
+                "length": "0/1",
+                "plaintext": "",
+                "position": 590,
+                "token": "8",
+                "tokens": []
+               }
+              ],
+              "cls": "DrumNote",
+              "end": 591,
+              "length": "1/8",
+              "plaintext": "",
+              "position": 588,
+              "token": "cb",
+              "tokens": []
+             },
+             {
+              "children": [],
+              "cls": "DrumNote",
+              "end": 594,
+              "length": "1/8",
+              "plaintext": "",
+              "position": 592,
+              "token": "cb",
+              "tokens": []
+             }
+            ],
+            "cls": "MusicList",
+            "end": 595,
+            "length": "2/1",
+            "plaintext": "",
+            "position": 544,
+            "token": "{",
             "tokens": [
-             "unfold",
-             "\""
+             "}"
             ]
            }
           ],
           "cls": "Repeat",
-          "end": 541,
-          "length": "0/1",
+          "end": 595,
+          "length": "4/1",
           "plaintext": "",
           "position": 525,
           "token": "\\repeat",
           "tokens": []
-         },
-         {
-          "children": [],
-          "cls": "Number",
-          "end": 543,
-          "length": "0/1",
-          "plaintext": "",
-          "position": 542,
-          "token": "2",
-          "tokens": []
-         },
-         {
-          "children": [
-           {
-            "children": [
-             {
-              "children": [],
-              "cls": "Duration",
-              "end": 550,
-              "length": "0/1",
-              "plaintext": "",
-              "position": 549,
-              "token": "4",
-              "tokens": []
-             }
-            ],
-            "cls": "DrumNote",
-            "end": 550,
-            "length": "1/4",
-            "plaintext": "",
-            "position": 545,
-            "token": "timh",
-            "tokens": []
-           },
-           {
-            "children": [],
-            "cls": "DrumNote",
-            "end": 554,
-            "length": "1/4",
-            "plaintext": "",
-            "position": 551,
-            "token": "ssh",
-            "tokens": []
-           },
-           {
-            "children": [
-             {
-              "children": [],
-              "cls": "Duration",
-              "end": 560,
-              "length": "0/1",
-              "plaintext": "",
-              "position": 559,
-              "token": "8",
-              "tokens": []
-             }
-            ],
-            "cls": "DrumNote",
-            "end": 560,
-            "length": "1/8",
-            "plaintext": "",
-            "position": 555,
-            "token": "timl",
-            "tokens": []
-           },
-           {
-            "children": [],
-            "cls": "DrumNote",
-            "end": 564,
-            "length": "1/8",
-            "plaintext": "",
-            "position": 561,
-            "token": "ssh",
-            "tokens": []
-           },
-           {
-            "children": [],
-            "cls": "Rest",
-            "end": 566,
-            "length": "1/8",
-            "plaintext": "",
-            "position": 565,
-            "token": "r",
-            "tokens": []
-           },
-           {
-            "children": [],
-            "cls": "DrumNote",
-            "end": 571,
-            "length": "1/8",
-            "plaintext": "",
-            "position": 567,
-            "token": "timh",
-            "tokens": []
-           },
-           {
-            "children": [
-             {
-              "children": [],
-              "cls": "Duration",
-              "end": 574,
-              "length": "0/1",
-              "plaintext": "",
-              "position": 573,
-              "token": "4",
-              "tokens": []
-             }
-            ],
-            "cls": "Rest",
-            "end": 574,
-            "length": "1/4",
-            "plaintext": "",
-            "position": 572,
-            "token": "r",
-            "tokens": []
-           },
-           {
-            "children": [
-             {
-              "children": [],
-              "cls": "Duration",
-              "end": 579,
-              "length": "0/1",
-              "plaintext": "",
-              "position": 578,
-              "token": "8",
-              "tokens": []
-             }
-            ],
-            "cls": "DrumNote",
-            "end": 579,
-            "length": "1/8",
-            "plaintext": "",
-            "position": 575,
-            "token": "ssh",
-            "tokens": []
-           },
-           {
-            "children": [],
-            "cls": "DrumNote",
-            "end": 584,
-            "length": "1/8",
-            "plaintext": "",
-            "position": 580,
-            "token": "timl",
-            "tokens": []
-           },
-           {
-            "children": [
-             {
-              "children": [],
-              "cls": "Duration",
-              "end": 587,
-              "length": "0/1",
-              "plaintext": "",
-              "position": 586,
-              "token": "4",
-              "tokens": []
-             }
-            ],
-            "cls": "Rest",
-            "end": 587,
-            "length": "1/4",
-            "plaintext": "",
-            "position": 585,
-            "token": "r",
-            "tokens": []
-           },
-           {
-            "children": [
-             {
-              "children": [],
-              "cls": "Duration",
-              "end": 591,
-              "length": "0/1",
-              "plaintext": "",
-              "position": 590,
-              "token": "8",
-              "tokens": []
-             }
-            ],
-            "cls": "DrumNote",
-            "end": 591,
-            "length": "1/8",
-            "plaintext": "",
-            "position": 588,
-            "token": "cb",
-            "tokens": []
-           },
-           {
-            "children": [],
-            "cls": "DrumNote",
-            "end": 594,
-            "length": "1/8",
-            "plaintext": "",
-            "position": 592,
-            "token": "cb",
-            "tokens": []
-           }
-          ],
-          "cls": "MusicList",
-          "end": 595,
-          "length": "2/1",
-          "plaintext": "",
-          "position": 544,
-          "token": "{",
-          "tokens": [
-           "}"
-          ]
          }
         ],
         "cls": "MusicList",
         "end": 597,
-        "length": "2/1",
+        "length": "4/1",
         "plaintext": "",
         "position": 523,
         "token": "{",
@@ -2349,7 +2288,7 @@
       ],
       "cls": "DrumMode",
       "end": 597,
-      "length": "2/1",
+      "length": "4/1",
       "plaintext": "",
       "position": 513,
       "token": "\\drummode",
@@ -2371,40 +2310,6 @@
      {
       "children": [
        {
-        "children": [],
-        "cls": "String",
-        "end": 625,
-        "length": "0/1",
-        "plaintext": "volta",
-        "position": 618,
-        "token": "\"",
-        "tokens": [
-         "volta",
-         "\""
-        ]
-       }
-      ],
-      "cls": "Repeat",
-      "end": 625,
-      "length": "0/1",
-      "plaintext": "",
-      "position": 610,
-      "token": "\\repeat",
-      "tokens": []
-     },
-     {
-      "children": [],
-      "cls": "Number",
-      "end": 627,
-      "length": "0/1",
-      "plaintext": "",
-      "position": 626,
-      "token": "2",
-      "tokens": []
-     },
-     {
-      "children": [
-       {
         "children": [
          {
           "children": [
@@ -2415,129 +2320,357 @@
                {
                 "children": [
                  {
-                  "children": [],
-                  "cls": "SchemeItem",
+                  "children": [
+                   {
+                    "children": [],
+                    "cls": "SchemeItem",
+                    "end": 699,
+                    "length": "0/1",
+                    "plaintext": "",
+                    "position": 685,
+                    "token": "timbales-style",
+                    "tokens": []
+                   }
+                  ],
+                  "cls": "Scheme",
                   "end": 699,
                   "length": "0/1",
                   "plaintext": "",
-                  "position": 685,
-                  "token": "timbales-style",
+                  "position": 684,
+                  "token": "#",
                   "tokens": []
                  }
                 ],
-                "cls": "Scheme",
+                "cls": "Assignment",
                 "end": 699,
                 "length": "0/1",
                 "plaintext": "",
-                "position": 684,
-                "token": "#",
-                "tokens": []
-               }
-              ],
-              "cls": "Assignment",
-              "end": 699,
-              "length": "0/1",
-              "plaintext": "",
-              "position": 667,
-              "token": "drumStyleTable",
-              "tokens": [
-               "="
-              ]
-             },
-             {
-              "children": [
-               {
-                "children": [],
-                "cls": "PathItem",
-                "end": 722,
-                "length": "0/1",
-                "plaintext": "",
-                "position": 711,
-                "token": "StaffSymbol",
-                "tokens": []
-               },
-               {
-                "children": [],
-                "cls": "PathItem",
-                "end": 723,
-                "length": "0/1",
-                "plaintext": "",
-                "position": 722,
-                "token": ".",
-                "tokens": []
-               },
-               {
-                "children": [],
-                "cls": "PathItem",
-                "end": 733,
-                "length": "0/1",
-                "plaintext": "",
-                "position": 723,
-                "token": "line-count",
-                "tokens": []
+                "position": 667,
+                "token": "drumStyleTable",
+                "tokens": [
+                 "="
+                ]
                },
                {
                 "children": [
                  {
                   "children": [],
-                  "cls": "SchemeItem",
+                  "cls": "PathItem",
+                  "end": 722,
+                  "length": "0/1",
+                  "plaintext": "",
+                  "position": 711,
+                  "token": "StaffSymbol",
+                  "tokens": []
+                 },
+                 {
+                  "children": [],
+                  "cls": "PathItem",
+                  "end": 723,
+                  "length": "0/1",
+                  "plaintext": "",
+                  "position": 722,
+                  "token": ".",
+                  "tokens": []
+                 },
+                 {
+                  "children": [],
+                  "cls": "PathItem",
+                  "end": 733,
+                  "length": "0/1",
+                  "plaintext": "",
+                  "position": 723,
+                  "token": "line-count",
+                  "tokens": []
+                 },
+                 {
+                  "children": [
+                   {
+                    "children": [],
+                    "cls": "SchemeItem",
+                    "end": 738,
+                    "length": "0/1",
+                    "plaintext": "",
+                    "position": 737,
+                    "token": "2",
+                    "tokens": []
+                   }
+                  ],
+                  "cls": "Scheme",
                   "end": 738,
                   "length": "0/1",
                   "plaintext": "",
-                  "position": 737,
-                  "token": "2",
+                  "position": 736,
+                  "token": "#",
                   "tokens": []
                  }
                 ],
-                "cls": "Scheme",
+                "cls": "Override",
                 "end": 738,
                 "length": "0/1",
                 "plaintext": "",
-                "position": 736,
-                "token": "#",
-                "tokens": []
+                "position": 701,
+                "token": "\\override",
+                "tokens": [
+                 "="
+                ]
+               },
+               {
+                "children": [
+                 {
+                  "children": [],
+                  "cls": "PathItem",
+                  "end": 757,
+                  "length": "0/1",
+                  "plaintext": "",
+                  "position": 750,
+                  "token": "BarLine",
+                  "tokens": []
+                 },
+                 {
+                  "children": [],
+                  "cls": "PathItem",
+                  "end": 758,
+                  "length": "0/1",
+                  "plaintext": "",
+                  "position": 757,
+                  "token": ".",
+                  "tokens": []
+                 },
+                 {
+                  "children": [],
+                  "cls": "PathItem",
+                  "end": 768,
+                  "length": "0/1",
+                  "plaintext": "",
+                  "position": 758,
+                  "token": "bar-extent",
+                  "tokens": []
+                 },
+                 {
+                  "children": [
+                   {
+                    "children": [
+                     {
+                      "children": [
+                       {
+                        "children": [],
+                        "cls": "SchemeItem",
+                        "end": 776,
+                        "length": "0/1",
+                        "plaintext": "",
+                        "position": 774,
+                        "token": "-1",
+                        "tokens": []
+                       },
+                       {
+                        "children": [],
+                        "cls": "SchemeItem",
+                        "end": 778,
+                        "length": "0/1",
+                        "plaintext": "",
+                        "position": 777,
+                        "token": ".",
+                        "tokens": []
+                       },
+                       {
+                        "children": [],
+                        "cls": "SchemeItem",
+                        "end": 780,
+                        "length": "0/1",
+                        "plaintext": "",
+                        "position": 779,
+                        "token": "1",
+                        "tokens": []
+                       }
+                      ],
+                      "cls": "SchemeList",
+                      "end": 781,
+                      "length": "0/1",
+                      "plaintext": "",
+                      "position": 773,
+                      "token": "(",
+                      "tokens": [
+                       ")"
+                      ]
+                     }
+                    ],
+                    "cls": "SchemeQuote",
+                    "end": 781,
+                    "length": "0/1",
+                    "plaintext": "",
+                    "position": 772,
+                    "token": "'",
+                    "tokens": []
+                   }
+                  ],
+                  "cls": "Scheme",
+                  "end": 781,
+                  "length": "0/1",
+                  "plaintext": "",
+                  "position": 771,
+                  "token": "#",
+                  "tokens": []
+                 }
+                ],
+                "cls": "Override",
+                "end": 781,
+                "length": "0/1",
+                "plaintext": "",
+                "position": 740,
+                "token": "\\override",
+                "tokens": [
+                 "="
+                ]
                }
               ],
-              "cls": "Override",
-              "end": 738,
+              "cls": "With",
+              "end": 789,
               "length": "0/1",
               "plaintext": "",
-              "position": 701,
-              "token": "\\override",
+              "position": 658,
+              "token": "\\with",
               "tokens": [
-               "="
+               "{",
+               "}"
               ]
              },
              {
               "children": [
                {
-                "children": [],
-                "cls": "PathItem",
-                "end": 757,
+                "children": [
+                 {
+                  "children": [],
+                  "cls": "String",
+                  "end": 832,
+                  "length": "0/1",
+                  "plaintext": "timbales",
+                  "position": 822,
+                  "token": "\"",
+                  "tokens": [
+                   "timbales",
+                   "\""
+                  ]
+                 }
+                ],
+                "cls": "Set",
+                "end": 832,
                 "length": "0/1",
                 "plaintext": "",
-                "position": 750,
-                "token": "BarLine",
-                "tokens": []
+                "position": 794,
+                "token": "\\set",
+                "tokens": [
+                 "Staff",
+                 ".",
+                 "instrumentName",
+                 "="
+                ]
                },
                {
                 "children": [],
-                "cls": "PathItem",
-                "end": 758,
+                "cls": "UserCommand",
+                "end": 839,
+                "length": "4/1",
+                "plaintext": "",
+                "position": 834,
+                "token": "\\timb",
+                "tokens": []
+               }
+              ],
+              "cls": "MusicList",
+              "end": 848,
+              "length": "4/1",
+              "plaintext": "",
+              "position": 790,
+              "token": "<<",
+              "tokens": [
+               ">>"
+              ]
+             }
+            ],
+            "cls": "Context",
+            "end": 848,
+            "length": "4/1",
+            "plaintext": "",
+            "position": 643,
+            "token": "\\new",
+            "tokens": []
+           },
+           {
+            "children": [
+             {
+              "children": [
+               {
+                "children": [
+                 {
+                  "children": [],
+                  "cls": "String",
+                  "end": 909,
+                  "length": "0/1",
+                  "plaintext": "drums",
+                  "position": 902,
+                  "token": "\"",
+                  "tokens": [
+                   "drums",
+                   "\""
+                  ]
+                 }
+                ],
+                "cls": "Set",
+                "end": 909,
                 "length": "0/1",
                 "plaintext": "",
-                "position": 757,
-                "token": ".",
-                "tokens": []
+                "position": 874,
+                "token": "\\set",
+                "tokens": [
+                 "Staff",
+                 ".",
+                 "instrumentName",
+                 "="
+                ]
                },
                {
-                "children": [],
-                "cls": "PathItem",
-                "end": 768,
-                "length": "0/1",
+                "children": [
+                 {
+                  "children": [
+                   {
+                    "children": [],
+                    "cls": "Command",
+                    "end": 934,
+                    "length": "0/1",
+                    "plaintext": "",
+                    "position": 927,
+                    "token": "\\stemUp",
+                    "tokens": []
+                   },
+                   {
+                    "children": [],
+                    "cls": "UserCommand",
+                    "end": 939,
+                    "length": "4/1",
+                    "plaintext": "",
+                    "position": 935,
+                    "token": "\\drh",
+                    "tokens": []
+                   }
+                  ],
+                  "cls": "MusicList",
+                  "end": 941,
+                  "length": "4/1",
+                  "plaintext": "",
+                  "position": 926,
+                  "token": "{",
+                  "tokens": [
+                   "}"
+                  ]
+                 }
+                ],
+                "cls": "Context",
+                "end": 941,
+                "length": "4/1",
                 "plaintext": "",
-                "position": 758,
-                "token": "bar-extent",
+                "position": 911,
+                "token": "\\new",
                 "tokens": []
                },
                {
@@ -2545,312 +2678,95 @@
                  {
                   "children": [
                    {
-                    "children": [
-                     {
-                      "children": [],
-                      "cls": "SchemeItem",
-                      "end": 776,
-                      "length": "0/1",
-                      "plaintext": "",
-                      "position": 774,
-                      "token": "-1",
-                      "tokens": []
-                     },
-                     {
-                      "children": [],
-                      "cls": "SchemeItem",
-                      "end": 778,
-                      "length": "0/1",
-                      "plaintext": "",
-                      "position": 777,
-                      "token": ".",
-                      "tokens": []
-                     },
-                     {
-                      "children": [],
-                      "cls": "SchemeItem",
-                      "end": 780,
-                      "length": "0/1",
-                      "plaintext": "",
-                      "position": 779,
-                      "token": "1",
-                      "tokens": []
-                     }
-                    ],
-                    "cls": "SchemeList",
-                    "end": 781,
+                    "children": [],
+                    "cls": "Command",
+                    "end": 968,
                     "length": "0/1",
                     "plaintext": "",
-                    "position": 773,
-                    "token": "(",
-                    "tokens": [
-                     ")"
-                    ]
+                    "position": 959,
+                    "token": "\\stemDown",
+                    "tokens": []
+                   },
+                   {
+                    "children": [],
+                    "cls": "UserCommand",
+                    "end": 973,
+                    "length": "4/1",
+                    "plaintext": "",
+                    "position": 969,
+                    "token": "\\drl",
+                    "tokens": []
                    }
                   ],
-                  "cls": "SchemeQuote",
-                  "end": 781,
-                  "length": "0/1",
+                  "cls": "MusicList",
+                  "end": 975,
+                  "length": "4/1",
                   "plaintext": "",
-                  "position": 772,
-                  "token": "'",
-                  "tokens": []
+                  "position": 958,
+                  "token": "{",
+                  "tokens": [
+                   "}"
+                  ]
                  }
                 ],
-                "cls": "Scheme",
-                "end": 781,
-                "length": "0/1",
+                "cls": "Context",
+                "end": 975,
+                "length": "4/1",
                 "plaintext": "",
-                "position": 771,
-                "token": "#",
+                "position": 943,
+                "token": "\\new",
                 "tokens": []
                }
               ],
-              "cls": "Override",
-              "end": 781,
-              "length": "0/1",
+              "cls": "MusicList",
+              "end": 984,
+              "length": "4/1",
               "plaintext": "",
-              "position": 740,
-              "token": "\\override",
+              "position": 870,
+              "token": "<<",
               "tokens": [
-               "="
+               ">>"
               ]
              }
             ],
-            "cls": "With",
-            "end": 789,
-            "length": "0/1",
-            "plaintext": "",
-            "position": 658,
-            "token": "\\with",
-            "tokens": [
-             "{",
-             "}"
-            ]
-           },
-           {
-            "children": [
-             {
-              "children": [
-               {
-                "children": [],
-                "cls": "String",
-                "end": 832,
-                "length": "0/1",
-                "plaintext": "timbales",
-                "position": 822,
-                "token": "\"",
-                "tokens": [
-                 "timbales",
-                 "\""
-                ]
-               }
-              ],
-              "cls": "Set",
-              "end": 832,
-              "length": "0/1",
-              "plaintext": "",
-              "position": 794,
-              "token": "\\set",
-              "tokens": [
-               "Staff",
-               ".",
-               "instrumentName",
-               "="
-              ]
-             },
-             {
-              "children": [],
-              "cls": "UserCommand",
-              "end": 839,
-              "length": "2/1",
-              "plaintext": "",
-              "position": 834,
-              "token": "\\timb",
-              "tokens": []
-             }
-            ],
-            "cls": "MusicList",
-            "end": 848,
-            "length": "2/1",
-            "plaintext": "",
-            "position": 790,
-            "token": "<<",
-            "tokens": [
-             ">>"
-            ]
-           }
-          ],
-          "cls": "Context",
-          "end": 848,
-          "length": "2/1",
-          "plaintext": "",
-          "position": 643,
-          "token": "\\new",
-          "tokens": []
-         },
-         {
-          "children": [
-           {
-            "children": [
-             {
-              "children": [
-               {
-                "children": [],
-                "cls": "String",
-                "end": 909,
-                "length": "0/1",
-                "plaintext": "drums",
-                "position": 902,
-                "token": "\"",
-                "tokens": [
-                 "drums",
-                 "\""
-                ]
-               }
-              ],
-              "cls": "Set",
-              "end": 909,
-              "length": "0/1",
-              "plaintext": "",
-              "position": 874,
-              "token": "\\set",
-              "tokens": [
-               "Staff",
-               ".",
-               "instrumentName",
-               "="
-              ]
-             },
-             {
-              "children": [
-               {
-                "children": [
-                 {
-                  "children": [],
-                  "cls": "Command",
-                  "end": 934,
-                  "length": "0/1",
-                  "plaintext": "",
-                  "position": 927,
-                  "token": "\\stemUp",
-                  "tokens": []
-                 },
-                 {
-                  "children": [],
-                  "cls": "UserCommand",
-                  "end": 939,
-                  "length": "2/1",
-                  "plaintext": "",
-                  "position": 935,
-                  "token": "\\drh",
-                  "tokens": []
-                 }
-                ],
-                "cls": "MusicList",
-                "end": 941,
-                "length": "2/1",
-                "plaintext": "",
-                "position": 926,
-                "token": "{",
-                "tokens": [
-                 "}"
-                ]
-               }
-              ],
-              "cls": "Context",
-              "end": 941,
-              "length": "2/1",
-              "plaintext": "",
-              "position": 911,
-              "token": "\\new",
-              "tokens": []
-             },
-             {
-              "children": [
-               {
-                "children": [
-                 {
-                  "children": [],
-                  "cls": "Command",
-                  "end": 968,
-                  "length": "0/1",
-                  "plaintext": "",
-                  "position": 959,
-                  "token": "\\stemDown",
-                  "tokens": []
-                 },
-                 {
-                  "children": [],
-                  "cls": "UserCommand",
-                  "end": 973,
-                  "length": "2/1",
-                  "plaintext": "",
-                  "position": 969,
-                  "token": "\\drl",
-                  "tokens": []
-                 }
-                ],
-                "cls": "MusicList",
-                "end": 975,
-                "length": "2/1",
-                "plaintext": "",
-                "position": 958,
-                "token": "{",
-                "tokens": [
-                 "}"
-                ]
-               }
-              ],
-              "cls": "Context",
-              "end": 975,
-              "length": "2/1",
-              "plaintext": "",
-              "position": 943,
-              "token": "\\new",
-              "tokens": []
-             }
-            ],
-            "cls": "MusicList",
+            "cls": "Context",
             "end": 984,
-            "length": "2/1",
+            "length": "4/1",
             "plaintext": "",
-            "position": 870,
-            "token": "<<",
-            "tokens": [
-             ">>"
-            ]
+            "position": 855,
+            "token": "\\new",
+            "tokens": []
            }
           ],
-          "cls": "Context",
-          "end": 984,
-          "length": "2/1",
+          "cls": "MusicList",
+          "end": 991,
+          "length": "4/1",
           "plaintext": "",
-          "position": 855,
-          "token": "\\new",
-          "tokens": []
+          "position": 634,
+          "token": "<<",
+          "tokens": [
+           ">>"
+          ]
          }
         ],
         "cls": "MusicList",
-        "end": 991,
-        "length": "2/1",
+        "end": 995,
+        "length": "4/1",
         "plaintext": "",
-        "position": 634,
-        "token": "<<",
+        "position": 628,
+        "token": "{",
         "tokens": [
-         ">>"
+         "}"
         ]
        }
       ],
-      "cls": "MusicList",
+      "cls": "Repeat",
       "end": 995,
-      "length": "2/1",
+      "length": "4/1",
       "plaintext": "",
-      "position": 628,
-      "token": "{",
-      "tokens": [
-       "}"
-      ]
+      "position": 610,
+      "token": "\\repeat",
+      "tokens": []
      },
      {
       "children": [],

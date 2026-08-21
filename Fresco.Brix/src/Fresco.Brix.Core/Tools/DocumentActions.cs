@@ -27,11 +27,10 @@ namespace Fresco.Brix.Tools; //was previously: frescobaldi/documentactions.py
 /// respectively, next to the code that reads them.
 /// </para>
 /// <para>
-/// One command belongs to a later wave and is created here so the Tools menu
-/// shows its finished shape: Update with convert-ly (W8). It is listed in
-/// <see cref="PendingActionNames"/> and the window turns it off. Format and
-/// Remove Trailing Whitespace were in that list until W6 gave them their
-/// <c>ly.reformat</c> handlers.
+/// Every command here is live. Format and Remove Trailing Whitespace got their
+/// <c>ly.reformat</c> handlers at W6, and Update with convert-ly got its own at
+/// W8 — <see cref="PendingActionNames"/> is empty now, and stays as the seam a
+/// future wave uses to show a command's finished shape before it works.
 /// </para>
 /// </remarks>
 public sealed class DocumentActions : ActionCollection
@@ -58,10 +57,13 @@ public sealed class DocumentActions : ActionCollection
     }
 
     /// <summary>The commands whose waves have not arrived yet.</summary>
-    public static readonly IReadOnlyList<string> PendingActionNames = new[]
-    {
-        "tools_convert_ly",
-    };
+    /// <remarks>
+    /// //was previously: <c>tools_convert_ly</c>, which W8 implemented. Empty is
+    /// the correct state; the list is kept because it is how a menu shows its
+    /// finished shape before the wave that fills it in arrives.
+    /// </remarks>
+    public static readonly IReadOnlyList<string> PendingActionNames
+        = System.Array.Empty<string>();
 
     /// <summary>The commands that need a selection to act on.</summary>
     public static readonly IReadOnlyList<string> SelectionActionNames = new[]

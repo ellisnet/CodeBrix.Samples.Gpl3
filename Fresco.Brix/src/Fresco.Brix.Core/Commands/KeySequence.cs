@@ -149,6 +149,14 @@ public sealed class KeySequence : IEquatable<KeySequence>
             (VirtualKey)220 => "\\",
             (VirtualKey)192 => "`",
             (VirtualKey)222 => "'",
+
+            //The transport keys are not enum members, so without these they
+            //would print as their numbers — and a stored shortcut has to parse
+            //back to what it was written from.
+            (VirtualKey)0xB3 => "Media Play",
+            (VirtualKey)0xB2 => "Media Stop",
+            (VirtualKey)0xB1 => "Media Previous",
+            (VirtualKey)0xB0 => "Media Next",
             _ => key.ToString(),
         };
     }
@@ -203,6 +211,20 @@ public sealed class KeySequence : IEquatable<KeySequence>
         names["pgup"] = VirtualKey.PageUp;
         names["pgdown"] = VirtualKey.PageDown;
         names["pgdn"] = VirtualKey.PageDown;
+
+        //The transport keys, which the MIDI player's commands use (W9). They
+        //are NOT members of the VirtualKey enum — the platform declares them
+        //as VirtualKeyHelper constants, following Windows' own VK numbering —
+        //so the enum walk above does not find them and they have to be named
+        //here or the shortcut parses to nothing (trap 37).
+        //⚠ Windows numbering has ONE play/pause key, where Qt (and X11) have
+        //Key_MediaPlay and Key_MediaPause separately; "media pause" therefore
+        //has no key of its own to bind to, and MidiActions leaves Pause
+        //without a default rather than colliding with Play.
+        names["media play"] = (VirtualKey)0xB3;
+        names["media stop"] = (VirtualKey)0xB2;
+        names["media previous"] = (VirtualKey)0xB1;
+        names["media next"] = (VirtualKey)0xB0;
         return names;
     }
 

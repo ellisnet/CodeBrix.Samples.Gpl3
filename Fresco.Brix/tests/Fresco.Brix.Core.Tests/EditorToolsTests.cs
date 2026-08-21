@@ -682,6 +682,11 @@ public class QtShortcutNameTests
     [InlineData("Insert")]
     [InlineData("Ctrl+;")]
     [InlineData("Alt+'")]
+    [InlineData("Meta+Alt+P")]
+    [InlineData("Meta+Alt+R")]
+    [InlineData("Media Play")]
+    [InlineData("Media Stop")]
+    [InlineData("Media Previous")]
     public void every_shortcut_the_ported_tables_use_parses(string text)
     {
         //Arrange, Act

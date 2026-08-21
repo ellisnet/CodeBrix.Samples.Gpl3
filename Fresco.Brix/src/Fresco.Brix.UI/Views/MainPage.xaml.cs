@@ -12,6 +12,7 @@ using Fresco.Brix.Documents;
 using Fresco.Brix.Editor;
 using Fresco.Brix.Engrave;
 using Fresco.Brix.Ly.Pitching;
+using Fresco.Brix.Midi;
 using Fresco.Brix.MusicView;
 using Fresco.Brix.QuickInsert;
 using Fresco.Brix.ScoreWizard;
@@ -51,6 +52,7 @@ public sealed partial class MainPage : Page, IWindowBridge
     private CharacterMapPanel _charMapPanel;
     private SnippetPanel _snippetPanel;
     private QuickInsertPanel _quickInsertPanel;
+    private MidiPanel _midiPanel;
     private SearchBar _searchBar;
     private Completer _completer;
 
@@ -224,6 +226,15 @@ public sealed partial class MainPage : Page, IWindowBridge
             InsertText = InsertAtCursor,
         };
         viewModel.Panels.AddPanel(_charMapPanel, "coding");
+
+        //The MIDI player. Upstream's own Tools submenu for it, and its own
+        //place in that submenu's order.
+        _midiPanel = new MidiPanel(
+            viewModel.Documents,
+            viewModel.MidiActions,
+            viewModel.MidiPlayer,
+            viewModel.Settings);
+        viewModel.Panels.AddPanel(_midiPanel, "midi");
 
         WireEditorTools(viewModel);
         WireMusicTools(viewModel);
@@ -531,6 +542,7 @@ public sealed partial class MainPage : Page, IWindowBridge
         document.ToolsRemoveTrailingWhitespace.Handler = () => WithDocumentRange(
             (doc, start, end)
                 => Reformatting.RemoveTrailingWhitespace(doc, start, end));
+        document.ToolsConvertLy.AsyncHandler = () => ConvertLyAsync(viewModel);
 
         UpdateSelectionActions();
     }
@@ -741,6 +753,43 @@ public sealed partial class MainPage : Page, IWindowBridge
         if (hyphenator == null) { return; }
 
         LyricsTools.Hyphenate(view.Document, words, hyphenator);
+    }
+
+    /// <summary>
+    /// Brings an old document up to the syntax this engine reads, after showing
+    /// the user what will change.
+    /// </summary>
+    /// <param name="viewModel">The window's state.</param>
+    /// <returns>The running task.</returns>
+    /// <remarks>
+    /// Upstream selects the whole document and replaces it through
+    /// <c>cursordiff.insert_text</c>, which keeps the cursor where it was; the
+    /// same thing here is one <c>Replace</c> over the whole range, which is also
+    /// ONE undo step — so a user who does not like the result presses Ctrl+Z once.
+    /// </remarks>
+    private async Task ConvertLyAsync(MainViewModel viewModel)
+    {
+        EditorView view = _viewManager?.ActiveView;
+        if (view?.Document == null) { return; }
+
+        string text = view.Document.Text;
+        ConvertLyOutcome outcome = await ConvertLyDialog.ShowAsync(
+            XamlRoot, text, viewModel.Settings);
+        if (outcome == null) { return; }
+
+        string converted = outcome.Text;
+        if (outcome.CopyMessages && outcome.Messages.Count > 0)
+        {
+            //Upstream appends the messages as a block comment at the end, so the
+            //user still has them after the dialog is gone.
+            converted += "\n\n%{\n"
+                + string.Join("\n", outcome.Messages).Trim('\n')
+                + "\n%}\n";
+        }
+
+        if (string.Equals(converted, text, StringComparison.Ordinal)) { return; }
+
+        view.Editor.Document.Replace(0, view.Editor.Document.TextLength, converted);
     }
 
     /// <summary>Takes the hyphenation out of the selected lyrics.</summary>

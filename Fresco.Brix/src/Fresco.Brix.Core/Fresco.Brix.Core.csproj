@@ -17,6 +17,9 @@
     <PackageReference Include="CodeBrix.Platform.Fonts.RobotoMono.OflLicenseForever" Version="1.0.216.1150" />
     <!-- The settings store (Develop's options.sqlite pattern) -->
     <PackageReference Include="CodeBrix.Sqlite.ApacheLicenseForever" Version="1.0.213.50" />
+    <!-- MIDI playback (FR6): the SoundFont synthesizer the MIDI panel plays
+         through, in-process, with no MIDI ports of any kind. -->
+    <PackageReference Include="CodeBrix.Audio.MitLicenseForever" Version="1.0.214.913" />
   </ItemGroup>
 
   <ItemGroup>
@@ -66,6 +69,26 @@
   <ItemGroup>
     <None Include="assets\hyphdicts\*"
           Link="assets\hyphdicts\%(Filename)%(Extension)"
+          CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <!-- The in-box General MIDI SoundFont (board decision FD2, ruled 2026-08-20).
+       GeneralUser GS v2.0.3 under its author's own permissive License v2.0,
+       which is compatible with this application's GPL-3.0-only conveyance, so
+       unlike the hyphenation dictionaries above it needs no aggregate
+       argument. Only the specifically-licensed files are vendored: the bank
+       and the four documents that describe it. Upstream's demo MIDIs (third
+       party copyrighted compositions the bank's license does not cover) and
+       its FluidSynth support folder are deliberately NOT here; see
+       assets\soundfonts\README.txt and THIRD-PARTY-NOTICES.txt section 8.
+
+       The whole folder is copied as-is, notices included, because the bank is
+       a DEFAULT and not a dependency: the folder can be emptied and the
+       application still runs, reading whatever .sf2 or .sfz the user picks,
+       so the license has to travel beside the data. -->
+  <ItemGroup>
+    <None Include="assets\soundfonts\*"
+          Link="assets\soundfonts\%(Filename)%(Extension)"
           CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 

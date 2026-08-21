@@ -5,6 +5,7 @@
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
+using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 
@@ -37,6 +38,37 @@ public sealed class BatchRunOptions
     /// </para>
     /// </summary>
     public object PointAndClick { get; set; }
+
+    /// <summary>
+    /// Gets or sets the <c>-d</c> options this run is engraved with — each entry the
+    /// text that FOLLOWS a <c>-d</c> on a <c>lilypond</c> command line, and read here
+    /// by exactly the rules that command line uses.
+    /// <para>
+    /// <c>"debug-voices"</c> sets an option to <see langword="true"/>;
+    /// <c>"no-point-and-click"</c> sets one to <see langword="false"/>;
+    /// <c>"include-settings=/path/to/formatter.ily"</c> gives one a value. The value's
+    /// TEXT is turned into a value by the option's declared type — read as a Scheme
+    /// datum for most options, kept as a string for the three string-typed ones, and,
+    /// for a name the engine has never declared, taken as <see langword="true"/>,
+    /// <see langword="false"/> or the string as written. An option declared
+    /// accumulative (<c>include-settings</c> is the one that matters) GATHERS the
+    /// entries it is given rather than replacing, so passing it several times includes
+    /// several files. A value the reader cannot make sense of is warned about, in
+    /// upstream's own words, and changes nothing.
+    /// </para>
+    /// <para>
+    /// The list is ORDERED and applied in order, after the per-file restore that opens
+    /// the run — so, like every other option here, an entry lives for exactly this run.
+    /// A host does not need to undo anything: the next run's restore puts every value
+    /// back and drops any option a run invented, which is what makes an editor's
+    /// preview and publish of the same document independent of each other.
+    /// </para>
+    /// <para>
+    /// <see cref="PointAndClick"/> is a typed shorthand for one of these and is applied
+    /// AFTER the list, so a host that sets both gets the property's value.
+    /// </para>
+    /// </summary>
+    public IList<string> Options { get; set; }
 
     /// <summary>
     /// Gets or sets where this run's progress and diagnostics are written, or

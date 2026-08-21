@@ -433,6 +433,17 @@ public static class BatchRunner
             = runOptions?.CancellationToken ?? CancellationToken.None;
         cancellationToken.ThrowIfCancellationRequested();
 
+        if (runOptions?.Options != null)
+        {
+            foreach (string option in runOptions.Options)
+            {
+                CommandLineOptions.Apply(LilyPondScheme.Options, option);
+            }
+        }
+
+        // After the list, so a host that sets both gets the typed property's value --
+        // and the regression harness, which sets only this one, is unaffected either
+        // way.
         if (runOptions?.PointAndClick != null)
         {
             LilyPondScheme.Options.Set("point-and-click", runOptions.PointAndClick);
