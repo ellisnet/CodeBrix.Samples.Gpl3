@@ -53,6 +53,7 @@ public sealed partial class MainPage : Page, IWindowBridge
     private SnippetPanel _snippetPanel;
     private QuickInsertPanel _quickInsertPanel;
     private MidiPanel _midiPanel;
+    private DocumentationPanel _docPanel;
     private SearchBar _searchBar;
     private Completer _completer;
 
@@ -183,6 +184,7 @@ public sealed partial class MainPage : Page, IWindowBridge
         {
             ShowCursor = ShowMusicCursor,
             CurrentEditorView = () => _viewManager?.ActiveView,
+            OpenExternalUrl = OpenExternalFile,
         };
         viewModel.Panels.AddPanel(_musicViewPanel, "viewers");
         _viewManager.ViewChanged += (_, _) => _musicViewPanel.SetEditorView(_viewManager.ActiveView);
@@ -235,6 +237,17 @@ public sealed partial class MainPage : Page, IWindowBridge
             viewModel.MidiPlayer,
             viewModel.Settings);
         viewModel.Panels.AddPanel(_midiPanel, "midi");
+
+        //The manuals. Upstream docks its help browser on the right, hidden,
+        //and so does this: opening it is what reads a manual off the disk.
+        _docPanel = new DocumentationPanel(
+            viewModel.Manuals, viewModel.DocumentationActions, viewModel.Settings)
+        {
+            OpenExternal = OpenExternalFile,
+            WordAtCursor = WordAtCursor,
+            ShowStatus = text => viewModel.StatusText = text,
+        };
+        viewModel.Panels.AddPanel(_docPanel, "viewers");
 
         WireEditorTools(viewModel);
         WireMusicTools(viewModel);
@@ -300,7 +313,8 @@ public sealed partial class MainPage : Page, IWindowBridge
             viewModel.LyricsActions,
             () => PitchTools.LanguageOf(_viewManager?.ActiveView?.Document),
             language => _ = ChangePitchLanguageAsync(viewModel, language),
-            viewModel.ScoreWizardActions);
+            viewModel.ScoreWizardActions,
+            viewModel.DocumentationActions);
 
         _ = StartWithSessionAsync(viewModel);
     }
@@ -1321,10 +1335,14 @@ public sealed partial class MainPage : Page, IWindowBridge
     /// <summary>Opens a file an engrave run generated.</summary>
     /// <param name="path">The file.</param>
     /// <remarks>
-    /// Text results open in the editor. Handing anything else to the desktop's
-    /// own viewer is the documentation wave's job (it is the same helper that
-    /// opens the manuals), so until then the path is put on the status line
-    /// where it can be read and copied.
+    /// Text results open in the editor; everything else goes to the desktop's
+    /// own viewer, which is upstream's own arrangement — its Generated Files
+    /// menu calls <c>helpers.openUrl</c> for every entry, and the helper works
+    /// out from the extension which application the user configured for it.
+    /// The editor branch is the divergence, and a small one: a <c>.ly</c>
+    /// result belongs in the editor that is already open.
+    /// //was previously: everything but text went to the status line, waiting
+    /// for this wave to bring the helper.
     /// </remarks>
     private void OpenGeneratedFile(string path)
     {
@@ -1338,7 +1356,52 @@ public sealed partial class MainPage : Page, IWindowBridge
             return;
         }
 
-        viewModel.StatusText = path;
+        OpenExternalFile(path);
+    }
+
+    /// <summary>Hands a file or URL to the desktop's own application for it.</summary>
+    /// <param name="target">A path or a URL.</param>
+    private void OpenExternalFile(string target)
+    {
+        MainViewModel viewModel = ViewModel;
+        if (viewModel == null || string.IsNullOrEmpty(target)) { return; }
+
+        viewModel.Helpers.ReportError = message => viewModel.StatusText = message;
+        viewModel.StatusText = target;
+        _ = Uri.TryCreate(target, UriKind.Absolute, out Uri url) && !url.IsFile
+            ? viewModel.Helpers.OpenUrlAsync(url)
+            : viewModel.Helpers.OpenPathAsync(target);
+    }
+
+    /// <summary>
+    /// The word the caret is on, for contextual help.
+    /// </summary>
+    /// <returns>The token's text, or null.</returns>
+    /// <remarks>
+    /// Read from the document's OWN tokenisation rather than by splitting the
+    /// line on spaces, so <c>\override</c> is one word and
+    /// <c>Staff.NoteHead.color</c> is the tokens the lexer made of it.
+    /// </remarks>
+    private string WordAtCursor()
+    {
+        EditorView view = _viewManager?.ActiveView;
+        EditorDocument document = view?.Document;
+        if (document == null) { return null; }
+
+        LyHighlighter highlighter = DocumentEditorState
+            .For(document, ViewModel?.Settings)?.Highlighter;
+        if (highlighter == null) { return null; }
+
+        int offset = view.Editor.CaretOffset;
+        var (_, middle, right) = TokenIter.Partition(
+            highlighter, document.Document, offset);
+
+        //The token the caret is INSIDE, or — when it sits on a boundary — the
+        //one it is about to enter, which is what a reader means by "this word"
+        //after typing it.
+        Fresco.Brix.Ly.Slexing.Token token
+            = middle ?? (right.Length > 0 ? right[0] : null);
+        return token?.Text;
     }
 
     /// <summary>The editor's monospace font (FD4: Roboto Mono).</summary>

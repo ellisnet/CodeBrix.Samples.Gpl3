@@ -512,9 +512,11 @@ public sealed class MusicViewPanel : Shell.Panel
 
     /// <summary>Gets or sets what to do with a link that leaves the score.</summary>
     /// <remarks>
-    /// Handing a URL to the desktop's own browser is the helpers module, which
-    /// arrives with the documentation wave; until then the menu entry is there
-    /// and does nothing rather than being absent.
+    /// Filled in at W10 by the window, which owns the helper service that hands
+    /// a URL to the desktop (upstream's <c>helpers.openUrl</c>, which is what
+    /// its own context menu calls here).
+    /// //was previously: this said the helpers module arrives with the
+    /// documentation wave and the entry did nothing meanwhile.
     /// </remarks>
     public Action<string> OpenExternalUrl { get; set; }
 

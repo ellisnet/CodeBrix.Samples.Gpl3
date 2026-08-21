@@ -78,6 +78,8 @@ public static class MenuBuilder
     /// does.</param>
     /// <param name="scoreWizard">The Score Wizard's commands, for File &gt;
     /// New.</param>
+    /// <param name="documentation">The documentation browser's commands, for
+    /// the Help menu.</param>
     public static void Build(
         MenuBar menuBar,
         MainActions main,
@@ -107,7 +109,8 @@ public static class MenuBuilder
         LyricsActions lyrics = null,
         Func<string> pitchLanguage = null,
         Action<string> changePitchLanguage = null,
-        ScoreWizardActions scoreWizard = null)
+        ScoreWizardActions scoreWizard = null,
+        DocumentationActions documentation = null)
     {
         if (menuBar == null) { throw new ArgumentNullException(nameof(menuBar)); }
 
@@ -141,7 +144,8 @@ public static class MenuBuilder
                 rhythm,
                 lyrics,
                 pitchLanguage,
-                changePitchLanguage));
+                changePitchLanguage,
+                main));
         }
 
         if (snippets != null && snippetActions != null)
@@ -160,7 +164,7 @@ public static class MenuBuilder
         }
 
         menuBar.Items.Add(WindowMenu(main, views));
-        menuBar.Items.Add(HelpMenu(main));
+        menuBar.Items.Add(HelpMenu(main, documentation));
     }
 
     /// <summary>
@@ -474,7 +478,8 @@ public static class MenuBuilder
         RhythmActions rhythm = null,
         LyricsActions lyrics = null,
         Func<string> pitchLanguage = null,
-        Action<string> changePitchLanguage = null)
+        Action<string> changePitchLanguage = null,
+        MainActions main = null)
     {
         MenuBarItem menu = new MenuBarItem
         {
@@ -500,6 +505,20 @@ public static class MenuBuilder
                 documentActions, pitch, rest, rhythm, lyrics,
                 pitchLanguage, changePitchLanguage));
             menu.Items.Add(ItemFor(documentActions.ToolsConvertLy));
+            menu.Items.Add(new MenuFlyoutSeparator());
+        }
+
+        if (main != null)
+        {
+            //Upstream's Tools > Directories, minus its third entry: there is no
+            //LilyPond data directory to open. The engine's own data is
+            //vendored inside the assemblies (rulings FR2 and FR5.1), so
+            //`engrave_open_lilypond_datadir' has nothing to point at and is
+            //not ported.
+            menu.Items.Add(Submenu(
+                I18n.Get("submenu title", "&Directories"),
+                main.FileOpenCurrentDirectory,
+                main.FileOpenCommandPrompt));
             menu.Items.Add(new MenuFlyoutSeparator());
         }
 
@@ -1112,7 +1131,7 @@ public static class MenuBuilder
         return submenu;
     }
 
-    private static MenuBarItem HelpMenu(MainActions main)
+    private static MenuBarItem HelpMenu(MainActions main, DocumentationActions documentation)
     {
         MenuBarItem menu = new MenuBarItem
         {
@@ -1120,6 +1139,19 @@ public static class MenuBuilder
         };
 
         menu.Items.Add(ItemFor(main.HelpManual));
+
+        //was previously: upstream has `help_whatsthis' here — Qt's
+        //"What's This?" cursor mode, which the platform has no equivalent of
+        //and which is not ported. `help_bugreport' sits between the
+        //documentation entries and About upstream; it is a post-v1 candidate
+        //(board section 10) and is not here either.
+        if (documentation != null)
+        {
+            menu.Items.Add(new MenuFlyoutSeparator());
+            menu.Items.Add(ItemFor(documentation.HelpDocumentation));
+            menu.Items.Add(ItemFor(documentation.HelpContext));
+        }
+
         menu.Items.Add(new MenuFlyoutSeparator());
         menu.Items.Add(ItemFor(main.HelpAbout));
         return menu;

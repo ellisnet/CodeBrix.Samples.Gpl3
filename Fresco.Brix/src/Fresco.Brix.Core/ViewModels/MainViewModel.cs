@@ -8,6 +8,7 @@
 using CodeBrix.Platform.Simple;
 using Fresco.Brix.Commands;
 using Fresco.Brix.Completion;
+using Fresco.Brix.Documentation;
 using Fresco.Brix.Documents;
 using Fresco.Brix.Engrave;
 using Fresco.Brix.Midi;
@@ -68,6 +69,7 @@ public class MainViewModel : SimpleViewModel
     private AutoCompiler _autoCompiler;
     private MidiPlayerService _midiPlayer;
     private ScoreWizardDialog _scoreWizard;
+    private ManualLibrary _manuals;
 
     /// <summary>Creates the window's state.</summary>
     public MainViewModel()
@@ -96,6 +98,12 @@ public class MainViewModel : SimpleViewModel
         LyricsActions = new LyricsActions(_settings);
         ScoreWizardActions = new ScoreWizardActions(_settings);
         MidiActions = new MidiActions(_settings);
+        DocumentationActions = new DocumentationActions(_settings);
+
+        //The desktop's own viewers, file manager and terminal. It reads the
+        //user's configured helper commands out of the same store W12's
+        //preferences page will write them to.
+        Helpers = new HelperApplications(_settings);
 
         //The editor tools. Each is a service the window's panels and menus
         //reach through; what only a view can do arrives as a delegate.
@@ -122,6 +130,7 @@ public class MainViewModel : SimpleViewModel
         ActionManager.Add(LyricsActions);
         ActionManager.Add(ScoreWizardActions);
         ActionManager.Add(MidiActions);
+        ActionManager.Add(DocumentationActions);
         ActionManager.Add(Browser.Actions);
         ActionManager.Add(SnippetShortcuts);
         ActionManager.Add(SessionManager.Actions);
@@ -202,6 +211,19 @@ public class MainViewModel : SimpleViewModel
 
     /// <summary>Gets the MIDI player's transport commands.</summary>
     public MidiActions MidiActions { get; }
+
+    /// <summary>Gets the documentation browser's commands.</summary>
+    public DocumentationActions DocumentationActions { get; }
+
+    /// <summary>Gets the service that hands a file or URL to the desktop.</summary>
+    public HelperApplications Helpers { get; }
+
+    /// <summary>
+    /// Gets the bundled manuals, opened the first time they are asked for.
+    /// </summary>
+    /// <remarks>One per window. Opening it reads nothing — a manual's own
+    /// index is read when that manual is first shown.</remarks>
+    public ManualLibrary Manuals => _manuals ??= new ManualLibrary();
 
     /// <summary>
     /// Gets the MIDI player, built the first time it is asked for.
@@ -413,6 +435,13 @@ public class MainViewModel : SimpleViewModel
         Actions.WindowFullscreen.Handler
             = () => Window?.SetFullScreen?.Invoke(Actions.WindowFullscreen.IsChecked);
 
+        //Tools > Directories. Upstream's own two, and the same helper the
+        //documentation panel opens a manual with.
+        Actions.FileOpenCurrentDirectory.AsyncHandler
+            = () => OpenCurrentDirectoryAsync("directory");
+        Actions.FileOpenCommandPrompt.AsyncHandler
+            = () => OpenCurrentDirectoryAsync("shell");
+
         //The commands whose waves have not arrived yet stay visible but inert,
         //so the menu shows the finished shape from the start.
         foreach (var name in PendingActionNames)
@@ -429,13 +458,42 @@ public class MainViewModel : SimpleViewModel
     {
         "file_insert_file", "file_save_copy_as", "file_rename",
         "file_external_changes", "file_close_all_and_session",
-        "file_open_current_directory", "file_open_command_prompt",
         "export_colored_html", "edit_copy_colored_html",
         "edit_select_current_toplevel",
         "edit_select_full_lines_up", "edit_select_full_lines_down",
         "edit_preferences", "view_goto_line", "window_new",
         "help_manual", "help_about",
     };
+
+    /// <summary>
+    /// Opens the current document's directory with a helper.
+    /// </summary>
+    /// <param name="type">The helper type — <c>directory</c> or <c>shell</c>.</param>
+    /// <returns>The running task.</returns>
+    /// <remarks>Upstream's <c>openCurrentDirectory</c> and
+    /// <c>openCommandPrompt</c>, which are the same call with a different
+    /// helper type.</remarks>
+    private async Task OpenCurrentDirectoryAsync(string type)
+    {
+        string directory = CurrentDirectory();
+        if (string.IsNullOrEmpty(directory)) { return; }
+
+        await Helpers.OpenPathAsync(directory, type).ConfigureAwait(true);
+    }
+
+    /// <summary>
+    /// The directory the current document is in, or the working directory.
+    /// </summary>
+    /// <returns>The path.</returns>
+    /// <remarks>Upstream's <c>MainWindow.currentDirectory</c>: an unsaved
+    /// document has no directory of its own, so the process's is used.</remarks>
+    public string CurrentDirectory()
+    {
+        string path = Documents?.CurrentDocument?.Path;
+        return string.IsNullOrEmpty(path)
+            ? Directory.GetCurrentDirectory()
+            : Path.GetDirectoryName(Path.GetFullPath(path));
+    }
 
     private void UpdateEditActions()
     {
