@@ -118,6 +118,16 @@ public sealed class MidiPlayerService : IMidiPlayer
     public long TotalTime => _totalTime;
 
     /// <inheritdoc/>
+    /// <remarks>
+    /// ⚠ CLAMPED TO <see cref="TotalTime"/>, and the clamp is load-bearing rather than
+    /// cosmetic. <c>MidiMusicPlayer.Duration</c> is the SEQUENCE's own length — its event
+    /// list — while <c>Position</c> is the sequencer's clock, and that clock goes on
+    /// running while the final voices ring out after the last event. An unclamped reading
+    /// therefore overshoots the length by the width of the release tail, and the panel's
+    /// time display and its position bar would both run past their own end. Clamping here
+    /// rather than in the panel keeps every reader honest, <see cref="HasEvents"/>
+    /// included.
+    /// </remarks>
     public long CurrentTime
     {
         get
@@ -125,7 +135,13 @@ public sealed class MidiPlayerService : IMidiPlayer
             MidiMusicPlayer player = _player;
             if (player == null) { return 0; }
 
-            try { return (long)player.Position.TotalMilliseconds; }
+            try
+            {
+                long position = (long)player.Position.TotalMilliseconds;
+                return _totalTime > 0
+                    ? Math.Clamp(position, 0, _totalTime)
+                    : Math.Max(0, position);
+            }
             catch (ObjectDisposedException) { return 0; }
         }
     }
@@ -354,31 +370,29 @@ public sealed class MidiPlayerService : IMidiPlayer
     /// Called on every tick of the position timer.
     /// </summary>
     /// <remarks>
-    /// ⚠ THE END OF THE SEQUENCE IS DETECTED HERE, NOT REPORTED TO US.
-    /// MEASURED against the FR6 pin (CodeBrix.Audio 1.0.214.913): a non-looping
-    /// MIDI sequence played to its end NEVER raises
-    /// <c>MidiMusicPlayer.PlaybackEnded</c>. <c>PlaybackState</c> stays
-    /// <c>Playing</c>, <c>ActiveVoiceCount</c> falls to zero, and
-    /// <c>Position</c> goes on counting past <c>Duration</c> indefinitely — a
-    /// 10.2-second file was still "playing" at 18 seconds, and in the panel it
-    /// ran to 3:19 before anyone stopped it. So the position is compared with
-    /// the length each tick, which is what upstream's own player effectively
-    /// does when its event list runs out.
-    /// <c>OnPlaybackEnded</c> stays wired for the day the library reports it:
-    /// <see cref="EndReached"/> is idempotent, so whichever arrives first wins.
+    /// The tick reports the position and nothing else. THE END OF THE SEQUENCE IS
+    /// REPORTED TO US, by <c>MidiMusicPlayer.PlaybackEnded</c> arriving at
+    /// <see cref="OnPlaybackEnded"/>.
+    /// //was previously: the end was DETECTED here, by comparing the position against
+    /// //the length on every tick, because CodeBrix.Audio 1.0.214.913 never raised
+    /// //PlaybackEnded for a non-looping sequence — PlaybackState stayed Playing,
+    /// //ActiveVoiceCount fell to zero, and Position counted past Duration indefinitely
+    /// //(a 10.2-second file was still "playing" at 18 seconds, and in the panel it ran
+    /// //to 3:19). CodeBrix.Audio 1.0.233.886 fixes it at the source: a finished
+    /// //non-looping sequence now ends the STREAM, a zero-length read is the engine's
+    /// //only end-of-stream signal, and the event follows from it.
+    /// ⚠ THE TWO ARE NOT INTERCHANGEABLE, which is why the comparison was REMOVED
+    /// rather than left standing beside the event. The tick fired at the LAST EVENT;
+    /// the event fires once the final voices have stopped sounding. Ending at the last
+    /// event meant <see cref="EndReached"/>'s Pause() CUT THE RELEASE TAIL off every
+    /// score that finishes on a held chord. Letting the event own the ending lets the
+    /// tail ring out, and <see cref="CurrentTime"/>'s clamp is what stops the display
+    /// drifting past the length while it does.
+    /// <see cref="EndReached"/> stays idempotent, so a library that one day reports the
+    /// end twice — or reports it after something else has already stopped playback —
+    /// still behaves.
     /// </remarks>
-    private void OnTick()
-    {
-        if (_state == MidiPlayerState.Playing
-            && _totalTime > 0
-            && CurrentTime >= _totalTime)
-        {
-            EndReached();
-            return;
-        }
-
-        Raise(Notification.Position);
-    }
+    private void OnTick() => Raise(Notification.Position);
 
     private void EndReached()
     {

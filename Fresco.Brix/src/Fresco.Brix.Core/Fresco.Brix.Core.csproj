@@ -19,7 +19,7 @@
     <PackageReference Include="CodeBrix.Sqlite.ApacheLicenseForever" Version="1.0.213.50" />
     <!-- MIDI playback (FR6): the SoundFont synthesizer the MIDI panel plays
          through, in-process, with no MIDI ports of any kind. -->
-    <PackageReference Include="CodeBrix.Audio.MitLicenseForever" Version="1.0.214.913" />
+    <PackageReference Include="CodeBrix.Audio.MitLicenseForever" Version="1.0.233.886" />
     <!-- The documentation viewer (FR8): the manuals are PDFs LilyPort rendered
          and there is NO WebView anywhere, so the pages are rasterised by
          PDFium through this package and drawn in the same paged view the Music

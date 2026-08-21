@@ -455,7 +455,7 @@ public class PdfManualTests
         //Act — the first ask never waits; it starts the rendering and answers
         //with nothing, which is what lets it be called while painting.
         SKImage first = page.Image(600, 849);
-        await Task.WhenAny(ready.Task, Task.Delay(TimeSpan.FromSeconds(30)));
+        await Task.WhenAny(ready.Task, Task.Delay(TimeSpan.FromSeconds(30), TestContext.Current.CancellationToken));
         SKImage second = page.Image(600, 849);
 
         //Assert
@@ -477,7 +477,7 @@ public class PdfManualTests
         TaskCompletionSource ready = new TaskCompletionSource();
         page.ImageReady += (_, _) => ready.TrySetResult();
         page.Image(600, 849);
-        await Task.WhenAny(ready.Task, Task.Delay(TimeSpan.FromSeconds(30)));
+        await Task.WhenAny(ready.Task, Task.Delay(TimeSpan.FromSeconds(30), TestContext.Current.CancellationToken));
 
         //Act — a different zoom asks for a different width; what comes back
         //straight away is the rendering already in hand, scaled by the page.

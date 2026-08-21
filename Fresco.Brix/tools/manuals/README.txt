@@ -87,6 +87,16 @@ MEASURED 2026-08-21 at wave W10, against LilyPort at CodeBrix.LilyScheme
 the SHIPPED files by CodeBrix.PdfRasterizer -- the same reader the application
 uses -- and they reproduce Lily.Docs' own frozen baselines exactly.
 
+RE-VERIFIED 2026-08-21 at the three-package bump, and the figures above are
+UNCHANGED: LilyPort now sits at CodeBrix.LilyScheme 1.0.233.918 and Lily.Docs at
+CodeBrix.Texinfo 1.0.233.879. Lily.Docs' own gates were run ONCE ON EACH SIDE of
+the Texinfo bump -- deliberately, so an engine change and a renderer change could
+not be confused with one another -- and both runs were green at 269/269 with every
+frozen baseline holding. The shipped files under
+src/Fresco.Brix.Core/assets/docs/ were therefore NOT regenerated, because nothing
+about them moved; 3,368 pages and 54,171,714 bytes still stand, and so do
+ManualCatalog's per-manual page counts.
+
 ⚠ ONE ENGRAVING FAILURE IS EXPECTED AND IS NOT A FAULT. notation's
 `{ \skip 1 \skip1 \skip 1 }' (en/notation/rhythms.itely:912) is introduced by
 the manual's own prose as producing "no output of any kind", and Lily.Docs

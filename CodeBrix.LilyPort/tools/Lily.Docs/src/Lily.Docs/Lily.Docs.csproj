@@ -19,8 +19,45 @@
     place and so neither can drift.
   -->
   <ItemGroup>
-    <PackageReference Include="CodeBrix.Texinfo2Html.MitLicenseForever" Version="1.0.232.110" />
-    <PackageReference Include="CodeBrix.Texinfo2Pdf.MitLicenseForever" Version="1.0.232.110" />
+    <PackageReference Include="CodeBrix.Texinfo2Html.MitLicenseForever" Version="1.0.233.879" />
+    <PackageReference Include="CodeBrix.Texinfo2Pdf.MitLicenseForever" Version="1.0.233.879" />
+  </ItemGroup>
+
+  <!--
+    ⚠ LINUX NATIVE ASSETS - LOAD-BEARING, AND NOT TO BE "TIDIED AWAY".
+
+    This tool rasterizes the engraved SVG pictures through
+    CodeBrix.Texinfo2Pdf -> CodeBrix.PdfDocCreate.Html2Pdf -> SkiaSharp, and on Linux
+    that needs a SkiaSharp native-assets package IN THIS TOOL'S OWN OUTPUT DIRECTORY.
+    Neither Texinfo2Pdf nor Html2Pdf declares one, DELIBERATELY: two mutually exclusive
+    Linux variants exist (SkiaSharp.NativeAssets.Linux and
+    SkiaSharp.NativeAssets.Linux.NoDependencies) and only the consuming application may
+    choose between them, so declaring one in a library would force that choice on every
+    consumer. Do NOT read their silence as "not needed".
+
+    //was previously: nothing was declared here, because Html2Pdf 1.0.232.60 still
+    //declared SkiaSharp.NativeAssets.Linux.NoDependencies and Lily.Docs picked it up
+    //transitively. Html2Pdf 1.0.232.1177 REMOVED that declaration, so the transitive
+    //supply is gone and this reference is what replaces it.
+
+    ⚠ WITHOUT IT NOTHING CRASHES - which is exactly why it needs saying. Every SVG
+    picture is silently SKIPPED, the manuals render complete and picture-less, and the
+    only evidence is one collected PDF-stage warning with the code
+    "image.svg.nativemissing". The expected-warnings baselines are what catch it.
+
+    ⚠ THE PLAIN VARIANT IS DELIBERATE, not a coin toss. This PackageReference flows
+    transitively through Lily.Shell.Core into Lily.Shell's three Linux heads, and those
+    heads already receive the PLAIN variant from CodeBrix.Platform.Runtime.Skia.*.
+    Referencing .NoDependencies here would put BOTH variants in every one of those heads,
+    which is the one arrangement the Texinfo AGENT-README rules out. One variant, repo-wide.
+
+    ⚠ THIS BELONGS HERE AND NOWHERE ELSE. Lily.Docs is a repo tool that ships nothing
+    (IsPackable=false above), so this declares nothing to anybody. CodeBrix.LilyPort
+    itself must NEVER carry a native-assets reference - decision D52 keeps the whole
+    Texinfo -> Html2Pdf -> SkiaSharp chain out of the shipped package.
+  -->
+  <ItemGroup>
+    <PackageReference Include="SkiaSharp.NativeAssets.Linux" Version="4.151.0" />
   </ItemGroup>
 
   <!--
