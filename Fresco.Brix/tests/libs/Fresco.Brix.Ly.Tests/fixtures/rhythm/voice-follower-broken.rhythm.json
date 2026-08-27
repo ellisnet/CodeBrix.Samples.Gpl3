@@ -1,0 +1,65 @@
+{
+ "extract": [
+  "1",
+  "1",
+  "1*2"
+ ],
+ "music_items": [
+  [
+   215,
+   219,
+   218,
+   true,
+   [
+    "c",
+    "''"
+   ],
+   [
+    "1"
+   ]
+  ],
+  [
+   282,
+   285,
+   284,
+   true,
+   [
+    "c",
+    "'"
+   ],
+   [
+    "1"
+   ]
+  ],
+  [
+   318,
+   321,
+   318,
+   true,
+   [],
+   [
+    "1",
+    "*2"
+   ]
+  ]
+ ],
+ "overwrite_durations": [
+  "4",
+  "8",
+  "",
+  "16."
+ ],
+ "results": {
+  "dot": "\\version \"2.23.5\"\n\n\\header {\n  texidoc = \"Voice followers have acceptable slopes across\nlines breaks.\"\n}\n\n\\paper {\n  ragged-right = ##t\n}\n\n<<\n  \\new Staff {\n    \\override VoiceFollower.after-line-breaking = ##t\n    c''1.\n    \\showStaffSwitch\n    \\break\n    \\change Staff = lower\n    c'1.\n  }\n  \\new Staff = lower {\n    s1.*2\n  }\n>>\n",
+  "double": "\\version \"2.23.5\"\n\n\\header {\n  texidoc = \"Voice followers have acceptable slopes across\nlines breaks.\"\n}\n\n\\paper {\n  ragged-right = ##t\n}\n\n<<\n  \\new Staff {\n    \\override VoiceFollower.after-line-breaking = ##t\n    c''\\breve\n    \\showStaffSwitch\n    \\break\n    \\change Staff = lower\n    c'\\breve\n  }\n  \\new Staff = lower {\n    s\\breve*2\n  }\n>>\n",
+  "explicit": "\\version \"2.23.5\"\n\n\\header {\n  texidoc = \"Voice followers have acceptable slopes across\nlines breaks.\"\n}\n\n\\paper {\n  ragged-right = ##t\n}\n\n<<\n  \\new Staff {\n    \\override VoiceFollower.after-line-breaking = ##t\n    c''1\n    \\showStaffSwitch\n    \\break\n    \\change Staff = lower\n    c'1\n  }\n  \\new Staff = lower {\n    s1*2\n  }\n>>\n",
+  "halve": "\\version \"2.23.5\"\n\n\\header {\n  texidoc = \"Voice followers have acceptable slopes across\nlines breaks.\"\n}\n\n\\paper {\n  ragged-right = ##t\n}\n\n<<\n  \\new Staff {\n    \\override VoiceFollower.after-line-breaking = ##t\n    c''2\n    \\showStaffSwitch\n    \\break\n    \\change Staff = lower\n    c'2\n  }\n  \\new Staff = lower {\n    s2*2\n  }\n>>\n",
+  "implicit": "\\version \"2.23.5\"\n\n\\header {\n  texidoc = \"Voice followers have acceptable slopes across\nlines breaks.\"\n}\n\n\\paper {\n  ragged-right = ##t\n}\n\n<<\n  \\new Staff {\n    \\override VoiceFollower.after-line-breaking = ##t\n    c''1\n    \\showStaffSwitch\n    \\break\n    \\change Staff = lower\n    c'\n  }\n  \\new Staff = lower {\n    s1*2\n  }\n>>\n",
+  "implicit_per_line": "\\version \"2.23.5\"\n\n\\header {\n  texidoc = \"Voice followers have acceptable slopes across\nlines breaks.\"\n}\n\n\\paper {\n  ragged-right = ##t\n}\n\n<<\n  \\new Staff {\n    \\override VoiceFollower.after-line-breaking = ##t\n    c''1\n    \\showStaffSwitch\n    \\break\n    \\change Staff = lower\n    c'1\n  }\n  \\new Staff = lower {\n    s1*2\n  }\n>>\n",
+  "overwrite": "\\version \"2.23.5\"\n\n\\header {\n  texidoc = \"Voice followers have acceptable slopes across\nlines breaks.\"\n}\n\n\\paper {\n  ragged-right = ##t\n}\n\n<<\n  \\new Staff {\n    \\override VoiceFollower.after-line-breaking = ##t\n    c''4\n    \\showStaffSwitch\n    \\break\n    \\change Staff = lower\n    c'8\n  }\n  \\new Staff = lower {\n    s\n  }\n>>\n",
+  "remove": "\\version \"2.23.5\"\n\n\\header {\n  texidoc = \"Voice followers have acceptable slopes across\nlines breaks.\"\n}\n\n\\paper {\n  ragged-right = ##t\n}\n\n<<\n  \\new Staff {\n    \\override VoiceFollower.after-line-breaking = ##t\n    c''\n    \\showStaffSwitch\n    \\break\n    \\change Staff = lower\n    c'\n  }\n  \\new Staff = lower {\n    s\n  }\n>>\n",
+  "remove_fraction_scaling": "\\version \"2.23.5\"\n\n\\header {\n  texidoc = \"Voice followers have acceptable slopes across\nlines breaks.\"\n}\n\n\\paper {\n  ragged-right = ##t\n}\n\n<<\n  \\new Staff {\n    \\override VoiceFollower.after-line-breaking = ##t\n    c''1\n    \\showStaffSwitch\n    \\break\n    \\change Staff = lower\n    c'1\n  }\n  \\new Staff = lower {\n    s1*2\n  }\n>>\n",
+  "remove_scaling": "\\version \"2.23.5\"\n\n\\header {\n  texidoc = \"Voice followers have acceptable slopes across\nlines breaks.\"\n}\n\n\\paper {\n  ragged-right = ##t\n}\n\n<<\n  \\new Staff {\n    \\override VoiceFollower.after-line-breaking = ##t\n    c''1\n    \\showStaffSwitch\n    \\break\n    \\change Staff = lower\n    c'1\n  }\n  \\new Staff = lower {\n    s1\n  }\n>>\n",
+  "undot": "\\version \"2.23.5\"\n\n\\header {\n  texidoc = \"Voice followers have acceptable slopes across\nlines breaks.\"\n}\n\n\\paper {\n  ragged-right = ##t\n}\n\n<<\n  \\new Staff {\n    \\override VoiceFollower.after-line-breaking = ##t\n    c''1\n    \\showStaffSwitch\n    \\break\n    \\change Staff = lower\n    c'1\n  }\n  \\new Staff = lower {\n    s1*2\n  }\n>>\n"
+ }
+}

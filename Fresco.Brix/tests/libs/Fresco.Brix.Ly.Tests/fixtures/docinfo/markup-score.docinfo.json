@@ -1,0 +1,68 @@
+{
+ "complete": true,
+ "counted_tokens": {
+  "_token.Newline": 32,
+  "_token.Space": 81,
+  "lilypond.ChordEnd": 1,
+  "lilypond.ChordStart": 1,
+  "lilypond.Clef": 1,
+  "lilypond.ClefSpecifier": 1,
+  "lilypond.CloseBracket": 5,
+  "lilypond.CloseBracketMarkup": 2,
+  "lilypond.Command": 5,
+  "lilypond.ContextName": 1,
+  "lilypond.EqualSign": 6,
+  "lilypond.Fraction": 5,
+  "lilypond.Header": 2,
+  "lilypond.HeaderVariable": 4,
+  "lilypond.Keyword": 2,
+  "lilypond.Layout": 1,
+  "lilypond.LayoutVariable": 1,
+  "lilypond.Length": 9,
+  "lilypond.MarkupScore": 1,
+  "lilypond.MarkupStart": 2,
+  "lilypond.MarkupUserCommand": 1,
+  "lilypond.Name": 1,
+  "lilypond.New": 1,
+  "lilypond.Note": 24,
+  "lilypond.Octave": 3,
+  "lilypond.OpenBracket": 5,
+  "lilypond.OpenBracketMarkup": 2,
+  "lilypond.PitchCommand": 1,
+  "lilypond.SchemeStart": 1,
+  "lilypond.SequentialEnd": 6,
+  "lilypond.SequentialStart": 6,
+  "lilypond.String": 7,
+  "lilypond.StringQuoteEscape": 1,
+  "lilypond.StringQuotedEnd": 6,
+  "lilypond.StringQuotedStart": 6,
+  "lilypond.With": 1,
+  "scheme.Bool": 1
+ },
+ "definitions": [
+  [
+   "tuning",
+   86
+  ]
+ ],
+ "global_staff_size": null,
+ "has_output": true,
+ "include_args": [],
+ "language": null,
+ "markup_definitions": [
+  [
+   "tuning",
+   86
+  ]
+ ],
+ "mode": "lilypond",
+ "output_args": [],
+ "scheme_load_args": [],
+ "token_count": 236,
+ "version": [
+  2,
+  19,
+  21
+ ],
+ "version_string": "2.19.21"
+}

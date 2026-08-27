@@ -1,0 +1,79 @@
+{
+ "complete": true,
+ "counted_tokens": {
+  "_token.Newline": 48,
+  "_token.Space": 81,
+  "lilypond.CloseBracket": 2,
+  "lilypond.Command": 4,
+  "lilypond.ContextName": 7,
+  "lilypond.ContextProperty": 3,
+  "lilypond.Direction": 2,
+  "lilypond.Dot": 2,
+  "lilypond.DotPath": 4,
+  "lilypond.Dynamic": 1,
+  "lilypond.EqualSign": 9,
+  "lilypond.Header": 1,
+  "lilypond.HeaderVariable": 1,
+  "lilypond.Keyword": 1,
+  "lilypond.Layout": 1,
+  "lilypond.LayoutVariable": 1,
+  "lilypond.Length": 11,
+  "lilypond.Name": 5,
+  "lilypond.New": 3,
+  "lilypond.Note": 11,
+  "lilypond.Octave": 3,
+  "lilypond.OpenBracket": 2,
+  "lilypond.PitchCommand": 3,
+  "lilypond.Rest": 3,
+  "lilypond.SchemeStart": 4,
+  "lilypond.ScriptAbbreviation": 1,
+  "lilypond.SequentialEnd": 7,
+  "lilypond.SequentialStart": 7,
+  "lilypond.Set": 4,
+  "lilypond.SimultaneousEnd": 2,
+  "lilypond.SimultaneousStart": 2,
+  "lilypond.SlurEnd": 1,
+  "lilypond.SlurStart": 1,
+  "lilypond.String": 13,
+  "lilypond.StringQuoteEscape": 1,
+  "lilypond.StringQuotedEnd": 7,
+  "lilypond.StringQuotedStart": 7,
+  "lilypond.Tie": 1,
+  "lilypond.UserCommand": 5,
+  "scheme.Bool": 1,
+  "scheme.CloseParen": 1,
+  "scheme.Number": 2,
+  "scheme.OpenParen": 1,
+  "scheme.Quote": 1,
+  "scheme.Word": 2
+ },
+ "definitions": [
+  [
+   "quoteMe",
+   383
+  ],
+  [
+   "original",
+   476
+  ],
+  [
+   "cueStaff",
+   590
+  ]
+ ],
+ "global_staff_size": null,
+ "has_output": true,
+ "include_args": [],
+ "language": null,
+ "markup_definitions": [],
+ "mode": "lilypond",
+ "output_args": [],
+ "scheme_load_args": [],
+ "token_count": 280,
+ "version": [
+  2,
+  21,
+  0
+ ],
+ "version_string": "2.21.0"
+}

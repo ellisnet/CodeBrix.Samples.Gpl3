@@ -1,0 +1,1184 @@
+{
+ "has_output": true,
+ "known_fixes": [
+  {
+   "module": "ly.music.read",
+   "new": "elif not item._specifier and isinstance(t, lex.StringStart):",
+   "old": "elif not item.specifier and isinstance(t, lex.StringStart):",
+   "why": "handle_repeat guards on the bound method item.specifier instead of the field item._specifier, so a quoted repeat specifier is never read and the repeat ends at the string (FR14)"
+  }
+ ],
+ "node_positions": [
+  [
+   0,
+   "Header",
+   0
+  ],
+  [
+   7,
+   "Header",
+   0
+  ],
+  [
+   14,
+   "Header",
+   0
+  ],
+  [
+   21,
+   "Assignment",
+   15
+  ],
+  [
+   28,
+   "String",
+   25
+  ],
+  [
+   35,
+   "String",
+   25
+  ],
+  [
+   42,
+   "String",
+   25
+  ],
+  [
+   49,
+   "String",
+   25
+  ],
+  [
+   56,
+   "String",
+   25
+  ],
+  [
+   63,
+   "String",
+   25
+  ],
+  [
+   70,
+   "String",
+   25
+  ],
+  [
+   77,
+   "String",
+   25
+  ],
+  [
+   84,
+   "String",
+   25
+  ],
+  [
+   91,
+   "String",
+   25
+  ],
+  [
+   98,
+   "String",
+   25
+  ],
+  [
+   105,
+   "String",
+   25
+  ],
+  [
+   112,
+   "String",
+   25
+  ],
+  [
+   119,
+   "String",
+   25
+  ],
+  [
+   126,
+   "String",
+   25
+  ],
+  [
+   133,
+   "String",
+   25
+  ],
+  [
+   140,
+   "String",
+   25
+  ],
+  [
+   147,
+   "String",
+   25
+  ],
+  [
+   154,
+   "Version",
+   151
+  ],
+  [
+   161,
+   "String",
+   160
+  ],
+  [
+   168,
+   "String",
+   160
+  ],
+  [
+   175,
+   "Context",
+   171
+  ],
+  [
+   182,
+   "MusicList",
+   182
+  ],
+  [
+   189,
+   "Set",
+   187
+  ],
+  [
+   196,
+   "Set",
+   187
+  ],
+  [
+   203,
+   "Set",
+   187
+  ],
+  [
+   210,
+   "Set",
+   187
+  ],
+  [
+   217,
+   "SchemeItem",
+   212
+  ],
+  [
+   224,
+   "TimeSignature",
+   222
+  ],
+  [
+   231,
+   "TimeSignature",
+   222
+  ],
+  [
+   238,
+   "Scaler",
+   235
+  ],
+  [
+   245,
+   "Number",
+   243
+  ],
+  [
+   252,
+   "Duration",
+   251
+  ],
+  [
+   259,
+   "Note",
+   259
+  ],
+  [
+   266,
+   "Duration",
+   261
+  ],
+  [
+   273,
+   "Scaler",
+   269
+  ],
+  [
+   280,
+   "Number",
+   277
+  ],
+  [
+   287,
+   "Duration",
+   285
+  ],
+  [
+   294,
+   "Note",
+   293
+  ],
+  [
+   301,
+   "Duration",
+   295
+  ],
+  [
+   308,
+   "Override",
+   303
+  ],
+  [
+   315,
+   "PathItem",
+   313
+  ],
+  [
+   322,
+   "PathItem",
+   313
+  ],
+  [
+   329,
+   "PathItem",
+   327
+  ],
+  [
+   336,
+   "PathItem",
+   327
+  ],
+  [
+   343,
+   "PathItem",
+   327
+  ],
+  [
+   350,
+   "PathItem",
+   327
+  ],
+  [
+   357,
+   "SchemeItem",
+   352
+  ],
+  [
+   364,
+   "Scaler",
+   358
+  ],
+  [
+   371,
+   "MusicList",
+   370
+  ],
+  [
+   378,
+   "Note",
+   377
+  ],
+  [
+   385,
+   "Duration",
+   384
+  ],
+  [
+   392,
+   "Tweak",
+   392
+  ],
+  [
+   399,
+   "PathItem",
+   399
+  ],
+  [
+   406,
+   "PathItem",
+   399
+  ],
+  [
+   413,
+   "SchemeItem",
+   410
+  ],
+  [
+   420,
+   "Command",
+   415
+  ],
+  [
+   427,
+   "Command",
+   415
+  ],
+  [
+   434,
+   "String",
+   428
+  ],
+  [
+   441,
+   "String",
+   428
+  ],
+  [
+   448,
+   "String",
+   428
+  ],
+  [
+   455,
+   "String",
+   428
+  ],
+  [
+   456,
+   "String",
+   428
+  ]
+ ],
+ "time_positions": [
+  [
+   0,
+   null
+  ],
+  [
+   7,
+   null
+  ],
+  [
+   14,
+   null
+  ],
+  [
+   21,
+   null
+  ],
+  [
+   28,
+   null
+  ],
+  [
+   35,
+   null
+  ],
+  [
+   42,
+   null
+  ],
+  [
+   49,
+   null
+  ],
+  [
+   56,
+   null
+  ],
+  [
+   63,
+   null
+  ],
+  [
+   70,
+   null
+  ],
+  [
+   77,
+   null
+  ],
+  [
+   84,
+   null
+  ],
+  [
+   91,
+   null
+  ],
+  [
+   98,
+   null
+  ],
+  [
+   105,
+   null
+  ],
+  [
+   112,
+   null
+  ],
+  [
+   119,
+   null
+  ],
+  [
+   126,
+   null
+  ],
+  [
+   133,
+   null
+  ],
+  [
+   140,
+   null
+  ],
+  [
+   147,
+   null
+  ],
+  [
+   154,
+   null
+  ],
+  [
+   161,
+   null
+  ],
+  [
+   168,
+   null
+  ],
+  [
+   175,
+   "0/1"
+  ],
+  [
+   182,
+   "0/1"
+  ],
+  [
+   189,
+   "0/1"
+  ],
+  [
+   196,
+   "0/1"
+  ],
+  [
+   203,
+   "0/1"
+  ],
+  [
+   210,
+   "0/1"
+  ],
+  [
+   217,
+   "0/1"
+  ],
+  [
+   224,
+   "0/1"
+  ],
+  [
+   231,
+   "0/1"
+  ],
+  [
+   238,
+   "0/1"
+  ],
+  [
+   245,
+   "0/1"
+  ],
+  [
+   252,
+   "0/1"
+  ],
+  [
+   259,
+   "1/12"
+  ],
+  [
+   266,
+   "1/8"
+  ],
+  [
+   273,
+   "1/8"
+  ],
+  [
+   280,
+   "1/8"
+  ],
+  [
+   287,
+   "1/6"
+  ],
+  [
+   294,
+   "5/24"
+  ],
+  [
+   301,
+   "1/4"
+  ],
+  [
+   308,
+   "1/4"
+  ],
+  [
+   315,
+   "1/4"
+  ],
+  [
+   322,
+   "1/4"
+  ],
+  [
+   329,
+   "1/4"
+  ],
+  [
+   336,
+   "1/4"
+  ],
+  [
+   343,
+   "1/4"
+  ],
+  [
+   350,
+   "1/4"
+  ],
+  [
+   357,
+   "1/4"
+  ],
+  [
+   364,
+   "1/4"
+  ],
+  [
+   371,
+   "1/4"
+  ],
+  [
+   378,
+   "7/24"
+  ],
+  [
+   385,
+   "1/3"
+  ],
+  [
+   392,
+   "3/8"
+  ],
+  [
+   399,
+   "3/8"
+  ],
+  [
+   406,
+   "3/8"
+  ],
+  [
+   413,
+   "3/8"
+  ],
+  [
+   420,
+   "3/8"
+  ],
+  [
+   427,
+   "3/8"
+  ],
+  [
+   434,
+   "3/8"
+  ],
+  [
+   441,
+   "3/8"
+  ],
+  [
+   448,
+   "3/8"
+  ],
+  [
+   455,
+   "3/8"
+  ],
+  [
+   456,
+   null
+  ]
+ ],
+ "tree": {
+  "children": [
+   {
+    "children": [
+     {
+      "children": [
+       {
+        "children": [],
+        "cls": "String",
+        "end": 147,
+        "length": "0/1",
+        "plaintext": "With @code{full-length-to-extent}, the extent of the\n  attaching column for a full-length tuplet bracket can be ignored.",
+        "position": 25,
+        "token": "\"",
+        "tokens": [
+         "With @code{full-length-to-extent}, the extent of the",
+         "\n",
+         "  attaching column for a full-length tuplet bracket can be ignored.",
+         "\""
+        ]
+       }
+      ],
+      "cls": "Assignment",
+      "end": 147,
+      "length": "0/1",
+      "plaintext": "",
+      "position": 15,
+      "token": "texidoc",
+      "tokens": [
+       "="
+      ]
+     }
+    ],
+    "cls": "Header",
+    "end": 150,
+    "length": "0/1",
+    "plaintext": "",
+    "position": 0,
+    "token": "\\header",
+    "tokens": [
+     "{",
+     "}"
+    ]
+   },
+   {
+    "children": [
+     {
+      "children": [],
+      "cls": "String",
+      "end": 169,
+      "length": "0/1",
+      "plaintext": "2.23.14",
+      "position": 160,
+      "token": "\"",
+      "tokens": [
+       "2.23.14",
+       "\""
+      ]
+     }
+    ],
+    "cls": "Version",
+    "end": 169,
+    "length": "0/1",
+    "plaintext": "",
+    "position": 151,
+    "token": "\\version",
+    "tokens": []
+   },
+   {
+    "children": [
+     {
+      "children": [
+       {
+        "children": [
+         {
+          "children": [
+           {
+            "children": [],
+            "cls": "SchemeItem",
+            "end": 214,
+            "length": "0/1",
+            "plaintext": "",
+            "position": 212,
+            "token": "#t",
+            "tokens": []
+           }
+          ],
+          "cls": "Scheme",
+          "end": 214,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 211,
+          "token": "#",
+          "tokens": []
+         }
+        ],
+        "cls": "Set",
+        "end": 214,
+        "length": "0/1",
+        "plaintext": "",
+        "position": 187,
+        "token": "\\set",
+        "tokens": [
+         "tupletFullLength",
+         "="
+        ]
+       },
+       {
+        "children": [],
+        "cls": "TimeSignature",
+        "end": 227,
+        "length": "0/1",
+        "plaintext": "",
+        "position": 222,
+        "token": "\\time",
+        "tokens": []
+       },
+       {
+        "children": [
+         {
+          "children": [],
+          "cls": "Number",
+          "end": 246,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 243,
+          "token": "3/2",
+          "tokens": []
+         },
+         {
+          "children": [
+           {
+            "children": [
+             {
+              "children": [],
+              "cls": "Duration",
+              "end": 253,
+              "length": "0/1",
+              "plaintext": "",
+              "position": 251,
+              "token": "16",
+              "tokens": []
+             }
+            ],
+            "cls": "Note",
+            "end": 253,
+            "length": "1/16",
+            "plaintext": "",
+            "position": 249,
+            "token": "c",
+            "tokens": []
+           },
+           {
+            "children": [
+             {
+              "children": [],
+              "cls": "Duration",
+              "end": 258,
+              "length": "0/1",
+              "plaintext": "",
+              "position": 256,
+              "token": "16",
+              "tokens": []
+             }
+            ],
+            "cls": "Note",
+            "end": 258,
+            "length": "1/16",
+            "plaintext": "",
+            "position": 254,
+            "token": "c",
+            "tokens": []
+           },
+           {
+            "children": [
+             {
+              "children": [],
+              "cls": "Duration",
+              "end": 263,
+              "length": "0/1",
+              "plaintext": "",
+              "position": 261,
+              "token": "16",
+              "tokens": []
+             }
+            ],
+            "cls": "Note",
+            "end": 263,
+            "length": "1/16",
+            "plaintext": "",
+            "position": 259,
+            "token": "c",
+            "tokens": []
+           }
+          ],
+          "cls": "MusicList",
+          "end": 265,
+          "length": "3/16",
+          "plaintext": "",
+          "position": 247,
+          "token": "{",
+          "tokens": [
+           "}"
+          ]
+         }
+        ],
+        "cls": "Scaler",
+        "end": 265,
+        "length": "1/8",
+        "plaintext": "",
+        "position": 235,
+        "token": "\\tuplet",
+        "tokens": []
+       },
+       {
+        "children": [
+         {
+          "children": [],
+          "cls": "Number",
+          "end": 280,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 277,
+          "token": "3/2",
+          "tokens": []
+         },
+         {
+          "children": [
+           {
+            "children": [
+             {
+              "children": [],
+              "cls": "Duration",
+              "end": 287,
+              "length": "0/1",
+              "plaintext": "",
+              "position": 285,
+              "token": "16",
+              "tokens": []
+             }
+            ],
+            "cls": "Note",
+            "end": 287,
+            "length": "1/16",
+            "plaintext": "",
+            "position": 283,
+            "token": "c",
+            "tokens": []
+           },
+           {
+            "children": [
+             {
+              "children": [],
+              "cls": "Duration",
+              "end": 292,
+              "length": "0/1",
+              "plaintext": "",
+              "position": 290,
+              "token": "16",
+              "tokens": []
+             }
+            ],
+            "cls": "Note",
+            "end": 292,
+            "length": "1/16",
+            "plaintext": "",
+            "position": 288,
+            "token": "c",
+            "tokens": []
+           },
+           {
+            "children": [
+             {
+              "children": [],
+              "cls": "Duration",
+              "end": 297,
+              "length": "0/1",
+              "plaintext": "",
+              "position": 295,
+              "token": "16",
+              "tokens": []
+             }
+            ],
+            "cls": "Note",
+            "end": 297,
+            "length": "1/16",
+            "plaintext": "",
+            "position": 293,
+            "token": "c",
+            "tokens": []
+           }
+          ],
+          "cls": "MusicList",
+          "end": 299,
+          "length": "3/16",
+          "plaintext": "",
+          "position": 281,
+          "token": "{",
+          "tokens": [
+           "}"
+          ]
+         }
+        ],
+        "cls": "Scaler",
+        "end": 299,
+        "length": "1/8",
+        "plaintext": "",
+        "position": 269,
+        "token": "\\tuplet",
+        "tokens": []
+       },
+       {
+        "children": [
+         {
+          "children": [],
+          "cls": "PathItem",
+          "end": 326,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 313,
+          "token": "TupletBracket",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "PathItem",
+          "end": 327,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 326,
+          "token": ".",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "PathItem",
+          "end": 348,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 327,
+          "token": "full-length-to-extent",
+          "tokens": []
+         },
+         {
+          "children": [
+           {
+            "children": [],
+            "cls": "SchemeItem",
+            "end": 354,
+            "length": "0/1",
+            "plaintext": "",
+            "position": 352,
+            "token": "#f",
+            "tokens": []
+           }
+          ],
+          "cls": "Scheme",
+          "end": 354,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 351,
+          "token": "#",
+          "tokens": []
+         }
+        ],
+        "cls": "Override",
+        "end": 354,
+        "length": "0/1",
+        "plaintext": "",
+        "position": 303,
+        "token": "\\override",
+        "tokens": [
+         "="
+        ]
+       },
+       {
+        "children": [
+         {
+          "children": [],
+          "cls": "Number",
+          "end": 369,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 366,
+          "token": "3/2",
+          "tokens": []
+         },
+         {
+          "children": [
+           {
+            "children": [
+             {
+              "children": [],
+              "cls": "Duration",
+              "end": 376,
+              "length": "0/1",
+              "plaintext": "",
+              "position": 374,
+              "token": "16",
+              "tokens": []
+             }
+            ],
+            "cls": "Note",
+            "end": 376,
+            "length": "1/16",
+            "plaintext": "",
+            "position": 372,
+            "token": "c",
+            "tokens": []
+           },
+           {
+            "children": [
+             {
+              "children": [],
+              "cls": "Duration",
+              "end": 381,
+              "length": "0/1",
+              "plaintext": "",
+              "position": 379,
+              "token": "16",
+              "tokens": []
+             }
+            ],
+            "cls": "Note",
+            "end": 381,
+            "length": "1/16",
+            "plaintext": "",
+            "position": 377,
+            "token": "c",
+            "tokens": []
+           },
+           {
+            "children": [
+             {
+              "children": [],
+              "cls": "Duration",
+              "end": 386,
+              "length": "0/1",
+              "plaintext": "",
+              "position": 384,
+              "token": "16",
+              "tokens": []
+             }
+            ],
+            "cls": "Note",
+            "end": 386,
+            "length": "1/16",
+            "plaintext": "",
+            "position": 382,
+            "token": "c",
+            "tokens": []
+           }
+          ],
+          "cls": "MusicList",
+          "end": 388,
+          "length": "3/16",
+          "plaintext": "",
+          "position": 370,
+          "token": "{",
+          "tokens": [
+           "}"
+          ]
+         }
+        ],
+        "cls": "Scaler",
+        "end": 388,
+        "length": "1/8",
+        "plaintext": "",
+        "position": 358,
+        "token": "\\tuplet",
+        "tokens": []
+       },
+       {
+        "children": [
+         {
+          "children": [],
+          "cls": "PathItem",
+          "end": 408,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 399,
+          "token": "direction",
+          "tokens": []
+         },
+         {
+          "children": [
+           {
+            "children": [],
+            "cls": "SchemeItem",
+            "end": 414,
+            "length": "0/1",
+            "plaintext": "",
+            "position": 410,
+            "token": "DOWN",
+            "tokens": []
+           }
+          ],
+          "cls": "Scheme",
+          "end": 414,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 409,
+          "token": "#",
+          "tokens": []
+         }
+        ],
+        "cls": "Tweak",
+        "end": 414,
+        "length": "0/1",
+        "plaintext": "",
+        "position": 392,
+        "token": "\\tweak",
+        "tokens": []
+       },
+       {
+        "children": [],
+        "cls": "Command",
+        "end": 427,
+        "length": "0/1",
+        "plaintext": "",
+        "position": 415,
+        "token": "\\textEndMark",
+        "tokens": []
+       },
+       {
+        "children": [],
+        "cls": "String",
+        "end": 453,
+        "length": "0/1",
+        "plaintext": "xxxxxxxxxxxxxxxxxxxxxxx",
+        "position": 428,
+        "token": "\"",
+        "tokens": [
+         "xxxxxxxxxxxxxxxxxxxxxxx",
+         "\""
+        ]
+       }
+      ],
+      "cls": "MusicList",
+      "end": 455,
+      "length": "3/8",
+      "plaintext": "",
+      "position": 182,
+      "token": "{",
+      "tokens": [
+       "}"
+      ]
+     }
+    ],
+    "cls": "Context",
+    "end": 455,
+    "length": "3/8",
+    "plaintext": "",
+    "position": 171,
+    "token": "\\new",
+    "tokens": []
+   }
+  ],
+  "cls": "Document",
+  "end": 455,
+  "length": "0/1",
+  "plaintext": "",
+  "position": -1,
+  "token": null,
+  "tokens": []
+ }
+}

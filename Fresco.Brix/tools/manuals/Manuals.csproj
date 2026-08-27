@@ -1,0 +1,43 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Manuals - a REPO TOOL. It ships nothing: it drives LilyPort's own
+       tools/Lily.Docs to render the nine manuals to PDF, then writes them into
+       src/Fresco.Brix.Core/assets/docs/, which the application does ship.
+       Deliberately NOT in Fresco.Brix.slnx: it is run by hand when the manuals
+       need regenerating, and a normal build must not depend on it.
+       (Lily.Docs and tools/symbolicons precedent.)
+
+       ⚠ Lily.Docs is driven as a CHILD PROCESS through its own command line,
+       not referenced as a project. Its ToolPaths walks UP from the running
+       assembly to CodeBrix.LilyPort.slnx to find the FDL corpus mirror, and
+       an assembly built under Fresco.Brix/tools has no such ancestor - eight
+       of the nine manuals would fail to find their source. The command line is
+       the interface its own README documents, and using it keeps the
+       Texinfo -> Html2Pdf chain out of this project entirely. -->
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>Fresco.Brix.Tools.Manuals</RootNamespace>
+    <AssemblyName>Manuals</AssemblyName>
+    <Nullable>disable</Nullable>
+    <IsPackable>false</IsPackable>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- The page counts in the manifest are counted in the SHIPPED file by the
+         same reader the application uses, rather than parsed out of the
+         renderer's console output.
+
+         The pin is FR8's package at the version the board's W11½ row moves it
+         to (2026-08-26): 1.0.238.580, the PdfDocuments family publish that made
+         the documentation chain vector and native-free (board section 4.6), so
+         this reader is the one that opens the vector manuals.
+         //was previously: 1.0.238.580 (W11½); 1.0.232.1177, authorised at W10 (2026-08-21); before
+         that 1.0.217.117, the latest when the board's pin table was verified on
+         2026-08-19. Fresco.Brix.Core carries the same version. -->
+    <PackageReference Include="CodeBrix.PdfRasterizer.MitLicenseForever" Version="1.0.238.1192" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,23 @@
+{
+ "extract": [],
+ "music_items": [],
+ "overwrite_durations": [
+  "4",
+  "8",
+  "",
+  "16."
+ ],
+ "results": {
+  "dot": "\\documentclass{article}\n\\begin{document}\nSome text.\n\\begin{lilypond}\n{ c4 d e f g a }\n\\end{lilypond}\n\\end{document}\n",
+  "double": "\\documentclass{article}\n\\begin{document}\nSome text.\n\\begin{lilypond}\n{ c4 d e f g a }\n\\end{lilypond}\n\\end{document}\n",
+  "explicit": "\\documentclass{article}\n\\begin{document}\nSome text.\n\\begin{lilypond}\n{ c4 d e f g a }\n\\end{lilypond}\n\\end{document}\n",
+  "halve": "\\documentclass{article}\n\\begin{document}\nSome text.\n\\begin{lilypond}\n{ c4 d e f g a }\n\\end{lilypond}\n\\end{document}\n",
+  "implicit": "\\documentclass{article}\n\\begin{document}\nSome text.\n\\begin{lilypond}\n{ c4 d e f g a }\n\\end{lilypond}\n\\end{document}\n",
+  "implicit_per_line": "\\documentclass{article}\n\\begin{document}\nSome text.\n\\begin{lilypond}\n{ c4 d e f g a }\n\\end{lilypond}\n\\end{document}\n",
+  "overwrite": "\\documentclass{article}\n\\begin{document}\nSome text.\n\\begin{lilypond}\n{ c4 d e f g a }\n\\end{lilypond}\n\\end{document}\n",
+  "remove": "\\documentclass{article}\n\\begin{document}\nSome text.\n\\begin{lilypond}\n{ c4 d e f g a }\n\\end{lilypond}\n\\end{document}\n",
+  "remove_fraction_scaling": "\\documentclass{article}\n\\begin{document}\nSome text.\n\\begin{lilypond}\n{ c4 d e f g a }\n\\end{lilypond}\n\\end{document}\n",
+  "remove_scaling": "\\documentclass{article}\n\\begin{document}\nSome text.\n\\begin{lilypond}\n{ c4 d e f g a }\n\\end{lilypond}\n\\end{document}\n",
+  "undot": "\\documentclass{article}\n\\begin{document}\nSome text.\n\\begin{lilypond}\n{ c4 d e f g a }\n\\end{lilypond}\n\\end{document}\n"
+ }
+}

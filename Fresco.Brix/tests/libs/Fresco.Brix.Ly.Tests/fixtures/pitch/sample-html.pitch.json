@@ -1,0 +1,38 @@
+{
+ "results": {
+  "abs2rel": "<html>\n<head><title>A LilyPond page</title></head>\n<body>\n<p>Some music:</p>\n<lilypond fragment>\n\\relative c' { c4 d e f | g2 g }\n</lilypond>\n<pre>plain</pre>\n<!-- a comment -->\n</body>\n</html>\n",
+  "abs2rel_no_startpitch": "<html>\n<head><title>A LilyPond page</title></head>\n<body>\n<p>Some music:</p>\n<lilypond fragment>\n\\relative c' { c4 d e f | g2 g }\n</lilypond>\n<pre>plain</pre>\n<!-- a comment -->\n</body>\n</html>\n",
+  "abs2rel_no_startpitch_first_absolute": "<html>\n<head><title>A LilyPond page</title></head>\n<body>\n<p>Some music:</p>\n<lilypond fragment>\n\\relative c' { c4 d e f | g2 g }\n</lilypond>\n<pre>plain</pre>\n<!-- a comment -->\n</body>\n</html>\n",
+  "inversion": "<html>\n<head><title>A LilyPond page</title></head>\n<body>\n<p>Some music:</p>\n<lilypond fragment>\n\\relative c' { c''4 bes' as' g' | f'2 f' }\n</lilypond>\n<pre>plain</pre>\n<!-- a comment -->\n</body>\n</html>\n",
+  "modal_down_three_g_major": "<html>\n<head><title>A LilyPond page</title></head>\n<body>\n<p>Some music:</p>\n<lilypond fragment>\n\\relative c' { g4 a b ces | d2 d }\n</lilypond>\n<pre>plain</pre>\n<!-- a comment -->\n</body>\n</html>\n",
+  "modal_up_two_c_major": "<html>\n<head><title>A LilyPond page</title></head>\n<body>\n<p>Some music:</p>\n<lilypond fragment>\n\\relative c' { e4 f g a | b2 b }\n</lilypond>\n<pre>plain</pre>\n<!-- a comment -->\n</body>\n</html>\n",
+  "mode_shift_a_minor_harmonic": "<html>\n<head><title>A LilyPond page</title></head>\n<body>\n<p>Some music:</p>\n<lilypond fragment>\n\\relative c' { c4 d e f | gis2 gis }\n</lilypond>\n<pre>plain</pre>\n<!-- a comment -->\n</body>\n</html>\n",
+  "mode_shift_c_major": "<html>\n<head><title>A LilyPond page</title></head>\n<body>\n<p>Some music:</p>\n<lilypond fragment>\n\\relative c' { c4 d e f | g2 g }\n</lilypond>\n<pre>plain</pre>\n<!-- a comment -->\n</body>\n</html>\n",
+  "rel2abs": "<html>\n<head><title>A LilyPond page</title></head>\n<body>\n<p>Some music:</p>\n<lilypond fragment>\n{ c'4 d' e' f' | g'2 g' }\n</lilypond>\n<pre>plain</pre>\n<!-- a comment -->\n</body>\n</html>\n",
+  "rel2abs_first_absolute": "<html>\n<head><title>A LilyPond page</title></head>\n<body>\n<p>Some music:</p>\n<lilypond fragment>\n{ c'4 d' e' f' | g'2 g' }\n</lilypond>\n<pre>plain</pre>\n<!-- a comment -->\n</body>\n</html>\n",
+  "retrograde": "<html>\n<head><title>A LilyPond page</title></head>\n<body>\n<p>Some music:</p>\n<lilypond fragment>\n\\relative g { g4 f e d | c2 c' }\n</lilypond>\n<pre>plain</pre>\n<!-- a comment -->\n</body>\n</html>\n",
+  "simplify": "<html>\n<head><title>A LilyPond page</title></head>\n<body>\n<p>Some music:</p>\n<lilypond fragment>\n\\relative c' { c4 d e f | g2 g }\n</lilypond>\n<pre>plain</pre>\n<!-- a comment -->\n</body>\n</html>\n",
+  "transpose_c_a_down": "<html>\n<head><title>A LilyPond page</title></head>\n<body>\n<p>Some music:</p>\n<lilypond fragment>\n\\relative c' { a4 b cis d | e2 e }\n</lilypond>\n<pre>plain</pre>\n<!-- a comment -->\n</body>\n</html>\n",
+  "transpose_c_d": "<html>\n<head><title>A LilyPond page</title></head>\n<body>\n<p>Some music:</p>\n<lilypond fragment>\n\\relative c' { d4 e fis g | a2 a }\n</lilypond>\n<pre>plain</pre>\n<!-- a comment -->\n</body>\n</html>\n",
+  "transpose_c_d_relative_absolute": "<html>\n<head><title>A LilyPond page</title></head>\n<body>\n<p>Some music:</p>\n<lilypond fragment>\n\\relative c' { d4 e fis g | a2 a }\n</lilypond>\n<pre>plain</pre>\n<!-- a comment -->\n</body>\n</html>\n",
+  "transpose_c_ees": "<html>\n<head><title>A LilyPond page</title></head>\n<body>\n<p>Some music:</p>\n<lilypond fragment>\n\\relative c' { eses4 fes ges ases | beses2 beses }\n</lilypond>\n<pre>plain</pre>\n<!-- a comment -->\n</body>\n</html>\n"
+ },
+ "translations": {
+  "deutsch": {
+   "changed": false,
+   "text": "<html>\n<head><title>A LilyPond page</title></head>\n<body>\n<p>Some music:</p>\n<lilypond fragment>\n\\relative c' { c4 d e f | g2 g }\n</lilypond>\n<pre>plain</pre>\n<!-- a comment -->\n</body>\n</html>\n"
+  },
+  "english": {
+   "changed": false,
+   "text": "<html>\n<head><title>A LilyPond page</title></head>\n<body>\n<p>Some music:</p>\n<lilypond fragment>\n\\relative c' { c4 d e f | g2 g }\n</lilypond>\n<pre>plain</pre>\n<!-- a comment -->\n</body>\n</html>\n"
+  },
+  "italiano": {
+   "changed": false,
+   "text": "<html>\n<head><title>A LilyPond page</title></head>\n<body>\n<p>Some music:</p>\n<lilypond fragment>\n\\relative do' { do4 re mi fa | sol2 sol }\n</lilypond>\n<pre>plain</pre>\n<!-- a comment -->\n</body>\n</html>\n"
+  },
+  "norsk": {
+   "changed": false,
+   "text": "<html>\n<head><title>A LilyPond page</title></head>\n<body>\n<p>Some music:</p>\n<lilypond fragment>\n\\relative c' { c4 d e f | g2 g }\n</lilypond>\n<pre>plain</pre>\n<!-- a comment -->\n</body>\n</html>\n"
+  }
+ }
+}

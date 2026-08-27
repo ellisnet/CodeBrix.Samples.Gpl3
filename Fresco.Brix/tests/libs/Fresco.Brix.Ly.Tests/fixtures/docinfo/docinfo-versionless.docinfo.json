@@ -1,0 +1,32 @@
+{
+ "complete": true,
+ "counted_tokens": {
+  "_token.Newline": 2,
+  "_token.Space": 7,
+  "lilypond.EqualSign": 1,
+  "lilypond.Length": 1,
+  "lilypond.LineComment": 1,
+  "lilypond.Name": 1,
+  "lilypond.Note": 4,
+  "lilypond.Octave": 4,
+  "lilypond.SequentialEnd": 1,
+  "lilypond.SequentialStart": 1
+ },
+ "definitions": [
+  [
+   "music",
+   30
+  ]
+ ],
+ "global_staff_size": null,
+ "has_output": true,
+ "include_args": [],
+ "language": null,
+ "markup_definitions": [],
+ "mode": "lilypond",
+ "output_args": [],
+ "scheme_load_args": [],
+ "token_count": 23,
+ "version": [],
+ "version_string": null
+}

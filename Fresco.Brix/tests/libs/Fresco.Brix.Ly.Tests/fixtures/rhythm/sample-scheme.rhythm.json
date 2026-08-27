@@ -1,0 +1,39 @@
+{
+ "extract": [
+  "4"
+ ],
+ "music_items": [
+  [
+   90,
+   93,
+   92,
+   true,
+   [
+    "c",
+    "'"
+   ],
+   [
+    "4"
+   ]
+  ]
+ ],
+ "overwrite_durations": [
+  "4",
+  "8",
+  "",
+  "16."
+ ],
+ "results": {
+  "dot": ";; a scheme probe\n(define (add-two x)\n  \"doc string\"\n  (+ x 2))\n(let* ((a 1) (b #t) (c #{ c'4. #}))\n  (display (list a b 'sym \"str\" 3.5)))\n",
+  "double": ";; a scheme probe\n(define (add-two x)\n  \"doc string\"\n  (+ x 2))\n(let* ((a 1) (b #t) (c #{ c'2 #}))\n  (display (list a b 'sym \"str\" 3.5)))\n",
+  "explicit": ";; a scheme probe\n(define (add-two x)\n  \"doc string\"\n  (+ x 2))\n(let* ((a 1) (b #t) (c #{ c'4 #}))\n  (display (list a b 'sym \"str\" 3.5)))\n",
+  "halve": ";; a scheme probe\n(define (add-two x)\n  \"doc string\"\n  (+ x 2))\n(let* ((a 1) (b #t) (c #{ c'8 #}))\n  (display (list a b 'sym \"str\" 3.5)))\n",
+  "implicit": ";; a scheme probe\n(define (add-two x)\n  \"doc string\"\n  (+ x 2))\n(let* ((a 1) (b #t) (c #{ c'4 #}))\n  (display (list a b 'sym \"str\" 3.5)))\n",
+  "implicit_per_line": ";; a scheme probe\n(define (add-two x)\n  \"doc string\"\n  (+ x 2))\n(let* ((a 1) (b #t) (c #{ c'4 #}))\n  (display (list a b 'sym \"str\" 3.5)))\n",
+  "overwrite": ";; a scheme probe\n(define (add-two x)\n  \"doc string\"\n  (+ x 2))\n(let* ((a 1) (b #t) (c #{ c'4 #}))\n  (display (list a b 'sym \"str\" 3.5)))\n",
+  "remove": ";; a scheme probe\n(define (add-two x)\n  \"doc string\"\n  (+ x 2))\n(let* ((a 1) (b #t) (c #{ c' #}))\n  (display (list a b 'sym \"str\" 3.5)))\n",
+  "remove_fraction_scaling": ";; a scheme probe\n(define (add-two x)\n  \"doc string\"\n  (+ x 2))\n(let* ((a 1) (b #t) (c #{ c'4 #}))\n  (display (list a b 'sym \"str\" 3.5)))\n",
+  "remove_scaling": ";; a scheme probe\n(define (add-two x)\n  \"doc string\"\n  (+ x 2))\n(let* ((a 1) (b #t) (c #{ c'4 #}))\n  (display (list a b 'sym \"str\" 3.5)))\n",
+  "undot": ";; a scheme probe\n(define (add-two x)\n  \"doc string\"\n  (+ x 2))\n(let* ((a 1) (b #t) (c #{ c'4 #}))\n  (display (list a b 'sym \"str\" 3.5)))\n"
+ }
+}

@@ -1,0 +1,67 @@
+{
+ "complete": true,
+ "counted_tokens": {
+  "_token.Newline": 158,
+  "_token.Space": 722,
+  "_token.Unparsed": 1,
+  "lilypond.AccidentalReminder": 1,
+  "lilypond.ArticulationCommand": 6,
+  "lilypond.BeamEnd": 102,
+  "lilypond.BeamStart": 102,
+  "lilypond.CloseBracketMarkup": 2,
+  "lilypond.Command": 40,
+  "lilypond.Direction": 39,
+  "lilypond.Dot": 22,
+  "lilypond.Dynamic": 18,
+  "lilypond.EqualSign": 1,
+  "lilypond.Fraction": 14,
+  "lilypond.KeySignatureMode": 1,
+  "lilypond.Keyword": 2,
+  "lilypond.Length": 239,
+  "lilypond.LineComment": 1,
+  "lilypond.MarkupCommand": 5,
+  "lilypond.MarkupStart": 2,
+  "lilypond.Name": 1,
+  "lilypond.Note": 461,
+  "lilypond.Octave": 45,
+  "lilypond.OpenBracketMarkup": 2,
+  "lilypond.Partial": 1,
+  "lilypond.PipeSymbol": 24,
+  "lilypond.PitchCommand": 2,
+  "lilypond.Rest": 90,
+  "lilypond.Scaling": 12,
+  "lilypond.ScriptAbbreviation": 28,
+  "lilypond.SequentialEnd": 17,
+  "lilypond.SequentialStart": 17,
+  "lilypond.SlurEnd": 82,
+  "lilypond.SlurStart": 82,
+  "lilypond.String": 10,
+  "lilypond.StringQuotedEnd": 10,
+  "lilypond.StringQuotedStart": 10,
+  "lilypond.Tie": 11,
+  "lilypond.UserCommand": 1
+ },
+ "definitions": [
+  [
+   "allegro",
+   51
+  ]
+ ],
+ "global_staff_size": null,
+ "has_output": true,
+ "include_args": [
+  "mozart-hrn3-defs.ily"
+ ],
+ "language": null,
+ "markup_definitions": [],
+ "mode": "lilypond",
+ "output_args": [],
+ "scheme_load_args": [],
+ "token_count": 2384,
+ "version": [
+  2,
+  19,
+  2
+ ],
+ "version_string": "2.19.2"
+}

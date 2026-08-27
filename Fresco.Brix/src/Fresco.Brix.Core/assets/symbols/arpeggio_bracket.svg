@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.2"
+     width="8.4350mm" height="8.4350mm"
+     viewBox="0.0000 -0.0000 4.8000 4.8000">
+<g fill="currentColor" color="black">
+<g transform="translate(-0.0500, 2.4000)">
+<rect x="-0.0500" y="2.1500" width="0.5000" height="0.1000" ry="0.0500" fill="currentColor"/>
+</g>
+<g transform="translate(-0.0500, 2.4000)">
+<rect x="-0.0500" y="-2.2500" width="0.5000" height="0.1000" ry="0.0500" fill="currentColor"/>
+</g>
+<g transform="translate(-0.0500, 2.4000)">
+<rect x="-0.0500" y="-2.2500" width="0.1000" height="4.5000" ry="0.0500" fill="currentColor"/>
+</g>
+</g>
+</svg>

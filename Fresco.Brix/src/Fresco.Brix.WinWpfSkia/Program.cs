@@ -1,0 +1,28 @@
+using CodeBrix.Platform.UI.Hosting;
+using CodeBrix.Platform.UI.Runtime.Skia.Wpf;
+using System;
+
+namespace Fresco.Brix;
+
+internal class Program
+{
+    [STAThread]
+    public static void Main(string[] args)
+    {
+        App.InitializeLogging();
+        App.CommandLinePaths = args ?? Array.Empty<string>();
+
+        var host = CodeBrixPlatformHostBuilder.Create()
+            .App(() => new App())
+            .UseWindowsWpf()
+            .UseDirectSkiaCanvasMode() //Experimental - should be safe to leave enabled
+            .Build();
+
+        if (host is WpfHost wpfHost)
+        {
+            wpfHost.RenderSurfaceType = RenderSurfaceType.Software;
+        }
+
+        host.Run();
+    }
+}

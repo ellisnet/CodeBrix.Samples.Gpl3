@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.2"
+     width="9.8409mm" height="9.8409mm"
+     viewBox="0.0000 -0.0000 5.6000 5.6000">
+<g fill="currentColor" color="black">
+<g transform="translate(0.6000, 4.9050)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1200" stroke="currentColor" x1="0.0600" y1="-0.0000" x2="1.3800" y2="-0.0000"/>
+</g>
+<g transform="translate(0.6000, 3.9050)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1200" stroke="currentColor" x1="0.0600" y1="-0.0000" x2="1.3800" y2="-0.0000"/>
+</g>
+<g transform="translate(0.6000, 2.9050)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1200" stroke="currentColor" x1="0.0600" y1="-0.0000" x2="1.3800" y2="-0.0000"/>
+</g>
+<g transform="translate(0.6000, 1.9050)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1200" stroke="currentColor" x1="0.0600" y1="-0.0000" x2="1.3800" y2="-0.0000"/>
+</g>
+<g transform="translate(0.6000, 0.9050)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1200" stroke="currentColor" x1="0.0600" y1="-0.0000" x2="1.3800" y2="-0.0000"/>
+</g>
+<g transform="translate(1.9800, 2.9050)">
+<path transform="scale(0.0040, -0.0040)" d="M342 600c-41 0 -74 62 -131 62c-63 0 -97 -68 -97 -150c0 -65 41 -209 68 -297l42 285h48l-57 -385c11 -32 22 -64 34 -96c32 -87 49 -177 49 -257c0 -155 -63 -274 -196 -274c-13 0 -24 9 -24 21v3l62 415c-12 22 -25 44 -39 66c-68 105 -103 244 -103 371
+c0 184 73 345 224 345c104 0 158 -39 158 -70c0 -20 -16 -39 -38 -39zM130 -462c60 12 87 62 87 133c0 52 -14 114 -41 179z" fill="currentColor"/>
+</g>
+<g transform="translate(3.5800, 4.9050)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1200" stroke="currentColor" x1="0.0600" y1="-0.0000" x2="1.3800" y2="-0.0000"/>
+</g>
+<g transform="translate(3.5800, 3.9050)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1200" stroke="currentColor" x1="0.0600" y1="-0.0000" x2="1.3800" y2="-0.0000"/>
+</g>
+<g transform="translate(3.5800, 2.9050)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1200" stroke="currentColor" x1="0.0600" y1="-0.0000" x2="1.3800" y2="-0.0000"/>
+</g>
+<g transform="translate(3.5800, 1.9050)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1200" stroke="currentColor" x1="0.0600" y1="-0.0000" x2="1.3800" y2="-0.0000"/>
+</g>
+<g transform="translate(3.5800, 0.9050)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1200" stroke="currentColor" x1="0.0600" y1="-0.0000" x2="1.3800" y2="-0.0000"/>
+</g>
+</g>
+</svg>

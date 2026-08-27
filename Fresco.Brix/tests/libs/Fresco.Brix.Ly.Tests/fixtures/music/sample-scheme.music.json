@@ -1,0 +1,262 @@
+{
+ "has_output": false,
+ "known_fixes": [
+  {
+   "module": "ly.music.read",
+   "new": "elif not item._specifier and isinstance(t, lex.StringStart):",
+   "old": "elif not item.specifier and isinstance(t, lex.StringStart):",
+   "why": "handle_repeat guards on the bound method item.specifier instead of the field item._specifier, so a quoted repeat specifier is never read and the repeat ends at the string (FR14)"
+  }
+ ],
+ "node_positions": [
+  [
+   0,
+   "Document",
+   -1
+  ],
+  [
+   7,
+   "Document",
+   -1
+  ],
+  [
+   14,
+   "Document",
+   -1
+  ],
+  [
+   21,
+   "Document",
+   -1
+  ],
+  [
+   28,
+   "Document",
+   -1
+  ],
+  [
+   35,
+   "Document",
+   -1
+  ],
+  [
+   42,
+   "String",
+   40
+  ],
+  [
+   49,
+   "String",
+   40
+  ],
+  [
+   56,
+   "String",
+   40
+  ],
+  [
+   63,
+   "String",
+   40
+  ],
+  [
+   70,
+   "String",
+   40
+  ],
+  [
+   77,
+   "String",
+   40
+  ],
+  [
+   84,
+   "String",
+   40
+  ],
+  [
+   91,
+   "Note",
+   90
+  ],
+  [
+   98,
+   "Duration",
+   92
+  ],
+  [
+   105,
+   "Duration",
+   92
+  ],
+  [
+   112,
+   "Duration",
+   92
+  ],
+  [
+   119,
+   "Duration",
+   92
+  ],
+  [
+   126,
+   "String",
+   125
+  ],
+  [
+   133,
+   "String",
+   125
+  ],
+  [
+   138,
+   "String",
+   125
+  ]
+ ],
+ "time_positions": [
+  [
+   0,
+   null
+  ],
+  [
+   7,
+   null
+  ],
+  [
+   14,
+   null
+  ],
+  [
+   21,
+   null
+  ],
+  [
+   28,
+   null
+  ],
+  [
+   35,
+   null
+  ],
+  [
+   42,
+   null
+  ],
+  [
+   49,
+   null
+  ],
+  [
+   56,
+   null
+  ],
+  [
+   63,
+   null
+  ],
+  [
+   70,
+   null
+  ],
+  [
+   77,
+   null
+  ],
+  [
+   84,
+   null
+  ],
+  [
+   91,
+   "0/1"
+  ],
+  [
+   98,
+   null
+  ],
+  [
+   105,
+   null
+  ],
+  [
+   112,
+   null
+  ],
+  [
+   119,
+   null
+  ],
+  [
+   126,
+   null
+  ],
+  [
+   133,
+   null
+  ],
+  [
+   138,
+   null
+  ]
+ ],
+ "tree": {
+  "children": [
+   {
+    "children": [],
+    "cls": "String",
+    "end": 52,
+    "length": "0/1",
+    "plaintext": "doc string",
+    "position": 40,
+    "token": "\"",
+    "tokens": [
+     "doc string",
+     "\""
+    ]
+   },
+   {
+    "children": [
+     {
+      "children": [],
+      "cls": "Duration",
+      "end": 93,
+      "length": "0/1",
+      "plaintext": "",
+      "position": 92,
+      "token": "4",
+      "tokens": []
+     }
+    ],
+    "cls": "Note",
+    "end": 93,
+    "length": "1/4",
+    "plaintext": "",
+    "position": 90,
+    "token": "c",
+    "tokens": []
+   },
+   {
+    "children": [],
+    "cls": "String",
+    "end": 130,
+    "length": "0/1",
+    "plaintext": "str",
+    "position": 125,
+    "token": "\"",
+    "tokens": [
+     "str",
+     "\""
+    ]
+   }
+  ],
+  "cls": "Document",
+  "end": 130,
+  "length": "0/1",
+  "plaintext": "",
+  "position": -1,
+  "token": null,
+  "tokens": []
+ }
+}

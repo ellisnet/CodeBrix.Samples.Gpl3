@@ -1,0 +1,53 @@
+{
+ "extract": [
+  "8",
+  "4"
+ ],
+ "music_items": [
+  [
+   86,
+   89,
+   88,
+   true,
+   [
+    "a",
+    "'"
+   ],
+   [
+    "8"
+   ]
+  ],
+  [
+   93,
+   97,
+   96,
+   true,
+   [
+    "b",
+    "''"
+   ],
+   [
+    "4"
+   ]
+  ]
+ ],
+ "overwrite_durations": [
+  "4",
+  "8",
+  "",
+  "16."
+ ],
+ "results": {
+  "dot": "\n\\version \"2.16.0\"\n\n\\header {\n  texidoc = \"Slurs handle avoid objects better.\n\"\n}\n\n{\n a'8. (  b''4. \\fermata )\n}\n",
+  "double": "\n\\version \"2.16.0\"\n\n\\header {\n  texidoc = \"Slurs handle avoid objects better.\n\"\n}\n\n{\n a'4 (  b''2 \\fermata )\n}\n",
+  "explicit": "\n\\version \"2.16.0\"\n\n\\header {\n  texidoc = \"Slurs handle avoid objects better.\n\"\n}\n\n{\n a'8 (  b''4 \\fermata )\n}\n",
+  "halve": "\n\\version \"2.16.0\"\n\n\\header {\n  texidoc = \"Slurs handle avoid objects better.\n\"\n}\n\n{\n a'16 (  b''8 \\fermata )\n}\n",
+  "implicit": "\n\\version \"2.16.0\"\n\n\\header {\n  texidoc = \"Slurs handle avoid objects better.\n\"\n}\n\n{\n a'8 (  b''4 \\fermata )\n}\n",
+  "implicit_per_line": "\n\\version \"2.16.0\"\n\n\\header {\n  texidoc = \"Slurs handle avoid objects better.\n\"\n}\n\n{\n a'8 (  b''4 \\fermata )\n}\n",
+  "overwrite": "\n\\version \"2.16.0\"\n\n\\header {\n  texidoc = \"Slurs handle avoid objects better.\n\"\n}\n\n{\n a'4 (  b''8 \\fermata )\n}\n",
+  "remove": "\n\\version \"2.16.0\"\n\n\\header {\n  texidoc = \"Slurs handle avoid objects better.\n\"\n}\n\n{\n a' (  b'' \\fermata )\n}\n",
+  "remove_fraction_scaling": "\n\\version \"2.16.0\"\n\n\\header {\n  texidoc = \"Slurs handle avoid objects better.\n\"\n}\n\n{\n a'8 (  b''4 \\fermata )\n}\n",
+  "remove_scaling": "\n\\version \"2.16.0\"\n\n\\header {\n  texidoc = \"Slurs handle avoid objects better.\n\"\n}\n\n{\n a'8 (  b''4 \\fermata )\n}\n",
+  "undot": "\n\\version \"2.16.0\"\n\n\\header {\n  texidoc = \"Slurs handle avoid objects better.\n\"\n}\n\n{\n a'8 (  b''4 \\fermata )\n}\n"
+ }
+}

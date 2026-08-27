@@ -1,0 +1,38 @@
+{
+ "results": {
+  "abs2rel": "\\version \"2.16.0\" \n\n\\header {\n\n    texidoc = \"The 11 is only added to major-13 if it\n is mentioned explicitly.\"\n\n}\n\n\\layout { ragged-right = ##t } \n\n\\chordmode { c:13 c:13.11 c:m13 }\n\n",
+  "abs2rel_no_startpitch": "\\version \"2.16.0\" \n\n\\header {\n\n    texidoc = \"The 11 is only added to major-13 if it\n is mentioned explicitly.\"\n\n}\n\n\\layout { ragged-right = ##t } \n\n\\chordmode { c:13 c:13.11 c:m13 }\n\n",
+  "abs2rel_no_startpitch_first_absolute": "\\version \"2.16.0\" \n\n\\header {\n\n    texidoc = \"The 11 is only added to major-13 if it\n is mentioned explicitly.\"\n\n}\n\n\\layout { ragged-right = ##t } \n\n\\chordmode { c:13 c:13.11 c:m13 }\n\n",
+  "inversion": "\\version \"2.16.0\" \n\n\\header {\n\n    texidoc = \"The 11 is only added to major-13 if it\n is mentioned explicitly.\"\n\n}\n\n\\layout { ragged-right = ##t } \n\n\\chordmode { c:13 c:13.11 c:m13 }\n\n",
+  "modal_down_three_g_major": "\\version \"2.16.0\" \n\n\\header {\n\n    texidoc = \"The 11 is only added to major-13 if it\n is mentioned explicitly.\"\n\n}\n\n\\layout { ragged-right = ##t } \n\n\\chordmode { g:13 g:13.11 g:m13 }\n\n",
+  "modal_up_two_c_major": "\\version \"2.16.0\" \n\n\\header {\n\n    texidoc = \"The 11 is only added to major-13 if it\n is mentioned explicitly.\"\n\n}\n\n\\layout { ragged-right = ##t } \n\n\\chordmode { e:13 e:13.11 e:m13 }\n\n",
+  "mode_shift_a_minor_harmonic": "\\version \"2.16.0\" \n\n\\header {\n\n    texidoc = \"The 11 is only added to major-13 if it\n is mentioned explicitly.\"\n\n}\n\n\\layout { ragged-right = ##t } \n\n\\chordmode { c:13 c:13.11 c:m13 }\n\n",
+  "mode_shift_c_major": "\\version \"2.16.0\" \n\n\\header {\n\n    texidoc = \"The 11 is only added to major-13 if it\n is mentioned explicitly.\"\n\n}\n\n\\layout { ragged-right = ##t } \n\n\\chordmode { c:13 c:13.11 c:m13 }\n\n",
+  "rel2abs": "\\version \"2.16.0\" \n\n\\header {\n\n    texidoc = \"The 11 is only added to major-13 if it\n is mentioned explicitly.\"\n\n}\n\n\\layout { ragged-right = ##t } \n\n\\chordmode { c:13 c:13.11 c:m13 }\n\n",
+  "rel2abs_first_absolute": "\\version \"2.16.0\" \n\n\\header {\n\n    texidoc = \"The 11 is only added to major-13 if it\n is mentioned explicitly.\"\n\n}\n\n\\layout { ragged-right = ##t } \n\n\\chordmode { c:13 c:13.11 c:m13 }\n\n",
+  "retrograde": "\\version \"2.16.0\" \n\n\\header {\n\n    texidoc = \"The 11 is only added to major-13 if it\n is mentioned explicitly.\"\n\n}\n\n\\layout { ragged-right = ##t } \n\n\\chordmode { c:13 c:13.11 c:m13 }\n\n",
+  "simplify": "\\version \"2.16.0\" \n\n\\header {\n\n    texidoc = \"The 11 is only added to major-13 if it\n is mentioned explicitly.\"\n\n}\n\n\\layout { ragged-right = ##t } \n\n\\chordmode { c:13 c:13.11 c:m13 }\n\n",
+  "transpose_c_a_down": "\\version \"2.16.0\" \n\n\\header {\n\n    texidoc = \"The 11 is only added to major-13 if it\n is mentioned explicitly.\"\n\n}\n\n\\layout { ragged-right = ##t } \n\n\\chordmode { a:13 a:13.11 a:m13 }\n\n",
+  "transpose_c_d": "\\version \"2.16.0\" \n\n\\header {\n\n    texidoc = \"The 11 is only added to major-13 if it\n is mentioned explicitly.\"\n\n}\n\n\\layout { ragged-right = ##t } \n\n\\chordmode { d:13 d:13.11 d:m13 }\n\n",
+  "transpose_c_d_relative_absolute": "\\version \"2.16.0\" \n\n\\header {\n\n    texidoc = \"The 11 is only added to major-13 if it\n is mentioned explicitly.\"\n\n}\n\n\\layout { ragged-right = ##t } \n\n\\chordmode { d:13 d:13.11 d:m13 }\n\n",
+  "transpose_c_ees": "\\version \"2.16.0\" \n\n\\header {\n\n    texidoc = \"The 11 is only added to major-13 if it\n is mentioned explicitly.\"\n\n}\n\n\\layout { ragged-right = ##t } \n\n\\chordmode { eses:13 eses:13.11 eses:m13 }\n\n"
+ },
+ "translations": {
+  "deutsch": {
+   "changed": false,
+   "text": "\\version \"2.16.0\" \n\n\\header {\n\n    texidoc = \"The 11 is only added to major-13 if it\n is mentioned explicitly.\"\n\n}\n\n\\layout { ragged-right = ##t } \n\n\\chordmode { c:13 c:13.11 c:m13 }\n\n"
+  },
+  "english": {
+   "changed": false,
+   "text": "\\version \"2.16.0\" \n\n\\header {\n\n    texidoc = \"The 11 is only added to major-13 if it\n is mentioned explicitly.\"\n\n}\n\n\\layout { ragged-right = ##t } \n\n\\chordmode { c:13 c:13.11 c:m13 }\n\n"
+  },
+  "italiano": {
+   "changed": false,
+   "text": "\\version \"2.16.0\" \n\n\\header {\n\n    texidoc = \"The 11 is only added to major-13 if it\n is mentioned explicitly.\"\n\n}\n\n\\layout { ragged-right = ##t } \n\n\\chordmode { do:13 do:13.11 do:m13 }\n\n"
+  },
+  "norsk": {
+   "changed": false,
+   "text": "\\version \"2.16.0\" \n\n\\header {\n\n    texidoc = \"The 11 is only added to major-13 if it\n is mentioned explicitly.\"\n\n}\n\n\\layout { ragged-right = ##t } \n\n\\chordmode { c:13 c:13.11 c:m13 }\n\n"
+  }
+ }
+}

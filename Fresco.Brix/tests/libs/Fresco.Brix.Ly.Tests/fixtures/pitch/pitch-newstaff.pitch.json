@@ -1,0 +1,38 @@
+{
+ "results": {
+  "abs2rel": "\\version \"2.27.2\"\nmusic = \\relative c' \\new Staff \\with { instrumentName = \"Vln\" } \\relative c {\n  c4 d e f\n}\nother = \\relative c' \\new Voice { g4 a b c }\n",
+  "abs2rel_no_startpitch": "\\version \"2.27.2\"\nmusic = \\relative c' \\new Staff \\with { instrumentName = \"Vln\" } \\relative {\n  c,4 d e f\n}\nother = \\relative c' \\new Voice { g4 a b c }\n",
+  "abs2rel_no_startpitch_first_absolute": "\\version \"2.27.2\"\nmusic = \\relative c' \\new Staff \\with { instrumentName = \"Vln\" } \\relative {\n  c4 d e f\n}\nother = \\relative c' \\new Voice { g4 a b c }\n",
+  "inversion": "\\version \"2.27.2\"\nmusic = \\relative c' \\new Staff \\with { instrumentName = \"Vln\" } {\n  c''4 bes' as' g'\n}\nother = \\relative c' \\new Voice { f'4 es' des' c'' }\n",
+  "modal_down_three_g_major": "\\version \"2.27.2\"\nmusic = \\relative c' \\new Staff \\with { instrumentName = \"Vln\" } {\n  g,4 a, b, ces\n}\nother = \\relative c' \\new Voice { g4 a b g }\n",
+  "modal_up_two_c_major": "\\version \"2.27.2\"\nmusic = \\relative c' \\new Staff \\with { instrumentName = \"Vln\" } {\n  e4 f g a\n}\nother = \\relative c' \\new Voice { g4 a b e }\n",
+  "mode_shift_a_minor_harmonic": "\\version \"2.27.2\"\nmusic = \\relative c' \\new Staff \\with { instrumentName = \"Vln\" } {\n  c4 d e f\n}\nother = \\relative c' \\new Voice { g4 a b c }\n",
+  "mode_shift_c_major": "\\version \"2.27.2\"\nmusic = \\relative c' \\new Staff \\with { instrumentName = \"Vln\" } {\n  c4 d e f\n}\nother = \\relative c' \\new Voice { g4 a b c }\n",
+  "rel2abs": "\\version \"2.27.2\"\nmusic = \\new Staff \\with { instrumentName = \"Vln\" } {\n  c4 d e f\n}\nother = \\new Voice { g4 a b c' }\n",
+  "rel2abs_first_absolute": "\\version \"2.27.2\"\nmusic = \\new Staff \\with { instrumentName = \"Vln\" } {\n  c4 d e f\n}\nother = \\new Voice { g4 a b c' }\n",
+  "retrograde": "\\version \"2.27.2\"\nmusic = \\relative c \\new Staff \\with { instrumentName = \"Vln\" } {\n  b4 a g c'\n}\nother = \\relative f \\new Voice { e4 d c c' }\n",
+  "simplify": "\\version \"2.27.2\"\nmusic = \\relative c' \\new Staff \\with { instrumentName = \"Vln\" } {\n  c4 d e f\n}\nother = \\relative c' \\new Voice { g4 a b c }\n",
+  "transpose_c_a_down": "\\version \"2.27.2\"\nmusic = \\relative c' \\new Staff \\with { instrumentName = \"Vln\" } {\n  a,4 b, cis d\n}\nother = \\relative c' \\new Voice { g4 a b a }\n",
+  "transpose_c_d": "\\version \"2.27.2\"\nmusic = \\relative c' \\new Staff \\with { instrumentName = \"Vln\" } {\n  d4 e fis g\n}\nother = \\relative c' \\new Voice { g4 a b d }\n",
+  "transpose_c_d_relative_absolute": "\\version \"2.27.2\"\nmusic = \\relative c' \\new Staff \\with { instrumentName = \"Vln\" } {\n  d4 e fis g\n}\nother = \\relative c' \\new Voice { g4 a b d }\n",
+  "transpose_c_ees": "\\version \"2.27.2\"\nmusic = \\relative c' \\new Staff \\with { instrumentName = \"Vln\" } {\n  eses4 fes ges ases\n}\nother = \\relative c' \\new Voice { g4 a b eses }\n"
+ },
+ "translations": {
+  "deutsch": {
+   "changed": false,
+   "text": "\\version \"2.27.2\"\nmusic = \\relative c' \\new Staff \\with { instrumentName = \"Vln\" } {\n  c4 d e f\n}\nother = \\relative c' \\new Voice { g4 a h c }\n"
+  },
+  "english": {
+   "changed": false,
+   "text": "\\version \"2.27.2\"\nmusic = \\relative c' \\new Staff \\with { instrumentName = \"Vln\" } {\n  c4 d e f\n}\nother = \\relative c' \\new Voice { g4 a b c }\n"
+  },
+  "italiano": {
+   "changed": false,
+   "text": "\\version \"2.27.2\"\nmusic = \\relative do' \\new Staff \\with { instrumentName = \"Vln\" } {\n  do4 re mi fa\n}\nother = \\relative do' \\new Voice { sol4 la si do }\n"
+  },
+  "norsk": {
+   "changed": false,
+   "text": "\\version \"2.27.2\"\nmusic = \\relative c' \\new Staff \\with { instrumentName = \"Vln\" } {\n  c4 d e f\n}\nother = \\relative c' \\new Voice { g4 a h c }\n"
+  }
+ }
+}

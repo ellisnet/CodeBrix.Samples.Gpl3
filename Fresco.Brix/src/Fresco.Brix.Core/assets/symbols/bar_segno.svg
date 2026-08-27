@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.2"
+     width="14.0584mm" height="14.0584mm"
+     viewBox="0.0000 -0.0000 8.0000 8.0000">
+<g fill="currentColor" color="black">
+<g transform="translate(4.9100, 4.0000)">
+<rect x="0.0000" y="-2.0000" width="0.1900" height="4.0000" ry="0.0000" fill="currentColor"/>
+</g>
+<g transform="translate(5.4000, 4.0000)">
+<rect x="0.0000" y="-2.0000" width="0.1900" height="4.0000" ry="0.0000" fill="currentColor"/>
+</g>
+<g transform="translate(5.2500, 4.0000)">
+<path transform="scale(0.0040, -0.0040)" d="M-67 950c-108 0 -169 -58 -169 -128c0 -65 58 -121 118 -163l307 -215c83 -58 124 -139 124 -212c0 -62 -30 -118 -89 -150c61 -57 89 -122 89 -182c0 -64 -32 -120 -89 -151c61 -57 89 -122 89 -182c0 -64 -31 -121 -89 -152c57 -55 83 -122 83 -186
+c0 -121 -93 -233 -255 -233c-196 0 -339 152 -339 213c0 30 21 67 67 67c48 0 74 -37 74 -75c0 -21 -8 -42 -25 -56c71 -64 161 -95 238 -95c108 0 169 58 169 128c0 65 -58 121 -118 163l-307 215c-83 58 -124 139 -124 212c0 62 30 118 89 150c-61 57 -89 122 -89 182
+c0 64 32 120 89 151c-61 57 -89 122 -89 182c0 64 31 121 89 152c-57 55 -83 122 -83 186c0 121 93 233 255 233c196 0 339 -152 339 -213c0 -30 -21 -67 -67 -67c-48 0 -74 37 -74 75c0 21 8 42 25 56c-71 64 -161 95 -238 95zM217 126c39 0 56 31 56 53
+c0 53 -83 112 -155 162l-154 108c-61 43 -131 92 -181 92c-39 0 -56 -33 -56 -54c0 -53 83 -112 155 -162l153 -107c65 -45 133 -92 182 -92zM217 -541c39 0 56 33 56 54c0 53 -83 112 -155 162l-153 107c-65 45 -133 92 -182 92c-39 0 -56 -31 -56 -53
+c0 -53 83 -112 155 -162l154 -108c61 -43 131 -92 181 -92zM-217 207c-39 0 -56 -32 -56 -53c0 -53 83 -112 155 -162l164 -115c59 -41 124 -84 171 -84c39 0 56 32 56 53c0 53 -83 112 -155 162l-163 114c-59 41 -125 85 -172 85z" fill="currentColor"/>
+</g>
+<g transform="translate(0.5000, 6.0000)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1200" stroke="currentColor" x1="0.0600" y1="-0.0000" x2="6.9400" y2="-0.0000"/>
+</g>
+<g transform="translate(0.5000, 5.0000)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1200" stroke="currentColor" x1="0.0600" y1="-0.0000" x2="6.9400" y2="-0.0000"/>
+</g>
+<g transform="translate(0.5000, 4.0000)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1200" stroke="currentColor" x1="0.0600" y1="-0.0000" x2="6.9400" y2="-0.0000"/>
+</g>
+<g transform="translate(0.5000, 3.0000)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1200" stroke="currentColor" x1="0.0600" y1="-0.0000" x2="6.9400" y2="-0.0000"/>
+</g>
+<g transform="translate(0.5000, 2.0000)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1200" stroke="currentColor" x1="0.0600" y1="-0.0000" x2="6.9400" y2="-0.0000"/>
+</g>
+</g>
+</svg>

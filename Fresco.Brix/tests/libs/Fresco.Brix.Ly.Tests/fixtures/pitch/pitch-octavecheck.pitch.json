@@ -1,0 +1,38 @@
+{
+ "results": {
+  "abs2rel": "\\version \"2.27.2\"\nmusic = \\relative c' {\n  c4 d e f\n  \\octaveCheck c'\n  g4 a b c\n}\n",
+  "abs2rel_no_startpitch": "\\version \"2.27.2\"\nmusic = \\relative c' {\n  c4 d e f\n  \\octaveCheck c'\n  g4 a b c\n}\n",
+  "abs2rel_no_startpitch_first_absolute": "\\version \"2.27.2\"\nmusic = \\relative c' {\n  c4 d e f\n  \\octaveCheck c'\n  g4 a b c\n}\n",
+  "inversion": "\\version \"2.27.2\"\nmusic = \\relative c' {\n  c''4 bes' as' g'\n  \\octaveCheck c'\n  f'4 es' des' c''\n}\n",
+  "modal_down_three_g_major": "\\version \"2.27.2\"\nmusic = \\relative c' {\n  g4 a b ces\n  \\octaveCheck g\n  d4 e fis g\n}\n",
+  "modal_up_two_c_major": "\\version \"2.27.2\"\nmusic = \\relative c' {\n  e4 f g a\n  \\octaveCheck e'\n  b4 c d e\n}\n",
+  "mode_shift_a_minor_harmonic": "\\version \"2.27.2\"\nmusic = \\relative c' {\n  c4 d e f\n  \\octaveCheck c'\n  gis4 a b c\n}\n",
+  "mode_shift_c_major": "\\version \"2.27.2\"\nmusic = \\relative c' {\n  c4 d e f\n  \\octaveCheck c'\n  g4 a b c\n}\n",
+  "rel2abs": "\\version \"2.27.2\"\nmusic = {\n  c'4 d' e' f'\n  \n  g4 a b c'\n}\n",
+  "rel2abs_first_absolute": "\\version \"2.27.2\"\nmusic = {\n  c'4 d' e' f'\n  \n  g4 a b c'\n}\n",
+  "retrograde": "\\version \"2.27.2\"\nmusic = \\relative c {\n  b4 a g c'\n  \\octaveCheck f\n  e4 d c c'\n}\n",
+  "simplify": "\\version \"2.27.2\"\nmusic = \\relative c' {\n  c4 d e f\n  \\octaveCheck c'\n  g4 a b c\n}\n",
+  "transpose_c_a_down": "\\version \"2.27.2\"\nmusic = \\relative c' {\n  a4 b cis d\n  \\octaveCheck a\n  e4 fis gis a\n}\n",
+  "transpose_c_d": "\\version \"2.27.2\"\nmusic = \\relative c' {\n  d4 e fis g\n  \\octaveCheck d'\n  a4 b cis d\n}\n",
+  "transpose_c_d_relative_absolute": "\\version \"2.27.2\"\nmusic = \\relative c' {\n  d4 e fis g\n  \\octaveCheck d'\n  a4 b cis d\n}\n",
+  "transpose_c_ees": "\\version \"2.27.2\"\nmusic = \\relative c' {\n  eses4 fes ges ases\n  \\octaveCheck eses'\n  beses4 ces des eses\n}\n"
+ },
+ "translations": {
+  "deutsch": {
+   "changed": false,
+   "text": "\\version \"2.27.2\"\nmusic = \\relative c' {\n  c4 d e f\n  \\octaveCheck c'\n  g4 a h c\n}\n"
+  },
+  "english": {
+   "changed": false,
+   "text": "\\version \"2.27.2\"\nmusic = \\relative c' {\n  c4 d e f\n  \\octaveCheck c'\n  g4 a b c\n}\n"
+  },
+  "italiano": {
+   "changed": false,
+   "text": "\\version \"2.27.2\"\nmusic = \\relative do' {\n  do4 re mi fa\n  \\octaveCheck do'\n  sol4 la si do\n}\n"
+  },
+  "norsk": {
+   "changed": false,
+   "text": "\\version \"2.27.2\"\nmusic = \\relative c' {\n  c4 d e f\n  \\octaveCheck c'\n  g4 a h c\n}\n"
+  }
+ }
+}

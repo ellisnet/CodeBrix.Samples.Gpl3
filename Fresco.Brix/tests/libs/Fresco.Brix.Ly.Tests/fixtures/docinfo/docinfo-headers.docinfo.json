@@ -1,0 +1,102 @@
+{
+ "complete": true,
+ "counted_tokens": {
+  "_token.Newline": 26,
+  "_token.Space": 45,
+  "lilypond.CloseBracket": 2,
+  "lilypond.CloseBracketMarkup": 1,
+  "lilypond.Command": 2,
+  "lilypond.EqualSign": 5,
+  "lilypond.Header": 1,
+  "lilypond.HeaderVariable": 1,
+  "lilypond.Keyword": 4,
+  "lilypond.Length": 1,
+  "lilypond.MarkupCommand": 2,
+  "lilypond.MarkupStart": 2,
+  "lilypond.Name": 4,
+  "lilypond.Note": 4,
+  "lilypond.Octave": 4,
+  "lilypond.OpenBracket": 2,
+  "lilypond.OpenBracketMarkup": 1,
+  "lilypond.SchemeStart": 3,
+  "lilypond.Score": 1,
+  "lilypond.SequentialEnd": 1,
+  "lilypond.SequentialStart": 1,
+  "lilypond.String": 9,
+  "lilypond.StringQuotedEnd": 9,
+  "lilypond.StringQuotedStart": 9,
+  "lilypond.UserCommand": 2,
+  "scheme.CloseParen": 6,
+  "scheme.Function": 2,
+  "scheme.Keyword": 1,
+  "scheme.Number": 1,
+  "scheme.OpenParen": 6,
+  "scheme.String": 1,
+  "scheme.StringQuotedEnd": 1,
+  "scheme.StringQuotedStart": 1,
+  "scheme.Variable": 2,
+  "scheme.Word": 8
+ },
+ "definitions": [
+  [
+   "theTitle",
+   232
+  ],
+  [
+   "otherName",
+   272
+  ],
+  [
+   "plainVariable",
+   310
+  ],
+  [
+   "music",
+   447
+  ]
+ ],
+ "global_staff_size": 23,
+ "has_output": true,
+ "include_args": [
+  "articulate.ly",
+  "predefined-guitar-fretboards.ly"
+ ],
+ "language": "deutsch",
+ "markup_definitions": [
+  [
+   "theTitle",
+   232
+  ],
+  [
+   "otherName",
+   272
+  ],
+  [
+   "boxedNote",
+   367
+  ]
+ ],
+ "mode": "lilypond",
+ "output_args": [
+  [
+   "suffix",
+   "part-one"
+  ],
+  [
+   "suffix",
+   "draft"
+  ],
+  [
+   "name",
+   "the-whole-score"
+  ]
+ ],
+ "scheme_load_args": [],
+ "token_count": 171,
+ "version": [
+  2,
+  19,
+  8
+ ],
+ "version_string": "2.19.8"
+}

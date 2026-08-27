@@ -1,0 +1,38 @@
+{
+ "results": {
+  "abs2rel": ";; a scheme probe\n(define (add-two x)\n  \"doc string\"\n  (+ x 2))\n(let* ((a 1) (b #t) (c #{ c'4 #}))\n  (display (list a b 'sym \"str\" 3.5)))\n",
+  "abs2rel_no_startpitch": ";; a scheme probe\n(define (add-two x)\n  \"doc string\"\n  (+ x 2))\n(let* ((a 1) (b #t) (c #{ c'4 #}))\n  (display (list a b 'sym \"str\" 3.5)))\n",
+  "abs2rel_no_startpitch_first_absolute": ";; a scheme probe\n(define (add-two x)\n  \"doc string\"\n  (+ x 2))\n(let* ((a 1) (b #t) (c #{ c'4 #}))\n  (display (list a b 'sym \"str\" 3.5)))\n",
+  "inversion": ";; a scheme probe\n(define (add-two x)\n  \"doc string\"\n  (+ x 2))\n(let* ((a 1) (b #t) (c #{ c'4 #}))\n  (display (list a b 'sym \"str\" 3.5)))\n",
+  "modal_down_three_g_major": ";; a scheme probe\n(define (add-two x)\n  \"doc string\"\n  (+ x 2))\n(let* ((a 1) (b #t) (c #{ g4 #}))\n  (display (list a b 'sym \"str\" 3.5)))\n",
+  "modal_up_two_c_major": ";; a scheme probe\n(define (add-two x)\n  \"doc string\"\n  (+ x 2))\n(let* ((a 1) (b #t) (c #{ e'4 #}))\n  (display (list a b 'sym \"str\" 3.5)))\n",
+  "mode_shift_a_minor_harmonic": ";; a scheme probe\n(define (add-two x)\n  \"doc string\"\n  (+ x 2))\n(let* ((a 1) (b #t) (c #{ c'4 #}))\n  (display (list a b 'sym \"str\" 3.5)))\n",
+  "mode_shift_c_major": ";; a scheme probe\n(define (add-two x)\n  \"doc string\"\n  (+ x 2))\n(let* ((a 1) (b #t) (c #{ c'4 #}))\n  (display (list a b 'sym \"str\" 3.5)))\n",
+  "rel2abs": ";; a scheme probe\n(define (add-two x)\n  \"doc string\"\n  (+ x 2))\n(let* ((a 1) (b #t) (c #{ c'4 #}))\n  (display (list a b 'sym \"str\" 3.5)))\n",
+  "rel2abs_first_absolute": ";; a scheme probe\n(define (add-two x)\n  \"doc string\"\n  (+ x 2))\n(let* ((a 1) (b #t) (c #{ c'4 #}))\n  (display (list a b 'sym \"str\" 3.5)))\n",
+  "retrograde": ";; a scheme probe\n(define (add-two x)\n  \"doc string\"\n  (+ x 2))\n(let* ((a 1) (b #t) (c #{ c'4 #}))\n  (display (list a b 'sym \"str\" 3.5)))\n",
+  "simplify": ";; a scheme probe\n(define (add-two x)\n  \"doc string\"\n  (+ x 2))\n(let* ((a 1) (b #t) (c #{ c'4 #}))\n  (display (list a b 'sym \"str\" 3.5)))\n",
+  "transpose_c_a_down": ";; a scheme probe\n(define (add-two x)\n  \"doc string\"\n  (+ x 2))\n(let* ((a 1) (b #t) (c #{ a4 #}))\n  (display (list a b 'sym \"str\" 3.5)))\n",
+  "transpose_c_d": ";; a scheme probe\n(define (add-two x)\n  \"doc string\"\n  (+ x 2))\n(let* ((a 1) (b #t) (c #{ d'4 #}))\n  (display (list a b 'sym \"str\" 3.5)))\n",
+  "transpose_c_d_relative_absolute": ";; a scheme probe\n(define (add-two x)\n  \"doc string\"\n  (+ x 2))\n(let* ((a 1) (b #t) (c #{ d'4 #}))\n  (display (list a b 'sym \"str\" 3.5)))\n",
+  "transpose_c_ees": ";; a scheme probe\n(define (add-two x)\n  \"doc string\"\n  (+ x 2))\n(let* ((a 1) (b #t) (c #{ eses'4 #}))\n  (display (list a b 'sym \"str\" 3.5)))\n"
+ },
+ "translations": {
+  "deutsch": {
+   "changed": false,
+   "text": ";; a scheme probe\n(define (add-two x)\n  \"doc string\"\n  (+ x 2))\n(let* ((a 1) (b #t) (c #{ c'4 #}))\n  (display (list a b 'sym \"str\" 3.5)))\n"
+  },
+  "english": {
+   "changed": false,
+   "text": ";; a scheme probe\n(define (add-two x)\n  \"doc string\"\n  (+ x 2))\n(let* ((a 1) (b #t) (c #{ c'4 #}))\n  (display (list a b 'sym \"str\" 3.5)))\n"
+  },
+  "italiano": {
+   "changed": false,
+   "text": ";; a scheme probe\n(define (add-two x)\n  \"doc string\"\n  (+ x 2))\n(let* ((a 1) (b #t) (c #{ do'4 #}))\n  (display (list a b 'sym \"str\" 3.5)))\n"
+  },
+  "norsk": {
+   "changed": false,
+   "text": ";; a scheme probe\n(define (add-two x)\n  \"doc string\"\n  (+ x 2))\n(let* ((a 1) (b #t) (c #{ c'4 #}))\n  (display (list a b 'sym \"str\" 3.5)))\n"
+  }
+ }
+}

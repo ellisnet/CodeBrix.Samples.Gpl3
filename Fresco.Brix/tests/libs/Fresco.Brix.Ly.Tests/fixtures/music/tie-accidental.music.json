@@ -1,0 +1,650 @@
+{
+ "has_output": true,
+ "known_fixes": [
+  {
+   "module": "ly.music.read",
+   "new": "elif not item._specifier and isinstance(t, lex.StringStart):",
+   "old": "elif not item.specifier and isinstance(t, lex.StringStart):",
+   "why": "handle_repeat guards on the bound method item.specifier instead of the field item._specifier, so a quoted repeat specifier is never read and the repeat ends at the string (FR14)"
+  }
+ ],
+ "node_positions": [
+  [
+   0,
+   "Header",
+   0
+  ],
+  [
+   7,
+   "Header",
+   0
+  ],
+  [
+   14,
+   "Assignment",
+   10
+  ],
+  [
+   21,
+   "String",
+   20
+  ],
+  [
+   28,
+   "String",
+   20
+  ],
+  [
+   35,
+   "String",
+   20
+  ],
+  [
+   42,
+   "String",
+   20
+  ],
+  [
+   49,
+   "String",
+   20
+  ],
+  [
+   56,
+   "String",
+   20
+  ],
+  [
+   63,
+   "String",
+   20
+  ],
+  [
+   70,
+   "String",
+   20
+  ],
+  [
+   77,
+   "String",
+   20
+  ],
+  [
+   84,
+   "String",
+   20
+  ],
+  [
+   91,
+   "String",
+   20
+  ],
+  [
+   98,
+   "String",
+   20
+  ],
+  [
+   105,
+   "String",
+   20
+  ],
+  [
+   112,
+   "Version",
+   110
+  ],
+  [
+   119,
+   "String",
+   119
+  ],
+  [
+   126,
+   "String",
+   119
+  ],
+  [
+   133,
+   "Paper",
+   130
+  ],
+  [
+   140,
+   "Paper",
+   130
+  ],
+  [
+   147,
+   "Assignment",
+   141
+  ],
+  [
+   154,
+   "Assignment",
+   141
+  ],
+  [
+   161,
+   "Scheme",
+   161
+  ],
+  [
+   168,
+   "Assignment",
+   167
+  ],
+  [
+   175,
+   "Assignment",
+   167
+  ],
+  [
+   182,
+   "Scheme",
+   182
+  ],
+  [
+   189,
+   "Relative",
+   189
+  ],
+  [
+   196,
+   "Relative",
+   189
+  ],
+  [
+   203,
+   "Override",
+   203
+  ],
+  [
+   210,
+   "Override",
+   203
+  ],
+  [
+   217,
+   "PathItem",
+   217
+  ],
+  [
+   224,
+   "PathItem",
+   217
+  ],
+  [
+   231,
+   "Note",
+   230
+  ],
+  [
+   238,
+   "Note",
+   236
+  ],
+  [
+   245,
+   "Note",
+   240
+  ],
+  [
+   252,
+   "Note",
+   240
+  ]
+ ],
+ "time_positions": [
+  [
+   0,
+   null
+  ],
+  [
+   7,
+   null
+  ],
+  [
+   14,
+   null
+  ],
+  [
+   21,
+   null
+  ],
+  [
+   28,
+   null
+  ],
+  [
+   35,
+   null
+  ],
+  [
+   42,
+   null
+  ],
+  [
+   49,
+   null
+  ],
+  [
+   56,
+   null
+  ],
+  [
+   63,
+   null
+  ],
+  [
+   70,
+   null
+  ],
+  [
+   77,
+   null
+  ],
+  [
+   84,
+   null
+  ],
+  [
+   91,
+   null
+  ],
+  [
+   98,
+   null
+  ],
+  [
+   105,
+   null
+  ],
+  [
+   112,
+   null
+  ],
+  [
+   119,
+   null
+  ],
+  [
+   126,
+   null
+  ],
+  [
+   133,
+   null
+  ],
+  [
+   140,
+   null
+  ],
+  [
+   147,
+   null
+  ],
+  [
+   154,
+   null
+  ],
+  [
+   161,
+   null
+  ],
+  [
+   168,
+   null
+  ],
+  [
+   175,
+   null
+  ],
+  [
+   182,
+   null
+  ],
+  [
+   189,
+   "0/1"
+  ],
+  [
+   196,
+   "0/1"
+  ],
+  [
+   203,
+   "0/1"
+  ],
+  [
+   210,
+   "0/1"
+  ],
+  [
+   217,
+   "0/1"
+  ],
+  [
+   224,
+   "0/1"
+  ],
+  [
+   231,
+   "0/1"
+  ],
+  [
+   238,
+   "1/4"
+  ],
+  [
+   245,
+   null
+  ],
+  [
+   252,
+   null
+  ]
+ ],
+ "tree": {
+  "children": [
+   {
+    "children": [
+     {
+      "children": [
+       {
+        "children": [],
+        "cls": "String",
+        "end": 105,
+        "length": "0/1",
+        "plaintext": "\n  lilypond should flip the tie's direction\n  to avoid a collision with the sharp.\n",
+        "position": 20,
+        "token": "\"",
+        "tokens": [
+         "\n",
+         "  lilypond should flip the tie's direction",
+         "\n",
+         "  to avoid a collision with the sharp.",
+         "\n",
+         "\""
+        ]
+       }
+      ],
+      "cls": "Assignment",
+      "end": 105,
+      "length": "0/1",
+      "plaintext": "",
+      "position": 10,
+      "token": "texidoc",
+      "tokens": [
+       "="
+      ]
+     }
+    ],
+    "cls": "Header",
+    "end": 107,
+    "length": "0/1",
+    "plaintext": "",
+    "position": 0,
+    "token": "\\header",
+    "tokens": [
+     "{",
+     "}"
+    ]
+   },
+   {
+    "children": [
+     {
+      "children": [],
+      "cls": "String",
+      "end": 128,
+      "length": "0/1",
+      "plaintext": "2.19.21",
+      "position": 119,
+      "token": "\"",
+      "tokens": [
+       "2.19.21",
+       "\""
+      ]
+     }
+    ],
+    "cls": "Version",
+    "end": 128,
+    "length": "0/1",
+    "plaintext": "",
+    "position": 110,
+    "token": "\\version",
+    "tokens": []
+   },
+   {
+    "children": [
+     {
+      "children": [
+       {
+        "children": [
+         {
+          "children": [],
+          "cls": "SchemeItem",
+          "end": 164,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 162,
+          "token": "#t",
+          "tokens": []
+         }
+        ],
+        "cls": "Scheme",
+        "end": 164,
+        "length": "0/1",
+        "plaintext": "",
+        "position": 161,
+        "token": "#",
+        "tokens": []
+       }
+      ],
+      "cls": "Assignment",
+      "end": 164,
+      "length": "0/1",
+      "plaintext": "",
+      "position": 141,
+      "token": "debug-tie-scoring",
+      "tokens": [
+       "="
+      ]
+     },
+     {
+      "children": [
+       {
+        "children": [
+         {
+          "children": [],
+          "cls": "SchemeItem",
+          "end": 185,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 183,
+          "token": "#t",
+          "tokens": []
+         }
+        ],
+        "cls": "Scheme",
+        "end": 185,
+        "length": "0/1",
+        "plaintext": "",
+        "position": 182,
+        "token": "#",
+        "tokens": []
+       }
+      ],
+      "cls": "Assignment",
+      "end": 185,
+      "length": "0/1",
+      "plaintext": "",
+      "position": 167,
+      "token": "ragged-right",
+      "tokens": [
+       "="
+      ]
+     }
+    ],
+    "cls": "Paper",
+    "end": 187,
+    "length": "0/1",
+    "plaintext": "",
+    "position": 130,
+    "token": "\\paper",
+    "tokens": [
+     "{",
+     "}"
+    ]
+   },
+   {
+    "children": [
+     {
+      "children": [
+       {
+        "children": [
+         {
+          "children": [],
+          "cls": "PathItem",
+          "end": 216,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 213,
+          "token": "Tie",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "PathItem",
+          "end": 217,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 216,
+          "token": ".",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "PathItem",
+          "end": 222,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 217,
+          "token": "layer",
+          "tokens": []
+         },
+         {
+          "children": [
+           {
+            "children": [],
+            "cls": "SchemeItem",
+            "end": 227,
+            "length": "0/1",
+            "plaintext": "",
+            "position": 226,
+            "token": "2",
+            "tokens": []
+           }
+          ],
+          "cls": "Scheme",
+          "end": 227,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 225,
+          "token": "#",
+          "tokens": []
+         }
+        ],
+        "cls": "Override",
+        "end": 227,
+        "length": "0/1",
+        "plaintext": "",
+        "position": 203,
+        "token": "\\override",
+        "tokens": [
+         "="
+        ]
+       },
+       {
+        "children": [],
+        "cls": "Note",
+        "end": 232,
+        "length": "1/4",
+        "plaintext": "",
+        "position": 230,
+        "token": "a",
+        "tokens": []
+       },
+       {
+        "children": [],
+        "cls": "Tie",
+        "end": 234,
+        "length": "0/1",
+        "plaintext": "",
+        "position": 233,
+        "token": "~",
+        "tokens": []
+       },
+       {
+        "children": [
+         {
+          "children": [],
+          "cls": "Note",
+          "end": 239,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 236,
+          "token": "fis",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "Note",
+          "end": 241,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 240,
+          "token": "a",
+          "tokens": []
+         }
+        ],
+        "cls": "Chord",
+        "end": 242,
+        "length": "1/4",
+        "plaintext": "",
+        "position": 235,
+        "token": "<",
+        "tokens": [
+         ">"
+        ]
+       }
+      ],
+      "cls": "MusicList",
+      "end": 244,
+      "length": "1/2",
+      "plaintext": "",
+      "position": 199,
+      "token": "{",
+      "tokens": [
+       "}"
+      ]
+     }
+    ],
+    "cls": "Relative",
+    "end": 244,
+    "length": "1/2",
+    "plaintext": "",
+    "position": 189,
+    "token": "\\relative",
+    "tokens": []
+   }
+  ],
+  "cls": "Document",
+  "end": 244,
+  "length": "0/1",
+  "plaintext": "",
+  "position": -1,
+  "token": null,
+  "tokens": []
+ }
+}

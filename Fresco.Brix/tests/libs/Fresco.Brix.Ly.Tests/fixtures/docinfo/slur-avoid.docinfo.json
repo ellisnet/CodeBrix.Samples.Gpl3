@@ -1,0 +1,40 @@
+{
+ "complete": true,
+ "counted_tokens": {
+  "_token.Newline": 11,
+  "_token.Space": 10,
+  "lilypond.ArticulationCommand": 1,
+  "lilypond.CloseBracket": 1,
+  "lilypond.EqualSign": 1,
+  "lilypond.Header": 1,
+  "lilypond.HeaderVariable": 1,
+  "lilypond.Keyword": 1,
+  "lilypond.Length": 2,
+  "lilypond.Note": 2,
+  "lilypond.Octave": 2,
+  "lilypond.OpenBracket": 1,
+  "lilypond.SequentialEnd": 1,
+  "lilypond.SequentialStart": 1,
+  "lilypond.SlurEnd": 1,
+  "lilypond.SlurStart": 1,
+  "lilypond.String": 2,
+  "lilypond.StringQuotedEnd": 2,
+  "lilypond.StringQuotedStart": 2
+ },
+ "definitions": [],
+ "global_staff_size": null,
+ "has_output": true,
+ "include_args": [],
+ "language": null,
+ "markup_definitions": [],
+ "mode": "lilypond",
+ "output_args": [],
+ "scheme_load_args": [],
+ "token_count": 44,
+ "version": [
+  2,
+  16,
+  0
+ ],
+ "version_string": "2.16.0"
+}

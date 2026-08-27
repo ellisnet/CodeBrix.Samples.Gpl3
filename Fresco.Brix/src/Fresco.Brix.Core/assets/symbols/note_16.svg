@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.2"
+     width="5.6234mm" height="5.6234mm"
+     viewBox="0.0000 -0.0000 3.2000 3.2000">
+<g fill="currentColor" color="black">
+<g transform="translate(0.2845, 2.6818)">
+<path transform="scale(0.0036, -0.0036)" d="M0 -45c0 92 113 182 214 182c64 0 112 -36 112 -92c0 -88 -108 -182 -217 -182c-68 0 -109 39 -109 92z" fill="currentColor"/>
+</g>
+<g transform="translate(0.2845, 2.6818)">
+<rect x="1.0449" y="-2.6192" width="0.1158" height="2.4595" ry="0.0193" fill="currentColor"/>
+</g>
+<g transform="translate(1.4452, 0.0626)">
+<path transform="scale(0.0036, -0.0036)" d="M0 -213c0 -116 88 -204 149 -301c5 14 8 30 8 45c0 95 -89 189 -157 256zM121 -852c0 10 42 75 42 171s-93 189 -163 256v-125h-18v550h18c0 -177 201 -292 201 -469c0 -33 -9 -65 -23 -95c18 -36 29 -75 29 -117c0 -63 -15 -126 -41 -183c-5 -8 -13 -12 -21 -12
+c-12 0 -24 10 -24 24z" fill="currentColor"/>
+</g>
+</g>
+</svg>

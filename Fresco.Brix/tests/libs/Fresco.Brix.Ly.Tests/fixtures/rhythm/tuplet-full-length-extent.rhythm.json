@@ -1,0 +1,187 @@
+{
+ "extract": [
+  "4",
+  "16",
+  "16",
+  "16",
+  "",
+  "16",
+  "16",
+  "16",
+  "",
+  "16",
+  "16",
+  "16"
+ ],
+ "music_items": [
+  [
+   235,
+   246,
+   246,
+   false,
+   [
+    "\\tuplet",
+    "3/2"
+   ],
+   []
+  ],
+  [
+   249,
+   253,
+   251,
+   true,
+   [
+    "c",
+    "'"
+   ],
+   [
+    "16"
+   ]
+  ],
+  [
+   254,
+   258,
+   256,
+   true,
+   [
+    "c",
+    "'"
+   ],
+   [
+    "16"
+   ]
+  ],
+  [
+   259,
+   263,
+   261,
+   true,
+   [
+    "c",
+    "'"
+   ],
+   [
+    "16"
+   ]
+  ],
+  [
+   269,
+   280,
+   280,
+   false,
+   [
+    "\\tuplet",
+    "3/2"
+   ],
+   []
+  ],
+  [
+   283,
+   287,
+   285,
+   true,
+   [
+    "c",
+    "'"
+   ],
+   [
+    "16"
+   ]
+  ],
+  [
+   288,
+   292,
+   290,
+   true,
+   [
+    "c",
+    "'"
+   ],
+   [
+    "16"
+   ]
+  ],
+  [
+   293,
+   297,
+   295,
+   true,
+   [
+    "c",
+    "'"
+   ],
+   [
+    "16"
+   ]
+  ],
+  [
+   358,
+   369,
+   369,
+   false,
+   [
+    "\\tuplet",
+    "3/2"
+   ],
+   []
+  ],
+  [
+   372,
+   376,
+   374,
+   true,
+   [
+    "c",
+    "'"
+   ],
+   [
+    "16"
+   ]
+  ],
+  [
+   377,
+   381,
+   379,
+   true,
+   [
+    "c",
+    "'"
+   ],
+   [
+    "16"
+   ]
+  ],
+  [
+   382,
+   386,
+   384,
+   true,
+   [
+    "c",
+    "'"
+   ],
+   [
+    "16"
+   ]
+  ]
+ ],
+ "overwrite_durations": [
+  "4",
+  "8",
+  "",
+  "16."
+ ],
+ "results": {
+  "dot": "\\header {\n  \n  texidoc = \"With @code{full-length-to-extent}, the extent of the\n  attaching column for a full-length tuplet bracket can be ignored.\"\n\n}\n\\version \"2.23.14\"\n\n\\new Staff {\n   \\set tupletFullLength = ##t\n   \n   \\time 1/8\n   \\tuplet 3/2 { c'16. c'16. c'16. }\n   \\tuplet 3/2 { c'16. c'16. c'16. }\n   \\override TupletBracket.full-length-to-extent = ##f\n   \\tuplet 3/2 { c'16. c'16. c'16. }\n   \\tweak direction #DOWN \\textEndMark \"xxxxxxxxxxxxxxxxxxxxxxx\"\n}\n",
+  "double": "\\header {\n  \n  texidoc = \"With @code{full-length-to-extent}, the extent of the\n  attaching column for a full-length tuplet bracket can be ignored.\"\n\n}\n\\version \"2.23.14\"\n\n\\new Staff {\n   \\set tupletFullLength = ##t\n   \n   \\time 1/8\n   \\tuplet 3/2 { c'8 c'8 c'8 }\n   \\tuplet 3/2 { c'8 c'8 c'8 }\n   \\override TupletBracket.full-length-to-extent = ##f\n   \\tuplet 3/2 { c'8 c'8 c'8 }\n   \\tweak direction #DOWN \\textEndMark \"xxxxxxxxxxxxxxxxxxxxxxx\"\n}\n",
+  "explicit": "\\header {\n  \n  texidoc = \"With @code{full-length-to-extent}, the extent of the\n  attaching column for a full-length tuplet bracket can be ignored.\"\n\n}\n\\version \"2.23.14\"\n\n\\new Staff {\n   \\set tupletFullLength = ##t\n   \n   \\time 1/8\n   \\tuplet 3/2 { c'16 c'16 c'16 }\n   \\tuplet 3/2 { c'16 c'16 c'16 }\n   \\override TupletBracket.full-length-to-extent = ##f\n   \\tuplet 3/2 { c'16 c'16 c'16 }\n   \\tweak direction #DOWN \\textEndMark \"xxxxxxxxxxxxxxxxxxxxxxx\"\n}\n",
+  "halve": "\\header {\n  \n  texidoc = \"With @code{full-length-to-extent}, the extent of the\n  attaching column for a full-length tuplet bracket can be ignored.\"\n\n}\n\\version \"2.23.14\"\n\n\\new Staff {\n   \\set tupletFullLength = ##t\n   \n   \\time 1/8\n   \\tuplet 3/2 { c'32 c'32 c'32 }\n   \\tuplet 3/2 { c'32 c'32 c'32 }\n   \\override TupletBracket.full-length-to-extent = ##f\n   \\tuplet 3/2 { c'32 c'32 c'32 }\n   \\tweak direction #DOWN \\textEndMark \"xxxxxxxxxxxxxxxxxxxxxxx\"\n}\n",
+  "implicit": "\\header {\n  \n  texidoc = \"With @code{full-length-to-extent}, the extent of the\n  attaching column for a full-length tuplet bracket can be ignored.\"\n\n}\n\\version \"2.23.14\"\n\n\\new Staff {\n   \\set tupletFullLength = ##t\n   \n   \\time 1/8\n   \\tuplet 3/2 { c'16 c' c' }\n   \\tuplet 3/2 { c' c' c' }\n   \\override TupletBracket.full-length-to-extent = ##f\n   \\tuplet 3/2 { c' c' c' }\n   \\tweak direction #DOWN \\textEndMark \"xxxxxxxxxxxxxxxxxxxxxxx\"\n}\n",
+  "implicit_per_line": "\\header {\n  \n  texidoc = \"With @code{full-length-to-extent}, the extent of the\n  attaching column for a full-length tuplet bracket can be ignored.\"\n\n}\n\\version \"2.23.14\"\n\n\\new Staff {\n   \\set tupletFullLength = ##t\n   \n   \\time 1/8\n   \\tuplet 3/2 { c'16 c' c' }\n   \\tuplet 3/2 { c'16 c' c' }\n   \\override TupletBracket.full-length-to-extent = ##f\n   \\tuplet 3/2 { c'16 c' c' }\n   \\tweak direction #DOWN \\textEndMark \"xxxxxxxxxxxxxxxxxxxxxxx\"\n}\n",
+  "overwrite": "\\header {\n  \n  texidoc = \"With @code{full-length-to-extent}, the extent of the\n  attaching column for a full-length tuplet bracket can be ignored.\"\n\n}\n\\version \"2.23.14\"\n\n\\new Staff {\n   \\set tupletFullLength = ##t\n   \n   \\time 1/8\n   \\tuplet 3/24 { c'8 c' c'16. }\n   \\tuplet 3/24 { c'8 c' c'16. }\n   \\override TupletBracket.full-length-to-extent = ##f\n   \\tuplet 3/24 { c'8 c' c'16. }\n   \\tweak direction #DOWN \\textEndMark \"xxxxxxxxxxxxxxxxxxxxxxx\"\n}\n",
+  "remove": "\\header {\n  \n  texidoc = \"With @code{full-length-to-extent}, the extent of the\n  attaching column for a full-length tuplet bracket can be ignored.\"\n\n}\n\\version \"2.23.14\"\n\n\\new Staff {\n   \\set tupletFullLength = ##t\n   \n   \\time 1/8\n   \\tuplet 3/2 { c' c' c' }\n   \\tuplet 3/2 { c' c' c' }\n   \\override TupletBracket.full-length-to-extent = ##f\n   \\tuplet 3/2 { c' c' c' }\n   \\tweak direction #DOWN \\textEndMark \"xxxxxxxxxxxxxxxxxxxxxxx\"\n}\n",
+  "remove_fraction_scaling": "\\header {\n  \n  texidoc = \"With @code{full-length-to-extent}, the extent of the\n  attaching column for a full-length tuplet bracket can be ignored.\"\n\n}\n\\version \"2.23.14\"\n\n\\new Staff {\n   \\set tupletFullLength = ##t\n   \n   \\time 1/8\n   \\tuplet 3/2 { c'16 c'16 c'16 }\n   \\tuplet 3/2 { c'16 c'16 c'16 }\n   \\override TupletBracket.full-length-to-extent = ##f\n   \\tuplet 3/2 { c'16 c'16 c'16 }\n   \\tweak direction #DOWN \\textEndMark \"xxxxxxxxxxxxxxxxxxxxxxx\"\n}\n",
+  "remove_scaling": "\\header {\n  \n  texidoc = \"With @code{full-length-to-extent}, the extent of the\n  attaching column for a full-length tuplet bracket can be ignored.\"\n\n}\n\\version \"2.23.14\"\n\n\\new Staff {\n   \\set tupletFullLength = ##t\n   \n   \\time 1/8\n   \\tuplet 3/2 { c'16 c'16 c'16 }\n   \\tuplet 3/2 { c'16 c'16 c'16 }\n   \\override TupletBracket.full-length-to-extent = ##f\n   \\tuplet 3/2 { c'16 c'16 c'16 }\n   \\tweak direction #DOWN \\textEndMark \"xxxxxxxxxxxxxxxxxxxxxxx\"\n}\n",
+  "undot": "\\header {\n  \n  texidoc = \"With @code{full-length-to-extent}, the extent of the\n  attaching column for a full-length tuplet bracket can be ignored.\"\n\n}\n\\version \"2.23.14\"\n\n\\new Staff {\n   \\set tupletFullLength = ##t\n   \n   \\time 1/8\n   \\tuplet 3/2 { c'16 c'16 c'16 }\n   \\tuplet 3/2 { c'16 c'16 c'16 }\n   \\override TupletBracket.full-length-to-extent = ##f\n   \\tuplet 3/2 { c'16 c'16 c'16 }\n   \\tweak direction #DOWN \\textEndMark \"xxxxxxxxxxxxxxxxxxxxxxx\"\n}\n"
+ }
+}

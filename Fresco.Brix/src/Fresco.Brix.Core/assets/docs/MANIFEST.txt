@@ -1,0 +1,18 @@
+# Fresco.Brix bundled manuals — MANIFEST
+#
+# Written by tools/manuals. Every row is one PDF this folder ships:
+#     <name>  <pages>  <bytes>  <sha256>
+# The page counts are what ManualCatalog declares and what
+# ManualCatalogTests reads back out of the shipped file.
+
+learning          253     2801037  82f9407831562cb92f5c41ba2349654e2bc3f290aba96b7a278514cbbd3bd188
+notation         1280    12490418  debc68dd0a51012b9db153bf04a015188cf15421bd8b34dbef51a06fb8d9e596
+usage              96      556883  6287a378c9e34096a16a39aaa3898fddedfb60de3c313a0bc1042ec8e6b32832
+extending          76      444259  8d30a3e6ba94333900b9ff71ffd430195709bd0598a4d412b4dd533928b21b20
+internals        1266     7306510  121e3756c25519a99b34cb74ca009dec1c79440fcc731b84b87a8ea10392da6c
+essay              63     2941760  f9b60581c26c5ed8beffacc592d3ab6e6494c3db2429d9ef52136d9a9d38d068
+music-glossary    135      884368  48cebb7413ec68afebb3c2a8ab9a00350d96bea4fe384d668fadf372e0469001
+changes            10      102985  50578309b75860840b4cf33090d47edb7a1003d453dcdc0335024eae2a0d3fc2
+contributor       189      958888  dddd8ee08e4943c05a2a76484f6027a015f394f56f8d991860f8a719fddbf0dd
+
+TOTAL            3368    28487108

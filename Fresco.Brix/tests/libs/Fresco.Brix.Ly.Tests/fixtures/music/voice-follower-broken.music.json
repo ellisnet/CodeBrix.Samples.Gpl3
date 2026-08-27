@@ -1,0 +1,792 @@
+{
+ "has_output": true,
+ "known_fixes": [
+  {
+   "module": "ly.music.read",
+   "new": "elif not item._specifier and isinstance(t, lex.StringStart):",
+   "old": "elif not item.specifier and isinstance(t, lex.StringStart):",
+   "why": "handle_repeat guards on the bound method item.specifier instead of the field item._specifier, so a quoted repeat specifier is never read and the repeat ends at the string (FR14)"
+  }
+ ],
+ "node_positions": [
+  [
+   0,
+   "Version",
+   0
+  ],
+  [
+   7,
+   "Version",
+   0
+  ],
+  [
+   14,
+   "String",
+   9
+  ],
+  [
+   21,
+   "Header",
+   19
+  ],
+  [
+   28,
+   "Header",
+   19
+  ],
+  [
+   35,
+   "Assignment",
+   31
+  ],
+  [
+   42,
+   "String",
+   41
+  ],
+  [
+   49,
+   "String",
+   41
+  ],
+  [
+   56,
+   "String",
+   41
+  ],
+  [
+   63,
+   "String",
+   41
+  ],
+  [
+   70,
+   "String",
+   41
+  ],
+  [
+   77,
+   "String",
+   41
+  ],
+  [
+   84,
+   "String",
+   41
+  ],
+  [
+   91,
+   "String",
+   41
+  ],
+  [
+   98,
+   "String",
+   41
+  ],
+  [
+   105,
+   "String",
+   41
+  ],
+  [
+   112,
+   "Paper",
+   106
+  ],
+  [
+   119,
+   "Assignment",
+   117
+  ],
+  [
+   126,
+   "Assignment",
+   117
+  ],
+  [
+   133,
+   "SchemeItem",
+   133
+  ],
+  [
+   140,
+   "MusicList",
+   139
+  ],
+  [
+   147,
+   "Context",
+   144
+  ],
+  [
+   154,
+   "Context",
+   144
+  ],
+  [
+   161,
+   "Override",
+   161
+  ],
+  [
+   168,
+   "Override",
+   161
+  ],
+  [
+   175,
+   "PathItem",
+   171
+  ],
+  [
+   182,
+   "PathItem",
+   171
+  ],
+  [
+   189,
+   "PathItem",
+   185
+  ],
+  [
+   196,
+   "PathItem",
+   185
+  ],
+  [
+   203,
+   "PathItem",
+   185
+  ],
+  [
+   210,
+   "SchemeItem",
+   208
+  ],
+  [
+   217,
+   "Note",
+   215
+  ],
+  [
+   224,
+   "Command",
+   224
+  ],
+  [
+   231,
+   "Command",
+   224
+  ],
+  [
+   238,
+   "Command",
+   224
+  ],
+  [
+   245,
+   "Command",
+   245
+  ],
+  [
+   252,
+   "Command",
+   245
+  ],
+  [
+   259,
+   "Change",
+   256
+  ],
+  [
+   266,
+   "Change",
+   256
+  ],
+  [
+   273,
+   "Change",
+   256
+  ],
+  [
+   280,
+   "Change",
+   256
+  ],
+  [
+   287,
+   "Duration",
+   284
+  ],
+  [
+   294,
+   "Context",
+   292
+  ],
+  [
+   301,
+   "Context",
+   292
+  ],
+  [
+   308,
+   "Context",
+   292
+  ],
+  [
+   315,
+   "MusicList",
+   311
+  ],
+  [
+   322,
+   "Duration",
+   318
+  ],
+  [
+   329,
+   "Duration",
+   318
+  ]
+ ],
+ "time_positions": [
+  [
+   0,
+   null
+  ],
+  [
+   7,
+   null
+  ],
+  [
+   14,
+   null
+  ],
+  [
+   21,
+   null
+  ],
+  [
+   28,
+   null
+  ],
+  [
+   35,
+   null
+  ],
+  [
+   42,
+   null
+  ],
+  [
+   49,
+   null
+  ],
+  [
+   56,
+   null
+  ],
+  [
+   63,
+   null
+  ],
+  [
+   70,
+   null
+  ],
+  [
+   77,
+   null
+  ],
+  [
+   84,
+   null
+  ],
+  [
+   91,
+   null
+  ],
+  [
+   98,
+   null
+  ],
+  [
+   105,
+   null
+  ],
+  [
+   112,
+   null
+  ],
+  [
+   119,
+   null
+  ],
+  [
+   126,
+   null
+  ],
+  [
+   133,
+   null
+  ],
+  [
+   140,
+   "0/1"
+  ],
+  [
+   147,
+   "0/1"
+  ],
+  [
+   154,
+   "0/1"
+  ],
+  [
+   161,
+   "0/1"
+  ],
+  [
+   168,
+   "0/1"
+  ],
+  [
+   175,
+   "0/1"
+  ],
+  [
+   182,
+   "0/1"
+  ],
+  [
+   189,
+   "0/1"
+  ],
+  [
+   196,
+   "0/1"
+  ],
+  [
+   203,
+   "0/1"
+  ],
+  [
+   210,
+   "0/1"
+  ],
+  [
+   217,
+   "0/1"
+  ],
+  [
+   224,
+   "1/1"
+  ],
+  [
+   231,
+   "1/1"
+  ],
+  [
+   238,
+   "1/1"
+  ],
+  [
+   245,
+   "1/1"
+  ],
+  [
+   252,
+   "1/1"
+  ],
+  [
+   259,
+   "1/1"
+  ],
+  [
+   266,
+   "1/1"
+  ],
+  [
+   273,
+   "1/1"
+  ],
+  [
+   280,
+   "1/1"
+  ],
+  [
+   287,
+   "2/1"
+  ],
+  [
+   294,
+   "0/1"
+  ],
+  [
+   301,
+   "0/1"
+  ],
+  [
+   308,
+   "0/1"
+  ],
+  [
+   315,
+   "0/1"
+  ],
+  [
+   322,
+   "2/1"
+  ],
+  [
+   329,
+   null
+  ]
+ ],
+ "tree": {
+  "children": [
+   {
+    "children": [
+     {
+      "children": [],
+      "cls": "String",
+      "end": 17,
+      "length": "0/1",
+      "plaintext": "2.23.5",
+      "position": 9,
+      "token": "\"",
+      "tokens": [
+       "2.23.5",
+       "\""
+      ]
+     }
+    ],
+    "cls": "Version",
+    "end": 17,
+    "length": "0/1",
+    "plaintext": "",
+    "position": 0,
+    "token": "\\version",
+    "tokens": []
+   },
+   {
+    "children": [
+     {
+      "children": [
+       {
+        "children": [],
+        "cls": "String",
+        "end": 102,
+        "length": "0/1",
+        "plaintext": "Voice followers have acceptable slopes across\nlines breaks.",
+        "position": 41,
+        "token": "\"",
+        "tokens": [
+         "Voice followers have acceptable slopes across",
+         "\n",
+         "lines breaks.",
+         "\""
+        ]
+       }
+      ],
+      "cls": "Assignment",
+      "end": 102,
+      "length": "0/1",
+      "plaintext": "",
+      "position": 31,
+      "token": "texidoc",
+      "tokens": [
+       "="
+      ]
+     }
+    ],
+    "cls": "Header",
+    "end": 104,
+    "length": "0/1",
+    "plaintext": "",
+    "position": 19,
+    "token": "\\header",
+    "tokens": [
+     "{",
+     "}"
+    ]
+   },
+   {
+    "children": [
+     {
+      "children": [
+       {
+        "children": [
+         {
+          "children": [],
+          "cls": "SchemeItem",
+          "end": 135,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 133,
+          "token": "#t",
+          "tokens": []
+         }
+        ],
+        "cls": "Scheme",
+        "end": 135,
+        "length": "0/1",
+        "plaintext": "",
+        "position": 132,
+        "token": "#",
+        "tokens": []
+       }
+      ],
+      "cls": "Assignment",
+      "end": 135,
+      "length": "0/1",
+      "plaintext": "",
+      "position": 117,
+      "token": "ragged-right",
+      "tokens": [
+       "="
+      ]
+     }
+    ],
+    "cls": "Paper",
+    "end": 137,
+    "length": "0/1",
+    "plaintext": "",
+    "position": 106,
+    "token": "\\paper",
+    "tokens": [
+     "{",
+     "}"
+    ]
+   },
+   {
+    "children": [
+     {
+      "children": [
+       {
+        "children": [
+         {
+          "children": [
+           {
+            "children": [],
+            "cls": "PathItem",
+            "end": 184,
+            "length": "0/1",
+            "plaintext": "",
+            "position": 171,
+            "token": "VoiceFollower",
+            "tokens": []
+           },
+           {
+            "children": [],
+            "cls": "PathItem",
+            "end": 185,
+            "length": "0/1",
+            "plaintext": "",
+            "position": 184,
+            "token": ".",
+            "tokens": []
+           },
+           {
+            "children": [],
+            "cls": "PathItem",
+            "end": 204,
+            "length": "0/1",
+            "plaintext": "",
+            "position": 185,
+            "token": "after-line-breaking",
+            "tokens": []
+           },
+           {
+            "children": [
+             {
+              "children": [],
+              "cls": "SchemeItem",
+              "end": 210,
+              "length": "0/1",
+              "plaintext": "",
+              "position": 208,
+              "token": "#t",
+              "tokens": []
+             }
+            ],
+            "cls": "Scheme",
+            "end": 210,
+            "length": "0/1",
+            "plaintext": "",
+            "position": 207,
+            "token": "#",
+            "tokens": []
+           }
+          ],
+          "cls": "Override",
+          "end": 210,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 161,
+          "token": "\\override",
+          "tokens": [
+           "="
+          ]
+         },
+         {
+          "children": [
+           {
+            "children": [],
+            "cls": "Duration",
+            "end": 219,
+            "length": "0/1",
+            "plaintext": "",
+            "position": 218,
+            "token": "1",
+            "tokens": []
+           }
+          ],
+          "cls": "Note",
+          "end": 219,
+          "length": "1/1",
+          "plaintext": "",
+          "position": 215,
+          "token": "c",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "Command",
+          "end": 240,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 224,
+          "token": "\\showStaffSwitch",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "Command",
+          "end": 251,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 245,
+          "token": "\\break",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "Change",
+          "end": 277,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 256,
+          "token": "\\change",
+          "tokens": []
+         },
+         {
+          "children": [
+           {
+            "children": [],
+            "cls": "Duration",
+            "end": 285,
+            "length": "0/1",
+            "plaintext": "",
+            "position": 284,
+            "token": "1",
+            "tokens": []
+           }
+          ],
+          "cls": "Note",
+          "end": 285,
+          "length": "1/1",
+          "plaintext": "",
+          "position": 282,
+          "token": "c",
+          "tokens": []
+         }
+        ],
+        "cls": "MusicList",
+        "end": 289,
+        "length": "2/1",
+        "plaintext": "",
+        "position": 155,
+        "token": "{",
+        "tokens": [
+         "}"
+        ]
+       }
+      ],
+      "cls": "Context",
+      "end": 289,
+      "length": "2/1",
+      "plaintext": "",
+      "position": 144,
+      "token": "\\new",
+      "tokens": []
+     },
+     {
+      "children": [
+       {
+        "children": [
+         {
+          "children": [
+           {
+            "children": [],
+            "cls": "Duration",
+            "end": 321,
+            "length": "0/1",
+            "plaintext": "",
+            "position": 318,
+            "token": "1",
+            "tokens": [
+             "*2"
+            ]
+           }
+          ],
+          "cls": "Skip",
+          "end": 321,
+          "length": "2/1",
+          "plaintext": "",
+          "position": 317,
+          "token": "s",
+          "tokens": []
+         }
+        ],
+        "cls": "MusicList",
+        "end": 325,
+        "length": "2/1",
+        "plaintext": "",
+        "position": 311,
+        "token": "{",
+        "tokens": [
+         "}"
+        ]
+       }
+      ],
+      "cls": "Context",
+      "end": 325,
+      "length": "2/1",
+      "plaintext": "",
+      "position": 292,
+      "token": "\\new",
+      "tokens": []
+     }
+    ],
+    "cls": "MusicList",
+    "end": 328,
+    "length": "2/1",
+    "plaintext": "",
+    "position": 139,
+    "token": "<<",
+    "tokens": [
+     ">>"
+    ]
+   }
+  ],
+  "cls": "Document",
+  "end": 328,
+  "length": "0/1",
+  "plaintext": "",
+  "position": -1,
+  "token": null,
+  "tokens": []
+ }
+}

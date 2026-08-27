@@ -1,0 +1,187 @@
+{
+ "has_output": false,
+ "known_fixes": [
+  {
+   "module": "ly.music.read",
+   "new": "elif not item._specifier and isinstance(t, lex.StringStart):",
+   "old": "elif not item.specifier and isinstance(t, lex.StringStart):",
+   "why": "handle_repeat guards on the bound method item.specifier instead of the field item._specifier, so a quoted repeat specifier is never read and the repeat ends at the string (FR14)"
+  }
+ ],
+ "node_positions": [
+  [
+   0,
+   "Document",
+   -1
+  ],
+  [
+   7,
+   "Document",
+   -1
+  ],
+  [
+   14,
+   "Document",
+   -1
+  ],
+  [
+   21,
+   "Document",
+   -1
+  ],
+  [
+   28,
+   "Document",
+   -1
+  ],
+  [
+   35,
+   "Document",
+   -1
+  ],
+  [
+   42,
+   "Document",
+   -1
+  ],
+  [
+   49,
+   "Document",
+   -1
+  ],
+  [
+   56,
+   "Document",
+   -1
+  ],
+  [
+   63,
+   "Document",
+   -1
+  ],
+  [
+   70,
+   "Document",
+   -1
+  ],
+  [
+   77,
+   "Document",
+   -1
+  ],
+  [
+   84,
+   "Document",
+   -1
+  ],
+  [
+   91,
+   "Document",
+   -1
+  ],
+  [
+   98,
+   "Document",
+   -1
+  ],
+  [
+   105,
+   "Document",
+   -1
+  ],
+  [
+   112,
+   "Document",
+   -1
+  ],
+  [
+   116,
+   "Document",
+   -1
+  ]
+ ],
+ "time_positions": [
+  [
+   0,
+   null
+  ],
+  [
+   7,
+   null
+  ],
+  [
+   14,
+   null
+  ],
+  [
+   21,
+   null
+  ],
+  [
+   28,
+   null
+  ],
+  [
+   35,
+   null
+  ],
+  [
+   42,
+   null
+  ],
+  [
+   49,
+   null
+  ],
+  [
+   56,
+   null
+  ],
+  [
+   63,
+   null
+  ],
+  [
+   70,
+   null
+  ],
+  [
+   77,
+   null
+  ],
+  [
+   84,
+   null
+  ],
+  [
+   91,
+   null
+  ],
+  [
+   98,
+   null
+  ],
+  [
+   105,
+   null
+  ],
+  [
+   112,
+   null
+  ],
+  [
+   116,
+   null
+  ]
+ ],
+ "tree": {
+  "children": [],
+  "cls": "Document",
+  "end": -1,
+  "length": "0/1",
+  "plaintext": "",
+  "position": -1,
+  "token": null,
+  "tokens": []
+ }
+}

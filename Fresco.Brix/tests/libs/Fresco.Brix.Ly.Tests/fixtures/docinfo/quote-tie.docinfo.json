@@ -1,0 +1,57 @@
+{
+ "complete": true,
+ "counted_tokens": {
+  "_token.Newline": 27,
+  "_token.Space": 51,
+  "lilypond.CloseBracket": 1,
+  "lilypond.Command": 4,
+  "lilypond.ContextName": 2,
+  "lilypond.EqualSign": 3,
+  "lilypond.Header": 1,
+  "lilypond.HeaderVariable": 1,
+  "lilypond.Keyword": 1,
+  "lilypond.Length": 6,
+  "lilypond.Name": 2,
+  "lilypond.New": 2,
+  "lilypond.Note": 4,
+  "lilypond.Octave": 2,
+  "lilypond.OpenBracket": 1,
+  "lilypond.PipeSymbol": 8,
+  "lilypond.PitchCommand": 2,
+  "lilypond.Rest": 4,
+  "lilypond.SchemeStart": 2,
+  "lilypond.SequentialEnd": 7,
+  "lilypond.SequentialStart": 7,
+  "lilypond.String": 11,
+  "lilypond.StringQuotedEnd": 6,
+  "lilypond.StringQuotedStart": 6,
+  "lilypond.Tie": 1,
+  "lilypond.UserCommand": 2,
+  "scheme.Constant": 2
+ },
+ "definitions": [
+  [
+   "cueI",
+   376
+  ],
+  [
+   "cueII",
+   443
+  ]
+ ],
+ "global_staff_size": null,
+ "has_output": true,
+ "include_args": [],
+ "language": null,
+ "markup_definitions": [],
+ "mode": "lilypond",
+ "output_args": [],
+ "scheme_load_args": [],
+ "token_count": 166,
+ "version": [
+  2,
+  19,
+  21
+ ],
+ "version_string": "2.19.21"
+}

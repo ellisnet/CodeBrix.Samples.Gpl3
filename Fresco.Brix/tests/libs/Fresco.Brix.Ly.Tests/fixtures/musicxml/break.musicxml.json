@@ -1,0 +1,93 @@
+{
+ "known_fixes": [
+  {
+   "module": "ly.music.read",
+   "new": "elif not item._specifier and isinstance(t, lex.StringStart):",
+   "old": "elif not item.specifier and isinstance(t, lex.StringStart):",
+   "why": "handle_repeat guards on the bound method item.specifier instead of the field item._specifier, so a quoted repeat specifier is never read and the repeat ends at the string (FR14)"
+  },
+  {
+   "module": "ly.musicxml.lymus2musxml",
+   "new": "        else:",
+   "old": "        elif isinstance(a.value(), ly.music.items.UserCommand):",
+   "why": "Assignment classifies the value with a four-arm chain that has no else and then reads `val` unconditionally, so any other value type -- a Command such as 20\\mm -- raises UnboundLocalError and kills the export (FR14)"
+  },
+  {
+   "module": "ly.musicxml.ly2xml_mediator",
+   "new": "    new_type = durval2type(trem_length)",
+   "old": "    new_type = xml_objs.durval2type(trem_length)",
+   "why": "calc_trem_dur qualifies durval2type with xml_objs, which does not define it, so every counted tremolo raises AttributeError and is silently dropped from the export (FR14)"
+  },
+  {
+   "module": "ly.musicxml.ly2xml_mediator",
+   "new": "            self.score.glob_section.merge_voice(self.sections[-1])",
+   "old": "            self.score.glob_section.merge_voice(self.section[-1])",
+   "why": "check_voices reads self.section where the field is self.sections, so a global section raises AttributeError on close and the voice merge below it is skipped (FR14)"
+  },
+  {
+   "module": "ly.musicxml.xml_objs",
+   "new": "    \"\"\" Object that stores duration for backup \"\"\"\n    def has_attr(self):\n        return False\n",
+   "old": "    \"\"\" Object that stores duration for backup \"\"\"",
+   "why": "BarBackup does not define has_attr, which Bar.is_skip calls on every object in a bar, so a bar holding a backup raises AttributeError and kills the export (FR14)"
+  },
+  {
+   "module": "ly.musicxml.create_musicxml",
+   "new": "        info_node = etree.Element(tag, attr)\n        info_node.text = info\n        index = get_tag_index(self.score_info, \"encoding\")\n        if index == -1:\n            self.score_info.append(info_node)\n        else:\n            self.score_info.insert(index, info_node)\n\n    def add_miscellaneous_field(self, name, info):\n        \"\"\"Metadata MusicXML has no element of its own for.\"\"\"\n        misc = self.score_info.find(\"miscellaneous\")\n        if misc is None:\n            misc = etree.SubElement(self.score_info, \"miscellaneous\")\n        field = etree.SubElement(misc, \"miscellaneous-field\", {\"name\": name})\n        field.text = info",
+   "old": "        info_node = etree.SubElement(self.score_info, tag, attr)\n        info_node.text = info",
+   "why": "identification children are an xs:sequence and creators/rights come before encoding, so they must be inserted, not appended (FR15)"
+  },
+  {
+   "module": "ly.musicxml.xml_objs",
+   "new": "            self.musxml.add_miscellaneous_field(itag, score.info[itag])",
+   "old": "            self.musxml.create_score_info(itag, score.info[itag])",
+   "why": "header variables the schema does not model belong in <miscellaneous-field>, not as bare children of <identification> (FR15)"
+  },
+  {
+   "module": "ly.musicxml.create_musicxml",
+   "new": "etree.Element(\"score-partwise\", version=\"4.0\")",
+   "old": "etree.Element(\"score-partwise\", version=\"3.0\")",
+   "why": "the document declares the version it is validated against (FR15)"
+  },
+  {
+   "module": "ly.musicxml.create_musicxml",
+   "new": "PUBLIC \"-//Recordare//DTD MusicXML 4.0 Partwise//EN\"",
+   "old": "PUBLIC \"-//Recordare//DTD MusicXML 2.0 Partwise//EN\"",
+   "why": "the DOCTYPE must name the same version as the root element (FR15)"
+  },
+  {
+   "module": "ly.musicxml.create_musicxml",
+   "new": "        self.add_voice(voice)\n        self.add_duration_type(durtype)",
+   "old": "        self.add_duration_type(durtype)\n        self.add_voice(voice)",
+   "why": "a note declares its voice before its type; new_unpitched_note had the two reversed (FR15)"
+  },
+  {
+   "module": "ly.musicxml.create_musicxml",
+   "new": "        try:\n            number = int(staff)\n        except (TypeError, ValueError):\n            return\n        if number < 1:\n            return\n        index = -1\n        for tag in (\"beam\", \"notations\", \"lyric\", \"play\", \"listen\"):\n            i = get_tag_index(self.current_note, tag)\n            if i != -1 and (index == -1 or i < index):\n                index = i\n        staffnode = etree.Element(\"staff\")\n        staffnode.text = str(number)\n        if index == -1:\n            self.current_note.append(staffnode)\n        else:\n            self.current_note.insert(index, staffnode)",
+   "old": "        staffnode = etree.SubElement(self.current_note, \"staff\")\n        staffnode.text = str(staff)",
+   "why": "<staff> comes before beam/notations/lyric in the note sequence and must be a positive integer; upstream appends it and writes an unresolved context identifier verbatim (FR15)"
+  },
+  {
+   "module": "ly.musicxml.create_musicxml",
+   "new": "        try:\n            nr = int(nr)\n        except (TypeError, ValueError):\n            nr = 0\n        if nr >= 1:\n            clefnode = etree.SubElement(self.bar_attr, \"clef\", number=str(nr))",
+   "old": "        if nr:\n            clefnode = etree.SubElement(self.bar_attr, \"clef\", number=str(nr))",
+   "why": "a clef's number attribute is a staff-number and must be a positive integer, not a context identifier (FR15)"
+  }
+ ],
+ "reference": "python-ly v0.9.10",
+ "runs": [
+  {
+   "answered": true,
+   "name": "default",
+   "options": {},
+   "xml": "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<!DOCTYPE score-partwise PUBLIC \"-//Recordare//DTD MusicXML 4.0 Partwise//EN\"\n                                \"http://www.musicxml.org/dtds/partwise.dtd\">\n<score-partwise version=\"4.0\">\n  <identification>\n    <encoding>\n      <software>SOFTWARE</software>\n      <encoding-date>ENCODING-DATE</encoding-date>\n    </encoding>\n  </identification>\n  <part-list>\n    <score-part id=\"P1\">\n      <part-name />\n    </score-part>\n  </part-list>\n  <part id=\"P1\">\n    <measure number=\"1\">\n      <attributes>\n        <divisions>1</divisions>\n        <time symbol=\"common\">\n          <beats>4</beats>\n          <beat-type>4</beat-type>\n        </time>\n        <clef>\n          <sign>G</sign>\n          <line>2</line>\n        </clef>\n      </attributes>\n      <note>\n        <pitch>\n          <step>C</step>\n          <octave>5</octave>\n        </pitch>\n        <duration>1</duration>\n        <voice>1</voice>\n        <type>quarter</type>\n      </note>\n      <note>\n        <pitch>\n          <step>C</step>\n          <octave>5</octave>\n        </pitch>\n        <duration>1</duration>\n        <voice>1</voice>\n        <type>quarter</type>\n      </note>\n      <note>\n        <pitch>\n          <step>C</step>\n          <octave>5</octave>\n        </pitch>\n        <duration>1</duration>\n        <voice>1</voice>\n        <type>quarter</type>\n      </note>\n      <note>\n        <pitch>\n          <step>C</step>\n          <octave>5</octave>\n        </pitch>\n        <duration>1</duration>\n        <voice>1</voice>\n        <type>quarter</type>\n      </note>\n    </measure>\n    <measure number=\"2\">\n      <print new-system=\"yes\" />\n      <note>\n        <pitch>\n          <step>C</step>\n          <octave>5</octave>\n        </pitch>\n        <duration>1</duration>\n        <voice>1</voice>\n        <type>quarter</type>\n      </note>\n      <note>\n        <pitch>\n          <step>C</step>\n          <octave>5</octave>\n        </pitch>\n        <duration>1</duration>\n        <voice>1</voice>\n        <type>quarter</type>\n      </note>\n      <note>\n        <pitch>\n          <step>C</step>\n          <octave>5</octave>\n        </pitch>\n        <duration>1</duration>\n        <voice>1</voice>\n        <type>quarter</type>\n      </note>\n      <note>\n        <pitch>\n          <step>C</step>\n          <octave>5</octave>\n        </pitch>\n        <duration>1</duration>\n        <voice>1</voice>\n        <type>quarter</type>\n      </note>\n    </measure>\n  </part>\n</score-partwise>\n"
+  },
+  {
+   "answered": true,
+   "name": "midi",
+   "options": {
+    "midi_out": true
+   },
+   "xml": "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<!DOCTYPE score-partwise PUBLIC \"-//Recordare//DTD MusicXML 4.0 Partwise//EN\"\n                                \"http://www.musicxml.org/dtds/partwise.dtd\">\n<score-partwise version=\"4.0\">\n  <identification>\n    <encoding>\n      <software>SOFTWARE</software>\n      <encoding-date>ENCODING-DATE</encoding-date>\n    </encoding>\n  </identification>\n  <part-list>\n    <score-part id=\"P1\">\n      <part-name />\n    </score-part>\n  </part-list>\n  <part id=\"P1\">\n    <measure number=\"1\">\n      <attributes>\n        <divisions>1</divisions>\n        <time symbol=\"common\">\n          <beats>4</beats>\n          <beat-type>4</beat-type>\n        </time>\n        <clef>\n          <sign>G</sign>\n          <line>2</line>\n        </clef>\n      </attributes>\n      <note>\n        <pitch>\n          <step>C</step>\n          <octave>5</octave>\n        </pitch>\n        <duration>1</duration>\n        <voice>1</voice>\n        <type>quarter</type>\n      </note>\n      <note>\n        <pitch>\n          <step>C</step>\n          <octave>5</octave>\n        </pitch>\n        <duration>1</duration>\n        <voice>1</voice>\n        <type>quarter</type>\n      </note>\n      <note>\n        <pitch>\n          <step>C</step>\n          <octave>5</octave>\n        </pitch>\n        <duration>1</duration>\n        <voice>1</voice>\n        <type>quarter</type>\n      </note>\n      <note>\n        <pitch>\n          <step>C</step>\n          <octave>5</octave>\n        </pitch>\n        <duration>1</duration>\n        <voice>1</voice>\n        <type>quarter</type>\n      </note>\n    </measure>\n    <measure number=\"2\">\n      <print new-system=\"yes\" />\n      <note>\n        <pitch>\n          <step>C</step>\n          <octave>5</octave>\n        </pitch>\n        <duration>1</duration>\n        <voice>1</voice>\n        <type>quarter</type>\n      </note>\n      <note>\n        <pitch>\n          <step>C</step>\n          <octave>5</octave>\n        </pitch>\n        <duration>1</duration>\n        <voice>1</voice>\n        <type>quarter</type>\n      </note>\n      <note>\n        <pitch>\n          <step>C</step>\n          <octave>5</octave>\n        </pitch>\n        <duration>1</duration>\n        <voice>1</voice>\n        <type>quarter</type>\n      </note>\n      <note>\n        <pitch>\n          <step>C</step>\n          <octave>5</octave>\n        </pitch>\n        <duration>1</duration>\n        <voice>1</voice>\n        <type>quarter</type>\n      </note>\n    </measure>\n  </part>\n</score-partwise>\n"
+  }
+ ]
+}

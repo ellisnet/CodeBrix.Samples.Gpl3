@@ -1,0 +1,38 @@
+{
+ "results": {
+  "abs2rel": "\\version \"2.27.2\"\nmusic = \\relative c' {\n  \\key d \\major\n  \\transposition bes\n  \\transpose c d { c'4 d' e' }\n  fis4 gis ais b\n}\n",
+  "abs2rel_no_startpitch": "\\version \"2.27.2\"\nmusic = \\relative {\n  \\key d \\major\n  \\transposition bes\n  \\transpose c d { c'4 d' e' }\n  fis4 gis ais b\n}\n",
+  "abs2rel_no_startpitch_first_absolute": "\\version \"2.27.2\"\nmusic = \\relative {\n  \\key d \\major\n  \\transposition bes\n  \\transpose c d { c'4 d' e' }\n  fis'4 gis ais b\n}\n",
+  "inversion": "\\version \"2.27.2\"\nmusic = {\n  \\key d \\major\n  \\transposition fis,\n  \\transpose e d { e,4 d, c, }\n  bes,,4 as,, ges,, f,,\n}\n",
+  "modal_down_three_g_major": "\\version \"2.27.2\"\nmusic = {\n  \\key a \\major\n  \\transposition f\n  \\transpose g, a, { g4 a b }\n  c'4 dis' eis' fis'\n}\n",
+  "modal_up_two_c_major": "\\version \"2.27.2\"\nmusic = {\n  \\key f \\major\n  \\transposition des'\n  \\transpose e f { e'4 f' g' }\n  ais'4 bis' cis'' d''\n}\n",
+  "mode_shift_a_minor_harmonic": "\\version \"2.27.2\"\nmusic = {\n  \\key d \\major\n  \\transposition b\n  \\transpose c d { c'4 d' e' }\n  f'4 gis' a' b'\n}\n",
+  "mode_shift_c_major": "\\version \"2.27.2\"\nmusic = {\n  \\key d \\major\n  \\transposition b\n  \\transpose c d { c'4 d' e' }\n  f'4 g' a' b'\n}\n",
+  "rel2abs": "\\version \"2.27.2\"\nmusic = {\n  \\key d \\major\n  \\transposition bes\n  \\transpose c d { c'4 d' e' }\n  fis'4 gis' ais' b'\n}\n",
+  "rel2abs_first_absolute": "\\version \"2.27.2\"\nmusic = {\n  \\key d \\major\n  \\transposition bes\n  \\transpose c d { c'4 d' e' }\n  fis'4 gis' ais' b'\n}\n",
+  "retrograde": "\\version \"2.27.2\"\nmusic = {\n  \\key b' \\major\n  \\transposition ais'\n  \\transpose gis' fis' { e'4 d' c' }\n  d4 c bes d\n}\n",
+  "simplify": "\\version \"2.27.2\"\nmusic = {\n  \\key d \\major\n  \\transposition bes\n  \\transpose c d { c'4 d' e' }\n  fis'4 gis' ais' b'\n}\n",
+  "transpose_c_a_down": "\\version \"2.27.2\"\nmusic = {\n  \\key b \\major\n  \\transposition g\n  \\transpose a, b, { a4 b cis' }\n  dis'4 eis' fisis' gis'\n}\n",
+  "transpose_c_d": "\\version \"2.27.2\"\nmusic = {\n  \\key e \\major\n  \\transposition c'\n  \\transpose d e { d'4 e' fis' }\n  gis'4 ais' bis' cis''\n}\n",
+  "transpose_c_d_relative_absolute": "\\version \"2.27.2\"\nmusic = {\n  \\key e \\major\n  \\transposition c'\n  \\transpose d e { d'4 e' fis' }\n  gis'4 ais' bis' cis''\n}\n",
+  "transpose_c_ees": "\\version \"2.27.2\"\nmusic = {\n  \\key fes \\major\n  \\transposition deses'\n  \\transpose eses fes { eses'4 fes' ges' }\n  as'4 bes' c'' des''\n}\n"
+ },
+ "translations": {
+  "deutsch": {
+   "changed": false,
+   "text": "\\version \"2.27.2\"\nmusic = {\n  \\key d \\major\n  \\transposition b\n  \\transpose c d { c'4 d' e' }\n  fis'4 gis' ais' h'\n}\n"
+  },
+  "english": {
+   "changed": false,
+   "text": "\\version \"2.27.2\"\nmusic = {\n  \\key d \\major\n  \\transposition bf\n  \\transpose c d { c'4 d' e' }\n  fs'4 gs' as' b'\n}\n"
+  },
+  "italiano": {
+   "changed": false,
+   "text": "\\version \"2.27.2\"\nmusic = {\n  \\key re \\major\n  \\transposition sib\n  \\transpose do re { do'4 re' mi' }\n  fad'4 sold' lad' si'\n}\n"
+  },
+  "norsk": {
+   "changed": false,
+   "text": "\\version \"2.27.2\"\nmusic = {\n  \\key d \\major\n  \\transposition b\n  \\transpose c d { c'4 d' e' }\n  fis'4 gis' ais' h'\n}\n"
+  }
+ }
+}

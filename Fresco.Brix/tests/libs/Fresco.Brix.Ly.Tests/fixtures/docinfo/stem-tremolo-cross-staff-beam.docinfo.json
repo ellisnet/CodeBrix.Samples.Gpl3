@@ -1,0 +1,57 @@
+{
+ "complete": true,
+ "counted_tokens": {
+  "_token.Newline": 18,
+  "_token.Space": 37,
+  "lilypond.BeamEnd": 1,
+  "lilypond.BeamStart": 1,
+  "lilypond.Change": 1,
+  "lilypond.Clef": 1,
+  "lilypond.ClefSpecifier": 1,
+  "lilypond.CloseBracket": 1,
+  "lilypond.ContextName": 4,
+  "lilypond.EqualSign": 5,
+  "lilypond.Header": 1,
+  "lilypond.HeaderVariable": 1,
+  "lilypond.Keyword": 1,
+  "lilypond.Length": 2,
+  "lilypond.Name": 4,
+  "lilypond.New": 3,
+  "lilypond.Note": 9,
+  "lilypond.Octave": 2,
+  "lilypond.OpenBracket": 1,
+  "lilypond.PitchCommand": 1,
+  "lilypond.SequentialEnd": 2,
+  "lilypond.SequentialStart": 2,
+  "lilypond.SimultaneousEnd": 1,
+  "lilypond.SimultaneousStart": 1,
+  "lilypond.Spacer": 1,
+  "lilypond.String": 3,
+  "lilypond.StringQuotedEnd": 2,
+  "lilypond.StringQuotedStart": 2,
+  "lilypond.TremoloColon": 8,
+  "lilypond.TremoloDuration": 1,
+  "lilypond.UserCommand": 1
+ },
+ "definitions": [
+  [
+   "music",
+   117
+  ]
+ ],
+ "global_staff_size": null,
+ "has_output": true,
+ "include_args": [],
+ "language": null,
+ "markup_definitions": [],
+ "mode": "lilypond",
+ "output_args": [],
+ "scheme_load_args": [],
+ "token_count": 119,
+ "version": [
+  2,
+  23,
+  3
+ ],
+ "version_string": "2.23.3"
+}

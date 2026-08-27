@@ -1,0 +1,32 @@
+{
+ "complete": false,
+ "counted_tokens": {
+  "_token.Newline": 3,
+  "_token.Space": 7,
+  "lilypond.Keyword": 1,
+  "lilypond.Length": 1,
+  "lilypond.Note": 5,
+  "lilypond.Octave": 1,
+  "lilypond.PitchCommand": 1,
+  "lilypond.SequentialStart": 1,
+  "lilypond.String": 1,
+  "lilypond.StringQuotedEnd": 1,
+  "lilypond.StringQuotedStart": 1
+ },
+ "definitions": [],
+ "global_staff_size": null,
+ "has_output": true,
+ "include_args": [],
+ "language": null,
+ "markup_definitions": [],
+ "mode": "lilypond",
+ "output_args": [],
+ "scheme_load_args": [],
+ "token_count": 23,
+ "version": [
+  2,
+  20,
+  0
+ ],
+ "version_string": "2.20.0"
+}

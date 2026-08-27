@@ -1,0 +1,710 @@
+{
+ "has_output": true,
+ "known_fixes": [
+  {
+   "module": "ly.music.read",
+   "new": "elif not item._specifier and isinstance(t, lex.StringStart):",
+   "old": "elif not item.specifier and isinstance(t, lex.StringStart):",
+   "why": "handle_repeat guards on the bound method item.specifier instead of the field item._specifier, so a quoted repeat specifier is never read and the repeat ends at the string (FR14)"
+  }
+ ],
+ "node_positions": [
+  [
+   0,
+   "Version",
+   0
+  ],
+  [
+   7,
+   "Version",
+   0
+  ],
+  [
+   14,
+   "String",
+   9
+  ],
+  [
+   21,
+   "Header",
+   20
+  ],
+  [
+   28,
+   "Header",
+   20
+  ],
+  [
+   35,
+   "Assignment",
+   32
+  ],
+  [
+   42,
+   "String",
+   42
+  ],
+  [
+   49,
+   "String",
+   42
+  ],
+  [
+   56,
+   "String",
+   42
+  ],
+  [
+   63,
+   "String",
+   42
+  ],
+  [
+   70,
+   "String",
+   42
+  ],
+  [
+   77,
+   "String",
+   42
+  ],
+  [
+   84,
+   "String",
+   42
+  ],
+  [
+   91,
+   "String",
+   42
+  ],
+  [
+   98,
+   "String",
+   42
+  ],
+  [
+   105,
+   "String",
+   42
+  ],
+  [
+   112,
+   "String",
+   42
+  ],
+  [
+   119,
+   "String",
+   42
+  ],
+  [
+   126,
+   "String",
+   42
+  ],
+  [
+   133,
+   "String",
+   42
+  ],
+  [
+   140,
+   "String",
+   42
+  ],
+  [
+   147,
+   "String",
+   42
+  ],
+  [
+   154,
+   "String",
+   42
+  ],
+  [
+   161,
+   "String",
+   42
+  ],
+  [
+   168,
+   "String",
+   42
+  ],
+  [
+   175,
+   "String",
+   42
+  ],
+  [
+   182,
+   "String",
+   42
+  ],
+  [
+   189,
+   "String",
+   42
+  ],
+  [
+   196,
+   "Relative",
+   190
+  ],
+  [
+   203,
+   "MusicList",
+   200
+  ],
+  [
+   210,
+   "Dynamic",
+   208
+  ],
+  [
+   217,
+   "Dynamic",
+   216
+  ],
+  [
+   224,
+   "Dynamic",
+   224
+  ],
+  [
+   231,
+   "Note",
+   230
+  ],
+  [
+   238,
+   "Dynamic",
+   234
+  ],
+  [
+   245,
+   "Dynamic",
+   245
+  ],
+  [
+   252,
+   "Dynamic",
+   252
+  ],
+  [
+   257,
+   "Dynamic",
+   252
+  ]
+ ],
+ "time_positions": [
+  [
+   0,
+   null
+  ],
+  [
+   7,
+   null
+  ],
+  [
+   14,
+   null
+  ],
+  [
+   21,
+   null
+  ],
+  [
+   28,
+   null
+  ],
+  [
+   35,
+   null
+  ],
+  [
+   42,
+   null
+  ],
+  [
+   49,
+   null
+  ],
+  [
+   56,
+   null
+  ],
+  [
+   63,
+   null
+  ],
+  [
+   70,
+   null
+  ],
+  [
+   77,
+   null
+  ],
+  [
+   84,
+   null
+  ],
+  [
+   91,
+   null
+  ],
+  [
+   98,
+   null
+  ],
+  [
+   105,
+   null
+  ],
+  [
+   112,
+   null
+  ],
+  [
+   119,
+   null
+  ],
+  [
+   126,
+   null
+  ],
+  [
+   133,
+   null
+  ],
+  [
+   140,
+   null
+  ],
+  [
+   147,
+   null
+  ],
+  [
+   154,
+   null
+  ],
+  [
+   161,
+   null
+  ],
+  [
+   168,
+   null
+  ],
+  [
+   175,
+   null
+  ],
+  [
+   182,
+   null
+  ],
+  [
+   189,
+   null
+  ],
+  [
+   196,
+   "0/1"
+  ],
+  [
+   203,
+   "0/1"
+  ],
+  [
+   210,
+   "1/1"
+  ],
+  [
+   217,
+   "2/1"
+  ],
+  [
+   224,
+   "3/1"
+  ],
+  [
+   231,
+   "3/1"
+  ],
+  [
+   238,
+   "4/1"
+  ],
+  [
+   245,
+   "5/1"
+  ],
+  [
+   252,
+   "6/1"
+  ],
+  [
+   257,
+   null
+  ]
+ ],
+ "tree": {
+  "children": [
+   {
+    "children": [
+     {
+      "children": [],
+      "cls": "String",
+      "end": 18,
+      "length": "0/1",
+      "plaintext": "2.19.21",
+      "position": 9,
+      "token": "\"",
+      "tokens": [
+       "2.19.21",
+       "\""
+      ]
+     }
+    ],
+    "cls": "Version",
+    "end": 18,
+    "length": "0/1",
+    "plaintext": "",
+    "position": 0,
+    "token": "\\version",
+    "tokens": []
+   },
+   {
+    "children": [
+     {
+      "children": [
+       {
+        "children": [],
+        "cls": "String",
+        "end": 186,
+        "length": "0/1",
+        "plaintext": "If a dynamic has an explicit direction that differs from the \ndynamic line spanner's direction, automatically break the dynamic line spanner.\n",
+        "position": 42,
+        "token": "\"",
+        "tokens": [
+         "If a dynamic has an explicit direction that differs from the ",
+         "\n",
+         "dynamic line spanner's direction, automatically break the dynamic line spanner.",
+         "\n",
+         "\""
+        ]
+       }
+      ],
+      "cls": "Assignment",
+      "end": 186,
+      "length": "0/1",
+      "plaintext": "",
+      "position": 32,
+      "token": "texidoc",
+      "tokens": [
+       "="
+      ]
+     }
+    ],
+    "cls": "Header",
+    "end": 188,
+    "length": "0/1",
+    "plaintext": "",
+    "position": 20,
+    "token": "\\header",
+    "tokens": [
+     "{",
+     "}"
+    ]
+   },
+   {
+    "children": [
+     {
+      "children": [
+       {
+        "children": [
+         {
+          "children": [],
+          "cls": "Duration",
+          "end": 207,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 206,
+          "token": "1",
+          "tokens": []
+         }
+        ],
+        "cls": "Note",
+        "end": 207,
+        "length": "1/1",
+        "plaintext": "",
+        "position": 204,
+        "token": "c",
+        "tokens": []
+       },
+       {
+        "children": [
+         {
+          "children": [],
+          "cls": "Dynamic",
+          "end": 210,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 208,
+          "token": "\\<",
+          "tokens": []
+         }
+        ],
+        "cls": "Postfix",
+        "end": 210,
+        "length": "0/1",
+        "plaintext": "",
+        "position": 207,
+        "token": "^",
+        "tokens": []
+       },
+       {
+        "children": [
+         {
+          "children": [],
+          "cls": "Duration",
+          "end": 215,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 214,
+          "token": "1",
+          "tokens": []
+         }
+        ],
+        "cls": "Note",
+        "end": 215,
+        "length": "1/1",
+        "plaintext": "",
+        "position": 213,
+        "token": "c",
+        "tokens": []
+       },
+       {
+        "children": [
+         {
+          "children": [],
+          "cls": "Dynamic",
+          "end": 218,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 216,
+          "token": "\\>",
+          "tokens": []
+         }
+        ],
+        "cls": "Postfix",
+        "end": 218,
+        "length": "0/1",
+        "plaintext": "",
+        "position": 215,
+        "token": "_",
+        "tokens": []
+       },
+       {
+        "children": [
+         {
+          "children": [],
+          "cls": "Duration",
+          "end": 224,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 223,
+          "token": "1",
+          "tokens": []
+         }
+        ],
+        "cls": "Note",
+        "end": 224,
+        "length": "1/1",
+        "plaintext": "",
+        "position": 221,
+        "token": "f",
+        "tokens": []
+       },
+       {
+        "children": [],
+        "cls": "Dynamic",
+        "end": 226,
+        "length": "0/1",
+        "plaintext": "",
+        "position": 224,
+        "token": "\\p",
+        "tokens": []
+       },
+       {
+        "children": [
+         {
+          "children": [],
+          "cls": "Duration",
+          "end": 233,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 232,
+          "token": "1",
+          "tokens": []
+         }
+        ],
+        "cls": "Note",
+        "end": 233,
+        "length": "1/1",
+        "plaintext": "",
+        "position": 230,
+        "token": "c",
+        "tokens": []
+       },
+       {
+        "children": [
+         {
+          "children": [],
+          "cls": "Dynamic",
+          "end": 236,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 234,
+          "token": "\\<",
+          "tokens": []
+         }
+        ],
+        "cls": "Postfix",
+        "end": 236,
+        "length": "0/1",
+        "plaintext": "",
+        "position": 233,
+        "token": "^",
+        "tokens": []
+       },
+       {
+        "children": [
+         {
+          "children": [],
+          "cls": "Duration",
+          "end": 241,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 240,
+          "token": "1",
+          "tokens": []
+         }
+        ],
+        "cls": "Note",
+        "end": 241,
+        "length": "1/1",
+        "plaintext": "",
+        "position": 239,
+        "token": "c",
+        "tokens": []
+       },
+       {
+        "children": [
+         {
+          "children": [],
+          "cls": "Dynamic",
+          "end": 244,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 242,
+          "token": "\\p",
+          "tokens": []
+         }
+        ],
+        "cls": "Postfix",
+        "end": 244,
+        "length": "0/1",
+        "plaintext": "",
+        "position": 241,
+        "token": "_",
+        "tokens": []
+       },
+       {
+        "children": [
+         {
+          "children": [],
+          "cls": "Dynamic",
+          "end": 247,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 245,
+          "token": "\\>",
+          "tokens": []
+         }
+        ],
+        "cls": "Postfix",
+        "end": 247,
+        "length": "0/1",
+        "plaintext": "",
+        "position": 244,
+        "token": "^",
+        "tokens": []
+       },
+       {
+        "children": [
+         {
+          "children": [],
+          "cls": "Duration",
+          "end": 252,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 251,
+          "token": "1",
+          "tokens": []
+         }
+        ],
+        "cls": "Note",
+        "end": 252,
+        "length": "1/1",
+        "plaintext": "",
+        "position": 250,
+        "token": "c",
+        "tokens": []
+       },
+       {
+        "children": [],
+        "cls": "Dynamic",
+        "end": 254,
+        "length": "0/1",
+        "plaintext": "",
+        "position": 252,
+        "token": "\\!",
+        "tokens": []
+       }
+      ],
+      "cls": "MusicList",
+      "end": 256,
+      "length": "6/1",
+      "plaintext": "",
+      "position": 200,
+      "token": "{",
+      "tokens": [
+       "}"
+      ]
+     }
+    ],
+    "cls": "Relative",
+    "end": 256,
+    "length": "6/1",
+    "plaintext": "",
+    "position": 190,
+    "token": "\\relative",
+    "tokens": []
+   }
+  ],
+  "cls": "Document",
+  "end": 256,
+  "length": "0/1",
+  "plaintext": "",
+  "position": -1,
+  "token": null,
+  "tokens": []
+ }
+}

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.2"
+     width="11.9496mm" height="11.9496mm"
+     viewBox="0.0000 -0.0000 6.8000 6.8000">
+<g fill="currentColor" color="black">
+<g transform="translate(3.4000, 3.8680)">
+<path transform="scale(0.0040, -0.0040)" d="M0 0c0 31 25 56 56 56s56 -25 56 -56s-25 -56 -56 -56s-56 25 -56 56z" fill="currentColor"/>
+</g>
+<g transform="translate(3.4000, 2.8680)">
+<path transform="scale(0.0040, -0.0040)" d="M0 0c0 31 25 56 56 56s56 -25 56 -56s-25 -56 -56 -56s-56 25 -56 56z" fill="currentColor"/>
+</g>
+<g transform="scale(-1.0000, 1.0000)">
+<g transform="translate(-5.2400, 5.3680)">
+<path transform="scale(0.0040, -0.0040)" d="M0 56h75c173 0 289 -220 388 -364c2 -3 3 -6 3 -9c0 -9 -9 -16 -17 -16c-4 0 -9 2 -12 7c-91 134 -203 270 -362 270h-50c-14 0 -25 11 -25 25v87z" fill="currentColor"/>
+</g>
+<g transform="translate(-5.2400, 1.3680)">
+<path transform="scale(0.0040, -0.0040)" d="M0 -56v87c0 14 11 25 25 25h50c159 0 271 136 362 270c3 5 8 7 12 7c8 0 17 -7 17 -16c0 -3 -1 -6 -3 -9c-99 -144 -215 -364 -388 -364h-75z" fill="currentColor"/>
+</g>
+<g transform="translate(-5.2400, 3.3680)">
+<rect x="0.0000" y="-2.0000" width="0.6000" height="4.0000" ry="0.0000" fill="currentColor"/>
+</g>
+</g>
+<g transform="translate(4.1500, 3.3680)">
+<rect x="0.0000" y="-2.0000" width="0.1900" height="4.0000" ry="0.0000" fill="currentColor"/>
+</g>
+<g transform="translate(0.6000, 5.3680)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1200" stroke="currentColor" x1="0.0600" y1="-0.0000" x2="5.4400" y2="-0.0000"/>
+</g>
+<g transform="translate(0.6000, 4.3680)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1200" stroke="currentColor" x1="0.0600" y1="-0.0000" x2="5.4400" y2="-0.0000"/>
+</g>
+<g transform="translate(0.6000, 3.3680)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1200" stroke="currentColor" x1="0.0600" y1="-0.0000" x2="5.4400" y2="-0.0000"/>
+</g>
+<g transform="translate(0.6000, 2.3680)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1200" stroke="currentColor" x1="0.0600" y1="-0.0000" x2="5.4400" y2="-0.0000"/>
+</g>
+<g transform="translate(0.6000, 1.3680)">
+<line stroke-linejoin="round" stroke-linecap="round" stroke-width="0.1200" stroke="currentColor" x1="0.0600" y1="-0.0000" x2="5.4400" y2="-0.0000"/>
+</g>
+</g>
+</svg>

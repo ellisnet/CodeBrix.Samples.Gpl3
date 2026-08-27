@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.2"
+     width="7.7321mm" height="7.7321mm"
+     viewBox="0.0000 -0.0000 4.4000 4.4000">
+<g fill="currentColor" color="black">
+<g transform="translate(3.7594, 3.1144)">
+<rect x="-0.0650" y="-2.1144" width="0.1300" height="1.5000" ry="0.0400" fill="currentColor"/>
+</g>
+<g transform="translate(2.9065, 2.6144)">
+<path transform="scale(0.0028, -0.0028)" d="M0 -40c0 92 109 179 208 179c67 0 117 -40 117 -99c0 -88 -103 -179 -211 -179c-71 0 -114 43 -114 99z" fill="currentColor"/>
+</g>
+<g transform="translate(2.5159, 3.1144)">
+<rect x="-0.0650" y="-3.1144" width="0.1300" height="1.5000" ry="0.0400" fill="currentColor"/>
+</g>
+<g transform="translate(1.6630, 1.6144)">
+<path transform="scale(0.0028, -0.0028)" d="M0 -40c0 92 109 179 208 179c67 0 117 -40 117 -99c0 -88 -103 -179 -211 -179c-71 0 -114 43 -114 99z" fill="currentColor"/>
+</g>
+<g transform="translate(1.0224, 3.1144)">
+<rect x="-0.0650" y="-2.6144" width="0.1300" height="1.5000" ry="0.0400" fill="currentColor"/>
+</g>
+<g transform="translate(0.1695, 4.1043)">
+<text font-family="serif" font-size="1.7459" text-anchor="start" fill="currentColor">
+<tspan>aa</tspan>
+</text>
+</g>
+<g transform="translate(0.1695, 2.1144)">
+<path transform="scale(0.0028, -0.0028)" d="M0 -40c0 92 109 179 208 179c67 0 117 -40 117 -99c0 -88 -103 -179 -211 -179c-71 0 -114 43 -114 99z" fill="currentColor"/>
+</g>
+<g transform="translate(2.1615, 4.1043)">
+<rect x="0.0000" y="-0.0800" width="1.6629" height="0.0800" ry="0.0320" fill="currentColor"/>
+</g>
+</g>
+</svg>

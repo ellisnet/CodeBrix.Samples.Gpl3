@@ -1,0 +1,43 @@
+{
+ "complete": true,
+ "counted_tokens": {
+  "_token.Newline": 13,
+  "_token.Space": 17,
+  "lilypond.ChordMode": 1,
+  "lilypond.ChordModifier": 1,
+  "lilypond.ChordSeparator": 3,
+  "lilypond.ChordStepNumber": 4,
+  "lilypond.CloseBracket": 2,
+  "lilypond.DotChord": 1,
+  "lilypond.EqualSign": 2,
+  "lilypond.Header": 1,
+  "lilypond.HeaderVariable": 1,
+  "lilypond.Keyword": 1,
+  "lilypond.Layout": 1,
+  "lilypond.LayoutVariable": 1,
+  "lilypond.Note": 3,
+  "lilypond.OpenBracket": 3,
+  "lilypond.SchemeStart": 1,
+  "lilypond.SequentialEnd": 1,
+  "lilypond.String": 3,
+  "lilypond.StringQuotedEnd": 2,
+  "lilypond.StringQuotedStart": 2,
+  "scheme.Bool": 1
+ },
+ "definitions": [],
+ "global_staff_size": null,
+ "has_output": true,
+ "include_args": [],
+ "language": null,
+ "markup_definitions": [],
+ "mode": "lilypond",
+ "output_args": [],
+ "scheme_load_args": [],
+ "token_count": 65,
+ "version": [
+  2,
+  16,
+  0
+ ],
+ "version_string": "2.16.0"
+}

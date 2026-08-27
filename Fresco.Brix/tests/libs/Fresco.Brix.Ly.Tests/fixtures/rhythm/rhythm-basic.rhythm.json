@@ -1,0 +1,156 @@
+{
+ "extract": [
+  "4",
+  "8",
+  "16",
+  "",
+  "2",
+  "1",
+  "4.",
+  "8.",
+  "16",
+  "2."
+ ],
+ "music_items": [
+  [
+   43,
+   45,
+   44,
+   true,
+   [
+    "c"
+   ],
+   [
+    "4"
+   ]
+  ],
+  [
+   46,
+   48,
+   47,
+   true,
+   [
+    "d"
+   ],
+   [
+    "8"
+   ]
+  ],
+  [
+   49,
+   52,
+   50,
+   true,
+   [
+    "e"
+   ],
+   [
+    "16"
+   ]
+  ],
+  [
+   53,
+   54,
+   54,
+   true,
+   [
+    "f"
+   ],
+   []
+  ],
+  [
+   55,
+   57,
+   56,
+   true,
+   [
+    "g"
+   ],
+   [
+    "2"
+   ]
+  ],
+  [
+   58,
+   60,
+   59,
+   true,
+   [
+    "a"
+   ],
+   [
+    "1"
+   ]
+  ],
+  [
+   63,
+   66,
+   64,
+   true,
+   [
+    "b"
+   ],
+   [
+    "4",
+    "."
+   ]
+  ],
+  [
+   67,
+   70,
+   68,
+   true,
+   [
+    "c"
+   ],
+   [
+    "8",
+    "."
+   ]
+  ],
+  [
+   71,
+   74,
+   72,
+   true,
+   [
+    "d"
+   ],
+   [
+    "16"
+   ]
+  ],
+  [
+   75,
+   78,
+   76,
+   true,
+   [
+    "e"
+   ],
+   [
+    "2",
+    "."
+   ]
+  ]
+ ],
+ "overwrite_durations": [
+  "4",
+  "8",
+  "",
+  "16."
+ ],
+ "results": {
+  "dot": "\\version \"2.27.2\"\nmusic = \\relative c' {\n  c4. d8. e16. f g2. a1.\n  b4.. c8.. d16. e2..\n}\n",
+  "double": "\\version \"2.27.2\"\nmusic = \\relative c' {\n  c2 d4 e8 f g1 a\\breve\n  b2. c4. d8 e1.\n}\n",
+  "explicit": "\\version \"2.27.2\"\nmusic = \\relative c' {\n  c4 d8 e16 f16 g2 a1\n  b4. c8. d16 e2.\n}\n",
+  "halve": "\\version \"2.27.2\"\nmusic = \\relative c' {\n  c8 d16 e32 f g4 a2\n  b8. c16. d32 e4.\n}\n",
+  "implicit": "\\version \"2.27.2\"\nmusic = \\relative c' {\n  c4 d8 e16 f g2 a1\n  b4. c8. d16 e2.\n}\n",
+  "implicit_per_line": "\\version \"2.27.2\"\nmusic = \\relative c' {\n  c4 d8 e16 f g2 a1\n  b4. c8. d16 e2.\n}\n",
+  "overwrite": "\\version \"2.27.2\"\nmusic = \\relative c' {\n  c4 d8 e f16. g4 a8\n  b c16. d4 e8\n}\n",
+  "remove": "\\version \"2.27.2\"\nmusic = \\relative c' {\n  c d e f g a\n  b c d e\n}\n",
+  "remove_fraction_scaling": "\\version \"2.27.2\"\nmusic = \\relative c' {\n  c4 d8 e16 f g2 a1\n  b4. c8. d16 e2.\n}\n",
+  "remove_scaling": "\\version \"2.27.2\"\nmusic = \\relative c' {\n  c4 d8 e16 f g2 a1\n  b4. c8. d16 e2.\n}\n",
+  "undot": "\\version \"2.27.2\"\nmusic = \\relative c' {\n  c4 d8 e16 f g2 a1\n  b4 c8 d16 e2\n}\n"
+ }
+}

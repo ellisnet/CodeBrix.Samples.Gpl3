@@ -1,0 +1,483 @@
+{
+ "has_output": false,
+ "known_fixes": [
+  {
+   "module": "ly.music.read",
+   "new": "elif not item._specifier and isinstance(t, lex.StringStart):",
+   "old": "elif not item.specifier and isinstance(t, lex.StringStart):",
+   "why": "handle_repeat guards on the bound method item.specifier instead of the field item._specifier, so a quoted repeat specifier is never read and the repeat ends at the string (FR14)"
+  }
+ ],
+ "node_positions": [
+  [
+   0,
+   "Version",
+   0
+  ],
+  [
+   7,
+   "Version",
+   0
+  ],
+  [
+   14,
+   "String",
+   9
+  ],
+  [
+   21,
+   "Assignment",
+   18
+  ],
+  [
+   28,
+   "Assignment",
+   18
+  ],
+  [
+   35,
+   "ChordMode",
+   30
+  ],
+  [
+   42,
+   "MusicList",
+   41
+  ],
+  [
+   49,
+   "ChordSpecifier",
+   49
+  ],
+  [
+   56,
+   "Note",
+   56
+  ],
+  [
+   63,
+   "ChordItem",
+   61
+  ],
+  [
+   70,
+   "Assignment",
+   65
+  ],
+  [
+   77,
+   "Relative",
+   73
+  ],
+  [
+   84,
+   "Note",
+   83
+  ],
+  [
+   91,
+   "Note",
+   91
+  ],
+  [
+   98,
+   "Note",
+   95
+  ],
+  [
+   99,
+   "Note",
+   95
+  ]
+ ],
+ "time_positions": [
+  [
+   0,
+   null
+  ],
+  [
+   7,
+   null
+  ],
+  [
+   14,
+   null
+  ],
+  [
+   21,
+   "0/1"
+  ],
+  [
+   28,
+   "0/1"
+  ],
+  [
+   35,
+   "0/1"
+  ],
+  [
+   42,
+   "0/1"
+  ],
+  [
+   49,
+   "2/1"
+  ],
+  [
+   56,
+   "3/1"
+  ],
+  [
+   63,
+   null
+  ],
+  [
+   70,
+   "0/1"
+  ],
+  [
+   77,
+   "0/1"
+  ],
+  [
+   84,
+   "0/1"
+  ],
+  [
+   91,
+   "1/4"
+  ],
+  [
+   98,
+   "1/1"
+  ],
+  [
+   99,
+   null
+  ]
+ ],
+ "tree": {
+  "children": [
+   {
+    "children": [
+     {
+      "children": [],
+      "cls": "String",
+      "end": 17,
+      "length": "0/1",
+      "plaintext": "2.27.2",
+      "position": 9,
+      "token": "\"",
+      "tokens": [
+       "2.27.2",
+       "\""
+      ]
+     }
+    ],
+    "cls": "Version",
+    "end": 17,
+    "length": "0/1",
+    "plaintext": "",
+    "position": 0,
+    "token": "\\version",
+    "tokens": []
+   },
+   {
+    "children": [
+     {
+      "children": [
+       {
+        "children": [
+         {
+          "children": [
+           {
+            "children": [],
+            "cls": "Duration",
+            "end": 47,
+            "length": "0/1",
+            "plaintext": "",
+            "position": 46,
+            "token": "1",
+            "tokens": []
+           }
+          ],
+          "cls": "Note",
+          "end": 47,
+          "length": "1/1",
+          "plaintext": "",
+          "position": 45,
+          "token": "c",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "Note",
+          "end": 49,
+          "length": "1/1",
+          "plaintext": "",
+          "position": 48,
+          "token": "g",
+          "tokens": []
+         },
+         {
+          "children": [
+           {
+            "children": [],
+            "cls": "ChordItem",
+            "end": 50,
+            "length": "0/1",
+            "plaintext": "",
+            "position": 49,
+            "token": ":",
+            "tokens": []
+           },
+           {
+            "children": [],
+            "cls": "ChordItem",
+            "end": 51,
+            "length": "0/1",
+            "plaintext": "",
+            "position": 50,
+            "token": "7",
+            "tokens": []
+           }
+          ],
+          "cls": "ChordSpecifier",
+          "end": 51,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 49,
+          "token": null,
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "Note",
+          "end": 53,
+          "length": "1/1",
+          "plaintext": "",
+          "position": 52,
+          "token": "a",
+          "tokens": []
+         },
+         {
+          "children": [
+           {
+            "children": [],
+            "cls": "ChordItem",
+            "end": 54,
+            "length": "0/1",
+            "plaintext": "",
+            "position": 53,
+            "token": ":",
+            "tokens": []
+           },
+           {
+            "children": [],
+            "cls": "ChordItem",
+            "end": 55,
+            "length": "0/1",
+            "plaintext": "",
+            "position": 54,
+            "token": "m",
+            "tokens": []
+           }
+          ],
+          "cls": "ChordSpecifier",
+          "end": 55,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 53,
+          "token": null,
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "Note",
+          "end": 57,
+          "length": "1/1",
+          "plaintext": "",
+          "position": 56,
+          "token": "d",
+          "tokens": []
+         },
+         {
+          "children": [
+           {
+            "children": [],
+            "cls": "ChordItem",
+            "end": 58,
+            "length": "0/1",
+            "plaintext": "",
+            "position": 57,
+            "token": ":",
+            "tokens": []
+           },
+           {
+            "children": [],
+            "cls": "ChordItem",
+            "end": 61,
+            "length": "0/1",
+            "plaintext": "",
+            "position": 58,
+            "token": "maj",
+            "tokens": []
+           },
+           {
+            "children": [],
+            "cls": "ChordItem",
+            "end": 62,
+            "length": "0/1",
+            "plaintext": "",
+            "position": 61,
+            "token": "7",
+            "tokens": []
+           }
+          ],
+          "cls": "ChordSpecifier",
+          "end": 62,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 57,
+          "token": null,
+          "tokens": []
+         }
+        ],
+        "cls": "MusicList",
+        "end": 62,
+        "length": "4/1",
+        "plaintext": "",
+        "position": 41,
+        "token": "{",
+        "tokens": [
+         ":"
+        ]
+       }
+      ],
+      "cls": "ChordMode",
+      "end": 62,
+      "length": "4/1",
+      "plaintext": "",
+      "position": 30,
+      "token": "\\chordmode",
+      "tokens": []
+     }
+    ],
+    "cls": "Assignment",
+    "end": 62,
+    "length": "0/1",
+    "plaintext": "",
+    "position": 18,
+    "token": "harmonies",
+    "tokens": [
+     "="
+    ]
+   },
+   {
+    "children": [
+     {
+      "children": [
+       {
+        "children": [],
+        "cls": "Note",
+        "end": 85,
+        "length": "0/1",
+        "plaintext": "",
+        "position": 83,
+        "token": "c",
+        "tokens": []
+       },
+       {
+        "children": [
+         {
+          "children": [
+           {
+            "children": [],
+            "cls": "Duration",
+            "end": 90,
+            "length": "0/1",
+            "plaintext": "",
+            "position": 89,
+            "token": "4",
+            "tokens": []
+           }
+          ],
+          "cls": "Note",
+          "end": 90,
+          "length": "1/4",
+          "plaintext": "",
+          "position": 88,
+          "token": "c",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "Note",
+          "end": 92,
+          "length": "1/4",
+          "plaintext": "",
+          "position": 91,
+          "token": "d",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "Note",
+          "end": 94,
+          "length": "1/4",
+          "plaintext": "",
+          "position": 93,
+          "token": "e",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "Note",
+          "end": 96,
+          "length": "1/4",
+          "plaintext": "",
+          "position": 95,
+          "token": "f",
+          "tokens": []
+         }
+        ],
+        "cls": "MusicList",
+        "end": 98,
+        "length": "1/1",
+        "plaintext": "",
+        "position": 86,
+        "token": "{",
+        "tokens": [
+         "}"
+        ]
+       }
+      ],
+      "cls": "Relative",
+      "end": 98,
+      "length": "1/1",
+      "plaintext": "",
+      "position": 73,
+      "token": "\\relative",
+      "tokens": []
+     }
+    ],
+    "cls": "Assignment",
+    "end": 98,
+    "length": "0/1",
+    "plaintext": "",
+    "position": 65,
+    "token": "music",
+    "tokens": [
+     "="
+    ]
+   }
+  ],
+  "cls": "Document",
+  "end": 98,
+  "length": "0/1",
+  "plaintext": "",
+  "position": -1,
+  "token": null,
+  "tokens": []
+ }
+}

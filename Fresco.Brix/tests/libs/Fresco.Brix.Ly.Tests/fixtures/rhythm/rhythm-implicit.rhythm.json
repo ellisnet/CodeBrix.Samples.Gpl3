@@ -1,0 +1,165 @@
+{
+ "extract": [
+  "4",
+  "4",
+  "4",
+  "4",
+  "8",
+  "8",
+  "8",
+  "8",
+  "2",
+  "2"
+ ],
+ "music_items": [
+  [
+   30,
+   33,
+   32,
+   true,
+   [
+    "c",
+    "'"
+   ],
+   [
+    "4"
+   ]
+  ],
+  [
+   34,
+   37,
+   36,
+   true,
+   [
+    "d",
+    "'"
+   ],
+   [
+    "4"
+   ]
+  ],
+  [
+   38,
+   41,
+   40,
+   true,
+   [
+    "e",
+    "'"
+   ],
+   [
+    "4"
+   ]
+  ],
+  [
+   42,
+   45,
+   44,
+   true,
+   [
+    "f",
+    "'"
+   ],
+   [
+    "4"
+   ]
+  ],
+  [
+   48,
+   51,
+   50,
+   true,
+   [
+    "g",
+    "'"
+   ],
+   [
+    "8"
+   ]
+  ],
+  [
+   52,
+   55,
+   54,
+   true,
+   [
+    "a",
+    "'"
+   ],
+   [
+    "8"
+   ]
+  ],
+  [
+   56,
+   59,
+   58,
+   true,
+   [
+    "b",
+    "'"
+   ],
+   [
+    "8"
+   ]
+  ],
+  [
+   60,
+   64,
+   63,
+   true,
+   [
+    "c",
+    "''"
+   ],
+   [
+    "8"
+   ]
+  ],
+  [
+   67,
+   71,
+   70,
+   true,
+   [
+    "d",
+    "''"
+   ],
+   [
+    "2"
+   ]
+  ],
+  [
+   72,
+   76,
+   75,
+   true,
+   [
+    "e",
+    "''"
+   ],
+   [
+    "2"
+   ]
+  ]
+ ],
+ "overwrite_durations": [
+  "4",
+  "8",
+  "",
+  "16."
+ ],
+ "results": {
+  "dot": "\\version \"2.27.2\"\nmusic = {\n  c'4. d'4. e'4. f'4.\n  g'8. a'8. b'8. c''8.\n  d''2. e''2.\n}\n",
+  "double": "\\version \"2.27.2\"\nmusic = {\n  c'2 d'2 e'2 f'2\n  g'4 a'4 b'4 c''4\n  d''1 e''1\n}\n",
+  "explicit": "\\version \"2.27.2\"\nmusic = {\n  c'4 d'4 e'4 f'4\n  g'8 a'8 b'8 c''8\n  d''2 e''2\n}\n",
+  "halve": "\\version \"2.27.2\"\nmusic = {\n  c'8 d'8 e'8 f'8\n  g'16 a'16 b'16 c''16\n  d''4 e''4\n}\n",
+  "implicit": "\\version \"2.27.2\"\nmusic = {\n  c'4 d' e' f'\n  g'8 a' b' c''\n  d''2 e''\n}\n",
+  "implicit_per_line": "\\version \"2.27.2\"\nmusic = {\n  c'4 d' e' f'\n  g'8 a' b' c''\n  d''2 e''\n}\n",
+  "overwrite": "\\version \"2.27.2\"\nmusic = {\n  c'4 d'8 e' f'16.\n  g'4 a'8 b' c''16.\n  d''4 e''8\n}\n",
+  "remove": "\\version \"2.27.2\"\nmusic = {\n  c' d' e' f'\n  g' a' b' c''\n  d'' e''\n}\n",
+  "remove_fraction_scaling": "\\version \"2.27.2\"\nmusic = {\n  c'4 d'4 e'4 f'4\n  g'8 a'8 b'8 c''8\n  d''2 e''2\n}\n",
+  "remove_scaling": "\\version \"2.27.2\"\nmusic = {\n  c'4 d'4 e'4 f'4\n  g'8 a'8 b'8 c''8\n  d''2 e''2\n}\n",
+  "undot": "\\version \"2.27.2\"\nmusic = {\n  c'4 d'4 e'4 f'4\n  g'8 a'8 b'8 c''8\n  d''2 e''2\n}\n"
+ }
+}

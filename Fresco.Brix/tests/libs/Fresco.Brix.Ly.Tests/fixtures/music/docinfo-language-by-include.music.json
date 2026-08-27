@@ -1,0 +1,278 @@
+{
+ "has_output": false,
+ "known_fixes": [
+  {
+   "module": "ly.music.read",
+   "new": "elif not item._specifier and isinstance(t, lex.StringStart):",
+   "old": "elif not item.specifier and isinstance(t, lex.StringStart):",
+   "why": "handle_repeat guards on the bound method item.specifier instead of the field item._specifier, so a quoted repeat specifier is never read and the repeat ends at the string (FR14)"
+  }
+ ],
+ "node_positions": [
+  [
+   0,
+   "Version",
+   0
+  ],
+  [
+   7,
+   "Version",
+   0
+  ],
+  [
+   14,
+   "String",
+   9
+  ],
+  [
+   21,
+   "Language",
+   18
+  ],
+  [
+   28,
+   "String",
+   27
+  ],
+  [
+   35,
+   "String",
+   27
+  ],
+  [
+   42,
+   "Assignment",
+   42
+  ],
+  [
+   49,
+   "Assignment",
+   42
+  ],
+  [
+   56,
+   "Relative",
+   52
+  ],
+  [
+   63,
+   "Note",
+   62
+  ],
+  [
+   70,
+   "Note",
+   68
+  ],
+  [
+   77,
+   "Note",
+   77
+  ],
+  [
+   82,
+   "Note",
+   77
+  ]
+ ],
+ "time_positions": [
+  [
+   0,
+   null
+  ],
+  [
+   7,
+   null
+  ],
+  [
+   14,
+   null
+  ],
+  [
+   21,
+   null
+  ],
+  [
+   28,
+   null
+  ],
+  [
+   35,
+   null
+  ],
+  [
+   42,
+   "0/1"
+  ],
+  [
+   49,
+   "0/1"
+  ],
+  [
+   56,
+   "0/1"
+  ],
+  [
+   63,
+   "0/1"
+  ],
+  [
+   70,
+   "1/4"
+  ],
+  [
+   77,
+   "3/4"
+  ],
+  [
+   82,
+   null
+  ]
+ ],
+ "tree": {
+  "children": [
+   {
+    "children": [
+     {
+      "children": [],
+      "cls": "String",
+      "end": 17,
+      "length": "0/1",
+      "plaintext": "2.22.1",
+      "position": 9,
+      "token": "\"",
+      "tokens": [
+       "2.22.1",
+       "\""
+      ]
+     }
+    ],
+    "cls": "Version",
+    "end": 17,
+    "length": "0/1",
+    "plaintext": "",
+    "position": 0,
+    "token": "\\version",
+    "tokens": []
+   },
+   {
+    "children": [
+     {
+      "children": [],
+      "cls": "String",
+      "end": 40,
+      "length": "0/1",
+      "plaintext": "italiano.ly",
+      "position": 27,
+      "token": "\"",
+      "tokens": [
+       "italiano.ly",
+       "\""
+      ]
+     }
+    ],
+    "cls": "Language",
+    "end": 40,
+    "length": "0/1",
+    "plaintext": "",
+    "position": 18,
+    "token": "\\include",
+    "tokens": []
+   },
+   {
+    "children": [
+     {
+      "children": [
+       {
+        "children": [],
+        "cls": "Note",
+        "end": 65,
+        "length": "0/1",
+        "plaintext": "",
+        "position": 62,
+        "token": "do",
+        "tokens": []
+       },
+       {
+        "children": [
+         {
+          "children": [],
+          "cls": "Note",
+          "end": 70,
+          "length": "1/4",
+          "plaintext": "",
+          "position": 68,
+          "token": "do",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "Note",
+          "end": 73,
+          "length": "1/4",
+          "plaintext": "",
+          "position": 71,
+          "token": "re",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "Note",
+          "end": 76,
+          "length": "1/4",
+          "plaintext": "",
+          "position": 74,
+          "token": "mi",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "Note",
+          "end": 79,
+          "length": "1/4",
+          "plaintext": "",
+          "position": 77,
+          "token": "fa",
+          "tokens": []
+         }
+        ],
+        "cls": "MusicList",
+        "end": 81,
+        "length": "1/1",
+        "plaintext": "",
+        "position": 66,
+        "token": "{",
+        "tokens": [
+         "}"
+        ]
+       }
+      ],
+      "cls": "Relative",
+      "end": 81,
+      "length": "1/1",
+      "plaintext": "",
+      "position": 52,
+      "token": "\\relative",
+      "tokens": []
+     }
+    ],
+    "cls": "Assignment",
+    "end": 81,
+    "length": "0/1",
+    "plaintext": "",
+    "position": 42,
+    "token": "melodia",
+    "tokens": [
+     "="
+    ]
+   }
+  ],
+  "cls": "Document",
+  "end": 81,
+  "length": "0/1",
+  "plaintext": "",
+  "position": -1,
+  "token": null,
+  "tokens": []
+ }
+}

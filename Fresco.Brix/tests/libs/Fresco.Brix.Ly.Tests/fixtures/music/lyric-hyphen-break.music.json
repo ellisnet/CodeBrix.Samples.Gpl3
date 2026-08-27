@@ -1,0 +1,1964 @@
+{
+ "has_output": true,
+ "known_fixes": [
+  {
+   "module": "ly.music.read",
+   "new": "elif not item._specifier and isinstance(t, lex.StringStart):",
+   "old": "elif not item.specifier and isinstance(t, lex.StringStart):",
+   "why": "handle_repeat guards on the bound method item.specifier instead of the field item._specifier, so a quoted repeat specifier is never read and the repeat ends at the string (FR14)"
+  }
+ ],
+ "node_positions": [
+  [
+   0,
+   "Version",
+   0
+  ],
+  [
+   7,
+   "Version",
+   0
+  ],
+  [
+   14,
+   "String",
+   9
+  ],
+  [
+   21,
+   "Header",
+   19
+  ],
+  [
+   28,
+   "Header",
+   19
+  ],
+  [
+   35,
+   "Assignment",
+   32
+  ],
+  [
+   42,
+   "String",
+   42
+  ],
+  [
+   49,
+   "String",
+   42
+  ],
+  [
+   56,
+   "String",
+   42
+  ],
+  [
+   63,
+   "String",
+   42
+  ],
+  [
+   70,
+   "String",
+   42
+  ],
+  [
+   77,
+   "String",
+   42
+  ],
+  [
+   84,
+   "String",
+   42
+  ],
+  [
+   91,
+   "String",
+   42
+  ],
+  [
+   98,
+   "String",
+   42
+  ],
+  [
+   105,
+   "String",
+   42
+  ],
+  [
+   112,
+   "String",
+   42
+  ],
+  [
+   119,
+   "String",
+   42
+  ],
+  [
+   126,
+   "String",
+   42
+  ],
+  [
+   133,
+   "String",
+   42
+  ],
+  [
+   140,
+   "String",
+   42
+  ],
+  [
+   147,
+   "String",
+   42
+  ],
+  [
+   154,
+   "String",
+   42
+  ],
+  [
+   161,
+   "String",
+   42
+  ],
+  [
+   168,
+   "String",
+   42
+  ],
+  [
+   175,
+   "String",
+   42
+  ],
+  [
+   182,
+   "String",
+   42
+  ],
+  [
+   189,
+   "String",
+   42
+  ],
+  [
+   196,
+   "Layout",
+   195
+  ],
+  [
+   203,
+   "Layout",
+   195
+  ],
+  [
+   210,
+   "Assignment",
+   207
+  ],
+  [
+   217,
+   "Number",
+   216
+  ],
+  [
+   224,
+   "Command",
+   220
+  ],
+  [
+   231,
+   "Assignment",
+   226
+  ],
+  [
+   238,
+   "Assignment",
+   226
+  ],
+  [
+   245,
+   "Command",
+   243
+  ],
+  [
+   252,
+   "LayoutContext",
+   250
+  ],
+  [
+   259,
+   "LayoutContext",
+   250
+  ],
+  [
+   266,
+   "LayoutContext",
+   250
+  ],
+  [
+   273,
+   "Keyword",
+   272
+  ],
+  [
+   280,
+   "String",
+   280
+  ],
+  [
+   287,
+   "String",
+   280
+  ],
+  [
+   294,
+   "String",
+   280
+  ],
+  [
+   301,
+   "String",
+   280
+  ],
+  [
+   308,
+   "String",
+   280
+  ],
+  [
+   315,
+   "MusicList",
+   314
+  ],
+  [
+   322,
+   "Context",
+   319
+  ],
+  [
+   329,
+   "Context",
+   319
+  ],
+  [
+   336,
+   "Relative",
+   330
+  ],
+  [
+   343,
+   "MusicList",
+   340
+  ],
+  [
+   350,
+   "TimeSignature",
+   346
+  ],
+  [
+   357,
+   "TimeSignature",
+   346
+  ],
+  [
+   364,
+   "Duration",
+   363
+  ],
+  [
+   371,
+   "Note",
+   371
+  ],
+  [
+   378,
+   "Note",
+   378
+  ],
+  [
+   385,
+   "Note",
+   385
+  ],
+  [
+   392,
+   "Beam",
+   388
+  ],
+  [
+   399,
+   "Beam",
+   399
+  ],
+  [
+   406,
+   "Beam",
+   404
+  ],
+  [
+   413,
+   "Beam",
+   413
+  ],
+  [
+   420,
+   "Beam",
+   420
+  ],
+  [
+   427,
+   "Duration",
+   427
+  ],
+  [
+   434,
+   "Note",
+   433
+  ],
+  [
+   441,
+   "Beam",
+   436
+  ],
+  [
+   448,
+   "LyricMode",
+   442
+  ],
+  [
+   455,
+   "MusicList",
+   453
+  ],
+  [
+   462,
+   "LyricText",
+   459
+  ],
+  [
+   469,
+   "LyricText",
+   466
+  ],
+  [
+   476,
+   "LyricText",
+   473
+  ],
+  [
+   483,
+   "LyricText",
+   480
+  ],
+  [
+   490,
+   "LyricItem",
+   484
+  ],
+  [
+   497,
+   "LyricItem",
+   495
+  ],
+  [
+   504,
+   "LyricItem",
+   502
+  ],
+  [
+   511,
+   "LyricItem",
+   509
+  ],
+  [
+   518,
+   "LyricItem",
+   516
+  ],
+  [
+   525,
+   "Override",
+   523
+  ],
+  [
+   532,
+   "Override",
+   523
+  ],
+  [
+   539,
+   "PathItem",
+   533
+  ],
+  [
+   546,
+   "PathItem",
+   545
+  ],
+  [
+   553,
+   "PathItem",
+   545
+  ],
+  [
+   560,
+   "PathItem",
+   545
+  ],
+  [
+   567,
+   "Scheme",
+   567
+  ],
+  [
+   574,
+   "SchemeItem",
+   568
+  ],
+  [
+   581,
+   "LyricItem",
+   579
+  ],
+  [
+   588,
+   "LyricItem",
+   586
+  ],
+  [
+   595,
+   "LyricItem",
+   593
+  ],
+  [
+   602,
+   "LyricText",
+   600
+  ],
+  [
+   609,
+   "LyricText",
+   607
+  ],
+  [
+   616,
+   "LyricText",
+   614
+  ],
+  [
+   623,
+   "LyricText",
+   621
+  ],
+  [
+   630,
+   "LyricItem",
+   625
+  ],
+  [
+   637,
+   "LyricText",
+   632
+  ],
+  [
+   644,
+   "LyricText",
+   632
+  ],
+  [
+   651,
+   "LyricItem",
+   649
+  ],
+  [
+   658,
+   "LyricItem",
+   656
+  ],
+  [
+   665,
+   "LyricItem",
+   663
+  ],
+  [
+   672,
+   "LyricText",
+   666
+  ],
+  [
+   677,
+   "LyricText",
+   666
+  ]
+ ],
+ "time_positions": [
+  [
+   0,
+   null
+  ],
+  [
+   7,
+   null
+  ],
+  [
+   14,
+   null
+  ],
+  [
+   21,
+   null
+  ],
+  [
+   28,
+   null
+  ],
+  [
+   35,
+   null
+  ],
+  [
+   42,
+   null
+  ],
+  [
+   49,
+   null
+  ],
+  [
+   56,
+   null
+  ],
+  [
+   63,
+   null
+  ],
+  [
+   70,
+   null
+  ],
+  [
+   77,
+   null
+  ],
+  [
+   84,
+   null
+  ],
+  [
+   91,
+   null
+  ],
+  [
+   98,
+   null
+  ],
+  [
+   105,
+   null
+  ],
+  [
+   112,
+   null
+  ],
+  [
+   119,
+   null
+  ],
+  [
+   126,
+   null
+  ],
+  [
+   133,
+   null
+  ],
+  [
+   140,
+   null
+  ],
+  [
+   147,
+   null
+  ],
+  [
+   154,
+   null
+  ],
+  [
+   161,
+   null
+  ],
+  [
+   168,
+   null
+  ],
+  [
+   175,
+   null
+  ],
+  [
+   182,
+   null
+  ],
+  [
+   189,
+   null
+  ],
+  [
+   196,
+   null
+  ],
+  [
+   203,
+   null
+  ],
+  [
+   210,
+   null
+  ],
+  [
+   217,
+   null
+  ],
+  [
+   224,
+   null
+  ],
+  [
+   231,
+   null
+  ],
+  [
+   238,
+   null
+  ],
+  [
+   245,
+   null
+  ],
+  [
+   252,
+   null
+  ],
+  [
+   259,
+   null
+  ],
+  [
+   266,
+   null
+  ],
+  [
+   273,
+   null
+  ],
+  [
+   280,
+   null
+  ],
+  [
+   287,
+   null
+  ],
+  [
+   294,
+   null
+  ],
+  [
+   301,
+   null
+  ],
+  [
+   308,
+   null
+  ],
+  [
+   315,
+   "0/1"
+  ],
+  [
+   322,
+   "0/1"
+  ],
+  [
+   329,
+   "0/1"
+  ],
+  [
+   336,
+   "0/1"
+  ],
+  [
+   343,
+   "0/1"
+  ],
+  [
+   350,
+   "0/1"
+  ],
+  [
+   357,
+   "0/1"
+  ],
+  [
+   364,
+   "0/1"
+  ],
+  [
+   371,
+   "3/16"
+  ],
+  [
+   378,
+   "1/4"
+  ],
+  [
+   385,
+   "3/8"
+  ],
+  [
+   392,
+   "1/2"
+  ],
+  [
+   399,
+   "5/8"
+  ],
+  [
+   406,
+   "3/4"
+  ],
+  [
+   413,
+   "13/16"
+  ],
+  [
+   420,
+   "1/1"
+  ],
+  [
+   427,
+   "1/1"
+  ],
+  [
+   434,
+   "19/16"
+  ],
+  [
+   441,
+   "5/4"
+  ],
+  [
+   448,
+   "0/1"
+  ],
+  [
+   455,
+   "0/1"
+  ],
+  [
+   462,
+   "1/16"
+  ],
+  [
+   469,
+   "1/8"
+  ],
+  [
+   476,
+   "3/16"
+  ],
+  [
+   483,
+   "1/4"
+  ],
+  [
+   490,
+   "1/4"
+  ],
+  [
+   497,
+   "5/16"
+  ],
+  [
+   504,
+   "3/8"
+  ],
+  [
+   511,
+   "7/16"
+  ],
+  [
+   518,
+   "1/2"
+  ],
+  [
+   525,
+   "1/2"
+  ],
+  [
+   532,
+   "1/2"
+  ],
+  [
+   539,
+   "1/2"
+  ],
+  [
+   546,
+   "1/2"
+  ],
+  [
+   553,
+   "1/2"
+  ],
+  [
+   560,
+   "1/2"
+  ],
+  [
+   567,
+   "1/2"
+  ],
+  [
+   574,
+   "1/2"
+  ],
+  [
+   581,
+   "9/16"
+  ],
+  [
+   588,
+   "5/8"
+  ],
+  [
+   595,
+   "11/16"
+  ],
+  [
+   602,
+   "11/16"
+  ],
+  [
+   609,
+   "3/4"
+  ],
+  [
+   616,
+   "13/16"
+  ],
+  [
+   623,
+   "7/8"
+  ],
+  [
+   630,
+   "15/16"
+  ],
+  [
+   637,
+   "15/16"
+  ],
+  [
+   644,
+   "15/16"
+  ],
+  [
+   651,
+   "1/1"
+  ],
+  [
+   658,
+   "17/16"
+  ],
+  [
+   665,
+   "9/8"
+  ],
+  [
+   672,
+   "19/16"
+  ],
+  [
+   677,
+   null
+  ]
+ ],
+ "tree": {
+  "children": [
+   {
+    "children": [
+     {
+      "children": [],
+      "cls": "String",
+      "end": 17,
+      "length": "0/1",
+      "plaintext": "2.21.0",
+      "position": 9,
+      "token": "\"",
+      "tokens": [
+       "2.21.0",
+       "\""
+      ]
+     }
+    ],
+    "cls": "Version",
+    "end": 17,
+    "length": "0/1",
+    "plaintext": "",
+    "position": 0,
+    "token": "\\version",
+    "tokens": []
+   },
+   {
+    "children": [
+     {
+      "children": [
+       {
+        "children": [],
+        "cls": "String",
+        "end": 189,
+        "length": "0/1",
+        "plaintext": "Hyphens are printed at the beginning of the line only when\nthey go past the first note, or when property @code{after-line-breaking}\nis @code{#t}.",
+        "position": 42,
+        "token": "\"",
+        "tokens": [
+         "Hyphens are printed at the beginning of the line only when",
+         "\n",
+         "they go past the first note, or when property @code{after-line-breaking}",
+         "\n",
+         "is @code{#t}.",
+         "\""
+        ]
+       }
+      ],
+      "cls": "Assignment",
+      "end": 189,
+      "length": "0/1",
+      "plaintext": "",
+      "position": 32,
+      "token": "texidoc",
+      "tokens": [
+       "="
+      ]
+     }
+    ],
+    "cls": "Header",
+    "end": 192,
+    "length": "0/1",
+    "plaintext": "",
+    "position": 19,
+    "token": "\\header",
+    "tokens": [
+     "{",
+     "}"
+    ]
+   },
+   {
+    "children": [
+     {
+      "children": [
+       {
+        "children": [],
+        "cls": "Number",
+        "end": 219,
+        "length": "0/1",
+        "plaintext": "",
+        "position": 216,
+        "token": "0.0",
+        "tokens": []
+       },
+       {
+        "children": [],
+        "cls": "Command",
+        "end": 223,
+        "length": "0/1",
+        "plaintext": "",
+        "position": 220,
+        "token": "\\cm",
+        "tokens": []
+       }
+      ],
+      "cls": "Assignment",
+      "end": 223,
+      "length": "0/1",
+      "plaintext": "",
+      "position": 207,
+      "token": "indent",
+      "tokens": [
+       "="
+      ]
+     },
+     {
+      "children": [
+       {
+        "children": [],
+        "cls": "Number",
+        "end": 242,
+        "length": "0/1",
+        "plaintext": "",
+        "position": 239,
+        "token": "3.4",
+        "tokens": []
+       },
+       {
+        "children": [],
+        "cls": "Command",
+        "end": 246,
+        "length": "0/1",
+        "plaintext": "",
+        "position": 243,
+        "token": "\\cm",
+        "tokens": []
+       }
+      ],
+      "cls": "Assignment",
+      "end": 246,
+      "length": "0/1",
+      "plaintext": "",
+      "position": 226,
+      "token": "line-width",
+      "tokens": [
+       "="
+      ]
+     },
+     {
+      "children": [
+       {
+        "children": [],
+        "cls": "Keyword",
+        "end": 279,
+        "length": "0/1",
+        "plaintext": "",
+        "position": 272,
+        "token": "\\remove",
+        "tokens": []
+       },
+       {
+        "children": [],
+        "cls": "String",
+        "end": 305,
+        "length": "0/1",
+        "plaintext": "Time_signature_engraver",
+        "position": 280,
+        "token": "\"",
+        "tokens": [
+         "Time_signature_engraver",
+         "\""
+        ]
+       }
+      ],
+      "cls": "LayoutContext",
+      "end": 309,
+      "length": "0/1",
+      "plaintext": "",
+      "position": 250,
+      "token": "\\context",
+      "tokens": [
+       "{",
+       "}"
+      ]
+     }
+    ],
+    "cls": "Layout",
+    "end": 311,
+    "length": "0/1",
+    "plaintext": "",
+    "position": 195,
+    "token": "\\layout",
+    "tokens": [
+     "{",
+     "}"
+    ]
+   },
+   {
+    "children": [
+     {
+      "children": [
+       {
+        "children": [
+         {
+          "children": [
+           {
+            "children": [],
+            "cls": "TimeSignature",
+            "end": 351,
+            "length": "0/1",
+            "plaintext": "",
+            "position": 346,
+            "token": "\\time",
+            "tokens": []
+           },
+           {
+            "children": [
+             {
+              "children": [],
+              "cls": "Duration",
+              "end": 365,
+              "length": "0/1",
+              "plaintext": "",
+              "position": 363,
+              "token": "16",
+              "tokens": []
+             }
+            ],
+            "cls": "Note",
+            "end": 365,
+            "length": "1/16",
+            "plaintext": "",
+            "position": 360,
+            "token": "c",
+            "tokens": []
+           },
+           {
+            "children": [],
+            "cls": "Beam",
+            "end": 366,
+            "length": "0/1",
+            "plaintext": "",
+            "position": 365,
+            "token": "[",
+            "tokens": []
+           },
+           {
+            "children": [],
+            "cls": "Note",
+            "end": 368,
+            "length": "1/16",
+            "plaintext": "",
+            "position": 367,
+            "token": "c",
+            "tokens": []
+           },
+           {
+            "children": [],
+            "cls": "Note",
+            "end": 370,
+            "length": "1/16",
+            "plaintext": "",
+            "position": 369,
+            "token": "c",
+            "tokens": []
+           },
+           {
+            "children": [],
+            "cls": "Note",
+            "end": 372,
+            "length": "1/16",
+            "plaintext": "",
+            "position": 371,
+            "token": "c",
+            "tokens": []
+           },
+           {
+            "children": [],
+            "cls": "Beam",
+            "end": 373,
+            "length": "0/1",
+            "plaintext": "",
+            "position": 372,
+            "token": "]",
+            "tokens": []
+           },
+           {
+            "children": [
+             {
+              "children": [],
+              "cls": "Duration",
+              "end": 381,
+              "length": "0/1",
+              "plaintext": "",
+              "position": 379,
+              "token": "16",
+              "tokens": []
+             }
+            ],
+            "cls": "Note",
+            "end": 381,
+            "length": "1/16",
+            "plaintext": "",
+            "position": 378,
+            "token": "c",
+            "tokens": []
+           },
+           {
+            "children": [],
+            "cls": "Beam",
+            "end": 382,
+            "length": "0/1",
+            "plaintext": "",
+            "position": 381,
+            "token": "[",
+            "tokens": []
+           },
+           {
+            "children": [],
+            "cls": "Note",
+            "end": 384,
+            "length": "1/16",
+            "plaintext": "",
+            "position": 383,
+            "token": "c",
+            "tokens": []
+           },
+           {
+            "children": [],
+            "cls": "Note",
+            "end": 386,
+            "length": "1/16",
+            "plaintext": "",
+            "position": 385,
+            "token": "c",
+            "tokens": []
+           },
+           {
+            "children": [],
+            "cls": "Note",
+            "end": 388,
+            "length": "1/16",
+            "plaintext": "",
+            "position": 387,
+            "token": "c",
+            "tokens": []
+           },
+           {
+            "children": [],
+            "cls": "Beam",
+            "end": 389,
+            "length": "0/1",
+            "plaintext": "",
+            "position": 388,
+            "token": "]",
+            "tokens": []
+           },
+           {
+            "children": [],
+            "cls": "Rest",
+            "end": 395,
+            "length": "1/16",
+            "plaintext": "",
+            "position": 394,
+            "token": "r",
+            "tokens": []
+           },
+           {
+            "children": [
+             {
+              "children": [],
+              "cls": "Duration",
+              "end": 399,
+              "length": "0/1",
+              "plaintext": "",
+              "position": 397,
+              "token": "16",
+              "tokens": []
+             }
+            ],
+            "cls": "Note",
+            "end": 399,
+            "length": "1/16",
+            "plaintext": "",
+            "position": 396,
+            "token": "c",
+            "tokens": []
+           },
+           {
+            "children": [],
+            "cls": "Beam",
+            "end": 400,
+            "length": "0/1",
+            "plaintext": "",
+            "position": 399,
+            "token": "[",
+            "tokens": []
+           },
+           {
+            "children": [],
+            "cls": "Note",
+            "end": 402,
+            "length": "1/16",
+            "plaintext": "",
+            "position": 401,
+            "token": "c",
+            "tokens": []
+           },
+           {
+            "children": [],
+            "cls": "Note",
+            "end": 404,
+            "length": "1/16",
+            "plaintext": "",
+            "position": 403,
+            "token": "c",
+            "tokens": []
+           },
+           {
+            "children": [],
+            "cls": "Beam",
+            "end": 405,
+            "length": "0/1",
+            "plaintext": "",
+            "position": 404,
+            "token": "]",
+            "tokens": []
+           },
+           {
+            "children": [
+             {
+              "children": [],
+              "cls": "Duration",
+              "end": 413,
+              "length": "0/1",
+              "plaintext": "",
+              "position": 411,
+              "token": "16",
+              "tokens": []
+             }
+            ],
+            "cls": "Note",
+            "end": 413,
+            "length": "1/16",
+            "plaintext": "",
+            "position": 410,
+            "token": "c",
+            "tokens": []
+           },
+           {
+            "children": [],
+            "cls": "Beam",
+            "end": 414,
+            "length": "0/1",
+            "plaintext": "",
+            "position": 413,
+            "token": "[",
+            "tokens": []
+           },
+           {
+            "children": [],
+            "cls": "Note",
+            "end": 416,
+            "length": "1/16",
+            "plaintext": "",
+            "position": 415,
+            "token": "c",
+            "tokens": []
+           },
+           {
+            "children": [],
+            "cls": "Note",
+            "end": 418,
+            "length": "1/16",
+            "plaintext": "",
+            "position": 417,
+            "token": "c",
+            "tokens": []
+           },
+           {
+            "children": [],
+            "cls": "Note",
+            "end": 420,
+            "length": "1/16",
+            "plaintext": "",
+            "position": 419,
+            "token": "c",
+            "tokens": []
+           },
+           {
+            "children": [],
+            "cls": "Beam",
+            "end": 421,
+            "length": "0/1",
+            "plaintext": "",
+            "position": 420,
+            "token": "]",
+            "tokens": []
+           },
+           {
+            "children": [
+             {
+              "children": [],
+              "cls": "Duration",
+              "end": 429,
+              "length": "0/1",
+              "plaintext": "",
+              "position": 427,
+              "token": "16",
+              "tokens": []
+             }
+            ],
+            "cls": "Note",
+            "end": 429,
+            "length": "1/16",
+            "plaintext": "",
+            "position": 426,
+            "token": "c",
+            "tokens": []
+           },
+           {
+            "children": [],
+            "cls": "Beam",
+            "end": 430,
+            "length": "0/1",
+            "plaintext": "",
+            "position": 429,
+            "token": "[",
+            "tokens": []
+           },
+           {
+            "children": [],
+            "cls": "Note",
+            "end": 432,
+            "length": "1/16",
+            "plaintext": "",
+            "position": 431,
+            "token": "c",
+            "tokens": []
+           },
+           {
+            "children": [],
+            "cls": "Note",
+            "end": 434,
+            "length": "1/16",
+            "plaintext": "",
+            "position": 433,
+            "token": "c",
+            "tokens": []
+           },
+           {
+            "children": [],
+            "cls": "Note",
+            "end": 436,
+            "length": "1/16",
+            "plaintext": "",
+            "position": 435,
+            "token": "c",
+            "tokens": []
+           },
+           {
+            "children": [],
+            "cls": "Beam",
+            "end": 437,
+            "length": "0/1",
+            "plaintext": "",
+            "position": 436,
+            "token": "]",
+            "tokens": []
+           }
+          ],
+          "cls": "MusicList",
+          "end": 441,
+          "length": "5/4",
+          "plaintext": "",
+          "position": 340,
+          "token": "{",
+          "tokens": [
+           "}"
+          ]
+         }
+        ],
+        "cls": "Relative",
+        "end": 441,
+        "length": "5/4",
+        "plaintext": "",
+        "position": 330,
+        "token": "\\relative",
+        "tokens": []
+       }
+      ],
+      "cls": "Context",
+      "end": 441,
+      "length": "5/4",
+      "plaintext": "",
+      "position": 319,
+      "token": "\\new",
+      "tokens": []
+     },
+     {
+      "children": [
+       {
+        "children": [
+         {
+          "children": [],
+          "cls": "LyricText",
+          "end": 462,
+          "length": "1/16",
+          "plaintext": "",
+          "position": 459,
+          "token": "bla",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "LyricItem",
+          "end": 465,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 463,
+          "token": "--",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "LyricText",
+          "end": 469,
+          "length": "1/16",
+          "plaintext": "",
+          "position": 466,
+          "token": "bla",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "LyricItem",
+          "end": 472,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 470,
+          "token": "--",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "LyricText",
+          "end": 476,
+          "length": "1/16",
+          "plaintext": "",
+          "position": 473,
+          "token": "bla",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "LyricItem",
+          "end": 479,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 477,
+          "token": "--",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "LyricText",
+          "end": 483,
+          "length": "1/16",
+          "plaintext": "",
+          "position": 480,
+          "token": "bla",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "LyricItem",
+          "end": 486,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 484,
+          "token": "--",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "LyricText",
+          "end": 494,
+          "length": "1/16",
+          "plaintext": "",
+          "position": 491,
+          "token": "bla",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "LyricItem",
+          "end": 497,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 495,
+          "token": "--",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "LyricText",
+          "end": 501,
+          "length": "1/16",
+          "plaintext": "",
+          "position": 498,
+          "token": "bla",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "LyricItem",
+          "end": 504,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 502,
+          "token": "--",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "LyricText",
+          "end": 508,
+          "length": "1/16",
+          "plaintext": "",
+          "position": 505,
+          "token": "bla",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "LyricItem",
+          "end": 511,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 509,
+          "token": "--",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "LyricText",
+          "end": 515,
+          "length": "1/16",
+          "plaintext": "",
+          "position": 512,
+          "token": "bla",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "LyricItem",
+          "end": 518,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 516,
+          "token": "--",
+          "tokens": []
+         },
+         {
+          "children": [
+           {
+            "children": [],
+            "cls": "PathItem",
+            "end": 544,
+            "length": "0/1",
+            "plaintext": "",
+            "position": 533,
+            "token": "LyricHyphen",
+            "tokens": []
+           },
+           {
+            "children": [],
+            "cls": "PathItem",
+            "end": 545,
+            "length": "0/1",
+            "plaintext": "",
+            "position": 544,
+            "token": ".",
+            "tokens": []
+           },
+           {
+            "children": [],
+            "cls": "PathItem",
+            "end": 564,
+            "length": "0/1",
+            "plaintext": "",
+            "position": 545,
+            "token": "after-line-breaking",
+            "tokens": []
+           },
+           {
+            "children": [
+             {
+              "children": [],
+              "cls": "SchemeItem",
+              "end": 570,
+              "length": "0/1",
+              "plaintext": "",
+              "position": 568,
+              "token": "#t",
+              "tokens": []
+             }
+            ],
+            "cls": "Scheme",
+            "end": 570,
+            "length": "0/1",
+            "plaintext": "",
+            "position": 567,
+            "token": "#",
+            "tokens": []
+           }
+          ],
+          "cls": "Override",
+          "end": 570,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 523,
+          "token": "\\override",
+          "tokens": [
+           "="
+          ]
+         },
+         {
+          "children": [],
+          "cls": "LyricText",
+          "end": 578,
+          "length": "1/16",
+          "plaintext": "",
+          "position": 575,
+          "token": "bla",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "LyricItem",
+          "end": 581,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 579,
+          "token": "--",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "LyricText",
+          "end": 585,
+          "length": "1/16",
+          "plaintext": "",
+          "position": 582,
+          "token": "bla",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "LyricItem",
+          "end": 588,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 586,
+          "token": "--",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "LyricText",
+          "end": 592,
+          "length": "1/16",
+          "plaintext": "",
+          "position": 589,
+          "token": "bla",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "LyricItem",
+          "end": 595,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 593,
+          "token": "--",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "LyricText",
+          "end": 603,
+          "length": "1/16",
+          "plaintext": "",
+          "position": 600,
+          "token": "bla",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "LyricItem",
+          "end": 606,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 604,
+          "token": "--",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "LyricText",
+          "end": 610,
+          "length": "1/16",
+          "plaintext": "",
+          "position": 607,
+          "token": "bla",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "LyricItem",
+          "end": 613,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 611,
+          "token": "--",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "LyricText",
+          "end": 617,
+          "length": "1/16",
+          "plaintext": "",
+          "position": 614,
+          "token": "bla",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "LyricItem",
+          "end": 620,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 618,
+          "token": "--",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "LyricText",
+          "end": 624,
+          "length": "1/16",
+          "plaintext": "",
+          "position": 621,
+          "token": "bla",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "LyricItem",
+          "end": 627,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 625,
+          "token": "--",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "LyricText",
+          "end": 648,
+          "length": "1/16",
+          "plaintext": "",
+          "position": 632,
+          "token": "verylongsyllable",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "LyricItem",
+          "end": 651,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 649,
+          "token": "--",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "LyricText",
+          "end": 655,
+          "length": "1/16",
+          "plaintext": "",
+          "position": 652,
+          "token": "bla",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "LyricItem",
+          "end": 658,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 656,
+          "token": "--",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "LyricText",
+          "end": 662,
+          "length": "1/16",
+          "plaintext": "",
+          "position": 659,
+          "token": "bla",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "LyricItem",
+          "end": 665,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 663,
+          "token": "--",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "LyricText",
+          "end": 669,
+          "length": "1/16",
+          "plaintext": "",
+          "position": 666,
+          "token": "bla",
+          "tokens": []
+         }
+        ],
+        "cls": "MusicList",
+        "end": 673,
+        "length": "19/16",
+        "plaintext": "",
+        "position": 453,
+        "token": "{",
+        "tokens": [
+         "}"
+        ]
+       }
+      ],
+      "cls": "LyricMode",
+      "end": 673,
+      "length": "19/16",
+      "plaintext": "",
+      "position": 442,
+      "token": "\\addlyrics",
+      "tokens": []
+     }
+    ],
+    "cls": "MusicList",
+    "end": 676,
+    "length": "5/4",
+    "plaintext": "",
+    "position": 314,
+    "token": "<<",
+    "tokens": [
+     ">>"
+    ]
+   }
+  ],
+  "cls": "Document",
+  "end": 676,
+  "length": "0/1",
+  "plaintext": "",
+  "position": -1,
+  "token": null,
+  "tokens": []
+ }
+}

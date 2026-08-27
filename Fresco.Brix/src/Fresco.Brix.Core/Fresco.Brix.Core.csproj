@@ -1,0 +1,142 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+
+    <!-- Match the namespace used by the app code -->
+    <RootNamespace>Fresco.Brix</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.11" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="10.0.11" />
+    <PackageReference Include="CodeBrix.Platform.ApacheLicenseForever" Version="1.0.231.233" />
+    <!-- The two OFL font packages (FD4) at the versions the PDF writer's family
+         requires (Html2Pdf 1.0.238.1192 depends on Roboto >= 1.0.238.528 and
+         RobotoMono >= 1.0.238.534; NuGet refuses the downgrade otherwise). Same
+         faces, newer packages. //was previously: Roboto 1.0.209.315 (the
+         scaffold pin) and RobotoMono 1.0.216.1150 (FD4, W2). -->
+    <PackageReference Include="CodeBrix.Platform.Fonts.Roboto.OflLicenseForever" Version="1.0.238.528" />
+    <!-- The editor: the AvalonEdit-class text editing add-in (family version) -->
+    <PackageReference Include="CodeBrix.Platform.AdvancedTextEdit.ApacheLicenseForever" Version="1.0.231.233" />
+    <!-- The editor monospace font (FD4) -->
+    <PackageReference Include="CodeBrix.Platform.Fonts.RobotoMono.OflLicenseForever" Version="1.0.238.534" />
+    <!-- The settings store (Develop's options.sqlite pattern) -->
+    <PackageReference Include="CodeBrix.Sqlite.ApacheLicenseForever" Version="1.0.213.50" />
+    <!-- MIDI playback (FR6): the SoundFont synthesizer the MIDI panel plays
+         through, in-process, with no MIDI ports of any kind. -->
+    <PackageReference Include="CodeBrix.Audio.MitLicenseForever" Version="1.0.233.886" />
+    <!-- The documentation viewer (FR8): the manuals are PDFs LilyPort rendered
+         and there is NO WebView anywhere, so the pages are rasterised by
+         PDFium through this package and drawn in the same paged view the Music
+         View uses. It brings CodeBrix.PdfDocuments (the outline reader) and
+         CodeBrix.Imaging (the pixels) with it.
+         1.0.238.580 is the PdfDocuments family publish of 2026-08-26 that made
+         the documentation chain vector and native-free (board section 4.6); the
+         W11½ row moved the pin to it so the reader is the one that opens the
+         vector manuals tools/manuals now renders.
+         1.0.238.1192 is the family publish that added opt-in CFF subsetting,
+         which the PDF export (Fresco.Brix.MusicView, FR7 route (b)) pins too;
+         the family moves together.
+         //was previously: 1.0.238.580 (W11½, 2026-08-26); 1.0.232.1177, the W10
+         bump Jeremy authorised on 2026-08-21; before that 1.0.217.117, the
+         version the board's pin table was verified at on 2026-08-19.
+         tools/manuals carries the same version. -->
+    <PackageReference Include="CodeBrix.PdfRasterizer.MitLicenseForever" Version="1.0.238.1192" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\libs\Fresco.Brix.Ly\Fresco.Brix.Ly.csproj" />
+    <ProjectReference Include="..\libs\Fresco.Brix.MusicView\Fresco.Brix.MusicView.csproj" />
+  </ItemGroup>
+
+  <!-- The in-process LilyPond engine (FR2). The facade nuget packs its
+       sub-assemblies with PrivateAssets="all", so an in-repo ProjectReference
+       consumer must name all four projects explicitly; a consumer of the
+       published package needs only CodeBrix.LilyPort.GplLicenseForever, which
+       is board row W13b. -->
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\CodeBrix.LilyPort\src\CodeBrix.LilyPort\CodeBrix.LilyPort.csproj" />
+    <ProjectReference Include="..\..\..\CodeBrix.LilyPort\src\CodeBrix.LilyPort.Engine\CodeBrix.LilyPort.Engine.csproj" />
+    <ProjectReference Include="..\..\..\CodeBrix.LilyPort\src\CodeBrix.LilyPort.Backends\CodeBrix.LilyPort.Backends.csproj" />
+    <ProjectReference Include="..\..\..\CodeBrix.LilyPort\src\CodeBrix.LilyPort.Parsing\CodeBrix.LilyPort.Parsing.csproj" />
+  </ItemGroup>
+
+  <!-- The Emmentaler faces: the engine's font layer probes <appdir>/fonts/otf,
+       and the Music View's SVG renderer will resolve the score's text fonts
+       from the same place (board trap 9). CopyToOutputDirectory content flows
+       to every head through the ProjectReference chain. -->
+  <ItemGroup>
+    <None Include="..\..\..\CodeBrix.LilyPort\assets\fonts\otf\*.otf"
+          Link="fonts\otf\%(Filename)%(Extension)"
+          CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <!-- The layout-control formatter files, which a layout-control run pulls in
+       with -dinclude-settings. They are Frescobaldi's own .ily sources (GPL),
+       shipped as assets exactly as upstream ships them beside its module. -->
+  <ItemGroup>
+    <None Include="assets\layoutcontrol\*.il*"
+          Link="assets\layoutcontrol\%(Filename)%(Extension)"
+          CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <!-- The hyphenation dictionaries, which the Hyphenate Lyrics Text command
+       reads. They are third-party data files, each with its own license and
+       its own README, aggregated with the application rather than built into
+       it: the folder can be emptied and the application still runs, offering
+       whatever dictionaries the machine itself has. See THIRD-PARTY-NOTICES.txt
+       section 5 for the per-dictionary audit. Content, not embedded, because
+       the notices have to travel WITH the files and because the search that
+       finds them is a directory search either way. -->
+  <ItemGroup>
+    <None Include="assets\hyphdicts\*"
+          Link="assets\hyphdicts\%(Filename)%(Extension)"
+          CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <!-- The in-box General MIDI SoundFont (board decision FD2, ruled 2026-08-20).
+       GeneralUser GS v2.0.3 under its author's own permissive License v2.0,
+       which is compatible with this application's GPL-3.0-only conveyance, so
+       unlike the hyphenation dictionaries above it needs no aggregate
+       argument. Only the specifically-licensed files are vendored: the bank
+       and the four documents that describe it. Upstream's demo MIDIs (third
+       party copyrighted compositions the bank's license does not cover) and
+       its FluidSynth support folder are deliberately NOT here; see
+       assets\soundfonts\README.txt and THIRD-PARTY-NOTICES.txt section 8.
+
+       The whole folder is copied as-is, notices included, because the bank is
+       a DEFAULT and not a dependency: the folder can be emptied and the
+       application still runs, reading whatever .sf2 or .sfz the user picks,
+       so the license has to travel beside the data. -->
+  <ItemGroup>
+    <None Include="assets\soundfonts\*"
+          Link="assets\soundfonts\%(Filename)%(Extension)"
+          CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <!-- The nine bundled manuals (board wave W10). They are GNU FDL documents,
+       not GPL source: they live in one clearly separated folder that carries
+       COPYING.FDL beside them, no text from them is ever copied into source or
+       XML doc comments, and the folder can be emptied without the application
+       failing — Help > LilyPort Documentation then says no manuals are
+       installed. See assets\docs\README.txt and THIRD-PARTY-NOTICES.txt
+       section 9. Regenerate with tools/manuals, which ships nothing and is not
+       in the solution.
+
+       Content, not embedded, for the same reason the hyphenation dictionaries
+       and the SoundFont are: the licence has to travel WITH the files, and 27
+       megabytes has no business inside an assembly. -->
+  <ItemGroup>
+    <None Include="assets\docs\*"
+          Link="assets\docs\%(Filename)%(Extension)"
+          CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <!-- The Quick Insert panel's button icons, engraved by LilyPort itself from
+       Frescobaldi's symbol sources (GPL). Regenerate with
+       tools/symbolicons; the tool ships nothing and is not in the solution. -->
+  <ItemGroup>
+    <EmbeddedResource Include="assets\symbols\*.svg"
+                      LogicalName="Fresco.Brix.Symbols.%(Filename).svg" />
+  </ItemGroup>
+</Project>

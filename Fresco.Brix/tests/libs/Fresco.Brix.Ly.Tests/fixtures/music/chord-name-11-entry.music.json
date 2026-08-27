@@ -1,0 +1,569 @@
+{
+ "has_output": true,
+ "known_fixes": [
+  {
+   "module": "ly.music.read",
+   "new": "elif not item._specifier and isinstance(t, lex.StringStart):",
+   "old": "elif not item.specifier and isinstance(t, lex.StringStart):",
+   "why": "handle_repeat guards on the bound method item.specifier instead of the field item._specifier, so a quoted repeat specifier is never read and the repeat ends at the string (FR14)"
+  }
+ ],
+ "node_positions": [
+  [
+   0,
+   "Version",
+   0
+  ],
+  [
+   7,
+   "Version",
+   0
+  ],
+  [
+   14,
+   "String",
+   9
+  ],
+  [
+   21,
+   "Header",
+   20
+  ],
+  [
+   28,
+   "Header",
+   20
+  ],
+  [
+   35,
+   "Assignment",
+   35
+  ],
+  [
+   42,
+   "Assignment",
+   35
+  ],
+  [
+   49,
+   "String",
+   45
+  ],
+  [
+   56,
+   "String",
+   45
+  ],
+  [
+   63,
+   "String",
+   45
+  ],
+  [
+   70,
+   "String",
+   45
+  ],
+  [
+   77,
+   "String",
+   45
+  ],
+  [
+   84,
+   "String",
+   45
+  ],
+  [
+   91,
+   "String",
+   45
+  ],
+  [
+   98,
+   "String",
+   45
+  ],
+  [
+   105,
+   "String",
+   45
+  ],
+  [
+   112,
+   "String",
+   45
+  ],
+  [
+   119,
+   "Layout",
+   116
+  ],
+  [
+   126,
+   "Assignment",
+   126
+  ],
+  [
+   133,
+   "Assignment",
+   126
+  ],
+  [
+   140,
+   "Assignment",
+   126
+  ],
+  [
+   147,
+   "SchemeItem",
+   142
+  ],
+  [
+   154,
+   "ChordMode",
+   149
+  ],
+  [
+   161,
+   "MusicList",
+   160
+  ],
+  [
+   168,
+   "ChordSpecifier",
+   168
+  ],
+  [
+   175,
+   "Note",
+   175
+  ],
+  [
+   182,
+   "ChordItem",
+   178
+  ],
+  [
+   184,
+   "ChordItem",
+   178
+  ]
+ ],
+ "time_positions": [
+  [
+   0,
+   null
+  ],
+  [
+   7,
+   null
+  ],
+  [
+   14,
+   null
+  ],
+  [
+   21,
+   null
+  ],
+  [
+   28,
+   null
+  ],
+  [
+   35,
+   null
+  ],
+  [
+   42,
+   null
+  ],
+  [
+   49,
+   null
+  ],
+  [
+   56,
+   null
+  ],
+  [
+   63,
+   null
+  ],
+  [
+   70,
+   null
+  ],
+  [
+   77,
+   null
+  ],
+  [
+   84,
+   null
+  ],
+  [
+   91,
+   null
+  ],
+  [
+   98,
+   null
+  ],
+  [
+   105,
+   null
+  ],
+  [
+   112,
+   null
+  ],
+  [
+   119,
+   null
+  ],
+  [
+   126,
+   null
+  ],
+  [
+   133,
+   null
+  ],
+  [
+   140,
+   null
+  ],
+  [
+   147,
+   null
+  ],
+  [
+   154,
+   "0/1"
+  ],
+  [
+   161,
+   "0/1"
+  ],
+  [
+   168,
+   "1/2"
+  ],
+  [
+   175,
+   "1/2"
+  ],
+  [
+   182,
+   "3/4"
+  ],
+  [
+   184,
+   null
+  ]
+ ],
+ "tree": {
+  "children": [
+   {
+    "children": [
+     {
+      "children": [],
+      "cls": "String",
+      "end": 17,
+      "length": "0/1",
+      "plaintext": "2.16.0",
+      "position": 9,
+      "token": "\"",
+      "tokens": [
+       "2.16.0",
+       "\""
+      ]
+     }
+    ],
+    "cls": "Version",
+    "end": 17,
+    "length": "0/1",
+    "plaintext": "",
+    "position": 0,
+    "token": "\\version",
+    "tokens": []
+   },
+   {
+    "children": [
+     {
+      "children": [
+       {
+        "children": [],
+        "cls": "String",
+        "end": 111,
+        "length": "0/1",
+        "plaintext": "The 11 is only added to major-13 if it\n is mentioned explicitly.",
+        "position": 45,
+        "token": "\"",
+        "tokens": [
+         "The 11 is only added to major-13 if it",
+         "\n",
+         " is mentioned explicitly.",
+         "\""
+        ]
+       }
+      ],
+      "cls": "Assignment",
+      "end": 111,
+      "length": "0/1",
+      "plaintext": "",
+      "position": 35,
+      "token": "texidoc",
+      "tokens": [
+       "="
+      ]
+     }
+    ],
+    "cls": "Header",
+    "end": 114,
+    "length": "0/1",
+    "plaintext": "",
+    "position": 20,
+    "token": "\\header",
+    "tokens": [
+     "{",
+     "}"
+    ]
+   },
+   {
+    "children": [
+     {
+      "children": [
+       {
+        "children": [
+         {
+          "children": [],
+          "cls": "SchemeItem",
+          "end": 144,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 142,
+          "token": "#t",
+          "tokens": []
+         }
+        ],
+        "cls": "Scheme",
+        "end": 144,
+        "length": "0/1",
+        "plaintext": "",
+        "position": 141,
+        "token": "#",
+        "tokens": []
+       }
+      ],
+      "cls": "Assignment",
+      "end": 144,
+      "length": "0/1",
+      "plaintext": "",
+      "position": 126,
+      "token": "ragged-right",
+      "tokens": [
+       "="
+      ]
+     }
+    ],
+    "cls": "Layout",
+    "end": 146,
+    "length": "0/1",
+    "plaintext": "",
+    "position": 116,
+    "token": "\\layout",
+    "tokens": [
+     "{",
+     "}"
+    ]
+   },
+   {
+    "children": [
+     {
+      "children": [
+       {
+        "children": [],
+        "cls": "Note",
+        "end": 163,
+        "length": "1/4",
+        "plaintext": "",
+        "position": 162,
+        "token": "c",
+        "tokens": []
+       },
+       {
+        "children": [
+         {
+          "children": [],
+          "cls": "ChordItem",
+          "end": 164,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 163,
+          "token": ":",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "ChordItem",
+          "end": 166,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 164,
+          "token": "13",
+          "tokens": []
+         }
+        ],
+        "cls": "ChordSpecifier",
+        "end": 166,
+        "length": "0/1",
+        "plaintext": "",
+        "position": 163,
+        "token": null,
+        "tokens": []
+       },
+       {
+        "children": [],
+        "cls": "Note",
+        "end": 168,
+        "length": "1/4",
+        "plaintext": "",
+        "position": 167,
+        "token": "c",
+        "tokens": []
+       },
+       {
+        "children": [
+         {
+          "children": [],
+          "cls": "ChordItem",
+          "end": 169,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 168,
+          "token": ":",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "ChordItem",
+          "end": 171,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 169,
+          "token": "13",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "ChordItem",
+          "end": 172,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 171,
+          "token": ".",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "ChordItem",
+          "end": 174,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 172,
+          "token": "11",
+          "tokens": []
+         }
+        ],
+        "cls": "ChordSpecifier",
+        "end": 174,
+        "length": "0/1",
+        "plaintext": "",
+        "position": 168,
+        "token": null,
+        "tokens": []
+       },
+       {
+        "children": [],
+        "cls": "Note",
+        "end": 176,
+        "length": "1/4",
+        "plaintext": "",
+        "position": 175,
+        "token": "c",
+        "tokens": []
+       },
+       {
+        "children": [
+         {
+          "children": [],
+          "cls": "ChordItem",
+          "end": 177,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 176,
+          "token": ":",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "ChordItem",
+          "end": 178,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 177,
+          "token": "m",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "ChordItem",
+          "end": 180,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 178,
+          "token": "13",
+          "tokens": []
+         }
+        ],
+        "cls": "ChordSpecifier",
+        "end": 180,
+        "length": "0/1",
+        "plaintext": "",
+        "position": 176,
+        "token": null,
+        "tokens": []
+       }
+      ],
+      "cls": "MusicList",
+      "end": 182,
+      "length": "3/4",
+      "plaintext": "",
+      "position": 160,
+      "token": "{",
+      "tokens": [
+       "}"
+      ]
+     }
+    ],
+    "cls": "ChordMode",
+    "end": 182,
+    "length": "3/4",
+    "plaintext": "",
+    "position": 149,
+    "token": "\\chordmode",
+    "tokens": []
+   }
+  ],
+  "cls": "Document",
+  "end": 182,
+  "length": "0/1",
+  "plaintext": "",
+  "position": -1,
+  "token": null,
+  "tokens": []
+ }
+}

@@ -1,0 +1,49 @@
+{
+ "complete": true,
+ "counted_tokens": {
+  "_token.Newline": 10,
+  "_token.Space": 14,
+  "lilypond.Command": 1,
+  "lilypond.EqualSign": 1,
+  "lilypond.Keyword": 1,
+  "lilypond.Name": 1,
+  "lilypond.SchemeStart": 4,
+  "lilypond.SequentialEnd": 1,
+  "lilypond.SequentialStart": 1,
+  "lilypond.String": 1,
+  "lilypond.StringQuotedEnd": 1,
+  "lilypond.StringQuotedStart": 1,
+  "scheme.CloseParen": 6,
+  "scheme.Keyword": 5,
+  "scheme.Number": 1,
+  "scheme.OpenParen": 6,
+  "scheme.String": 4,
+  "scheme.StringQuotedEnd": 4,
+  "scheme.StringQuotedStart": 4,
+  "scheme.Word": 3
+ },
+ "definitions": [
+  [
+   "emptyBook",
+   156
+  ]
+ ],
+ "global_staff_size": null,
+ "has_output": false,
+ "include_args": [],
+ "language": null,
+ "markup_definitions": [],
+ "mode": "lilypond",
+ "output_args": [],
+ "scheme_load_args": [
+  "my-helpers.scm",
+  "another.scm"
+ ],
+ "token_count": 70,
+ "version": [
+  2,
+  24,
+  0
+ ],
+ "version_string": "2.24.0"
+}

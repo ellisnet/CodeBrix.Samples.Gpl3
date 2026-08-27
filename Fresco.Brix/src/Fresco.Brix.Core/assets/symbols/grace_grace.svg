@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.2"
+     width="7.7321mm" height="7.7321mm"
+     viewBox="0.0000 -0.0000 4.4000 4.4000">
+<g fill="currentColor" color="black">
+<g transform="translate(3.2567, 2.5000)">
+<rect x="-0.0650" y="-2.5000" width="0.1300" height="3.3138" ry="0.0400" fill="currentColor"/>
+</g>
+<g transform="translate(2.0175, 3.5000)">
+<path transform="scale(0.0040, -0.0040)" d="M0 -46c0 91 116 182 217 182c63 0 109 -35 109 -90c0 -87 -110 -182 -220 -182c-67 0 -106 39 -106 90z" fill="currentColor"/>
+</g>
+<g transform="translate(1.1720, 1.2400)">
+<path transform="scale(0.0028, -0.0028)" d="M0 -212v-213v213c0 -114 85 -201 146 -295c4 13 6 26 6 40c0 94 -87 188 -152 255zM115 -848c0 11 43 74 43 169s-90 188 -158 254v-125h-21v550h21c0 -177 201 -290 201 -467c0 -33 -9 -66 -23 -96c18 -36 29 -74 29 -116c0 -63 -15 -125 -41 -182
+c-5 -10 -14 -13 -23 -13c-14 0 -28 10 -28 26z" fill="currentColor"/>
+</g>
+<g transform="translate(1.1070, 2.5000)">
+<rect x="-0.0650" y="-1.3000" width="0.1300" height="2.6856" ry="0.0400" fill="currentColor"/>
+</g>
+<g transform="translate(0.2540, 4.0000)">
+<path transform="scale(0.0028, -0.0028)" d="M0 -40c0 92 109 179 208 179c67 0 117 -40 117 -99c0 -88 -103 -179 -211 -179c-71 0 -114 43 -114 99z" fill="currentColor"/>
+</g>
+</g>
+</svg>

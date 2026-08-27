@@ -1,0 +1,71 @@
+{
+ "extract": [
+  "4",
+  "",
+  "",
+  ""
+ ],
+ "music_items": [
+  [
+   127,
+   129,
+   128,
+   true,
+   [
+    "c"
+   ],
+   [
+    "4"
+   ]
+  ],
+  [
+   130,
+   131,
+   131,
+   true,
+   [
+    "d"
+   ],
+   []
+  ],
+  [
+   132,
+   133,
+   133,
+   true,
+   [
+    "e"
+   ],
+   []
+  ],
+  [
+   134,
+   135,
+   135,
+   true,
+   [
+    "f"
+   ],
+   []
+  ]
+ ],
+ "overwrite_durations": [
+  "4",
+  "8",
+  "",
+  "16."
+ ],
+ "results": {
+  "dot": "@node Top\n@top A manual\n\nSome text with @code{inline code} and a comment.\n@c a line comment\n@lilypond[verbatim]\n\\relative c' { c4. d e f }\n@end lilypond\n@bye\n",
+  "double": "@node Top\n@top A manual\n\nSome text with @code{inline code} and a comment.\n@c a line comment\n@lilypond[verbatim]\n\\relative c' { c2 d e f }\n@end lilypond\n@bye\n",
+  "explicit": "@node Top\n@top A manual\n\nSome text with @code{inline code} and a comment.\n@c a line comment\n@lilypond[verbatim]\n\\relative c' { c4 d4 e4 f4 }\n@end lilypond\n@bye\n",
+  "halve": "@node Top\n@top A manual\n\nSome text with @code{inline code} and a comment.\n@c a line comment\n@lilypond[verbatim]\n\\relative c' { c8 d e f }\n@end lilypond\n@bye\n",
+  "implicit": "@node Top\n@top A manual\n\nSome text with @code{inline code} and a comment.\n@c a line comment\n@lilypond[verbatim]\n\\relative c' { c4 d e f }\n@end lilypond\n@bye\n",
+  "implicit_per_line": "@node Top\n@top A manual\n\nSome text with @code{inline code} and a comment.\n@c a line comment\n@lilypond[verbatim]\n\\relative c' { c4 d e f }\n@end lilypond\n@bye\n",
+  "overwrite": "@node Top\n@top A manual\n\nSome text with @code{inline code} and a comment.\n@c a line comment\n@lilypond[verbatim]\n\\relative c' { c4 d8 e f16. }\n@end lilypond\n@bye\n",
+  "remove": "@node Top\n@top A manual\n\nSome text with @code{inline code} and a comment.\n@c a line comment\n@lilypond[verbatim]\n\\relative c' { c d e f }\n@end lilypond\n@bye\n",
+  "remove_fraction_scaling": "@node Top\n@top A manual\n\nSome text with @code{inline code} and a comment.\n@c a line comment\n@lilypond[verbatim]\n\\relative c' { c4 d e f }\n@end lilypond\n@bye\n",
+  "remove_scaling": "@node Top\n@top A manual\n\nSome text with @code{inline code} and a comment.\n@c a line comment\n@lilypond[verbatim]\n\\relative c' { c4 d e f }\n@end lilypond\n@bye\n",
+  "undot": "@node Top\n@top A manual\n\nSome text with @code{inline code} and a comment.\n@c a line comment\n@lilypond[verbatim]\n\\relative c' { c4 d e f }\n@end lilypond\n@bye\n"
+ }
+}

@@ -1,0 +1,26 @@
+# mode: lilypond
+0	8	Keyword	lilypond	keyword	keyword
+8	9	Space	None	None	None
+9	10	StringQuotedStart	lilypond	string	string
+10	16	String	lilypond	string	string
+16	17	StringQuotedEnd	lilypond	string	string
+17	19	Space	None	None	None
+19	57	LineComment	lilypond	comment	comment
+57	58	Space	None	None	None
+58	65	Name	lilypond	uservariable	None
+65	66	Space	None	None	None
+66	67	EqualSign	None	None	None
+67	68	Space	None	None	None
+68	74	Paper	lilypond	keyword	keyword
+74	75	Space	None	None	None
+75	76	OpenBracket	lilypond	delimiter	keyword
+76	79	Space	None	None	None
+79	85	PaperVariable	lilypond	variable	variable
+85	86	Space	None	None	None
+86	87	EqualSign	None	None	None
+87	88	Space	None	None	None
+88	89	DecimalValue	lilypond	value	value
+89	92	Unit	lilypond	command	function
+92	93	Space	None	None	None
+93	94	CloseBracket	lilypond	delimiter	keyword
+94	95	Space	None	None	None

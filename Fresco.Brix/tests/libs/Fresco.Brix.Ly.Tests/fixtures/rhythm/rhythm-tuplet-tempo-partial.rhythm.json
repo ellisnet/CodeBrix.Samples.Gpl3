@@ -1,0 +1,178 @@
+{
+ "extract": [
+  "4",
+  "8",
+  "8",
+  "4",
+  "8",
+  "",
+  "",
+  "",
+  "8",
+  "",
+  "",
+  "4"
+ ],
+ "music_items": [
+  [
+   30,
+   38,
+   37,
+   false,
+   [
+    "\\tempo"
+   ],
+   [
+    "4"
+   ]
+  ],
+  [
+   46,
+   56,
+   55,
+   false,
+   [
+    "\\partial"
+   ],
+   [
+    "8"
+   ]
+  ],
+  [
+   57,
+   60,
+   59,
+   true,
+   [
+    "c",
+    "'"
+   ],
+   [
+    "8"
+   ]
+  ],
+  [
+   75,
+   76,
+   75,
+   true,
+   [],
+   [
+    "4"
+   ]
+  ],
+  [
+   79,
+   82,
+   81,
+   true,
+   [
+    "d",
+    "'"
+   ],
+   [
+    "8"
+   ]
+  ],
+  [
+   83,
+   85,
+   85,
+   true,
+   [
+    "e",
+    "'"
+   ],
+   []
+  ],
+  [
+   86,
+   88,
+   88,
+   true,
+   [
+    "f",
+    "'"
+   ],
+   []
+  ],
+  [
+   93,
+   104,
+   104,
+   false,
+   [
+    "\\tuplet",
+    "3/2"
+   ],
+   []
+  ],
+  [
+   107,
+   110,
+   109,
+   true,
+   [
+    "g",
+    "'"
+   ],
+   [
+    "8"
+   ]
+  ],
+  [
+   111,
+   113,
+   113,
+   true,
+   [
+    "a",
+    "'"
+   ],
+   []
+  ],
+  [
+   114,
+   116,
+   116,
+   true,
+   [
+    "b",
+    "'"
+   ],
+   []
+  ],
+  [
+   121,
+   125,
+   124,
+   true,
+   [
+    "c",
+    "''"
+   ],
+   [
+    "4"
+   ]
+  ]
+ ],
+ "overwrite_durations": [
+  "4",
+  "8",
+  "",
+  "16."
+ ],
+ "results": {
+  "dot": "\\version \"2.27.2\"\nmusic = {\n  \\tempo 4. = 90\n  \\partial 8. c'8.\n  \\tuplet 3/2 4. { d'8. e' f' }\n  \\tuplet 3/2 { g'8. a' b' }\n  c''4.\n}\n",
+  "double": "\\version \"2.27.2\"\nmusic = {\n  \\tempo 2 = 90\n  \\partial 4 c'4\n  \\tuplet 3/2 2 { d'4 e' f' }\n  \\tuplet 3/2 { g'4 a' b' }\n  c''2\n}\n",
+  "explicit": "\\version \"2.27.2\"\nmusic = {\n  \\tempo 4 = 90\n  \\partial 8 c'8\n  \\tuplet 3/2 4 { d'8 e'8 f'8 }\n  \\tuplet 3/2 { g'8 a'8 b'8 }\n  c''4\n}\n",
+  "halve": "\\version \"2.27.2\"\nmusic = {\n  \\tempo 8 = 90\n  \\partial 16 c'16\n  \\tuplet 3/2 8 { d'16 e' f' }\n  \\tuplet 3/2 { g'16 a' b' }\n  c''8\n}\n",
+  "implicit": "\\version \"2.27.2\"\nmusic = {\n  \\tempo 4 = 90\n  \\partial 8 c'8\n  \\tuplet 3/2 4 { d'8 e' f' }\n  \\tuplet 3/2 { g' a' b' }\n  c''4\n}\n",
+  "implicit_per_line": "\\version \"2.27.2\"\nmusic = {\n  \\tempo 4 = 90\n  \\partial 8 c'8\n  \\tuplet 3/2 4 { d'8 e' f' }\n  \\tuplet 3/2 { g'8 a' b' }\n  c''4\n}\n",
+  "overwrite": "\\version \"2.27.2\"\nmusic = {\n  \\tempo 4 = 90\n  \\partial 8 c'\n  \\tuplet 3/2 16. { d'4 e'8 f' }\n  \\tuplet 3/216. { g'4 a'8 b' }\n  c''16.\n}\n",
+  "remove": "\\version \"2.27.2\"\nmusic = {\n  \\tempo 4 = 90\n  \\partial 8 c'\n  \\tuplet 3/2  { d' e' f' }\n  \\tuplet 3/2 { g' a' b' }\n  c''\n}\n",
+  "remove_fraction_scaling": "\\version \"2.27.2\"\nmusic = {\n  \\tempo 4 = 90\n  \\partial 8 c'8\n  \\tuplet 3/2 4 { d'8 e' f' }\n  \\tuplet 3/2 { g'8 a' b' }\n  c''4\n}\n",
+  "remove_scaling": "\\version \"2.27.2\"\nmusic = {\n  \\tempo 4 = 90\n  \\partial 8 c'8\n  \\tuplet 3/2 4 { d'8 e' f' }\n  \\tuplet 3/2 { g'8 a' b' }\n  c''4\n}\n",
+  "undot": "\\version \"2.27.2\"\nmusic = {\n  \\tempo 4 = 90\n  \\partial 8 c'8\n  \\tuplet 3/2 4 { d'8 e' f' }\n  \\tuplet 3/2 { g'8 a' b' }\n  c''4\n}\n"
+ }
+}

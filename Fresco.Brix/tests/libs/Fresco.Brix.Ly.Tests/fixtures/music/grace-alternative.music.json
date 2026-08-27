@@ -1,0 +1,1105 @@
+{
+ "has_output": true,
+ "known_fixes": [
+  {
+   "module": "ly.music.read",
+   "new": "elif not item._specifier and isinstance(t, lex.StringStart):",
+   "old": "elif not item.specifier and isinstance(t, lex.StringStart):",
+   "why": "handle_repeat guards on the bound method item.specifier instead of the field item._specifier, so a quoted repeat specifier is never read and the repeat ends at the string (FR14)"
+  }
+ ],
+ "node_positions": [
+  [
+   0,
+   "Version",
+   0
+  ],
+  [
+   7,
+   "Version",
+   0
+  ],
+  [
+   14,
+   "String",
+   9
+  ],
+  [
+   21,
+   "Header",
+   19
+  ],
+  [
+   28,
+   "Header",
+   19
+  ],
+  [
+   35,
+   "Assignment",
+   31
+  ],
+  [
+   42,
+   "String",
+   39
+  ],
+  [
+   49,
+   "String",
+   39
+  ],
+  [
+   56,
+   "String",
+   39
+  ],
+  [
+   63,
+   "String",
+   39
+  ],
+  [
+   70,
+   "String",
+   39
+  ],
+  [
+   77,
+   "String",
+   39
+  ],
+  [
+   84,
+   "String",
+   39
+  ],
+  [
+   91,
+   "String",
+   39
+  ],
+  [
+   98,
+   "String",
+   39
+  ],
+  [
+   105,
+   "String",
+   39
+  ],
+  [
+   112,
+   "String",
+   39
+  ],
+  [
+   119,
+   "String",
+   39
+  ],
+  [
+   126,
+   "String",
+   39
+  ],
+  [
+   133,
+   "String",
+   39
+  ],
+  [
+   140,
+   "Layout",
+   138
+  ],
+  [
+   147,
+   "Layout",
+   138
+  ],
+  [
+   154,
+   "Assignment",
+   148
+  ],
+  [
+   161,
+   "Assignment",
+   148
+  ],
+  [
+   168,
+   "SchemeItem",
+   164
+  ],
+  [
+   175,
+   "Relative",
+   170
+  ],
+  [
+   182,
+   "Note",
+   180
+  ],
+  [
+   189,
+   "Repeat",
+   188
+  ],
+  [
+   196,
+   "Repeat",
+   188
+  ],
+  [
+   203,
+   "Repeat",
+   188
+  ],
+  [
+   210,
+   "Note",
+   210
+  ],
+  [
+   217,
+   "Duration",
+   215
+  ],
+  [
+   224,
+   "PipeSymbol",
+   224
+  ],
+  [
+   231,
+   "PipeSymbol",
+   224
+  ],
+  [
+   238,
+   "Alternative",
+   232
+  ],
+  [
+   245,
+   "MusicList",
+   245
+  ],
+  [
+   252,
+   "MusicList",
+   251
+  ],
+  [
+   259,
+   "Grace",
+   253
+  ],
+  [
+   266,
+   "Duration",
+   265
+  ],
+  [
+   273,
+   "Duration",
+   273
+  ],
+  [
+   280,
+   "PipeSymbol",
+   278
+  ],
+  [
+   287,
+   "MusicList",
+   286
+  ],
+  [
+   294,
+   "Duration",
+   293
+  ],
+  [
+   301,
+   "Duration",
+   300
+  ],
+  [
+   308,
+   "PipeSymbol",
+   302
+  ],
+  [
+   315,
+   "Duration",
+   313
+  ],
+  [
+   322,
+   "Duration",
+   321
+  ],
+  [
+   329,
+   "PipeSymbol",
+   326
+  ],
+  [
+   330,
+   "PipeSymbol",
+   326
+  ]
+ ],
+ "time_positions": [
+  [
+   0,
+   null
+  ],
+  [
+   7,
+   null
+  ],
+  [
+   14,
+   null
+  ],
+  [
+   21,
+   null
+  ],
+  [
+   28,
+   null
+  ],
+  [
+   35,
+   null
+  ],
+  [
+   42,
+   null
+  ],
+  [
+   49,
+   null
+  ],
+  [
+   56,
+   null
+  ],
+  [
+   63,
+   null
+  ],
+  [
+   70,
+   null
+  ],
+  [
+   77,
+   null
+  ],
+  [
+   84,
+   null
+  ],
+  [
+   91,
+   null
+  ],
+  [
+   98,
+   null
+  ],
+  [
+   105,
+   null
+  ],
+  [
+   112,
+   null
+  ],
+  [
+   119,
+   null
+  ],
+  [
+   126,
+   null
+  ],
+  [
+   133,
+   null
+  ],
+  [
+   140,
+   null
+  ],
+  [
+   147,
+   null
+  ],
+  [
+   154,
+   null
+  ],
+  [
+   161,
+   null
+  ],
+  [
+   168,
+   null
+  ],
+  [
+   175,
+   "0/1"
+  ],
+  [
+   182,
+   "0/1"
+  ],
+  [
+   189,
+   "0/1"
+  ],
+  [
+   196,
+   "0/1"
+  ],
+  [
+   203,
+   "0/1"
+  ],
+  [
+   210,
+   "0/1"
+  ],
+  [
+   217,
+   "1/4"
+  ],
+  [
+   224,
+   "1/1"
+  ],
+  [
+   231,
+   "1/1"
+  ],
+  [
+   238,
+   "1/1"
+  ],
+  [
+   245,
+   "1/1"
+  ],
+  [
+   252,
+   "1/1"
+  ],
+  [
+   259,
+   "1/1"
+  ],
+  [
+   266,
+   "1/1"
+  ],
+  [
+   273,
+   "5/4"
+  ],
+  [
+   280,
+   "2/1"
+  ],
+  [
+   287,
+   "2/1"
+  ],
+  [
+   294,
+   "35/16"
+  ],
+  [
+   301,
+   "3/1"
+  ],
+  [
+   308,
+   "3/1"
+  ],
+  [
+   315,
+   "51/16"
+  ],
+  [
+   322,
+   "7/2"
+  ],
+  [
+   329,
+   "4/1"
+  ],
+  [
+   330,
+   null
+  ]
+ ],
+ "tree": {
+  "children": [
+   {
+    "children": [
+     {
+      "children": [],
+      "cls": "String",
+      "end": 17,
+      "length": "0/1",
+      "plaintext": "2.18.0",
+      "position": 9,
+      "token": "\"",
+      "tokens": [
+       "2.18.0",
+       "\""
+      ]
+     }
+    ],
+    "cls": "Version",
+    "end": 17,
+    "length": "0/1",
+    "plaintext": "",
+    "position": 0,
+    "token": "\\version",
+    "tokens": []
+   },
+   {
+    "children": [
+     {
+      "children": [
+       {
+        "children": [],
+        "cls": "String",
+        "end": 134,
+        "length": "0/1",
+        "plaintext": "A grace in the first alternative does not cause\nthe beaming to go awry in subsequent material",
+        "position": 39,
+        "token": "\"",
+        "tokens": [
+         "A grace in the first alternative does not cause",
+         "\n",
+         "the beaming to go awry in subsequent material",
+         "\""
+        ]
+       }
+      ],
+      "cls": "Assignment",
+      "end": 134,
+      "length": "0/1",
+      "plaintext": "",
+      "position": 31,
+      "token": "texidoc",
+      "tokens": [
+       "="
+      ]
+     }
+    ],
+    "cls": "Header",
+    "end": 136,
+    "length": "0/1",
+    "plaintext": "",
+    "position": 19,
+    "token": "\\header",
+    "tokens": [
+     "{",
+     "}"
+    ]
+   },
+   {
+    "children": [
+     {
+      "children": [
+       {
+        "children": [
+         {
+          "children": [],
+          "cls": "SchemeItem",
+          "end": 166,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 164,
+          "token": "#t",
+          "tokens": []
+         }
+        ],
+        "cls": "Scheme",
+        "end": 166,
+        "length": "0/1",
+        "plaintext": "",
+        "position": 163,
+        "token": "#",
+        "tokens": []
+       }
+      ],
+      "cls": "Assignment",
+      "end": 166,
+      "length": "0/1",
+      "plaintext": "",
+      "position": 148,
+      "token": "ragged-right",
+      "tokens": [
+       "="
+      ]
+     }
+    ],
+    "cls": "Layout",
+    "end": 168,
+    "length": "0/1",
+    "plaintext": "",
+    "position": 138,
+    "token": "\\layout",
+    "tokens": [
+     "{",
+     "}"
+    ]
+   },
+   {
+    "children": [
+     {
+      "children": [],
+      "cls": "Note",
+      "end": 183,
+      "length": "0/1",
+      "plaintext": "",
+      "position": 180,
+      "token": "c",
+      "tokens": []
+     },
+     {
+      "children": [
+       {
+        "children": [
+         {
+          "children": [
+           {
+            "children": [
+             {
+              "children": [],
+              "cls": "Duration",
+              "end": 213,
+              "length": "0/1",
+              "plaintext": "",
+              "position": 211,
+              "token": "8",
+              "tokens": [
+               "."
+              ]
+             }
+            ],
+            "cls": "Note",
+            "end": 213,
+            "length": "3/16",
+            "plaintext": "",
+            "position": 210,
+            "token": "c",
+            "tokens": []
+           },
+           {
+            "children": [
+             {
+              "children": [],
+              "cls": "Duration",
+              "end": 217,
+              "length": "0/1",
+              "plaintext": "",
+              "position": 215,
+              "token": "16",
+              "tokens": []
+             }
+            ],
+            "cls": "Note",
+            "end": 217,
+            "length": "1/16",
+            "plaintext": "",
+            "position": 214,
+            "token": "c",
+            "tokens": []
+           },
+           {
+            "children": [
+             {
+              "children": [],
+              "cls": "Duration",
+              "end": 220,
+              "length": "0/1",
+              "plaintext": "",
+              "position": 219,
+              "token": "4",
+              "tokens": []
+             }
+            ],
+            "cls": "Note",
+            "end": 220,
+            "length": "1/4",
+            "plaintext": "",
+            "position": 218,
+            "token": "c",
+            "tokens": []
+           },
+           {
+            "children": [
+             {
+              "children": [],
+              "cls": "Duration",
+              "end": 223,
+              "length": "0/1",
+              "plaintext": "",
+              "position": 222,
+              "token": "2",
+              "tokens": []
+             }
+            ],
+            "cls": "Note",
+            "end": 223,
+            "length": "1/2",
+            "plaintext": "",
+            "position": 221,
+            "token": "c",
+            "tokens": []
+           },
+           {
+            "children": [],
+            "cls": "PipeSymbol",
+            "end": 225,
+            "length": "0/1",
+            "plaintext": "",
+            "position": 224,
+            "token": "|",
+            "tokens": []
+           }
+          ],
+          "cls": "MusicList",
+          "end": 229,
+          "length": "1/1",
+          "plaintext": "",
+          "position": 204,
+          "token": "{",
+          "tokens": [
+           "}"
+          ]
+         },
+         {
+          "children": [
+           {
+            "children": [
+             {
+              "children": [
+               {
+                "children": [
+                 {
+                  "children": [
+                   {
+                    "children": [],
+                    "cls": "Duration",
+                    "end": 263,
+                    "length": "0/1",
+                    "plaintext": "",
+                    "position": 261,
+                    "token": "32",
+                    "tokens": []
+                   }
+                  ],
+                  "cls": "Note",
+                  "end": 263,
+                  "length": "1/32",
+                  "plaintext": "",
+                  "position": 260,
+                  "token": "c",
+                  "tokens": []
+                 }
+                ],
+                "cls": "Grace",
+                "end": 263,
+                "length": "0/1",
+                "plaintext": "",
+                "position": 253,
+                "token": "\\grace",
+                "tokens": []
+               },
+               {
+                "children": [
+                 {
+                  "children": [],
+                  "cls": "Duration",
+                  "end": 267,
+                  "length": "0/1",
+                  "plaintext": "",
+                  "position": 265,
+                  "token": "8",
+                  "tokens": [
+                   "."
+                  ]
+                 }
+                ],
+                "cls": "Note",
+                "end": 267,
+                "length": "3/16",
+                "plaintext": "",
+                "position": 264,
+                "token": "c",
+                "tokens": []
+               },
+               {
+                "children": [
+                 {
+                  "children": [],
+                  "cls": "Duration",
+                  "end": 271,
+                  "length": "0/1",
+                  "plaintext": "",
+                  "position": 269,
+                  "token": "16",
+                  "tokens": []
+                 }
+                ],
+                "cls": "Note",
+                "end": 271,
+                "length": "1/16",
+                "plaintext": "",
+                "position": 268,
+                "token": "c",
+                "tokens": []
+               },
+               {
+                "children": [
+                 {
+                  "children": [],
+                  "cls": "Duration",
+                  "end": 274,
+                  "length": "0/1",
+                  "plaintext": "",
+                  "position": 273,
+                  "token": "4",
+                  "tokens": []
+                 }
+                ],
+                "cls": "Note",
+                "end": 274,
+                "length": "1/4",
+                "plaintext": "",
+                "position": 272,
+                "token": "c",
+                "tokens": []
+               },
+               {
+                "children": [
+                 {
+                  "children": [],
+                  "cls": "Duration",
+                  "end": 277,
+                  "length": "0/1",
+                  "plaintext": "",
+                  "position": 276,
+                  "token": "2",
+                  "tokens": []
+                 }
+                ],
+                "cls": "Note",
+                "end": 277,
+                "length": "1/2",
+                "plaintext": "",
+                "position": 275,
+                "token": "c",
+                "tokens": []
+               },
+               {
+                "children": [],
+                "cls": "PipeSymbol",
+                "end": 279,
+                "length": "0/1",
+                "plaintext": "",
+                "position": 278,
+                "token": "|",
+                "tokens": []
+               }
+              ],
+              "cls": "MusicList",
+              "end": 281,
+              "length": "1/1",
+              "plaintext": "",
+              "position": 251,
+              "token": "{",
+              "tokens": [
+               "}"
+              ]
+             },
+             {
+              "children": [
+               {
+                "children": [
+                 {
+                  "children": [],
+                  "cls": "Duration",
+                  "end": 291,
+                  "length": "0/1",
+                  "plaintext": "",
+                  "position": 289,
+                  "token": "8",
+                  "tokens": [
+                   "."
+                  ]
+                 }
+                ],
+                "cls": "Note",
+                "end": 291,
+                "length": "3/16",
+                "plaintext": "",
+                "position": 288,
+                "token": "c",
+                "tokens": []
+               },
+               {
+                "children": [
+                 {
+                  "children": [],
+                  "cls": "Duration",
+                  "end": 295,
+                  "length": "0/1",
+                  "plaintext": "",
+                  "position": 293,
+                  "token": "16",
+                  "tokens": []
+                 }
+                ],
+                "cls": "Note",
+                "end": 295,
+                "length": "1/16",
+                "plaintext": "",
+                "position": 292,
+                "token": "c",
+                "tokens": []
+               },
+               {
+                "children": [
+                 {
+                  "children": [],
+                  "cls": "Duration",
+                  "end": 298,
+                  "length": "0/1",
+                  "plaintext": "",
+                  "position": 297,
+                  "token": "4",
+                  "tokens": []
+                 }
+                ],
+                "cls": "Note",
+                "end": 298,
+                "length": "1/4",
+                "plaintext": "",
+                "position": 296,
+                "token": "c",
+                "tokens": []
+               },
+               {
+                "children": [
+                 {
+                  "children": [],
+                  "cls": "Duration",
+                  "end": 301,
+                  "length": "0/1",
+                  "plaintext": "",
+                  "position": 300,
+                  "token": "2",
+                  "tokens": []
+                 }
+                ],
+                "cls": "Note",
+                "end": 301,
+                "length": "1/2",
+                "plaintext": "",
+                "position": 299,
+                "token": "c",
+                "tokens": []
+               },
+               {
+                "children": [],
+                "cls": "PipeSymbol",
+                "end": 303,
+                "length": "0/1",
+                "plaintext": "",
+                "position": 302,
+                "token": "|",
+                "tokens": []
+               }
+              ],
+              "cls": "MusicList",
+              "end": 305,
+              "length": "1/1",
+              "plaintext": "",
+              "position": 286,
+              "token": "{",
+              "tokens": [
+               "}"
+              ]
+             }
+            ],
+            "cls": "MusicList",
+            "end": 309,
+            "length": "2/1",
+            "plaintext": "",
+            "position": 245,
+            "token": "{",
+            "tokens": [
+             "}"
+            ]
+           }
+          ],
+          "cls": "Alternative",
+          "end": 309,
+          "length": "2/1",
+          "plaintext": "",
+          "position": 232,
+          "token": "\\alternative",
+          "tokens": []
+         }
+        ],
+        "cls": "Repeat",
+        "end": 309,
+        "length": "3/1",
+        "plaintext": "",
+        "position": 188,
+        "token": "\\repeat",
+        "tokens": []
+       },
+       {
+        "children": [
+         {
+          "children": [],
+          "cls": "Duration",
+          "end": 315,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 313,
+          "token": "8",
+          "tokens": [
+           "."
+          ]
+         }
+        ],
+        "cls": "Note",
+        "end": 315,
+        "length": "3/16",
+        "plaintext": "",
+        "position": 312,
+        "token": "c",
+        "tokens": []
+       },
+       {
+        "children": [
+         {
+          "children": [],
+          "cls": "Duration",
+          "end": 319,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 317,
+          "token": "16",
+          "tokens": []
+         }
+        ],
+        "cls": "Note",
+        "end": 319,
+        "length": "1/16",
+        "plaintext": "",
+        "position": 316,
+        "token": "c",
+        "tokens": []
+       },
+       {
+        "children": [
+         {
+          "children": [],
+          "cls": "Duration",
+          "end": 322,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 321,
+          "token": "4",
+          "tokens": []
+         }
+        ],
+        "cls": "Note",
+        "end": 322,
+        "length": "1/4",
+        "plaintext": "",
+        "position": 320,
+        "token": "c",
+        "tokens": []
+       },
+       {
+        "children": [
+         {
+          "children": [],
+          "cls": "Duration",
+          "end": 325,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 324,
+          "token": "2",
+          "tokens": []
+         }
+        ],
+        "cls": "Note",
+        "end": 325,
+        "length": "1/2",
+        "plaintext": "",
+        "position": 323,
+        "token": "c",
+        "tokens": []
+       },
+       {
+        "children": [],
+        "cls": "PipeSymbol",
+        "end": 327,
+        "length": "0/1",
+        "plaintext": "",
+        "position": 326,
+        "token": "|",
+        "tokens": []
+       }
+      ],
+      "cls": "MusicList",
+      "end": 329,
+      "length": "4/1",
+      "plaintext": "",
+      "position": 184,
+      "token": "{",
+      "tokens": [
+       "}"
+      ]
+     }
+    ],
+    "cls": "Relative",
+    "end": 329,
+    "length": "4/1",
+    "plaintext": "",
+    "position": 170,
+    "token": "\\relative",
+    "tokens": []
+   }
+  ],
+  "cls": "Document",
+  "end": 329,
+  "length": "0/1",
+  "plaintext": "",
+  "position": -1,
+  "token": null,
+  "tokens": []
+ }
+}

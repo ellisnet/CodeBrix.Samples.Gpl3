@@ -1,0 +1,95 @@
+{
+ "extract": [
+  "4",
+  "",
+  "",
+  "",
+  "2",
+  ""
+ ],
+ "music_items": [
+  [
+   112,
+   114,
+   113,
+   true,
+   [
+    "c"
+   ],
+   [
+    "4"
+   ]
+  ],
+  [
+   115,
+   116,
+   116,
+   true,
+   [
+    "d"
+   ],
+   []
+  ],
+  [
+   117,
+   118,
+   118,
+   true,
+   [
+    "e"
+   ],
+   []
+  ],
+  [
+   119,
+   120,
+   120,
+   true,
+   [
+    "f"
+   ],
+   []
+  ],
+  [
+   123,
+   125,
+   124,
+   true,
+   [
+    "g"
+   ],
+   [
+    "2"
+   ]
+  ],
+  [
+   126,
+   127,
+   127,
+   true,
+   [
+    "g"
+   ],
+   []
+  ]
+ ],
+ "overwrite_durations": [
+  "4",
+  "8",
+  "",
+  "16."
+ ],
+ "results": {
+  "dot": "<html>\n<head><title>A LilyPond page</title></head>\n<body>\n<p>Some music:</p>\n<lilypond fragment>\n\\relative c' { c4. d e f | g2. g }\n</lilypond>\n<pre>plain</pre>\n<!-- a comment -->\n</body>\n</html>\n",
+  "double": "<html>\n<head><title>A LilyPond page</title></head>\n<body>\n<p>Some music:</p>\n<lilypond fragment>\n\\relative c' { c2 d e f | g1 g }\n</lilypond>\n<pre>plain</pre>\n<!-- a comment -->\n</body>\n</html>\n",
+  "explicit": "<html>\n<head><title>A LilyPond page</title></head>\n<body>\n<p>Some music:</p>\n<lilypond fragment>\n\\relative c' { c4 d4 e4 f4 | g2 g2 }\n</lilypond>\n<pre>plain</pre>\n<!-- a comment -->\n</body>\n</html>\n",
+  "halve": "<html>\n<head><title>A LilyPond page</title></head>\n<body>\n<p>Some music:</p>\n<lilypond fragment>\n\\relative c' { c8 d e f | g4 g }\n</lilypond>\n<pre>plain</pre>\n<!-- a comment -->\n</body>\n</html>\n",
+  "implicit": "<html>\n<head><title>A LilyPond page</title></head>\n<body>\n<p>Some music:</p>\n<lilypond fragment>\n\\relative c' { c4 d e f | g2 g }\n</lilypond>\n<pre>plain</pre>\n<!-- a comment -->\n</body>\n</html>\n",
+  "implicit_per_line": "<html>\n<head><title>A LilyPond page</title></head>\n<body>\n<p>Some music:</p>\n<lilypond fragment>\n\\relative c' { c4 d e f | g2 g }\n</lilypond>\n<pre>plain</pre>\n<!-- a comment -->\n</body>\n</html>\n",
+  "overwrite": "<html>\n<head><title>A LilyPond page</title></head>\n<body>\n<p>Some music:</p>\n<lilypond fragment>\n\\relative c' { c4 d8 e f16. | g4 g8 }\n</lilypond>\n<pre>plain</pre>\n<!-- a comment -->\n</body>\n</html>\n",
+  "remove": "<html>\n<head><title>A LilyPond page</title></head>\n<body>\n<p>Some music:</p>\n<lilypond fragment>\n\\relative c' { c d e f | g g }\n</lilypond>\n<pre>plain</pre>\n<!-- a comment -->\n</body>\n</html>\n",
+  "remove_fraction_scaling": "<html>\n<head><title>A LilyPond page</title></head>\n<body>\n<p>Some music:</p>\n<lilypond fragment>\n\\relative c' { c4 d e f | g2 g }\n</lilypond>\n<pre>plain</pre>\n<!-- a comment -->\n</body>\n</html>\n",
+  "remove_scaling": "<html>\n<head><title>A LilyPond page</title></head>\n<body>\n<p>Some music:</p>\n<lilypond fragment>\n\\relative c' { c4 d e f | g2 g }\n</lilypond>\n<pre>plain</pre>\n<!-- a comment -->\n</body>\n</html>\n",
+  "undot": "<html>\n<head><title>A LilyPond page</title></head>\n<body>\n<p>Some music:</p>\n<lilypond fragment>\n\\relative c' { c4 d e f | g2 g }\n</lilypond>\n<pre>plain</pre>\n<!-- a comment -->\n</body>\n</html>\n"
+ }
+}

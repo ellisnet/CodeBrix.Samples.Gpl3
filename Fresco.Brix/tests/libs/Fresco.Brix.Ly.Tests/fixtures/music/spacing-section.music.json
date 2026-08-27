@@ -1,0 +1,1090 @@
+{
+ "has_output": true,
+ "known_fixes": [
+  {
+   "module": "ly.music.read",
+   "new": "elif not item._specifier and isinstance(t, lex.StringStart):",
+   "old": "elif not item.specifier and isinstance(t, lex.StringStart):",
+   "why": "handle_repeat guards on the bound method item.specifier instead of the field item._specifier, so a quoted repeat specifier is never read and the repeat ends at the string (FR14)"
+  }
+ ],
+ "node_positions": [
+  [
+   0,
+   "Header",
+   0
+  ],
+  [
+   7,
+   "Header",
+   0
+  ],
+  [
+   14,
+   "Assignment",
+   13
+  ],
+  [
+   21,
+   "Assignment",
+   13
+  ],
+  [
+   28,
+   "String",
+   23
+  ],
+  [
+   35,
+   "String",
+   23
+  ],
+  [
+   42,
+   "String",
+   23
+  ],
+  [
+   49,
+   "String",
+   23
+  ],
+  [
+   56,
+   "String",
+   23
+  ],
+  [
+   63,
+   "String",
+   23
+  ],
+  [
+   70,
+   "String",
+   23
+  ],
+  [
+   77,
+   "String",
+   23
+  ],
+  [
+   84,
+   "String",
+   23
+  ],
+  [
+   91,
+   "String",
+   23
+  ],
+  [
+   98,
+   "String",
+   23
+  ],
+  [
+   105,
+   "String",
+   23
+  ],
+  [
+   112,
+   "String",
+   23
+  ],
+  [
+   119,
+   "String",
+   23
+  ],
+  [
+   126,
+   "String",
+   23
+  ],
+  [
+   133,
+   "String",
+   23
+  ],
+  [
+   140,
+   "String",
+   23
+  ],
+  [
+   147,
+   "String",
+   23
+  ],
+  [
+   154,
+   "String",
+   23
+  ],
+  [
+   161,
+   "String",
+   23
+  ],
+  [
+   168,
+   "String",
+   23
+  ],
+  [
+   175,
+   "String",
+   23
+  ],
+  [
+   182,
+   "String",
+   23
+  ],
+  [
+   189,
+   "String",
+   23
+  ],
+  [
+   196,
+   "String",
+   23
+  ],
+  [
+   203,
+   "String",
+   23
+  ],
+  [
+   210,
+   "String",
+   23
+  ],
+  [
+   217,
+   "String",
+   23
+  ],
+  [
+   224,
+   "String",
+   23
+  ],
+  [
+   231,
+   "String",
+   23
+  ],
+  [
+   238,
+   "Paper",
+   233
+  ],
+  [
+   245,
+   "Assignment",
+   244
+  ],
+  [
+   252,
+   "Assignment",
+   244
+  ],
+  [
+   259,
+   "Scheme",
+   259
+  ],
+  [
+   266,
+   "SchemeItem",
+   260
+  ],
+  [
+   273,
+   "Version",
+   267
+  ],
+  [
+   280,
+   "String",
+   276
+  ],
+  [
+   287,
+   "Relative",
+   286
+  ],
+  [
+   294,
+   "Relative",
+   286
+  ],
+  [
+   301,
+   "TimeSignature",
+   300
+  ],
+  [
+   308,
+   "TimeSignature",
+   300
+  ],
+  [
+   315,
+   "Duration",
+   314
+  ],
+  [
+   322,
+   "Note",
+   319
+  ],
+  [
+   329,
+   "Note",
+   329
+  ],
+  [
+   336,
+   "Beam",
+   335
+  ],
+  [
+   343,
+   "Note",
+   343
+  ],
+  [
+   350,
+   "Command",
+   349
+  ],
+  [
+   357,
+   "Command",
+   349
+  ],
+  [
+   364,
+   "Command",
+   349
+  ],
+  [
+   371,
+   "TimeSignature",
+   370
+  ],
+  [
+   378,
+   "TimeSignature",
+   370
+  ],
+  [
+   385,
+   "Beam",
+   385
+  ],
+  [
+   392,
+   "Beam",
+   392
+  ],
+  [
+   399,
+   "Beam",
+   399
+  ],
+  [
+   406,
+   "Beam",
+   406
+  ],
+  [
+   413,
+   "Beam",
+   406
+  ],
+  [
+   415,
+   "Beam",
+   406
+  ]
+ ],
+ "time_positions": [
+  [
+   0,
+   null
+  ],
+  [
+   7,
+   null
+  ],
+  [
+   14,
+   null
+  ],
+  [
+   21,
+   null
+  ],
+  [
+   28,
+   null
+  ],
+  [
+   35,
+   null
+  ],
+  [
+   42,
+   null
+  ],
+  [
+   49,
+   null
+  ],
+  [
+   56,
+   null
+  ],
+  [
+   63,
+   null
+  ],
+  [
+   70,
+   null
+  ],
+  [
+   77,
+   null
+  ],
+  [
+   84,
+   null
+  ],
+  [
+   91,
+   null
+  ],
+  [
+   98,
+   null
+  ],
+  [
+   105,
+   null
+  ],
+  [
+   112,
+   null
+  ],
+  [
+   119,
+   null
+  ],
+  [
+   126,
+   null
+  ],
+  [
+   133,
+   null
+  ],
+  [
+   140,
+   null
+  ],
+  [
+   147,
+   null
+  ],
+  [
+   154,
+   null
+  ],
+  [
+   161,
+   null
+  ],
+  [
+   168,
+   null
+  ],
+  [
+   175,
+   null
+  ],
+  [
+   182,
+   null
+  ],
+  [
+   189,
+   null
+  ],
+  [
+   196,
+   null
+  ],
+  [
+   203,
+   null
+  ],
+  [
+   210,
+   null
+  ],
+  [
+   217,
+   null
+  ],
+  [
+   224,
+   null
+  ],
+  [
+   231,
+   null
+  ],
+  [
+   238,
+   null
+  ],
+  [
+   245,
+   null
+  ],
+  [
+   252,
+   null
+  ],
+  [
+   259,
+   null
+  ],
+  [
+   266,
+   null
+  ],
+  [
+   273,
+   null
+  ],
+  [
+   280,
+   null
+  ],
+  [
+   287,
+   "0/1"
+  ],
+  [
+   294,
+   "0/1"
+  ],
+  [
+   301,
+   "0/1"
+  ],
+  [
+   308,
+   "0/1"
+  ],
+  [
+   315,
+   "1/4"
+  ],
+  [
+   322,
+   "1/2"
+  ],
+  [
+   329,
+   "3/4"
+  ],
+  [
+   336,
+   "17/16"
+  ],
+  [
+   343,
+   "5/4"
+  ],
+  [
+   350,
+   "3/2"
+  ],
+  [
+   357,
+   "3/2"
+  ],
+  [
+   364,
+   "3/2"
+  ],
+  [
+   371,
+   "3/2"
+  ],
+  [
+   378,
+   "3/2"
+  ],
+  [
+   385,
+   "13/8"
+  ],
+  [
+   392,
+   "7/4"
+  ],
+  [
+   399,
+   "29/16"
+  ],
+  [
+   406,
+   "2/1"
+  ],
+  [
+   413,
+   null
+  ],
+  [
+   415,
+   null
+  ]
+ ],
+ "tree": {
+  "children": [
+   {
+    "children": [
+     {
+      "children": [
+       {
+        "children": [],
+        "cls": "String",
+        "end": 228,
+        "length": "0/1",
+        "plaintext": "New sections for spacing can be started with\n@code{\\newSpacingSection}. In this example, a section is started at\nthe 4/16, and a 16th in the second section takes as much space as a\n8th in first section.",
+        "position": 23,
+        "token": "\"",
+        "tokens": [
+         "New sections for spacing can be started with",
+         "\n",
+         "@code{",
+         "\\\\",
+         "newSpacingSection}. In this example, a section is started at",
+         "\n",
+         "the 4/16, and a 16th in the second section takes as much space as a",
+         "\n",
+         "8th in first section.",
+         "\""
+        ]
+       }
+      ],
+      "cls": "Assignment",
+      "end": 228,
+      "length": "0/1",
+      "plaintext": "",
+      "position": 13,
+      "token": "texidoc",
+      "tokens": [
+       "="
+      ]
+     }
+    ],
+    "cls": "Header",
+    "end": 231,
+    "length": "0/1",
+    "plaintext": "",
+    "position": 0,
+    "token": "\\header",
+    "tokens": [
+     "{",
+     "}"
+    ]
+   },
+   {
+    "children": [
+     {
+      "children": [
+       {
+        "children": [
+         {
+          "children": [],
+          "cls": "SchemeItem",
+          "end": 262,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 260,
+          "token": "#t",
+          "tokens": []
+         }
+        ],
+        "cls": "Scheme",
+        "end": 262,
+        "length": "0/1",
+        "plaintext": "",
+        "position": 259,
+        "token": "#",
+        "tokens": []
+       }
+      ],
+      "cls": "Assignment",
+      "end": 262,
+      "length": "0/1",
+      "plaintext": "",
+      "position": 244,
+      "token": "ragged-right",
+      "tokens": [
+       "="
+      ]
+     }
+    ],
+    "cls": "Paper",
+    "end": 266,
+    "length": "0/1",
+    "plaintext": "",
+    "position": 233,
+    "token": "\\paper",
+    "tokens": [
+     "{",
+     "}"
+    ]
+   },
+   {
+    "children": [
+     {
+      "children": [],
+      "cls": "String",
+      "end": 285,
+      "length": "0/1",
+      "plaintext": "2.19.21",
+      "position": 276,
+      "token": "\"",
+      "tokens": [
+       "2.19.21",
+       "\""
+      ]
+     }
+    ],
+    "cls": "Version",
+    "end": 285,
+    "length": "0/1",
+    "plaintext": "",
+    "position": 267,
+    "token": "\\version",
+    "tokens": []
+   },
+   {
+    "children": [
+     {
+      "children": [
+       {
+        "children": [],
+        "cls": "TimeSignature",
+        "end": 305,
+        "length": "0/1",
+        "plaintext": "",
+        "position": 300,
+        "token": "\\time",
+        "tokens": []
+       },
+       {
+        "children": [
+         {
+          "children": [],
+          "cls": "Duration",
+          "end": 315,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 314,
+          "token": "4",
+          "tokens": []
+         }
+        ],
+        "cls": "Note",
+        "end": 315,
+        "length": "1/4",
+        "plaintext": "",
+        "position": 312,
+        "token": "c",
+        "tokens": []
+       },
+       {
+        "children": [
+         {
+          "children": [],
+          "cls": "Duration",
+          "end": 318,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 317,
+          "token": "8",
+          "tokens": []
+         }
+        ],
+        "cls": "Note",
+        "end": 318,
+        "length": "1/8",
+        "plaintext": "",
+        "position": 316,
+        "token": "c",
+        "tokens": []
+       },
+       {
+        "children": [],
+        "cls": "Note",
+        "end": 320,
+        "length": "1/8",
+        "plaintext": "",
+        "position": 319,
+        "token": "c",
+        "tokens": []
+       },
+       {
+        "children": [
+         {
+          "children": [],
+          "cls": "Duration",
+          "end": 326,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 325,
+          "token": "8",
+          "tokens": []
+         }
+        ],
+        "cls": "Note",
+        "end": 326,
+        "length": "1/8",
+        "plaintext": "",
+        "position": 324,
+        "token": "c",
+        "tokens": []
+       },
+       {
+        "children": [],
+        "cls": "Note",
+        "end": 328,
+        "length": "1/8",
+        "plaintext": "",
+        "position": 327,
+        "token": "c",
+        "tokens": []
+       },
+       {
+        "children": [
+         {
+          "children": [],
+          "cls": "Duration",
+          "end": 331,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 330,
+          "token": "4",
+          "tokens": []
+         }
+        ],
+        "cls": "Note",
+        "end": 331,
+        "length": "1/4",
+        "plaintext": "",
+        "position": 329,
+        "token": "c",
+        "tokens": []
+       },
+       {
+        "children": [
+         {
+          "children": [],
+          "cls": "Duration",
+          "end": 335,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 333,
+          "token": "16",
+          "tokens": []
+         }
+        ],
+        "cls": "Note",
+        "end": 335,
+        "length": "1/16",
+        "plaintext": "",
+        "position": 332,
+        "token": "c",
+        "tokens": []
+       },
+       {
+        "children": [],
+        "cls": "Beam",
+        "end": 336,
+        "length": "0/1",
+        "plaintext": "",
+        "position": 335,
+        "token": "[",
+        "tokens": []
+       },
+       {
+        "children": [],
+        "cls": "Note",
+        "end": 338,
+        "length": "1/16",
+        "plaintext": "",
+        "position": 337,
+        "token": "c",
+        "tokens": []
+       },
+       {
+        "children": [
+         {
+          "children": [],
+          "cls": "Duration",
+          "end": 341,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 340,
+          "token": "8",
+          "tokens": []
+         }
+        ],
+        "cls": "Note",
+        "end": 341,
+        "length": "1/8",
+        "plaintext": "",
+        "position": 339,
+        "token": "c",
+        "tokens": []
+       },
+       {
+        "children": [],
+        "cls": "Beam",
+        "end": 342,
+        "length": "0/1",
+        "plaintext": "",
+        "position": 341,
+        "token": "]",
+        "tokens": []
+       },
+       {
+        "children": [
+         {
+          "children": [],
+          "cls": "Duration",
+          "end": 345,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 344,
+          "token": "4",
+          "tokens": []
+         }
+        ],
+        "cls": "Note",
+        "end": 345,
+        "length": "1/4",
+        "plaintext": "",
+        "position": 343,
+        "token": "c",
+        "tokens": []
+       },
+       {
+        "children": [],
+        "cls": "Command",
+        "end": 367,
+        "length": "0/1",
+        "plaintext": "",
+        "position": 349,
+        "token": "\\newSpacingSection",
+        "tokens": []
+       },
+       {
+        "children": [],
+        "cls": "TimeSignature",
+        "end": 375,
+        "length": "0/1",
+        "plaintext": "",
+        "position": 370,
+        "token": "\\time",
+        "tokens": []
+       },
+       {
+        "children": [
+         {
+          "children": [],
+          "cls": "Duration",
+          "end": 385,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 384,
+          "token": "8",
+          "tokens": []
+         }
+        ],
+        "cls": "Note",
+        "end": 385,
+        "length": "1/8",
+        "plaintext": "",
+        "position": 383,
+        "token": "c",
+        "tokens": []
+       },
+       {
+        "children": [],
+        "cls": "Beam",
+        "end": 386,
+        "length": "0/1",
+        "plaintext": "",
+        "position": 385,
+        "token": "[",
+        "tokens": []
+       },
+       {
+        "children": [
+         {
+          "children": [],
+          "cls": "Duration",
+          "end": 390,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 388,
+          "token": "16",
+          "tokens": []
+         }
+        ],
+        "cls": "Note",
+        "end": 390,
+        "length": "1/16",
+        "plaintext": "",
+        "position": 387,
+        "token": "c",
+        "tokens": []
+       },
+       {
+        "children": [],
+        "cls": "Note",
+        "end": 392,
+        "length": "1/16",
+        "plaintext": "",
+        "position": 391,
+        "token": "c",
+        "tokens": []
+       },
+       {
+        "children": [],
+        "cls": "Beam",
+        "end": 393,
+        "length": "0/1",
+        "plaintext": "",
+        "position": 392,
+        "token": "]",
+        "tokens": []
+       },
+       {
+        "children": [
+         {
+          "children": [],
+          "cls": "Duration",
+          "end": 399,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 397,
+          "token": "16",
+          "tokens": []
+         }
+        ],
+        "cls": "Note",
+        "end": 399,
+        "length": "1/16",
+        "plaintext": "",
+        "position": 396,
+        "token": "c",
+        "tokens": []
+       },
+       {
+        "children": [],
+        "cls": "Beam",
+        "end": 400,
+        "length": "0/1",
+        "plaintext": "",
+        "position": 399,
+        "token": "[",
+        "tokens": []
+       },
+       {
+        "children": [],
+        "cls": "Note",
+        "end": 402,
+        "length": "1/16",
+        "plaintext": "",
+        "position": 401,
+        "token": "c",
+        "tokens": []
+       },
+       {
+        "children": [
+         {
+          "children": [],
+          "cls": "Duration",
+          "end": 406,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 405,
+          "token": "8",
+          "tokens": []
+         }
+        ],
+        "cls": "Note",
+        "end": 406,
+        "length": "1/8",
+        "plaintext": "",
+        "position": 404,
+        "token": "c",
+        "tokens": []
+       },
+       {
+        "children": [],
+        "cls": "Beam",
+        "end": 407,
+        "length": "0/1",
+        "plaintext": "",
+        "position": 406,
+        "token": "]",
+        "tokens": []
+       }
+      ],
+      "cls": "MusicList",
+      "end": 409,
+      "length": "2/1",
+      "plaintext": "",
+      "position": 296,
+      "token": "{",
+      "tokens": [
+       "}"
+      ]
+     }
+    ],
+    "cls": "Relative",
+    "end": 409,
+    "length": "2/1",
+    "plaintext": "",
+    "position": 286,
+    "token": "\\relative",
+    "tokens": []
+   }
+  ],
+  "cls": "Document",
+  "end": 409,
+  "length": "0/1",
+  "plaintext": "",
+  "position": -1,
+  "token": null,
+  "tokens": []
+ }
+}

@@ -1,0 +1,583 @@
+{
+ "has_output": false,
+ "known_fixes": [
+  {
+   "module": "ly.music.read",
+   "new": "elif not item._specifier and isinstance(t, lex.StringStart):",
+   "old": "elif not item.specifier and isinstance(t, lex.StringStart):",
+   "why": "handle_repeat guards on the bound method item.specifier instead of the field item._specifier, so a quoted repeat specifier is never read and the repeat ends at the string (FR14)"
+  }
+ ],
+ "node_positions": [
+  [
+   0,
+   "Version",
+   0
+  ],
+  [
+   7,
+   "Version",
+   0
+  ],
+  [
+   14,
+   "String",
+   9
+  ],
+  [
+   21,
+   "SchemeItem",
+   21
+  ],
+  [
+   28,
+   "String",
+   26
+  ],
+  [
+   35,
+   "String",
+   26
+  ],
+  [
+   42,
+   "String",
+   26
+  ],
+  [
+   49,
+   "SchemeItem",
+   46
+  ],
+  [
+   56,
+   "String",
+   51
+  ],
+  [
+   63,
+   "String",
+   51
+  ],
+  [
+   70,
+   "SchemeItem",
+   69
+  ],
+  [
+   77,
+   "SchemeItem",
+   77
+  ],
+  [
+   84,
+   "SchemeItem",
+   77
+  ],
+  [
+   91,
+   "SchemeItem",
+   89
+  ],
+  [
+   98,
+   "SchemeItem",
+   97
+  ],
+  [
+   105,
+   "Command",
+   102
+  ],
+  [
+   112,
+   "Command",
+   102
+  ],
+  [
+   119,
+   "SchemeList",
+   119
+  ],
+  [
+   126,
+   "SchemeItem",
+   120
+  ],
+  [
+   133,
+   "SchemeItem",
+   120
+  ],
+  [
+   140,
+   "String",
+   134
+  ],
+  [
+   147,
+   "String",
+   146
+  ],
+  [
+   154,
+   "String",
+   146
+  ],
+  [
+   161,
+   "Assignment",
+   156
+  ],
+  [
+   168,
+   "MusicList",
+   168
+  ],
+  [
+   172,
+   "MusicList",
+   168
+  ]
+ ],
+ "time_positions": [
+  [
+   0,
+   null
+  ],
+  [
+   7,
+   null
+  ],
+  [
+   14,
+   null
+  ],
+  [
+   21,
+   null
+  ],
+  [
+   28,
+   null
+  ],
+  [
+   35,
+   null
+  ],
+  [
+   42,
+   null
+  ],
+  [
+   49,
+   null
+  ],
+  [
+   56,
+   null
+  ],
+  [
+   63,
+   null
+  ],
+  [
+   70,
+   null
+  ],
+  [
+   77,
+   null
+  ],
+  [
+   84,
+   null
+  ],
+  [
+   91,
+   null
+  ],
+  [
+   98,
+   null
+  ],
+  [
+   105,
+   null
+  ],
+  [
+   112,
+   null
+  ],
+  [
+   119,
+   null
+  ],
+  [
+   126,
+   null
+  ],
+  [
+   133,
+   null
+  ],
+  [
+   140,
+   null
+  ],
+  [
+   147,
+   null
+  ],
+  [
+   154,
+   null
+  ],
+  [
+   161,
+   "0/1"
+  ],
+  [
+   168,
+   "0/1"
+  ],
+  [
+   172,
+   null
+  ]
+ ],
+ "tree": {
+  "children": [
+   {
+    "children": [
+     {
+      "children": [],
+      "cls": "String",
+      "end": 17,
+      "length": "0/1",
+      "plaintext": "2.24.0",
+      "position": 9,
+      "token": "\"",
+      "tokens": [
+       "2.24.0",
+       "\""
+      ]
+     }
+    ],
+    "cls": "Version",
+    "end": 17,
+    "length": "0/1",
+    "plaintext": "",
+    "position": 0,
+    "token": "\\version",
+    "tokens": []
+   },
+   {
+    "children": [
+     {
+      "children": [
+       {
+        "children": [],
+        "cls": "SchemeItem",
+        "end": 25,
+        "length": "0/1",
+        "plaintext": "",
+        "position": 21,
+        "token": "load",
+        "tokens": []
+       },
+       {
+        "children": [],
+        "cls": "String",
+        "end": 42,
+        "length": "0/1",
+        "plaintext": "my-helpers.scm",
+        "position": 26,
+        "token": "\"",
+        "tokens": [
+         "my-helpers.scm",
+         "\""
+        ]
+       }
+      ],
+      "cls": "SchemeList",
+      "end": 43,
+      "length": "0/1",
+      "plaintext": "",
+      "position": 20,
+      "token": "(",
+      "tokens": [
+       ")"
+      ]
+     }
+    ],
+    "cls": "Scheme",
+    "end": 43,
+    "length": "0/1",
+    "plaintext": "my-helpers.scm",
+    "position": 19,
+    "token": "#",
+    "tokens": []
+   },
+   {
+    "children": [
+     {
+      "children": [
+       {
+        "children": [],
+        "cls": "SchemeItem",
+        "end": 50,
+        "length": "0/1",
+        "plaintext": "",
+        "position": 46,
+        "token": "load",
+        "tokens": []
+       },
+       {
+        "children": [],
+        "cls": "String",
+        "end": 64,
+        "length": "0/1",
+        "plaintext": "another.scm",
+        "position": 51,
+        "token": "\"",
+        "tokens": [
+         "another.scm",
+         "\""
+        ]
+       }
+      ],
+      "cls": "SchemeList",
+      "end": 65,
+      "length": "0/1",
+      "plaintext": "",
+      "position": 45,
+      "token": "(",
+      "tokens": [
+       ")"
+      ]
+     }
+    ],
+    "cls": "Scheme",
+    "end": 65,
+    "length": "0/1",
+    "plaintext": "another.scm",
+    "position": 44,
+    "token": "#",
+    "tokens": []
+   },
+   {
+    "children": [
+     {
+      "children": [
+       {
+        "children": [],
+        "cls": "SchemeItem",
+        "end": 75,
+        "length": "0/1",
+        "plaintext": "",
+        "position": 69,
+        "token": "define",
+        "tokens": []
+       },
+       {
+        "children": [
+         {
+          "children": [],
+          "cls": "SchemeItem",
+          "end": 88,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 77,
+          "token": "my-function",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "SchemeItem",
+          "end": 90,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 89,
+          "token": "x",
+          "tokens": []
+         }
+        ],
+        "cls": "SchemeList",
+        "end": 91,
+        "length": "0/1",
+        "plaintext": "",
+        "position": 76,
+        "token": "(",
+        "tokens": [
+         ")"
+        ]
+       },
+       {
+        "children": [
+         {
+          "children": [],
+          "cls": "SchemeItem",
+          "end": 94,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 93,
+          "token": "*",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "SchemeItem",
+          "end": 96,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 95,
+          "token": "x",
+          "tokens": []
+         },
+         {
+          "children": [],
+          "cls": "SchemeItem",
+          "end": 98,
+          "length": "0/1",
+          "plaintext": "",
+          "position": 97,
+          "token": "2",
+          "tokens": []
+         }
+        ],
+        "cls": "SchemeList",
+        "end": 99,
+        "length": "0/1",
+        "plaintext": "",
+        "position": 92,
+        "token": "(",
+        "tokens": [
+         ")"
+        ]
+       }
+      ],
+      "cls": "SchemeList",
+      "end": 100,
+      "length": "0/1",
+      "plaintext": "",
+      "position": 68,
+      "token": "(",
+      "tokens": [
+       ")"
+      ]
+     }
+    ],
+    "cls": "Scheme",
+    "end": 100,
+    "length": "0/1",
+    "plaintext": "",
+    "position": 67,
+    "token": "#",
+    "tokens": []
+   },
+   {
+    "children": [],
+    "cls": "Command",
+    "end": 117,
+    "length": "0/1",
+    "plaintext": "",
+    "position": 102,
+    "token": "\\bookOutputName",
+    "tokens": []
+   },
+   {
+    "children": [
+     {
+      "children": [
+       {
+        "children": [],
+        "cls": "SchemeItem",
+        "end": 133,
+        "length": "0/1",
+        "plaintext": "",
+        "position": 120,
+        "token": "string-append",
+        "tokens": []
+       },
+       {
+        "children": [],
+        "cls": "String",
+        "end": 145,
+        "length": "0/1",
+        "plaintext": "generated",
+        "position": 134,
+        "token": "\"",
+        "tokens": [
+         "generated",
+         "\""
+        ]
+       },
+       {
+        "children": [],
+        "cls": "String",
+        "end": 153,
+        "length": "0/1",
+        "plaintext": "-name",
+        "position": 146,
+        "token": "\"",
+        "tokens": [
+         "-name",
+         "\""
+        ]
+       }
+      ],
+      "cls": "SchemeList",
+      "end": 154,
+      "length": "0/1",
+      "plaintext": "",
+      "position": 119,
+      "token": "(",
+      "tokens": [
+       ")"
+      ]
+     }
+    ],
+    "cls": "Scheme",
+    "end": 154,
+    "length": "0/1",
+    "plaintext": "generated-name",
+    "position": 118,
+    "token": "#",
+    "tokens": []
+   },
+   {
+    "children": [
+     {
+      "children": [],
+      "cls": "MusicList",
+      "end": 171,
+      "length": "0/1",
+      "plaintext": "",
+      "position": 168,
+      "token": "{",
+      "tokens": [
+       "}"
+      ]
+     }
+    ],
+    "cls": "Assignment",
+    "end": 171,
+    "length": "0/1",
+    "plaintext": "",
+    "position": 156,
+    "token": "emptyBook",
+    "tokens": [
+     "="
+    ]
+   }
+  ],
+  "cls": "Document",
+  "end": 171,
+  "length": "0/1",
+  "plaintext": "",
+  "position": -1,
+  "token": null,
+  "tokens": []
+ }
+}
