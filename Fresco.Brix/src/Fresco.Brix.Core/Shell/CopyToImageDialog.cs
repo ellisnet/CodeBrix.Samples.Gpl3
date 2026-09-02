@@ -13,7 +13,10 @@ using Microsoft.UI.Xaml.Media;
 using SkiaSharp;
 using System;
 using System.Globalization;
+using System.IO;
 using System.Threading.Tasks;
+using Windows.ApplicationModel.DataTransfer;
+using Windows.Storage.Streams;
 
 namespace Fresco.Brix.Shell; //was previously: frescobaldi/copy2image.py
 
@@ -31,13 +34,25 @@ namespace Fresco.Brix.Shell; //was previously: frescobaldi/copy2image.py
 /// written, and Save As.
 /// </para>
 /// <para>
-/// ⚠ FOUR OF UPSTREAM'S BUTTONS ARE NOT HERE — Copy, Copy File, Drag and Drag
-/// File. Three of them want a clipboard that carries IMAGE data or a FILE URL
-/// and one wants a drag-and-drop source; the platform's clipboard reaches text
-/// and the heads have no drag source, so a button that did nothing would be
-/// worse than no button. Save As does the job all four were for, and the
-/// omission is written into the wave's STATUS file for the W13 audit rather
-/// than left to be discovered.
+/// ⚠ UPSTREAM HAS FOUR BUTTONS BESIDE Save As — Copy, Copy File, Drag and Drag
+/// File. <c>&amp;Copy</c> is here; the other three are not. Copy File puts a
+/// FILE URL on the clipboard and the two Drag buttons want a drag-and-drop
+/// SOURCE, which no head has (already recorded at W11 for
+/// <c>gadgets/drag.py</c>).
+/// </para>
+/// <para>
+/// ⚠ AND WHAT &amp;Copy DOES DEPENDS ON THE HEAD, which is a platform limit
+/// rather than a choice here. <c>DataPackage.SetBitmap</c> is the platform's
+/// own API and the Win32 and macOS clipboard extensions serve it (CF_DIB and
+/// the NSPasteboard image respectively); the X11 extension's write path
+/// advertises only text targets, so on X11 and Wayland another application
+/// asking for an image is told there is none. The button is still upstream's
+/// own and still the right one to press — Save As is the way through on those
+/// heads, and the platform gap is on
+/// <c>~/ClaudeHome/FIXLIST_codebrix_packages_2026-09-01.txt</c>.
+/// //was previously: no Copy button at all, while the command that opens this
+/// dialog is called "Copy to &amp;Image..." — so the menu entry promised
+/// something the dialog could not do.
 /// </para>
 /// <para>
 /// The preview redraws whenever a setting changes, which upstream does on a
@@ -58,6 +73,7 @@ public sealed class CopyToImageDialog
 
     private ComboBox _dpi;
     private CheckBox _colorCheck;
+    private Widgets.ColorButton _paperColor;
     private CheckBox _grayscale;
     private CheckBox _crop;
     private CheckBox _antialias;
@@ -91,7 +107,7 @@ public sealed class CopyToImageDialog
     {
         string saved = null;
 
-        var panel = new StackPanel { Spacing = 10, MinWidth = 720 };
+        var panel = new StackPanel { Spacing = 10, MinWidth = 560 };
         var row = new Grid { MinWidth = 700 };
         row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
         row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
@@ -129,6 +145,7 @@ public sealed class CopyToImageDialog
                     : System.IO.Path.GetFileName(_fileName)),
             Content = panel,
             PrimaryButtonText = I18n.Get("&Save As...").Replace("&", string.Empty),
+            SecondaryButtonText = MenuBuilder.Display(I18n.Get("&Copy")),
             CloseButtonText = I18n.Get("Close"),
             DefaultButton = ContentDialogButton.Primary,
             XamlRoot = xamlRoot,
@@ -137,8 +154,12 @@ public sealed class CopyToImageDialog
         //Board traps 43 and 50: the theme binds the dialog's width to a
         //RESOURCE, and overriding it only PERMITS the width — something inside
         //still has to ask for it, which the panel's MinWidth does.
-        dialog.Resources["ContentDialogMaxWidth"] = 1100.0;
-        dialog.Resources["ContentDialogMaxHeight"] = 900.0;
+        //was previously: written out. See Shell/DialogSizing.
+        DialogSizing.Clamp(dialog, 1100, 900);
+
+        //The colour button opens the application's own picker, which needs a
+        //root of its own.
+        _paperColor.DialogRoot = xamlRoot;
 
         ReadSettings();
         UpdateExport();
@@ -161,6 +182,13 @@ public sealed class CopyToImageDialog
             if (saved != null) { dialog.Hide(); }
         };
 
+        //Upstream's `&Copy': the image goes on the clipboard and the dialog
+        //closes. See the class remarks for what that reaches on each head.
+        dialog.SecondaryButtonClick += (_, args) =>
+        {
+            args.Cancel = !CopyToClipboard();
+        };
+
         await dialog.ShowAsync();
         WriteSettings();
         _exporter?.Dispose();
@@ -180,10 +208,29 @@ public sealed class CopyToImageDialog
         _dpi.SelectionChanged += (_, _) => UpdateExport();
         controls.Children.Add(_dpi);
 
+        //Upstream pairs the checkbox with a ColorButton tooltipped
+        //_("Paper Color"), on the same row: the box says whether the paper is
+        //painted at all, the button says what colour it is painted.
+        //was previously: the checkbox alone, so the colour was always white.
         _colorCheck = new CheckBox { Content = I18n.Get("Background:") };
         _colorCheck.Checked += (_, _) => UpdateExport();
         _colorCheck.Unchecked += (_, _) => UpdateExport();
-        controls.Children.Add(_colorCheck);
+
+        _paperColor = new Widgets.ColorButton
+        {
+            Color = Windows.UI.Color.FromArgb(255, 255, 255, 255),
+        };
+        ToolTipService.SetToolTip(_paperColor, I18n.Get("Paper Color"));
+        _paperColor.ColorChanged += (_, _) => UpdateExport();
+
+        StackPanel colorRow = new StackPanel
+        {
+            Orientation = Orientation.Horizontal,
+            Spacing = 6,
+        };
+        colorRow.Children.Add(_colorCheck);
+        colorRow.Children.Add(_paperColor);
+        controls.Children.Add(colorRow);
 
         _grayscale = Check(I18n.Get("Gray"), I18n.Get("Convert image to grayscale."), controls);
         _crop = Check(I18n.Get("Auto-crop"), null, controls);
@@ -215,6 +262,9 @@ public sealed class CopyToImageDialog
         _loading = true;
         _dpi.Text = _settings?.GetString("copy_image/dpi", "300") ?? "300";
         _colorCheck.IsChecked = _settings?.GetBool("copy_image/papercolor", true) ?? true;
+        _paperColor.Color = ReadColor(
+            _settings?.GetString("copy_image/papercolorvalue"),
+            Windows.UI.Color.FromArgb(255, 255, 255, 255));
         _grayscale.IsChecked = _settings?.GetBool("copy_image/grayscale", false) ?? false;
         _crop.IsChecked = _settings?.GetBool("copy_image/autocrop", false) ?? false;
         _antialias.IsChecked = _settings?.GetBool("copy_image/antialias", true) ?? true;
@@ -228,6 +278,8 @@ public sealed class CopyToImageDialog
 
         _settings.SetString("copy_image/dpi", _dpi.Text);
         _settings.SetBool("copy_image/papercolor", _colorCheck.IsChecked == true);
+        _settings.SetString(
+            "copy_image/papercolorvalue", WriteColor(PaperColorValue()));
         _settings.SetBool("copy_image/grayscale", _grayscale.IsChecked == true);
         _settings.SetBool("copy_image/autocrop", _crop.IsChecked == true);
         _settings.SetBool("copy_image/antialias", _antialias.IsChecked == true);
@@ -243,7 +295,9 @@ public sealed class CopyToImageDialog
         {
             FileName = _fileName,
             Resolution = ParseResolution(_dpi.Text),
-            PaperColor = _colorCheck.IsChecked == true ? SKColors.White : null,
+            PaperColor = _colorCheck.IsChecked == true
+                ? Skia(PaperColorValue())
+                : null,
             Grayscale = _grayscale.IsChecked == true,
             AutoCrop = _crop.IsChecked == true,
             Antialiasing = _antialias.IsChecked == true,
@@ -257,6 +311,87 @@ public sealed class CopyToImageDialog
             : string.Format(
                 CultureInfo.InvariantCulture, "{0} x {1}", image.Width, image.Height);
     }
+
+    /// <summary>Puts the rendered image on the clipboard.</summary>
+    /// <returns>Whether anything was put there.</returns>
+    /// <remarks>Upstream's <c>copyToClipboard</c>, which hands Qt a QImage.
+    /// The platform's clipboard takes a stream of encoded bytes, so the PNG the
+    /// exporter already knows how to make is what goes over.</remarks>
+    private bool CopyToClipboard()
+    {
+        if (_exporter == null) { return false; }
+
+        try
+        {
+            byte[] png = _exporter.Data();
+            if (png == null || png.Length == 0) { return false; }
+
+            InMemoryRandomAccessStream stream = new InMemoryRandomAccessStream();
+            using (Stream writer = stream.AsStreamForWrite())
+            {
+                writer.Write(png, 0, png.Length);
+                writer.Flush();
+            }
+
+            stream.Seek(0);
+            DataPackage package = new DataPackage();
+            package.SetBitmap(RandomAccessStreamReference.CreateFromStream(stream));
+            Clipboard.SetContent(package);
+            Clipboard.Flush();
+            return true;
+        }
+        catch (Exception exception) when (
+            exception is InvalidOperationException
+            or NotSupportedException
+            or System.IO.IOException)
+        {
+            _summary.Text = I18n.Get("Could not save the image.") + " " + exception.Message;
+            return false;
+        }
+    }
+
+    /// <summary>The paper colour the button holds, white when it holds none.</summary>
+    /// <returns>The colour.</returns>
+    private Windows.UI.Color PaperColorValue()
+        => _paperColor?.Color ?? Windows.UI.Color.FromArgb(255, 255, 255, 255);
+
+    /// <summary>Turns a platform colour into the renderer's.</summary>
+    /// <param name="color">The colour.</param>
+    /// <returns>The Skia colour.</returns>
+    private static SKColor Skia(Windows.UI.Color color)
+        => new SKColor(color.R, color.G, color.B, color.A);
+
+    /// <summary>Reads a stored <c>#rrggbb</c> colour.</summary>
+    /// <param name="text">The stored text, or null.</param>
+    /// <param name="fallback">What to answer when it names nothing.</param>
+    /// <returns>The colour.</returns>
+    private static Windows.UI.Color ReadColor(string text, Windows.UI.Color fallback)
+    {
+        if (string.IsNullOrEmpty(text) || text[0] != '#' || text.Length != 7)
+        {
+            return fallback;
+        }
+
+        return uint.TryParse(
+            text.Substring(1),
+            NumberStyles.HexNumber,
+            CultureInfo.InvariantCulture,
+            out uint value)
+            ? Windows.UI.Color.FromArgb(
+                255, (byte)(value >> 16), (byte)(value >> 8), (byte)value)
+            : fallback;
+    }
+
+    /// <summary>Writes a colour as <c>#rrggbb</c>.</summary>
+    /// <param name="color">The colour.</param>
+    /// <returns>The text.</returns>
+    private static string WriteColor(Windows.UI.Color color)
+        => string.Format(
+            CultureInfo.InvariantCulture,
+            "#{0:x2}{1:x2}{2:x2}",
+            color.R,
+            color.G,
+            color.B);
 
     private async Task<string> SaveAsAsync()
     {

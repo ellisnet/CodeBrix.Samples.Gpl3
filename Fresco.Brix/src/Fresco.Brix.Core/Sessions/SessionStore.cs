@@ -52,17 +52,27 @@ public enum SessionStartup
 /// them, remembered under a name the user chooses.
 /// </summary>
 /// <remarks>
+/// <para>
 /// Upstream stores each session under a generated group (<c>session1</c>,
 /// <c>session2</c>, …) whose <c>name</c> value holds the name the user typed,
 /// so that renaming a session does not have to move its settings. The same
 /// shape is kept here, which is also what makes a session name able to hold a
 /// <c>/</c> (the grouping the menu shows) without colliding with the settings
 /// store's own key separator.
+/// </para>
+/// <para>
+/// //was previously: those groups were settings-key PREFIXES —
+/// <c>sessions/session1/urls</c> and the rest — which the flat store this
+/// replaced could enumerate. The settings add-in has no prefix-scan API by
+/// design (board W13 item 9, route (a)), so every session is one entry in one
+/// JSON object under <see cref="SettingsKey"/>, and the group name is now that
+/// entry's name rather than a key prefix.
+/// </para>
 /// </remarks>
 public sealed class SessionStore
 {
-    /// <summary>The settings prefix sessions live under.</summary>
-    public const string SettingsPrefix = "sessions/";
+    /// <summary>The settings key sessions live under.</summary>
+    public const string SettingsKey = "sessions";
 
     /// <summary>The setting holding what to do at startup.</summary>
     public const string StartupKey = "session/startup";
@@ -113,8 +123,8 @@ public sealed class SessionStore
     /// <summary>Gets the session names, naturally sorted.</summary>
     /// <returns>The names.</returns>
     public IReadOnlyList<string> SessionNames()
-        => Groups()
-            .Select(g => _settings.GetString(g + "/name", string.Empty))
+        => ReadStored().Values
+            .Select(s => s?.Name)
             .Where(n => !string.IsNullOrEmpty(n))
             .OrderBy(n => n, NaturalComparer.Instance)
             .ToList();
@@ -122,25 +132,27 @@ public sealed class SessionStore
     /// <summary>Answers whether a session exists.</summary>
     /// <param name="name">The name.</param>
     /// <returns>Whether it does.</returns>
-    public bool Exists(string name) => GroupOf(name) != null;
+    public bool Exists(string name) => GroupOf(ReadStored(), name) != null;
 
     /// <summary>Reads a session.</summary>
     /// <param name="name">The name.</param>
     /// <returns>The session, or null when it does not exist.</returns>
     public SessionData Read(string name)
     {
-        string group = GroupOf(name);
-        if (group == null || _settings == null) { return null; }
+        if (_settings == null) { return null; }
 
+        Dictionary<string, StoredSession> stored = ReadStored();
+        string group = GroupOf(stored, name);
+        if (group == null) { return null; }
+
+        StoredSession session = stored[group];
         return new SessionData
         {
-            Paths = Decode(_settings.GetString(group + "/urls", string.Empty)),
-            ActiveIndex = _settings.GetInt(group + "/active", -1),
-            AutoSave = _settings.GetBool(group + "/autosave", true),
-            BaseDirectory = NullIfEmpty(
-                _settings.GetString(group + "/basedir", string.Empty)),
-            IncludePath = Decode(
-                _settings.GetString(group + "/includepath", string.Empty)),
+            Paths = session.Urls ?? (IReadOnlyList<string>)Array.Empty<string>(),
+            ActiveIndex = session.ActiveIndex,
+            AutoSave = session.AutoSave,
+            BaseDirectory = NullIfEmpty(session.BaseDirectory),
+            IncludePath = session.IncludePath ?? (IReadOnlyList<string>)Array.Empty<string>(),
         };
     }
 
@@ -149,30 +161,20 @@ public sealed class SessionStore
     /// <param name="data">What to remember.</param>
     public void Write(string name, SessionData data)
     {
-        string group = GroupOf(name) ?? CreateGroup(name);
-        if (group == null || _settings == null) { return; }
+        if (_settings == null) { return; }
 
-        _settings.SetString(group + "/urls", Encode(data.Paths));
-        if (data.ActiveIndex >= 0)
-        {
-            _settings.SetInt(group + "/active", data.ActiveIndex);
-        }
-        else
-        {
-            _settings.Remove(group + "/active");
-        }
+        Dictionary<string, StoredSession> stored = ReadStored();
+        string group = GroupOf(stored, name) ?? CreateGroup(stored, name);
+        if (group == null) { return; }
 
-        _settings.SetBool(group + "/autosave", data.AutoSave);
-        if (string.IsNullOrEmpty(data.BaseDirectory))
-        {
-            _settings.Remove(group + "/basedir");
-        }
-        else
-        {
-            _settings.SetString(group + "/basedir", data.BaseDirectory);
-        }
+        StoredSession session = stored[group];
+        session.Urls = new List<string>(data.Paths ?? Array.Empty<string>());
+        session.ActiveIndex = data.ActiveIndex >= 0 ? data.ActiveIndex : -1;
+        session.AutoSave = data.AutoSave;
+        session.BaseDirectory = NullIfEmpty(data.BaseDirectory);
+        session.IncludePath = new List<string>(data.IncludePath ?? Array.Empty<string>());
 
-        _settings.SetString(group + "/includepath", Encode(data.IncludePath));
+        WriteStored(stored);
         SessionsChanged?.Invoke(this, EventArgs.Empty);
     }
 
@@ -180,13 +182,14 @@ public sealed class SessionStore
     /// <param name="name">The name.</param>
     public void Delete(string name)
     {
-        string group = GroupOf(name);
-        if (group == null || _settings == null) { return; }
+        if (_settings == null) { return; }
 
-        foreach (var key in _settings.KeysWithPrefix(group + "/").ToList())
-        {
-            _settings.Remove(key);
-        }
+        Dictionary<string, StoredSession> stored = ReadStored();
+        string group = GroupOf(stored, name);
+        if (group == null) { return; }
+
+        stored.Remove(group);
+        WriteStored(stored);
 
         if (string.Equals(name, _current, StringComparison.Ordinal))
         {
@@ -201,10 +204,14 @@ public sealed class SessionStore
     /// <param name="newName">The name it should have.</param>
     public void Rename(string oldName, string newName)
     {
-        string group = GroupOf(oldName);
-        if (group == null || _settings == null) { return; }
+        if (_settings == null) { return; }
 
-        _settings.SetString(group + "/name", newName);
+        Dictionary<string, StoredSession> stored = ReadStored();
+        string group = GroupOf(stored, oldName);
+        if (group == null) { return; }
+
+        stored[group].Name = newName;
+        WriteStored(stored);
         if (string.Equals(oldName, _current, StringComparison.Ordinal))
         {
             SetCurrentSession(newName);
@@ -221,9 +228,14 @@ public sealed class SessionStore
 
         //Selecting a session that does not exist yet writes its group, so the
         //name is remembered even before anything is saved into it.
-        if (!string.IsNullOrEmpty(name) && GroupOf(name) == null)
+        if (!string.IsNullOrEmpty(name) && _settings != null)
         {
-            CreateGroup(name);
+            Dictionary<string, StoredSession> stored = ReadStored();
+            if (GroupOf(stored, name) == null)
+            {
+                CreateGroup(stored, name);
+                WriteStored(stored);
+            }
         }
 
         _current = name;
@@ -260,63 +272,81 @@ public sealed class SessionStore
         return string.IsNullOrEmpty(name) || !Exists(name) ? null : name;
     }
 
-    private IReadOnlyList<string> Groups()
-    {
-        if (_settings == null) { return Array.Empty<string>(); }
+    private Dictionary<string, StoredSession> ReadStored()
+        => _settings?.Get<Dictionary<string, StoredSession>>(SettingsKey)
+            ?? new Dictionary<string, StoredSession>(StringComparer.Ordinal);
 
-        HashSet<string> groups = new HashSet<string>(StringComparer.Ordinal);
-        foreach (var key in _settings.KeysWithPrefix(SettingsPrefix))
+    private void WriteStored(Dictionary<string, StoredSession> stored)
+    {
+        if (_settings == null) { return; }
+
+        if (stored.Count == 0)
         {
-            string rest = key.Substring(SettingsPrefix.Length);
-            int slash = rest.IndexOf('/');
-            if (slash > 0) { groups.Add(SettingsPrefix + rest.Substring(0, slash)); }
+            _settings.Remove(SettingsKey);
         }
-
-        return groups.OrderBy(g => g, NaturalComparer.Instance).ToList();
+        else
+        {
+            _settings.Set(SettingsKey, stored);
+        }
     }
 
-    private string GroupOf(string name)
+    private static string GroupOf(
+        Dictionary<string, StoredSession> stored, string name)
     {
-        if (_settings == null || string.IsNullOrEmpty(name)) { return null; }
+        if (string.IsNullOrEmpty(name)) { return null; }
 
-        return Groups().FirstOrDefault(g => string.Equals(
-            _settings.GetString(g + "/name", string.Empty), name, StringComparison.Ordinal));
+        return stored
+            .Where(pair => string.Equals(
+                pair.Value?.Name ?? string.Empty, name, StringComparison.Ordinal))
+            .Select(pair => pair.Key)
+            .OrderBy(g => g, NaturalComparer.Instance)
+            .FirstOrDefault();
     }
 
-    private string CreateGroup(string name)
+    private static string CreateGroup(
+        Dictionary<string, StoredSession> stored, string name)
     {
-        if (_settings == null) { return null; }
-
-        HashSet<string> taken = new HashSet<string>(Groups(), StringComparer.Ordinal);
         for (int count = 1; ; count++)
         {
-            string group = SettingsPrefix + "session"
-                + count.ToString(CultureInfo.InvariantCulture);
-            if (taken.Contains(group)) { continue; }
+            string group = "session" + count.ToString(CultureInfo.InvariantCulture);
+            if (stored.ContainsKey(group)) { continue; }
 
-            _settings.SetString(group + "/name", name);
+            stored[group] = new StoredSession { Name = name };
             return group;
         }
     }
 
-    /// <summary>Encodes a list of paths as one setting value.</summary>
-    /// <param name="values">The paths.</param>
-    /// <returns>The encoded value.</returns>
-    /// <remarks>A newline cannot appear in a path on any platform this runs
-    /// on, which is what makes it usable as the separator.</remarks>
-    public static string Encode(IEnumerable<string> values)
-        => string.Join("\n", values ?? Array.Empty<string>());
-
-    /// <summary>Decodes what <see cref="Encode"/> wrote.</summary>
-    /// <param name="text">The encoded value.</param>
-    /// <returns>The paths.</returns>
-    public static IReadOnlyList<string> Decode(string text)
-        => string.IsNullOrEmpty(text)
-            ? Array.Empty<string>()
-            : text.Split('\n', StringSplitOptions.RemoveEmptyEntries);
-
     private static string NullIfEmpty(string text)
         => string.IsNullOrEmpty(text) ? null : text;
+}
+
+/// <summary>
+/// One named session as the settings store holds it.
+/// </summary>
+/// <remarks>//was previously: six settings keys under a
+/// <c>sessions/&lt;group&gt;/</c> prefix (<c>name</c>, <c>urls</c>,
+/// <c>active</c>, <c>autosave</c>, <c>basedir</c>, <c>includepath</c>), with
+/// the two lists joined by newlines because the flat store held only text. The
+/// settings add-in serialises a list natively.</remarks>
+public sealed class StoredSession
+{
+    /// <summary>Gets or sets the name the user gave the session.</summary>
+    public string Name { get; set; }
+
+    /// <summary>Gets or sets the files it holds.</summary>
+    public List<string> Urls { get; set; }
+
+    /// <summary>Gets or sets which of them was in front, or -1.</summary>
+    public int ActiveIndex { get; set; } = -1;
+
+    /// <summary>Gets or sets whether it saves itself when it is left.</summary>
+    public bool AutoSave { get; set; } = true;
+
+    /// <summary>Gets or sets the folder new documents start in, or null.</summary>
+    public string BaseDirectory { get; set; }
+
+    /// <summary>Gets or sets the extra <c>\include</c> directories.</summary>
+    public List<string> IncludePath { get; set; }
 }
 
 /// <summary>

@@ -308,7 +308,7 @@ public class ScoreWizardTests
             Path.GetTempPath(), "frescobrix-scorewiz-" + Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(directory);
         using SettingsStore settings =
-            new SettingsStore(Path.Combine(directory, "settings.sqlite"));
+            new SettingsStore(directory);
         ScoreWizardModel saved = new ScoreWizardModel();
         saved.GeneralPreferences.RemoveTagline.Value = true;
         saved.GeneralPreferences.Paper.SelectedIndex = 3;

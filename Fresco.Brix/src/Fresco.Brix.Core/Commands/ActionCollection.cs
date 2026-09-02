@@ -94,21 +94,7 @@ public abstract class ActionCollection
         action.Shortcuts = shortcuts;
         if (_settings == null) { return; }
 
-        IReadOnlyList<KeySequence> defaults = DefaultShortcuts(name);
-        if (SameShortcuts(shortcuts, defaults))
-        {
-            _settings.Remove(SettingKey(name));
-        }
-        else if (shortcuts.Count == 0 && defaults.Count == 0)
-        {
-            _settings.Remove(SettingKey(name));
-        }
-        else
-        {
-            //An empty list is stored deliberately: it means "the user removed
-            //the default", which is not the same as "never customised".
-            _settings.SetString(SettingKey(name), Encode(shortcuts));
-        }
+        SetShortcutsInScheme(Scheme, name, shortcuts);
     }
 
     /// <summary>
@@ -122,22 +108,30 @@ public abstract class ActionCollection
         HashSet<string> stored = new HashSet<string>(StringComparer.Ordinal);
         if (_settings != null)
         {
-            string prefix = SettingKey(string.Empty);
-            foreach (var key in _settings.KeysWithPrefix(prefix))
+            string scheme = Scheme;
+            Dictionary<string, string> entries = ReadScheme(_settings, scheme);
+            string prefix = Name + "/";
+            bool dropped = false;
+            foreach (var entry in entries
+                .Where(e => e.Key.StartsWith(prefix, StringComparison.Ordinal))
+                .ToList())
             {
-                string name = key.Substring(prefix.Length);
+                string name = entry.Key.Substring(prefix.Length);
                 AppAction action = Action(name);
                 if (action == null)
                 {
                     //A stored shortcut for an action that no longer exists is
                     //dropped, exactly as upstream drops it.
-                    _settings.Remove(key);
+                    entries.Remove(entry.Key);
+                    dropped = true;
                     continue;
                 }
 
                 stored.Add(name);
-                action.Shortcuts = Decode(_settings.GetString(key));
+                action.Shortcuts = Decode(entry.Value);
             }
+
+            if (dropped) { WriteScheme(_settings, scheme, entries); }
         }
 
         if (!restoreDefaults) { return; }
@@ -157,8 +151,114 @@ public abstract class ActionCollection
         if (action == null) { return; }
 
         action.Shortcuts = DefaultShortcuts(name);
-        _settings?.Remove(SettingKey(name));
+        if (_settings == null) { return; }
+
+        string scheme = Scheme;
+        Dictionary<string, string> entries = ReadScheme(_settings, scheme);
+        if (entries.Remove(ShortcutEntryKey(Name, name)))
+        {
+            WriteScheme(_settings, scheme, entries);
+        }
     }
+
+    /// <summary>
+    /// The settings key ONE SCHEME's shortcuts are stored under — the family
+    /// key, holding every collection's every customised action as one JSON
+    /// object.
+    /// </summary>
+    /// <param name="scheme">The shortcut scheme.</param>
+    /// <returns>The key.</returns>
+    /// <remarks>
+    /// //was previously: <see cref="ShortcutEntryKey"/>'s value was appended to
+    /// this one with a slash and each action had a settings key of its own —
+    /// upstream's <c>f"shortcuts/{scheme}/{collection.name}/{name}"</c>, which
+    /// the flat store could enumerate by prefix. The settings add-in has no
+    /// prefix-scan API by design (board W13 item 9, route (a)), so a scheme is
+    /// one key holding a dictionary, and dropping a scheme is dropping that one
+    /// key.
+    /// </remarks>
+    public static string ShortcutFamilyKey(string scheme)
+        => "shortcuts/" + scheme;
+
+    /// <summary>
+    /// The name one action's shortcuts are held under INSIDE a scheme's
+    /// dictionary — upstream's last two path segments, unchanged.
+    /// </summary>
+    /// <param name="collectionName">The collection.</param>
+    /// <param name="actionName">The action.</param>
+    /// <returns>The entry name.</returns>
+    public static string ShortcutEntryKey(string collectionName, string actionName)
+        => collectionName + "/" + actionName;
+
+    /// <summary>Forgets everything a scheme remembers.</summary>
+    /// <param name="settings">The settings store.</param>
+    /// <param name="scheme">The scheme being removed.</param>
+    /// <remarks>What the Shortcuts preferences page hands
+    /// <c>SchemeSelector.SaveSettings</c> so that a removed scheme's shortcuts
+    /// go with it.</remarks>
+    public static void ForgetScheme(SettingsStore settings, string scheme)
+    {
+        if (settings == null || string.IsNullOrEmpty(scheme)) { return; }
+
+        settings.Remove(ShortcutFamilyKey(scheme));
+    }
+
+    /// <summary>Reads an action's shortcuts IN A NAMED SCHEME.</summary>
+    /// <param name="scheme">The scheme.</param>
+    /// <param name="name">The action name.</param>
+    /// <returns>The stored shortcuts, or the action's defaults when the scheme
+    /// has nothing stored for it.</returns>
+    public IReadOnlyList<KeySequence> ShortcutsInScheme(string scheme, string name)
+    {
+        return ReadScheme(_settings, scheme)
+            .TryGetValue(ShortcutEntryKey(Name, name), out var stored)
+            ? DecodeShortcuts(stored)
+            : DefaultShortcuts(name);
+    }
+
+    /// <summary>Answers whether a scheme stores nothing for an action, so the
+    /// action's own defaults are in force.</summary>
+    /// <param name="scheme">The scheme.</param>
+    /// <param name="name">The action name.</param>
+    /// <returns>Whether the defaults are in force.</returns>
+    public bool UsesDefaultShortcuts(string scheme, string name)
+        => !ReadScheme(_settings, scheme)
+            .ContainsKey(ShortcutEntryKey(Name, name));
+
+    /// <summary>Writes an action's shortcuts IN A NAMED SCHEME.</summary>
+    /// <param name="scheme">The scheme.</param>
+    /// <param name="name">The action name.</param>
+    /// <param name="shortcuts">The shortcuts; the same "equal to the defaults
+    /// means forget it" rule as <see cref="SetShortcuts"/>.</param>
+    public void SetShortcutsInScheme(
+        string scheme, string name, IReadOnlyList<KeySequence> shortcuts)
+    {
+        if (_settings == null || Action(name) == null) { return; }
+
+        shortcuts ??= Array.Empty<KeySequence>();
+        string entryKey = ShortcutEntryKey(Name, name);
+        IReadOnlyList<KeySequence> defaults = DefaultShortcuts(name);
+        Dictionary<string, string> entries = ReadScheme(_settings, scheme);
+
+        if (SameShortcuts(shortcuts, defaults)
+            || (shortcuts.Count == 0 && defaults.Count == 0))
+        {
+            entries.Remove(entryKey);
+        }
+        else
+        {
+            //An empty list is stored deliberately: it means "the user removed
+            //the default", which is not the same as "never customised".
+            entries[entryKey] = Encode(shortcuts);
+        }
+
+        WriteScheme(_settings, scheme, entries);
+    }
+
+    /// <summary>Reads a stored shortcut list back.</summary>
+    /// <param name="text">The stored text.</param>
+    /// <returns>The shortcuts; the ones that no longer parse are dropped.</returns>
+    public static IReadOnlyList<KeySequence> DecodeShortcuts(string text) => Decode(text);
 
     /// <summary>Sets every action's text. Called on creation and whenever the
     /// language changes.</summary>
@@ -219,8 +319,25 @@ public abstract class ActionCollection
                 .Where(k => k != null)
                 .ToArray();
 
-    private string SettingKey(string actionName)
-        => $"shortcuts/{Scheme}/{Name}/{actionName}";
+    private static Dictionary<string, string> ReadScheme(
+        SettingsStore settings, string scheme)
+        => settings?.Get<Dictionary<string, string>>(ShortcutFamilyKey(scheme))
+            ?? new Dictionary<string, string>(StringComparer.Ordinal);
+
+    private static void WriteScheme(
+        SettingsStore settings, string scheme, Dictionary<string, string> entries)
+    {
+        if (settings == null) { return; }
+
+        if (entries.Count == 0)
+        {
+            settings.Remove(ShortcutFamilyKey(scheme));
+        }
+        else
+        {
+            settings.Set(ShortcutFamilyKey(scheme), entries);
+        }
+    }
 
     /// <summary>Gets the shortcut scheme in force.</summary>
     /// <remarks>Upstream reads <c>shortcut_scheme</c> from the settings; the

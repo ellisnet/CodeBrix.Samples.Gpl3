@@ -8,6 +8,7 @@
 using CodeBrix.Platform.UI.AdvancedTextEdit.Document;
 using Fresco.Brix.Services;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading;
@@ -72,6 +73,21 @@ public sealed class EditorDocument
 
     /// <summary>Raised after the document is written to its file.</summary>
     public event EventHandler Saved;
+
+    /// <summary>
+    /// Raised immediately BEFORE the document is written, so that anything
+    /// watching the file can stand aside for the write and take the file up
+    /// again afterwards.
+    /// </summary>
+    /// <remarks>
+    /// Upstream's <c>app.documentSaving</c> is a signal whose slots are
+    /// CONTEXT MANAGERS — <c>documentwatcher.whileSaving</c> removes the path,
+    /// yields, and adds it back in a <c>finally</c>. The same two halves are
+    /// said here as a handler that registers its own resumption:
+    /// <see cref="DocumentSavingEventArgs.ResumeAfterSave"/> runs whether the
+    /// write succeeded or threw.
+    /// </remarks>
+    public event EventHandler<DocumentSavingEventArgs> Saving;
 
     /// <summary>Raised when the modified flag changes.</summary>
     public event EventHandler ModificationChanged;
@@ -231,7 +247,17 @@ public sealed class EditorDocument
             SetPath(target);
         }
 
-        File.WriteAllBytes(target, EncodedText(encoding));
+        DocumentSavingEventArgs saving = new DocumentSavingEventArgs(this);
+        Saving?.Invoke(this, saving);
+        try
+        {
+            File.WriteAllBytes(target, EncodedText(encoding));
+        }
+        finally
+        {
+            saving.Resume();
+        }
+
         IsModified = false;
         if (path != null)
         {
@@ -433,6 +459,41 @@ public sealed class EditorDocument
     {
         _isChanging = false;
         ChangesStopped?.Invoke(this, EventArgs.Empty);
+    }
+}
+
+/// <summary>
+/// The document about to be written, and the work its watchers want done again
+/// once the write is over.
+/// </summary>
+/// <remarks>This is the C# half of upstream's
+/// <c>@contextlib.contextmanager whileSaving(document)</c>.</remarks>
+public sealed class DocumentSavingEventArgs : EventArgs
+{
+    private readonly List<Action> _resume = new List<Action>();
+
+    /// <summary>Creates the arguments.</summary>
+    /// <param name="document">The document about to be written.</param>
+    public DocumentSavingEventArgs(EditorDocument document) => Document = document;
+
+    /// <summary>Gets the document about to be written.</summary>
+    public EditorDocument Document { get; }
+
+    /// <summary>Registers work to run once the write is over.</summary>
+    /// <param name="work">The work; it runs whether the write succeeded or
+    /// threw, which is what a <c>finally</c> means.</param>
+    public void ResumeAfterSave(Action work)
+    {
+        if (work != null) { _resume.Add(work); }
+    }
+
+    /// <summary>Runs the registered work. Called by the document.</summary>
+    internal void Resume()
+    {
+        foreach (var work in _resume)
+        {
+            work();
+        }
     }
 }
 

@@ -9,22 +9,41 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.11" />
     <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="10.0.11" />
-    <PackageReference Include="CodeBrix.Platform.ApacheLicenseForever" Version="1.0.231.233" />
+    <PackageReference Include="CodeBrix.Platform.ApacheLicenseForever" Version="1.0.243.226" />
     <!-- The two OFL font packages (FD4) at the versions the PDF writer's family
-         requires (Html2Pdf 1.0.238.1192 depends on Roboto >= 1.0.238.528 and
-         RobotoMono >= 1.0.238.534; NuGet refuses the downgrade otherwise). Same
-         faces, newer packages. //was previously: Roboto 1.0.209.315 (the
-         scaffold pin) and RobotoMono 1.0.216.1150 (FD4, W2). -->
-    <PackageReference Include="CodeBrix.Platform.Fonts.Roboto.OflLicenseForever" Version="1.0.238.528" />
+         requires (the Html2Pdf family depends on Roboto and RobotoMono minimums;
+         NuGet refuses the downgrade otherwise — board trap 66). Same faces,
+         newer packages. //was previously: Roboto 1.0.238.528 and RobotoMono
+         1.0.238.534 (W11½'s forced move); before that Roboto 1.0.209.315 (the
+         scaffold pin) and RobotoMono 1.0.216.1150 (FD4, W2). RobotoMono
+         1.0.238.534 is still the latest published build of that package. -->
+    <PackageReference Include="CodeBrix.Platform.Fonts.Roboto.OflLicenseForever" Version="1.0.240.51" />
     <!-- The editor: the AvalonEdit-class text editing add-in (family version) -->
-    <PackageReference Include="CodeBrix.Platform.AdvancedTextEdit.ApacheLicenseForever" Version="1.0.231.233" />
+    <PackageReference Include="CodeBrix.Platform.AdvancedTextEdit.ApacheLicenseForever" Version="1.0.243.226" />
     <!-- The editor monospace font (FD4) -->
     <PackageReference Include="CodeBrix.Platform.Fonts.RobotoMono.OflLicenseForever" Version="1.0.238.534" />
-    <!-- The settings store (Develop's options.sqlite pattern) -->
-    <PackageReference Include="CodeBrix.Sqlite.ApacheLicenseForever" Version="1.0.213.50" />
+    <!-- The settings store: the AppSettings add-in (W13 item 9, ruled by Jeremy
+         on 2026-09-01 — the hard cut-over). Services/SettingsStore is now a THIN
+         FACADE over the add-in's AppSettingsStore, which owns the file
+         lifecycle the application used to have no answer for: a timestamped
+         auto-backup with retention pruning on every start, quarantine of a
+         corrupt database and restore from the newest good backup, and silent
+         first-run creation. The store moves with it, to the add-in's own
+         default location
+         <ApplicationData>/CodeBrix/Fresco.Brix/settings/settings.sqlite.
+         CodeBrix.Sqlite arrives TRANSITIVELY through this package and is not
+         named here any more: nothing in src/ opens a SqliteDatabase itself.
+         //was previously: a direct CodeBrix.Sqlite.ApacheLicenseForever
+         reference (1.0.213.50 at W2, bumped to 1.0.238.153 by W13 item 8),
+         under which SettingsStore hand-rolled its own key/value table in
+         <ApplicationData>/Fresco.Brix/settings.sqlite. That file is left
+         exactly where it is — there is NO migration (Jeremy's ruling): the
+         application takes its first-run path with defaults. -->
+    <PackageReference Include="CodeBrix.Platform.AppSettings.ApacheLicenseForever" Version="1.0.243.226" />
     <!-- MIDI playback (FR6): the SoundFont synthesizer the MIDI panel plays
-         through, in-process, with no MIDI ports of any kind. -->
-    <PackageReference Include="CodeBrix.Audio.MitLicenseForever" Version="1.0.233.886" />
+         through, in-process, with no MIDI ports of any kind.
+         //was previously: 1.0.233.886 (the FR6 pin, W8). -->
+    <PackageReference Include="CodeBrix.Audio.MitLicenseForever" Version="1.0.241.985" />
     <!-- The documentation viewer (FR8): the manuals are PDFs LilyPort rendered
          and there is NO WebView anywhere, so the pages are rasterised by
          PDFium through this package and drawn in the same paged view the Music
@@ -34,14 +53,14 @@
          the documentation chain vector and native-free (board section 4.6); the
          W11½ row moved the pin to it so the reader is the one that opens the
          vector manuals tools/manuals now renders.
-         1.0.238.1192 is the family publish that added opt-in CFF subsetting,
-         which the PDF export (Fresco.Brix.MusicView, FR7 route (b)) pins too;
-         the family moves together.
-         //was previously: 1.0.238.580 (W11½, 2026-08-26); 1.0.232.1177, the W10
-         bump Jeremy authorised on 2026-08-21; before that 1.0.217.117, the
-         version the board's pin table was verified at on 2026-08-19.
+         The PDF export (Fresco.Brix.MusicView, FR7 route (b)) pins the same
+         family; the family moves together.
+         //was previously: 1.0.238.1192 (the CFF-subsetting publish, W11½);
+         1.0.238.580 (W11½, 2026-08-26); 1.0.232.1177, the W10 bump Jeremy
+         authorised on 2026-08-21; before that 1.0.217.117, the version the
+         board's pin table was verified at on 2026-08-19.
          tools/manuals carries the same version. -->
-    <PackageReference Include="CodeBrix.PdfRasterizer.MitLicenseForever" Version="1.0.238.1192" />
+    <PackageReference Include="CodeBrix.PdfRasterizer.MitLicenseForever" Version="1.0.243.38" />
   </ItemGroup>
 
   <ItemGroup>
@@ -49,34 +68,112 @@
     <ProjectReference Include="..\libs\Fresco.Brix.MusicView\Fresco.Brix.MusicView.csproj" />
   </ItemGroup>
 
-  <!-- The in-process LilyPond engine (FR2). The facade nuget packs its
-       sub-assemblies with PrivateAssets="all", so an in-repo ProjectReference
-       consumer must name all four projects explicitly; a consumer of the
-       published package needs only CodeBrix.LilyPort.GplLicenseForever, which
-       is board row W13b. -->
+  <!-- The in-process engraving engine (FR2), as the PUBLISHED package. ONE
+       PackageReference is the whole engine: the facade packs its sub-assemblies
+       (Engine, Backends, Parsing, Flower) INSIDE itself with
+       PrivateAssets="all", so they arrive as lib/net10.0 assemblies rather than
+       as four separate package dependencies, and the facade declares the one
+       real dependency it does have — CodeBrix.LilyScheme.LgplLicenseForever
+       1.0.243.1143, the Scheme interpreter — which restore brings from
+       nuget.org. Nothing else has to be named here, and no path outside this
+       repository is involved.
+
+       This is board row W13b and ruling FR2's planned endpoint. The engine
+       version is COMPILE-TIME LOCKED by this pin: an engine change reaches the
+       application only when someone deliberately moves the version, never
+       because a rebuild happened to pick up a newer sibling checkout.
+
+       //was previously: four ProjectReferences into
+       ..\..\..\CodeBrix.LilyPort\src\{CodeBrix.LilyPort, .Engine, .Backends,
+       .Parsing} — what an in-repo consumer of a PrivateAssets="all" facade has
+       to name, because bundled sub-assemblies are invisible across a project
+       reference. CodeBrix.LilyPort moved to its own repository on 2026-08-27
+       and those relative paths went with it. -->
   <ItemGroup>
-    <ProjectReference Include="..\..\..\CodeBrix.LilyPort\src\CodeBrix.LilyPort\CodeBrix.LilyPort.csproj" />
-    <ProjectReference Include="..\..\..\CodeBrix.LilyPort\src\CodeBrix.LilyPort.Engine\CodeBrix.LilyPort.Engine.csproj" />
-    <ProjectReference Include="..\..\..\CodeBrix.LilyPort\src\CodeBrix.LilyPort.Backends\CodeBrix.LilyPort.Backends.csproj" />
-    <ProjectReference Include="..\..\..\CodeBrix.LilyPort\src\CodeBrix.LilyPort.Parsing\CodeBrix.LilyPort.Parsing.csproj" />
+    <PackageReference Include="CodeBrix.LilyPort.GplLicenseForever" Version="1.0.244.98" />
   </ItemGroup>
 
-  <!-- The Emmentaler faces: the engine's font layer probes <appdir>/fonts/otf,
-       and the Music View's SVG renderer will resolve the score's text fonts
-       from the same place (board trap 9). CopyToOutputDirectory content flows
-       to every head through the ProjectReference chain. -->
+  <!-- NO Emmentaler font copy here, and that is correct. The engine carries its
+       own faces — music OTFs, their SVG outline fonts and the vendored text
+       faces — as EmbeddedResources of CodeBrix.LilyPort.Engine, read through
+       CodeBrix.LilyPort.Engine.Fonts.FontAssets, whose filesystem SearchPaths
+       override is empty unless a consumer fills it. Board trap 9 is answered
+       the same way: MusicView/LilyPortTypefaceResolver hands the view the
+       engine's own bytes, and MusicView/LilyPortScorePdfFonts writes the text
+       faces out to <ApplicationData>/Fresco.Brix/fonts/text for the PDF writer
+       to register. Neither reads <appdir>/fonts/otf.
+       //was previously: a None item copying
+       ..\..\..\CodeBrix.LilyPort\assets\fonts\otf\*.otf to fonts\otf — written
+       when the engine still located its fonts by walking up from the running
+       assembly. That probe is gone from the engine, the source path left this
+       repository with LilyPort on 2026-08-27, and the package ships no loose
+       .otf, so the item could only ever glob to nothing. -->
+
+  <!-- The layout-control formatter files, which a layout-control run pulls in
+       with -dinclude-settings. They are Frescobaldi's own sources (GPL),
+       shipped as assets exactly as upstream ships them beside its module.
+       //was previously: assets\layoutcontrol\*.il* — a glob that matched the
+       eight .ily formatters and MISSED debug-layout-options.ly, which is the
+       ONE file a run names (Engrave/LayoutControl.cs passes
+       -dinclude-settings=debug-layout-options.ly, and that file is what
+       \includes the .ily formatters the enabled modes ask for). With it absent
+       from the output every layout-control mode engraved without its formatter
+       chain and drew nothing. The glob is now the plain `*' every other asset
+       folder in this file uses. -->
+
   <ItemGroup>
-    <None Include="..\..\..\CodeBrix.LilyPort\assets\fonts\otf\*.otf"
-          Link="fonts\otf\%(Filename)%(Extension)"
+    <None Include="assets\layoutcontrol\*"
+          Link="assets\layoutcontrol\%(Filename)%(Extension)"
           CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
-  <!-- The layout-control formatter files, which a layout-control run pulls in
-       with -dinclude-settings. They are Frescobaldi's own .ily sources (GPL),
-       shipped as assets exactly as upstream ships them beside its module. -->
+  <!-- The six sample scores the Document Fonts dialog engraves. They are
+       Frescobaldi's own .ly sources (GPL), shipped as assets exactly as
+       upstream ships them beside its fonts package; see
+       THIRD-PARTY-NOTICES.txt section 2.1b. Content, not embedded, because the
+       preview engraves a FILE and because the folder has to be droppable. -->
   <ItemGroup>
-    <None Include="assets\layoutcontrol\*.il*"
-          Link="assets\layoutcontrol\%(Filename)%(Extension)"
+    <None Include="assets\fonttemplates\*.ly"
+          Link="assets\fonttemplates\%(Filename)%(Extension)"
+          CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <!-- The user guide's pages (board decision FD8). They are Frescobaldi's own
+       markdown-like page files (GPL), shipped as assets exactly as upstream
+       ships them beside its userguide package, with the pages a ruling killed
+       left out, the five File > Import pages held back for W-IMPORT, and the
+       surviving text edited where a ruling changed what the application does.
+       Content, not embedded, for the reason every other asset folder here is:
+       the licence has to travel WITH the files, no manual or guide text may
+       ever be a string literal in a source file (board rule 13), and the
+       folder is droppable — with it emptied, Help > User Guide says the guide
+       is not installed and the application runs on. -->
+  <ItemGroup>
+    <None Include="assets\userguide\*"
+          Link="assets\userguide\%(Filename)%(Extension)"
+          CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <!-- The interface translations (board wave W-I18N, ruling FR5.6). They are
+       Frescobaldi's OWN translation catalogs, compiled from its PO files into
+       the layout gettext expects (<language>/LC_MESSAGES/frescobaldi.mo) by
+       tools/i18nharvest, which ships nothing and is not in the solution.
+       Content, not embedded, for the reason every other asset folder here is:
+       each catalog names its own translators in its header and that credit has
+       to travel WITH the file (THIRD-PARTY-NOTICES.txt section 2.3), and the
+       folder is droppable — empty it and the language picker offers only
+       English and the application runs on.
+
+       The RecursiveDir metadata is what keeps the per-language folders: a
+       catalog found at assets\i18n\de\LC_MESSAGES\frescobaldi.mo has to land at
+       the same place beside the program, because that is where
+       Services/LanguageSetup looks for it. -->
+  <ItemGroup>
+    <None Include="assets\i18n\**\*.mo"
+          Link="assets\i18n\%(RecursiveDir)%(Filename)%(Extension)"
+          CopyToOutputDirectory="PreserveNewest" />
+    <None Include="assets\i18n\README.txt"
+          Link="assets\i18n\README.txt"
           CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 

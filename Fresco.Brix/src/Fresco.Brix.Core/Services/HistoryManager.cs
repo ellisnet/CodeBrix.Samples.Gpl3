@@ -20,23 +20,42 @@ namespace Fresco.Brix.Services; //was previously: frescobaldi/historymanager.py
 /// than to whatever happens to be next in the tab bar.
 /// </summary>
 /// <remarks>
-/// Upstream keeps one of these per window and has them listen to each other,
-/// so a second window with nothing open follows the first. There is one window
-/// here (FD5 puts a second one post-v1), so the cross-window half is not
-/// ported; what remains is the ordering, which the document list and
-/// Window &gt; Next/Previous both read.
+/// <para>
+/// Upstream keeps one of these per window and has them listen to each other:
+/// a window with NOTHING open follows whatever another window makes current.
+/// //was previously: that half was left out, because there is one window and
+/// FD5 was unbuilt. FD5 is built (see <see cref="RemoteInstance"/>), so it is
+/// ported here in full — the static <see cref="CurrentDocumentSet"/> is
+/// upstream's module-level <c>_setCurrentDocument</c> signal, and
+/// <see cref="Listen"/> is its <c>_listen</c> slot, re-entrancy guard and all.
+/// </para>
+/// <para>
+/// With one window there is one listener and nothing to follow; the mechanism
+/// is exercised by the tests, which make two managers over one document list,
+/// and comes alive the day a second window does.
+/// </para>
 /// </remarks>
 public sealed class HistoryManager
 {
+    //Upstream's `with _setCurrentDocument.blocked()': while one manager is
+    //making a document current in answer to the signal, the announcement that
+    //causes must not come back round to the managers again.
+    private static bool _blocked;
+
     private readonly List<EditorDocument> _documents = new List<EditorDocument>();
     private readonly DocumentManager _manager;
+    private bool _hasCurrent;
 
     /// <summary>Creates the history over a document manager.</summary>
     /// <param name="manager">The open documents.</param>
-    public HistoryManager(DocumentManager manager)
+    /// <param name="other">The history of the window this one was opened from,
+    /// whose order the new one starts with; null to start from the document
+    /// list as it stands.</param>
+    public HistoryManager(DocumentManager manager, HistoryManager other = null)
     {
         _manager = manager ?? throw new ArgumentNullException(nameof(manager));
-        _documents.AddRange(manager.Documents);
+        _documents.AddRange(other != null ? other._documents : manager.Documents);
+        _hasCurrent = _documents.Count > 0;
 
         //Priority matters upstream (it connects with 1 so it runs before the
         //window's own handlers); here the window asks this object what to
@@ -44,7 +63,34 @@ public sealed class HistoryManager
         manager.DocumentCreated += (_, e) => AddDocument(e.Document);
         manager.DocumentClosed += (_, e) => RemoveDocument(e.Document);
         manager.CurrentDocumentChanged += (_, e) => SetCurrentDocument(e.Document);
+        CurrentDocumentSet += OnCurrentDocumentSet;
     }
+
+    /// <summary>
+    /// Raised whenever ANY window makes a document current, so a window with
+    /// nothing open can follow it.
+    /// </summary>
+    /// <remarks>Upstream's module-level <c>_setCurrentDocument</c> signal.</remarks>
+    public static event EventHandler<DocumentEventArgs> CurrentDocumentSet;
+
+    /// <summary>
+    /// Gets or sets how this history's own window is told to show a document.
+    /// </summary>
+    /// <remarks>Upstream calls <c>self.mainwindow().setCurrentDocument(doc)</c>;
+    /// the window is a weak reference there and a delegate here. The default
+    /// sets it on the document manager the history was made over.</remarks>
+    public Action<EditorDocument> SetCurrentDocumentInWindow { get; set; }
+
+    /// <summary>Gets whether this window has a current document at all.</summary>
+    /// <remarks>Upstream's <c>_has_current</c>: false only after the LAST
+    /// document has gone, which is the state that makes a window follow.</remarks>
+    public bool HasCurrent => _hasCurrent;
+
+    /// <summary>Stops following other windows.</summary>
+    /// <remarks>Upstream's manager dies with its window and Python's weak
+    /// references take care of it; a static C# event has to be let go of by
+    /// hand or it keeps the manager, and the window, alive.</remarks>
+    public void Detach() => CurrentDocumentSet -= OnCurrentDocumentSet;
 
     /// <summary>
     /// Gets the documents in order of most recently active first.
@@ -82,7 +128,20 @@ public sealed class HistoryManager
     }
 
     private void RemoveDocument(EditorDocument document)
-        => _documents.Remove(document);
+    {
+        int index = _documents.IndexOf(document);
+        if (index < 0) { return; }
+
+        //Upstream: closing the ACTIVE document with nothing behind it leaves
+        //the window with no current document, and that is the state in which
+        //it starts following other windows.
+        if (index == _documents.Count - 1 && _documents.Count == 1)
+        {
+            _hasCurrent = false;
+        }
+
+        _documents.RemoveAt(index);
+    }
 
     private void SetCurrentDocument(EditorDocument document)
     {
@@ -90,5 +149,29 @@ public sealed class HistoryManager
 
         _documents.Remove(document);
         _documents.Add(document);
+        _hasCurrent = true;
+
+        //Notify possible interested parties — the other windows.
+        if (_blocked) { return; }
+
+        CurrentDocumentSet?.Invoke(this, new DocumentEventArgs(document));
+    }
+
+    private void OnCurrentDocumentSet(object sender, DocumentEventArgs e)
+    {
+        if (ReferenceEquals(sender, this) || _hasCurrent || e.Document == null) { return; }
+
+        //Prevent nested emits of this signal from reacting windows.
+        _blocked = true;
+        try
+        {
+            Action<EditorDocument> show = SetCurrentDocumentInWindow
+                ?? (document => _manager.CurrentDocument = document);
+            show(e.Document);
+        }
+        finally
+        {
+            _blocked = false;
+        }
     }
 }

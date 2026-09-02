@@ -201,7 +201,40 @@ public sealed class AppAction : ICommand, INotifyPropertyChanged
 
         if (AsyncHandler != null)
         {
-            _ = AsyncHandler();
+            //was previously: `_ = AsyncHandler();' — fire and forget. A command
+            //whose handler FAILED then failed in silence: the fault stayed in
+            //the returned Task, which nobody awaited, so neither the platform's
+            //Application.UnhandledException nor the AppDomain's ever saw it and
+            //the user's only clue was that nothing happened. The fault is
+            //observed here and handed to whoever is listening — the
+            //application's own "Internal Error" window (Shell/InternalErrorDialog)
+            //— which is where a Python excepthook would have taken it.
+            _ = RunAsync();
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets what to do with a failure inside a command, or null to let
+    /// it be re-thrown on the thread pool.
+    /// </summary>
+    /// <remarks>The application points this at its own crash reporter once the
+    /// window can show one.</remarks>
+    public static Action<Exception> FailureHandler { get; set; }
+
+    /// <summary>Runs the asynchronous handler and reports what it threw.</summary>
+    /// <returns>The task.</returns>
+    private async Task RunAsync()
+    {
+        try
+        {
+            await AsyncHandler().ConfigureAwait(true);
+        }
+        catch (Exception failure)
+        {
+            Action<Exception> report = FailureHandler;
+            if (report == null) { throw; }
+
+            report(failure);
         }
     }
 

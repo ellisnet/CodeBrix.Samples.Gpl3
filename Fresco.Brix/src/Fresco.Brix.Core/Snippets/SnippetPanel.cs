@@ -100,6 +100,12 @@ public sealed class SnippetPanel : Panel
     /// <summary>Gets or sets how to put a dialog on screen.</summary>
     public XamlRoot DialogRoot { get; set; }
 
+    /// <summary>
+    /// Gets or sets the action manager, so a shortcut chosen in the snippet
+    /// editor can be checked against every other command's.
+    /// </summary>
+    public Commands.ActionCollectionManager ActionManager { get; set; }
+
     /// <summary>Gets or sets how to ask for a file to import.</summary>
     public Func<Task<string>> PickImportPathAsync { get; set; }
 
@@ -170,7 +176,7 @@ public sealed class SnippetPanel : Panel
     public async Task AddAsync(string text = null)
     {
         string name = await SnippetEditDialog.ShowAsync(
-            DialogRoot, _library, null, text, _editorFont);
+            DialogRoot, _library, null, text, _editorFont, _shortcuts, ActionManager);
         if (name != null) { Repopulate(); }
     }
 
@@ -182,7 +188,7 @@ public sealed class SnippetPanel : Panel
         if (name == null) { return; }
 
         string saved = await SnippetEditDialog.ShowAsync(
-            DialogRoot, _library, name, null, _editorFont);
+            DialogRoot, _library, name, null, _editorFont, _shortcuts, ActionManager);
         if (saved != null) { Repopulate(); }
     }
 
@@ -197,18 +203,20 @@ public sealed class SnippetPanel : Panel
         Repopulate();
     }
 
-    /// <summary>Brings back every built-in snippet the user changed or
-    /// removed.</summary>
-    public void RestoreBuiltins()
+    /// <summary>
+    /// Asks which built-in snippets to bring back, and brings those back.
+    /// </summary>
+    /// <returns>The task.</returns>
+    /// <remarks>//was previously: every built-in was rewritten over the user's
+    /// edits, with no list, no choice and no confirmation, behind a menu item
+    /// whose ellipsis promises a dialog. See
+    /// <see cref="SnippetRestoreDialog"/>.</remarks>
+    public async Task RestoreBuiltinsAsync()
     {
-        foreach (var snippet in BuiltinSnippets.All)
+        if (await SnippetRestoreDialog.ShowAsync(DialogRoot, _library, _shortcuts))
         {
-            //Saving the built-in's own text and title makes the library forget
-            //the override, which is exactly "restore".
-            _library.Save(snippet.Name, snippet.Text, snippet.Title);
+            Repopulate();
         }
-
-        Repopulate();
     }
 
     /// <summary>Reads snippets from a file the user picks.</summary>
@@ -221,15 +229,16 @@ public sealed class SnippetPanel : Panel
         string path = await pick();
         if (string.IsNullOrEmpty(path)) { return; }
 
+        IReadOnlyList<PortableSnippet> loaded;
         try
         {
-            SnippetImportExport.Apply(
-                _library, SnippetImportExport.Load(path), _shortcuts);
+            loaded = SnippetImportExport.Load(path);
         }
         catch (Exception error) when (
             error is System.IO.IOException or System.IO.InvalidDataException)
         {
-            await InputDialogs.ConfirmAsync(
+            //Upstream's QMessageBox.critical: one OK button, nothing to decide.
+            await InputDialogs.AlertAsync(
                 DialogRoot,
                 I18n.Get("Error"),
                 I18n.Format(
@@ -238,7 +247,13 @@ public sealed class SnippetPanel : Panel
             return;
         }
 
-        Repopulate();
+        //was previously: SnippetImportExport.Apply over the whole file, without
+        //asking. Upstream shows what the file holds and imports what is ticked.
+        if (await SnippetImportDialog.ShowAsync(
+            DialogRoot, _library, _shortcuts, loaded) > 0)
+        {
+            Repopulate();
+        }
     }
 
     /// <summary>Writes the listed snippets to a file the user picks.</summary>
@@ -265,7 +280,8 @@ public sealed class SnippetPanel : Panel
         }
         catch (System.IO.IOException error)
         {
-            await InputDialogs.ConfirmAsync(
+            //Upstream's QMessageBox.critical: one OK button, nothing to decide.
+            await InputDialogs.AlertAsync(
                 DialogRoot,
                 I18n.Get("Error"),
                 I18n.Format(
@@ -411,32 +427,36 @@ public sealed class SnippetPanel : Panel
         Actions.AddSnippet.AsyncHandler = () => AddAsync();
         Actions.Edit.AsyncHandler = EditAsync;
         Actions.Remove.Handler = RemoveCurrent;
-        Actions.Restore.Handler = RestoreBuiltins;
+        Actions.Restore.AsyncHandler = RestoreBuiltinsAsync;
         Actions.Import.AsyncHandler = ImportAsync;
         Actions.Export.AsyncHandler = ExportAsync;
         Actions.Shortcut.AsyncHandler = ConfigureShortcutAsync;
     }
 
+    /// <summary>Edits the selected snippet's keyboard shortcut.</summary>
+    /// <returns>The task.</returns>
+    /// <remarks>//was previously: a plain text prompt asking the user to TYPE
+    /// "Ctrl+Shift+S", with anything that did not parse silently dropped (board
+    /// trap 37). Upstream opens the same shortcut editor the Shortcuts
+    /// preferences page uses — it records the keys as they are pressed, offers
+    /// the snippet's default, and names any command the chosen key is already
+    /// taken by. That editor was already in this repository
+    /// (Widgets/ShortcutEditDialog); it was simply not reached from here.</remarks>
     private async Task ConfigureShortcutAsync()
     {
         string name = CurrentSnippet;
         if (name == null || _shortcuts == null) { return; }
 
-        string current = string.Join(
-            ", ", _shortcuts.Shortcuts(name).Select(s => s.ToString()));
-        string entered = await InputDialogs.GetTextAsync(
+        Widgets.ShortcutEditDialog editor = new Widgets.ShortcutEditDialog(
+            sequence => ActionManager?.FindShortcutConflict(sequence, _shortcuts, name));
+        IReadOnlyList<KeySequence> answer = await editor.EditAsync(
             DialogRoot,
-            I18n.Get("Configure Keyboard Shortcut"),
-            I18n.Get("Please enter the shortcut, for example Ctrl+Shift+S:"),
-            current);
-        if (entered == null) { return; }
+            _library.Title(name),
+            _shortcuts.Shortcuts(name),
+            _shortcuts.DefaultShortcuts(name));
+        if (answer == null) { return; }
 
-        _shortcuts.SetShortcuts(
-            name,
-            entered.Split(',', StringSplitOptions.RemoveEmptyEntries)
-                .Select(s => KeySequence.Parse(s.Trim()))
-                .Where(k => k != null)
-                .ToList());
+        _shortcuts.SetShortcuts(name, answer);
         Repopulate();
     }
 

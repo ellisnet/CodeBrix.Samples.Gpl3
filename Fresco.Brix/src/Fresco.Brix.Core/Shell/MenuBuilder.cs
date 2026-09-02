@@ -80,6 +80,21 @@ public static class MenuBuilder
     /// New.</param>
     /// <param name="documentation">The documentation browser's commands, for
     /// the Help menu.</param>
+    /// <param name="editorCommands">FD10's native editor commands, for the
+    /// Snippets menu.</param>
+    /// <param name="fonts">The Document Fonts command, for the Tools menu.</param>
+    /// <param name="fileImport">The import commands, for File &gt;
+    /// Import/Export.</param>
+    /// <param name="matchingPair">The matching-token commands, for the View
+    /// menu.</param>
+    /// <param name="logActions">The log panel's error-stepping commands, which
+    /// upstream also puts at the foot of the View menu.</param>
+    /// <param name="stickyDocument">Reads the document the engraver is pinned
+    /// to, for the Documents menu's "[always engraved]" mark.</param>
+    /// <param name="hasSelection">Reads whether the editor has a selection, so
+    /// a snippet that declares <c>selection: yes</c> can be greyed without
+    /// one.</param>
+
     public static void Build(
         MenuBar menuBar,
         MainActions main,
@@ -110,21 +125,41 @@ public static class MenuBuilder
         Func<string> pitchLanguage = null,
         Action<string> changePitchLanguage = null,
         ScoreWizardActions scoreWizard = null,
-        DocumentationActions documentation = null)
+        DocumentationActions documentation = null,
+        EditorCommandActions editorCommands = null,
+        FontsActions fonts = null,
+        FileImportActions fileImport = null,
+        MatchingPairActions matchingPair = null,
+        LogActions logActions = null,
+        Func<EditorDocument> stickyDocument = null,
+        Func<bool> hasSelection = null)
     {
         if (menuBar == null) { throw new ArgumentNullException(nameof(menuBar)); }
 
         if (main == null) { throw new ArgumentNullException(nameof(main)); }
 
+        //was previously: File Edit View Music LilyPort Tools Snippets Session
+        //Documents Window Help. Upstream's own sequence (menu.py createMenus) is
+        //File Edit View Music Snippets LilyPond Tools Documents Window Session
+        //[Git] Help — Snippets sits BEFORE the engine menu and Session AFTER
+        //Window. The Git menu is ruled out by FR5.7.
         menuBar.Items.Clear();
         menuBar.Items.Add(FileMenu(
             main, recentFiles, openRecent, snippets, snippetActions, applySnippet,
-            scoreWizard));
-        menuBar.Items.Add(EditMenu(main, documentActions));
-        menuBar.Items.Add(ViewMenu(main, sideBar, bookmarks, browser, documentActions));
+            scoreWizard, fileImport));
+        menuBar.Items.Add(EditMenu(main, documentActions, snippetActions));
+        menuBar.Items.Add(ViewMenu(
+            main, sideBar, bookmarks, browser, documentActions, matchingPair,
+            logActions));
         if (musicView != null)
         {
             menuBar.Items.Add(MusicMenu(musicView));
+        }
+
+        if (snippets != null && snippetActions != null)
+        {
+            menuBar.Items.Add(SnippetMenu(
+                snippets, snippetActions, applySnippet, editorCommands, hasSelection));
         }
 
         if (engrave != null)
@@ -145,25 +180,21 @@ public static class MenuBuilder
                 lyrics,
                 pitchLanguage,
                 changePitchLanguage,
-                main));
+                main,
+                fonts));
         }
 
-        if (snippets != null && snippetActions != null)
+        if (documents != null)
         {
-            menuBar.Items.Add(SnippetMenu(snippets, snippetActions, applySnippet));
+            menuBar.Items.Add(DocumentMenu(documents, stickyDocument));
         }
 
+        menuBar.Items.Add(WindowMenu(main, views));
         if (sessionStore != null && sessionActions != null)
         {
             menuBar.Items.Add(SessionMenu(sessionStore, sessionActions, startSession));
         }
 
-        if (documents != null)
-        {
-            menuBar.Items.Add(DocumentMenu(documents));
-        }
-
-        menuBar.Items.Add(WindowMenu(main, views));
         menuBar.Items.Add(HelpMenu(main, documentation));
     }
 
@@ -174,6 +205,27 @@ public static class MenuBuilder
     /// because the msgid a translation is keyed by includes them. The platform
     /// has no such convention, so the marker is stripped on the way to the
     /// screen rather than out of the string.
+    /// </para>
+    /// <para>
+    /// ⚠ AND THEREFORE Alt+F DOES NOTHING. Qt turns the marker in "&amp;File"
+    /// into a live menu-bar mnemonic for free; the platform cannot, on any
+    /// Skia head. <c>MenuBarItem</c> was ported WITH its access-key plumbing,
+    /// but the event it hangs on — <c>UIElement.AccessKeyInvoked</c> — is a
+    /// compile-time stub whose accessors discard the handler, nothing anywhere
+    /// raises it, and <c>AccessKeyManager</c> throws or no-ops throughout. So
+    /// the choice was not "strip the marker or keep it": leaving it in would
+    /// render a literal "&amp;File", because <c>MenuBarItem.Title</c> does no
+    /// marker parsing of its own. Keeping the marker in the msgid is right and
+    /// stays — the msgid is the translation key. Three upstream behaviours go
+    /// with the mnemonic: the dynamic accelerators
+    /// <c>qutil.addAccelerators</c> assigns to recent files, session groups,
+    /// generated files and pitch languages, and the per-document accelerator
+    /// <c>documentmenu.py</c> keeps for a document's lifetime. All of it is one
+    /// finding, recorded as a v1 divergence: a CodeBrix.Platform follow-up asks
+    /// for <c>AccessKeyInvoked</c> on Skia (or a public
+    /// <c>ShowMenuFlyout</c>), and an app-side substitute — catch Alt+letter on
+    /// the window and open the matching flyout — is a post-v1 candidate on
+    /// board §9.
     /// </para>
     /// </summary>
     /// <param name="text">The label, with markers.</param>
@@ -225,7 +277,8 @@ public static class MenuBuilder
         SnippetLibrary snippets,
         SnippetToolActions snippetActions,
         Action<string> applySnippet,
-        ScoreWizardActions scoreWizard)
+        ScoreWizardActions scoreWizard,
+        FileImportActions fileImport)
     {
         MenuBarItem menu = new MenuBarItem
         {
@@ -252,33 +305,75 @@ public static class MenuBuilder
         menu.Items.Add(Submenu(I18n.Get("submenu title", "Close"),
             main.FileCloseOther, main.FileCloseAll, main.FileCloseAllAndSession));
         menu.Items.Add(ItemFor(main.FileSave));
-        menu.Items.Add(Submenu(I18n.Get("submenu title", "Save"),
-            main.FileSaveAs, main.FileSaveCopyAs, main.FileRename, main.FileSaveAll));
+
+        //was previously: four entries, with "Save as Template..." standing on
+        //its own further down the File menu. Upstream puts it FOURTH of five in
+        //this submenu (menu.py menu_file_save), between Rename and Save All.
+        MenuFlyoutSubItem saveMenu = new MenuFlyoutSubItem
+        {
+            Text = Display(I18n.Get("submenu title", "Save")),
+        };
+        saveMenu.Items.Add(ItemFor(main.FileSaveAs));
+        saveMenu.Items.Add(ItemFor(main.FileSaveCopyAs));
+        saveMenu.Items.Add(ItemFor(main.FileRename));
+        if (snippetActions != null)
+        {
+            saveMenu.Items.Add(ItemFor(snippetActions.SaveAsTemplate));
+        }
+
+        saveMenu.Items.Add(ItemFor(main.FileSaveAll));
+        menu.Items.Add(saveMenu);
         menu.Items.Add(new MenuFlyoutSeparator());
-        //Upstream's &Import/Export submenu, minus the import half: decision FD1
-        //puts musicxml2ly, midi2ly and abc2ly after v1, and each is its own
-        //porting project. ⚠ Upstream also hides Export MusicXML and Export
-        //Audio behind its experimental-features toggle; here they are plain
-        //menu entries — the MusicXML writer is verified against python-ly's own
-        //output over 81 documents, and the audio export is in-process rather
-        //than a TiMidity subprocess that may not be installed. Raised as FD14.
-        menu.Items.Add(Submenu(
-            I18n.Get("submenu title", "&Import/Export"),
-            main.ExportMusicXml,
-            main.ExportAudio,
-            main.ExportColoredHtml));
+        //was previously: the submenu carried the export half alone, because
+        //decision FD1 had put musicxml2ly, midi2ly and abc2ly after v1. W-IMPORT
+        //brings them, so the submenu is upstream's own again — its four import
+        //entries, its two separators and its exports, in upstream's order.
+        //⚠ Upstream hides Export MusicXML and Export Audio behind its
+        //experimental-features toggle; here they are plain menu entries — the
+        //MusicXML writer is verified against python-ly's own output over 81
+        //documents, and the audio export is in-process rather than a TiMidity
+        //subprocess that may not be installed. Ruled as FD14.
+        menu.Items.Add(ImportExportMenu(main, fileImport));
         menu.Items.Add(new MenuFlyoutSeparator());
         menu.Items.Add(ItemFor(main.FileReload));
         menu.Items.Add(ItemFor(main.FileReloadAll));
         menu.Items.Add(ItemFor(main.FileExternalChanges));
-        if (snippetActions != null)
-        {
-            menu.Items.Add(new MenuFlyoutSeparator());
-            menu.Items.Add(ItemFor(snippetActions.SaveAsTemplate));
-        }
         menu.Items.Add(new MenuFlyoutSeparator());
         menu.Items.Add(ItemFor(main.FileQuit));
         return menu;
+    }
+
+    /// <summary>Builds the File &gt; Import/Export submenu.</summary>
+    /// <param name="main">The window's commands.</param>
+    /// <param name="fileImport">The import commands, or null before they exist.</param>
+    /// <returns>The submenu.</returns>
+    /// <remarks>
+    /// Upstream's <c>menu_file_import_export</c>, entry for entry and separator
+    /// for separator. ⚠ The export order is upstream's own: Export Audio comes
+    /// before Export MusicXML, and Export Source as Colored HTML is last.
+    /// </remarks>
+    private static MenuFlyoutSubItem ImportExportMenu(
+        MainActions main, FileImportActions fileImport)
+    {
+        MenuFlyoutSubItem submenu = new MenuFlyoutSubItem
+        {
+            Text = Display(I18n.Get("submenu title", "&Import/Export")),
+        };
+
+        if (fileImport != null)
+        {
+            submenu.Items.Add(ItemFor(fileImport.ImportAny));
+            submenu.Items.Add(new MenuFlyoutSeparator());
+            submenu.Items.Add(ItemFor(fileImport.ImportMusicXml));
+            submenu.Items.Add(ItemFor(fileImport.ImportMidi));
+            submenu.Items.Add(ItemFor(fileImport.ImportAbc));
+            submenu.Items.Add(new MenuFlyoutSeparator());
+        }
+
+        submenu.Items.Add(ItemFor(main.ExportAudio));
+        submenu.Items.Add(ItemFor(main.ExportMusicXml));
+        submenu.Items.Add(ItemFor(main.ExportColoredHtml));
+        return submenu;
     }
 
     private static MenuFlyoutSubItem RecentMenu(
@@ -294,9 +389,16 @@ public static class MenuBuilder
             submenu.Items.Clear();
             foreach (var path in recentFiles?.Paths() ?? Array.Empty<string>())
             {
+                //was previously: the bare file name. Upstream's entry text is
+                //"<basename>  (<homified dirname>)" (mainwindow.py), which is
+                //what tells two files of the same name apart at a glance; the
+                //full path stays on the tooltip, which upstream does not have
+                //and which costs nothing.
                 MenuFlyoutItem entry = new MenuFlyoutItem
                 {
-                    Text = System.IO.Path.GetFileName(path),
+                    Text = System.IO.Path.GetFileName(path) + "  ("
+                        + PathUtil.Homify(System.IO.Path.GetDirectoryName(path))
+                        + ")",
                 };
                 ToolTipService.SetToolTip(entry, path);
                 entry.Click += (_, _) => openRecent?.Invoke(path);
@@ -313,8 +415,16 @@ public static class MenuBuilder
         return submenu;
     }
 
+    /// <summary>The Edit menu.</summary>
+    /// <param name="main">The window's own commands.</param>
+    /// <param name="documentActions">The transforming commands.</param>
+    /// <param name="snippetActions">The Snippets panel's commands, which own
+    /// <c>copy_to_snippet</c>.</param>
+    /// <returns>The menu.</returns>
     private static MenuBarItem EditMenu(
-        MainActions main, DocumentActions documentActions)
+        MainActions main,
+        DocumentActions documentActions,
+        SnippetToolActions snippetActions)
     {
         MenuBarItem menu = new MenuBarItem
         {
@@ -328,11 +438,13 @@ public static class MenuBuilder
         menu.Items.Add(ItemFor(main.EditCopy));
         menu.Items.Add(ItemFor(main.EditPaste));
         menu.Items.Add(ItemFor(main.FileInsertFile));
-        if (documentActions != null)
-        {
-            menu.Items.Add(ItemFor(documentActions.EditCutAssign));
-            menu.Items.Add(ItemFor(documentActions.EditMoveToIncludeFile));
-        }
+
+        //was previously: edit_cut_assign and edit_move_to_include_file flattened
+        //into the Edit menu, with copy_to_snippet and edit_copy_colored_html
+        //having no menu entry at all — both were built, wired and
+        //enablement-tracked, and neither was reachable. Upstream's own
+        //`menu_edit_cut' submenu holds all four, in this order (menu.py).
+        menu.Items.Add(CutCopyMenu(main, documentActions, snippetActions));
 
         menu.Items.Add(new MenuFlyoutSeparator());
         menu.Items.Add(ItemFor(main.EditSelectAll));
@@ -348,12 +460,66 @@ public static class MenuBuilder
         return menu;
     }
 
+    /// <summary>
+    /// Edit &gt; Cut/Copy (advanced) — the four commands that take the
+    /// selection somewhere other than the clipboard.
+    /// </summary>
+    /// <param name="main">The window's own commands.</param>
+    /// <param name="documentActions">The transforming commands.</param>
+    /// <param name="snippetActions">The Snippets panel's commands.</param>
+    /// <returns>The submenu.</returns>
+    /// <remarks>Upstream's <c>menu_edit_cut</c>. Note the msgid's context is
+    /// "menu title", not "submenu title" — upstream builds it with the former
+    /// and the catalogs are keyed by it.</remarks>
+    private static MenuFlyoutSubItem CutCopyMenu(
+        MainActions main,
+        DocumentActions documentActions,
+        SnippetToolActions snippetActions)
+    {
+        MenuFlyoutSubItem submenu = new MenuFlyoutSubItem
+        {
+            Text = Display(I18n.Get("menu title", "Cut/Copy (advanced)")),
+        };
+
+        if (documentActions != null)
+        {
+            submenu.Items.Add(ItemFor(documentActions.EditCutAssign));
+            submenu.Items.Add(ItemFor(documentActions.EditMoveToIncludeFile));
+        }
+
+        if (snippetActions != null)
+        {
+            submenu.Items.Add(ItemFor(snippetActions.CopyToSnippet));
+        }
+
+        submenu.Items.Add(ItemFor(main.EditCopyColoredHtml));
+        return submenu;
+    }
+
+    /// <summary>The View menu.</summary>
+    /// <param name="main">The window's own commands.</param>
+    /// <param name="sideBar">The editor-margin commands.</param>
+    /// <param name="bookmarks">The marked-line commands.</param>
+    /// <param name="browser">The Back and Forward commands.</param>
+    /// <param name="documentActions">The transforming commands.</param>
+    /// <param name="matchingPair">The matching-token commands.</param>
+    /// <param name="logActions">The log panel's error-stepping commands.</param>
+    /// <returns>The menu.</returns>
+    /// <remarks>
+    /// //was previously: Back and Forward sat in a block of their own directly
+    /// under Next/Previous Document, Matching Pair and Select Matching Pair did
+    /// not exist, and Next/Previous Error Message — which do exist, with their
+    /// Ctrl+E / Ctrl+Shift+E defaults and live handlers — were on no menu at
+    /// all. This is upstream's own order (menu.py <c>menu_view</c>).
+    /// </remarks>
     private static MenuBarItem ViewMenu(
         MainActions main,
         SideBarActions sideBar,
         BookmarkActions bookmarks,
         BrowserActions browser,
-        DocumentActions documentActions)
+        DocumentActions documentActions,
+        MatchingPairActions matchingPair,
+        LogActions logActions)
     {
         MenuBarItem menu = new MenuBarItem
         {
@@ -362,13 +528,6 @@ public static class MenuBuilder
 
         menu.Items.Add(ItemFor(main.ViewNextDocument));
         menu.Items.Add(ItemFor(main.ViewPreviousDocument));
-        if (browser != null)
-        {
-            menu.Items.Add(new MenuFlyoutSeparator());
-            menu.Items.Add(ItemFor(browser.GoBack));
-            menu.Items.Add(ItemFor(browser.GoForward));
-        }
-
         menu.Items.Add(new MenuFlyoutSeparator());
         menu.Items.Add(ItemFor(main.ViewWrapLines));
         if (documentActions != null)
@@ -389,6 +548,19 @@ public static class MenuBuilder
         }
 
         menu.Items.Add(ItemFor(main.ViewGotoLine));
+        if (browser != null)
+        {
+            menu.Items.Add(ItemFor(browser.GoBack));
+            menu.Items.Add(ItemFor(browser.GoForward));
+        }
+
+        if (matchingPair != null)
+        {
+            menu.Items.Add(new MenuFlyoutSeparator());
+            menu.Items.Add(ItemFor(matchingPair.ViewMatchingPair));
+            menu.Items.Add(ItemFor(matchingPair.ViewMatchingPairSelect));
+        }
+
         if (bookmarks != null)
         {
             menu.Items.Add(new MenuFlyoutSeparator());
@@ -397,6 +569,13 @@ public static class MenuBuilder
             menu.Items.Add(ItemFor(bookmarks.ViewPreviousMark));
             menu.Items.Add(ItemFor(bookmarks.ViewClearErrorMarks));
             menu.Items.Add(ItemFor(bookmarks.ViewClearAllMarks));
+        }
+
+        if (logActions != null)
+        {
+            menu.Items.Add(new MenuFlyoutSeparator());
+            menu.Items.Add(ItemFor(logActions.LogNextError));
+            menu.Items.Add(ItemFor(logActions.LogPreviousError));
         }
 
         return menu;
@@ -442,11 +621,22 @@ public static class MenuBuilder
         menu.Items.Add(ItemFor(music.MusicRotateRight));
         menu.Items.Add(ItemFor(music.MusicRotateLeft));
         menu.Items.Add(new MenuFlyoutSeparator());
+
+        //was previously: Copy to Image sat after Synchronize with Cursor
+        //Position. Upstream puts it here, in the block BEFORE Jump to Cursor
+        //(menu.py menu_music), beside the Copy Selected Text it has and this
+        //application does not.
+        menu.Items.Add(ItemFor(music.MusicCopyImage));
+        menu.Items.Add(new MenuFlyoutSeparator());
         menu.Items.Add(ItemFor(music.MusicJumpToCursor));
         menu.Items.Add(ItemFor(music.MusicSyncCursor));
         menu.Items.Add(new MenuFlyoutSeparator());
+
+        //⚠ Upstream has the magnifier on the Music View TOOLBAR only
+        //(mainwindow.py toolbar_music). This application has no window toolbar,
+        //so the menu is the only way to reach it; if a toolbar is ever built it
+        //moves back. Board §9 records the toolbar itself as post-v1.
         menu.Items.Add(ItemFor(music.MusicMagnifier));
-        menu.Items.Add(ItemFor(music.MusicCopyImage));
         //Where upstream's Print sat, which ruling FR5.5 removed permanently.
         menu.Items.Add(Submenu(
             I18n.Get("submenu title", "&Export"),
@@ -454,6 +644,11 @@ public static class MenuBuilder
             music.MusicExportPng,
             music.MusicExportSvg));
         menu.Items.Add(new MenuFlyoutSeparator());
+
+        //Upstream's last group is Maximize then Save current View settings as
+        //default, in that order (menu.py menu_music) — the two extras above sit
+        //where Print used to.
+        menu.Items.Add(ItemFor(music.MusicMaximize));
         menu.Items.Add(ItemFor(music.MusicSaveSettings));
         return menu;
     }
@@ -501,7 +696,8 @@ public static class MenuBuilder
         LyricsActions lyrics = null,
         Func<string> pitchLanguage = null,
         Action<string> changePitchLanguage = null,
-        MainActions main = null)
+        MainActions main = null,
+        FontsActions fonts = null)
     {
         MenuBarItem menu = new MenuBarItem
         {
@@ -526,6 +722,12 @@ public static class MenuBuilder
             menu.Items.Add(TransformationsMenu(
                 documentActions, pitch, rest, rhythm, lyrics,
                 pitchLanguage, changePitchLanguage));
+
+            //Upstream's own position: the fonts plugin inserts its action into
+            //the Tools menu between Musical Transformations and Update with
+            //convert-ly.
+            if (fonts != null) { menu.Items.Add(ItemFor(fonts.DocumentFonts)); }
+
             menu.Items.Add(ItemFor(documentActions.ToolsConvertLy));
             menu.Items.Add(new MenuFlyoutSeparator());
         }
@@ -791,14 +993,32 @@ public static class MenuBuilder
 
     /// <summary>
     /// The Snippets menu: the snippets whose <c>menu</c> variable puts them
-    /// there, grouped by that variable's value.
+    /// there, grouped by that variable's value, together with FD10's native
+    /// editor commands in the groups upstream's own <c>menu</c> variable gave
+    /// them.
     /// </summary>
     /// <param name="snippets">The snippet library.</param>
     /// <param name="actions">The Snippets panel's commands.</param>
     /// <param name="apply">What picking a snippet does.</param>
+    /// <param name="editorCommands">FD10's native commands, or null.</param>
+    /// <param name="hasSelection">Reads whether the editor has a selection.</param>
     /// <returns>The menu.</returns>
+    /// <remarks>
+    /// Fourteen of the twenty-two commands have no <c>menu</c> variable at all:
+    /// upstream reaches them from the Snippets PANEL, which lists every
+    /// snippet. FD10 takes them out of the library, so that route is gone and
+    /// they would have no way in but a keyboard shortcut — and eleven of them
+    /// have no default shortcut either. They therefore go in a block of their
+    /// own after upstream's groups. A group is only an ordering and a
+    /// separator here, exactly as it is upstream — no group has a title — so
+    /// upstream's own four groups still read exactly as they do there.
+    /// </remarks>
     private static MenuBarItem SnippetMenu(
-        SnippetLibrary snippets, SnippetToolActions actions, Action<string> apply)
+        SnippetLibrary snippets,
+        SnippetToolActions actions,
+        Action<string> apply,
+        EditorCommandActions editorCommands,
+        Func<bool> hasSelection = null)
     {
         MenuBarItem menu = new MenuBarItem
         {
@@ -812,11 +1032,13 @@ public static class MenuBuilder
                 menu.Items.RemoveAt(menu.Items.Count - 1);
             }
 
-            foreach (var (_, names) in SnippetFilter.Grouped(snippets, "menu"))
+            foreach (var group in SnippetMenuGroups(snippets, editorCommands))
             {
-                foreach (var name in names)
+                foreach (var (name, action) in group)
                 {
-                    menu.Items.Add(SnippetItem(snippets, name, apply));
+                    menu.Items.Add(action == null
+                        ? SnippetItem(snippets, name, apply, hasSelection)
+                        : ItemFor(action));
                 }
 
                 menu.Items.Add(new MenuFlyoutSeparator());
@@ -825,21 +1047,16 @@ public static class MenuBuilder
             menu.Items.Add(ItemFor(actions.Activate));
         }
 
-        //Upstream refills the menu each time it is OPENED. A menu bar item
-        //has no such moment here, and refilling it while it is on screen
-        //leaves the old entries visible beside the new ones — so a change to
-        //the library marks the menu stale and the pointer arriving at it,
-        //which is the moment before it opens, refills it.
-        bool stale = false;
-        snippets.Changed += (_, _) => stale = true;
-        menu.PointerEntered += (_, _) =>
-        {
-            if (!stale) { return; }
-
-            stale = false;
-            Fill();
-        };
-
+        //Upstream refills the menu each time it is OPENED (`aboutToShow' ->
+        //`repopulate'). A menu bar item has no such moment here, and refilling
+        //it while it is on screen leaves the old entries visible beside the new
+        //ones — so the pointer arriving at it, which is the moment before it
+        //opens, refills it (board trap 39).
+        //was previously: the refill happened only when the library had changed.
+        //That is not enough now the entries carry ENABLEMENT: a snippet
+        //declaring `selection: yes' is greyed without a selection, and the
+        //selection changes constantly without the library changing at all.
+        menu.PointerEntered += (_, _) => Fill();
         menu.Loaded += (_, _) => Fill();
         Fill();
         return menu;
@@ -908,8 +1125,65 @@ public static class MenuBuilder
         return submenu;
     }
 
+    /// <summary>
+    /// The Snippets menu's contents, group by group: the snippets that declare
+    /// a <c>menu</c> variable and the native editor commands, merged into
+    /// upstream's own groups, each group sorted by name.
+    /// </summary>
+    /// <param name="snippets">The snippet library.</param>
+    /// <param name="editorCommands">The native commands, or null.</param>
+    /// <returns>The groups, in the order the menu shows them.</returns>
+    private static IReadOnlyList<IReadOnlyList<(string Name, AppAction Action)>>
+        SnippetMenuGroups(SnippetLibrary snippets, EditorCommandActions editorCommands)
+    {
+        Dictionary<string, List<(string Name, AppAction Action)>> groups
+            = new Dictionary<string, List<(string, AppAction)>>(StringComparer.Ordinal);
+
+        List<(string Name, AppAction Action)> Group(string key)
+        {
+            if (!groups.TryGetValue(key, out var list))
+            {
+                list = new List<(string, AppAction)>();
+                groups[key] = list;
+            }
+
+            return list;
+        }
+
+        //A variable declared with no value sorts first — upstream's
+        //`'' if g is True else g`; the commands with no group sort last, under
+        //a key no snippet variable can hold.
+        const string Ungrouped = "￿";
+        foreach (var (key, names) in SnippetFilter.Grouped(snippets, "menu"))
+        {
+            List<(string, AppAction)> group = Group(
+                string.Equals(key, "yes", StringComparison.Ordinal) ? string.Empty : key);
+            foreach (var name in names) { group.Add((name, null)); }
+        }
+
+        foreach (EditorCommandInfo info in editorCommands == null
+            ? Array.Empty<EditorCommandInfo>()
+            : (IEnumerable<EditorCommandInfo>)EditorCommands.All)
+        {
+            AppAction action = editorCommands.Action(info.Name);
+            if (action == null) { continue; }
+
+            Group(info.MenuGroup ?? Ungrouped).Add((info.Name, action));
+        }
+
+        return groups
+            .OrderBy(g => g.Key, StringComparer.Ordinal)
+            .Select(g => (IReadOnlyList<(string, AppAction)>)g.Value
+                .OrderBy(e => e.Item1, StringComparer.Ordinal)
+                .ToList())
+            .ToList();
+    }
+
     private static MenuFlyoutItem SnippetItem(
-        SnippetLibrary snippets, string name, Action<string> apply)
+        SnippetLibrary snippets,
+        string name,
+        Action<string> apply,
+        Func<bool> hasSelection = null)
     {
         MenuFlyoutItem item = new MenuFlyoutItem
         {
@@ -917,6 +1191,17 @@ public static class MenuBuilder
             //ampersand in it is a character, so it is not stripped.
             Text = snippets.Title(name),
         };
+
+        //Upstream's `visitAction': a snippet that declares `selection: yes'
+        //NEEDS one, so without a selection the entry is disabled rather than
+        //left to decline when it is pressed (SnippetInserter does decline —
+        //this is the affordance, not the behaviour).
+        if (hasSelection != null
+            && snippets.Get(name).VariableHas("selection", "yes"))
+        {
+            item.IsEnabled = hasSelection();
+        }
+
         item.Click += (_, _) => apply?.Invoke(name);
         return item;
     }
@@ -954,8 +1239,13 @@ public static class MenuBuilder
 
             //A name with a slash in it groups: "Bach/Cantatas" becomes a
             //Bach submenu holding Cantatas.
-            Dictionary<string, MenuFlyoutSubItem> groups
-                = new Dictionary<string, MenuFlyoutSubItem>(StringComparer.Ordinal);
+            //was previously: a group was added the first time a name mentioned
+            //it, and its title was the bare group name. Upstream sorts the group
+            //KEYS (sessions/menu.py `for k in sorted(groups.keys())') and marks
+            //the group the CURRENT session is inside with a "* " prefix, so the
+            //user can see which closed submenu they are in.
+            Dictionary<string, List<string>> groups
+                = new Dictionary<string, List<string>>(StringComparer.Ordinal);
             List<string> topLevel = new List<string>();
 
             foreach (var name in store.SessionNames())
@@ -964,14 +1254,31 @@ public static class MenuBuilder
                 if (slash <= 0) { topLevel.Add(name); continue; }
 
                 string group = name.Substring(0, slash);
-                if (!groups.TryGetValue(group, out var submenu))
+                if (!groups.TryGetValue(group, out var names))
                 {
-                    submenu = new MenuFlyoutSubItem { Text = group };
-                    groups[group] = submenu;
-                    menu.Items.Add(submenu);
+                    names = new List<string>();
+                    groups[group] = names;
                 }
 
-                submenu.Items.Add(SessionItem(store, name, name.Substring(slash + 1), start));
+                names.Add(name);
+            }
+
+            string current = store.CurrentSession;
+            foreach (var group in groups.Keys.OrderBy(k => k, StringComparer.Ordinal))
+            {
+                bool holdsCurrent = current != null
+                    && current.StartsWith(group + "/", StringComparison.Ordinal);
+                MenuFlyoutSubItem submenu = new MenuFlyoutSubItem
+                {
+                    Text = holdsCurrent ? "* " + group : group,
+                };
+                foreach (var name in groups[group])
+                {
+                    submenu.Items.Add(SessionItem(
+                        store, name, name.Substring(group.Length + 1), start));
+                }
+
+                menu.Items.Add(submenu);
             }
 
             if (groups.Count > 0) { menu.Items.Add(new MenuFlyoutSeparator()); }
@@ -1010,11 +1317,23 @@ public static class MenuBuilder
         return item;
     }
 
-    private static MenuBarItem DocumentMenu(DocumentManager documents)
+    /// <summary>The Documents menu: one entry per open document.</summary>
+    /// <param name="documents">The open documents.</param>
+    /// <param name="stickyDocument">Reads the document the engraver is pinned
+    /// to, or null when nothing can say.</param>
+    /// <returns>The menu.</returns>
+    /// <remarks>
+    /// //was previously: the title msgid was "&amp;Document", SINGULAR, which
+    /// is wrong in English and matches no catalog entry in any of the thirteen
+    /// languages; upstream's msgid is "&amp;Documents" (documentmenu.py). The
+    /// sticky mark and the path tooltip were missing too.
+    /// </remarks>
+    private static MenuBarItem DocumentMenu(
+        DocumentManager documents, Func<EditorDocument> stickyDocument = null)
     {
         MenuBarItem menu = new MenuBarItem
         {
-            Title = Display(I18n.Get("menu title", "&Document")),
+            Title = Display(I18n.Get("menu title", "&Documents")),
         };
 
         void Fill()
@@ -1022,18 +1341,17 @@ public static class MenuBuilder
             menu.Items.Clear();
             foreach (var document in documents.Documents)
             {
-                ToggleMenuFlyoutItem entry = new ToggleMenuFlyoutItem
-                {
-                    Text = document.DocumentName(),
-                    IsChecked = document == documents.CurrentDocument,
-                };
-                entry.Click += (_, _) => documents.CurrentDocument = document;
-                menu.Items.Add(entry);
+                menu.Items.Add(DocumentItem(documents, document, stickyDocument));
             }
         }
 
         //The document list changes constantly; rebuilding on open is upstream's
-        //approach too (DocumentMenu.populate on aboutToShow).
+        //approach too (DocumentMenu.populate on aboutToShow). The sticky mark
+        //has no event of its own to hang on here — upstream connects
+        //`stickyChanged', `jobStarted' and `jobFinished' — so the pointer
+        //arriving at the menu, which is the moment before it opens, refills it
+        //(board trap 39).
+        menu.PointerEntered += (_, _) => Fill();
         menu.Loaded += (_, _) => Fill();
         documents.DocumentCreated += (_, _) => Fill();
         documents.DocumentClosed += (_, _) => Fill();
@@ -1041,6 +1359,73 @@ public static class MenuBuilder
         documents.CurrentDocumentChanged += (_, _) => Fill();
         Fill();
         return menu;
+    }
+
+    /// <summary>One Documents-menu entry.</summary>
+    /// <param name="documents">The open documents.</param>
+    /// <param name="document">The document this entry raises.</param>
+    /// <param name="stickyDocument">Reads the document the engraver is pinned
+    /// to, or null.</param>
+    /// <returns>The entry.</returns>
+    /// <remarks>Upstream appends the "[always engraved]" mark to the sticky
+    /// document's text and puts the document's FOLDER — homified, the same
+    /// string the recent-files entries carry — on the entry's tooltip
+    /// (documentmenu.py <c>setDocumentStatus</c>, which tooltips
+    /// <c>util.path(doc.url())</c>). The per-document <c>&amp;</c> accelerator
+    /// it also assigns has nowhere to go here — see
+    /// <see cref="Display"/>.</remarks>
+    private static ToggleMenuFlyoutItem DocumentItem(
+        DocumentManager documents,
+        EditorDocument document,
+        Func<EditorDocument> stickyDocument)
+    {
+        bool sticky = stickyDocument != null && stickyDocument() == document;
+        ToggleMenuFlyoutItem entry = new ToggleMenuFlyoutItem
+        {
+            //A document's name is the user's own file name, not a msgid — an
+            //ampersand in it is a character, so nothing is stripped.
+            //L10N: 'always engraved': the document is marked as 'Always Engrave'
+            //in the engine's menu.
+            Text = sticky
+                ? document.DocumentName() + " " + I18n.Get("[always engraved]")
+                : document.DocumentName(),
+            IsChecked = document == documents.CurrentDocument,
+        };
+        if (!string.IsNullOrEmpty(document.Path))
+        {
+            ToolTipService.SetToolTip(
+                entry,
+                PathUtil.Homify(System.IO.Path.GetDirectoryName(document.Path)));
+        }
+
+        entry.Click += (_, _) => documents.CurrentDocument = document;
+        return entry;
+    }
+
+    /// <summary>
+    /// The Documents menu's entries as a SUBMENU, which the document context
+    /// menu nests at its head.
+    /// </summary>
+    /// <param name="documents">The open documents.</param>
+    /// <param name="stickyDocument">Reads the document the engraver is pinned
+    /// to, or null.</param>
+    /// <returns>The submenu.</returns>
+    /// <remarks>Upstream's <c>documentcontextmenu.py</c> adds the whole
+    /// Documents menu as its first entry.</remarks>
+    public static MenuFlyoutSubItem DocumentSubmenu(
+        DocumentManager documents, Func<EditorDocument> stickyDocument = null)
+    {
+        MenuFlyoutSubItem submenu = new MenuFlyoutSubItem
+        {
+            Text = Display(I18n.Get("menu title", "&Documents")),
+        };
+
+        foreach (var document in documents.Documents)
+        {
+            submenu.Items.Add(DocumentItem(documents, document, stickyDocument));
+        }
+
+        return submenu;
     }
 
     private static MenuBarItem WindowMenu(MainActions main, ViewActions views)

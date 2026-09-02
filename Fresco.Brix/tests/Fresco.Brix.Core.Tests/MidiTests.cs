@@ -411,7 +411,7 @@ public class MidiInputTests
         //Arrange
         using TempFolder folder = new TempFolder();
         using SettingsStore settings
-            = new SettingsStore(Path.Combine(folder.Path, "settings.sqlite"));
+            = new SettingsStore(folder.Path);
         MidiInputOptions options = new MidiInputOptions(settings)
         {
             Channel = 5,
@@ -673,7 +673,7 @@ public class SoundFontTests
         using TempFolder folder = new TempFolder();
         string chosen = folder.File("mine.sf2", "not really a bank");
         using SettingsStore settings
-            = new SettingsStore(Path.Combine(folder.Path, "settings.sqlite"));
+            = new SettingsStore(folder.Path);
         settings.SetString(SoundFonts.InstrumentSettingKey, chosen);
 
         //Act
@@ -689,7 +689,7 @@ public class SoundFontTests
         //Arrange
         using TempFolder folder = new TempFolder();
         using SettingsStore settings
-            = new SettingsStore(Path.Combine(folder.Path, "settings.sqlite"));
+            = new SettingsStore(folder.Path);
         settings.SetString(
             SoundFonts.InstrumentSettingKey,
             Path.Combine(folder.Path, "deleted.sf2"));
@@ -798,7 +798,7 @@ public class MidiPlayerServiceTests
         //Arrange
         using TempFolder folder = new TempFolder();
         using SettingsStore settings
-            = new SettingsStore(Path.Combine(folder.Path, "settings.sqlite"));
+            = new SettingsStore(folder.Path);
 
         //Act
         using (MidiPlayerService player = new MidiPlayerService(settings))

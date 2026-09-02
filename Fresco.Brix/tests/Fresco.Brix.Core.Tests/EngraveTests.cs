@@ -753,6 +753,121 @@ public class LayoutControlTests
             LayoutControl.Option(mode).Should().StartWith("-d");
         }
     }
+
+    [Fact]
+    public void the_settings_file_a_run_names_is_actually_deployed()
+    {
+        //Arrange — the ONE file a layout-control run names by name. It was
+        //missing from every head's output until W13's close-out, because the
+        //csproj glob was `*.il*' and this file is a `.ly'; every mode then
+        //engraved without the formatter chain and drew nothing.
+        string directory = LayoutControl.AssetDirectory();
+
+        //Act
+        string settings = Path.Combine(directory, "debug-layout-options.ly");
+
+        //Assert
+        File.Exists(settings).Should().Be(true);
+
+        //And the formatters it \includes are beside it.
+        foreach (var name in new[]
+        {
+            "lilypond-version-predicates.ily", "color-voices.ily",
+            "color-directions.ily", "display-grob-anchors.ily",
+            "display-grob-names.ily", "info-paper-columns.ily",
+            "annotate-spacing.ily",
+        })
+        {
+            File.Exists(Path.Combine(directory, name)).Should().Be(true);
+        }
+    }
+}
+
+/// <summary>
+/// The application-wide include path — upstream's
+/// <c>lilypond_settings/include_path</c> — and how a session's own path is put
+/// in front of it.
+/// </summary>
+public class IncludePathTests : IDisposable
+{
+    private readonly TempFolder _folder = new TempFolder();
+
+    /// <summary>Puts the two static lists back.</summary>
+    public void Dispose()
+    {
+        DocumentInfo.SessionIncludePath = Array.Empty<string>();
+        DocumentInfo.ApplicationIncludePath = Array.Empty<string>();
+        _folder.Dispose();
+    }
+
+    [Fact]
+    public void the_application_wide_path_round_trips_through_the_store()
+    {
+        //Arrange
+        using SettingsStore settings = new SettingsStore(_folder.Path);
+
+        //Act
+        Engraver.SetIncludePath(settings, new[] { "/a", "/b" });
+        IReadOnlyList<string> read = Engraver.IncludePath(settings);
+
+        //Assert
+        read.Should().Equal("/a", "/b");
+        settings.GetString(Engraver.IncludePathSettingKey).Should().Be("/a\n/b");
+    }
+
+    [Fact]
+    public void an_empty_application_wide_path_is_forgotten_rather_than_stored()
+    {
+        //Arrange
+        using SettingsStore settings = new SettingsStore(_folder.Path);
+        Engraver.SetIncludePath(settings, new[] { "/a" });
+
+        //Act
+        Engraver.SetIncludePath(settings, Array.Empty<string>());
+
+        //Assert
+        Engraver.IncludePath(settings).Count.Should().Be(0);
+        settings.GetString(Engraver.IncludePathSettingKey).Should().BeNullOrEmpty();
+    }
+
+    [Fact]
+    public void a_sessions_own_path_goes_in_front_of_the_application_wide_one()
+    {
+        //Arrange — upstream's `includepath()': the session's paths are
+        //PREPENDED to the global list (its repl-paths flag, which replaces
+        //rather than prepends, has no control in this port).
+        DocumentInfo.ApplicationIncludePath = new[] { "/global" };
+        DocumentInfo.SessionIncludePath = new[] { "/session" };
+        DocumentManager documents = new DocumentManager();
+        EditorDocument document = documents.CreateDocument();
+
+        //Act
+        IReadOnlyList<string> path = DocumentInfo.For(document).IncludePath();
+
+        //Assert
+        path.Should().Equal("/session", "/global");
+    }
+
+    [Fact]
+    public void either_list_alone_is_the_whole_answer()
+    {
+        //Arrange
+        DocumentManager documents = new DocumentManager();
+        EditorDocument document = documents.CreateDocument();
+
+        //Act
+        DocumentInfo.ApplicationIncludePath = new[] { "/global" };
+        DocumentInfo.SessionIncludePath = Array.Empty<string>();
+        IReadOnlyList<string> globalOnly = DocumentInfo.For(document).IncludePath();
+
+        DocumentInfo.ApplicationIncludePath = Array.Empty<string>();
+        DocumentInfo.SessionIncludePath = new[] { "/session" };
+        IReadOnlyList<string> sessionOnly = DocumentInfo.For(document).IncludePath();
+
+        //Assert
+        globalOnly.Should().Equal("/global");
+        sessionOnly.Should().Equal("/session");
+    }
 }
 
 /// <summary>How a job's options are read, written and reported.</summary>
@@ -820,7 +935,7 @@ public class LilyPondJobOptionTests
     }
 
     [Fact]
-    public void a_layout_control_job_carries_its_options_and_reports_them_as_pending()
+    public void a_layout_control_job_carries_its_options_into_the_run()
     {
         //Arrange
         using TempFolder folder = new TempFolder();
@@ -838,10 +953,42 @@ public class LilyPondJobOptionTests
         job.Option("point-and-click").Should().Be(true);
         job.IncludePath.Should().Contain(LayoutControl.AssetDirectory());
 
-        //Everything but the anchors is carried, reported and not applied —
-        //widening the engine's per-run seam is a change to the engine.
-        job.PendingOptions.Should().Equal(
-            "debug-voices", "include-settings");
+        //was previously: this asserted that everything but the anchors was
+        //"carried, reported and not applied", because the job passed only
+        //PointAndClick to the engine and listed the rest as PENDING. They are
+        //all applied now — `BatchRunOptions.Options' takes them as -d TEXTS,
+        //which is the form a command line carries them in — so nothing is
+        //pending and the texts are what the run asks for.
+        job.PendingOptions.Should().BeEmpty();
+        job.RunOptionTexts().Should().Equal(
+            "debug-voices", "include-settings=debug-layout-options.ly");
+    }
+
+    [Fact]
+    public void a_layout_control_job_engraves_through_a_settings_wrapper()
+    {
+        //Arrange — ⚠ the engine ACCEPTS `include-settings' and never reads the
+        //file (measured; recorded on the package FIXLIST), so the job includes
+        //it the way a document would. This pins the shape of the workaround:
+        //the settings file the panel names is resolved on the run's own include
+        //path.
+        using TempFolder folder = new TempFolder();
+        string path = folder.File("score.ly", "{ c'4 }\n");
+        DocumentManager documents = new DocumentManager();
+        EditorDocument document = documents.OpenDocument(path);
+        LilyPortEngine engine = new LilyPortEngine();
+
+        //Act
+        LayoutControlJob job = new LayoutControlJob(
+            engine, document, LayoutControl.PreviewOptions(new[] { "grob-anchors" }));
+
+        //Assert — the formatter directory is on the include path, and the file
+        //the run names is really there to be found.
+        job.IncludePath.Should().Contain(LayoutControl.AssetDirectory());
+        job.Option("include-settings").Should().Be("debug-layout-options.ly");
+        File.Exists(Path.Combine(
+            LayoutControl.AssetDirectory(), "debug-layout-options.ly"))
+            .Should().Be(true);
     }
 
     [Fact]

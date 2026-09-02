@@ -45,6 +45,9 @@ public sealed class ScoreWizardDialog
     private TreeView _availableParts;
     private TreeView _scoreTree;
     private ContentControl _partSettings;
+    /// <summary>The root the dialog was last shown on, for sizing.</summary>
+    private XamlRoot _root;
+
     private Grid _pages;
     private IReadOnlyList<Button> _tabs;
     private int _currentPage;
@@ -69,12 +72,13 @@ public sealed class ScoreWizardDialog
     /// <returns>The finished document's text, or null when cancelled.</returns>
     public async Task<string> ShowAsync(XamlRoot xamlRoot)
     {
+        _root = xamlRoot;
         ContentDialog dialog = new ContentDialog
         {
             Title = I18n.Get("Score Setup Wizard"),
             Content = BuildContent(),
-            PrimaryButtonText = I18n.Get("OK"),
-            CloseButtonText = I18n.Get("Cancel"),
+            PrimaryButtonText = StandardButtons.Ok,
+            CloseButtonText = StandardButtons.Cancel,
             DefaultButton = ContentDialogButton.Primary,
             XamlRoot = xamlRoot,
 
@@ -84,8 +88,9 @@ public sealed class ScoreWizardDialog
         //binds it to the ContentDialogMaxWidth resource, which is about 550 —
         //half of what three pages of parts and settings need. Overriding the
         //RESOURCE on the dialog itself is what widens it.
-        dialog.Resources["ContentDialogMaxWidth"] = 1400.0;
-        dialog.Resources["ContentDialogMaxHeight"] = 1000.0;
+        //was previously: written out. See Shell/DialogSizing — safe at today's
+        //880x470 design, and clipped the moment either number grew.
+        DialogSizing.Clamp(dialog, 1400, 1000);
 
         bool accepted = await dialog.ShowAsync() == ContentDialogResult.Primary;
         Model.Save(_settings);
@@ -143,7 +148,16 @@ public sealed class ScoreWizardDialog
     /// <returns>The content.</returns>
     private UIElement BuildContent()
     {
-        Grid root = new Grid { RowSpacing = 6, Width = 880, Height = 470 };
+        Grid root = new Grid
+        {
+            RowSpacing = 6,
+            MinWidth = 700,
+            MaxWidth = 880,
+            //What is left in the window, capped at the design height — see
+            //Shell/DialogSizing.
+            Height = DialogSizing.ContentHeight(_root, 470),
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+        };
         root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
         root.RowDefinitions.Add(new RowDefinition
         {
@@ -209,6 +223,11 @@ public sealed class ScoreWizardDialog
             if (action != null) { await action(PreviewText()); }
         };
         actions.Children.Add(preview);
+
+        //Upstream's `userguide.addButton(b, "scorewiz")'. A ContentDialog's
+        //three buttons are spent (board trap 50), so Help joins Clear and
+        //Preview on the dialog's own action row.
+        actions.Children.Add(UserGuide.GuideHelp.Button("scorewiz"));
 
         Grid.SetRow(actions, 2);
         root.Children.Add(actions);
@@ -755,11 +774,7 @@ public sealed class ScoreWizardDialog
             page.Children.Add(element);
         }
 
-        Place(
-            SettingsEditor.Group(
-                I18n.Get("Score properties"), Model.ScoreProperties.Settings),
-            0,
-            0);
+        Place(BuildScorePropertiesGroup(), 0, 0);
         Place(
             SettingsEditor.Group(
                 I18n.Get("General preferences"), Model.GeneralPreferences.Settings),
@@ -774,6 +789,48 @@ public sealed class ScoreWizardDialog
             Content = page,
             VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
         };
+    }
+
+    /// <summary>
+    /// Builds the Score properties group, with the tap-tempo button under it.
+    /// </summary>
+    /// <returns>The group.</returns>
+    /// <remarks>
+    /// //was previously: <c>SettingsEditor.Group</c> alone, so the "Round tap
+    /// tempo value" checkbox governed a tempo nothing could tap.
+    /// ⚠ PLACEMENT: upstream puts the button on the metronome ROW, beside the
+    /// value combo (scorewiz/scoreproperties.py). The settings on this page are
+    /// drawn from a list by <c>SettingsEditor</c>, one label-and-control row
+    /// each, and reaching inside that to widen one row would make the editor
+    /// know about this one setting; the button therefore sits under the group,
+    /// which is where the checkbox it works with already is.
+    /// </remarks>
+    private UIElement BuildScorePropertiesGroup()
+    {
+        StackPanel content = new StackPanel { Spacing = 6 };
+        content.Children.Add(SettingsEditor.Build(Model.ScoreProperties.Settings));
+
+        Widgets.TempoButton tap = new Widgets.TempoButton
+        {
+            HorizontalAlignment = HorizontalAlignment.Left,
+        };
+        tap.Tempo += (_, beatsPerMinute)
+            => Model.ScoreProperties.SetMetronomeValue(beatsPerMinute);
+        content.Children.Add(tap);
+        content.Children.Add(new TextBlock
+        {
+            //Upstream's What's This on the same button, said out loud because
+            //there is no What's This cursor mode here (see MenuBuilder's Help
+            //menu note).
+            Text = I18n.Get(
+                "Tap this button to set the tempo.\n\n"
+                + "The average speed of clicking is used; wait 3 seconds to "
+                + "\"reset\"."),
+            TextWrapping = TextWrapping.Wrap,
+            Opacity = 0.75,
+        });
+
+        return SettingsEditor.Wrap(I18n.Get("Score properties"), content);
     }
 
     /// <summary>Builds the group that names the engine and its pitch language.</summary>

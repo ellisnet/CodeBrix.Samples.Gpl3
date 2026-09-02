@@ -20,16 +20,19 @@ using Xunit;
 
 namespace Fresco.Brix.Core.Tests;
 
-/// <summary>A settings store in a throw-away file, for the tests.</summary>
+/// <summary>A settings store in a throw-away folder, for the tests.</summary>
 public static class TestSettings
 {
     /// <summary>Makes a store nothing else can see.</summary>
     /// <returns>The store.</returns>
+    /// <remarks>//was previously: a throw-away FILE — the settings add-in the
+    /// store is now a facade over locates the file inside a folder it owns, and
+    /// keeps its own backups there.</remarks>
     public static SettingsStore Create()
         => new SettingsStore(Path.Combine(
             Path.GetTempPath(),
             "frescobrix-tests",
-            Path.GetRandomFileName() + ".sqlite"));
+            Path.GetRandomFileName()));
 }
 
 /// <summary>Reading a snippet: its variables, its title, its expansions.</summary>

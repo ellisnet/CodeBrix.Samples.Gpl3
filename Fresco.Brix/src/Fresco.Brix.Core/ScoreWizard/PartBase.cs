@@ -484,9 +484,12 @@ public sealed class ChordNamesSupport
         GuitarFrets = new BoolSetting("guitarFrets")
         {
             Label = () => I18n.Get("Guitar fret diagrams"),
+            //was previously: "…(LilyPond 2.12 and above)." Two reasons to
+            //change it: a tooltip is chrome and FR13 names tooltips, and under
+            //FR5.1 there is ONE engine, so a version caveat describes a choice
+            //the user does not have — the feature is simply there.
             ToolTip = () => I18n.Get(
-                "Show predefined guitar fret diagrams below the chord names "
-                + "(LilyPond 2.12 and above)."),
+                "Show predefined guitar fret diagrams below the chord names."),
         };
     }
 

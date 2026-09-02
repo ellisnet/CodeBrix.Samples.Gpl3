@@ -21,6 +21,10 @@ namespace Fresco.Brix.Services; //was previously: frescobaldi/recentfiles.py
 /// filtering, with the same ten-item limit and the same
 /// move-to-front-on-add semantics.
 /// </summary>
+/// <remarks>The list is ONE JSON-valued key — the settings add-in serialises a
+/// <see cref="List{T}"/> natively. //was previously: the same key holding the
+/// paths joined by newlines, which the flat store this replaced could only
+/// hold as one string.</remarks>
 public sealed class RecentFiles
 {
     /// <summary>The settings key the list is stored under.</summary>
@@ -83,15 +87,16 @@ public sealed class RecentFiles
 
         //Upstream drops entries it can no longer read; a stored path that has
         //since been deleted or turned unreadable never reaches the menu.
-        _paths = (_settings.GetString(SettingKey) ?? string.Empty)
-            .Split('\n')
-            .Where(p => p.Length > 0 && IsReadable(p))
+        _paths = (_settings.Get<List<string>>(SettingKey) ?? new List<string>())
+            .Where(p => !string.IsNullOrEmpty(p) && IsReadable(p))
             .ToList();
         Trim();
     }
 
     private void Save()
-        => _settings.SetString(SettingKey, string.Join("\n", _paths));
+    {
+        if (_paths.Count == 0) { _settings.Remove(SettingKey); } else { _settings.Set(SettingKey, _paths); }
+    }
 
     private void Trim()
     {

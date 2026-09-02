@@ -126,11 +126,15 @@ public static class ColoredHtml
         if (cursor == null) { throw new ArgumentNullException(nameof(cursor)); }
 
         options ??= new ColoredHtmlOptions();
-        //"default" is the scheme NAME the rest of the application reads (the
-        //Fonts & Colors page will make it a preference at W12); options.Scheme
-        //is upstream's `scheme` argument, which chooses the editor's set or the
+        //The scheme NAME is now a preference (W12A's Fonts & Colors page):
+        //exported source follows `printer_scheme' where the user set one, and
+        //the editor's own scheme otherwise. options.Scheme is upstream's
+        //`scheme' argument, which chooses the editor's format set or the
         //printer's.
-        var data = new TextFormatData("default", settings, options.Scheme);
+        string name = string.Equals(options.Scheme, "printer", StringComparison.Ordinal)
+            ? TextFormatData.PrinterScheme(settings)
+            : TextFormatData.CurrentScheme(settings);
+        var data = new TextFormatData(name, settings, options.Scheme);
 
         var writer = new HtmlWriter
         {

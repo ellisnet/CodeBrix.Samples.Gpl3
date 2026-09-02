@@ -232,17 +232,66 @@ public sealed class TextFormatData
         Load(settings);
     }
 
+    /// <summary>The setting naming the scheme the editor is drawn with.</summary>
+    /// <remarks>Upstream's own key, read by <c>SchemeSelector</c>.</remarks>
+    public const string SchemeSettingKey = "editor_scheme";
+
+    /// <summary>The setting group holding the user's scheme names.</summary>
+    /// <remarks>Upstream's own key: <c>editor_schemes/&lt;key&gt;</c> holds the
+    /// name the user gave the scheme <c>&lt;key&gt;</c>.</remarks>
+    public const string SchemeNamesKey = "editor_schemes";
+
+    /// <summary>
+    /// The setting naming the scheme used for exported source, which is where
+    /// upstream's printing went (FR5.5 removed printing itself).
+    /// </summary>
+    public const string PrinterSchemeSettingKey = "printer_scheme";
+
+    /// <summary>Gets the scheme the editor is currently drawn with.</summary>
+    /// <param name="settings">The settings store, or null.</param>
+    /// <returns>The scheme name; <c>default</c> when none is chosen.</returns>
+    public static string CurrentScheme(SettingsStore settings)
+    {
+        string scheme = settings?.GetString(SchemeSettingKey, "default");
+        return string.IsNullOrEmpty(scheme) ? "default" : scheme;
+    }
+
+    /// <summary>Gets the scheme exported source is coloured with.</summary>
+    /// <param name="settings">The settings store, or null.</param>
+    /// <returns>The scheme name; the editor's own when none is chosen.</returns>
+    public static string PrinterScheme(SettingsStore settings)
+    {
+        string scheme = settings?.GetString(PrinterSchemeSettingKey);
+        return string.IsNullOrEmpty(scheme) ? CurrentScheme(settings) : scheme;
+    }
+
     /// <summary>Gets the scheme name.</summary>
     public string Scheme { get; }
 
     /// <summary>Gets which scheme set this is (<c>editor</c>/<c>printer</c>).</summary>
     public string Kind { get; }
 
-    /// <summary>Gets or sets the editor font family.</summary>
+    /// <summary>
+    /// The editor's size when the user has chosen none.
+    /// </summary>
+    /// <remarks>//was previously: 10.0, which was a placeholder — nothing read
+    /// the value. The editor itself has always been drawn at 13, and W12A's
+    /// Fonts &amp; Colors page makes the setting real, so the default IS what
+    /// the editor does.</remarks>
+    public const double DefaultFontSize = 13.0;
+
+    /// <summary>
+    /// Gets or sets the editor font family, or null for the application's own
+    /// monospace face.
+    /// </summary>
+    /// <remarks>A family here is one of the faces the application SHIPS: there
+    /// is no system-font fallback anywhere in Fresco.Brix (standing rule 6),
+    /// so the Fonts &amp; Colors page offers what is in the box and nothing
+    /// else.</remarks>
     public string FontFamily { get; set; }
 
     /// <summary>Gets or sets the editor font size, in points.</summary>
-    public double FontSize { get; set; }
+    public double FontSize { get; set; } = DefaultFontSize;
 
     /// <summary>Gets the base colours, by name.</summary>
     public IReadOnlyDictionary<string, Color> BaseColors => _baseColors;
@@ -322,30 +371,63 @@ public sealed class TextFormatData
     {
         if (settings == null) { throw new ArgumentNullException(nameof(settings)); }
 
-        string prefix = $"fontscolors/{Kind}/{Scheme}/";
-        if (FontFamily != null) { settings.SetString(prefix + "fontfamily", FontFamily); }
+        Dictionary<string, string> values = ReadScheme(settings, Kind, Scheme);
+        if (FontFamily != null) { values["fontfamily"] = FontFamily; }
 
-        if (FontSize > 0) { settings.SetDouble(prefix + "fontsize", FontSize); }
+        if (FontSize > 0)
+        {
+            values["fontsize"] = FontSize.ToString("R", CultureInfo.InvariantCulture);
+        }
 
         foreach (var pair in _baseColors)
         {
-            settings.SetString(
-                prefix + "basecolors/" + pair.Key, TextFormat.FormatColor(pair.Value));
+            values["basecolors/" + pair.Key] = TextFormat.FormatColor(pair.Value);
         }
 
         foreach (var pair in _defaultStyles)
         {
-            SaveFormat(settings, prefix + "defaultstyles/" + pair.Key, pair.Value);
+            SaveFormat(values, "defaultstyles/" + pair.Key, pair.Value);
         }
 
         foreach (var group in _allStyles)
         {
             foreach (var pair in group.Value)
             {
-                SaveFormat(settings,
-                    prefix + "allstyles/" + group.Key + "/" + pair.Key, pair.Value);
+                SaveFormat(values,
+                    "allstyles/" + group.Key + "/" + pair.Key, pair.Value);
             }
         }
+
+        WriteScheme(settings, Kind, Scheme, values);
+    }
+
+    /// <summary>
+    /// The settings key ONE scheme's fonts and colours live under — one key
+    /// holding every value as a JSON object.
+    /// </summary>
+    /// <param name="kind">Which scheme set — <c>editor</c> or <c>printer</c>.</param>
+    /// <param name="scheme">The scheme name.</param>
+    /// <returns>The key.</returns>
+    /// <remarks>//was previously: the same text as a settings key PREFIX, with
+    /// a key per value under it (upstream's <c>fontscolors/{kind}/{scheme}/…</c>
+    /// group), which the flat store this replaced could delete by prefix when a
+    /// scheme was removed. The settings add-in has no prefix-scan API by design
+    /// (board W13 item 9, route (a)).</remarks>
+    public static string SchemeKey(string kind, string scheme)
+        => $"fontscolors/{kind}/{scheme}";
+
+    /// <summary>Forgets everything one scheme remembers.</summary>
+    /// <param name="settings">The settings store.</param>
+    /// <param name="kind">Which scheme set — <c>editor</c> or <c>printer</c>.</param>
+    /// <param name="scheme">The scheme being removed.</param>
+    /// <remarks>What the Fonts &amp; Colors preferences page hands
+    /// <c>SchemeSelector.SaveSettings</c> so that a removed scheme's colours go
+    /// with it.</remarks>
+    public static void ForgetScheme(SettingsStore settings, string kind, string scheme)
+    {
+        if (settings == null || string.IsNullOrEmpty(scheme)) { return; }
+
+        settings.Remove(SchemeKey(kind, scheme));
     }
 
     /// <summary>
@@ -375,14 +457,16 @@ public sealed class TextFormatData
 
     private void Load(SettingsStore settings)
     {
-        string prefix = $"fontscolors/{Kind}/{Scheme}/";
-        FontFamily = settings?.GetString(prefix + "fontfamily");
-        FontSize = settings?.GetDouble(prefix + "fontsize", 10.0) ?? 10.0;
+        Dictionary<string, string> values = ReadScheme(settings, Kind, Scheme);
+        FontFamily = Value(values, "fontfamily");
+        FontSize = double.TryParse(Value(values, "fontsize"), NumberStyles.Float,
+            CultureInfo.InvariantCulture, out var size)
+            ? size
+            : DefaultFontSize;
 
         foreach (var name in BaseColorNames)
         {
-            Color? stored = TextFormat.ParseColor(
-                settings?.GetString(prefix + "basecolors/" + name));
+            Color? stored = TextFormat.ParseColor(Value(values, "basecolors/" + name));
             _baseColors[name] = stored ?? DefaultBaseColor(name);
         }
 
@@ -406,7 +490,7 @@ public sealed class TextFormatData
         {
             TextFormat format = TextFormat.FromCss(
                 CssScheme.Default.BaseStyle(name));
-            LoadFormat(settings, prefix + "defaultstyles/" + name, format);
+            LoadFormat(values, "defaultstyles/" + name, format);
             _defaultStyles[name] = format;
         }
 
@@ -419,54 +503,88 @@ public sealed class TextFormatData
             {
                 TextFormat format = TextFormat.FromCss(
                     CssScheme.Default.ModeStyle(group.Mode, style.Name));
-                LoadFormat(settings,
-                    prefix + "allstyles/" + group.Mode + "/" + style.Name, format);
+                LoadFormat(values,
+                    "allstyles/" + group.Mode + "/" + style.Name, format);
                 styles[style.Name] = format;
             }
         }
     }
 
-    private static void LoadFormat(SettingsStore settings, string key, TextFormat format)
-    {
-        if (settings == null) { return; }
+    private static Dictionary<string, string> ReadScheme(
+        SettingsStore settings, string kind, string scheme)
+        => settings?.Get<Dictionary<string, string>>(SchemeKey(kind, scheme))
+            ?? new Dictionary<string, string>(StringComparer.Ordinal);
 
-        string bold = settings.GetString(key + "/bold");
+    private static void WriteScheme(
+        SettingsStore settings, string kind, string scheme,
+        Dictionary<string, string> values)
+    {
+        if (values.Count == 0)
+        {
+            settings.Remove(SchemeKey(kind, scheme));
+        }
+        else
+        {
+            settings.Set(SchemeKey(kind, scheme), values);
+        }
+    }
+
+    private static string Value(Dictionary<string, string> values, string name)
+        => values.TryGetValue(name, out var value) ? value : null;
+
+    private static void LoadFormat(
+        Dictionary<string, string> values, string key, TextFormat format)
+    {
+        string bold = Value(values, key + "/bold");
         if (bold != null) { format.IsBold = bold == "1"; }
 
-        string italic = settings.GetString(key + "/italic");
+        string italic = Value(values, key + "/italic");
         if (italic != null) { format.IsItalic = italic == "1"; }
 
-        string underline = settings.GetString(key + "/underline");
+        string underline = Value(values, key + "/underline");
         if (underline != null) { format.IsUnderlined = underline == "1"; }
 
-        Color? foreground = TextFormat.ParseColor(settings.GetString(key + "/textColor"));
+        Color? foreground = TextFormat.ParseColor(Value(values, key + "/textColor"));
         if (foreground != null) { format.Foreground = foreground; }
 
         Color? background =
-            TextFormat.ParseColor(settings.GetString(key + "/backgroundColor"));
+            TextFormat.ParseColor(Value(values, key + "/backgroundColor"));
         if (background != null) { format.Background = background; }
 
         Color? underlineColor =
-            TextFormat.ParseColor(settings.GetString(key + "/underlineColor"));
+            TextFormat.ParseColor(Value(values, key + "/underlineColor"));
         if (underlineColor != null) { format.UnderlineColor = underlineColor; }
     }
 
-    private static void SaveFormat(SettingsStore settings, string key, TextFormat format)
+    private static void SaveFormat(
+        Dictionary<string, string> values, string key, TextFormat format)
     {
-        Write(settings, key + "/bold", format.IsBold);
-        Write(settings, key + "/italic", format.IsItalic);
-        Write(settings, key + "/underline", format.IsUnderlined);
-        Write(settings, key + "/textColor", format.Foreground);
-        Write(settings, key + "/backgroundColor", format.Background);
-        Write(settings, key + "/underlineColor", format.UnderlineColor);
+        Write(values, key + "/bold", format.IsBold);
+        Write(values, key + "/italic", format.IsItalic);
+        Write(values, key + "/underline", format.IsUnderlined);
+        Write(values, key + "/textColor", format.Foreground);
+        Write(values, key + "/backgroundColor", format.Background);
+        Write(values, key + "/underlineColor", format.UnderlineColor);
     }
 
-    private static void Write(SettingsStore settings, string key, bool? value)
-        => settings.SetString(key, value == null ? null : value.Value ? "1" : "0");
+    private static void Write(
+        Dictionary<string, string> values, string key, bool? value)
+    {
+        if (value == null) { values.Remove(key); } else { values[key] = value.Value ? "1" : "0"; }
+    }
 
-    private static void Write(SettingsStore settings, string key, Color? value)
-        => settings.SetString(
-            key, value == null ? null : TextFormat.FormatColor(value.Value));
+    private static void Write(
+        Dictionary<string, string> values, string key, Color? value)
+    {
+        if (value == null)
+        {
+            values.Remove(key);
+        }
+        else
+        {
+            values[key] = TextFormat.FormatColor(value.Value);
+        }
+    }
 
     /// <summary>
     /// The colour a base name falls back to.

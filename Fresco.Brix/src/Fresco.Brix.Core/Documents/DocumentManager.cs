@@ -38,6 +38,14 @@ public sealed class DocumentManager
     /// <summary>Raised after a document is written to its file.</summary>
     public event EventHandler<DocumentEventArgs> DocumentSaved;
 
+    /// <summary>
+    /// Raised immediately before a document is written, so a watcher can stand
+    /// aside for the write.
+    /// </summary>
+    /// <remarks>Upstream's <c>app.documentSaving</c>, whose slots are context
+    /// managers; see <see cref="DocumentSavingEventArgs"/>.</remarks>
+    public event EventHandler<DocumentSavingEventArgs> DocumentSaving;
+
     /// <summary>Raised when a document's modified flag changes.</summary>
     public event EventHandler<DocumentEventArgs> DocumentModificationChanged;
 
@@ -183,6 +191,7 @@ public sealed class DocumentManager
     {
         document.Loaded += OnLoaded;
         document.Saved += OnSaved;
+        document.Saving += OnSaving;
         document.ModificationChanged += OnModificationChanged;
         document.UrlChanged += OnUrlChanged;
     }
@@ -191,9 +200,13 @@ public sealed class DocumentManager
     {
         document.Loaded -= OnLoaded;
         document.Saved -= OnSaved;
+        document.Saving -= OnSaving;
         document.ModificationChanged -= OnModificationChanged;
         document.UrlChanged -= OnUrlChanged;
     }
+
+    private void OnSaving(object sender, DocumentSavingEventArgs e)
+        => DocumentSaving?.Invoke(this, e);
 
     private void OnLoaded(object sender, EventArgs e)
         => DocumentLoaded?.Invoke(this, new DocumentEventArgs((EditorDocument)sender));

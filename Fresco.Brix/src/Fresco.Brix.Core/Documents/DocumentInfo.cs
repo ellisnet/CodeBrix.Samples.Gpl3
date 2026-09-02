@@ -59,15 +59,23 @@ public sealed class DocumentInfo : Plugin<EditorDocument, DocumentInfo>
     public EditorDocument Document => Owner;
 
     /// <summary>
-    /// Gets or sets the directories <c>\include</c> is searched in, beyond the
-    /// document's own directory.
+    /// Gets or sets the CURRENT SESSION's own include directories.
     /// </summary>
-    /// <remarks>
-    /// Upstream reads this from the LilyPond preferences and the session; the
-    /// preferences page arrives at W12 and named sessions at W5, so for now it
-    /// is a settable list the engrave service seeds.
-    /// </remarks>
-    public static IReadOnlyList<string> GlobalIncludePath { get; set; }
+    /// <remarks>//was previously: <c>GlobalIncludePath</c>, which was the only
+    /// one there was — the session's — and so was named for the job it was
+    /// standing in for. The application-wide list is
+    /// <see cref="ApplicationIncludePath"/>, and
+    /// <see cref="IncludePath"/> puts the two together.</remarks>
+    public static IReadOnlyList<string> SessionIncludePath { get; set; }
+        = Array.Empty<string>();
+
+    /// <summary>
+    /// Gets or sets the APPLICATION-WIDE include directories — the preferences'
+    /// own list, which every session inherits.
+    /// </summary>
+    /// <remarks>Upstream's <c>lilypond_settings/include_path</c>, read in
+    /// <c>documentinfo.includepath()</c>.</remarks>
+    public static IReadOnlyList<string> ApplicationIncludePath { get; set; }
         = Array.Empty<string>();
 
     /// <summary>Gets the information for a document, creating it on first use.</summary>
@@ -112,7 +120,29 @@ public sealed class DocumentInfo : Plugin<EditorDocument, DocumentInfo>
 
     /// <summary>Gets the directories <c>\include</c> is searched in.</summary>
     /// <returns>The directories.</returns>
-    public IReadOnlyList<string> IncludePath() => GlobalIncludePath;
+    /// <remarks>
+    /// Upstream's <c>includepath()</c>: the application-wide list, with the
+    /// session's own PREPENDED to it. (Upstream can also REPLACE the global
+    /// list with the session's, behind that session's <c>repl-paths</c> flag;
+    /// this port's session editor has no such flag — see the session editor's
+    /// own note — so the prepending case, which is upstream's default, is the
+    /// only one.)
+    /// </remarks>
+    public IReadOnlyList<string> IncludePath()
+    {
+        IReadOnlyList<string> session = SessionIncludePath ?? Array.Empty<string>();
+        IReadOnlyList<string> application
+            = ApplicationIncludePath ?? Array.Empty<string>();
+
+        if (session.Count == 0) { return application; }
+
+        if (application.Count == 0) { return session; }
+
+        List<string> all = new List<string>(session.Count + application.Count);
+        all.AddRange(session);
+        all.AddRange(application);
+        return all;
+    }
 
     /// <summary>
     /// Works out the file an engrave run is performed on, and the include path

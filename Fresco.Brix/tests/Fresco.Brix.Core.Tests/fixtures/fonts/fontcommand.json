@@ -1,0 +1,814 @@
+[
+  {
+    "name": "defaults",
+    "fonts": {
+      "music": "emmentaler",
+      "brace": "emmentaler",
+      "roman": "TeXGyre Schola",
+      "sans": "TeXGyre Heros",
+      "typewriter": "TeXGyre Cursor"
+    },
+    "options": {
+      "set-music": true,
+      "set-roman": false,
+      "set-sans": false,
+      "set-typewriter": false,
+      "set-paper-block": true,
+      "approach-index": 0,
+      "load-oll": true,
+      "load-package": true,
+      "font-extensions": false,
+      "style-type": 0,
+      "font-stylesheet": ""
+    },
+    "approach": "lily",
+    "lilyCommand": "\\paper {\n  #(define fonts\n    (set-global-fonts\n     #:music \"emmentaler\"\n     #:brace \"emmentaler\"\n     #:factor (/ staff-height pt 20)\n   ))\n}",
+    "lilyFullCommand": "\\paper {\n  #(define fonts\n    (set-global-fonts\n     #:music \"emmentaler\"\n     #:brace \"emmentaler\"\n     #:factor (/ staff-height pt 20)\n   ))\n}",
+    "ollCommand": "\\include \"oll-core/package.ily\"\n\\loadPackage notation-fonts\n\\useNotationFont \"emmentaler\"",
+    "ollFullCommand": "\\include \"oll-core/package.ily\"\n\\loadPackage notation-fonts\n\\useNotationFont \\with {\n  brace = \"emmentaler\"\n  roman = \"TeXGyre Schola\"\n  sans = \"TeXGyre Heros\"\n  typewriter = \"TeXGyre Cursor\"\n} \"emmentaler\"",
+    "displayedCommand": "\\paper {\n  #(define fonts\n    (set-global-fonts\n     #:music \"emmentaler\"\n     #:brace \"emmentaler\"\n     #:factor (/ staff-height pt 20)\n   ))\n}"
+  },
+  {
+    "name": "chosen-fonts",
+    "fonts": {
+      "music": "lilyjazz",
+      "brace": "lilyjazz",
+      "roman": "C059",
+      "sans": "Nimbus Sans",
+      "typewriter": "Nimbus Mono PS"
+    },
+    "options": {
+      "set-music": true,
+      "set-roman": false,
+      "set-sans": false,
+      "set-typewriter": false,
+      "set-paper-block": true,
+      "approach-index": 0,
+      "load-oll": true,
+      "load-package": true,
+      "font-extensions": false,
+      "style-type": 0,
+      "font-stylesheet": ""
+    },
+    "approach": "lily",
+    "lilyCommand": "\\paper {\n  #(define fonts\n    (set-global-fonts\n     #:music \"lilyjazz\"\n     #:brace \"lilyjazz\"\n     #:factor (/ staff-height pt 20)\n   ))\n}",
+    "lilyFullCommand": "\\paper {\n  #(define fonts\n    (set-global-fonts\n     #:music \"lilyjazz\"\n     #:brace \"lilyjazz\"\n     #:factor (/ staff-height pt 20)\n   ))\n}",
+    "ollCommand": "\\include \"oll-core/package.ily\"\n\\loadPackage notation-fonts\n\\useNotationFont \"lilyjazz\"",
+    "ollFullCommand": "\\include \"oll-core/package.ily\"\n\\loadPackage notation-fonts\n\\useNotationFont \\with {\n  brace = \"lilyjazz\"\n  roman = \"C059\"\n  sans = \"Nimbus Sans\"\n  typewriter = \"Nimbus Mono PS\"\n} \"lilyjazz\"",
+    "displayedCommand": "\\paper {\n  #(define fonts\n    (set-global-fonts\n     #:music \"lilyjazz\"\n     #:brace \"lilyjazz\"\n     #:factor (/ staff-height pt 20)\n   ))\n}"
+  },
+  {
+    "name": "mixed-brace",
+    "fonts": {
+      "music": "Beethoven",
+      "brace": "emmentaler",
+      "roman": "TeX Gyre Schola",
+      "sans": "TeX Gyre Heros",
+      "typewriter": "TeX Gyre Cursor"
+    },
+    "options": {
+      "set-music": true,
+      "set-roman": false,
+      "set-sans": false,
+      "set-typewriter": false,
+      "set-paper-block": true,
+      "approach-index": 0,
+      "load-oll": true,
+      "load-package": true,
+      "font-extensions": false,
+      "style-type": 0,
+      "font-stylesheet": ""
+    },
+    "approach": "lily",
+    "lilyCommand": "\\paper {\n  #(define fonts\n    (set-global-fonts\n     #:music \"Beethoven\"\n     #:brace \"emmentaler\"\n     #:factor (/ staff-height pt 20)\n   ))\n}",
+    "lilyFullCommand": "\\paper {\n  #(define fonts\n    (set-global-fonts\n     #:music \"Beethoven\"\n     #:brace \"emmentaler\"\n     #:factor (/ staff-height pt 20)\n   ))\n}",
+    "ollCommand": "\\include \"oll-core/package.ily\"\n\\loadPackage notation-fonts\n\\useNotationFont \"Beethoven\"",
+    "ollFullCommand": "\\include \"oll-core/package.ily\"\n\\loadPackage notation-fonts\n\\useNotationFont \\with {\n  brace = \"emmentaler\"\n  roman = \"TeX Gyre Schola\"\n  sans = \"TeX Gyre Heros\"\n  typewriter = \"TeX Gyre Cursor\"\n} \"Beethoven\"",
+    "displayedCommand": "\\paper {\n  #(define fonts\n    (set-global-fonts\n     #:music \"Beethoven\"\n     #:brace \"emmentaler\"\n     #:factor (/ staff-height pt 20)\n   ))\n}"
+  },
+  {
+    "name": "families----",
+    "fonts": {
+      "music": "lilyjazz",
+      "brace": "lilyjazz",
+      "roman": "C059",
+      "sans": "Nimbus Sans",
+      "typewriter": "Nimbus Mono PS"
+    },
+    "options": {
+      "set-music": true,
+      "set-roman": false,
+      "set-sans": false,
+      "set-typewriter": false,
+      "set-paper-block": true,
+      "approach-index": 0,
+      "load-oll": true,
+      "load-package": true,
+      "font-extensions": false,
+      "style-type": 0,
+      "font-stylesheet": ""
+    },
+    "approach": "lily",
+    "lilyCommand": "\\paper {\n  #(define fonts\n    (set-global-fonts\n     #:music \"lilyjazz\"\n     #:brace \"lilyjazz\"\n     #:factor (/ staff-height pt 20)\n   ))\n}",
+    "lilyFullCommand": "\\paper {\n  #(define fonts\n    (set-global-fonts\n     #:music \"lilyjazz\"\n     #:brace \"lilyjazz\"\n     #:factor (/ staff-height pt 20)\n   ))\n}",
+    "ollCommand": "\\include \"oll-core/package.ily\"\n\\loadPackage notation-fonts\n\\useNotationFont \"lilyjazz\"",
+    "ollFullCommand": "\\include \"oll-core/package.ily\"\n\\loadPackage notation-fonts\n\\useNotationFont \\with {\n  brace = \"lilyjazz\"\n  roman = \"C059\"\n  sans = \"Nimbus Sans\"\n  typewriter = \"Nimbus Mono PS\"\n} \"lilyjazz\"",
+    "displayedCommand": "\\paper {\n  #(define fonts\n    (set-global-fonts\n     #:music \"lilyjazz\"\n     #:brace \"lilyjazz\"\n     #:factor (/ staff-height pt 20)\n   ))\n}"
+  },
+  {
+    "name": "families---t",
+    "fonts": {
+      "music": "lilyjazz",
+      "brace": "lilyjazz",
+      "roman": "C059",
+      "sans": "Nimbus Sans",
+      "typewriter": "Nimbus Mono PS"
+    },
+    "options": {
+      "set-music": true,
+      "set-roman": false,
+      "set-sans": false,
+      "set-typewriter": true,
+      "set-paper-block": true,
+      "approach-index": 0,
+      "load-oll": true,
+      "load-package": true,
+      "font-extensions": false,
+      "style-type": 0,
+      "font-stylesheet": ""
+    },
+    "approach": "lily",
+    "lilyCommand": "\\paper {\n  #(define fonts\n    (set-global-fonts\n     #:music \"lilyjazz\"\n     #:brace \"lilyjazz\"\n     #:typewriter \"Nimbus Mono PS\"\n     #:factor (/ staff-height pt 20)\n   ))\n}",
+    "lilyFullCommand": "\\paper {\n  #(define fonts\n    (set-global-fonts\n     #:music \"lilyjazz\"\n     #:brace \"lilyjazz\"\n     #:typewriter \"Nimbus Mono PS\"\n     #:factor (/ staff-height pt 20)\n   ))\n}",
+    "ollCommand": "\\include \"oll-core/package.ily\"\n\\loadPackage notation-fonts\n\\useNotationFont \\with {\n  typewriter = \"Nimbus Mono PS\"\n} \"lilyjazz\"",
+    "ollFullCommand": "\\include \"oll-core/package.ily\"\n\\loadPackage notation-fonts\n\\useNotationFont \\with {\n  brace = \"lilyjazz\"\n  roman = \"C059\"\n  sans = \"Nimbus Sans\"\n  typewriter = \"Nimbus Mono PS\"\n} \"lilyjazz\"",
+    "displayedCommand": "\\paper {\n  #(define fonts\n    (set-global-fonts\n     #:music \"lilyjazz\"\n     #:brace \"lilyjazz\"\n     #:typewriter \"Nimbus Mono PS\"\n     #:factor (/ staff-height pt 20)\n   ))\n}"
+  },
+  {
+    "name": "families--s-",
+    "fonts": {
+      "music": "lilyjazz",
+      "brace": "lilyjazz",
+      "roman": "C059",
+      "sans": "Nimbus Sans",
+      "typewriter": "Nimbus Mono PS"
+    },
+    "options": {
+      "set-music": true,
+      "set-roman": false,
+      "set-sans": true,
+      "set-typewriter": false,
+      "set-paper-block": true,
+      "approach-index": 0,
+      "load-oll": true,
+      "load-package": true,
+      "font-extensions": false,
+      "style-type": 0,
+      "font-stylesheet": ""
+    },
+    "approach": "lily",
+    "lilyCommand": "\\paper {\n  #(define fonts\n    (set-global-fonts\n     #:music \"lilyjazz\"\n     #:brace \"lilyjazz\"\n     #:sans \"Nimbus Sans\"\n     #:factor (/ staff-height pt 20)\n   ))\n}",
+    "lilyFullCommand": "\\paper {\n  #(define fonts\n    (set-global-fonts\n     #:music \"lilyjazz\"\n     #:brace \"lilyjazz\"\n     #:sans \"Nimbus Sans\"\n     #:factor (/ staff-height pt 20)\n   ))\n}",
+    "ollCommand": "\\include \"oll-core/package.ily\"\n\\loadPackage notation-fonts\n\\useNotationFont \\with {\n  sans = \"Nimbus Sans\"\n} \"lilyjazz\"",
+    "ollFullCommand": "\\include \"oll-core/package.ily\"\n\\loadPackage notation-fonts\n\\useNotationFont \\with {\n  brace = \"lilyjazz\"\n  roman = \"C059\"\n  sans = \"Nimbus Sans\"\n  typewriter = \"Nimbus Mono PS\"\n} \"lilyjazz\"",
+    "displayedCommand": "\\paper {\n  #(define fonts\n    (set-global-fonts\n     #:music \"lilyjazz\"\n     #:brace \"lilyjazz\"\n     #:sans \"Nimbus Sans\"\n     #:factor (/ staff-height pt 20)\n   ))\n}"
+  },
+  {
+    "name": "families--st",
+    "fonts": {
+      "music": "lilyjazz",
+      "brace": "lilyjazz",
+      "roman": "C059",
+      "sans": "Nimbus Sans",
+      "typewriter": "Nimbus Mono PS"
+    },
+    "options": {
+      "set-music": true,
+      "set-roman": false,
+      "set-sans": true,
+      "set-typewriter": true,
+      "set-paper-block": true,
+      "approach-index": 0,
+      "load-oll": true,
+      "load-package": true,
+      "font-extensions": false,
+      "style-type": 0,
+      "font-stylesheet": ""
+    },
+    "approach": "lily",
+    "lilyCommand": "\\paper {\n  #(define fonts\n    (set-global-fonts\n     #:music \"lilyjazz\"\n     #:brace \"lilyjazz\"\n     #:sans \"Nimbus Sans\"\n     #:typewriter \"Nimbus Mono PS\"\n     #:factor (/ staff-height pt 20)\n   ))\n}",
+    "lilyFullCommand": "\\paper {\n  #(define fonts\n    (set-global-fonts\n     #:music \"lilyjazz\"\n     #:brace \"lilyjazz\"\n     #:sans \"Nimbus Sans\"\n     #:typewriter \"Nimbus Mono PS\"\n     #:factor (/ staff-height pt 20)\n   ))\n}",
+    "ollCommand": "\\include \"oll-core/package.ily\"\n\\loadPackage notation-fonts\n\\useNotationFont \\with {\n  sans = \"Nimbus Sans\"\n  typewriter = \"Nimbus Mono PS\"\n} \"lilyjazz\"",
+    "ollFullCommand": "\\include \"oll-core/package.ily\"\n\\loadPackage notation-fonts\n\\useNotationFont \\with {\n  brace = \"lilyjazz\"\n  roman = \"C059\"\n  sans = \"Nimbus Sans\"\n  typewriter = \"Nimbus Mono PS\"\n} \"lilyjazz\"",
+    "displayedCommand": "\\paper {\n  #(define fonts\n    (set-global-fonts\n     #:music \"lilyjazz\"\n     #:brace \"lilyjazz\"\n     #:sans \"Nimbus Sans\"\n     #:typewriter \"Nimbus Mono PS\"\n     #:factor (/ staff-height pt 20)\n   ))\n}"
+  },
+  {
+    "name": "families-r--",
+    "fonts": {
+      "music": "lilyjazz",
+      "brace": "lilyjazz",
+      "roman": "C059",
+      "sans": "Nimbus Sans",
+      "typewriter": "Nimbus Mono PS"
+    },
+    "options": {
+      "set-music": true,
+      "set-roman": true,
+      "set-sans": false,
+      "set-typewriter": false,
+      "set-paper-block": true,
+      "approach-index": 0,
+      "load-oll": true,
+      "load-package": true,
+      "font-extensions": false,
+      "style-type": 0,
+      "font-stylesheet": ""
+    },
+    "approach": "lily",
+    "lilyCommand": "\\paper {\n  #(define fonts\n    (set-global-fonts\n     #:music \"lilyjazz\"\n     #:brace \"lilyjazz\"\n     #:roman \"C059\"\n     #:factor (/ staff-height pt 20)\n   ))\n}",
+    "lilyFullCommand": "\\paper {\n  #(define fonts\n    (set-global-fonts\n     #:music \"lilyjazz\"\n     #:brace \"lilyjazz\"\n     #:roman \"C059\"\n     #:factor (/ staff-height pt 20)\n   ))\n}",
+    "ollCommand": "\\include \"oll-core/package.ily\"\n\\loadPackage notation-fonts\n\\useNotationFont \\with {\n  roman = \"C059\"\n} \"lilyjazz\"",
+    "ollFullCommand": "\\include \"oll-core/package.ily\"\n\\loadPackage notation-fonts\n\\useNotationFont \\with {\n  brace = \"lilyjazz\"\n  roman = \"C059\"\n  sans = \"Nimbus Sans\"\n  typewriter = \"Nimbus Mono PS\"\n} \"lilyjazz\"",
+    "displayedCommand": "\\paper {\n  #(define fonts\n    (set-global-fonts\n     #:music \"lilyjazz\"\n     #:brace \"lilyjazz\"\n     #:roman \"C059\"\n     #:factor (/ staff-height pt 20)\n   ))\n}"
+  },
+  {
+    "name": "families-r-t",
+    "fonts": {
+      "music": "lilyjazz",
+      "brace": "lilyjazz",
+      "roman": "C059",
+      "sans": "Nimbus Sans",
+      "typewriter": "Nimbus Mono PS"
+    },
+    "options": {
+      "set-music": true,
+      "set-roman": true,
+      "set-sans": false,
+      "set-typewriter": true,
+      "set-paper-block": true,
+      "approach-index": 0,
+      "load-oll": true,
+      "load-package": true,
+      "font-extensions": false,
+      "style-type": 0,
+      "font-stylesheet": ""
+    },
+    "approach": "lily",
+    "lilyCommand": "\\paper {\n  #(define fonts\n    (set-global-fonts\n     #:music \"lilyjazz\"\n     #:brace \"lilyjazz\"\n     #:roman \"C059\"\n     #:typewriter \"Nimbus Mono PS\"\n     #:factor (/ staff-height pt 20)\n   ))\n}",
+    "lilyFullCommand": "\\paper {\n  #(define fonts\n    (set-global-fonts\n     #:music \"lilyjazz\"\n     #:brace \"lilyjazz\"\n     #:roman \"C059\"\n     #:typewriter \"Nimbus Mono PS\"\n     #:factor (/ staff-height pt 20)\n   ))\n}",
+    "ollCommand": "\\include \"oll-core/package.ily\"\n\\loadPackage notation-fonts\n\\useNotationFont \\with {\n  roman = \"C059\"\n  typewriter = \"Nimbus Mono PS\"\n} \"lilyjazz\"",
+    "ollFullCommand": "\\include \"oll-core/package.ily\"\n\\loadPackage notation-fonts\n\\useNotationFont \\with {\n  brace = \"lilyjazz\"\n  roman = \"C059\"\n  sans = \"Nimbus Sans\"\n  typewriter = \"Nimbus Mono PS\"\n} \"lilyjazz\"",
+    "displayedCommand": "\\paper {\n  #(define fonts\n    (set-global-fonts\n     #:music \"lilyjazz\"\n     #:brace \"lilyjazz\"\n     #:roman \"C059\"\n     #:typewriter \"Nimbus Mono PS\"\n     #:factor (/ staff-height pt 20)\n   ))\n}"
+  },
+  {
+    "name": "families-rs-",
+    "fonts": {
+      "music": "lilyjazz",
+      "brace": "lilyjazz",
+      "roman": "C059",
+      "sans": "Nimbus Sans",
+      "typewriter": "Nimbus Mono PS"
+    },
+    "options": {
+      "set-music": true,
+      "set-roman": true,
+      "set-sans": true,
+      "set-typewriter": false,
+      "set-paper-block": true,
+      "approach-index": 0,
+      "load-oll": true,
+      "load-package": true,
+      "font-extensions": false,
+      "style-type": 0,
+      "font-stylesheet": ""
+    },
+    "approach": "lily",
+    "lilyCommand": "\\paper {\n  #(define fonts\n    (set-global-fonts\n     #:music \"lilyjazz\"\n     #:brace \"lilyjazz\"\n     #:roman \"C059\"\n     #:sans \"Nimbus Sans\"\n     #:factor (/ staff-height pt 20)\n   ))\n}",
+    "lilyFullCommand": "\\paper {\n  #(define fonts\n    (set-global-fonts\n     #:music \"lilyjazz\"\n     #:brace \"lilyjazz\"\n     #:roman \"C059\"\n     #:sans \"Nimbus Sans\"\n     #:factor (/ staff-height pt 20)\n   ))\n}",
+    "ollCommand": "\\include \"oll-core/package.ily\"\n\\loadPackage notation-fonts\n\\useNotationFont \\with {\n  roman = \"C059\"\n  sans = \"Nimbus Sans\"\n} \"lilyjazz\"",
+    "ollFullCommand": "\\include \"oll-core/package.ily\"\n\\loadPackage notation-fonts\n\\useNotationFont \\with {\n  brace = \"lilyjazz\"\n  roman = \"C059\"\n  sans = \"Nimbus Sans\"\n  typewriter = \"Nimbus Mono PS\"\n} \"lilyjazz\"",
+    "displayedCommand": "\\paper {\n  #(define fonts\n    (set-global-fonts\n     #:music \"lilyjazz\"\n     #:brace \"lilyjazz\"\n     #:roman \"C059\"\n     #:sans \"Nimbus Sans\"\n     #:factor (/ staff-height pt 20)\n   ))\n}"
+  },
+  {
+    "name": "families-rst",
+    "fonts": {
+      "music": "lilyjazz",
+      "brace": "lilyjazz",
+      "roman": "C059",
+      "sans": "Nimbus Sans",
+      "typewriter": "Nimbus Mono PS"
+    },
+    "options": {
+      "set-music": true,
+      "set-roman": true,
+      "set-sans": true,
+      "set-typewriter": true,
+      "set-paper-block": true,
+      "approach-index": 0,
+      "load-oll": true,
+      "load-package": true,
+      "font-extensions": false,
+      "style-type": 0,
+      "font-stylesheet": ""
+    },
+    "approach": "lily",
+    "lilyCommand": "\\paper {\n  #(define fonts\n    (set-global-fonts\n     #:music \"lilyjazz\"\n     #:brace \"lilyjazz\"\n     #:roman \"C059\"\n     #:sans \"Nimbus Sans\"\n     #:typewriter \"Nimbus Mono PS\"\n     #:factor (/ staff-height pt 20)\n   ))\n}",
+    "lilyFullCommand": "\\paper {\n  #(define fonts\n    (set-global-fonts\n     #:music \"lilyjazz\"\n     #:brace \"lilyjazz\"\n     #:roman \"C059\"\n     #:sans \"Nimbus Sans\"\n     #:typewriter \"Nimbus Mono PS\"\n     #:factor (/ staff-height pt 20)\n   ))\n}",
+    "ollCommand": "\\include \"oll-core/package.ily\"\n\\loadPackage notation-fonts\n\\useNotationFont \\with {\n  roman = \"C059\"\n  sans = \"Nimbus Sans\"\n  typewriter = \"Nimbus Mono PS\"\n} \"lilyjazz\"",
+    "ollFullCommand": "\\include \"oll-core/package.ily\"\n\\loadPackage notation-fonts\n\\useNotationFont \\with {\n  brace = \"lilyjazz\"\n  roman = \"C059\"\n  sans = \"Nimbus Sans\"\n  typewriter = \"Nimbus Mono PS\"\n} \"lilyjazz\"",
+    "displayedCommand": "\\paper {\n  #(define fonts\n    (set-global-fonts\n     #:music \"lilyjazz\"\n     #:brace \"lilyjazz\"\n     #:roman \"C059\"\n     #:sans \"Nimbus Sans\"\n     #:typewriter \"Nimbus Mono PS\"\n     #:factor (/ staff-height pt 20)\n   ))\n}"
+  },
+  {
+    "name": "no-music",
+    "fonts": {
+      "music": "lilyjazz",
+      "brace": "lilyjazz",
+      "roman": "C059",
+      "sans": "Nimbus Sans",
+      "typewriter": "Nimbus Mono PS"
+    },
+    "options": {
+      "set-music": false,
+      "set-roman": false,
+      "set-sans": false,
+      "set-typewriter": false,
+      "set-paper-block": true,
+      "approach-index": 0,
+      "load-oll": true,
+      "load-package": true,
+      "font-extensions": false,
+      "style-type": 0,
+      "font-stylesheet": ""
+    },
+    "approach": "lily",
+    "lilyCommand": "\\paper {\n  #(define fonts\n    (set-global-fonts\n\n     #:factor (/ staff-height pt 20)\n   ))\n}",
+    "lilyFullCommand": "\\paper {\n  #(define fonts\n    (set-global-fonts\n\n     #:factor (/ staff-height pt 20)\n   ))\n}",
+    "ollCommand": "\\include \"oll-core/package.ily\"\n\\loadPackage notation-fonts\n\\useNotationFont \"lilyjazz\"",
+    "ollFullCommand": "\\include \"oll-core/package.ily\"\n\\loadPackage notation-fonts\n\\useNotationFont \\with {\n  brace = \"lilyjazz\"\n  roman = \"C059\"\n  sans = \"Nimbus Sans\"\n  typewriter = \"Nimbus Mono PS\"\n} \"lilyjazz\"",
+    "displayedCommand": "\\paper {\n  #(define fonts\n    (set-global-fonts\n\n     #:factor (/ staff-height pt 20)\n   ))\n}"
+  },
+  {
+    "name": "no-music-all-text",
+    "fonts": {
+      "music": "lilyjazz",
+      "brace": "lilyjazz",
+      "roman": "C059",
+      "sans": "Nimbus Sans",
+      "typewriter": "Nimbus Mono PS"
+    },
+    "options": {
+      "set-music": false,
+      "set-roman": true,
+      "set-sans": true,
+      "set-typewriter": true,
+      "set-paper-block": true,
+      "approach-index": 0,
+      "load-oll": true,
+      "load-package": true,
+      "font-extensions": false,
+      "style-type": 0,
+      "font-stylesheet": ""
+    },
+    "approach": "lily",
+    "lilyCommand": "\\paper {\n  #(define fonts\n    (set-global-fonts\n     #:roman \"C059\"\n     #:sans \"Nimbus Sans\"\n     #:typewriter \"Nimbus Mono PS\"\n     #:factor (/ staff-height pt 20)\n   ))\n}",
+    "lilyFullCommand": "\\paper {\n  #(define fonts\n    (set-global-fonts\n     #:roman \"C059\"\n     #:sans \"Nimbus Sans\"\n     #:typewriter \"Nimbus Mono PS\"\n     #:factor (/ staff-height pt 20)\n   ))\n}",
+    "ollCommand": "\\include \"oll-core/package.ily\"\n\\loadPackage notation-fonts\n\\useNotationFont \\with {\n  roman = \"C059\"\n  sans = \"Nimbus Sans\"\n  typewriter = \"Nimbus Mono PS\"\n} \"lilyjazz\"",
+    "ollFullCommand": "\\include \"oll-core/package.ily\"\n\\loadPackage notation-fonts\n\\useNotationFont \\with {\n  brace = \"lilyjazz\"\n  roman = \"C059\"\n  sans = \"Nimbus Sans\"\n  typewriter = \"Nimbus Mono PS\"\n} \"lilyjazz\"",
+    "displayedCommand": "\\paper {\n  #(define fonts\n    (set-global-fonts\n     #:roman \"C059\"\n     #:sans \"Nimbus Sans\"\n     #:typewriter \"Nimbus Mono PS\"\n     #:factor (/ staff-height pt 20)\n   ))\n}"
+  },
+  {
+    "name": "nothing-at-all",
+    "fonts": {
+      "music": "lilyjazz",
+      "brace": "lilyjazz",
+      "roman": "C059",
+      "sans": "Nimbus Sans",
+      "typewriter": "Nimbus Mono PS"
+    },
+    "options": {
+      "set-music": false,
+      "set-roman": false,
+      "set-sans": false,
+      "set-typewriter": false,
+      "set-paper-block": true,
+      "approach-index": 0,
+      "load-oll": true,
+      "load-package": true,
+      "font-extensions": false,
+      "style-type": 0,
+      "font-stylesheet": ""
+    },
+    "approach": "lily",
+    "lilyCommand": "\\paper {\n  #(define fonts\n    (set-global-fonts\n\n     #:factor (/ staff-height pt 20)\n   ))\n}",
+    "lilyFullCommand": "\\paper {\n  #(define fonts\n    (set-global-fonts\n\n     #:factor (/ staff-height pt 20)\n   ))\n}",
+    "ollCommand": "\\include \"oll-core/package.ily\"\n\\loadPackage notation-fonts\n\\useNotationFont \"lilyjazz\"",
+    "ollFullCommand": "\\include \"oll-core/package.ily\"\n\\loadPackage notation-fonts\n\\useNotationFont \\with {\n  brace = \"lilyjazz\"\n  roman = \"C059\"\n  sans = \"Nimbus Sans\"\n  typewriter = \"Nimbus Mono PS\"\n} \"lilyjazz\"",
+    "displayedCommand": "\\paper {\n  #(define fonts\n    (set-global-fonts\n\n     #:factor (/ staff-height pt 20)\n   ))\n}"
+  },
+  {
+    "name": "no-paper-block",
+    "fonts": {
+      "music": "lilyjazz",
+      "brace": "lilyjazz",
+      "roman": "C059",
+      "sans": "Nimbus Sans",
+      "typewriter": "Nimbus Mono PS"
+    },
+    "options": {
+      "set-music": true,
+      "set-roman": false,
+      "set-sans": false,
+      "set-typewriter": false,
+      "set-paper-block": false,
+      "approach-index": 0,
+      "load-oll": true,
+      "load-package": true,
+      "font-extensions": false,
+      "style-type": 0,
+      "font-stylesheet": ""
+    },
+    "approach": "lily",
+    "lilyCommand": "  #(define fonts\n    (set-global-fonts\n     #:music \"lilyjazz\"\n     #:brace \"lilyjazz\"\n     #:factor (/ staff-height pt 20)\n   ))",
+    "lilyFullCommand": "\\paper {\n  #(define fonts\n    (set-global-fonts\n     #:music \"lilyjazz\"\n     #:brace \"lilyjazz\"\n     #:factor (/ staff-height pt 20)\n   ))\n}",
+    "ollCommand": "\\include \"oll-core/package.ily\"\n\\loadPackage notation-fonts\n\\useNotationFont \"lilyjazz\"",
+    "ollFullCommand": "\\include \"oll-core/package.ily\"\n\\loadPackage notation-fonts\n\\useNotationFont \\with {\n  brace = \"lilyjazz\"\n  roman = \"C059\"\n  sans = \"Nimbus Sans\"\n  typewriter = \"Nimbus Mono PS\"\n} \"lilyjazz\"",
+    "displayedCommand": "  #(define fonts\n    (set-global-fonts\n     #:music \"lilyjazz\"\n     #:brace \"lilyjazz\"\n     #:factor (/ staff-height pt 20)\n   ))"
+  },
+  {
+    "name": "no-paper-block-all",
+    "fonts": {
+      "music": "lilyjazz",
+      "brace": "lilyjazz",
+      "roman": "C059",
+      "sans": "Nimbus Sans",
+      "typewriter": "Nimbus Mono PS"
+    },
+    "options": {
+      "set-music": true,
+      "set-roman": true,
+      "set-sans": true,
+      "set-typewriter": true,
+      "set-paper-block": false,
+      "approach-index": 0,
+      "load-oll": true,
+      "load-package": true,
+      "font-extensions": false,
+      "style-type": 0,
+      "font-stylesheet": ""
+    },
+    "approach": "lily",
+    "lilyCommand": "  #(define fonts\n    (set-global-fonts\n     #:music \"lilyjazz\"\n     #:brace \"lilyjazz\"\n     #:roman \"C059\"\n     #:sans \"Nimbus Sans\"\n     #:typewriter \"Nimbus Mono PS\"\n     #:factor (/ staff-height pt 20)\n   ))",
+    "lilyFullCommand": "\\paper {\n  #(define fonts\n    (set-global-fonts\n     #:music \"lilyjazz\"\n     #:brace \"lilyjazz\"\n     #:roman \"C059\"\n     #:sans \"Nimbus Sans\"\n     #:typewriter \"Nimbus Mono PS\"\n     #:factor (/ staff-height pt 20)\n   ))\n}",
+    "ollCommand": "\\include \"oll-core/package.ily\"\n\\loadPackage notation-fonts\n\\useNotationFont \\with {\n  roman = \"C059\"\n  sans = \"Nimbus Sans\"\n  typewriter = \"Nimbus Mono PS\"\n} \"lilyjazz\"",
+    "ollFullCommand": "\\include \"oll-core/package.ily\"\n\\loadPackage notation-fonts\n\\useNotationFont \\with {\n  brace = \"lilyjazz\"\n  roman = \"C059\"\n  sans = \"Nimbus Sans\"\n  typewriter = \"Nimbus Mono PS\"\n} \"lilyjazz\"",
+    "displayedCommand": "  #(define fonts\n    (set-global-fonts\n     #:music \"lilyjazz\"\n     #:brace \"lilyjazz\"\n     #:roman \"C059\"\n     #:sans \"Nimbus Sans\"\n     #:typewriter \"Nimbus Mono PS\"\n     #:factor (/ staff-height pt 20)\n   ))"
+  },
+  {
+    "name": "oll---",
+    "fonts": {
+      "music": "lilyjazz",
+      "brace": "lilyjazz",
+      "roman": "C059",
+      "sans": "Nimbus Sans",
+      "typewriter": "Nimbus Mono PS"
+    },
+    "options": {
+      "set-music": true,
+      "set-roman": false,
+      "set-sans": false,
+      "set-typewriter": false,
+      "set-paper-block": true,
+      "approach-index": 1,
+      "load-oll": false,
+      "load-package": false,
+      "font-extensions": false,
+      "style-type": 0,
+      "font-stylesheet": ""
+    },
+    "approach": "oll",
+    "lilyCommand": "\\paper {\n  #(define fonts\n    (set-global-fonts\n     #:music \"lilyjazz\"\n     #:brace \"lilyjazz\"\n     #:factor (/ staff-height pt 20)\n   ))\n}",
+    "lilyFullCommand": "\\paper {\n  #(define fonts\n    (set-global-fonts\n     #:music \"lilyjazz\"\n     #:brace \"lilyjazz\"\n     #:factor (/ staff-height pt 20)\n   ))\n}",
+    "ollCommand": "\\useNotationFont \"lilyjazz\"",
+    "ollFullCommand": "\\include \"oll-core/package.ily\"\n\\loadPackage notation-fonts\n\\useNotationFont \\with {\n  brace = \"lilyjazz\"\n  roman = \"C059\"\n  sans = \"Nimbus Sans\"\n  typewriter = \"Nimbus Mono PS\"\n} \"lilyjazz\"",
+    "displayedCommand": "\\useNotationFont \"lilyjazz\""
+  },
+  {
+    "name": "oll--p",
+    "fonts": {
+      "music": "lilyjazz",
+      "brace": "lilyjazz",
+      "roman": "C059",
+      "sans": "Nimbus Sans",
+      "typewriter": "Nimbus Mono PS"
+    },
+    "options": {
+      "set-music": true,
+      "set-roman": false,
+      "set-sans": false,
+      "set-typewriter": false,
+      "set-paper-block": true,
+      "approach-index": 1,
+      "load-oll": false,
+      "load-package": true,
+      "font-extensions": false,
+      "style-type": 0,
+      "font-stylesheet": ""
+    },
+    "approach": "oll",
+    "lilyCommand": "\\paper {\n  #(define fonts\n    (set-global-fonts\n     #:music \"lilyjazz\"\n     #:brace \"lilyjazz\"\n     #:factor (/ staff-height pt 20)\n   ))\n}",
+    "lilyFullCommand": "\\paper {\n  #(define fonts\n    (set-global-fonts\n     #:music \"lilyjazz\"\n     #:brace \"lilyjazz\"\n     #:factor (/ staff-height pt 20)\n   ))\n}",
+    "ollCommand": "\\loadPackage notation-fonts\n\\useNotationFont \"lilyjazz\"",
+    "ollFullCommand": "\\include \"oll-core/package.ily\"\n\\loadPackage notation-fonts\n\\useNotationFont \\with {\n  brace = \"lilyjazz\"\n  roman = \"C059\"\n  sans = \"Nimbus Sans\"\n  typewriter = \"Nimbus Mono PS\"\n} \"lilyjazz\"",
+    "displayedCommand": "\\loadPackage notation-fonts\n\\useNotationFont \"lilyjazz\""
+  },
+  {
+    "name": "oll-o-",
+    "fonts": {
+      "music": "lilyjazz",
+      "brace": "lilyjazz",
+      "roman": "C059",
+      "sans": "Nimbus Sans",
+      "typewriter": "Nimbus Mono PS"
+    },
+    "options": {
+      "set-music": true,
+      "set-roman": false,
+      "set-sans": false,
+      "set-typewriter": false,
+      "set-paper-block": true,
+      "approach-index": 1,
+      "load-oll": true,
+      "load-package": false,
+      "font-extensions": false,
+      "style-type": 0,
+      "font-stylesheet": ""
+    },
+    "approach": "oll",
+    "lilyCommand": "\\paper {\n  #(define fonts\n    (set-global-fonts\n     #:music \"lilyjazz\"\n     #:brace \"lilyjazz\"\n     #:factor (/ staff-height pt 20)\n   ))\n}",
+    "lilyFullCommand": "\\paper {\n  #(define fonts\n    (set-global-fonts\n     #:music \"lilyjazz\"\n     #:brace \"lilyjazz\"\n     #:factor (/ staff-height pt 20)\n   ))\n}",
+    "ollCommand": "\\include \"oll-core/package.ily\"\n\\useNotationFont \"lilyjazz\"",
+    "ollFullCommand": "\\include \"oll-core/package.ily\"\n\\loadPackage notation-fonts\n\\useNotationFont \\with {\n  brace = \"lilyjazz\"\n  roman = \"C059\"\n  sans = \"Nimbus Sans\"\n  typewriter = \"Nimbus Mono PS\"\n} \"lilyjazz\"",
+    "displayedCommand": "\\include \"oll-core/package.ily\"\n\\useNotationFont \"lilyjazz\""
+  },
+  {
+    "name": "oll-op",
+    "fonts": {
+      "music": "lilyjazz",
+      "brace": "lilyjazz",
+      "roman": "C059",
+      "sans": "Nimbus Sans",
+      "typewriter": "Nimbus Mono PS"
+    },
+    "options": {
+      "set-music": true,
+      "set-roman": false,
+      "set-sans": false,
+      "set-typewriter": false,
+      "set-paper-block": true,
+      "approach-index": 1,
+      "load-oll": true,
+      "load-package": true,
+      "font-extensions": false,
+      "style-type": 0,
+      "font-stylesheet": ""
+    },
+    "approach": "oll",
+    "lilyCommand": "\\paper {\n  #(define fonts\n    (set-global-fonts\n     #:music \"lilyjazz\"\n     #:brace \"lilyjazz\"\n     #:factor (/ staff-height pt 20)\n   ))\n}",
+    "lilyFullCommand": "\\paper {\n  #(define fonts\n    (set-global-fonts\n     #:music \"lilyjazz\"\n     #:brace \"lilyjazz\"\n     #:factor (/ staff-height pt 20)\n   ))\n}",
+    "ollCommand": "\\include \"oll-core/package.ily\"\n\\loadPackage notation-fonts\n\\useNotationFont \"lilyjazz\"",
+    "ollFullCommand": "\\include \"oll-core/package.ily\"\n\\loadPackage notation-fonts\n\\useNotationFont \\with {\n  brace = \"lilyjazz\"\n  roman = \"C059\"\n  sans = \"Nimbus Sans\"\n  typewriter = \"Nimbus Mono PS\"\n} \"lilyjazz\"",
+    "displayedCommand": "\\include \"oll-core/package.ily\"\n\\loadPackage notation-fonts\n\\useNotationFont \"lilyjazz\""
+  },
+  {
+    "name": "oll-extensions",
+    "fonts": {
+      "music": "lilyjazz",
+      "brace": "lilyjazz",
+      "roman": "C059",
+      "sans": "Nimbus Sans",
+      "typewriter": "Nimbus Mono PS"
+    },
+    "options": {
+      "set-music": true,
+      "set-roman": false,
+      "set-sans": false,
+      "set-typewriter": false,
+      "set-paper-block": true,
+      "approach-index": 1,
+      "load-oll": true,
+      "load-package": true,
+      "font-extensions": true,
+      "style-type": 0,
+      "font-stylesheet": ""
+    },
+    "approach": "oll",
+    "lilyCommand": "\\paper {\n  #(define fonts\n    (set-global-fonts\n     #:music \"lilyjazz\"\n     #:brace \"lilyjazz\"\n     #:factor (/ staff-height pt 20)\n   ))\n}",
+    "lilyFullCommand": "\\paper {\n  #(define fonts\n    (set-global-fonts\n     #:music \"lilyjazz\"\n     #:brace \"lilyjazz\"\n     #:factor (/ staff-height pt 20)\n   ))\n}",
+    "ollCommand": "\\include \"oll-core/package.ily\"\n\\loadPackage notation-fonts\n\\useNotationFont \\with {\n  extensions = ##t\n} \"lilyjazz\"",
+    "ollFullCommand": "\\include \"oll-core/package.ily\"\n\\loadPackage notation-fonts\n\\useNotationFont \\with {\n  brace = \"lilyjazz\"\n  roman = \"C059\"\n  sans = \"Nimbus Sans\"\n  typewriter = \"Nimbus Mono PS\"\n  extensions = ##t\n} \"lilyjazz\"",
+    "displayedCommand": "\\include \"oll-core/package.ily\"\n\\loadPackage notation-fonts\n\\useNotationFont \\with {\n  extensions = ##t\n} \"lilyjazz\""
+  },
+  {
+    "name": "oll-style-none",
+    "fonts": {
+      "music": "lilyjazz",
+      "brace": "lilyjazz",
+      "roman": "C059",
+      "sans": "Nimbus Sans",
+      "typewriter": "Nimbus Mono PS"
+    },
+    "options": {
+      "set-music": true,
+      "set-roman": false,
+      "set-sans": false,
+      "set-typewriter": false,
+      "set-paper-block": true,
+      "approach-index": 1,
+      "load-oll": true,
+      "load-package": true,
+      "font-extensions": false,
+      "style-type": 1,
+      "font-stylesheet": ""
+    },
+    "approach": "oll",
+    "lilyCommand": "\\paper {\n  #(define fonts\n    (set-global-fonts\n     #:music \"lilyjazz\"\n     #:brace \"lilyjazz\"\n     #:factor (/ staff-height pt 20)\n   ))\n}",
+    "lilyFullCommand": "\\paper {\n  #(define fonts\n    (set-global-fonts\n     #:music \"lilyjazz\"\n     #:brace \"lilyjazz\"\n     #:factor (/ staff-height pt 20)\n   ))\n}",
+    "ollCommand": "\\include \"oll-core/package.ily\"\n\\loadPackage notation-fonts\n\\useNotationFont \\with {\n  style = none\n} \"lilyjazz\"",
+    "ollFullCommand": "\\include \"oll-core/package.ily\"\n\\loadPackage notation-fonts\n\\useNotationFont \\with {\n  brace = \"lilyjazz\"\n  roman = \"C059\"\n  sans = \"Nimbus Sans\"\n  typewriter = \"Nimbus Mono PS\"\n  style = none\n} \"lilyjazz\"",
+    "displayedCommand": "\\include \"oll-core/package.ily\"\n\\loadPackage notation-fonts\n\\useNotationFont \\with {\n  style = none\n} \"lilyjazz\""
+  },
+  {
+    "name": "oll-style-custom",
+    "fonts": {
+      "music": "lilyjazz",
+      "brace": "lilyjazz",
+      "roman": "C059",
+      "sans": "Nimbus Sans",
+      "typewriter": "Nimbus Mono PS"
+    },
+    "options": {
+      "set-music": true,
+      "set-roman": false,
+      "set-sans": false,
+      "set-typewriter": false,
+      "set-paper-block": true,
+      "approach-index": 1,
+      "load-oll": true,
+      "load-package": true,
+      "font-extensions": false,
+      "style-type": 2,
+      "font-stylesheet": "my-style.ily"
+    },
+    "approach": "oll",
+    "lilyCommand": "\\paper {\n  #(define fonts\n    (set-global-fonts\n     #:music \"lilyjazz\"\n     #:brace \"lilyjazz\"\n     #:factor (/ staff-height pt 20)\n   ))\n}",
+    "lilyFullCommand": "\\paper {\n  #(define fonts\n    (set-global-fonts\n     #:music \"lilyjazz\"\n     #:brace \"lilyjazz\"\n     #:factor (/ staff-height pt 20)\n   ))\n}",
+    "ollCommand": "\\include \"oll-core/package.ily\"\n\\loadPackage notation-fonts\n\\useNotationFont \\with {\n  style = \"my-style.ily\"\n} \"lilyjazz\"",
+    "ollFullCommand": "\\include \"oll-core/package.ily\"\n\\loadPackage notation-fonts\n\\useNotationFont \\with {\n  brace = \"lilyjazz\"\n  roman = \"C059\"\n  sans = \"Nimbus Sans\"\n  typewriter = \"Nimbus Mono PS\"\n  style = \"my-style.ily\"\n} \"lilyjazz\"",
+    "displayedCommand": "\\include \"oll-core/package.ily\"\n\\loadPackage notation-fonts\n\\useNotationFont \\with {\n  style = \"my-style.ily\"\n} \"lilyjazz\""
+  },
+  {
+    "name": "oll-style-custom-empty",
+    "fonts": {
+      "music": "lilyjazz",
+      "brace": "lilyjazz",
+      "roman": "C059",
+      "sans": "Nimbus Sans",
+      "typewriter": "Nimbus Mono PS"
+    },
+    "options": {
+      "set-music": true,
+      "set-roman": false,
+      "set-sans": false,
+      "set-typewriter": false,
+      "set-paper-block": true,
+      "approach-index": 1,
+      "load-oll": true,
+      "load-package": true,
+      "font-extensions": false,
+      "style-type": 2,
+      "font-stylesheet": ""
+    },
+    "approach": "oll",
+    "lilyCommand": "\\paper {\n  #(define fonts\n    (set-global-fonts\n     #:music \"lilyjazz\"\n     #:brace \"lilyjazz\"\n     #:factor (/ staff-height pt 20)\n   ))\n}",
+    "lilyFullCommand": "\\paper {\n  #(define fonts\n    (set-global-fonts\n     #:music \"lilyjazz\"\n     #:brace \"lilyjazz\"\n     #:factor (/ staff-height pt 20)\n   ))\n}",
+    "ollCommand": "\\include \"oll-core/package.ily\"\n\\loadPackage notation-fonts\n\\useNotationFont \\with {\n  style = \"\"\n} \"lilyjazz\"",
+    "ollFullCommand": "\\include \"oll-core/package.ily\"\n\\loadPackage notation-fonts\n\\useNotationFont \\with {\n  brace = \"lilyjazz\"\n  roman = \"C059\"\n  sans = \"Nimbus Sans\"\n  typewriter = \"Nimbus Mono PS\"\n  style = \"\"\n} \"lilyjazz\"",
+    "displayedCommand": "\\include \"oll-core/package.ily\"\n\\loadPackage notation-fonts\n\\useNotationFont \\with {\n  style = \"\"\n} \"lilyjazz\""
+  },
+  {
+    "name": "oll-text-families",
+    "fonts": {
+      "music": "lilyjazz",
+      "brace": "lilyjazz",
+      "roman": "C059",
+      "sans": "Nimbus Sans",
+      "typewriter": "Nimbus Mono PS"
+    },
+    "options": {
+      "set-music": true,
+      "set-roman": true,
+      "set-sans": true,
+      "set-typewriter": true,
+      "set-paper-block": true,
+      "approach-index": 1,
+      "load-oll": true,
+      "load-package": true,
+      "font-extensions": false,
+      "style-type": 0,
+      "font-stylesheet": ""
+    },
+    "approach": "oll",
+    "lilyCommand": "\\paper {\n  #(define fonts\n    (set-global-fonts\n     #:music \"lilyjazz\"\n     #:brace \"lilyjazz\"\n     #:roman \"C059\"\n     #:sans \"Nimbus Sans\"\n     #:typewriter \"Nimbus Mono PS\"\n     #:factor (/ staff-height pt 20)\n   ))\n}",
+    "lilyFullCommand": "\\paper {\n  #(define fonts\n    (set-global-fonts\n     #:music \"lilyjazz\"\n     #:brace \"lilyjazz\"\n     #:roman \"C059\"\n     #:sans \"Nimbus Sans\"\n     #:typewriter \"Nimbus Mono PS\"\n     #:factor (/ staff-height pt 20)\n   ))\n}",
+    "ollCommand": "\\include \"oll-core/package.ily\"\n\\loadPackage notation-fonts\n\\useNotationFont \\with {\n  roman = \"C059\"\n  sans = \"Nimbus Sans\"\n  typewriter = \"Nimbus Mono PS\"\n} \"lilyjazz\"",
+    "ollFullCommand": "\\include \"oll-core/package.ily\"\n\\loadPackage notation-fonts\n\\useNotationFont \\with {\n  brace = \"lilyjazz\"\n  roman = \"C059\"\n  sans = \"Nimbus Sans\"\n  typewriter = \"Nimbus Mono PS\"\n} \"lilyjazz\"",
+    "displayedCommand": "\\include \"oll-core/package.ily\"\n\\loadPackage notation-fonts\n\\useNotationFont \\with {\n  roman = \"C059\"\n  sans = \"Nimbus Sans\"\n  typewriter = \"Nimbus Mono PS\"\n} \"lilyjazz\""
+  },
+  {
+    "name": "oll-everything",
+    "fonts": {
+      "music": "lilyjazz",
+      "brace": "lilyjazz",
+      "roman": "C059",
+      "sans": "Nimbus Sans",
+      "typewriter": "Nimbus Mono PS"
+    },
+    "options": {
+      "set-music": true,
+      "set-roman": true,
+      "set-sans": true,
+      "set-typewriter": true,
+      "set-paper-block": true,
+      "approach-index": 1,
+      "load-oll": true,
+      "load-package": true,
+      "font-extensions": true,
+      "style-type": 2,
+      "font-stylesheet": "jazz.ily"
+    },
+    "approach": "oll",
+    "lilyCommand": "\\paper {\n  #(define fonts\n    (set-global-fonts\n     #:music \"lilyjazz\"\n     #:brace \"lilyjazz\"\n     #:roman \"C059\"\n     #:sans \"Nimbus Sans\"\n     #:typewriter \"Nimbus Mono PS\"\n     #:factor (/ staff-height pt 20)\n   ))\n}",
+    "lilyFullCommand": "\\paper {\n  #(define fonts\n    (set-global-fonts\n     #:music \"lilyjazz\"\n     #:brace \"lilyjazz\"\n     #:roman \"C059\"\n     #:sans \"Nimbus Sans\"\n     #:typewriter \"Nimbus Mono PS\"\n     #:factor (/ staff-height pt 20)\n   ))\n}",
+    "ollCommand": "\\include \"oll-core/package.ily\"\n\\loadPackage notation-fonts\n\\useNotationFont \\with {\n  roman = \"C059\"\n  sans = \"Nimbus Sans\"\n  typewriter = \"Nimbus Mono PS\"\n  extensions = ##t\n  style = \"jazz.ily\"\n} \"lilyjazz\"",
+    "ollFullCommand": "\\include \"oll-core/package.ily\"\n\\loadPackage notation-fonts\n\\useNotationFont \\with {\n  brace = \"lilyjazz\"\n  roman = \"C059\"\n  sans = \"Nimbus Sans\"\n  typewriter = \"Nimbus Mono PS\"\n  extensions = ##t\n  style = \"jazz.ily\"\n} \"lilyjazz\"",
+    "displayedCommand": "\\include \"oll-core/package.ily\"\n\\loadPackage notation-fonts\n\\useNotationFont \\with {\n  roman = \"C059\"\n  sans = \"Nimbus Sans\"\n  typewriter = \"Nimbus Mono PS\"\n  extensions = ##t\n  style = \"jazz.ily\"\n} \"lilyjazz\""
+  },
+  {
+    "name": "oll-defaults",
+    "fonts": {
+      "music": "emmentaler",
+      "brace": "emmentaler",
+      "roman": "TeXGyre Schola",
+      "sans": "TeXGyre Heros",
+      "typewriter": "TeXGyre Cursor"
+    },
+    "options": {
+      "set-music": true,
+      "set-roman": false,
+      "set-sans": false,
+      "set-typewriter": false,
+      "set-paper-block": true,
+      "approach-index": 1,
+      "load-oll": true,
+      "load-package": true,
+      "font-extensions": false,
+      "style-type": 0,
+      "font-stylesheet": ""
+    },
+    "approach": "oll",
+    "lilyCommand": "\\paper {\n  #(define fonts\n    (set-global-fonts\n     #:music \"emmentaler\"\n     #:brace \"emmentaler\"\n     #:factor (/ staff-height pt 20)\n   ))\n}",
+    "lilyFullCommand": "\\paper {\n  #(define fonts\n    (set-global-fonts\n     #:music \"emmentaler\"\n     #:brace \"emmentaler\"\n     #:factor (/ staff-height pt 20)\n   ))\n}",
+    "ollCommand": "\\include \"oll-core/package.ily\"\n\\loadPackage notation-fonts\n\\useNotationFont \"emmentaler\"",
+    "ollFullCommand": "\\include \"oll-core/package.ily\"\n\\loadPackage notation-fonts\n\\useNotationFont \\with {\n  brace = \"emmentaler\"\n  roman = \"TeXGyre Schola\"\n  sans = \"TeXGyre Heros\"\n  typewriter = \"TeXGyre Cursor\"\n} \"emmentaler\"",
+    "displayedCommand": "\\include \"oll-core/package.ily\"\n\\loadPackage notation-fonts\n\\useNotationFont \"emmentaler\""
+  },
+  {
+    "name": "oll-mixed-brace",
+    "fonts": {
+      "music": "Beethoven",
+      "brace": "emmentaler",
+      "roman": "TeX Gyre Schola",
+      "sans": "TeX Gyre Heros",
+      "typewriter": "TeX Gyre Cursor"
+    },
+    "options": {
+      "set-music": true,
+      "set-roman": false,
+      "set-sans": false,
+      "set-typewriter": false,
+      "set-paper-block": true,
+      "approach-index": 1,
+      "load-oll": true,
+      "load-package": true,
+      "font-extensions": false,
+      "style-type": 0,
+      "font-stylesheet": ""
+    },
+    "approach": "oll",
+    "lilyCommand": "\\paper {\n  #(define fonts\n    (set-global-fonts\n     #:music \"Beethoven\"\n     #:brace \"emmentaler\"\n     #:factor (/ staff-height pt 20)\n   ))\n}",
+    "lilyFullCommand": "\\paper {\n  #(define fonts\n    (set-global-fonts\n     #:music \"Beethoven\"\n     #:brace \"emmentaler\"\n     #:factor (/ staff-height pt 20)\n   ))\n}",
+    "ollCommand": "\\include \"oll-core/package.ily\"\n\\loadPackage notation-fonts\n\\useNotationFont \"Beethoven\"",
+    "ollFullCommand": "\\include \"oll-core/package.ily\"\n\\loadPackage notation-fonts\n\\useNotationFont \\with {\n  brace = \"emmentaler\"\n  roman = \"TeX Gyre Schola\"\n  sans = \"TeX Gyre Heros\"\n  typewriter = \"TeX Gyre Cursor\"\n} \"Beethoven\"",
+    "displayedCommand": "\\include \"oll-core/package.ily\"\n\\loadPackage notation-fonts\n\\useNotationFont \"Beethoven\""
+  }
+]

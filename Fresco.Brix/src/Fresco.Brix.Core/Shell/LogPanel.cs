@@ -70,6 +70,7 @@ public sealed class LogPanel : Panel
     private EngraveJob _job;
     private MessageType _lastType = MessageType.None;
     private int _currentError = -1;
+    private bool _showingLinkTip;
 
     /// <summary>Creates the log panel.</summary>
     /// <param name="documents">The open documents.</param>
@@ -242,10 +243,48 @@ public sealed class LogPanel : Panel
             new PointerEventHandler(OnPointerReleased),
             handledEventsToo: true);
 
+        //Upstream tooltips each clickable `file:line:col' run with
+        //_("Click to edit this file") (logtool/logwidget.py). A run inside an
+        //editor document has no element of its own to hang a tooltip on, so the
+        //hint follows the POINTER: it appears while the pointer is over a link
+        //and is taken away again when it leaves one.
+        //was previously: the click worked and nothing said it could be clicked.
+        _view.TextArea.AddHandler(
+            UIElement.PointerMovedEvent,
+            new PointerEventHandler(OnPointerMoved),
+            handledEventsToo: true);
+
         //A document may already have a finished run when the panel is first
         //opened; upstream connects on creation for the same reason.
         SwitchDocument(_documents.CurrentDocument);
         return _view;
+    }
+
+    private void OnPointerMoved(object sender, PointerRoutedEventArgs e)
+    {
+        if (_view == null) { return; }
+
+        bool overLink = false;
+        if (_errors.Count > 0)
+        {
+            Windows.Foundation.Point point
+                = e.GetCurrentPoint(_view.TextArea.TextView).Position;
+            TextViewPosition? position = _view.TextArea.TextView.GetPosition(point);
+            if (position != null)
+            {
+                int offset = _view.Document.GetOffset(position.Value.Location);
+                foreach (var (start, end, _) in _errors)
+                {
+                    if (offset >= start && offset <= end) { overLink = true; break; }
+                }
+            }
+        }
+
+        if (overLink == _showingLinkTip) { return; }
+
+        _showingLinkTip = overLink;
+        ToolTipService.SetToolTip(
+            _view, overLink ? I18n.Get("Click to edit this file") : null);
     }
 
     private void OnPointerReleased(object sender, PointerRoutedEventArgs e)

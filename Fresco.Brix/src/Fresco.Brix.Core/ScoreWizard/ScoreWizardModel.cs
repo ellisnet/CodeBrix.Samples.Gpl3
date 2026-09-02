@@ -128,8 +128,13 @@ public sealed class GeneralPreferences
         RemoveTagline = new BoolSetting("tagl")
         {
             Label = () => I18n.Get("Remove default tagline"),
+            //was previously: "Suppress the default tagline output by
+            //LilyPond." A TOOLTIP is chrome, and FR13 names tooltips
+            //explicitly; the engine the user drives here is LilyPort, and the
+            //sentence says the same thing without naming either. The new msgid
+            //is in the harvest tool's renamed-string table.
             ToolTip = () => I18n.Get(
-                "Suppress the default tagline output by LilyPond."),
+                "Suppress the default tagline in the engraved output."),
         };
         RemoveBarNumbers = new BoolSetting("barnum")
         {
@@ -457,8 +462,11 @@ public sealed class EnginePreferences
         PitchLanguage = new ChoiceSetting("pitchLanguage", languages)
         {
             Label = () => I18n.Get("Pitch name language:"),
+            //was previously: "The LilyPond language you want to use for the
+            //pitch names." FR13: a tooltip is chrome. The thing chosen is a
+            //pitch-name language, and the label already says so.
             ToolTip = () => I18n.Get(
-                "The LilyPond language you want to use for the pitch names."),
+                "The language you want to use for the pitch names."),
         };
     }
 

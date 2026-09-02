@@ -96,8 +96,8 @@ public static class EditInPlace
         {
             Title = I18n.Get("Edit in Place"),
             Content = panel,
-            PrimaryButtonText = I18n.Get("OK"),
-            CloseButtonText = I18n.Get("Cancel"),
+            PrimaryButtonText = StandardButtons.Ok,
+            CloseButtonText = StandardButtons.Cancel,
             DefaultButton = ContentDialogButton.Primary,
             XamlRoot = xamlRoot,
         };

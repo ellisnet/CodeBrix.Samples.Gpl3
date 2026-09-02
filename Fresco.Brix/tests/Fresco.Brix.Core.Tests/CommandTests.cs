@@ -184,14 +184,16 @@ internal sealed class TestActions : ActionCollection
 /// <summary>How a collection remembers a user's shortcut changes.</summary>
 public class ActionCollectionTests : IDisposable
 {
-    private readonly string _path;
+    private readonly string _directory;
     private readonly SettingsStore _settings;
 
     public ActionCollectionTests()
     {
-        _path = Path.Combine(Path.GetTempPath(),
-            "frescobrix-tests-" + Guid.NewGuid().ToString("N"), "settings.sqlite");
-        _settings = new SettingsStore(_path);
+        //was previously: the store's FILE path — the settings add-in the store
+        //is now a facade over locates the file inside a folder it owns.
+        _directory = Path.Combine(Path.GetTempPath(),
+            "frescobrix-tests-" + Guid.NewGuid().ToString("N"));
+        _settings = new SettingsStore(_directory);
     }
 
     public void Dispose()
@@ -199,12 +201,18 @@ public class ActionCollectionTests : IDisposable
         _settings.Dispose();
         try
         {
-            Directory.Delete(Path.GetDirectoryName(_path), recursive: true);
+            Directory.Delete(_directory, recursive: true);
         }
         catch (IOException)
         {
         }
     }
+
+    /// <summary>What the default scheme's one settings key holds.</summary>
+    private Dictionary<string, string> StoredShortcuts()
+        => _settings.Get<Dictionary<string, string>>(
+            ActionCollection.ShortcutFamilyKey("default"))
+            ?? new Dictionary<string, string>(StringComparer.Ordinal);
 
     [Fact]
     public void a_command_starts_with_the_shortcut_it_was_created_with()
@@ -243,7 +251,9 @@ public class ActionCollectionTests : IDisposable
 
         //Assert — nothing is stored, so a future change of default reaches
         //a user who never really customised this command.
-        _settings.KeysWithPrefix("shortcuts/default/test/").Should().BeEmpty();
+        //was previously: KeysWithPrefix("shortcuts/default/test/") — one scheme
+        //is now ONE key holding a dictionary (board W13 item 9, route (a)).
+        StoredShortcuts().Should().BeEmpty();
     }
 
     [Fact]
@@ -272,20 +282,26 @@ public class ActionCollectionTests : IDisposable
 
         //Assert
         actions.First.Shortcuts.Single().ToString().Should().Be("Ctrl+1");
-        _settings.KeysWithPrefix("shortcuts/default/test/").Should().BeEmpty();
+        StoredShortcuts().Should().BeEmpty();
     }
 
     [Fact]
     public void a_stored_shortcut_for_a_vanished_command_is_dropped()
     {
         //Arrange
-        _settings.SetString("shortcuts/default/test/gone", "Ctrl+8");
+        _settings.Set(
+            ActionCollection.ShortcutFamilyKey("default"),
+            new Dictionary<string, string>
+            {
+                [ActionCollection.ShortcutEntryKey("test", "gone")] = "Ctrl+8",
+            });
 
         //Act
         _ = new TestActions(_settings);
 
         //Assert
-        _settings.GetString("shortcuts/default/test/gone").Should().BeNull();
+        StoredShortcuts().Should().NotContainKey(
+            ActionCollection.ShortcutEntryKey("test", "gone"));
     }
 
     [Fact]
@@ -361,6 +377,68 @@ public class ActionCollectionTests : IDisposable
         actions.ViewGotoLine.Shortcuts.Single().ToString().Should().Be("Ctrl+Alt+G");
         actions.WindowFullscreen.Shortcuts.Select(s => s.ToString()).Should()
             .BeEquivalentTo(new[] { "Ctrl+Shift+F", "F11" });
+    }
+
+    [Theory]
+    [InlineData("Ctrl++", "Ctrl+Shift+=")]
+    [InlineData("Ctrl+-", "Ctrl+-")]
+    [InlineData("+", "Shift+=")]
+    public void a_shortcut_whose_key_is_a_plus_parses(string written, string expected)
+    {
+        //Arrange, Act
+        KeySequence parsed = KeySequence.Parse(written);
+
+        //Assert — Qt writes its ZoomIn standard key as "Ctrl++", and the key
+        //itself is the plus that a US layout makes with Shift and the equals
+        //key. Before W13's close-out this parsed to NOTHING and the command
+        //silently lost its shortcut (board trap 37).
+        parsed.Should().NotBeNull();
+        parsed.ToString().Should().Be(expected);
+    }
+
+    [Fact]
+    public void the_music_views_zoom_commands_carry_qts_own_zoom_keys()
+    {
+        //Arrange, Act
+        MusicViewActions actions = new MusicViewActions(_settings);
+
+        //Assert — qpageview hangs QKeySequence.StandardKey.ZoomIn/ZoomOut on
+        //these two (viewactions.setActionShortcuts); on X11 they are Ctrl++
+        //and Ctrl+-.
+        actions.MusicZoomIn.Shortcuts.Single().ToString().Should().Be("Ctrl+Shift+=");
+        actions.MusicZoomOut.Shortcuts.Single().ToString().Should().Be("Ctrl+-");
+        actions.MusicDocumentSelect.Shortcuts.Single().ToString()
+            .Should().Be("Ctrl+Shift+O");
+    }
+
+    [Fact]
+    public void the_special_characters_panel_keeps_upstreams_own_toggle_key()
+    {
+        //Arrange, Act
+        Fresco.Brix.Shell.CharacterMapPanel panel
+            = new Fresco.Brix.Shell.CharacterMapPanel(_settings);
+
+        //Assert — upstream's charmap toggle is Meta+Alt+T; this was Meta+Alt+U
+        //for no recorded reason until W13's close-out. KeySequence writes its
+        //modifiers in ITS own order (Ctrl, Shift, Alt, Meta), so the shortcut
+        //upstream writes "Meta+Alt+T" reads back as "Alt+Meta+T" — the same
+        //chord, and every panel toggle in this application is written that way.
+        panel.ToggleAction.Shortcuts.Single().ToString().Should().Be("Alt+Meta+T");
+    }
+
+    [Fact]
+    public void the_matching_pair_commands_exist_and_are_upstreams()
+    {
+        //Arrange, Act
+        MatchingPairActions actions = new MatchingPairActions(_settings);
+
+        //Assert — upstream's `matchingpair' collection, whose two commands
+        //carry no default shortcut.
+        actions.Name.Should().Be("matchingpair");
+        actions.ViewMatchingPair.Name.Should().Be("view_matching_pair");
+        actions.ViewMatchingPairSelect.Name.Should().Be("view_matching_pair_select");
+        actions.ViewMatchingPair.Shortcuts.Count.Should().Be(0);
+        actions.ViewMatchingPairSelect.Shortcuts.Count.Should().Be(0);
     }
 
     [Fact]

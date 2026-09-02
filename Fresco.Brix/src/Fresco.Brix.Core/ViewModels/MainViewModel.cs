@@ -24,7 +24,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Fresco.Brix.ViewModels;
+namespace Fresco.Brix.ViewModels; //was previously: frescobaldi/mainwindow.py and app.py
 
 // Modified by Jeremy Ellis - 2026 - as part of the Fresco.Brix port.
 
@@ -53,6 +53,28 @@ public interface IWindowBridge
     /// </remarks>
     Func<string, string, string, Task<string>> PickExportPathAsync { get; set; }
 
+    /// <summary>
+    /// Gets or sets the "pick files to import" dialog: the suffixes to offer,
+    /// and whether more than one file may be chosen.
+    /// </summary>
+    /// <remarks>
+    /// Separate from <see cref="PickOpenPathAsync"/>, which always offers a
+    /// LilyPort source file, and separate again because the GENERIC import
+    /// takes several files at once — upstream's
+    /// <c>QFileDialog.getOpenFileNames</c>.
+    /// </remarks>
+    Func<IReadOnlyList<string>, bool, Task<IReadOnlyList<string>>> PickImportPathsAsync
+    { get; set; }
+
+    /// <summary>
+    /// Gets or sets the import options dialog, which answers what the user
+    /// chose or null when they cancelled.
+    /// </summary>
+    /// <remarks>Upstream's <c>configure_import</c> plus <c>conf_dlg.exec()</c>:
+    /// the dialog belongs to the view, and what it decides is data.</remarks>
+    Func<Import.ImportFormat, Task<Import.ImportSettings>> ConfigureImportAsync
+    { get; set; }
+
     /// <summary>Gets or sets the accessor for the editor in focus.</summary>
     Func<EditorView> ActiveView { get; set; }
 
@@ -64,6 +86,43 @@ public interface IWindowBridge
 
     /// <summary>Gets or sets the yes/no question, used before losing edits.</summary>
     Func<string, string, Task<bool>> ConfirmAsync { get; set; }
+
+    /// <summary>
+    /// Gets or sets the "say this and wait for OK" message, used for anything
+    /// that is a REPORT rather than a question.
+    /// </summary>
+    /// <remarks>
+    /// //was previously: these went through <see cref="ConfirmAsync"/>, whose
+    /// buttons are Discard and Cancel — so "Could not open {filename}" was
+    /// offered under a Discard button that reads as an offer to throw work
+    /// away. Upstream says them with <c>QMessageBox.critical</c> /
+    /// <c>.information</c>, which has one OK button, and this is that.
+    /// </remarks>
+    Func<string, string, Task> AlertAsync { get; set; }
+
+    /// <summary>
+    /// Gets or sets the save-or-discard question a modified document is closed
+    /// with — upstream's three-button <c>QMessageBox.warning</c>.
+    /// </summary>
+    Func<string, string, Task<CloseAnswer>> AskSaveDiscardAsync { get; set; }
+}
+
+/// <summary>
+/// What the user answered when asked about a modified document that is being
+/// closed.
+/// </summary>
+/// <remarks>Upstream's <c>QMessageBox.StandardButton.Save | Discard |
+/// Cancel</c> in <c>MainWindow.queryCloseDocument</c>.</remarks>
+public enum CloseAnswer
+{
+    /// <summary>Close without saving.</summary>
+    Discard,
+
+    /// <summary>Save first, then close.</summary>
+    Save,
+
+    /// <summary>Do not close.</summary>
+    Cancel,
 }
 
 /// <summary>
@@ -79,6 +138,8 @@ public class MainViewModel : SimpleViewModel
     private AutoCompiler _autoCompiler;
     private MidiPlayerService _midiPlayer;
     private ScoreWizardDialog _scoreWizard;
+    private DocumentFontsDialog _documentFonts;
+    private UserGuideDialog _userGuide;
     private ManualLibrary _manuals;
 
     /// <summary>Creates the window's state.</summary>
@@ -89,6 +150,12 @@ public class MainViewModel : SimpleViewModel
         Debug.WriteLine("Fresco.Brix main view model startup.");
 
         _settings = GetService<SettingsStore>();
+
+        //THE INTERFACE LANGUAGE GOES IN FIRST, before a single command, panel
+        //or dialog has built a caption. Upstream installs it from @app.oninit,
+        //which is the same moment: nothing user-visible exists yet.
+        LanguageSetup.Setup(_settings);
+
         _recentFiles = GetService<RecentFiles>();
         _backup = new Backup(_settings);
 
@@ -102,18 +169,29 @@ public class MainViewModel : SimpleViewModel
         DocumentActions = new DocumentActions(_settings);
         CompletionActions = new CompletionActions(_settings);
         BookmarkActions = new BookmarkActions(_settings);
+        MatchingPairActions = new MatchingPairActions(_settings);
         PitchActions = new PitchActions(_settings);
         RestActions = new RestActions(_settings);
         RhythmActions = new RhythmActions(_settings);
         LyricsActions = new LyricsActions(_settings);
         ScoreWizardActions = new ScoreWizardActions(_settings);
+        FontsActions = new FontsActions(_settings);
+        FileImportActions = new FileImportActions(_settings);
         MidiActions = new MidiActions(_settings);
         DocumentationActions = new DocumentationActions(_settings);
+        EditorCommandActions = new EditorCommandActions(_settings);
 
         //The desktop's own viewers, file manager and terminal. It reads the
         //user's configured helper commands out of the same store W12's
         //preferences page will write them to.
         Helpers = new HelperApplications(_settings);
+
+        //Watching the open files for changes made by other programs, and the
+        //"Modified Files" experience over it. The watcher does not start until
+        //ExternalChanges.Setup() is called, which the window does once it can
+        //supply a thread to come back on and a window to show.
+        DocumentWatcher = new DocumentWatchService(Documents);
+        ExternalChanges = new ExternalChanges(Documents, DocumentWatcher, _settings);
 
         //The editor tools. Each is a service the window's panels and menus
         //reach through; what only a view can do arrives as a delegate.
@@ -134,19 +212,34 @@ public class MainViewModel : SimpleViewModel
         ActionManager.Add(DocumentActions);
         ActionManager.Add(CompletionActions);
         ActionManager.Add(BookmarkActions);
+        ActionManager.Add(MatchingPairActions);
         ActionManager.Add(PitchActions);
         ActionManager.Add(RestActions);
         ActionManager.Add(RhythmActions);
         ActionManager.Add(LyricsActions);
         ActionManager.Add(ScoreWizardActions);
+        ActionManager.Add(FontsActions);
+        ActionManager.Add(FileImportActions);
         ActionManager.Add(MidiActions);
         ActionManager.Add(DocumentationActions);
+        ActionManager.Add(EditorCommandActions);
         ActionManager.Add(Browser.Actions);
         ActionManager.Add(SnippetShortcuts);
         ActionManager.Add(SessionManager.Actions);
 
         //What the app remembers per document. Declared before any document is
         //opened, because a value not declared is a value not stored.
+        //The store goes on FIRST: a per-document state is built once, by
+        //whichever caller asks for it first, and most of them pass no store —
+        //see DocumentEditorState.DefaultSettings for what that cost.
+        DocumentEditorState.DefaultSettings = _settings;
+
+        //The application-wide include path (upstream's
+        //`lilypond_settings/include_path'), which a session's own path is
+        //prepended to. The Tools preferences page writes it; this is the read
+        //at startup, before any document has asked where \include looks.
+        DocumentInfo.ApplicationIncludePath
+            = Fresco.Brix.Engrave.Engraver.IncludePath(_settings);
         MetaInfo.Define(EditorView.RememberedPositionName, "0");
         EngraveProgress.Define();
         Bookmarks.Define();
@@ -204,6 +297,9 @@ public class MainViewModel : SimpleViewModel
     /// <summary>Gets the marked-line commands.</summary>
     public BookmarkActions BookmarkActions { get; }
 
+    /// <summary>Gets the matching-token commands.</summary>
+    public MatchingPairActions MatchingPairActions { get; }
+
     /// <summary>Gets the pitch commands.</summary>
     public PitchActions PitchActions { get; }
 
@@ -218,6 +314,12 @@ public class MainViewModel : SimpleViewModel
 
     /// <summary>Gets the Score Wizard's commands.</summary>
     public ScoreWizardActions ScoreWizardActions { get; }
+
+    /// <summary>Gets the Document Fonts command.</summary>
+    public FontsActions FontsActions { get; }
+
+    /// <summary>Gets the File &gt; Import commands.</summary>
+    public FileImportActions FileImportActions { get; }
 
     /// <summary>Gets the MIDI player's transport commands.</summary>
     public MidiActions MidiActions { get; }
@@ -251,6 +353,31 @@ public class MainViewModel : SimpleViewModel
     public ScoreWizardDialog ScoreWizard
         => _scoreWizard ??= new ScoreWizardDialog(_settings);
 
+    /// <summary>
+    /// Gets the Document Fonts dialog, built the first time it is asked for.
+    /// </summary>
+    /// <remarks>One per window, kept: upstream's five chosen fonts are a CLASS
+    /// variable and so survive the window closing, and they survive here for
+    /// the same reason.</remarks>
+    public DocumentFontsDialog DocumentFonts
+        => _documentFonts ??= new DocumentFontsDialog(
+            _settings, Engine, new MusicView.LilyPortTypefaceResolver());
+
+    /// <summary>
+    /// Gets the user guide, built the first time it is asked for.
+    /// </summary>
+    /// <remarks>One per window, kept — upstream keeps its browser in a
+    /// module-level <c>_browser</c> for the same reason: the history behind
+    /// Back should survive closing the guide and opening it again.</remarks>
+    public UserGuideDialog UserGuide
+        => _userGuide ??= new UserGuideDialog(_settings, ActionManager);
+
+    /// <summary>Gets the file-system watcher over the open documents.</summary>
+    public DocumentWatchService DocumentWatcher { get; }
+
+    /// <summary>Gets the "files changed on disk" service.</summary>
+    public ExternalChanges ExternalChanges { get; }
+
     /// <summary>Gets the order documents were last active in.</summary>
     public HistoryManager History { get; }
 
@@ -262,6 +389,9 @@ public class MainViewModel : SimpleViewModel
 
     /// <summary>Gets the snippets' keyboard shortcuts.</summary>
     public SnippetShortcuts SnippetShortcuts { get; }
+
+    /// <summary>Gets the twenty-two native editor commands (FD10).</summary>
+    public EditorCommandActions EditorCommandActions { get; }
 
     /// <summary>Gets the stored named sessions.</summary>
     public SessionStore SessionStore { get; }
@@ -341,13 +471,16 @@ public class MainViewModel : SimpleViewModel
     /// there are none — the state the window starts in.
     /// </summary>
     /// <param name="paths">The files to open.</param>
+    /// <param name="encoding">The encoding to read them in, or null to detect
+    /// it — upstream's <c>--encoding</c>.</param>
     /// <returns>The task.</returns>
-    public async Task StartAsync(IEnumerable<string> paths = null)
+    public async Task StartAsync(
+        IEnumerable<string> paths = null, string encoding = null)
     {
         bool openedAny = false;
         foreach (var path in paths ?? Array.Empty<string>())
         {
-            if (await OpenPathAsync(path))
+            if (await OpenPathAsync(path, encoding))
             {
                 openedAny = true;
             }
@@ -361,14 +494,16 @@ public class MainViewModel : SimpleViewModel
 
     /// <summary>Opens a file, or raises the tab already showing it.</summary>
     /// <param name="path">The file.</param>
+    /// <param name="encoding">The encoding name, or null to detect it.</param>
     /// <returns>Whether it opened.</returns>
-    public async Task<bool> OpenPathAsync(string path)
+    public async Task<bool> OpenPathAsync(string path, string encoding = null)
     {
         if (string.IsNullOrEmpty(path)) { return false; }
 
         try
         {
-            EditorDocument document = Documents.OpenDocument(path);
+            EditorDocument document = Documents.OpenDocument(
+                path, EncodingNamed(encoding));
             Documents.CurrentDocument = document;
             _recentFiles?.Add(path);
             return true;
@@ -381,6 +516,22 @@ public class MainViewModel : SimpleViewModel
             _recentFiles?.Remove(path);
             return false;
         }
+    }
+
+    /// <summary>
+    /// Resolves an encoding name, answering null when it names nothing.
+    /// </summary>
+    /// <param name="name">The name, or null.</param>
+    /// <returns>The encoding, or null to let the document detect it.</returns>
+    /// <remarks>Upstream hands <c>args.encoding</c> straight to the document,
+    /// where an unknown name raises and is caught; the same "an unusable name
+    /// means detect it" answer is given here, one step earlier.</remarks>
+    private static System.Text.Encoding EncodingNamed(string name)
+    {
+        if (string.IsNullOrEmpty(name)) { return null; }
+
+        try { return System.Text.Encoding.GetEncoding(name); }
+        catch (ArgumentException) { return null; }
     }
 
     /// <summary>
@@ -424,6 +575,11 @@ public class MainViewModel : SimpleViewModel
         Actions.FileCloseAll.AsyncHandler = DoCloseAllAsync;
         Actions.FileReload.AsyncHandler = DoReloadAsync;
         Actions.FileReloadAll.AsyncHandler = DoReloadAllAsync;
+
+        //Upstream's File > Check for External Changes, which shows the window
+        //even when nothing has changed.
+        Actions.FileExternalChanges.Handler
+            = () => ExternalChanges.DisplayChangedDocuments();
         Actions.FileQuit.AsyncHandler = DoQuitAsync;
 
         Actions.EditUndo.Handler = () => WithEditor(e => e.Editor.Undo());
@@ -434,6 +590,14 @@ public class MainViewModel : SimpleViewModel
         Actions.EditSelectAll.Handler = () => WithEditor(e => e.Editor.SelectAll());
         Actions.EditSelectNone.Handler
             = () => WithEditor(e => e.Editor.TextArea.ClearSelection());
+
+        FileImportActions.ImportAny.AsyncHandler = () => DoImportAsync(null);
+        FileImportActions.ImportMusicXml.AsyncHandler
+            = () => DoImportAsync(Import.ImportFormat.MusicXml);
+        FileImportActions.ImportMidi.AsyncHandler
+            = () => DoImportAsync(Import.ImportFormat.Midi);
+        FileImportActions.ImportAbc.AsyncHandler
+            = () => DoImportAsync(Import.ImportFormat.Abc);
 
         Actions.ExportMusicXml.AsyncHandler = DoExportMusicXmlAsync;
         Actions.ExportAudio.AsyncHandler = DoExportAudioAsync;
@@ -472,13 +636,23 @@ public class MainViewModel : SimpleViewModel
     private static readonly string[] PendingActionNames =
     {
         "file_insert_file", "file_save_copy_as", "file_rename",
-        "file_external_changes", "file_close_all_and_session",
+        //was previously: "file_external_changes" — W12A ported documentwatcher
+        //and externalchanges, and the command opens the "Modified Files" window.
+        "file_close_all_and_session",
         //was previously: "export_colored_html", "edit_copy_colored_html" — both
         //waited on the HTML half of ly.colorize, which W11 ported.
         "edit_select_current_toplevel",
         "edit_select_full_lines_up", "edit_select_full_lines_down",
-        "edit_preferences", "view_goto_line", "window_new",
-        "help_manual", "help_about",
+        //was previously: "edit_preferences" and "help_about" — W12A built the
+        //Preferences dialog and the About window, and both are wired in
+        //MainPage.
+        //was previously: "help_manual" — W12B built the user guide (board
+        //decision FD8) and the command opens it; the handler is wired in
+        //MainPage.
+        //was previously: "view_goto_line" — W13's close-out built the number
+        //prompt (upstream's `MainWindow.gotoLine'); the handler is wired in
+        //MainPage.
+        "window_new",
     };
 
     /// <summary>
@@ -530,6 +704,208 @@ public class MainViewModel : SimpleViewModel
     {
         EditorView view = Window?.ActiveView?.Invoke();
         if (view != null) { work(view); }
+    }
+
+    /// <summary>File &gt; Import/Export &gt; one of the four import entries.</summary>
+    /// <param name="format">The format, or null for the generic import.</param>
+    /// <returns>The task.</returns>
+    /// <remarks>
+    /// Upstream's <c>do_import</c>: ask for the files, then take them one at a
+    /// time. ⚠ The wrong-file-type check is upstream's own, and so is its
+    /// reason — the file dialog offers "All Files" as well, so a user can
+    /// choose something no converter reads, and saying so is better than a
+    /// stack trace. Upstream's own comment calls it a TODO; the same is true
+    /// here, and the same check stands.
+    /// </remarks>
+    private async Task DoImportAsync(Import.ImportFormat? format)
+    {
+        Func<IReadOnlyList<string>, bool, Task<IReadOnlyList<string>>> pick
+            = Window?.PickImportPathsAsync;
+        if (pick == null) { return; }
+
+        IReadOnlyList<string> extensions = format == null
+            ? Import.ImportFormats.AllExtensions
+            : Import.ImportFormats.ExtensionsFor(format.Value);
+
+        //Only the generic import takes more than one file at a time.
+        IReadOnlyList<string> files = await pick(extensions, format == null)
+            ?? Array.Empty<string>();
+
+        foreach (string file in files)
+        {
+            if (!Import.ImportFormats.IsImportable(file))
+            {
+                await ReportAsync(I18n.Format(
+                    I18n.Get(
+                        "The file {filename} could not be converted: wrong file type."),
+                    ("filename", file)));
+                continue;
+            }
+
+            await ImportFileAsync(file);
+        }
+    }
+
+    /// <summary>Converts one file and opens the result in a new tab.</summary>
+    /// <param name="path">The file to convert.</param>
+    /// <returns>The document, or null when the user cancelled or it failed.</returns>
+    /// <remarks>
+    /// <para>
+    /// Upstream's <c>configure_import</c> + <c>run_import</c> + <c>import_done</c>,
+    /// with the external command replaced by the in-process converter (ruling
+    /// FD1; the shape W11 made for Export Audio).
+    /// </para>
+    /// <para>
+    /// ⚠ ONE STEP IS IN A DIFFERENT ORDER FROM UPSTREAM, and it is the
+    /// REPLACE's doing rather than a disagreement. Upstream runs the converter
+    /// first and opens the file it wrote afterwards, because the converter is a
+    /// subprocess whose output is watched in a job dialog. There is no job
+    /// dialog here — the converter's messages belong in the log, and the log
+    /// follows a DOCUMENT — so the tab is made first and the conversion runs as
+    /// that document's job. The end state is upstream's exactly: the converted
+    /// source, in a tab, saved beside the file it came from. A conversion that
+    /// fails closes the tab again, which is what upstream's job dialog
+    /// declining to auto-accept amounts to.
+    /// </para>
+    /// </remarks>
+    public async Task<EditorDocument> ImportFileAsync(string path)
+    {
+        Import.ImportFormat? format = Import.ImportFormats.FormatOf(path);
+        if (format == null) { return null; }
+
+        Func<Import.ImportFormat, Task<Import.ImportSettings>> configure
+            = Window?.ConfigureImportAsync;
+        Import.ImportSettings chosen = configure == null
+            ? null
+            : await configure(format.Value);
+        if (chosen == null) { return null; }
+
+        //Upstream's own naming: the converted source goes beside its source
+        //under the same name with a `.ly` suffix, stepped past anything on disk
+        //or already open.
+        string target = FreeImportPath(path);
+
+        EditorDocument document = Documents.CreateDocument();
+        Documents.CurrentDocument = document;
+
+        Import.ImportJob job = new Import.ImportJob(
+            format.Value, path, chosen.ToOptions(System.IO.Path.GetFileName(path)));
+
+        TaskCompletionSource<bool> finished
+            = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        job.Done += (_, success) => finished.TrySetResult(success);
+        StatusText = I18n.Format(
+            I18n.Get("Importing {filename}..."),
+            ("filename", System.IO.Path.GetFileName(path)));
+        JobManager.For(document).StartJob(job);
+        bool converted = await finished.Task;
+
+        if (!converted || job.Text == null)
+        {
+            Documents.CloseDocument(document);
+            StatusText = I18n.Format(
+                I18n.Get("The file {filename} could not be converted."),
+                ("filename", System.IO.Path.GetFileName(path)));
+            return null;
+        }
+
+        //Upstream saves the dialog's settings in `import_done', which only runs
+        //when the conversion went through.
+        chosen.Save(_settings);
+
+        document.Document.Text = job.Text;
+        try
+        {
+            document.Save(target);
+            _recentFiles?.Add(target);
+        }
+        catch (Exception error) when (
+            error is System.IO.IOException or UnauthorizedAccessException)
+        {
+            //The document keeps the converted source and its own name, so
+            //nothing is lost; the user is told where it could not be written.
+            await ReportAsync(I18n.Format(
+                I18n.Get("Could not write to {filename}:\n{error}"),
+                ("filename", target), ("error", error.Message)));
+            return document;
+        }
+
+        //Upstream's post_import, in its own order — and, as upstream does, the
+        //engrave runs BEFORE the final save, so an "Engrave directly" import
+        //engraves the scratch copy of what is on screen.
+        PostImport(chosen.Post, document);
+        SaveQuietly(document);
+        StatusText = I18n.Get("Saved") + ": " + target;
+        return document;
+    }
+
+    /// <summary>
+    /// Applies the "After Import" adaptations to a freshly imported document.
+    /// </summary>
+    /// <param name="post">What was asked for.</param>
+    /// <param name="document">The document.</param>
+    /// <remarks>Upstream's <c>FileImport.post_import</c>, whose four steps are
+    /// Tools &gt; Format, Tools &gt; Rhythm &gt; Make implicit (per line),
+    /// Tools &gt; Rhythm &gt; Remove fraction scaling and Engrave
+    /// (preview).</remarks>
+    private void PostImport(Import.PostImportSettings post, EditorDocument document)
+    {
+        if (post == null || document == null) { return; }
+
+        if (post.Reformat)
+        {
+            Reformatting.Reformat(document, _settings, 0, 0);
+        }
+
+        if (post.TrimDurations)
+        {
+            RhythmTools.ImplicitPerLine(WholeDocumentCursor(document));
+        }
+
+        if (post.RemoveScaling)
+        {
+            RhythmTools.RemoveFractionScaling(WholeDocumentCursor(document));
+        }
+
+        if (post.EngraveDirectly)
+        {
+            //maySave: false — upstream passes False here for the same reason,
+            //and the document is saved a moment later anyway.
+            Engraver?.Engrave(EngraveMode.Preview, document, maySave: false);
+        }
+    }
+
+    /// <summary>An ly cursor over a whole document.</summary>
+    /// <param name="document">The document.</param>
+    /// <returns>The cursor.</returns>
+    /// <remarks>Upstream selects the document with
+    /// <c>cursor.select(SelectionType.Document)</c> before each rhythm
+    /// step.</remarks>
+    private Fresco.Brix.Ly.Cursor WholeDocumentCursor(EditorDocument document)
+        => new Fresco.Brix.Ly.Cursor(
+            DocumentEditorState.For(document, _settings).LyDocument,
+            0,
+            document.Text.Length);
+
+    /// <summary>
+    /// The name an imported document is written under: the source's own name
+    /// with a <c>.ly</c> suffix, stepped past anything already there.
+    /// </summary>
+    /// <param name="inputPath">The file being converted.</param>
+    /// <returns>The free path.</returns>
+    /// <remarks>Upstream's loop in <c>import_done</c>, which tests BOTH the
+    /// file system and the open documents — so an import never quietly
+    /// overwrites a file, nor collides with a tab.</remarks>
+    private string FreeImportPath(string inputPath)
+    {
+        Services.PathUtil.SplitExtension(inputPath, out string root);
+        string target = root + ".ly";
+        while (System.IO.File.Exists(target) || Documents.FindDocument(target) != null)
+        {
+            target = Services.PathUtil.NextFile(target);
+        }
+
+        return target;
     }
 
     /// <summary>File &gt; Import/Export &gt; Export MusicXML.</summary>
@@ -655,9 +1031,29 @@ public class MainViewModel : SimpleViewModel
         StatusText = I18n.Get("Copied");
     }
 
+    /// <summary>
+    /// Reads the source-export options both colored-HTML commands use.
+    /// </summary>
+    /// <param name="inline">Whether styles go inline (the clipboard) or into a
+    /// stylesheet (the file).</param>
+    /// <returns>The options.</returns>
+    /// <remarks>
+    /// //was previously: <c>Scheme</c> was left at its default "editor", so the
+    /// Fonts &amp; Colors page's second-scheme tick wrote a key that a live code
+    /// path read and that no command ever asked for. Upstream's only consumer of
+    /// that key is <c>printSource()</c>, which ruling FR5.5 removed; the two
+    /// output channels that survive are this file export and Edit ▸ Copy as
+    /// Colored HTML, so they are what the setting now points at. The stored KEY
+    /// stays <c>printer_scheme</c> — upstream's own spelling, so a settings file
+    /// still moves between the two applications — and
+    /// <c>TextFormatData.PrinterScheme</c> falls back to the editor's scheme
+    /// when the user has chosen none, so nothing changes for a user who never
+    /// touches the tick.
+    /// </remarks>
     private Export.ColoredHtmlOptions ReadHtmlOptions(bool inline)
         => new Export.ColoredHtmlOptions
         {
+            Scheme = "printer",
             Inline = _settings?.GetBool(
                 inline ? "source_export/inline_copy" : "source_export/inline_export", inline)
                 ?? inline,
@@ -771,16 +1167,27 @@ public class MainViewModel : SimpleViewModel
 
         if (document.IsModified)
         {
-            Func<string, string, Task<bool>> confirm = Window?.ConfirmAsync;
-            if (confirm != null)
+            //Upstream offers Save, Discard and Cancel — a ContentDialog has room
+            //for exactly three buttons (board trap 43/50), so all three are here.
+            //was previously: Window.ConfirmAsync with a "Do you want to discard
+            //your changes?" message and Discard/Cancel only, which made the user
+            //cancel, save by hand and close again.
+            Func<string, string, Task<CloseAnswer>> ask = Window?.AskSaveDiscardAsync;
+            if (ask != null)
             {
-                bool discard = await confirm(
-                    I18n.Get("Close Document"),
+                CloseAnswer answer = await ask(
+                    I18n.Get("dialog title", "Close Document"),
                     I18n.Format(
                         I18n.Get("The document \"{name}\" has been modified.\n"
-                            + "Do you want to discard your changes?"),
+                            + "Do you want to save your changes or discard them?"),
                         ("name", document.DocumentName())));
-                if (!discard) { return false; }
+                if (answer == CloseAnswer.Cancel) { return false; }
+
+                if (answer == CloseAnswer.Save
+                    && !await SaveAsync(document, saveAs: false))
+                {
+                    return false;
+                }
             }
         }
 
@@ -889,12 +1296,28 @@ public class MainViewModel : SimpleViewModel
         }
     }
 
+    /// <summary>
+    /// Says something went wrong, on the status line and in front of the user.
+    /// </summary>
+    /// <param name="message">What to say.</param>
+    /// <returns>The task.</returns>
+    /// <remarks>
+    /// //was previously: this went through <c>Window.ConfirmAsync</c>, whose
+    /// buttons are Discard and Cancel — so an informational message
+    /// ("Could not open {filename}") arrived under a Discard button that reads
+    /// as an offer to throw the user's work away. Upstream says all of these
+    /// with <c>QMessageBox.critical</c> / <c>.information</c>, which has one OK
+    /// button; <see cref="IWindowBridge.AlertAsync"/> is that button, and every
+    /// caller of this method is unchanged. The real questions —
+    /// <see cref="CloseAsync"/>'s save-or-discard and the lose-your-edits
+    /// prompts — keep their own buttons, which is right for them.
+    /// </remarks>
     private Task ReportAsync(string message)
     {
         StatusText = message.Replace("\n", " ");
-        Func<string, string, Task<bool>> confirm = Window?.ConfirmAsync;
-        return confirm == null
+        Func<string, string, Task> alert = Window?.AlertAsync;
+        return alert == null
             ? Task.CompletedTask
-            : confirm(AppInfo.AppName, message);
+            : alert(AppInfo.AppName, message);
     }
 }

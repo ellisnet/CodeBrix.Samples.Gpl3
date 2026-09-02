@@ -13,7 +13,11 @@
        an assembly built under Fresco.Brix/tools has no such ancestor - eight
        of the nine manuals would fail to find their source. The command line is
        the interface its own README documents, and using it keeps the
-       Texinfo -> Html2Pdf chain out of this project entirely. -->
+       Texinfo -> Html2Pdf chain out of this project entirely. Lily.Docs is a
+       repo tool that ships nothing, so it is not on nuget either: the CHECKOUT
+       is named on this tool's own command line by a required option (see
+       README.txt), because it is a separate repository that need not sit
+       anywhere in particular. -->
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -30,14 +34,16 @@
          same reader the application uses, rather than parsed out of the
          renderer's console output.
 
-         The pin is FR8's package at the version the board's W11½ row moves it
-         to (2026-08-26): 1.0.238.580, the PdfDocuments family publish that made
-         the documentation chain vector and native-free (board section 4.6), so
-         this reader is the one that opens the vector manuals.
-         //was previously: 1.0.238.580 (W11½); 1.0.232.1177, authorised at W10 (2026-08-21); before
+         The pin is FR8's package at the latest published version of the
+         PdfDocuments family, measured at W13's close-out bump (2026-09-01) —
+         the family that made the documentation chain vector and native-free
+         (board section 4.6), so this reader is the one that opens the vector
+         manuals.
+         //was previously: 1.0.238.1192 (W11½'s CFF-subsetting publish);
+         1.0.238.580 (W11½); 1.0.232.1177, authorised at W10 (2026-08-21); before
          that 1.0.217.117, the latest when the board's pin table was verified on
          2026-08-19. Fresco.Brix.Core carries the same version. -->
-    <PackageReference Include="CodeBrix.PdfRasterizer.MitLicenseForever" Version="1.0.238.1192" />
+    <PackageReference Include="CodeBrix.PdfRasterizer.MitLicenseForever" Version="1.0.243.38" />
   </ItemGroup>
 
 </Project>

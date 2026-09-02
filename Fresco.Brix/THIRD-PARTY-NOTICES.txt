@@ -54,7 +54,11 @@ HOW THIS FILE IS MAINTAINED
               four trivial __init__ files, two generated data files, the
               public-domain portmidi/ctypes_pypm.py, the unlicensed
               portmidi/pm_ctypes.py, hyphenator.py -- section 4 -- and
-              headerless project files covered by the project declaration.)
+              headerless project files covered by the project declaration.
+              326 of the 327 headers say version 2 or later; the one exception
+              is vbcl/__init__.py, which comes from the Frescobaldi Extensions
+              project and says version 3 or later. Nothing here is derived
+              from it -- ruling FR5.3 leaves the extensions system out.)
 
   Fresco.Brix is a port of Frescobaldi. The application presents as its own
   program and never as Frescobaldi (Help > About says so), but the design, the
@@ -66,7 +70,7 @@ HOW THIS FILE IS MAINTAINED
   sections 2, 6 and 7.
 
 ================================================================================
-2. FRESCOBALDI LAYOUT-CONTROL FORMATTERS AND SYMBOL SOURCES
+2. FRESCOBALDI FILES SHIPPED AS ASSETS
 ================================================================================
 
 2.1 Layout-control formatters
@@ -78,8 +82,57 @@ HOW THIS FILE IS MAINTAINED
   modes, pulled into an engrave run with -dinclude-settings. They are shipped
   as assets exactly as upstream ships them beside its module.
 
+2.1b Document-font sample scores
+  Upstream:   frescobaldi/fonts/templates/musicfont-*.ly (6 files)
+  License:    GPL-2.0-or-later, with Frescobaldi
+  Shipped as: src/Fresco.Brix.Core/assets/fonttemplates/ (copied verbatim)
+
+  The six scores the Document Fonts dialog engraves to show a font off. They
+  are LilyPond sources Frescobaldi ships beside its `fonts' package, and they
+  are shipped here the same way. One of them (musicfont-glyphs.ly) carries its
+  own credit line, "Provided by Abraham Lee", which is kept verbatim in the
+  file. The folder can be emptied and the application still runs -- the sample
+  chooser then offers only the current document and a file of the user's own.
+
+2.1c User-guide pages
+  Upstream:   frescobaldi/userguide/*.md (80 pages) and 5 of its screenshots
+  License:    GPL-2.0-or-later, with Frescobaldi
+  Shipped as: src/Fresco.Brix.Core/assets/userguide/ (68 pages, 44 of them
+              EDITED, plus one page written here; auto_complete_*.png copied
+              verbatim)
+
+  Frescobaldi's own built-in manual. It is TEXT, not source: the pages are
+  shipped as asset files exactly as upstream ships them beside its `userguide'
+  package, no line of them is ever a string literal in a source file, and the
+  folder can be emptied -- Help > User Guide then says the guide is not
+  installed and the application runs on.
+
+  Of upstream's 80 pages, 12 are not shipped. Eleven go because the feature
+  they describe is ruled out here (extensions, user scripting, version-control
+  tracking, the LilyPond version and documentation preferences, MIDI ports);
+  the twelfth, manuscriptview.md, goes because there is no Manuscript Viewer
+  panel in this application for it to describe. Of the 68 that remain, 44 are
+  EDITED -- this application is not Frescobaldi and does not run LilyPond, so
+  the text says what it does instead -- and the other 24 needed no change and
+  are shipped as upstream wrote them. One page, prefs_documentation.md, has no
+  upstream original and is Fresco.Brix's own, GPL-3.0-only with the rest of
+  this repository.
+
+  The five File > Import pages (import, import_all, abc_import, midi_import,
+  musicxml_import) joined that set with the import wave. Four of them are
+  edited on the same rule -- there are no external converters to install and no
+  engine version to choose -- and import.md, which is a title and a list of the
+  other four, needed nothing done to it.
+
+  Five of upstream's six screenshots are copied verbatim (the auto-completion
+  popup, which is a list of LilyPond commands and carries no application
+  chrome). The sixth, getting_started1.png, is NOT shipped: it is a picture of
+  Frescobaldi's own window, title bar and menus included, and showing it as
+  this application would misrepresent both programs.
+
 2.2 Symbol sources
-  Upstream:   frescobaldi/symbols/*.ly and *.ily (135 sources)
+  Upstream:   frescobaldi/symbols/*.ly (135 sources, with the 12 .ily files
+              they include)
   License:    GPL-2.0-or-later, with Frescobaldi
   Derived:    src/Fresco.Brix.Core/assets/symbols/*.svg
 
@@ -88,6 +141,72 @@ HOW THIS FILE IS MAINTAINED
   in this repository are generated output whose input is upstream's. Two of the
   sources are 2.18 grammar and the tool carries the two rewrites that go with
   that; both are commented at their site.
+
+2.3 Translation catalogs -- THIRTEEN LANGUAGES, WITH THEIR TRANSLATORS
+  Upstream:   frescobaldi/i18n/frescobaldi/*.po (13 of upstream's 18)
+  License:    GPL-2.0-or-later, with Frescobaldi
+  Copyright:  each catalog's own translators, named in its header (below)
+  Shipped as: src/Fresco.Brix.Core/assets/i18n/<lang>/LC_MESSAGES/frescobaldi.mo
+              (compiled from the PO files, entry for entry identical to what
+              GNU msgfmt produces from the same input)
+
+  The interface of this application is translated by FRESCOBALDI'S OWN
+  TRANSLATORS. Every user-visible string here is keyed on the verbatim upstream
+  msgid (board rule 7), which is what lets their work carry across; nothing was
+  re-translated, and nothing was re-attributed.
+
+  The thirteen shipped are the European-script catalogs (ruling FR5.6): Czech,
+  German, Spanish, French, Galician, Italian, Dutch, Polish, Brazilian
+  Portuguese, Russian, Swedish, Turkish, Ukrainian. Upstream's five CJK
+  catalogs (ja, ko, zh_CN, zh_HK, zh_TW) are NOT shipped -- they need fonts
+  this application does not carry and an input method the editor has not got --
+  and no part of them is in this repository.
+
+  The domain name is deliberately not renamed: the compiled files are still
+  called frescobaldi.mo, because that is whose work they are.
+
+  Each catalog names its own translators in its header, and that header travels
+  inside the compiled file. As of the catalogs shipped here:
+
+    cs     Pavel Fric
+    de     Georg Hennig; updates Urs Liska; update Hajo Baess
+    es     Francisco Vila
+    fr     Valentin Villenave, David Bouriaud, Ryan Kavanagh,
+           Raphael Doursenaud, Philippe Massart, Richard Cognot;
+           last translator Remy Claverie
+    gl     Manuel A. Vazquez
+    it     Gianluca D'Orazio, .billyBoh, Davide Liessi, Federico Bruni
+    nl     Wilbert Berendsen
+    pl     Piotr Komorowski, Grzegorz Pruchniakowski
+    pt_BR  Edio Mazera, Arnaldo Russo
+    ru     Serj Poltavski, Artem Zolochevskiy, Mikhail Iglizky,
+           Olesya Gerasimenko (BaseALT Translation Team)
+    sv     Dag Odenhall
+    tr     Server Acim
+    uk     Dmytro O. Redchuk
+
+  (The names are as each PO header gives them, with diacritics reduced to ASCII
+  in this file only -- Baess is Bäß, Edio Mazera is Édio Mazera, Raphael is
+  Raphaël, Remy is Rémy. The files themselves carry them intact.)
+
+  HOW COMPLETE THEY ARE, AND WHY SOME OF THE INTERFACE STAYS ENGLISH
+
+  A translation a PO file marks "fuzzy" is one its translator has not confirmed
+  since the English changed. GNU msgfmt leaves fuzzy entries out of a compiled
+  catalog, and so does the tool here, so a heavily-fuzzy catalog translates
+  little: Galician and Turkish come out largely English, and German and Italian
+  are complete. That is upstream's own state and nothing was done to it.
+
+  Separately, 196 msgids in this application are Fresco.Brix's OWN and match no
+  catalog by design -- the strings ruling FR13 rewrote so that no menu, button
+  or tooltip names LilyPond, the strings ruling FR9 rewrote because this
+  application is not Frescobaldi, and the strings that describe controls or
+  features upstream does not have. They show in English in every language until
+  somebody translates them, and they are listed one per line, with their
+  reason, in tools/i18nharvest/renamed-strings.tsv.
+
+  Regenerate the catalogs with tools/i18nharvest/harvest.py; it reads the
+  read-only reference checkout, ships nothing, and is not part of any build.
 
 ================================================================================
 3. PYTHON-LY AND QPAGEVIEW
@@ -134,12 +253,20 @@ HOW THIS FILE IS MAINTAINED
 
   Shipped as: src/Fresco.Brix.Core/assets/hyphdicts/*.dic, copied to
               <appdir>/assets/hyphdicts beside the program, together with every
-              README file upstream ships for them.
+              README file upstream ships for them: the 21 per-dictionary
+              READMEs under their own names, and the folder-level one, which
+              travels here as README_frescobaldi_hyphdicts.txt so it is not
+              mistaken for a README this repository wrote. For fr and it
+              upstream ships none; their rows in section 5's table carry the
+              licence in its place.
   Origin:     Frescobaldi's own hyphdicts folder, which took them from the
               openoffice.org-hyphenation package. Frescobaldi's README there
               says: "These hyphenation dictionaries are taken from the
               openoffice.org-hyphenation package, including their licensing
-              information."
+              information." That file is shipped verbatim; the packaging
+              advice in its second paragraph is Frescobaldi's own, about
+              Frescobaldi's own packages, and is kept because it is part of
+              the document rather than because it applies here.
 
   HOW THEY ARE CONVEYED, AND WHY IT IS RECORDED HERE.
   These 24 files are DATA, not code. They are not compiled in, not linked, and
@@ -149,17 +276,19 @@ HOW THIS FILE IS MAINTAINED
   AGGREGATE in the sense of GPLv3 section 5: separate and independent works,
   distributed on the same medium, each keeping its own license notice, which is
   why every README upstream ships travels with them. Frescobaldi documents the
-  same arrangement from the other side -- its hyphdicts README tells packagers
-  they may delete the whole folder and depend on the system's dictionaries
-  instead, which is exactly what the folder being separable means.
+  same arrangement from the other side -- its hyphdicts README, shipped here as
+  README_frescobaldi_hyphdicts.txt, tells packagers they may delete the whole
+  folder and depend on the system's dictionaries instead, which is exactly what
+  the folder being separable means.
 
-  ⚠ FIVE ROWS ARE NOT SETTLED, and are marked ⚠ below. Three are dictionaries
-  whose stated terms are GPL-2 without an "or later" (or amount to that), and
-  two arrived from upstream with no license documentation at all. Under the
-  aggregate reading above none of them is a problem; if Fresco.Brix ever needs
-  them to be part of a combined work instead, the first three would have to go
-  and the last two would need their provenance established. This is board
-  decision FD11.
+  ⚠ THREE ROWS ARE NOT SETTLED, and are marked ⚠ below. All three are
+  dictionaries whose stated terms are GPL-2 without an "or later" (or amount to
+  that). Under the aggregate reading above none of them is a problem; if
+  Fresco.Brix ever needs them to be part of a combined work instead, those
+  three would have to go. This is board decision FD11, which is DISCHARGED
+  rather than open: the fr and it rows it also covered were settled by content
+  research and are no longer flagged (see
+  STATUS_frescobrix_fd11_research_2026-09-01.txt).
 
   Language  File                Stated license                    Author
   --------  ------------------  --------------------------------  ------------
@@ -180,10 +309,17 @@ HOW THIS FILE IS MAINTAINED
             (Kauko Saarinen, Fred Karlsson) and the single line "Patterns may
             be freely distributed" -- a permission to distribute, but not a
             license, and it says nothing about modification.
-  ⚠ fr      hyph_fr.dic         NO DOCUMENTATION SHIPPED          unknown
-            Upstream ships no README for this file. Its provenance is the
-            openoffice.org-hyphenation package and nothing more specific can
-            be established from what is in hand.
+  fr        hyph_fr.dic         GNU LGPL, no version named        Blaise Drayer (conversion)
+            No README travels with this file; the licence was established by
+            content (FD11). 770 of its 775 ASCII patterns are verbatim from
+            frhyph.tex V2.12 <2002/12/11> -- free under its own terms, MIT as
+            hyph-fr.tex in hyph-utf8 -- and the file is the OpenOffice.org
+            conversion of them, the first one, before apostrophes (2.0) and
+            UTF-8 (3.0). OOo's own README_hyph_fr.txt licenses that lineage
+            "GNU LGPL" and credits "a previous conversion by Blaise Drayer";
+            Debian's per-file record for libreoffice-dictionaries reads
+            "Files: dictionaries/fr_FR/hyph_fr.dic ... Copyright: Blaise
+            Drayer, Marc Lodewijck, Paul Pichaureau; License: LGPL-2.1+".
   ga_IE     hyph_ga_IE.dic      GNU GPL, no version named         Kevin P. Scannell
   hu        hyph_hu.dic         GNU GPL, no version named         László Németh
             README is named README_hyph_hu_HU.txt.
@@ -191,8 +327,16 @@ HOW THIS FILE IS MAINTAINED
             "under the terms of the GNU General Public License, reproduced
             below": what is reproduced is version 2, with no "or later".
   is_IS     hyph_is_IS.dic      LGPL/SISSL (dual)                 Áki G. Karlsson
-  ⚠ it      hyph_it.dic         NO DOCUMENTATION SHIPPED          unknown
-            As for fr.
+  it        hyph_it.dic         LGPL-2.1-or-later                 Giuseppe Bilotta (conversion)
+            No README travels with this file either; the licence was
+            established by content (FD11). 300 of its 305 patterns are
+            verbatim from Claudio Beccari's ithyph.tex, which grants
+            "the GNU Lesser General Public Licence ... either version 2.1 of
+            the Licence or (at your option) any later version" in its own
+            header. It is the OpenOffice.org conversion of those patterns as
+            it stood before OOo issue i75287 replaced it in 2007; OOo's
+            README_hyph_it_IT.txt for the successor names the same origin,
+            the same conversion author, and "LGPL".
   ⚠ nl_NL   hyph_nl_NL.dic      GPL VERSION 2, no "or later"      Piet Tutelaer; Arthur Buijs (conversion)
             "It is made available under the conditions of the GPL version 2
             license." The README also REQUIRES that a copy of itself travel
@@ -210,9 +354,10 @@ HOW THIS FILE IS MAINTAINED
 
   A NOTE ON "GNU GPL, no version named". Where a work says only "the GNU
   General Public License" and names no version, the GPL's own terms let the
-  recipient choose any version the FSF has published -- which includes 3. Those
-  rows are therefore not flagged. The flagged rows are the ones where a version
-  IS fixed at 2, or where there is no license to read.
+  recipient choose any version the FSF has published -- which includes 3, and
+  the fr row's "GNU LGPL, no version named" reads the same way under the LGPL's
+  own terms. Those rows are therefore not flagged. The flagged rows are the
+  ones where a version IS fixed at 2, or where there is no license to read.
 
 ================================================================================
 6. GENERATED FROM FRESCOBALDI DATA
@@ -230,8 +375,46 @@ HOW THIS FILE IS MAINTAINED
   Snippets/BuiltinSnippets.g.cs  from frescobaldi/snippet/builtin.py
                                  (GPL-2.0-or-later, with Frescobaldi)
                                  tool: tools/snippetdata/
-                                 29 of upstream's 51 snippets ship; the 22
-                                 Python-code ones are excluded by ruling FR5.3.
+                                 29 of upstream's 51 snippets ship AS SNIPPETS.
+                                 The other 22 have a body of Python code, and
+                                 Fresco.Brix does not run snippet code (ruling
+                                 FR5.3 excludes USER scripting). Under decision
+                                 FD10 those 22 are instead implemented as
+                                 ordinary APPLICATION COMMANDS in
+                                 Tools/EditorCommands.cs -- the application
+                                 doing the thing itself, which FR5.3 does not
+                                 exclude -- keeping upstream's own names,
+                                 default shortcuts and menu placement. They are
+                                 derived from the same Frescobaldi source and
+                                 carry the same licence; the port's behaviour is
+                                 recorded from upstream's own snippet bodies by
+                                 tools/snippetprobe/ into
+                                 tests/.../fixtures/snippet-commands.txt.
+
+  Services/LanguageNames.g.cs    from frescobaldi/language_names/data.py
+                                 (GPL-2.0-or-later, with Frescobaldi; the names
+                                 themselves are KDE's translated language names,
+                                 which upstream's own generate.py extracted from
+                                 /usr/share/locale/all_languages and whose
+                                 authors upstream credits in
+                                 language_names/__init__.py -- that credit is
+                                 repeated in the generated file's header)
+                                 tool: tools/i18nharvest/harvest.py
+                                 Thirteen of upstream's eighteen tables ship:
+                                 "C" plus this application's own interface
+                                 languages (ruling FR5.6). The five CJK tables
+                                 go with the five catalogs that ruling leaves
+                                 out. Upstream has no table for en or sv either;
+                                 both already fall through to "C" there.
+
+  Tools/PythonCase.g.cs          NOT third-party content: the case mappings of
+                                 the Unicode Character Database, read out of
+                                 Python's own str.upper/lower/title by
+                                 tools/snippetprobe/gen-case-tables.py. Three of
+                                 the FD10 commands above ARE those three Python
+                                 methods, whose answers are not .NET's; the
+                                 mappings are facts, not authorship, on the same
+                                 footing as Editor/CharsetTables.g.cs.
 
   Ly/Data/LilyPondData.g.cs      NOT from Frescobaldi or python-ly: regenerated
                                  from the live CodeBrix.LilyPort engine
@@ -241,9 +424,15 @@ HOW THIS FILE IS MAINTAINED
   tests/.../fixtures/           The parity fixtures are OUTPUT that upstream's
                                  own code produced when a repo tool ran it:
                                  python-ly's tokenizer, reader, printer and
-                                 hyphenator, and -- from W7 --
-                                 Frescobaldi's Score Wizard, run under the
-                                 PyQt6 stand-in in tools/scorewizprobe/. They
+                                 hyphenator, from W7 Frescobaldi's Score
+                                 Wizard, run under the PyQt6 stand-in in
+                                 tools/scorewizprobe/, from W12A its 22
+                                 Python snippet bodies, run under the text-model
+                                 stand-in in tools/snippetprobe/, from W12B its
+                                 user-guide framework (tools/userguideprobe/) and
+                                 from W-IMPORT its three import dialogs
+                                 (tools/importprobe/), the last two again under
+                                 the PyQt6 stand-in. They
                                  are test data, they ship in nothing, and they
                                  carry the license of the code that produced
                                  them (sections 1 and 3).
@@ -262,8 +451,20 @@ HOW THIS FILE IS MAINTAINED
   Fresco.Brix engraves with CodeBrix.LilyPort, which is a port of GNU LilyPond
   and is conveyed GPL-3.0-only. Its own attribution record --  every LilyPond
   file it derives from, the fonts it vendors, and the third-party components
-  LilyPond itself redistributes -- is CodeBrix.LilyPort/THIRD-PARTY-NOTICES.txt
-  in this repository. Nothing is duplicated here.
+  LilyPond itself redistributes -- is CodeBrix.LilyPort's own
+  THIRD-PARTY-NOTICES.txt. Nothing is duplicated here.
+
+  WHERE TO FIND IT. The engine arrives as the published package
+  CodeBrix.LilyPort.GplLicenseForever (pinned in
+  src/Fresco.Brix.Core/Fresco.Brix.Core.csproj), and that package carries its
+  own THIRD-PARTY-NOTICES.txt, LICENSE and LICENSE.OFL at its root -- so the
+  notices travel WITH the engine into any restore of this application, and a
+  packager needs nothing else to find them. The source they describe is the
+  CodeBrix.LilyPort repository, https://github.com/ellisnet/CodeBrix.LilyPort.
+  //was previously: this section said the file was "in this repository", which
+  was true while LilyPort was a sibling project inside CodeBrix.Samples.Gpl3.
+  It moved out to its own repository on 2026-08-27 and Fresco.Brix consumes the
+  package (board row W13b).
 
   It is LilyPort's GPL-3.0-only conveyance that makes the Fresco.Brix aggregate
   GPL-3.0-only (see "HOW THIS FILE IS MAINTAINED", point 2).
@@ -501,14 +702,32 @@ RELATED SOFTWARE, WHICH IS NOT FDL
 
   Entries that will be added by the wave that brings the material in:
 
-  - Frescobaldi's translation catalogs (i18n/frescobaldi/*.po, GPL), at W-I18N.
-  - Frescobaldi's icon assets, if any are reused; the audit is W13's.
-  - The hyphenation dictionaries' unsettled rows, section 5 (FD11).
+  - NOTHING. Every row this list has ever carried is discharged below, and no
+    material is waiting on a wave for its entry.
 
   Discharged since this list was written:
+
+  - Frescobaldi's icon assets (W13). NONE is reused. The audit compared
+    upstream's 331 icons/ and css/ files against every file in this repository
+    by content hash and by name and found no match, and no source file
+    references an icon asset. The only upstream-derived images here are the
+    five user-guide screenshots in section 2.1c; the 135 symbol SVGs in
+    section 2.2 are the engine's own output. No notices row is owed.
+
+  - Frescobaldi's translation catalogs, section 2.3 (W-I18N). Thirteen of them
+    ship, compiled, with their translators named; the five CJK catalogs are not
+    here at all. The generated language-name table that goes with them is in
+    section 6.
 
   - LilyPond's convert-ly rules (python/convertrules.py, GPL-3.0). W8 landed
     them INSIDE CodeBrix.LilyPort (ruling FD7), so the entry belongs in that
     repository's THIRD-PARTY-NOTICES.txt and not in this one. Nothing in
     Fresco.Brix carries convert-ly code.
   - The bundled manuals, section 9 (W10).
+  - The hyphenation dictionaries' unsettled rows, section 5 (FD11). The fr and
+    it rows are settled -- both are LGPL OpenOffice.org conversions, and the
+    provenance was established from per-file records and pattern-level content
+    by the research recorded in
+    STATUS_frescobrix_fd11_research_2026-09-01.txt. fi_FI, id_ID and nl_NL stay
+    flagged in section 5, as a record of what their licenses say rather than as
+    work still owed.

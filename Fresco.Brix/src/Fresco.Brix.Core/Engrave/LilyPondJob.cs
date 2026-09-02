@@ -102,22 +102,46 @@ public class LilyPondJob : EngraveJob
     public IReadOnlyDictionary<string, object> Options => _options;
 
     /// <summary>
-    /// Gets the options this job asked for that the engine seam cannot yet
-    /// carry into a run.
+    /// Gets the options this job asked for that the engine seam cannot carry
+    /// into a run.
     /// </summary>
     /// <remarks>
-    /// Everything except <c>point-and-click</c>. The engine restores its
-    /// defaults at the top of every run and re-applies only the host overrides
-    /// its run options declare, so an option set outside a run never reaches
-    /// it. Widening that seam is a change to the engine and is batched with the
-    /// next wave that touches it; until then the layout-control formatters and
-    /// the custom dialog's extra options are configured, reported, and not
-    /// applied.
+    /// //was previously: EVERYTHING except <c>point-and-click</c>, on the
+    /// ground that "the engine restores its defaults at the top of every run
+    /// and re-applies only the host overrides its run options declare, so an
+    /// option set outside a run never reaches it". That was true when this was
+    /// written and has not been true for several engine versions:
+    /// <c>BatchRunOptions.Options</c> is a LIST of <c>-d</c> option texts,
+    /// applied after the per-file restore and before <c>PointAndClick</c>, and
+    /// <c>include-settings</c> is accumulative — which is exactly what the
+    /// layout-control formatters need. Every option is carried now, so the list
+    /// is empty and the "not applied" message it fed is gone with it. The
+    /// property stays because the shape is right: if an option ever cannot be
+    /// carried, this is where it is named rather than silently dropped.
     /// </remarks>
-    public IReadOnlyList<string> PendingOptions
-        => _options.Keys
-            .Where(name => !string.Equals(name, "point-and-click", StringComparison.Ordinal))
-            .OrderBy(name => name, StringComparer.Ordinal)
+    public IReadOnlyList<string> PendingOptions => Array.Empty<string>();
+
+    /// <summary>
+    /// The options this run asks the engine for, as <c>-d</c> TEXTS — what
+    /// follows a <c>-d</c> on a command line, which is the form
+    /// <c>BatchRunOptions.Options</c> reads.
+    /// </summary>
+    /// <remarks><c>point-and-click</c> is left out: it has a typed property of
+    /// its own on the run options, which the engine applies after this list, so
+    /// passing it twice would only be a way of disagreeing with itself.</remarks>
+    public IReadOnlyList<string> RunOptionTexts()
+        => _options
+            .Where(pair => !string.Equals(
+                pair.Key, "point-and-click", StringComparison.Ordinal))
+            .OrderBy(pair => pair.Key, StringComparer.Ordinal)
+            .Select(pair => pair.Value switch
+            {
+                true => pair.Key,
+                false => "no-" + pair.Key,
+                var value => pair.Key + "="
+                    + System.Convert.ToString(
+                        value, System.Globalization.CultureInfo.InvariantCulture),
+            })
             .ToList();
 
     /// <summary>Adds a directory to this run's include path.</summary>
@@ -213,23 +237,135 @@ public class LilyPondJob : EngraveJob
                 MessageType.Neutral);
         }
 
+        //was previously: PointAndClick alone. Every other option this job asked
+        //for — the layout-control formatters' -d switches, the
+        //-dinclude-settings that pulls the formatter chain in, and whatever the
+        //custom-engrave dialog's box holds — was gathered, REPORTED as
+        //unsupported, and thrown away. `BatchRunOptions.Options' takes them, in
+        //order, after the per-file restore that opens the run.
         BatchRunOptions runOptions = new BatchRunOptions
         {
             PointAndClick = Option("point-and-click"),
+            Options = RunOptionTexts().ToList(),
             MessageWriter = new JobMessageWriter(this),
             CancellationToken = CancellationToken,
         };
 
-        //The anchors an engrave writes name the file as the engine resolved it
-        //AT PAGE-WRITE TIME, against the output directory. Engraving where the
-        //output goes is therefore what makes a click in the Music View land in
-        //the file the user is editing.
-        Result = await _engine.RunFileAsync(
-            FileName, Directory, null, runOptions, CancellationToken)
-            .ConfigureAwait(true);
+        string source = FileName;
+        string outputName = null;
+        string wrapper = SettingsWrapper();
+        if (wrapper != null)
+        {
+            source = wrapper;
+            outputName = Path.GetFileNameWithoutExtension(FileName);
+        }
+
+        try
+        {
+            //The anchors an engrave writes name the file as the engine resolved
+            //it AT PAGE-WRITE TIME, against the output directory. Engraving
+            //where the output goes is therefore what makes a click in the Music
+            //View land in the file the user is editing.
+            Result = await _engine.RunFileAsync(
+                source, Directory, outputName, runOptions, CancellationToken)
+                .ConfigureAwait(true);
+        }
+        finally
+        {
+            if (wrapper != null)
+            {
+                try { File.Delete(wrapper); }
+                catch (IOException) { }
+                catch (UnauthorizedAccessException) { }
+            }
+        }
 
         ReportCollectedDiagnostics();
         return Result.ErrorCount == 0;
+    }
+
+    /// <summary>
+    /// Writes the one-line wrapper an <c>include-settings</c> run is engraved
+    /// through, or null when this run asks for no settings file.
+    /// </summary>
+    /// <returns>The wrapper's path, or null.</returns>
+    /// <remarks>
+    /// ⚠ A WORKAROUND FOR AN ENGINE GAP, not a design. Upstream's layout
+    /// control works by handing LilyPond <c>-dinclude-settings=…</c>, which
+    /// makes it read the formatter file before the document; Frescobaldi's
+    /// <c>debug-layout-options.ly</c> then looks at the <c>-d</c> switches and
+    /// <c>\include</c>s the formatters those switches asked for.
+    /// CodeBrix.LilyPort 1.0.244.98 DECLARES <c>include-settings</c> — it takes
+    /// the option without complaint, where an undeclared name is warned about —
+    /// but never reads the file: a settings file that would warn on inclusion
+    /// stays silent, and so does a name that does not exist. Measured with a
+    /// direct <c>BatchRunner</c> probe and recorded on
+    /// <c>~/ClaudeHome/FIXLIST_codebrix_packages_2026-09-01.txt</c>; nothing
+    /// outside this repository is changed for it.
+    /// <para>
+    /// So the file is included the way a document would include it. The wrapper
+    /// lives in the temporary area, never beside the user's score; the OUTPUT
+    /// base name is forced back to the document's, so the results land where
+    /// <c>ResultFiles</c> looks for them; and the point-and-click anchors still
+    /// name the document, because the engine records the file each TOKEN came
+    /// from (verified: every anchor in a wrapped run names the score, with its
+    /// own line and column).
+    /// </para>
+    /// </remarks>
+    private string SettingsWrapper()
+    {
+        if (Option("include-settings") is not string settings
+            || string.IsNullOrEmpty(settings)
+            || string.IsNullOrEmpty(FileName))
+        {
+            return null;
+        }
+
+        //A relative name is what the panel passes; it is resolved here rather
+        //than left to the engine, because the wrapper is not in the folder the
+        //name is relative to.
+        string resolved = Path.IsPathRooted(settings)
+            ? settings
+            : Resolve(settings);
+        if (resolved == null) { return null; }
+
+        try
+        {
+            string wrapper = Path.Combine(
+                PathUtil.TempDir(),
+                Path.GetFileNameWithoutExtension(FileName) + "-layoutcontrol.ly");
+            File.WriteAllText(
+                wrapper,
+                "\\version \"" + LilyPortEngine.CompatibleWithVersion + "\"\n"
+                    + "\\include \"" + resolved.Replace('\\', '/') + "\"\n"
+                    + "\\include \"" + FileName.Replace('\\', '/') + "\"\n");
+            return wrapper;
+        }
+        catch (Exception error) when (
+            error is IOException or UnauthorizedAccessException)
+        {
+            Message(
+                I18n.Format(
+                    I18n.Get("Could not write to {filename}:\n{error}"),
+                    ("filename", "…-layoutcontrol.ly"), ("error", error.Message))
+                    + "\n",
+                MessageType.Failure);
+            return null;
+        }
+    }
+
+    /// <summary>Finds a settings file on this run's include path.</summary>
+    /// <param name="name">The file name.</param>
+    /// <returns>The path, or null when no directory holds it.</returns>
+    private string Resolve(string name)
+    {
+        foreach (var directory in _includePath)
+        {
+            string candidate = Path.Combine(directory, name);
+            if (File.Exists(candidate)) { return candidate; }
+        }
+
+        return null;
     }
 
     /// <summary>

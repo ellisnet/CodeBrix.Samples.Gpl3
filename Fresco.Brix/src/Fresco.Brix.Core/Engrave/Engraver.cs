@@ -53,6 +53,65 @@ public sealed class Engraver
     /// <summary>The setting deciding whether a run saves the document first.</summary>
     public const string SaveOnRunSettingKey = "lilypond_settings/save_on_run";
 
+    /// <summary>
+    /// The setting deciding whether the files a run makes on the way to its
+    /// output are deleted when it finishes — the DEFAULT the Engrave-custom
+    /// dialog opens on.
+    /// </summary>
+    /// <remarks>Upstream's <c>lilypond_settings/delete_intermediate_files</c>,
+    /// default TRUE.</remarks>
+    public const string DeleteIntermediateSettingKey
+        = "lilypond_settings/delete_intermediate_files";
+
+    /// <summary>
+    /// The setting deciding whether publish-mode output embeds its sources —
+    /// the DEFAULT the Engrave-custom dialog opens on.
+    /// </summary>
+    /// <remarks>Upstream's <c>lilypond_settings/embed_source_code</c>,
+    /// default FALSE.</remarks>
+    public const string EmbedSourceSettingKey = "lilypond_settings/embed_source_code";
+
+    /// <summary>
+    /// The setting holding the APPLICATION-WIDE include path, newline-joined.
+    /// </summary>
+    /// <remarks>
+    /// Upstream's <c>lilypond_settings/include_path</c>. It is a plain
+    /// engraving setting — where <c>\include</c> looks — and ruling FR5.1,
+    /// which is about engine versions and installations, does not touch it.
+    /// //was previously: only the per-SESSION path existed
+    /// (<c>SessionData.IncludePath</c>), so a user with one shared library
+    /// folder had to re-enter it in every session.
+    /// </remarks>
+    public const string IncludePathSettingKey = "lilypond_settings/include_path";
+
+    /// <summary>Reads the application-wide include path.</summary>
+    /// <param name="settings">The store, or null.</param>
+    /// <returns>The folders, in order.</returns>
+    public static IReadOnlyList<string> IncludePath(SettingsStore settings)
+    {
+        string stored = settings?.GetString(IncludePathSettingKey);
+        return string.IsNullOrEmpty(stored)
+            ? System.Array.Empty<string>()
+            : stored.Split('\n', System.StringSplitOptions.RemoveEmptyEntries);
+    }
+
+    /// <summary>Remembers the application-wide include path.</summary>
+    /// <param name="settings">The store.</param>
+    /// <param name="paths">The folders, or null for none.</param>
+    public static void SetIncludePath(
+        SettingsStore settings, IReadOnlyList<string> paths)
+    {
+        if (settings == null) { return; }
+
+        if (paths == null || paths.Count == 0)
+        {
+            settings.Remove(IncludePathSettingKey);
+            return;
+        }
+
+        settings.SetString(IncludePathSettingKey, string.Join("\n", paths));
+    }
+
     /// <summary>Creates the engraving service.</summary>
     /// <param name="documents">The open documents.</param>
     /// <param name="engine">The engine.</param>

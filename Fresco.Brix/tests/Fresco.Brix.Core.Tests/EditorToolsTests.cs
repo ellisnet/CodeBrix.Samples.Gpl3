@@ -609,6 +609,10 @@ public class BrowserInterfaceTests
 }
 
 /// <summary>Which document comes forward when one is closed.</summary>
+/// <remarks>In the history collection because a <c>HistoryManager</c> listens
+/// to a STATIC signal — upstream's module-level <c>_setCurrentDocument</c> —
+/// so two of them made in parallel would hear each other.</remarks>
+[Collection(HistoryCollection.Name)]
 public class HistoryManagerTests
 {
     [Fact]

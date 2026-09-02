@@ -1,0 +1,221 @@
+# THE RENAMED-STRING TABLE -- Fresco.Brix, board wave W-I18N
+#
+# Every msgid this application asks for that Frescobaldi's catalogs do not
+# have, and why. These strings FALL BACK TO ENGLISH by design, in every one of
+# the thirteen languages, and they stay that way until somebody translates
+# them: nothing here is ever "fixed" back to Frescobaldi's own spelling.
+#
+# tools/i18nharvest/harvest.py reconciles this file against the code on every
+# run -- a row that is no longer in the code, a row that turns out to match
+# upstream after all, and a code msgid that is in no row are all reported.
+#
+# Columns, tab separated:
+#   CATEGORY  FR13     no UI element names LilyPond -- the engine is LilyPort
+#             FR9      the application is not Frescobaldi -- {appname} goes in
+#             RULING   a ruling removed or changed what the sentence described
+#             PLATFORM a Qt control this application does not have was replaced
+#             NEW      Fresco.Brix-original: there is no upstream msgid at all
+#   ORIGIN    the upstream msgid it replaced, or - when there is none
+#   CONTEXT   the disambiguating context, or -
+#   MSGID     the msgid the code asks for
+#
+# \n, \t and \\ are escapes. Manual TITLES (decision FD12) are NOT in this
+# table: they are data the Documentation Browser reads off the files, never
+# msgids, and they say "LilyPond" because that is what the documents are
+# called.
+FR13	&Contextual LilyPond Help	-	&Contextual LilyPort Help
+FR13	&LilyPond Documentation	-	&LilyPort Documentation
+FR13	A LilyPond Music Editor	-	A LilyPort Music Editor
+FR13	Always install fonts from the music font repository\nto the current LilyPond installation when opening\nthe Document Fonts dialog.	-	Always install fonts from the music font repository\ninto {folder} when opening the Document Fonts dialog.
+FR13	Change the LilyPond language used for pitch names in this document or in the selection.	-	Change the LilyPort language used for pitch names in this document or in the selection.
+FR13	Create a document that contains the LilyPond version statement	-	Create a document that contains the LilyPort version statement
+FR13	Display the skylines that LilyPond uses to detect collisions.	-	Display the skylines that LilyPort uses to detect collisions.
+FR13	-	-	Engine: LilyPort {version} (compatible with {compatible}), in this process.
+FR13	Generic import for all LilyPond tools.	-	Generic import for all import formats.
+FR13	If checked, the LilyPond source files will be embedded in the PDF\nwhen LilyPond is started in publish mode.	-	If checked, the source files are embedded in the exported PDF\nwhen the score is engraved in publish mode.
+FR13	Link fonts from a directory to the current LilyPond installation	-	Install fonts from a directory into the folder LilyPort searches
+FR13	Link fonts from the global music font repository\nto the current LilyPond installation.	-	Install fonts from the global music font repository\ninto the folder LilyPort searches.
+FR13	LilyPond	-	LilyPort
+FR13	LilyPond &Log	-	LilyPort &Log
+FR13	LilyPond Log	-	LilyPort Log
+FR13	LilyPond include path:	-	LilyPort include path:
+FR13	LilyPond version:	-	LilyPort version:
+FR13	LilyPond {version} [{document}]	-	LilyPort {version} (compatible with {compatible}) [{document}]
+FR13	-	-	Music fonts are installed into {folder}, which LilyPort searches before its own built-in fonts. Nothing is installed there until you ask for it in Tools ▸ Document Fonts.
+FR13	-	-	No music fonts are installed. {appname} always has emmentaler, which is built into LilyPort; installing a font here adds it to what LilyPort can find.
+FR13	Run LilyPond	-	Run LilyPort
+FR13	Run LilyPond in preview mode (with Point and Click)	-	Run LilyPort in preview mode (with Point and Click)
+FR13	Run LilyPond with verbose output	-	Run LilyPort with verbose output
+FR13	Running LilyPond	-	Running LilyPort
+FR13	Select alternative stylesheet.\nFonts natively supported by the notation-fonts\npackage provide a default stylesheet to adjust\nLilyPond's visuals (e.g. line thicknesses) to the\ncharacteristic of the music font.\nCheck 'No stylesheet' to avoid a preconfigured\nstylesheet to customize the appearance manually,\nor check 'Custom stylesheet' to load another stylesheet\nin LilyPond's search path.	-	Select alternative stylesheet.\nFonts natively supported by the notation-fonts\npackage provide a default stylesheet to adjust\nthe engraver's visuals (e.g. line thicknesses) to the\ncharacteristic of the music font.\nCheck 'No stylesheet' to avoid a preconfigured\nstylesheet to customize the appearance manually,\nor check 'Custom stylesheet' to load another stylesheet\non the engraver's search path.
+FR13	Show and select text and music fonts available in the LilyPond version of the current document	-	Show and select the text and music fonts available to LilyPort
+FR13	Suppress the default tagline output by LilyPond.	-	Suppress the default tagline in the engraved output.
+FR13	The default folder for your LilyPond documents (optional).	-	The default folder for your LilyPort documents (optional).
+FR13	The LilyPond language you want to use for the pitch names.	-	The language you want to use for the pitch names.
+FR13	Use LilyPond's "annotate spacing" option to\ndisplay measurement information	-	Use LilyPort's "annotate spacing" option to\ndisplay measurement information
+FR13	Fontconfig data:	-	Where LilyPort looks for fonts:
+FR13	-	-	loading the LilyPort engine...
+FR13	-	-	the LilyPort engine failed to load
+FR13	&LilyPond	menu title	&LilyPort
+FR9	-	-	A relative folder is looked for under /usr and /usr/local. The dictionaries that came with {appname} are always searched as well.
+FR9	If checked, features that are not yet finished are enabled.\nYou need to restart Frescobaldi to see the changes.	-	If checked, features that are not yet finished are enabled.\nYou need to restart {appname} to see the changes.
+FR9	If checked, files will be opened in a running Frescobaldi application if available, instead of starting a new instance.	-	If checked, files will be opened in a running {appname} \napplication if available, instead of starting a new instance.
+FR9	If checked, Frescobaldi draws a shadow around the pages.	-	If checked, {appname} draws a shadow around the pages.
+FR9	If checked, Frescobaldi will not open PDF documents that are not\nup-to-date (i.e. the source file has been modified later).	-	If checked, {appname} will not open PDF documents that are not\nup-to-date (i.e. the source file has been modified later).
+FR9	If checked, Frescobaldi will not shorten filenames in the log output.	-	If checked, {appname} will not shorten filenames in the log output.
+FR9	If checked, Frescobaldi will not show the log for automatically\nstarted engraving jobs (LilyPond->Auto-engrave).	-	If checked, {appname} will not show the log for automatically\nstarted engraving jobs (LilyPort->Auto-engrave).
+FR9	If checked, Frescobaldi will remove unnecessary whitespace at the end of lines (but not inside multi-line strings).	-	If checked, {appname} will remove unnecessary whitespace at the end of lines (but not inside multi-line strings).
+FR9	If checked, Frescobaldi will use the template to generate a default file name.\n{title} and {composer} will be replaced by title and composer of that document.	-	If checked, {appname} will use the template to generate a default file name.\n{title} and {composer} will be replaced by title and composer of that document.
+FR9	If checked, Frescobaldi will warn you when opened files are modified or deleted by other applications.	-	If checked, {appname} will warn you when opened files are modified or deleted by other applications.
+FR9	Session to load if Frescobaldi is started without arguments	-	Session to load if {appname} is started without arguments
+FR9	Frescobaldi Manual	-	{appname} User Guide
+FR9	Frescobaldi always backups a file before overwriting it with a new version.\nIf checked those backup copies are retained.	-	{appname} always backups a file before overwriting it with a new version.\nIf checked those backup copies are retained.
+FR9	Frescobaldi is written and maintained by {author}.	-	{appname} is written and maintained by {author}.
+FR9	To avoid persistent damage Frescobaldi only supports removing music fonts that are linked into a LilyPond installation.	-	{appname} only removes music fonts it installed into its own font folder. This family includes files from elsewhere and is left alone.
+NEW	-	-	&Change...
+NEW	-	-	(no messages)
+NEW	-	-	(none)
+NEW	-	-	(the document does not declare a version)
+NEW	-	-	(the document's version could not be read)
+NEW	-	-	(this is the version of the document)
+NEW	-	-	A directory where music font previews are cached.\nLeave empty to use the system's temporary directory,\nwhich will be purged upon computer shutdown.
+NEW	-	-	A rule stopped early; everything before it has been applied.
+NEW	-	-	A snippet may begin with lines like "-*- menu; indent: no;" that declare where it appears and how it behaves.
+NEW	-	-	Based on the work of
+NEW	-	-	Built with
+NEW	-	-	Clear the color.
+NEW	-	-	Compatible with:
+NEW	-	-	Copied
+NEW	-	-	Copy the current page to a picture.
+NEW	-	-	Copy the selected part of the music to a picture.
+NEW	-	-	Discards the changes made in this window.
+NEW	-	-	Engine &Information...
+NEW	-	-	Engine Information
+NEW	-	-	Engine:
+NEW	-	-	Engraving failed.
+NEW	-	-	Engraving...
+NEW	-	-	Example:
+NEW	-	-	Exited with an error.
+NEW	-	-	Exited with {count} error(s).
+NEW	-	-	Exporting audio...
+NEW	-	-	Fonts built into the program
+NEW	-	-	Fonts supplied by the document
+NEW	-	-	Here you can specify a filename or suffix (without extension) to set the names of generated output files for this book.
+NEW	-	-	If you choose "Suffix" the entered name will be appended to the document's file name; if you choose "Filename", just the entered name will be used.
+NEW	-	-	Import Midi
+NEW	-	-	Import abc
+NEW	-	-	Importing {filename}...
+NEW	-	-	Installed in {folder}
+NEW	-	-	Jump
+NEW	-	-	Load time:
+NEW	-	-	Manual to show first:
+NEW	-	-	Music font preview
+NEW	-	-	Music is played inside the program, through the instrument bank named below. Choose a SoundFont of your own to play through that instead.
+NEW	-	-	No hyphenation dictionaries were found.
+NEW	-	-	No instrument found!
+NEW	-	-	No manuals are installed.
+NEW	-	-	No manuals are installed.\n\nThe manuals are PDF files in the application's assets/docs folder; see its README for how they are made.
+NEW	-	-	Nothing in the manuals is headed {term}.
+NEW	-	-	Open in External Viewer
+NEW	-	-	Opens this page in the user guide (F1).
+NEW	-	-	Opens this window's page in the user guide (F1).
+NEW	-	-	PDF File
+NEW	-	-	PNG Image
+NEW	-	-	Please give the version to convert from, as in 2.14.2.
+NEW	-	-	Restores the built-in folders.
+NEW	-	-	Restores the instrument that came with the program.
+NEW	-	-	SVG File
+NEW	-	-	Saved
+NEW	-	-	Scores are engraved inside {appname} by CodeBrix.LilyPort, a managed port of LilyPond {version}. No LilyPond installation is used or required.
+NEW	-	-	Set as {family}
+NEW	-	-	Show the contents list
+NEW	-	-	Show the next page.
+NEW	-	-	Show the previous page.
+NEW	-	-	Shows a magnifying glass; hold Ctrl and drag with the left button.
+NEW	-	-	Tap
+NEW	-	-	The directory containing a music font repository
+NEW	-	-	The document has no file to engrave.
+NEW	-	-	The full list of third-party works, with each one's licence, is in THIRD-PARTY-NOTICES.txt beside the program.
+NEW	-	-	The number of surrounding lines to show when clicking on an object of the music view or jumping to a search result. The text view will scroll and unfold blocks as needed, but always as little as possible. Set it to 0 to disable unfolding.
+NEW	-	-	The sample score is not installed.
+NEW	-	-	The user guide is not installed.
+NEW	-	-	The {count} manuals are installed with the program and are shown in the Documentation Browser.
+NEW	-	-	There is no music in this document that can be converted to MusicXML, so no file was written.
+NEW	-	-	There is no music to copy.
+NEW	-	-	There is no music to export.
+NEW	-	-	There is no word at the cursor to look up.
+NEW	-	-	This is a bug in {appname}. The text above says where it happened; please report it, with what you were doing at the time.
+NEW	-	-	Update with convert-ly
+NEW	-	-	\\include "{language}.ly"  (for documents below version 2.14), or
+NEW	-	-	\\language "{language}"  (for version 2.14 and higher.)
+NEW	-	-	failed to load
+NEW	-	-	insert offset in source
+NEW	-	-	loading...
+NEW	-	-	not started
+NEW	-	-	ready
+NEW	-	-	warnings
+NEW	-	-	{0} rules ran and the document is unchanged.
+NEW	-	-	{0} rules ran; {1} lines change; the document becomes version {2}.
+NEW	-	-	{appname} is modelled on {inspiration}, the LilyPond music editor by Wilbert Berendsen and contributors, and is deeply indebted to it. It is not {inspiration}, and neither the {inspiration} project nor its authors endorse it.
+NEW	-	-	{converter} [{document}]
+NEW	-	-	{name} is not installed.
+NEW	-	-	{term}: {section}
+NEW	-	abbreviation for Synth bass	Syn.Bs.
+NEW	-	submenu title	&Export
+PLATFORM	Use session specific include path	-	&Search path:
+PLATFORM	-	-	&Text:
+PLATFORM	-	-	A change of language takes effect when {appname} is started again.
+PLATFORM	Edit Snippet	-	Add Snippet
+PLATFORM	-	-	Automatic Completion
+PLATFORM	Below you can enter commands to open different file types. <code>$f</code> is replaced with the filename, <code>$u</code> with the URL. Leave a field empty to use the operating system default application.	-	Below you can enter commands to open different file types. $f is replaced with the filename, $u with the URL. Leave a field empty to use the operating system default application.
+PLATFORM	-	-	Blue:
+PLATFORM	-	-	Bookmarks
+PLATFORM	Can't write to destination:\n\n{url}\n\n{error}	-	Can't write to destination:
+PLATFORM	Close documents in this folder	-	Close documents in this folder ({folder})
+PLATFORM	Could not read from: {url}	-	Could not open {filename}:\n{error}
+PLATFORM	Could not read from: {url}	-	Could not read from {filename}:\n{error}
+PLATFORM	Could not write to: {url}	-	Could not write to {filename}:\n{error}
+PLATFORM	-	-	Document Actions
+PLATFORM	-	-	Documentation
+PLATFORM	-	-	Editor Commands
+PLATFORM	-	-	Editor Margin
+PLATFORM	-	-	Engraving
+PLATFORM	E&xport...	-	Export &PDF...
+PLATFORM	E&xport...	-	Export PN&G...
+PLATFORM	E&xport...	-	Export S&VG...
+PLATFORM	Fixed scale:	-	Fixed scale
+PLATFORM	-	-	Green:
+PLATFORM	-	-	HTML:
+PLATFORM	-	-	Import
+PLATFORM	Instrument	-	Instrument:
+PLATFORM	-	-	Lyrics
+PLATFORM	-	-	Main Window
+PLATFORM	-	-	New document:
+PLATFORM	-	-	Opacity:
+PLATFORM	-	-	Please enter a name for the session:
+PLATFORM	-	-	Red:
+PLATFORM	-	-	Rest
+PLATFORM	-	-	Rhythm
+PLATFORM	Save documents in this folder	-	Save documents in this folder ({folder})
+PLATFORM	-	-	Scaling:
+PLATFORM	-	-	Score Wizard
+PLATFORM	-	-	Session:
+PLATFORM	-	-	Template:
+PLATFORM	-	-	Tool Panels
+PLATFORM	-	-	Views
+PLATFORM	-	-	Volume
+PLATFORM	-	-	Volume:
+PLATFORM	-	-	Writes the current page to a picture file.
+PLATFORM	-	-	Writes the current page to an SVG file.
+PLATFORM	-	-	Writes the whole score to a PDF file.
+RULING	Choose the PDF document to display.	-	Choose the score to display.
+RULING	-	-	Fresco.Brix engraves in this process. There is no external LilyPond installation, and no version to choose.
+RULING	If checked, always assume that the first pitch of a \\relative {...}\nexpression without startpitch is absolute. Otherwise, Frescobaldi\nonly assumes this when the LilyPond version is >= 2.18.	-	If checked, always assume that the first pitch of a \\relative {...}\nexpression without startpitch is absolute. Otherwise, Fresco.Brix\nonly assumes this when the document's version is >= 2.18.
+RULING	If checked, the document is saved when it is local and modified.\nOtherwise a temporary file is used to run LilyPond.	-	If checked, the document is saved when it is local and modified.\nOtherwise a scratch copy is engraved instead.
+RULING	If checked, LilyPond will delete intermediate PostScript files.	-	If checked, the files a run produces on the way to its output\nare deleted when it finishes.
+RULING	If enabled, line numbers are shown in exported HTML or printed source.	-	If enabled, line numbers are shown in exported HTML.
+RULING	-	-	Output: SVG pages, and MIDI where a score asks for it.
+RULING	Show predefined guitar fret diagrams below the chord names (LilyPond 2.12 and above).	-	Show predefined guitar fret diagrams below the chord names.
+RULING	The file {filename} could not be converted: wrong file type.	-	The file {filename} could not be converted.
+RULING	-	-	These options are not applied by this engine yet: {options}
+RULING	Use this scheme for printing	-	Use this scheme for exported source

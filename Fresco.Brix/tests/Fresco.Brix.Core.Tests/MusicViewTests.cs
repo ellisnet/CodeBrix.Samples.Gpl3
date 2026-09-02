@@ -472,3 +472,63 @@ public class CursorPositionsTests
         positions.Should().BeEmpty();
     }
 }
+
+/// <summary>Which finished engrave job the Music View panel shows.</summary>
+public class MusicViewAdoptionTests
+{
+    [Fact]
+    public void a_panel_bound_to_nothing_shows_whatever_finished()
+    {
+        //Arrange
+        var finished = new EditorDocument();
+
+        //Act
+        bool adopts = MusicViewPanel.AdoptsFinishedJob(finished, null, null);
+
+        //Assert
+        adopts.Should().BeTrue();
+    }
+
+    [Fact]
+    public void a_job_for_the_document_the_panel_shows_re_renders_it()
+    {
+        //Arrange
+        var shown = new EditorDocument();
+
+        //Act
+        bool adopts = MusicViewPanel.AdoptsFinishedJob(shown, shown, shown);
+
+        //Assert
+        adopts.Should().BeTrue();
+    }
+
+    [Fact]
+    public void a_job_for_the_current_document_takes_a_panel_still_bound_to_an_older_one()
+    {
+        //Arrange — the shape the Score Wizard makes: the panel is still bound to
+        //the document that was open before, because the new one had nothing to
+        //show when it became current.
+        var previous = new EditorDocument();
+        var current = new EditorDocument();
+
+        //Act
+        bool adopts = MusicViewPanel.AdoptsFinishedJob(current, previous, current);
+
+        //Assert
+        adopts.Should().BeTrue();
+    }
+
+    [Fact]
+    public void a_background_job_for_a_document_nobody_is_looking_at_leaves_the_panel_alone()
+    {
+        //Arrange
+        var shown = new EditorDocument();
+        var other = new EditorDocument();
+
+        //Act
+        bool adopts = MusicViewPanel.AdoptsFinishedJob(other, shown, shown);
+
+        //Assert
+        adopts.Should().BeFalse();
+    }
+}

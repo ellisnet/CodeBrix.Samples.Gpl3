@@ -107,6 +107,7 @@ public sealed class QuickInsertPanel : Panel
     private readonly SettingsStore _settings;
     private ComboBox _direction;
     private CheckBox _shorthands;
+    private Button _removeMenu;
 
     /// <summary>Creates the panel.</summary>
     /// <param name="settings">The settings store, or null.</param>
@@ -136,6 +137,13 @@ public sealed class QuickInsertPanel : Panel
 
     /// <summary>Gets whether short articulation forms are allowed.</summary>
     public bool AllowShorthands => _shorthands?.IsChecked ?? true;
+
+    /// <summary>
+    /// Gets or sets the "quick remove" commands, by their upstream kind —
+    /// what the Articulations header's Remove drop-down offers.
+    /// </summary>
+    public System.Collections.Generic.IReadOnlyDictionary<string, Commands.AppAction>
+        QuickRemove { get; set; }
 
     /// <inheritdoc/>
     public override string Title => I18n.Get("Quick Insert");
@@ -240,7 +248,7 @@ public sealed class QuickInsertPanel : Panel
         new QuickInsertTool(
             "spanners",
             I18n.Get("Spanners"),
-            I18n.Get("Slurs, spanners, etcetera."),
+            I18n.Get("Slurs, spanners, etc."),
             new[]
             {
                 Group(I18n.Get("Arpeggios"), string.Empty, new[]
@@ -281,7 +289,7 @@ public sealed class QuickInsertPanel : Panel
         new QuickInsertTool(
             "barlines",
             I18n.Get("Bar Lines"),
-            I18n.Get("Bar lines, breathing signs, etcetera."),
+            I18n.Get("Bar lines, breathing signs, etc."),
             new[]
             {
                 new QuickInsertGroup(
@@ -451,13 +459,56 @@ public sealed class QuickInsertPanel : Panel
         ToolTipService.SetToolTip(_shorthands, I18n.Get(
             "Use short notation for some articulations like staccato."));
 
+        //Upstream puts a drop-down beside the shorthands box holding the three
+        //"take these off again" commands, enabled only with a selection
+        //(quickinsert/articulations.py). All three commands were already here;
+        //nothing in this panel reached them.
+        _removeMenu = new Button
+        {
+            //Upstream's button is icon-only (`edit-clear'); there is no icon
+            //set here, so it carries a caption — the existing "&Remove" msgid,
+            //rather than a new one, because that is exactly the word.
+            Content = Shell.MenuBuilder.Display(I18n.Get("&Remove")),
+            VerticalAlignment = VerticalAlignment.Center,
+        };
+        ToolTipService.SetToolTip(_removeMenu, I18n.Get("Remove articulations etc."));
+        _removeMenu.Click += (_, _) => ShowRemoveMenu();
+
+        StackPanel right = new StackPanel
+        {
+            Orientation = Orientation.Horizontal,
+            Spacing = 6,
+        };
+        right.Children.Add(_shorthands);
+        right.Children.Add(_removeMenu);
+
         Grid.SetColumn(label, 0);
         Grid.SetColumn(_direction, 1);
-        Grid.SetColumn(_shorthands, 2);
+        Grid.SetColumn(right, 2);
         header.Children.Add(label);
         header.Children.Add(_direction);
-        header.Children.Add(_shorthands);
+        header.Children.Add(right);
         return header;
+    }
+
+    /// <summary>Drops the three "remove these" commands down.</summary>
+    /// <remarks>Upstream's <c>QToolButton</c> in <c>InstantPopup</c> mode. The
+    /// entries follow their commands' own enablement, which the window turns
+    /// on and off with the selection.</remarks>
+    private void ShowRemoveMenu()
+    {
+        if (QuickRemove == null || _removeMenu == null) { return; }
+
+        MenuFlyout flyout = new MenuFlyout();
+        foreach (var kind in new[] { "articulations", "ornaments", "instrument_scripts" })
+        {
+            if (QuickRemove.TryGetValue(kind, out var action))
+            {
+                flyout.Items.Add(Shell.MenuBuilder.ItemFor(action));
+            }
+        }
+
+        if (flyout.Items.Count > 0) { flyout.ShowAt(_removeMenu); }
     }
 
     /// <summary>

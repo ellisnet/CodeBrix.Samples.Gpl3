@@ -1,0 +1,3941 @@
+{
+ "cs": [
+  {
+   "answer": "&File",
+   "call": "gettext",
+   "message": "&File"
+  },
+  {
+   "answer": "Uložit",
+   "call": "gettext",
+   "message": "Save"
+  },
+  {
+   "answer": "Nastavení",
+   "call": "gettext",
+   "message": "Preferences"
+  },
+  {
+   "answer": "&Přiblížit",
+   "call": "gettext",
+   "message": "Zoom &In"
+  },
+  {
+   "answer": "Hudební editor pro LilyPond",
+   "call": "gettext",
+   "message": "A LilyPond Music Editor"
+  },
+  {
+   "answer": "Taktové čáry, značky pro dýchání atd.",
+   "call": "gettext",
+   "message": "Bar lines, breathing signs, etc."
+  },
+  {
+   "answer": "Původní &velikost",
+   "call": "gettext",
+   "message": "Original &Size"
+  },
+  {
+   "answer": "Zvláš&tní znaky",
+   "call": "gettext",
+   "message": "Special Charac&ters"
+  },
+  {
+   "answer": "Název:",
+   "call": "gettext",
+   "message": "Title:"
+  },
+  {
+   "answer": "Spravovat sezení",
+   "call": "gettext",
+   "message": "Manage Sessions"
+  },
+  {
+   "answer": "Převést",
+   "call": "gettext",
+   "message": "Transpose"
+  },
+  {
+   "answer": "Rozdělit spojovníkem text se slovy písně",
+   "call": "gettext",
+   "message": "Hyphenate Lyrics Text"
+  },
+  {
+   "answer": "LilyPort Log",
+   "call": "gettext",
+   "message": "LilyPort Log"
+  },
+  {
+   "answer": "A LilyPort Music Editor",
+   "call": "gettext",
+   "message": "A LilyPort Music Editor"
+  },
+  {
+   "answer": "Run LilyPort",
+   "call": "gettext",
+   "message": "Run LilyPort"
+  },
+  {
+   "answer": "OK",
+   "call": "pgettext",
+   "context": "QPlatformTheme",
+   "message": "OK"
+  },
+  {
+   "answer": "Zrušit",
+   "call": "pgettext",
+   "context": "QPlatformTheme",
+   "message": "Cancel"
+  },
+  {
+   "answer": "Obnovit výchozí hodnoty",
+   "call": "pgettext",
+   "context": "QPlatformTheme",
+   "message": "Restore Defaults"
+  },
+  {
+   "answer": "Uložit",
+   "call": "pgettext",
+   "context": "QDialogButtonBox",
+   "message": "Save"
+  },
+  {
+   "answer": "&Soubor",
+   "call": "pgettext",
+   "context": "menu title",
+   "message": "&File"
+  },
+  {
+   "answer": "&LilyPond",
+   "call": "pgettext",
+   "context": "menu title",
+   "message": "&LilyPond"
+  },
+  {
+   "answer": "&Export",
+   "call": "pgettext",
+   "context": "submenu title",
+   "message": "&Export"
+  },
+  {
+   "answer": "Zavřít dokument",
+   "call": "pgettext",
+   "context": "dialog title",
+   "message": "Close Document"
+  },
+  {
+   "answer": "&Nové...",
+   "call": "pgettext",
+   "context": "New Session",
+   "message": "&New..."
+  },
+  {
+   "answer": "Syn.Bs.",
+   "call": "pgettext",
+   "context": "abbreviation for Synth bass",
+   "message": "Syn.Bs."
+  },
+  {
+   "answer": "&LilyPort",
+   "call": "pgettext",
+   "context": "menu title",
+   "message": "&LilyPort"
+  },
+  {
+   "answer": "Uložte, prosím, dokumenty pomocí dialogu \"Uložit jako...\".",
+   "call": "ngettext",
+   "context": null,
+   "count": 0,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Uložte, prosím, dokument pomocí dialogu \"Uložit jako...\".",
+   "call": "ngettext",
+   "context": null,
+   "count": 1,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Uložte, prosím, dokumenty pomocí dialogu \"Uložit jako...\".",
+   "call": "ngettext",
+   "context": null,
+   "count": 2,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Uložte, prosím, dokumenty pomocí dialogu \"Uložit jako...\".",
+   "call": "ngettext",
+   "context": null,
+   "count": 3,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Uložte, prosím, dokumenty pomocí dialogu \"Uložit jako...\".",
+   "call": "ngettext",
+   "context": null,
+   "count": 5,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Uložte, prosím, dokumenty pomocí dialogu \"Uložit jako...\".",
+   "call": "ngettext",
+   "context": null,
+   "count": 11,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Uložte, prosím, dokumenty pomocí dialogu \"Uložit jako...\".",
+   "call": "ngettext",
+   "context": null,
+   "count": 21,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Uložte, prosím, dokumenty pomocí dialogu \"Uložit jako...\".",
+   "call": "ngettext",
+   "context": null,
+   "count": 22,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Uložte, prosím, dokumenty pomocí dialogu \"Uložit jako...\".",
+   "call": "ngettext",
+   "context": null,
+   "count": 101,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Uložte, prosím, dokumenty pomocí dialogu \"Uložit jako...\".",
+   "call": "ngettext",
+   "context": null,
+   "count": 111,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Vyvést {num}úryvků",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 0,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  },
+  {
+   "answer": "Vyvést {num} úryvek",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 1,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  },
+  {
+   "answer": "Vyvést {num}úryvky",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 2,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  },
+  {
+   "answer": "Vyvést {num}úryvky",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 3,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  },
+  {
+   "answer": "Vyvést {num}úryvků",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 5,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  },
+  {
+   "answer": "Vyvést {num}úryvků",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 11,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  },
+  {
+   "answer": "Vyvést {num}úryvků",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 21,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  },
+  {
+   "answer": "Vyvést {num}úryvků",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 22,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  },
+  {
+   "answer": "Vyvést {num}úryvků",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 101,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  },
+  {
+   "answer": "Vyvést {num}úryvků",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 111,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  }
+ ],
+ "de": [
+  {
+   "answer": "&File",
+   "call": "gettext",
+   "message": "&File"
+  },
+  {
+   "answer": "Speichern",
+   "call": "gettext",
+   "message": "Save"
+  },
+  {
+   "answer": "Einstellungen",
+   "call": "gettext",
+   "message": "Preferences"
+  },
+  {
+   "answer": "Ver&größern",
+   "call": "gettext",
+   "message": "Zoom &In"
+  },
+  {
+   "answer": "Ein Noten-Editor für LilyPond",
+   "call": "gettext",
+   "message": "A LilyPond Music Editor"
+  },
+  {
+   "answer": "Taktstriche, Atemzeichen usw.",
+   "call": "gettext",
+   "message": "Bar lines, breathing signs, etc."
+  },
+  {
+   "answer": "&Originalgröße",
+   "call": "gettext",
+   "message": "Original &Size"
+  },
+  {
+   "answer": "Sonder&zeichen",
+   "call": "gettext",
+   "message": "Special Charac&ters"
+  },
+  {
+   "answer": "Titel:",
+   "call": "gettext",
+   "message": "Title:"
+  },
+  {
+   "answer": "Sitzungen verwalten",
+   "call": "gettext",
+   "message": "Manage Sessions"
+  },
+  {
+   "answer": "Transponieren",
+   "call": "gettext",
+   "message": "Transpose"
+  },
+  {
+   "answer": "Trennungsstriche in Liedtext einfügen",
+   "call": "gettext",
+   "message": "Hyphenate Lyrics Text"
+  },
+  {
+   "answer": "LilyPort Log",
+   "call": "gettext",
+   "message": "LilyPort Log"
+  },
+  {
+   "answer": "A LilyPort Music Editor",
+   "call": "gettext",
+   "message": "A LilyPort Music Editor"
+  },
+  {
+   "answer": "Run LilyPort",
+   "call": "gettext",
+   "message": "Run LilyPort"
+  },
+  {
+   "answer": "OK",
+   "call": "pgettext",
+   "context": "QPlatformTheme",
+   "message": "OK"
+  },
+  {
+   "answer": "Abbrechen",
+   "call": "pgettext",
+   "context": "QPlatformTheme",
+   "message": "Cancel"
+  },
+  {
+   "answer": "&Standardeinstellungen wiederherstellen",
+   "call": "pgettext",
+   "context": "QPlatformTheme",
+   "message": "Restore Defaults"
+  },
+  {
+   "answer": "Speichern",
+   "call": "pgettext",
+   "context": "QDialogButtonBox",
+   "message": "Save"
+  },
+  {
+   "answer": "&Datei",
+   "call": "pgettext",
+   "context": "menu title",
+   "message": "&File"
+  },
+  {
+   "answer": "&LilyPond",
+   "call": "pgettext",
+   "context": "menu title",
+   "message": "&LilyPond"
+  },
+  {
+   "answer": "&Export",
+   "call": "pgettext",
+   "context": "submenu title",
+   "message": "&Export"
+  },
+  {
+   "answer": "Dokument schließen",
+   "call": "pgettext",
+   "context": "dialog title",
+   "message": "Close Document"
+  },
+  {
+   "answer": "&Neu...",
+   "call": "pgettext",
+   "context": "New Session",
+   "message": "&New..."
+  },
+  {
+   "answer": "Syn.Bs.",
+   "call": "pgettext",
+   "context": "abbreviation for Synth bass",
+   "message": "Syn.Bs."
+  },
+  {
+   "answer": "&LilyPort",
+   "call": "pgettext",
+   "context": "menu title",
+   "message": "&LilyPort"
+  },
+  {
+   "answer": "Bitte die Dokumente mit \"Speichern unter...\" sichern.",
+   "call": "ngettext",
+   "context": null,
+   "count": 0,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Bitte das Dokument mit \"Speichern unter...\" sichern.",
+   "call": "ngettext",
+   "context": null,
+   "count": 1,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Bitte die Dokumente mit \"Speichern unter...\" sichern.",
+   "call": "ngettext",
+   "context": null,
+   "count": 2,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Bitte die Dokumente mit \"Speichern unter...\" sichern.",
+   "call": "ngettext",
+   "context": null,
+   "count": 3,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Bitte die Dokumente mit \"Speichern unter...\" sichern.",
+   "call": "ngettext",
+   "context": null,
+   "count": 5,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Bitte die Dokumente mit \"Speichern unter...\" sichern.",
+   "call": "ngettext",
+   "context": null,
+   "count": 11,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Bitte die Dokumente mit \"Speichern unter...\" sichern.",
+   "call": "ngettext",
+   "context": null,
+   "count": 21,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Bitte die Dokumente mit \"Speichern unter...\" sichern.",
+   "call": "ngettext",
+   "context": null,
+   "count": 22,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Bitte die Dokumente mit \"Speichern unter...\" sichern.",
+   "call": "ngettext",
+   "context": null,
+   "count": 101,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Bitte die Dokumente mit \"Speichern unter...\" sichern.",
+   "call": "ngettext",
+   "context": null,
+   "count": 111,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Exportiere {num} Schnipsel",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 0,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  },
+  {
+   "answer": "Schnipsel {num} exportieren",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 1,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  },
+  {
+   "answer": "Exportiere {num} Schnipsel",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 2,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  },
+  {
+   "answer": "Exportiere {num} Schnipsel",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 3,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  },
+  {
+   "answer": "Exportiere {num} Schnipsel",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 5,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  },
+  {
+   "answer": "Exportiere {num} Schnipsel",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 11,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  },
+  {
+   "answer": "Exportiere {num} Schnipsel",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 21,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  },
+  {
+   "answer": "Exportiere {num} Schnipsel",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 22,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  },
+  {
+   "answer": "Exportiere {num} Schnipsel",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 101,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  },
+  {
+   "answer": "Exportiere {num} Schnipsel",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 111,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  }
+ ],
+ "es": [
+  {
+   "answer": "&File",
+   "call": "gettext",
+   "message": "&File"
+  },
+  {
+   "answer": "Guardar",
+   "call": "gettext",
+   "message": "Save"
+  },
+  {
+   "answer": "Preferencias",
+   "call": "gettext",
+   "message": "Preferences"
+  },
+  {
+   "answer": "A&cercar",
+   "call": "gettext",
+   "message": "Zoom &In"
+  },
+  {
+   "answer": "Editor de música para LilyPond",
+   "call": "gettext",
+   "message": "A LilyPond Music Editor"
+  },
+  {
+   "answer": "Barras de compás, sisnos de respiración, etc.",
+   "call": "gettext",
+   "message": "Bar lines, breathing signs, etc."
+  },
+  {
+   "answer": "Tamaño &original",
+   "call": "gettext",
+   "message": "Original &Size"
+  },
+  {
+   "answer": "Carac&teres especiales",
+   "call": "gettext",
+   "message": "Special Charac&ters"
+  },
+  {
+   "answer": "Título:",
+   "call": "gettext",
+   "message": "Title:"
+  },
+  {
+   "answer": "Gestionar sesiones",
+   "call": "gettext",
+   "message": "Manage Sessions"
+  },
+  {
+   "answer": "Transportar",
+   "call": "gettext",
+   "message": "Transpose"
+  },
+  {
+   "answer": "Enguionar el texto de la letra",
+   "call": "gettext",
+   "message": "Hyphenate Lyrics Text"
+  },
+  {
+   "answer": "LilyPort Log",
+   "call": "gettext",
+   "message": "LilyPort Log"
+  },
+  {
+   "answer": "A LilyPort Music Editor",
+   "call": "gettext",
+   "message": "A LilyPort Music Editor"
+  },
+  {
+   "answer": "Run LilyPort",
+   "call": "gettext",
+   "message": "Run LilyPort"
+  },
+  {
+   "answer": "OK",
+   "call": "pgettext",
+   "context": "QPlatformTheme",
+   "message": "OK"
+  },
+  {
+   "answer": "Cancel",
+   "call": "pgettext",
+   "context": "QPlatformTheme",
+   "message": "Cancel"
+  },
+  {
+   "answer": "Restore Defaults",
+   "call": "pgettext",
+   "context": "QPlatformTheme",
+   "message": "Restore Defaults"
+  },
+  {
+   "answer": "Guardar",
+   "call": "pgettext",
+   "context": "QDialogButtonBox",
+   "message": "Save"
+  },
+  {
+   "answer": "&Archivo",
+   "call": "pgettext",
+   "context": "menu title",
+   "message": "&File"
+  },
+  {
+   "answer": "&LilyPond",
+   "call": "pgettext",
+   "context": "menu title",
+   "message": "&LilyPond"
+  },
+  {
+   "answer": "&Export",
+   "call": "pgettext",
+   "context": "submenu title",
+   "message": "&Export"
+  },
+  {
+   "answer": "Cerrar el documento",
+   "call": "pgettext",
+   "context": "dialog title",
+   "message": "Close Document"
+  },
+  {
+   "answer": "&Nuevo...",
+   "call": "pgettext",
+   "context": "New Session",
+   "message": "&New..."
+  },
+  {
+   "answer": "Syn.Bs.",
+   "call": "pgettext",
+   "context": "abbreviation for Synth bass",
+   "message": "Syn.Bs."
+  },
+  {
+   "answer": "&LilyPort",
+   "call": "pgettext",
+   "context": "menu title",
+   "message": "&LilyPort"
+  },
+  {
+   "answer": "Guarde los documentos mediante el diálogo \"Guardar como...\".",
+   "call": "ngettext",
+   "context": null,
+   "count": 0,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Guarde el documento mediante el diálogo \"Guardar como...\".",
+   "call": "ngettext",
+   "context": null,
+   "count": 1,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Guarde los documentos mediante el diálogo \"Guardar como...\".",
+   "call": "ngettext",
+   "context": null,
+   "count": 2,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Guarde los documentos mediante el diálogo \"Guardar como...\".",
+   "call": "ngettext",
+   "context": null,
+   "count": 3,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Guarde los documentos mediante el diálogo \"Guardar como...\".",
+   "call": "ngettext",
+   "context": null,
+   "count": 5,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Guarde los documentos mediante el diálogo \"Guardar como...\".",
+   "call": "ngettext",
+   "context": null,
+   "count": 11,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Guarde los documentos mediante el diálogo \"Guardar como...\".",
+   "call": "ngettext",
+   "context": null,
+   "count": 21,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Guarde los documentos mediante el diálogo \"Guardar como...\".",
+   "call": "ngettext",
+   "context": null,
+   "count": 22,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Guarde los documentos mediante el diálogo \"Guardar como...\".",
+   "call": "ngettext",
+   "context": null,
+   "count": 101,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Guarde los documentos mediante el diálogo \"Guardar como...\".",
+   "call": "ngettext",
+   "context": null,
+   "count": 111,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Exportar {num} fragmentos",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 0,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  },
+  {
+   "answer": "Exportar {num} fragmento",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 1,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  },
+  {
+   "answer": "Exportar {num} fragmentos",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 2,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  },
+  {
+   "answer": "Exportar {num} fragmentos",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 3,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  },
+  {
+   "answer": "Exportar {num} fragmentos",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 5,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  },
+  {
+   "answer": "Exportar {num} fragmentos",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 11,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  },
+  {
+   "answer": "Exportar {num} fragmentos",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 21,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  },
+  {
+   "answer": "Exportar {num} fragmentos",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 22,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  },
+  {
+   "answer": "Exportar {num} fragmentos",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 101,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  },
+  {
+   "answer": "Exportar {num} fragmentos",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 111,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  }
+ ],
+ "fr": [
+  {
+   "answer": "&File",
+   "call": "gettext",
+   "message": "&File"
+  },
+  {
+   "answer": "Enregistrer",
+   "call": "gettext",
+   "message": "Save"
+  },
+  {
+   "answer": "Préférences",
+   "call": "gettext",
+   "message": "Preferences"
+  },
+  {
+   "answer": "Zoom avant",
+   "call": "gettext",
+   "message": "Zoom &In"
+  },
+  {
+   "answer": "Un éditeur de partitions pour LilyPond",
+   "call": "gettext",
+   "message": "A LilyPond Music Editor"
+  },
+  {
+   "answer": "Barres de mesure, respirations, etc.",
+   "call": "gettext",
+   "message": "Bar lines, breathing signs, etc."
+  },
+  {
+   "answer": "Taille originale",
+   "call": "gettext",
+   "message": "Original &Size"
+  },
+  {
+   "answer": "Caractères spéciaux",
+   "call": "gettext",
+   "message": "Special Charac&ters"
+  },
+  {
+   "answer": "Titre :",
+   "call": "gettext",
+   "message": "Title:"
+  },
+  {
+   "answer": "Gérer les Sessions",
+   "call": "gettext",
+   "message": "Manage Sessions"
+  },
+  {
+   "answer": "Transposer",
+   "call": "gettext",
+   "message": "Transpose"
+  },
+  {
+   "answer": "Séparer les syllabes des paroles (césure)",
+   "call": "gettext",
+   "message": "Hyphenate Lyrics Text"
+  },
+  {
+   "answer": "LilyPort Log",
+   "call": "gettext",
+   "message": "LilyPort Log"
+  },
+  {
+   "answer": "A LilyPort Music Editor",
+   "call": "gettext",
+   "message": "A LilyPort Music Editor"
+  },
+  {
+   "answer": "Run LilyPort",
+   "call": "gettext",
+   "message": "Run LilyPort"
+  },
+  {
+   "answer": "OK",
+   "call": "pgettext",
+   "context": "QPlatformTheme",
+   "message": "OK"
+  },
+  {
+   "answer": "Annuler",
+   "call": "pgettext",
+   "context": "QPlatformTheme",
+   "message": "Cancel"
+  },
+  {
+   "answer": "Rétablir les valeurs par défaut",
+   "call": "pgettext",
+   "context": "QPlatformTheme",
+   "message": "Restore Defaults"
+  },
+  {
+   "answer": "Enregistrer",
+   "call": "pgettext",
+   "context": "QDialogButtonBox",
+   "message": "Save"
+  },
+  {
+   "answer": "Fichier",
+   "call": "pgettext",
+   "context": "menu title",
+   "message": "&File"
+  },
+  {
+   "answer": "LilyPond",
+   "call": "pgettext",
+   "context": "menu title",
+   "message": "&LilyPond"
+  },
+  {
+   "answer": "&Export",
+   "call": "pgettext",
+   "context": "submenu title",
+   "message": "&Export"
+  },
+  {
+   "answer": "Fermer le document",
+   "call": "pgettext",
+   "context": "dialog title",
+   "message": "Close Document"
+  },
+  {
+   "answer": "&Nouvelle session...",
+   "call": "pgettext",
+   "context": "New Session",
+   "message": "&New..."
+  },
+  {
+   "answer": "Syn.Bs.",
+   "call": "pgettext",
+   "context": "abbreviation for Synth bass",
+   "message": "Syn.Bs."
+  },
+  {
+   "answer": "&LilyPort",
+   "call": "pgettext",
+   "context": "menu title",
+   "message": "&LilyPort"
+  },
+  {
+   "answer": "Veuillez enregistrer le document en utilisant la boîte de dialogue « Enregistrer sous... ».",
+   "call": "ngettext",
+   "context": null,
+   "count": 0,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Veuillez enregistrer le document en utilisant la boîte de dialogue « Enregistrer sous... ».",
+   "call": "ngettext",
+   "context": null,
+   "count": 1,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Veuillez enregistrer les documents en utilisant la boîte de dialogue « Enregistrer sous... ».",
+   "call": "ngettext",
+   "context": null,
+   "count": 2,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Veuillez enregistrer les documents en utilisant la boîte de dialogue « Enregistrer sous... ».",
+   "call": "ngettext",
+   "context": null,
+   "count": 3,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Veuillez enregistrer les documents en utilisant la boîte de dialogue « Enregistrer sous... ».",
+   "call": "ngettext",
+   "context": null,
+   "count": 5,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Veuillez enregistrer les documents en utilisant la boîte de dialogue « Enregistrer sous... ».",
+   "call": "ngettext",
+   "context": null,
+   "count": 11,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Veuillez enregistrer les documents en utilisant la boîte de dialogue « Enregistrer sous... ».",
+   "call": "ngettext",
+   "context": null,
+   "count": 21,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Veuillez enregistrer les documents en utilisant la boîte de dialogue « Enregistrer sous... ».",
+   "call": "ngettext",
+   "context": null,
+   "count": 22,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Veuillez enregistrer les documents en utilisant la boîte de dialogue « Enregistrer sous... ».",
+   "call": "ngettext",
+   "context": null,
+   "count": 101,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Veuillez enregistrer les documents en utilisant la boîte de dialogue « Enregistrer sous... ».",
+   "call": "ngettext",
+   "context": null,
+   "count": 111,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Exporter {num} fragment",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 0,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  },
+  {
+   "answer": "Exporter {num} fragment",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 1,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  },
+  {
+   "answer": "Exporter {num} fragments",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 2,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  },
+  {
+   "answer": "Exporter {num} fragments",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 3,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  },
+  {
+   "answer": "Exporter {num} fragments",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 5,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  },
+  {
+   "answer": "Exporter {num} fragments",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 11,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  },
+  {
+   "answer": "Exporter {num} fragments",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 21,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  },
+  {
+   "answer": "Exporter {num} fragments",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 22,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  },
+  {
+   "answer": "Exporter {num} fragments",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 101,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  },
+  {
+   "answer": "Exporter {num} fragments",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 111,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  }
+ ],
+ "gl": [
+  {
+   "answer": "&File",
+   "call": "gettext",
+   "message": "&File"
+  },
+  {
+   "answer": "Save",
+   "call": "gettext",
+   "message": "Save"
+  },
+  {
+   "answer": "Preferences",
+   "call": "gettext",
+   "message": "Preferences"
+  },
+  {
+   "answer": "Zoom &In",
+   "call": "gettext",
+   "message": "Zoom &In"
+  },
+  {
+   "answer": "A LilyPond Music Editor",
+   "call": "gettext",
+   "message": "A LilyPond Music Editor"
+  },
+  {
+   "answer": "Barras de compás, signos de respiración, etc.",
+   "call": "gettext",
+   "message": "Bar lines, breathing signs, etc."
+  },
+  {
+   "answer": "Original &Size",
+   "call": "gettext",
+   "message": "Original &Size"
+  },
+  {
+   "answer": "Special Charac&ters",
+   "call": "gettext",
+   "message": "Special Charac&ters"
+  },
+  {
+   "answer": "Title:",
+   "call": "gettext",
+   "message": "Title:"
+  },
+  {
+   "answer": "Xestionar sesións",
+   "call": "gettext",
+   "message": "Manage Sessions"
+  },
+  {
+   "answer": "Transportar",
+   "call": "gettext",
+   "message": "Transpose"
+  },
+  {
+   "answer": "Guionizar o texto da letra",
+   "call": "gettext",
+   "message": "Hyphenate Lyrics Text"
+  },
+  {
+   "answer": "LilyPort Log",
+   "call": "gettext",
+   "message": "LilyPort Log"
+  },
+  {
+   "answer": "A LilyPort Music Editor",
+   "call": "gettext",
+   "message": "A LilyPort Music Editor"
+  },
+  {
+   "answer": "Run LilyPort",
+   "call": "gettext",
+   "message": "Run LilyPort"
+  },
+  {
+   "answer": "OK",
+   "call": "pgettext",
+   "context": "QPlatformTheme",
+   "message": "OK"
+  },
+  {
+   "answer": "Cancel",
+   "call": "pgettext",
+   "context": "QPlatformTheme",
+   "message": "Cancel"
+  },
+  {
+   "answer": "Restore Defaults",
+   "call": "pgettext",
+   "context": "QPlatformTheme",
+   "message": "Restore Defaults"
+  },
+  {
+   "answer": "Save",
+   "call": "pgettext",
+   "context": "QDialogButtonBox",
+   "message": "Save"
+  },
+  {
+   "answer": "&File",
+   "call": "pgettext",
+   "context": "menu title",
+   "message": "&File"
+  },
+  {
+   "answer": "&LilyPond",
+   "call": "pgettext",
+   "context": "menu title",
+   "message": "&LilyPond"
+  },
+  {
+   "answer": "&Export",
+   "call": "pgettext",
+   "context": "submenu title",
+   "message": "&Export"
+  },
+  {
+   "answer": "Close Document",
+   "call": "pgettext",
+   "context": "dialog title",
+   "message": "Close Document"
+  },
+  {
+   "answer": "&New...",
+   "call": "pgettext",
+   "context": "New Session",
+   "message": "&New..."
+  },
+  {
+   "answer": "Syn.Bs.",
+   "call": "pgettext",
+   "context": "abbreviation for Synth bass",
+   "message": "Syn.Bs."
+  },
+  {
+   "answer": "&LilyPort",
+   "call": "pgettext",
+   "context": "menu title",
+   "message": "&LilyPort"
+  },
+  {
+   "answer": "Please save the documents using the \"Save As...\" dialog.",
+   "call": "ngettext",
+   "context": null,
+   "count": 0,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Please save the document using the \"Save As...\" dialog.",
+   "call": "ngettext",
+   "context": null,
+   "count": 1,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Please save the documents using the \"Save As...\" dialog.",
+   "call": "ngettext",
+   "context": null,
+   "count": 2,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Please save the documents using the \"Save As...\" dialog.",
+   "call": "ngettext",
+   "context": null,
+   "count": 3,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Please save the documents using the \"Save As...\" dialog.",
+   "call": "ngettext",
+   "context": null,
+   "count": 5,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Please save the documents using the \"Save As...\" dialog.",
+   "call": "ngettext",
+   "context": null,
+   "count": 11,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Please save the documents using the \"Save As...\" dialog.",
+   "call": "ngettext",
+   "context": null,
+   "count": 21,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Please save the documents using the \"Save As...\" dialog.",
+   "call": "ngettext",
+   "context": null,
+   "count": 22,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Please save the documents using the \"Save As...\" dialog.",
+   "call": "ngettext",
+   "context": null,
+   "count": 101,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Please save the documents using the \"Save As...\" dialog.",
+   "call": "ngettext",
+   "context": null,
+   "count": 111,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Export {num} Snippets",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 0,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  },
+  {
+   "answer": "Export {num} Snippet",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 1,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  },
+  {
+   "answer": "Export {num} Snippets",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 2,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  },
+  {
+   "answer": "Export {num} Snippets",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 3,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  },
+  {
+   "answer": "Export {num} Snippets",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 5,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  },
+  {
+   "answer": "Export {num} Snippets",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 11,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  },
+  {
+   "answer": "Export {num} Snippets",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 21,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  },
+  {
+   "answer": "Export {num} Snippets",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 22,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  },
+  {
+   "answer": "Export {num} Snippets",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 101,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  },
+  {
+   "answer": "Export {num} Snippets",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 111,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  }
+ ],
+ "it": [
+  {
+   "answer": "&File",
+   "call": "gettext",
+   "message": "&File"
+  },
+  {
+   "answer": "Salva",
+   "call": "gettext",
+   "message": "Save"
+  },
+  {
+   "answer": "Preferenze",
+   "call": "gettext",
+   "message": "Preferences"
+  },
+  {
+   "answer": "&Aumenta zoom",
+   "call": "gettext",
+   "message": "Zoom &In"
+  },
+  {
+   "answer": "Editor musicale per LilyPond",
+   "call": "gettext",
+   "message": "A LilyPond Music Editor"
+  },
+  {
+   "answer": "Stanghette, respiri e altro.",
+   "call": "gettext",
+   "message": "Bar lines, breathing signs, etc."
+  },
+  {
+   "answer": "Dimensione &originale",
+   "call": "gettext",
+   "message": "Original &Size"
+  },
+  {
+   "answer": "Cara&tteri speciali",
+   "call": "gettext",
+   "message": "Special Charac&ters"
+  },
+  {
+   "answer": "Titolo:",
+   "call": "gettext",
+   "message": "Title:"
+  },
+  {
+   "answer": "Gestione sessioni",
+   "call": "gettext",
+   "message": "Manage Sessions"
+  },
+  {
+   "answer": "Trasporre",
+   "call": "gettext",
+   "message": "Transpose"
+  },
+  {
+   "answer": "Dividi in sillabe le parole",
+   "call": "gettext",
+   "message": "Hyphenate Lyrics Text"
+  },
+  {
+   "answer": "LilyPort Log",
+   "call": "gettext",
+   "message": "LilyPort Log"
+  },
+  {
+   "answer": "A LilyPort Music Editor",
+   "call": "gettext",
+   "message": "A LilyPort Music Editor"
+  },
+  {
+   "answer": "Run LilyPort",
+   "call": "gettext",
+   "message": "Run LilyPort"
+  },
+  {
+   "answer": "OK",
+   "call": "pgettext",
+   "context": "QPlatformTheme",
+   "message": "OK"
+  },
+  {
+   "answer": "Annulla",
+   "call": "pgettext",
+   "context": "QPlatformTheme",
+   "message": "Cancel"
+  },
+  {
+   "answer": "Ripristina valori predefiniti",
+   "call": "pgettext",
+   "context": "QPlatformTheme",
+   "message": "Restore Defaults"
+  },
+  {
+   "answer": "Salva",
+   "call": "pgettext",
+   "context": "QDialogButtonBox",
+   "message": "Save"
+  },
+  {
+   "answer": "&File",
+   "call": "pgettext",
+   "context": "menu title",
+   "message": "&File"
+  },
+  {
+   "answer": "&LilyPond",
+   "call": "pgettext",
+   "context": "menu title",
+   "message": "&LilyPond"
+  },
+  {
+   "answer": "&Export",
+   "call": "pgettext",
+   "context": "submenu title",
+   "message": "&Export"
+  },
+  {
+   "answer": "Chiudi il documento",
+   "call": "pgettext",
+   "context": "dialog title",
+   "message": "Close Document"
+  },
+  {
+   "answer": "&Nuova...",
+   "call": "pgettext",
+   "context": "New Session",
+   "message": "&New..."
+  },
+  {
+   "answer": "Syn.Bs.",
+   "call": "pgettext",
+   "context": "abbreviation for Synth bass",
+   "message": "Syn.Bs."
+  },
+  {
+   "answer": "&LilyPort",
+   "call": "pgettext",
+   "context": "menu title",
+   "message": "&LilyPort"
+  },
+  {
+   "answer": "Salvare i documenti usando \"Salva come...\"",
+   "call": "ngettext",
+   "context": null,
+   "count": 0,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Salvare il documento usando \"Salva come...\"",
+   "call": "ngettext",
+   "context": null,
+   "count": 1,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Salvare i documenti usando \"Salva come...\"",
+   "call": "ngettext",
+   "context": null,
+   "count": 2,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Salvare i documenti usando \"Salva come...\"",
+   "call": "ngettext",
+   "context": null,
+   "count": 3,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Salvare i documenti usando \"Salva come...\"",
+   "call": "ngettext",
+   "context": null,
+   "count": 5,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Salvare i documenti usando \"Salva come...\"",
+   "call": "ngettext",
+   "context": null,
+   "count": 11,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Salvare i documenti usando \"Salva come...\"",
+   "call": "ngettext",
+   "context": null,
+   "count": 21,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Salvare i documenti usando \"Salva come...\"",
+   "call": "ngettext",
+   "context": null,
+   "count": 22,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Salvare i documenti usando \"Salva come...\"",
+   "call": "ngettext",
+   "context": null,
+   "count": 101,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Salvare i documenti usando \"Salva come...\"",
+   "call": "ngettext",
+   "context": null,
+   "count": 111,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Esporta {num} frammenti",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 0,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  },
+  {
+   "answer": "Esporta {num} frammento",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 1,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  },
+  {
+   "answer": "Esporta {num} frammenti",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 2,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  },
+  {
+   "answer": "Esporta {num} frammenti",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 3,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  },
+  {
+   "answer": "Esporta {num} frammenti",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 5,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  },
+  {
+   "answer": "Esporta {num} frammenti",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 11,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  },
+  {
+   "answer": "Esporta {num} frammenti",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 21,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  },
+  {
+   "answer": "Esporta {num} frammenti",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 22,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  },
+  {
+   "answer": "Esporta {num} frammenti",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 101,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  },
+  {
+   "answer": "Esporta {num} frammenti",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 111,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  }
+ ],
+ "nl": [
+  {
+   "answer": "&File",
+   "call": "gettext",
+   "message": "&File"
+  },
+  {
+   "answer": "Opslaan",
+   "call": "gettext",
+   "message": "Save"
+  },
+  {
+   "answer": "Voorkeuren",
+   "call": "gettext",
+   "message": "Preferences"
+  },
+  {
+   "answer": "&Inzoomen",
+   "call": "gettext",
+   "message": "Zoom &In"
+  },
+  {
+   "answer": "Een muziek-editor voor LilyPond",
+   "call": "gettext",
+   "message": "A LilyPond Music Editor"
+  },
+  {
+   "answer": "Maatstrepen, ademhalingstekens, etc.",
+   "call": "gettext",
+   "message": "Bar lines, breathing signs, etc."
+  },
+  {
+   "answer": "&Werkelijke grootte",
+   "call": "gettext",
+   "message": "Original &Size"
+  },
+  {
+   "answer": "Speciale &tekens",
+   "call": "gettext",
+   "message": "Special Charac&ters"
+  },
+  {
+   "answer": "Titel:",
+   "call": "gettext",
+   "message": "Title:"
+  },
+  {
+   "answer": "Sessies beheren",
+   "call": "gettext",
+   "message": "Manage Sessions"
+  },
+  {
+   "answer": "Transponeren",
+   "call": "gettext",
+   "message": "Transpose"
+  },
+  {
+   "answer": "Liedteksten afbreken",
+   "call": "gettext",
+   "message": "Hyphenate Lyrics Text"
+  },
+  {
+   "answer": "LilyPort Log",
+   "call": "gettext",
+   "message": "LilyPort Log"
+  },
+  {
+   "answer": "A LilyPort Music Editor",
+   "call": "gettext",
+   "message": "A LilyPort Music Editor"
+  },
+  {
+   "answer": "Run LilyPort",
+   "call": "gettext",
+   "message": "Run LilyPort"
+  },
+  {
+   "answer": "OK",
+   "call": "pgettext",
+   "context": "QPlatformTheme",
+   "message": "OK"
+  },
+  {
+   "answer": "Annuleren",
+   "call": "pgettext",
+   "context": "QPlatformTheme",
+   "message": "Cancel"
+  },
+  {
+   "answer": "Standaardwaarden terugzetten",
+   "call": "pgettext",
+   "context": "QPlatformTheme",
+   "message": "Restore Defaults"
+  },
+  {
+   "answer": "Opslaan",
+   "call": "pgettext",
+   "context": "QDialogButtonBox",
+   "message": "Save"
+  },
+  {
+   "answer": "&Bestand",
+   "call": "pgettext",
+   "context": "menu title",
+   "message": "&File"
+  },
+  {
+   "answer": "&LilyPond",
+   "call": "pgettext",
+   "context": "menu title",
+   "message": "&LilyPond"
+  },
+  {
+   "answer": "&Export",
+   "call": "pgettext",
+   "context": "submenu title",
+   "message": "&Export"
+  },
+  {
+   "answer": "Document sluiten",
+   "call": "pgettext",
+   "context": "dialog title",
+   "message": "Close Document"
+  },
+  {
+   "answer": "&Nieuw...",
+   "call": "pgettext",
+   "context": "New Session",
+   "message": "&New..."
+  },
+  {
+   "answer": "Syn.Bs.",
+   "call": "pgettext",
+   "context": "abbreviation for Synth bass",
+   "message": "Syn.Bs."
+  },
+  {
+   "answer": "&LilyPort",
+   "call": "pgettext",
+   "context": "menu title",
+   "message": "&LilyPort"
+  },
+  {
+   "answer": "Sla de documenten op met behulp van de \"Opslaan als...\" dialoog.",
+   "call": "ngettext",
+   "context": null,
+   "count": 0,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Sla het document op met behulp van de \"Opslaan als...\" dialoog.",
+   "call": "ngettext",
+   "context": null,
+   "count": 1,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Sla de documenten op met behulp van de \"Opslaan als...\" dialoog.",
+   "call": "ngettext",
+   "context": null,
+   "count": 2,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Sla de documenten op met behulp van de \"Opslaan als...\" dialoog.",
+   "call": "ngettext",
+   "context": null,
+   "count": 3,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Sla de documenten op met behulp van de \"Opslaan als...\" dialoog.",
+   "call": "ngettext",
+   "context": null,
+   "count": 5,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Sla de documenten op met behulp van de \"Opslaan als...\" dialoog.",
+   "call": "ngettext",
+   "context": null,
+   "count": 11,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Sla de documenten op met behulp van de \"Opslaan als...\" dialoog.",
+   "call": "ngettext",
+   "context": null,
+   "count": 21,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Sla de documenten op met behulp van de \"Opslaan als...\" dialoog.",
+   "call": "ngettext",
+   "context": null,
+   "count": 22,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Sla de documenten op met behulp van de \"Opslaan als...\" dialoog.",
+   "call": "ngettext",
+   "context": null,
+   "count": 101,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Sla de documenten op met behulp van de \"Opslaan als...\" dialoog.",
+   "call": "ngettext",
+   "context": null,
+   "count": 111,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "{num} Knipsels exporteren",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 0,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  },
+  {
+   "answer": "{num} Knipsel exporteren",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 1,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  },
+  {
+   "answer": "{num} Knipsels exporteren",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 2,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  },
+  {
+   "answer": "{num} Knipsels exporteren",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 3,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  },
+  {
+   "answer": "{num} Knipsels exporteren",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 5,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  },
+  {
+   "answer": "{num} Knipsels exporteren",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 11,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  },
+  {
+   "answer": "{num} Knipsels exporteren",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 21,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  },
+  {
+   "answer": "{num} Knipsels exporteren",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 22,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  },
+  {
+   "answer": "{num} Knipsels exporteren",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 101,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  },
+  {
+   "answer": "{num} Knipsels exporteren",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 111,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  }
+ ],
+ "pl": [
+  {
+   "answer": "&File",
+   "call": "gettext",
+   "message": "&File"
+  },
+  {
+   "answer": "Zapisz",
+   "call": "gettext",
+   "message": "Save"
+  },
+  {
+   "answer": "Ustawienia",
+   "call": "gettext",
+   "message": "Preferences"
+  },
+  {
+   "answer": "Pow&iększ",
+   "call": "gettext",
+   "message": "Zoom &In"
+  },
+  {
+   "answer": "Edytor nutowy LilyPond",
+   "call": "gettext",
+   "message": "A LilyPond Music Editor"
+  },
+  {
+   "answer": "Kreski taktowe, znaki oddechów itd.",
+   "call": "gettext",
+   "message": "Bar lines, breathing signs, etc."
+  },
+  {
+   "answer": "Ro&zmiar oryginalny",
+   "call": "gettext",
+   "message": "Original &Size"
+  },
+  {
+   "answer": "Znaki &specjalne",
+   "call": "gettext",
+   "message": "Special Charac&ters"
+  },
+  {
+   "answer": "Tytuł:",
+   "call": "gettext",
+   "message": "Title:"
+  },
+  {
+   "answer": "Zarządzaj sesjami",
+   "call": "gettext",
+   "message": "Manage Sessions"
+  },
+  {
+   "answer": "Transponuj",
+   "call": "gettext",
+   "message": "Transpose"
+  },
+  {
+   "answer": "Rozdziel tekst myślnikami",
+   "call": "gettext",
+   "message": "Hyphenate Lyrics Text"
+  },
+  {
+   "answer": "LilyPort Log",
+   "call": "gettext",
+   "message": "LilyPort Log"
+  },
+  {
+   "answer": "A LilyPort Music Editor",
+   "call": "gettext",
+   "message": "A LilyPort Music Editor"
+  },
+  {
+   "answer": "Run LilyPort",
+   "call": "gettext",
+   "message": "Run LilyPort"
+  },
+  {
+   "answer": "OK",
+   "call": "pgettext",
+   "context": "QPlatformTheme",
+   "message": "OK"
+  },
+  {
+   "answer": "Anuluj",
+   "call": "pgettext",
+   "context": "QPlatformTheme",
+   "message": "Cancel"
+  },
+  {
+   "answer": "Przywróć domyślne",
+   "call": "pgettext",
+   "context": "QPlatformTheme",
+   "message": "Restore Defaults"
+  },
+  {
+   "answer": "Zapisz",
+   "call": "pgettext",
+   "context": "QDialogButtonBox",
+   "message": "Save"
+  },
+  {
+   "answer": "&Plik",
+   "call": "pgettext",
+   "context": "menu title",
+   "message": "&File"
+  },
+  {
+   "answer": "&LilyPond",
+   "call": "pgettext",
+   "context": "menu title",
+   "message": "&LilyPond"
+  },
+  {
+   "answer": "&Export",
+   "call": "pgettext",
+   "context": "submenu title",
+   "message": "&Export"
+  },
+  {
+   "answer": "Zamknij dokument",
+   "call": "pgettext",
+   "context": "dialog title",
+   "message": "Close Document"
+  },
+  {
+   "answer": "&Nowa...",
+   "call": "pgettext",
+   "context": "New Session",
+   "message": "&New..."
+  },
+  {
+   "answer": "Syn.Bs.",
+   "call": "pgettext",
+   "context": "abbreviation for Synth bass",
+   "message": "Syn.Bs."
+  },
+  {
+   "answer": "&LilyPort",
+   "call": "pgettext",
+   "context": "menu title",
+   "message": "&LilyPort"
+  },
+  {
+   "answer": "Zapisz dokumenty, używając okna dialogowego \"Zapisz jako...\".",
+   "call": "ngettext",
+   "context": null,
+   "count": 0,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Zapisz dokument, używając okna dialogowego \"Zapisz jako...\".",
+   "call": "ngettext",
+   "context": null,
+   "count": 1,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Zapisz dokumenty, używając okna dialogowego \"Zapisz jako...\".",
+   "call": "ngettext",
+   "context": null,
+   "count": 2,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Zapisz dokumenty, używając okna dialogowego \"Zapisz jako...\".",
+   "call": "ngettext",
+   "context": null,
+   "count": 3,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Zapisz dokumenty, używając okna dialogowego \"Zapisz jako...\".",
+   "call": "ngettext",
+   "context": null,
+   "count": 5,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Zapisz dokumenty, używając okna dialogowego \"Zapisz jako...\".",
+   "call": "ngettext",
+   "context": null,
+   "count": 11,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Zapisz dokumenty, używając okna dialogowego \"Zapisz jako...\".",
+   "call": "ngettext",
+   "context": null,
+   "count": 21,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Zapisz dokumenty, używając okna dialogowego \"Zapisz jako...\".",
+   "call": "ngettext",
+   "context": null,
+   "count": 22,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Zapisz dokumenty, używając okna dialogowego \"Zapisz jako...\".",
+   "call": "ngettext",
+   "context": null,
+   "count": 101,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Zapisz dokumenty, używając okna dialogowego \"Zapisz jako...\".",
+   "call": "ngettext",
+   "context": null,
+   "count": 111,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Eksportuj {num} fragmentów kodu",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 0,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  },
+  {
+   "answer": "Eksportuj {num} fragment kodu",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 1,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  },
+  {
+   "answer": "Eksportuj {num} fragmenty kodu",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 2,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  },
+  {
+   "answer": "Eksportuj {num} fragmenty kodu",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 3,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  },
+  {
+   "answer": "Eksportuj {num} fragmentów kodu",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 5,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  },
+  {
+   "answer": "Eksportuj {num} fragmentów kodu",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 11,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  },
+  {
+   "answer": "Eksportuj {num} fragmentów kodu",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 21,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  },
+  {
+   "answer": "Eksportuj {num} fragmenty kodu",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 22,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  },
+  {
+   "answer": "Eksportuj {num} fragmentów kodu",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 101,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  },
+  {
+   "answer": "Eksportuj {num} fragmentów kodu",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 111,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  }
+ ],
+ "pt_BR": [
+  {
+   "answer": "&File",
+   "call": "gettext",
+   "message": "&File"
+  },
+  {
+   "answer": "Save",
+   "call": "gettext",
+   "message": "Save"
+  },
+  {
+   "answer": "Preferências",
+   "call": "gettext",
+   "message": "Preferences"
+  },
+  {
+   "answer": "M&enos Zoom",
+   "call": "gettext",
+   "message": "Zoom &In"
+  },
+  {
+   "answer": "Um Editor de música LilyPond",
+   "call": "gettext",
+   "message": "A LilyPond Music Editor"
+  },
+  {
+   "answer": "Bar lines, breathing signs, etc.",
+   "call": "gettext",
+   "message": "Bar lines, breathing signs, etc."
+  },
+  {
+   "answer": "Tamanho Orginal",
+   "call": "gettext",
+   "message": "Original &Size"
+  },
+  {
+   "answer": "Carac&teres Especiais",
+   "call": "gettext",
+   "message": "Special Charac&ters"
+  },
+  {
+   "answer": "Título",
+   "call": "gettext",
+   "message": "Title:"
+  },
+  {
+   "answer": "Gerenciar Sessões",
+   "call": "gettext",
+   "message": "Manage Sessions"
+  },
+  {
+   "answer": "Transporte",
+   "call": "gettext",
+   "message": "Transpose"
+  },
+  {
+   "answer": "Hifenizar Texto da Letra",
+   "call": "gettext",
+   "message": "Hyphenate Lyrics Text"
+  },
+  {
+   "answer": "LilyPort Log",
+   "call": "gettext",
+   "message": "LilyPort Log"
+  },
+  {
+   "answer": "A LilyPort Music Editor",
+   "call": "gettext",
+   "message": "A LilyPort Music Editor"
+  },
+  {
+   "answer": "Run LilyPort",
+   "call": "gettext",
+   "message": "Run LilyPort"
+  },
+  {
+   "answer": "OK",
+   "call": "pgettext",
+   "context": "QPlatformTheme",
+   "message": "OK"
+  },
+  {
+   "answer": "Cancel",
+   "call": "pgettext",
+   "context": "QPlatformTheme",
+   "message": "Cancel"
+  },
+  {
+   "answer": "Restore Defaults",
+   "call": "pgettext",
+   "context": "QPlatformTheme",
+   "message": "Restore Defaults"
+  },
+  {
+   "answer": "Salvar",
+   "call": "pgettext",
+   "context": "QDialogButtonBox",
+   "message": "Save"
+  },
+  {
+   "answer": "&Arquivo",
+   "call": "pgettext",
+   "context": "menu title",
+   "message": "&File"
+  },
+  {
+   "answer": "&LilyPond",
+   "call": "pgettext",
+   "context": "menu title",
+   "message": "&LilyPond"
+  },
+  {
+   "answer": "&Export",
+   "call": "pgettext",
+   "context": "submenu title",
+   "message": "&Export"
+  },
+  {
+   "answer": "Fechar Documento",
+   "call": "pgettext",
+   "context": "dialog title",
+   "message": "Close Document"
+  },
+  {
+   "answer": "&Nova...",
+   "call": "pgettext",
+   "context": "New Session",
+   "message": "&New..."
+  },
+  {
+   "answer": "Syn.Bs.",
+   "call": "pgettext",
+   "context": "abbreviation for Synth bass",
+   "message": "Syn.Bs."
+  },
+  {
+   "answer": "&LilyPort",
+   "call": "pgettext",
+   "context": "menu title",
+   "message": "&LilyPort"
+  },
+  {
+   "answer": "Please save the documents using the \"Save As...\" dialog.",
+   "call": "ngettext",
+   "context": null,
+   "count": 0,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Please save the document using the \"Save As...\" dialog.",
+   "call": "ngettext",
+   "context": null,
+   "count": 1,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Please save the documents using the \"Save As...\" dialog.",
+   "call": "ngettext",
+   "context": null,
+   "count": 2,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Please save the documents using the \"Save As...\" dialog.",
+   "call": "ngettext",
+   "context": null,
+   "count": 3,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Please save the documents using the \"Save As...\" dialog.",
+   "call": "ngettext",
+   "context": null,
+   "count": 5,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Please save the documents using the \"Save As...\" dialog.",
+   "call": "ngettext",
+   "context": null,
+   "count": 11,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Please save the documents using the \"Save As...\" dialog.",
+   "call": "ngettext",
+   "context": null,
+   "count": 21,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Please save the documents using the \"Save As...\" dialog.",
+   "call": "ngettext",
+   "context": null,
+   "count": 22,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Please save the documents using the \"Save As...\" dialog.",
+   "call": "ngettext",
+   "context": null,
+   "count": 101,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Please save the documents using the \"Save As...\" dialog.",
+   "call": "ngettext",
+   "context": null,
+   "count": 111,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Exportar {num} Fragmento",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 0,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  },
+  {
+   "answer": "Exportar {num} Fragmento",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 1,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  },
+  {
+   "answer": "Exportar {num} Trechos",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 2,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  },
+  {
+   "answer": "Exportar {num} Trechos",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 3,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  },
+  {
+   "answer": "Exportar {num} Trechos",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 5,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  },
+  {
+   "answer": "Exportar {num} Trechos",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 11,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  },
+  {
+   "answer": "Exportar {num} Trechos",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 21,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  },
+  {
+   "answer": "Exportar {num} Trechos",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 22,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  },
+  {
+   "answer": "Exportar {num} Trechos",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 101,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  },
+  {
+   "answer": "Exportar {num} Trechos",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 111,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  }
+ ],
+ "ru": [
+  {
+   "answer": "&File",
+   "call": "gettext",
+   "message": "&File"
+  },
+  {
+   "answer": "Сохранить",
+   "call": "gettext",
+   "message": "Save"
+  },
+  {
+   "answer": "Настройки",
+   "call": "gettext",
+   "message": "Preferences"
+  },
+  {
+   "answer": "Увеличить",
+   "call": "gettext",
+   "message": "Zoom &In"
+  },
+  {
+   "answer": "Редактор музыки для LilyPond",
+   "call": "gettext",
+   "message": "A LilyPond Music Editor"
+  },
+  {
+   "answer": "Тактовые черты, знаки дыхания и т. п.",
+   "call": "gettext",
+   "message": "Bar lines, breathing signs, etc."
+  },
+  {
+   "answer": "Первоначальный размер",
+   "call": "gettext",
+   "message": "Original &Size"
+  },
+  {
+   "answer": "Спе&цсимволы",
+   "call": "gettext",
+   "message": "Special Charac&ters"
+  },
+  {
+   "answer": "Название:",
+   "call": "gettext",
+   "message": "Title:"
+  },
+  {
+   "answer": "Управление сеансами",
+   "call": "gettext",
+   "message": "Manage Sessions"
+  },
+  {
+   "answer": "Транспонировать",
+   "call": "gettext",
+   "message": "Transpose"
+  },
+  {
+   "answer": "Разделить текст на слоги",
+   "call": "gettext",
+   "message": "Hyphenate Lyrics Text"
+  },
+  {
+   "answer": "LilyPort Log",
+   "call": "gettext",
+   "message": "LilyPort Log"
+  },
+  {
+   "answer": "A LilyPort Music Editor",
+   "call": "gettext",
+   "message": "A LilyPort Music Editor"
+  },
+  {
+   "answer": "Run LilyPort",
+   "call": "gettext",
+   "message": "Run LilyPort"
+  },
+  {
+   "answer": "OK",
+   "call": "pgettext",
+   "context": "QPlatformTheme",
+   "message": "OK"
+  },
+  {
+   "answer": "Отмена",
+   "call": "pgettext",
+   "context": "QPlatformTheme",
+   "message": "Cancel"
+  },
+  {
+   "answer": "По умолчанию",
+   "call": "pgettext",
+   "context": "QPlatformTheme",
+   "message": "Restore Defaults"
+  },
+  {
+   "answer": "Сохранить",
+   "call": "pgettext",
+   "context": "QDialogButtonBox",
+   "message": "Save"
+  },
+  {
+   "answer": "Файл",
+   "call": "pgettext",
+   "context": "menu title",
+   "message": "&File"
+  },
+  {
+   "answer": "&LilyPond",
+   "call": "pgettext",
+   "context": "menu title",
+   "message": "&LilyPond"
+  },
+  {
+   "answer": "&Export",
+   "call": "pgettext",
+   "context": "submenu title",
+   "message": "&Export"
+  },
+  {
+   "answer": "Закрыть документ",
+   "call": "pgettext",
+   "context": "dialog title",
+   "message": "Close Document"
+  },
+  {
+   "answer": "&Создать...",
+   "call": "pgettext",
+   "context": "New Session",
+   "message": "&New..."
+  },
+  {
+   "answer": "Syn.Bs.",
+   "call": "pgettext",
+   "context": "abbreviation for Synth bass",
+   "message": "Syn.Bs."
+  },
+  {
+   "answer": "&LilyPort",
+   "call": "pgettext",
+   "context": "menu title",
+   "message": "&LilyPort"
+  },
+  {
+   "answer": "Сохраните документы с помощью диалога «Сохранить как...».",
+   "call": "ngettext",
+   "context": null,
+   "count": 0,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Сохраните документ с помощью диалога «Сохранить как...».",
+   "call": "ngettext",
+   "context": null,
+   "count": 1,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Сохраните документы с помощью диалога «Сохранить как...».",
+   "call": "ngettext",
+   "context": null,
+   "count": 2,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Сохраните документы с помощью диалога «Сохранить как...».",
+   "call": "ngettext",
+   "context": null,
+   "count": 3,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Сохраните документы с помощью диалога «Сохранить как...».",
+   "call": "ngettext",
+   "context": null,
+   "count": 5,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Сохраните документы с помощью диалога «Сохранить как...».",
+   "call": "ngettext",
+   "context": null,
+   "count": 11,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Сохраните документ с помощью диалога «Сохранить как...».",
+   "call": "ngettext",
+   "context": null,
+   "count": 21,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Сохраните документы с помощью диалога «Сохранить как...».",
+   "call": "ngettext",
+   "context": null,
+   "count": 22,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Сохраните документ с помощью диалога «Сохранить как...».",
+   "call": "ngettext",
+   "context": null,
+   "count": 101,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Сохраните документы с помощью диалога «Сохранить как...».",
+   "call": "ngettext",
+   "context": null,
+   "count": 111,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Экспорт {num} сниппетов",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 0,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  },
+  {
+   "answer": "Экспорт {num} сниппета",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 1,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  },
+  {
+   "answer": "Экспорт {num} сниппетов",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 2,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  },
+  {
+   "answer": "Экспорт {num} сниппетов",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 3,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  },
+  {
+   "answer": "Экспорт {num} сниппетов",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 5,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  },
+  {
+   "answer": "Экспорт {num} сниппетов",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 11,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  },
+  {
+   "answer": "Экспорт {num} сниппета",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 21,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  },
+  {
+   "answer": "Экспорт {num} сниппетов",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 22,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  },
+  {
+   "answer": "Экспорт {num} сниппета",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 101,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  },
+  {
+   "answer": "Экспорт {num} сниппетов",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 111,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  }
+ ],
+ "sv": [
+  {
+   "answer": "&File",
+   "call": "gettext",
+   "message": "&File"
+  },
+  {
+   "answer": "Spara",
+   "call": "gettext",
+   "message": "Save"
+  },
+  {
+   "answer": "Inställningar",
+   "call": "gettext",
+   "message": "Preferences"
+  },
+  {
+   "answer": "Zooma &in",
+   "call": "gettext",
+   "message": "Zoom &In"
+  },
+  {
+   "answer": "En musikredigerare för LilyPond",
+   "call": "gettext",
+   "message": "A LilyPond Music Editor"
+  },
+  {
+   "answer": "Bar lines, breathing signs, etc.",
+   "call": "gettext",
+   "message": "Bar lines, breathing signs, etc."
+  },
+  {
+   "answer": "Ursprunglig &storlek",
+   "call": "gettext",
+   "message": "Original &Size"
+  },
+  {
+   "answer": "Special&tecken",
+   "call": "gettext",
+   "message": "Special Charac&ters"
+  },
+  {
+   "answer": "Namn:",
+   "call": "gettext",
+   "message": "Title:"
+  },
+  {
+   "answer": "Hantera sessioner",
+   "call": "gettext",
+   "message": "Manage Sessions"
+  },
+  {
+   "answer": "Transponera",
+   "call": "gettext",
+   "message": "Transpose"
+  },
+  {
+   "answer": "Avstava sångtext",
+   "call": "gettext",
+   "message": "Hyphenate Lyrics Text"
+  },
+  {
+   "answer": "LilyPort Log",
+   "call": "gettext",
+   "message": "LilyPort Log"
+  },
+  {
+   "answer": "A LilyPort Music Editor",
+   "call": "gettext",
+   "message": "A LilyPort Music Editor"
+  },
+  {
+   "answer": "Run LilyPort",
+   "call": "gettext",
+   "message": "Run LilyPort"
+  },
+  {
+   "answer": "OK",
+   "call": "pgettext",
+   "context": "QPlatformTheme",
+   "message": "OK"
+  },
+  {
+   "answer": "Avbryt",
+   "call": "pgettext",
+   "context": "QPlatformTheme",
+   "message": "Cancel"
+  },
+  {
+   "answer": "Restore Defaults",
+   "call": "pgettext",
+   "context": "QPlatformTheme",
+   "message": "Restore Defaults"
+  },
+  {
+   "answer": "Spara",
+   "call": "pgettext",
+   "context": "QDialogButtonBox",
+   "message": "Save"
+  },
+  {
+   "answer": "&Fil",
+   "call": "pgettext",
+   "context": "menu title",
+   "message": "&File"
+  },
+  {
+   "answer": "&LilyPond",
+   "call": "pgettext",
+   "context": "menu title",
+   "message": "&LilyPond"
+  },
+  {
+   "answer": "&Export",
+   "call": "pgettext",
+   "context": "submenu title",
+   "message": "&Export"
+  },
+  {
+   "answer": "Stäng dokument",
+   "call": "pgettext",
+   "context": "dialog title",
+   "message": "Close Document"
+  },
+  {
+   "answer": "&Ny...",
+   "call": "pgettext",
+   "context": "New Session",
+   "message": "&New..."
+  },
+  {
+   "answer": "Syn.Bs.",
+   "call": "pgettext",
+   "context": "abbreviation for Synth bass",
+   "message": "Syn.Bs."
+  },
+  {
+   "answer": "&LilyPort",
+   "call": "pgettext",
+   "context": "menu title",
+   "message": "&LilyPort"
+  },
+  {
+   "answer": "Spara dokumenten med dialogrutan \"Spara som...\".",
+   "call": "ngettext",
+   "context": null,
+   "count": 0,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Spara dokumentet med dialogrutan \"Spara som...\".",
+   "call": "ngettext",
+   "context": null,
+   "count": 1,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Spara dokumenten med dialogrutan \"Spara som...\".",
+   "call": "ngettext",
+   "context": null,
+   "count": 2,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Spara dokumenten med dialogrutan \"Spara som...\".",
+   "call": "ngettext",
+   "context": null,
+   "count": 3,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Spara dokumenten med dialogrutan \"Spara som...\".",
+   "call": "ngettext",
+   "context": null,
+   "count": 5,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Spara dokumenten med dialogrutan \"Spara som...\".",
+   "call": "ngettext",
+   "context": null,
+   "count": 11,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Spara dokumenten med dialogrutan \"Spara som...\".",
+   "call": "ngettext",
+   "context": null,
+   "count": 21,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Spara dokumenten med dialogrutan \"Spara som...\".",
+   "call": "ngettext",
+   "context": null,
+   "count": 22,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Spara dokumenten med dialogrutan \"Spara som...\".",
+   "call": "ngettext",
+   "context": null,
+   "count": 101,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Spara dokumenten med dialogrutan \"Spara som...\".",
+   "call": "ngettext",
+   "context": null,
+   "count": 111,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Exportera {num} kodsnuttar",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 0,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  },
+  {
+   "answer": "Exportera {num} kodsnutt",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 1,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  },
+  {
+   "answer": "Exportera {num} kodsnuttar",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 2,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  },
+  {
+   "answer": "Exportera {num} kodsnuttar",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 3,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  },
+  {
+   "answer": "Exportera {num} kodsnuttar",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 5,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  },
+  {
+   "answer": "Exportera {num} kodsnuttar",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 11,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  },
+  {
+   "answer": "Exportera {num} kodsnuttar",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 21,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  },
+  {
+   "answer": "Exportera {num} kodsnuttar",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 22,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  },
+  {
+   "answer": "Exportera {num} kodsnuttar",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 101,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  },
+  {
+   "answer": "Exportera {num} kodsnuttar",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 111,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  }
+ ],
+ "tr": [
+  {
+   "answer": "&File",
+   "call": "gettext",
+   "message": "&File"
+  },
+  {
+   "answer": "Save",
+   "call": "gettext",
+   "message": "Save"
+  },
+  {
+   "answer": "Preferences",
+   "call": "gettext",
+   "message": "Preferences"
+  },
+  {
+   "answer": "Zoom &In",
+   "call": "gettext",
+   "message": "Zoom &In"
+  },
+  {
+   "answer": "A LilyPond Music Editor",
+   "call": "gettext",
+   "message": "A LilyPond Music Editor"
+  },
+  {
+   "answer": "Ölçü çizgileri, nefes işaretleri, vesaire.",
+   "call": "gettext",
+   "message": "Bar lines, breathing signs, etc."
+  },
+  {
+   "answer": "Original &Size",
+   "call": "gettext",
+   "message": "Original &Size"
+  },
+  {
+   "answer": "Special Charac&ters",
+   "call": "gettext",
+   "message": "Special Charac&ters"
+  },
+  {
+   "answer": "Title:",
+   "call": "gettext",
+   "message": "Title:"
+  },
+  {
+   "answer": "Oturumları Düzenle",
+   "call": "gettext",
+   "message": "Manage Sessions"
+  },
+  {
+   "answer": "Aktarım",
+   "call": "gettext",
+   "message": "Transpose"
+  },
+  {
+   "answer": "Şarkı Sözleri Metnini Tirele",
+   "call": "gettext",
+   "message": "Hyphenate Lyrics Text"
+  },
+  {
+   "answer": "LilyPort Log",
+   "call": "gettext",
+   "message": "LilyPort Log"
+  },
+  {
+   "answer": "A LilyPort Music Editor",
+   "call": "gettext",
+   "message": "A LilyPort Music Editor"
+  },
+  {
+   "answer": "Run LilyPort",
+   "call": "gettext",
+   "message": "Run LilyPort"
+  },
+  {
+   "answer": "OK",
+   "call": "pgettext",
+   "context": "QPlatformTheme",
+   "message": "OK"
+  },
+  {
+   "answer": "Cancel",
+   "call": "pgettext",
+   "context": "QPlatformTheme",
+   "message": "Cancel"
+  },
+  {
+   "answer": "Restore Defaults",
+   "call": "pgettext",
+   "context": "QPlatformTheme",
+   "message": "Restore Defaults"
+  },
+  {
+   "answer": "Save",
+   "call": "pgettext",
+   "context": "QDialogButtonBox",
+   "message": "Save"
+  },
+  {
+   "answer": "&File",
+   "call": "pgettext",
+   "context": "menu title",
+   "message": "&File"
+  },
+  {
+   "answer": "&LilyPond",
+   "call": "pgettext",
+   "context": "menu title",
+   "message": "&LilyPond"
+  },
+  {
+   "answer": "&Export",
+   "call": "pgettext",
+   "context": "submenu title",
+   "message": "&Export"
+  },
+  {
+   "answer": "Close Document",
+   "call": "pgettext",
+   "context": "dialog title",
+   "message": "Close Document"
+  },
+  {
+   "answer": "&New...",
+   "call": "pgettext",
+   "context": "New Session",
+   "message": "&New..."
+  },
+  {
+   "answer": "Syn.Bs.",
+   "call": "pgettext",
+   "context": "abbreviation for Synth bass",
+   "message": "Syn.Bs."
+  },
+  {
+   "answer": "&LilyPort",
+   "call": "pgettext",
+   "context": "menu title",
+   "message": "&LilyPort"
+  },
+  {
+   "answer": "Please save the documents using the \"Save As...\" dialog.",
+   "call": "ngettext",
+   "context": null,
+   "count": 0,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Please save the document using the \"Save As...\" dialog.",
+   "call": "ngettext",
+   "context": null,
+   "count": 1,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Please save the documents using the \"Save As...\" dialog.",
+   "call": "ngettext",
+   "context": null,
+   "count": 2,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Please save the documents using the \"Save As...\" dialog.",
+   "call": "ngettext",
+   "context": null,
+   "count": 3,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Please save the documents using the \"Save As...\" dialog.",
+   "call": "ngettext",
+   "context": null,
+   "count": 5,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Please save the documents using the \"Save As...\" dialog.",
+   "call": "ngettext",
+   "context": null,
+   "count": 11,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Please save the documents using the \"Save As...\" dialog.",
+   "call": "ngettext",
+   "context": null,
+   "count": 21,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Please save the documents using the \"Save As...\" dialog.",
+   "call": "ngettext",
+   "context": null,
+   "count": 22,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Please save the documents using the \"Save As...\" dialog.",
+   "call": "ngettext",
+   "context": null,
+   "count": 101,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Please save the documents using the \"Save As...\" dialog.",
+   "call": "ngettext",
+   "context": null,
+   "count": 111,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Export {num} Snippets",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 0,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  },
+  {
+   "answer": "Export {num} Snippet",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 1,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  },
+  {
+   "answer": "Export {num} Snippets",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 2,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  },
+  {
+   "answer": "Export {num} Snippets",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 3,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  },
+  {
+   "answer": "Export {num} Snippets",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 5,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  },
+  {
+   "answer": "Export {num} Snippets",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 11,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  },
+  {
+   "answer": "Export {num} Snippets",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 21,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  },
+  {
+   "answer": "Export {num} Snippets",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 22,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  },
+  {
+   "answer": "Export {num} Snippets",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 101,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  },
+  {
+   "answer": "Export {num} Snippets",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 111,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  }
+ ],
+ "uk": [
+  {
+   "answer": "&File",
+   "call": "gettext",
+   "message": "&File"
+  },
+  {
+   "answer": "Зберегти",
+   "call": "gettext",
+   "message": "Save"
+  },
+  {
+   "answer": "Налаштування",
+   "call": "gettext",
+   "message": "Preferences"
+  },
+  {
+   "answer": "Збіль&шити",
+   "call": "gettext",
+   "message": "Zoom &In"
+  },
+  {
+   "answer": "Музичний редактор LilyPond",
+   "call": "gettext",
+   "message": "A LilyPond Music Editor"
+  },
+  {
+   "answer": "Тактові риски, цезури тощо. ",
+   "call": "gettext",
+   "message": "Bar lines, breathing signs, etc."
+  },
+  {
+   "answer": "По&чатковий розмір",
+   "call": "gettext",
+   "message": "Original &Size"
+  },
+  {
+   "answer": "Сп&еціальні символи",
+   "call": "gettext",
+   "message": "Special Charac&ters"
+  },
+  {
+   "answer": "Title:",
+   "call": "gettext",
+   "message": "Title:"
+  },
+  {
+   "answer": "Керувати сесіями",
+   "call": "gettext",
+   "message": "Manage Sessions"
+  },
+  {
+   "answer": "Транспонувати",
+   "call": "gettext",
+   "message": "Transpose"
+  },
+  {
+   "answer": "Розбити на склади",
+   "call": "gettext",
+   "message": "Hyphenate Lyrics Text"
+  },
+  {
+   "answer": "LilyPort Log",
+   "call": "gettext",
+   "message": "LilyPort Log"
+  },
+  {
+   "answer": "A LilyPort Music Editor",
+   "call": "gettext",
+   "message": "A LilyPort Music Editor"
+  },
+  {
+   "answer": "Run LilyPort",
+   "call": "gettext",
+   "message": "Run LilyPort"
+  },
+  {
+   "answer": "OK",
+   "call": "pgettext",
+   "context": "QPlatformTheme",
+   "message": "OK"
+  },
+  {
+   "answer": "Cancel",
+   "call": "pgettext",
+   "context": "QPlatformTheme",
+   "message": "Cancel"
+  },
+  {
+   "answer": "Restore Defaults",
+   "call": "pgettext",
+   "context": "QPlatformTheme",
+   "message": "Restore Defaults"
+  },
+  {
+   "answer": "Зберегти",
+   "call": "pgettext",
+   "context": "QDialogButtonBox",
+   "message": "Save"
+  },
+  {
+   "answer": "Ф&айл",
+   "call": "pgettext",
+   "context": "menu title",
+   "message": "&File"
+  },
+  {
+   "answer": "&LilyPond",
+   "call": "pgettext",
+   "context": "menu title",
+   "message": "&LilyPond"
+  },
+  {
+   "answer": "&Export",
+   "call": "pgettext",
+   "context": "submenu title",
+   "message": "&Export"
+  },
+  {
+   "answer": "Закрити документ",
+   "call": "pgettext",
+   "context": "dialog title",
+   "message": "Close Document"
+  },
+  {
+   "answer": "&Нова...",
+   "call": "pgettext",
+   "context": "New Session",
+   "message": "&New..."
+  },
+  {
+   "answer": "Syn.Bs.",
+   "call": "pgettext",
+   "context": "abbreviation for Synth bass",
+   "message": "Syn.Bs."
+  },
+  {
+   "answer": "&LilyPort",
+   "call": "pgettext",
+   "context": "menu title",
+   "message": "&LilyPort"
+  },
+  {
+   "answer": "",
+   "call": "ngettext",
+   "context": null,
+   "count": 0,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Будь ласка, збережіть документ операцією «Зберегти як...»",
+   "call": "ngettext",
+   "context": null,
+   "count": 1,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "",
+   "call": "ngettext",
+   "context": null,
+   "count": 2,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "",
+   "call": "ngettext",
+   "context": null,
+   "count": 3,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "",
+   "call": "ngettext",
+   "context": null,
+   "count": 5,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "",
+   "call": "ngettext",
+   "context": null,
+   "count": 11,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Будь ласка, збережіть документ операцією «Зберегти як...»",
+   "call": "ngettext",
+   "context": null,
+   "count": 21,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "",
+   "call": "ngettext",
+   "context": null,
+   "count": 22,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Будь ласка, збережіть документ операцією «Зберегти як...»",
+   "call": "ngettext",
+   "context": null,
+   "count": 101,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "",
+   "call": "ngettext",
+   "context": null,
+   "count": 111,
+   "message": "Please save the document using the \"Save As...\" dialog.",
+   "plural": "Please save the documents using the \"Save As...\" dialog."
+  },
+  {
+   "answer": "Export {num} Snippets",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 0,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  },
+  {
+   "answer": "Export {num} Snippet",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 1,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  },
+  {
+   "answer": "Export {num} Snippets",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 2,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  },
+  {
+   "answer": "Export {num} Snippets",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 3,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  },
+  {
+   "answer": "Export {num} Snippets",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 5,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  },
+  {
+   "answer": "Export {num} Snippets",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 11,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  },
+  {
+   "answer": "Export {num} Snippets",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 21,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  },
+  {
+   "answer": "Export {num} Snippets",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 22,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  },
+  {
+   "answer": "Export {num} Snippets",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 101,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  },
+  {
+   "answer": "Export {num} Snippets",
+   "call": "npgettext",
+   "context": "dialog title",
+   "count": 111,
+   "message": "Export {num} Snippet",
+   "plural": "Export {num} Snippets"
+  }
+ ]
+}

@@ -28,9 +28,18 @@ namespace Fresco.Brix.Documents; //was previously: frescobaldi/metainfo.py
 /// </summary>
 public sealed class MetaInfo
 {
-    private const string Prefix = "metainfo/";
+    /// <summary>
+    /// The settings key the per-document entries live under — ONE key holding
+    /// every remembered document as a JSON object, by its flattened path.
+    /// </summary>
+    /// <remarks>//was previously: <c>metainfo/</c>, a PREFIX with a key per
+    /// document per value under it, which the flat store this replaced could
+    /// enumerate to prune. The settings add-in has no prefix-scan API by design
+    /// (board W13 item 9, route (a)). The key is NOT <c>metainfo</c>, because
+    /// that name is already the user's "remember meta info" flag.</remarks>
+    public const string SettingsKey = "metainfo/documents";
+
     private const string EnabledKey = "metainfo";
-    private const string TimeName = "time";
 
     private static readonly Dictionary<string, string> Defaults
         = new Dictionary<string, string>(StringComparer.Ordinal);
@@ -122,11 +131,16 @@ public sealed class MetaInfo
     {
         _values.Clear();
         bool enabled = _settings.GetBool(EnabledKey, true);
+        Dictionary<string, string> stored = enabled && _path != null
+            ? Entry(ReadStored(_settings), DocumentKey)?.Values
+            : null;
+
         foreach (var pair in Defaults)
         {
-            _values[pair.Key] = enabled && _path != null
-                ? _settings.GetString(Key(pair.Key), pair.Value)
-                : pair.Value;
+            _values[pair.Key] = stored != null
+                && stored.TryGetValue(pair.Key, out var value)
+                    ? value
+                    : pair.Value;
         }
     }
 
@@ -138,21 +152,32 @@ public sealed class MetaInfo
     {
         if (_path == null || !_settings.GetBool(EnabledKey, true)) { return; }
 
-        _settings.SetString(Key(TimeName),
-            DateTimeOffset.UtcNow.ToUnixTimeSeconds()
-                .ToString(CultureInfo.InvariantCulture));
+        Dictionary<string, StoredMetaInfo> stored = ReadStored(_settings);
+        StoredMetaInfo entry = Entry(stored, DocumentKey);
+        if (entry == null)
+        {
+            entry = new StoredMetaInfo();
+            stored[DocumentKey] = entry;
+        }
+
+        entry.Time = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        entry.Values ??= new Dictionary<string, string>(StringComparer.Ordinal);
         foreach (var pair in Defaults)
         {
             string value = Get(pair.Key);
+            //A value equal to its default is never stored, so a later change of
+            //default reaches a user who never touched it.
             if (string.Equals(value, pair.Value, StringComparison.Ordinal))
             {
-                _settings.Remove(Key(pair.Key));
+                entry.Values.Remove(pair.Key);
             }
             else
             {
-                _settings.SetString(Key(pair.Key), value);
+                entry.Values[pair.Key] = value;
             }
         }
+
+        WriteStored(_settings, stored);
     }
 
     /// <summary>
@@ -165,37 +190,70 @@ public sealed class MetaInfo
     /// <returns>How many document entries were dropped.</returns>
     public static int Prune(SettingsStore settings, TimeSpan? maximumAge = null)
     {
+        if (settings == null) { return 0; }
+
         long cutoff = DateTimeOffset.UtcNow
             .Subtract(maximumAge ?? TimeSpan.FromDays(31)).ToUnixTimeSeconds();
+        Dictionary<string, StoredMetaInfo> stored = ReadStored(settings);
         int pruned = 0;
 
-        //Every entry ends '<group>/time'; the group is one document.
-        foreach (var key in settings.KeysWithPrefix(Prefix)
-            .Where(k => k.EndsWith("/" + TimeName, StringComparison.Ordinal))
-            .ToList())
+        //Each entry is one document, and carries the stamp its last save wrote.
+        foreach (var pair in stored.ToList())
         {
-            string group = key.Substring(0, key.Length - TimeName.Length);
-            if (long.TryParse(settings.GetString(key), NumberStyles.Integer,
-                    CultureInfo.InvariantCulture, out var stamp)
-                && stamp >= cutoff)
-            {
-                continue;
-            }
+            if (pair.Value != null && pair.Value.Time >= cutoff) { continue; }
 
-            settings.RemoveWithPrefix(group);
+            stored.Remove(pair.Key);
             pruned++;
         }
+
+        if (pruned > 0) { WriteStored(settings, stored); }
 
         return pruned;
     }
 
-    /// <summary>The settings key one value is stored under.</summary>
-    /// <param name="name">The value name.</param>
-    /// <returns>The key.</returns>
+    /// <summary>
+    /// The name this document's entry is held under inside the family.
+    /// </summary>
     /// <remarks>Upstream flattens the path into a settings group name by
-    /// replacing the separators; the same flattening keeps a path from
-    /// splitting our own key structure.</remarks>
-    private string Key(string name)
-        => Prefix + (_path ?? string.Empty).Replace('\\', '_').Replace('/', '_')
-            + "/" + name;
+    /// replacing the separators; the same flattening is kept so that a path
+    /// reads the way upstream's group did.</remarks>
+    private string DocumentKey
+        => (_path ?? string.Empty).Replace('\\', '_').Replace('/', '_');
+
+    private static StoredMetaInfo Entry(
+        Dictionary<string, StoredMetaInfo> stored, string documentKey)
+        => stored.TryGetValue(documentKey, out var entry) ? entry : null;
+
+    private static Dictionary<string, StoredMetaInfo> ReadStored(SettingsStore settings)
+        => settings?.Get<Dictionary<string, StoredMetaInfo>>(SettingsKey)
+            ?? new Dictionary<string, StoredMetaInfo>(StringComparer.Ordinal);
+
+    private static void WriteStored(
+        SettingsStore settings, Dictionary<string, StoredMetaInfo> stored)
+    {
+        if (settings == null) { return; }
+
+        if (stored.Count == 0)
+        {
+            settings.Remove(SettingsKey);
+        }
+        else
+        {
+            settings.Set(SettingsKey, stored);
+        }
+    }
+}
+
+/// <summary>
+/// What the application remembers about ONE document, as the settings store
+/// holds it.
+/// </summary>
+public sealed class StoredMetaInfo
+{
+    /// <summary>Gets or sets when the entry was last written, as a Unix
+    /// timestamp in seconds — what <see cref="MetaInfo.Prune"/> reads.</summary>
+    public long Time { get; set; }
+
+    /// <summary>Gets or sets the values that differ from their defaults.</summary>
+    public Dictionary<string, string> Values { get; set; }
 }

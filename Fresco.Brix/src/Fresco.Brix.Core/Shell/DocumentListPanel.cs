@@ -49,6 +49,13 @@ public sealed class DocumentListPanel : Panel
     private readonly Dictionary<TreeViewNode, string> _folders
         = new Dictionary<TreeViewNode, string>();
 
+    /// <summary>
+    /// The group rows that gather documents with no folder yet — upstream's
+    /// <c>item._path</c> being empty, which changes what its context menu says.
+    /// </summary>
+    private readonly HashSet<TreeViewNode> _untitledGroups
+        = new HashSet<TreeViewNode>();
+
     private TreeView _tree;
     private bool _suppressSelection;
 
@@ -126,6 +133,7 @@ public sealed class DocumentListPanel : Panel
 
             IReadOnlyList<EditorDocument> selected = SelectedDocuments();
             string folder = null;
+            bool untitledGroup = false;
 
             //Right-clicking a row that is NOT part of the selection acts on
             //that row instead, which is what a user expects of a list.
@@ -134,7 +142,11 @@ public sealed class DocumentListPanel : Panel
             {
                 if (_folders.TryGetValue(clicked, out string name))
                 {
+                    //The "Untitled" group is not a folder: upstream tells the
+                    //two apart by whether the row has a path, and captions the
+                    //menu differently for each.
                     folder = name;
+                    untitledGroup = _untitledGroups.Contains(clicked);
                     selected = clicked.Children
                         .Where(c => _nodes.ContainsKey(c))
                         .Select(c => _nodes[c])
@@ -150,7 +162,7 @@ public sealed class DocumentListPanel : Panel
             if (selected.Count == 0) { return; }
 
             ContextMenu.ShowForMany(
-                _tree, selected, e.GetPosition(_tree), folder);
+                _tree, selected, e.GetPosition(_tree), folder, untitledGroup);
             e.Handled = true;
         };
 
@@ -178,6 +190,7 @@ public sealed class DocumentListPanel : Panel
         _tree.RootNodes.Clear();
         _nodes.Clear();
         _folders.Clear();
+        _untitledGroups.Clear();
 
         bool group = GroupByFolder;
         Dictionary<string, TreeViewNode> folders
@@ -197,7 +210,8 @@ public sealed class DocumentListPanel : Panel
 
             //Grouped: one parent per folder, "Untitled" gathering the
             //documents that have no folder yet.
-            string folder = document.Path == null
+            bool untitled = document.Path == null;
+            string folder = untitled
                 ? I18n.Get("Untitled")
                 : System.IO.Path.GetDirectoryName(document.Path);
             if (!folders.TryGetValue(folder, out var parent))
@@ -205,6 +219,8 @@ public sealed class DocumentListPanel : Panel
                 parent = new TreeViewNode { Content = folder, IsExpanded = true };
                 folders[folder] = parent;
                 _folders[parent] = folder;
+                if (untitled) { _untitledGroups.Add(parent); }
+
                 _tree.RootNodes.Add(parent);
             }
 

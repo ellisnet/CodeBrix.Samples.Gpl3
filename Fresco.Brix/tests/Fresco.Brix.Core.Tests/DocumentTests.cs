@@ -9,6 +9,7 @@ using Fresco.Brix.Documents;
 using Fresco.Brix.Services;
 using SilverAssertions;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -384,6 +385,78 @@ public class DocumentManagerTests
     }
 }
 
+/// <summary>
+/// The per-document state every view of a document shares, and the ORDERING
+/// trap that decided whether it had a settings store at all.
+/// </summary>
+public class DocumentEditorStateTests : IDisposable
+{
+    private readonly TempFolder _folder = new TempFolder();
+    private readonly SettingsStore _settings;
+
+    /// <summary>Creates the fixture.</summary>
+    public DocumentEditorStateTests()
+        => _settings = new SettingsStore(_folder.Path);
+
+    /// <summary>Puts the ambient store back and cleans up.</summary>
+    public void Dispose()
+    {
+        DocumentEditorState.DefaultSettings = null;
+        _settings.Dispose();
+        _folder.Dispose();
+    }
+
+    [Fact]
+    public void the_first_caller_decides_and_a_storeless_one_used_to_win()
+    {
+        //Arrange — this is the defect, pinned: a state is made ONCE, by
+        //whichever caller asks first, and most callers want only the token
+        //cache and pass no store.
+        DocumentEditorState.DefaultSettings = null;
+        EditorDocument document = new EditorDocument();
+
+        //Act
+        DocumentEditorState first = DocumentEditorState.For(document);
+        DocumentEditorState later = DocumentEditorState.For(document, _settings);
+
+        //Assert — the same object, and it has no meta-info, so the caret was
+        //remembered in memory and written nowhere.
+        ReferenceEquals(first, later).Should().Be(true);
+        later.MetaInfo.Should().BeNull();
+    }
+
+    [Fact]
+    public void the_ambient_store_makes_the_answer_the_same_whoever_asks_first()
+    {
+        //Arrange — what the application sets once, before any document exists.
+        DocumentEditorState.DefaultSettings = _settings;
+        EditorDocument document = new EditorDocument();
+
+        //Act — the storeless caller wins the race again.
+        DocumentEditorState state = DocumentEditorState.For(document);
+
+        //Assert
+        state.MetaInfo.Should().NotBeNull();
+        state.Settings.Should().BeSameAs(_settings);
+    }
+
+    [Fact]
+    public void a_named_store_still_wins_over_the_ambient_one()
+    {
+        //Arrange
+        using TempFolder other = new TempFolder();
+        using SettingsStore named = new SettingsStore(other.Path);
+        DocumentEditorState.DefaultSettings = _settings;
+        EditorDocument document = new EditorDocument();
+
+        //Act
+        DocumentEditorState state = DocumentEditorState.For(document, named);
+
+        //Assert
+        state.Settings.Should().BeSameAs(named);
+    }
+}
+
 /// <summary>What the app remembers about a document between sessions.</summary>
 public class MetaInfoTests : IDisposable
 {
@@ -391,13 +464,18 @@ public class MetaInfoTests : IDisposable
     private readonly SettingsStore _settings;
 
     public MetaInfoTests()
-        => _settings = new SettingsStore(Path.Combine(_folder.Path, "settings.sqlite"));
+        => _settings = new SettingsStore(_folder.Path);
 
     public void Dispose()
     {
         _settings.Dispose();
         _folder.Dispose();
     }
+
+    /// <summary>What the one meta-info settings key holds.</summary>
+    private Dictionary<string, StoredMetaInfo> StoredMetaInfoEntries()
+        => _settings.Get<Dictionary<string, StoredMetaInfo>>(MetaInfo.SettingsKey)
+            ?? new Dictionary<string, StoredMetaInfo>(StringComparer.Ordinal);
 
     [Fact]
     public void a_declared_value_starts_at_its_default()
@@ -455,8 +533,10 @@ public class MetaInfoTests : IDisposable
         info.Save();
 
         //Assert — only the timestamp is written.
-        _settings.KeysWithPrefix("metainfo/")
-            .Where(k => k.EndsWith("test_folding", StringComparison.Ordinal))
+        //was previously: KeysWithPrefix("metainfo/") — every document's entry
+        //is now one entry in ONE key (board W13 item 9, route (a)).
+        StoredMetaInfoEntries().Values
+            .Where(e => e.Values != null && e.Values.ContainsKey("test_folding"))
             .Should().BeEmpty();
     }
 
@@ -487,17 +567,17 @@ public class MetaInfoTests : IDisposable
         info.Save();
 
         //Backdate the stamp by two months.
-        string timeKey = _settings.KeysWithPrefix("metainfo/")
-            .First(k => k.EndsWith("/time", StringComparison.Ordinal));
-        _settings.SetString(timeKey,
-            DateTimeOffset.UtcNow.AddDays(-62).ToUnixTimeSeconds().ToString());
+        Dictionary<string, StoredMetaInfo> stored = StoredMetaInfoEntries();
+        stored.Values.First().Time
+            = DateTimeOffset.UtcNow.AddDays(-62).ToUnixTimeSeconds();
+        _settings.Set(MetaInfo.SettingsKey, stored);
 
         //Act
         int pruned = MetaInfo.Prune(_settings);
 
         //Assert
         pruned.Should().Be(1);
-        _settings.KeysWithPrefix("metainfo/").Should().BeEmpty();
+        StoredMetaInfoEntries().Should().BeEmpty();
     }
 
     [Fact]
@@ -573,7 +653,7 @@ public class BackupTests : IDisposable
     {
         //Arrange
         using SettingsStore settings
-            = new SettingsStore(Path.Combine(_folder.Path, "settings.sqlite"));
+            = new SettingsStore(_folder.Path);
         settings.SetBool(Backup.KeepSettingKey, true);
         string path = _folder.File("score.ly", "original\n");
         Backup backup = new Backup(settings);
@@ -604,7 +684,7 @@ public class BackupTests : IDisposable
     {
         //Arrange
         using SettingsStore settings
-            = new SettingsStore(Path.Combine(_folder.Path, "settings.sqlite"));
+            = new SettingsStore(_folder.Path);
         settings.SetString(Backup.SchemeSettingKey, "backup");
         Backup backup = new Backup(settings);
 
@@ -620,7 +700,7 @@ public class BackupTests : IDisposable
     {
         //Arrange
         using SettingsStore settings
-            = new SettingsStore(Path.Combine(_folder.Path, "settings.sqlite"));
+            = new SettingsStore(_folder.Path);
         settings.SetString(Backup.SchemeSettingKey, "FILE.bak");
         Backup backup = new Backup(settings);
 

@@ -32,7 +32,7 @@ public class RecentFilesTests : IDisposable
         _directory = Path.Combine(
             Path.GetTempPath(), "frescobrix-tests-" + Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(_directory);
-        _settings = new SettingsStore(Path.Combine(_directory, "settings.sqlite"));
+        _settings = new SettingsStore(_directory);
     }
 
     /// <summary>Closes the store and removes the scratch directory.</summary>

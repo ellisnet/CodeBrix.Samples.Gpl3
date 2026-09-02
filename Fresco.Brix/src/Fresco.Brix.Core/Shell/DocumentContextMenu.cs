@@ -16,7 +16,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using Windows.Foundation;
 
-namespace Fresco.Brix.Shell; //was previously: frescobaldi/documentcontextmenu.py and contextmenu.py
+namespace Fresco.Brix.Shell; //was previously: frescobaldi/documentcontextmenu.py
+//(contextmenu.py — the EDITOR's own right-click menu — is Shell/EditorContextMenu.)
 
 // Modified by Jeremy Ellis - 2026 - as part of the Fresco.Brix port.
 
@@ -26,9 +27,12 @@ namespace Fresco.Brix.Shell; //was previously: frescobaldi/documentcontextmenu.p
 /// or close everything else.
 /// </summary>
 /// <remarks>
-/// Upstream's menu also carries "Always Engrave This Document", the sticky
-/// pin. That command belongs to the engrave service and arrives with it in W3;
-/// the menu is built to take it then.
+/// //was previously: a remark saying the sticky pin "belongs to the engrave
+/// service and arrives with it in W3". W3 shipped the engraver and the pin;
+/// the entry was never added. It is here now, checkable and ticked for the
+/// document the engraver is pinned to, exactly as
+/// <c>documentcontextmenu.py</c> has it — and so is upstream's first entry,
+/// the whole Documents menu nested as a submenu.
 /// </remarks>
 public sealed class DocumentContextMenu
 {
@@ -54,6 +58,18 @@ public sealed class DocumentContextMenu
         _closeOthers = closeOthers;
     }
 
+    /// <summary>Gets or sets the open documents, for the nested Documents
+    /// submenu, or null to leave it out.</summary>
+    public DocumentManager Documents { get; set; }
+
+    /// <summary>Gets or sets how to read the document the engraver is pinned
+    /// to, or null when nothing can say.</summary>
+    public Func<EditorDocument> StickyDocument { get; set; }
+
+    /// <summary>Gets or sets how to pin a document, or unpin it when it is
+    /// already the pinned one.</summary>
+    public Action<EditorDocument> ToggleSticky { get; set; }
+
     /// <summary>Shows the menu for a document, at the pointer.</summary>
     /// <param name="target">The element that was right-clicked.</param>
     /// <param name="document">The document it stands for.</param>
@@ -63,12 +79,35 @@ public sealed class DocumentContextMenu
         if (target == null || document == null) { return; }
 
         MenuFlyout flyout = new MenuFlyout();
+        if (Documents != null)
+        {
+            flyout.Items.Add(MenuBuilder.DocumentSubmenu(Documents, StickyDocument));
+            flyout.Items.Add(new MenuFlyoutSeparator());
+        }
+
         flyout.Items.Add(Item(I18n.Get("&Save"), () => _save?.Invoke(document)));
         flyout.Items.Add(Item(I18n.Get("Save &As..."), () => _saveAs?.Invoke(document)));
         flyout.Items.Add(new MenuFlyoutSeparator());
         flyout.Items.Add(Item(I18n.Get("&Close"), () => _close?.Invoke(document)));
         flyout.Items.Add(Item(
             I18n.Get("Close Other Documents"), () => _closeOthers?.Invoke(document)));
+
+        if (ToggleSticky != null)
+        {
+            //Upstream ticks this in `updateActions', which runs just before the
+            //menu shows; the menu is built per right-click here, so the state is
+            //read where it is built.
+            flyout.Items.Add(new MenuFlyoutSeparator());
+            ToggleMenuFlyoutItem sticky = new ToggleMenuFlyoutItem
+            {
+                Text = ActionCollectionManager.RemoveAccelerator(
+                    I18n.Get("Always &Engrave This Document")),
+                IsChecked = StickyDocument?.Invoke() == document,
+            };
+            sticky.Click += (_, _) => ToggleSticky(document);
+            flyout.Items.Add(sticky);
+        }
+
         flyout.ShowAt(target, position);
     }
 
@@ -81,11 +120,15 @@ public sealed class DocumentContextMenu
     /// <param name="position">Where to put the menu, relative to the target.</param>
     /// <param name="groupName">The folder name when a folder was clicked, or
     /// null when it is a plain multiple selection.</param>
+    /// <param name="untitledGroup">Whether the row clicked is the group that
+    /// gathers documents with no folder yet — upstream captions that one
+    /// differently again.</param>
     public void ShowForMany(
         FrameworkElement target,
         IReadOnlyList<EditorDocument> documents,
         Point position,
-        string groupName = null)
+        string groupName = null,
+        bool untitledGroup = false)
     {
         if (target == null || documents == null || documents.Count == 0) { return; }
 
@@ -95,9 +138,13 @@ public sealed class DocumentContextMenu
             return;
         }
 
+        //was previously: two captions, for a multiple selection and for a
+        //folder. Upstream has THREE — the "Untitled" group is neither.
         MenuFlyout flyout = new MenuFlyout();
         flyout.Items.Add(Item(
-            groupName == null
+            untitledGroup
+                ? I18n.Get("Save all untitled documents")
+                : groupName == null
                 ? I18n.Get("Save selected documents")
                 : I18n.Format(
                     I18n.Get("Save documents in this folder ({folder})"),
@@ -110,7 +157,9 @@ public sealed class DocumentContextMenu
                 }
             }));
         flyout.Items.Add(Item(
-            groupName == null
+            untitledGroup
+                ? I18n.Get("Close all untitled documents")
+                : groupName == null
                 ? I18n.Get("Close selected documents")
                 : I18n.Format(
                     I18n.Get("Close documents in this folder ({folder})"),

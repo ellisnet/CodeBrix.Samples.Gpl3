@@ -189,6 +189,117 @@ public static class PathUtil
         return OperatingSystem.IsWindows() ? full.Replace('\\', '/') : full;
     }
 
+    /// <summary>
+    /// Returns a similar file name with <c>-1</c> put before the suffix, or the
+    /// number already there increased by one.
+    /// </summary>
+    /// <param name="fileName">The name.</param>
+    /// <returns>The next name.</returns>
+    /// <remarks>
+    /// <para>
+    /// Upstream's <c>util.next_file()</c>. File &gt; Import writes its result
+    /// beside the file it converted, and steps the name until it finds one
+    /// that is neither on disk nor already open.
+    /// </para>
+    /// <para>
+    /// ⚠ PORTED WITH ITS ODDITIES, which the fixture records from upstream's
+    /// own code: the split is on the LAST hyphen and the suffix is Python's
+    /// <c>os.path.splitext</c>, so <c>song.tar.gz</c> becomes
+    /// <c>song.tar-1.gz</c>; <c>song-03.ly</c> becomes <c>song-4.ly</c> rather
+    /// than <c>song-04.ly</c>; and what counts as a number is what Python's
+    /// <c>int()</c> accepts, which allows surrounding space and a leading sign
+    /// (<c>song- 3.ly</c> and <c>song-+4.ly</c> both become <c>song-4.ly</c>
+    /// and <c>song-5.ly</c>). The one corner not carried is Python's
+    /// acceptance of non-ASCII decimal digits, which no file name in this
+    /// application's way has ever had.
+    /// </para>
+    /// </remarks>
+    public static string NextFile(string fileName)
+    {
+        if (fileName == null) { return null; }
+
+        string extension = SplitExtension(fileName, out string name);
+
+        int hyphen = name.LastIndexOf('-');
+        if (hyphen >= 0
+            && int.TryParse(
+                name.AsSpan(hyphen + 1),
+                System.Globalization.NumberStyles.Integer,
+                System.Globalization.CultureInfo.InvariantCulture,
+                out int number))
+        {
+            return string.Concat(
+                name.AsSpan(0, hyphen),
+                "-",
+                (number + 1).ToString(System.Globalization.CultureInfo.InvariantCulture),
+                extension);
+        }
+
+        return name + "-1" + extension;
+    }
+
+    /// <summary>
+    /// Splits a path the way Python's <c>os.path.splitext</c> does.
+    /// </summary>
+    /// <param name="path">The path.</param>
+    /// <param name="root">The part before the suffix.</param>
+    /// <returns>The suffix, with its dot, or the empty string.</returns>
+    /// <remarks>
+    /// ⚠ NOT <c>Path.GetExtension</c>. Python takes the LAST dot after the
+    /// last separator, but treats leading dots as part of the name, so
+    /// <c>.abc</c> has no suffix at all — which is why upstream's
+    /// <c>is_importable</c> answers false for a file called <c>.abc</c>.
+    /// </remarks>
+    public static string SplitExtension(string path, out string root)
+    {
+        root = path ?? string.Empty;
+        if (string.IsNullOrEmpty(path)) { return string.Empty; }
+
+        int separator = path.LastIndexOfAny(new[] { '/', '\\' });
+        int dot = path.LastIndexOf('.');
+        if (dot <= separator) { return string.Empty; }
+
+        //Python skips the run of leading dots in the base name: `.abc' is a
+        //name, `..abc' is a name, and `.a.abc' has the suffix `.abc'.
+        int start = separator + 1;
+        int scan = start;
+        while (scan < path.Length && path[scan] == '.') { scan++; }
+
+        if (dot < scan) { return string.Empty; }
+
+        root = path.Substring(0, dot);
+        return path.Substring(dot);
+    }
+
+    /// <summary>
+    /// Shortens a path under the user's home folder to start with <c>~</c>.
+    /// </summary>
+    /// <param name="path">The path.</param>
+    /// <returns>The shortened path, or the path itself.</returns>
+    /// <remarks>Upstream's <c>util.homify()</c>. The home folder itself
+    /// becomes <c>~</c>; a path that merely starts with the same characters
+    /// (<c>/home/jeremyx</c>) is left alone, which is why the separator is part
+    /// of the test.</remarks>
+    public static string Homify(string path)
+    {
+        if (string.IsNullOrEmpty(path)) { return path; }
+
+        string home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+        if (string.IsNullOrEmpty(home)) { return path; }
+
+        home = home.TrimEnd(Path.DirectorySeparatorChar);
+        StringComparison comparison = OperatingSystem.IsWindows()
+            ? StringComparison.OrdinalIgnoreCase
+            : StringComparison.Ordinal;
+
+        if (string.Equals(path, home, comparison)) { return "~"; }
+
+        string prefix = home + Path.DirectorySeparatorChar;
+        return path.StartsWith(prefix, comparison)
+            ? "~" + Path.DirectorySeparatorChar + path.Substring(prefix.Length)
+            : path;
+    }
+
     /// <summary>Compares two paths the way the file system does.</summary>
     /// <param name="first">One path.</param>
     /// <param name="second">The other.</param>

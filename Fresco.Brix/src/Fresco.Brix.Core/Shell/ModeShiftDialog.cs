@@ -109,12 +109,19 @@ public static class ModeShiftDialog
         grid.Children.Add(modeLabel);
         grid.Children.Add(modeBox);
 
+        //Upstream's `userguide.addButton(self.buttons, "mode_shift")'. A
+        //ContentDialog's three buttons are spent (board trap 50), so the Help
+        //button goes inside the content.
+        StackPanel content = new StackPanel { Spacing = 8 };
+        content.Children.Add(grid);
+        content.Children.Add(UserGuide.GuideHelp.ButtonRow("mode_shift"));
+
         ContentDialog dialog = new ContentDialog
         {
-            Title = I18n.Get("dialog title", "Mode Shift"),
-            Content = grid,
+            Title = I18n.Get("Mode Shift"),
+            Content = content,
             PrimaryButtonText = I18n.Get("shift pitches"),
-            CloseButtonText = I18n.Get("Cancel"),
+            CloseButtonText = StandardButtons.Cancel,
             DefaultButton = ContentDialogButton.Primary,
             XamlRoot = xamlRoot,
         };

@@ -1,5 +1,13 @@
+// Copyright (c) 2026 Jeremy Ellis and contributors
+//
+// Fresco.Brix is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+
 using CodeBrix.Platform.UI.Hosting;
 using CodeBrix.Platform.UI.Runtime.Skia.Wpf;
+using Fresco.Brix.Services;
 using System;
 
 namespace Fresco.Brix;
@@ -10,7 +18,14 @@ internal class Program
     public static void Main(string[] args)
     {
         App.InitializeLogging();
-        App.CommandLinePaths = args ?? Array.Empty<string>();
+
+        //FD5: a second launch hands its files to the window that is already up
+        //and stops here — BEFORE this process reads the settings store for
+        //itself, so two processes never share one.
+        if (RemoteInstance.TryHandOff(args)) { return; }
+
+        App.CommandLine = CommandLineArguments.Parse(args);
+        App.CommandLinePaths = App.CommandLine.Files;
 
         var host = CodeBrixPlatformHostBuilder.Create()
             .App(() => new App())

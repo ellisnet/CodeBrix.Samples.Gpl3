@@ -32,6 +32,20 @@ namespace Fresco.Brix.Tools.Manuals;
 /// runtime renders a manual; the app opens files that were made here.
 /// </para>
 /// <para>
+/// ⚠ THE CodeBrix.LilyPort REPOSITORY IS AN ARGUMENT, NOT A GUESS. Lily.Docs
+/// lives in that repository's <c>tools</c> folder and is driven by its command
+/// line, so a person running this tool has to say where that checkout is:
+/// <c>--lilyport-root &lt;dir&gt;</c>, required, no default. Fresco.Brix itself
+/// consumes the engine as the published nuget package
+/// (<c>CodeBrix.LilyPort.GplLicenseForever</c>, board row W13b) and holds no
+/// path into that repository anywhere else; the two are unrelated checkouts
+/// that need not be siblings, or both present.
+/// //was previously: the root was assumed to be
+/// <c>&lt;Fresco.Brix&gt;/../CodeBrix.LilyPort</c>, from when the two were
+/// siblings inside CodeBrix.Samples.Gpl3. LilyPort moved to its own repository
+/// on 2026-08-27 and that path stopped existing.
+/// </para>
+/// <para>
 /// ⚠ GENERATION IS ONCE PER PROCESS (board trap 15, and Lily.Docs' own README
 /// says so first). The nineteen generated documentation files are an engine job
 /// of roughly forty seconds, and a second generation in the same process does
@@ -71,6 +85,7 @@ public static class Program
     {
         string renderDirectory = null;
         string assetsDirectory = null;
+        string lilyPortRoot = null;
         bool skipRender = false;
 
         for (int i = 0; i < args.Length; i++)
@@ -95,6 +110,15 @@ public static class Program
 
                     renderDirectory = args[i];
                     break;
+                case "--lilyport-root":
+                    if (++i >= args.Length)
+                    {
+                        Console.Error.WriteLine("--lilyport-root needs a directory");
+                        return 2;
+                    }
+
+                    lilyPortRoot = args[i];
+                    break;
                 default:
                     Console.Error.WriteLine($"unknown option '{args[i]}'");
                     WriteUsage();
@@ -109,11 +133,24 @@ public static class Program
             return 2;
         }
 
-        string lilyPortRoot = Path.GetFullPath(
-            Path.Combine(repositoryRoot, "..", "CodeBrix.LilyPort"));
+        //REQUIRED, with no default. The CodeBrix.LilyPort checkout that holds
+        //Lily.Docs is a separate repository with no fixed relationship to this
+        //one, so the only honest answer is the one the caller gives.
+        if (string.IsNullOrWhiteSpace(lilyPortRoot))
+        {
+            Console.Error.WriteLine(
+                "--lilyport-root is required: pass the CodeBrix.LilyPort repository root "
+                + "(the folder holding CodeBrix.LilyPort.slnx), which is where Lily.Docs lives");
+            WriteUsage();
+            return 2;
+        }
+
+        lilyPortRoot = Path.GetFullPath(lilyPortRoot);
         if (!File.Exists(Path.Combine(lilyPortRoot, "CodeBrix.LilyPort.slnx")))
         {
-            Console.Error.WriteLine("could not find CodeBrix.LilyPort beside Fresco.Brix at " + lilyPortRoot);
+            Console.Error.WriteLine(
+                "--lilyport-root does not name a CodeBrix.LilyPort repository: no "
+                + "CodeBrix.LilyPort.slnx in " + lilyPortRoot);
             return 2;
         }
 
@@ -140,20 +177,34 @@ public static class Program
 
     private static void WriteUsage()
     {
-        Console.WriteLine("usage: Manuals [--render-dir DIR] [-o ASSETS_DIR] [--skip-render]");
+        Console.WriteLine("usage: Manuals --lilyport-root DIR [--render-dir DIR] [-o ASSETS_DIR]");
+        Console.WriteLine("               [--skip-render]");
         Console.WriteLine();
-        Console.WriteLine("  --render-dir DIR  where Lily.Docs renders (default: a temp directory)");
-        Console.WriteLine("  -o ASSETS_DIR     where the PDFs are installed");
-        Console.WriteLine("                    (default: src/Fresco.Brix.Core/assets/docs)");
-        Console.WriteLine("  --skip-render     install from an existing render directory");
+        Console.WriteLine("  --lilyport-root DIR  REQUIRED. The CodeBrix.LilyPort repository root:");
+        Console.WriteLine("                       the folder holding CodeBrix.LilyPort.slnx, whose");
+        Console.WriteLine("                       tools/Lily.Docs renders the manuals and whose");
+        Console.WriteLine("                       COPYING.FDL ships beside them. There is no");
+        Console.WriteLine("                       default: that repository is a separate checkout");
+        Console.WriteLine("                       and Fresco.Brix uses the engine as a nuget");
+        Console.WriteLine("                       package, so it need not be anywhere in");
+        Console.WriteLine("                       particular.");
+        Console.WriteLine("  --render-dir DIR     where Lily.Docs renders (default: a temp directory)");
+        Console.WriteLine("  -o ASSETS_DIR        where the PDFs are installed");
+        Console.WriteLine("                       (default: src/Fresco.Brix.Core/assets/docs)");
+        Console.WriteLine("  --skip-render        install from an existing render directory");
         Console.WriteLine();
         Console.WriteLine("Renders the nine manuals (about ten minutes; the Notation Reference");
         Console.WriteLine("is five of them and 2,555 engravings), then writes the PDFs,");
         Console.WriteLine("COPYING.FDL and MANIFEST.txt into the assets directory.");
+        Console.WriteLine();
+        Console.WriteLine("example:");
+        Console.WriteLine("  Manuals --lilyport-root ~/GitHome/CodeBrix.LilyPort");
     }
 
     /// <summary>Renders the nine manuals to PDF with Lily.Docs.</summary>
-    /// <param name="lilyPortRoot">The CodeBrix.LilyPort repository root.</param>
+    /// <param name="lilyPortRoot">
+    /// The CodeBrix.LilyPort repository root, as given by <c>--lilyport-root</c>.
+    /// </param>
     /// <param name="renderDirectory">Where the PDFs are written.</param>
     /// <returns>True when all nine rendered.</returns>
     private static bool Render(string lilyPortRoot, string renderDirectory)
@@ -216,7 +267,10 @@ public static class Program
     /// Copies the rendered PDFs and the licence into the assets directory and
     /// writes the manifest.
     /// </summary>
-    /// <param name="lilyPortRoot">The CodeBrix.LilyPort repository root.</param>
+    /// <param name="lilyPortRoot">
+    /// The CodeBrix.LilyPort repository root, as given by <c>--lilyport-root</c>;
+    /// its <c>COPYING.FDL</c> is the copy installed beside the manuals.
+    /// </param>
     /// <param name="renderDirectory">Where Lily.Docs wrote the PDFs.</param>
     /// <param name="assetsDirectory">Where the application reads them.</param>
     /// <returns>True when every manual was installed.</returns>

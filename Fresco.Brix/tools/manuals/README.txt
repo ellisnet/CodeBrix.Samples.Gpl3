@@ -7,16 +7,37 @@ installs the PDFs as this application's documentation assets.
 
     cd tools/manuals
     dotnet build Manuals.csproj -c Release
-    ./bin/Release/net10.0/Manuals
+    ./bin/Release/net10.0/Manuals --lilyport-root ~/GitHome/CodeBrix.LilyPort
 
 That writes src/Fresco.Brix.Core/assets/docs/ -- nine PDFs, COPYING.FDL and
 MANIFEST.txt -- and takes about ten minutes, five of which are the Notation
 Reference's 2,555 engravings.
 
-    --render-dir DIR   where Lily.Docs renders (default: a temp directory)
-    -o ASSETS_DIR      where the PDFs are installed
-    --skip-render      install from an existing render directory, which is what
-                       to use after a render you already have
+    --lilyport-root DIR  REQUIRED. The CodeBrix.LilyPort repository root -- the
+                         folder holding CodeBrix.LilyPort.slnx -- whose
+                         tools/Lily.Docs renders the manuals and whose
+                         COPYING.FDL is installed beside them.
+    --render-dir DIR     where Lily.Docs renders (default: a temp directory)
+    -o ASSETS_DIR        where the PDFs are installed
+    --skip-render        install from an existing render directory, which is
+                         what to use after a render you already have
+
+--------------------------------------------------------------------------------
+WHERE CodeBrix.LilyPort IS -- YOU SAY, THE TOOL DOES NOT GUESS
+--------------------------------------------------------------------------------
+
+--lilyport-root is required and has NO default, deliberately. CodeBrix.LilyPort
+is its own repository (~/GitHome/CodeBrix.LilyPort on the machine this was last
+run on), unrelated to where Fresco.Brix is checked out, and Fresco.Brix
+consumes the ENGINE as the published nuget package
+CodeBrix.LilyPort.GplLicenseForever -- board row W13b -- so nothing else in this
+repository holds a path into that checkout. The tool validates what it is given
+(CodeBrix.LilyPort.slnx must be in it) and stops with a usage message if the
+argument is missing or wrong.
+
+//was previously: the tool assumed <Fresco.Brix>/../CodeBrix.LilyPort, from
+when the two were siblings inside CodeBrix.Samples.Gpl3. LilyPort moved out on
+2026-08-27 and that path stopped existing.
 
 --------------------------------------------------------------------------------
 WHAT THIS IS, AND WHAT IT IS NOT
@@ -39,11 +60,15 @@ WHY LILY.DOCS IS A CHILD PROCESS AND NOT A PROJECT REFERENCE
 
 Lily.Docs' ToolPaths finds the FDL corpus mirror by walking UP from the running
 assembly to CodeBrix.LilyPort.slnx. An assembly built under Fresco.Brix/tools
-has no such ancestor -- the two repositories are SIBLINGS inside
-CodeBrix.Samples.Gpl3 -- so eight of the nine manuals would fail to find their
-own source text and the ninth (internals, which needs no corpus) would quietly
-succeed. Driving the documented command line instead costs nine process starts
-and keeps the whole Texinfo chain out of this project.
+has no such ancestor -- the two are SEPARATE REPOSITORIES -- so eight of the
+nine manuals would fail to find their own source text and the ninth (internals,
+which needs no corpus) would quietly succeed. Driving the documented command
+line instead costs nine process starts, keeps the whole Texinfo chain out of
+this project, and lets Lily.Docs run from inside its own repository where its
+walk-up works.
+
+Lily.Docs is also not on nuget: it is a repo tool that ships nothing, so a
+package reference is not an option even now that the ENGINE is one.
 
 --------------------------------------------------------------------------------
 GENERATION IS ONCE PER PROCESS

@@ -1,0 +1,2165 @@
+{
+ "dialogs": {
+  "abc": {
+   "cases": [
+    {
+     "arguments": [],
+     "checks": [
+      false
+     ],
+     "language_index": -1
+    },
+    {
+     "arguments": [
+      "-b"
+     ],
+     "checks": [
+      true
+     ],
+     "language_index": -1
+    }
+   ],
+   "imp_program": "abc2ly",
+   "import_checks": [
+    "import-beaming"
+   ],
+   "import_defaults": [
+    true
+   ],
+   "import_texts": [
+    "Import beaming"
+   ],
+   "ok_text": "Run abc2ly",
+   "post_cases": [
+    {
+     "checks": [
+      false,
+      false,
+      false,
+      false
+     ],
+     "settings": [
+      false,
+      false,
+      false,
+      false
+     ]
+    },
+    {
+     "checks": [
+      false,
+      false,
+      false,
+      true
+     ],
+     "settings": [
+      false,
+      false,
+      false,
+      true
+     ]
+    },
+    {
+     "checks": [
+      false,
+      false,
+      true,
+      false
+     ],
+     "settings": [
+      false,
+      false,
+      true,
+      false
+     ]
+    },
+    {
+     "checks": [
+      false,
+      false,
+      true,
+      true
+     ],
+     "settings": [
+      false,
+      false,
+      true,
+      true
+     ]
+    },
+    {
+     "checks": [
+      false,
+      true,
+      false,
+      false
+     ],
+     "settings": [
+      false,
+      true,
+      false,
+      false
+     ]
+    },
+    {
+     "checks": [
+      false,
+      true,
+      false,
+      true
+     ],
+     "settings": [
+      false,
+      true,
+      false,
+      true
+     ]
+    },
+    {
+     "checks": [
+      false,
+      true,
+      true,
+      false
+     ],
+     "settings": [
+      false,
+      true,
+      true,
+      false
+     ]
+    },
+    {
+     "checks": [
+      false,
+      true,
+      true,
+      true
+     ],
+     "settings": [
+      false,
+      true,
+      true,
+      true
+     ]
+    },
+    {
+     "checks": [
+      true,
+      false,
+      false,
+      false
+     ],
+     "settings": [
+      true,
+      false,
+      false,
+      false
+     ]
+    },
+    {
+     "checks": [
+      true,
+      false,
+      false,
+      true
+     ],
+     "settings": [
+      true,
+      false,
+      false,
+      true
+     ]
+    },
+    {
+     "checks": [
+      true,
+      false,
+      true,
+      false
+     ],
+     "settings": [
+      true,
+      false,
+      true,
+      false
+     ]
+    },
+    {
+     "checks": [
+      true,
+      false,
+      true,
+      true
+     ],
+     "settings": [
+      true,
+      false,
+      true,
+      true
+     ]
+    },
+    {
+     "checks": [
+      true,
+      true,
+      false,
+      false
+     ],
+     "settings": [
+      true,
+      true,
+      false,
+      false
+     ]
+    },
+    {
+     "checks": [
+      true,
+      true,
+      false,
+      true
+     ],
+     "settings": [
+      true,
+      true,
+      false,
+      true
+     ]
+    },
+    {
+     "checks": [
+      true,
+      true,
+      true,
+      false
+     ],
+     "settings": [
+      true,
+      true,
+      true,
+      false
+     ]
+    },
+    {
+     "checks": [
+      true,
+      true,
+      true,
+      true
+     ],
+     "settings": [
+      true,
+      true,
+      true,
+      true
+     ]
+    }
+   ],
+   "post_checks": [
+    "reformat",
+    "trim-durations",
+    "remove-scaling",
+    "engrave-directly"
+   ],
+   "post_defaults": [
+    true,
+    false,
+    false,
+    true
+   ],
+   "post_texts": [
+    "Reformat source",
+    "Trim durations (Make implicit per line)",
+    "Remove fraction duration scaling",
+    "Engrave directly"
+   ],
+   "reloaded_import_checks": [
+    false
+   ],
+   "reloaded_post_checks": [
+    true,
+    true,
+    true,
+    true
+   ],
+   "saved_settings": {
+    "abc_import/engrave-directly": true,
+    "abc_import/import-beaming": false,
+    "abc_import/reformat": true,
+    "abc_import/remove-scaling": true,
+    "abc_import/trim-durations": true
+   },
+   "userguide_page": "abc_import",
+   "window_title": ""
+  },
+  "midi": {
+   "cases": [
+    {
+     "arguments": [],
+     "checks": [
+      false
+     ],
+     "language_index": -1
+    },
+    {
+     "arguments": [
+      "-a"
+     ],
+     "checks": [
+      true
+     ],
+     "language_index": -1
+    }
+   ],
+   "imp_program": "midi2ly",
+   "import_checks": [
+    "absolute-mode"
+   ],
+   "import_defaults": [
+    false
+   ],
+   "import_texts": [
+    "Pitches in absolute mode"
+   ],
+   "ok_text": "Run midi2ly",
+   "post_cases": [
+    {
+     "checks": [
+      false,
+      false,
+      false,
+      false
+     ],
+     "settings": [
+      false,
+      false,
+      false,
+      false
+     ]
+    },
+    {
+     "checks": [
+      false,
+      false,
+      false,
+      true
+     ],
+     "settings": [
+      false,
+      false,
+      false,
+      true
+     ]
+    },
+    {
+     "checks": [
+      false,
+      false,
+      true,
+      false
+     ],
+     "settings": [
+      false,
+      false,
+      true,
+      false
+     ]
+    },
+    {
+     "checks": [
+      false,
+      false,
+      true,
+      true
+     ],
+     "settings": [
+      false,
+      false,
+      true,
+      true
+     ]
+    },
+    {
+     "checks": [
+      false,
+      true,
+      false,
+      false
+     ],
+     "settings": [
+      false,
+      true,
+      false,
+      false
+     ]
+    },
+    {
+     "checks": [
+      false,
+      true,
+      false,
+      true
+     ],
+     "settings": [
+      false,
+      true,
+      false,
+      true
+     ]
+    },
+    {
+     "checks": [
+      false,
+      true,
+      true,
+      false
+     ],
+     "settings": [
+      false,
+      true,
+      true,
+      false
+     ]
+    },
+    {
+     "checks": [
+      false,
+      true,
+      true,
+      true
+     ],
+     "settings": [
+      false,
+      true,
+      true,
+      true
+     ]
+    },
+    {
+     "checks": [
+      true,
+      false,
+      false,
+      false
+     ],
+     "settings": [
+      true,
+      false,
+      false,
+      false
+     ]
+    },
+    {
+     "checks": [
+      true,
+      false,
+      false,
+      true
+     ],
+     "settings": [
+      true,
+      false,
+      false,
+      true
+     ]
+    },
+    {
+     "checks": [
+      true,
+      false,
+      true,
+      false
+     ],
+     "settings": [
+      true,
+      false,
+      true,
+      false
+     ]
+    },
+    {
+     "checks": [
+      true,
+      false,
+      true,
+      true
+     ],
+     "settings": [
+      true,
+      false,
+      true,
+      true
+     ]
+    },
+    {
+     "checks": [
+      true,
+      true,
+      false,
+      false
+     ],
+     "settings": [
+      true,
+      true,
+      false,
+      false
+     ]
+    },
+    {
+     "checks": [
+      true,
+      true,
+      false,
+      true
+     ],
+     "settings": [
+      true,
+      true,
+      false,
+      true
+     ]
+    },
+    {
+     "checks": [
+      true,
+      true,
+      true,
+      false
+     ],
+     "settings": [
+      true,
+      true,
+      true,
+      false
+     ]
+    },
+    {
+     "checks": [
+      true,
+      true,
+      true,
+      true
+     ],
+     "settings": [
+      true,
+      true,
+      true,
+      true
+     ]
+    }
+   ],
+   "post_checks": [
+    "reformat",
+    "trim-durations",
+    "remove-scaling",
+    "engrave-directly"
+   ],
+   "post_defaults": [
+    true,
+    false,
+    false,
+    true
+   ],
+   "post_texts": [
+    "Reformat source",
+    "Trim durations (Make implicit per line)",
+    "Remove fraction duration scaling",
+    "Engrave directly"
+   ],
+   "reloaded_import_checks": [
+    true
+   ],
+   "reloaded_post_checks": [
+    true,
+    true,
+    true,
+    true
+   ],
+   "saved_settings": {
+    "midi_import/absolute-mode": true,
+    "midi_import/engrave-directly": true,
+    "midi_import/reformat": true,
+    "midi_import/remove-scaling": true,
+    "midi_import/trim-durations": true
+   },
+   "userguide_page": "midi_import",
+   "window_title": ""
+  },
+  "musicxml": {
+   "cases": [
+    {
+     "arguments": [
+      "--nd",
+      "--nrp",
+      "--npl",
+      "--no-beaming",
+      "-m"
+     ],
+     "checks": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false
+     ],
+     "language_index": 0
+    },
+    {
+     "arguments": [
+      "--nd",
+      "--nrp",
+      "--npl",
+      "--no-beaming"
+     ],
+     "checks": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      true
+     ],
+     "language_index": 0
+    },
+    {
+     "arguments": [
+      "-a",
+      "--nd",
+      "--nrp",
+      "--npl",
+      "--no-beaming",
+      "-m"
+     ],
+     "checks": [
+      false,
+      false,
+      false,
+      false,
+      true,
+      false
+     ],
+     "language_index": 0
+    },
+    {
+     "arguments": [
+      "-a",
+      "--nd",
+      "--nrp",
+      "--npl",
+      "--no-beaming"
+     ],
+     "checks": [
+      false,
+      false,
+      false,
+      false,
+      true,
+      true
+     ],
+     "language_index": 0
+    },
+    {
+     "arguments": [
+      "--nd",
+      "--nrp",
+      "--npl",
+      "-m"
+     ],
+     "checks": [
+      false,
+      false,
+      false,
+      true,
+      false,
+      false
+     ],
+     "language_index": 0
+    },
+    {
+     "arguments": [
+      "--nd",
+      "--nrp",
+      "--npl"
+     ],
+     "checks": [
+      false,
+      false,
+      false,
+      true,
+      false,
+      true
+     ],
+     "language_index": 0
+    },
+    {
+     "arguments": [
+      "-a",
+      "--nd",
+      "--nrp",
+      "--npl",
+      "-m"
+     ],
+     "checks": [
+      false,
+      false,
+      false,
+      true,
+      true,
+      false
+     ],
+     "language_index": 0
+    },
+    {
+     "arguments": [
+      "-a",
+      "--nd",
+      "--nrp",
+      "--npl"
+     ],
+     "checks": [
+      false,
+      false,
+      false,
+      true,
+      true,
+      true
+     ],
+     "language_index": 0
+    },
+    {
+     "arguments": [
+      "--nd",
+      "--nrp",
+      "--no-beaming",
+      "-m"
+     ],
+     "checks": [
+      false,
+      false,
+      true,
+      false,
+      false,
+      false
+     ],
+     "language_index": 0
+    },
+    {
+     "arguments": [
+      "--nd",
+      "--nrp",
+      "--no-beaming"
+     ],
+     "checks": [
+      false,
+      false,
+      true,
+      false,
+      false,
+      true
+     ],
+     "language_index": 0
+    },
+    {
+     "arguments": [
+      "-a",
+      "--nd",
+      "--nrp",
+      "--no-beaming",
+      "-m"
+     ],
+     "checks": [
+      false,
+      false,
+      true,
+      false,
+      true,
+      false
+     ],
+     "language_index": 0
+    },
+    {
+     "arguments": [
+      "-a",
+      "--nd",
+      "--nrp",
+      "--no-beaming"
+     ],
+     "checks": [
+      false,
+      false,
+      true,
+      false,
+      true,
+      true
+     ],
+     "language_index": 0
+    },
+    {
+     "arguments": [
+      "--nd",
+      "--nrp",
+      "-m"
+     ],
+     "checks": [
+      false,
+      false,
+      true,
+      true,
+      false,
+      false
+     ],
+     "language_index": 0
+    },
+    {
+     "arguments": [
+      "--nd",
+      "--nrp"
+     ],
+     "checks": [
+      false,
+      false,
+      true,
+      true,
+      false,
+      true
+     ],
+     "language_index": 0
+    },
+    {
+     "arguments": [
+      "-a",
+      "--nd",
+      "--nrp",
+      "-m"
+     ],
+     "checks": [
+      false,
+      false,
+      true,
+      true,
+      true,
+      false
+     ],
+     "language_index": 0
+    },
+    {
+     "arguments": [
+      "-a",
+      "--nd",
+      "--nrp"
+     ],
+     "checks": [
+      false,
+      false,
+      true,
+      true,
+      true,
+      true
+     ],
+     "language_index": 0
+    },
+    {
+     "arguments": [
+      "--nd",
+      "--npl",
+      "--no-beaming",
+      "-m"
+     ],
+     "checks": [
+      false,
+      true,
+      false,
+      false,
+      false,
+      false
+     ],
+     "language_index": 0
+    },
+    {
+     "arguments": [
+      "--nd",
+      "--npl",
+      "--no-beaming"
+     ],
+     "checks": [
+      false,
+      true,
+      false,
+      false,
+      false,
+      true
+     ],
+     "language_index": 0
+    },
+    {
+     "arguments": [
+      "-a",
+      "--nd",
+      "--npl",
+      "--no-beaming",
+      "-m"
+     ],
+     "checks": [
+      false,
+      true,
+      false,
+      false,
+      true,
+      false
+     ],
+     "language_index": 0
+    },
+    {
+     "arguments": [
+      "-a",
+      "--nd",
+      "--npl",
+      "--no-beaming"
+     ],
+     "checks": [
+      false,
+      true,
+      false,
+      false,
+      true,
+      true
+     ],
+     "language_index": 0
+    },
+    {
+     "arguments": [
+      "--nd",
+      "--npl",
+      "-m"
+     ],
+     "checks": [
+      false,
+      true,
+      false,
+      true,
+      false,
+      false
+     ],
+     "language_index": 0
+    },
+    {
+     "arguments": [
+      "--nd",
+      "--npl"
+     ],
+     "checks": [
+      false,
+      true,
+      false,
+      true,
+      false,
+      true
+     ],
+     "language_index": 0
+    },
+    {
+     "arguments": [
+      "-a",
+      "--nd",
+      "--npl",
+      "-m"
+     ],
+     "checks": [
+      false,
+      true,
+      false,
+      true,
+      true,
+      false
+     ],
+     "language_index": 0
+    },
+    {
+     "arguments": [
+      "-a",
+      "--nd",
+      "--npl"
+     ],
+     "checks": [
+      false,
+      true,
+      false,
+      true,
+      true,
+      true
+     ],
+     "language_index": 0
+    },
+    {
+     "arguments": [
+      "--nd",
+      "--no-beaming",
+      "-m"
+     ],
+     "checks": [
+      false,
+      true,
+      true,
+      false,
+      false,
+      false
+     ],
+     "language_index": 0
+    },
+    {
+     "arguments": [
+      "--nd",
+      "--no-beaming"
+     ],
+     "checks": [
+      false,
+      true,
+      true,
+      false,
+      false,
+      true
+     ],
+     "language_index": 0
+    },
+    {
+     "arguments": [
+      "-a",
+      "--nd",
+      "--no-beaming",
+      "-m"
+     ],
+     "checks": [
+      false,
+      true,
+      true,
+      false,
+      true,
+      false
+     ],
+     "language_index": 0
+    },
+    {
+     "arguments": [
+      "-a",
+      "--nd",
+      "--no-beaming"
+     ],
+     "checks": [
+      false,
+      true,
+      true,
+      false,
+      true,
+      true
+     ],
+     "language_index": 0
+    },
+    {
+     "arguments": [
+      "--nd",
+      "-m"
+     ],
+     "checks": [
+      false,
+      true,
+      true,
+      true,
+      false,
+      false
+     ],
+     "language_index": 0
+    },
+    {
+     "arguments": [
+      "--nd"
+     ],
+     "checks": [
+      false,
+      true,
+      true,
+      true,
+      false,
+      true
+     ],
+     "language_index": 0
+    },
+    {
+     "arguments": [
+      "-a",
+      "--nd",
+      "-m"
+     ],
+     "checks": [
+      false,
+      true,
+      true,
+      true,
+      true,
+      false
+     ],
+     "language_index": 0
+    },
+    {
+     "arguments": [
+      "-a",
+      "--nd"
+     ],
+     "checks": [
+      false,
+      true,
+      true,
+      true,
+      true,
+      true
+     ],
+     "language_index": 0
+    },
+    {
+     "arguments": [
+      "--nrp",
+      "--npl",
+      "--no-beaming",
+      "-m"
+     ],
+     "checks": [
+      true,
+      false,
+      false,
+      false,
+      false,
+      false
+     ],
+     "language_index": 0
+    },
+    {
+     "arguments": [
+      "--nrp",
+      "--npl",
+      "--no-beaming"
+     ],
+     "checks": [
+      true,
+      false,
+      false,
+      false,
+      false,
+      true
+     ],
+     "language_index": 0
+    },
+    {
+     "arguments": [
+      "-a",
+      "--nrp",
+      "--npl",
+      "--no-beaming",
+      "-m"
+     ],
+     "checks": [
+      true,
+      false,
+      false,
+      false,
+      true,
+      false
+     ],
+     "language_index": 0
+    },
+    {
+     "arguments": [
+      "-a",
+      "--nrp",
+      "--npl",
+      "--no-beaming"
+     ],
+     "checks": [
+      true,
+      false,
+      false,
+      false,
+      true,
+      true
+     ],
+     "language_index": 0
+    },
+    {
+     "arguments": [
+      "--nrp",
+      "--npl",
+      "-m"
+     ],
+     "checks": [
+      true,
+      false,
+      false,
+      true,
+      false,
+      false
+     ],
+     "language_index": 0
+    },
+    {
+     "arguments": [
+      "--nrp",
+      "--npl"
+     ],
+     "checks": [
+      true,
+      false,
+      false,
+      true,
+      false,
+      true
+     ],
+     "language_index": 0
+    },
+    {
+     "arguments": [
+      "-a",
+      "--nrp",
+      "--npl",
+      "-m"
+     ],
+     "checks": [
+      true,
+      false,
+      false,
+      true,
+      true,
+      false
+     ],
+     "language_index": 0
+    },
+    {
+     "arguments": [
+      "-a",
+      "--nrp",
+      "--npl"
+     ],
+     "checks": [
+      true,
+      false,
+      false,
+      true,
+      true,
+      true
+     ],
+     "language_index": 0
+    },
+    {
+     "arguments": [
+      "--nrp",
+      "--no-beaming",
+      "-m"
+     ],
+     "checks": [
+      true,
+      false,
+      true,
+      false,
+      false,
+      false
+     ],
+     "language_index": 0
+    },
+    {
+     "arguments": [
+      "--nrp",
+      "--no-beaming"
+     ],
+     "checks": [
+      true,
+      false,
+      true,
+      false,
+      false,
+      true
+     ],
+     "language_index": 0
+    },
+    {
+     "arguments": [
+      "-a",
+      "--nrp",
+      "--no-beaming",
+      "-m"
+     ],
+     "checks": [
+      true,
+      false,
+      true,
+      false,
+      true,
+      false
+     ],
+     "language_index": 0
+    },
+    {
+     "arguments": [
+      "-a",
+      "--nrp",
+      "--no-beaming"
+     ],
+     "checks": [
+      true,
+      false,
+      true,
+      false,
+      true,
+      true
+     ],
+     "language_index": 0
+    },
+    {
+     "arguments": [
+      "--nrp",
+      "-m"
+     ],
+     "checks": [
+      true,
+      false,
+      true,
+      true,
+      false,
+      false
+     ],
+     "language_index": 0
+    },
+    {
+     "arguments": [
+      "--nrp"
+     ],
+     "checks": [
+      true,
+      false,
+      true,
+      true,
+      false,
+      true
+     ],
+     "language_index": 0
+    },
+    {
+     "arguments": [
+      "-a",
+      "--nrp",
+      "-m"
+     ],
+     "checks": [
+      true,
+      false,
+      true,
+      true,
+      true,
+      false
+     ],
+     "language_index": 0
+    },
+    {
+     "arguments": [
+      "-a",
+      "--nrp"
+     ],
+     "checks": [
+      true,
+      false,
+      true,
+      true,
+      true,
+      true
+     ],
+     "language_index": 0
+    },
+    {
+     "arguments": [
+      "--npl",
+      "--no-beaming",
+      "-m"
+     ],
+     "checks": [
+      true,
+      true,
+      false,
+      false,
+      false,
+      false
+     ],
+     "language_index": 0
+    },
+    {
+     "arguments": [
+      "--npl",
+      "--no-beaming"
+     ],
+     "checks": [
+      true,
+      true,
+      false,
+      false,
+      false,
+      true
+     ],
+     "language_index": 0
+    },
+    {
+     "arguments": [
+      "-a",
+      "--npl",
+      "--no-beaming",
+      "-m"
+     ],
+     "checks": [
+      true,
+      true,
+      false,
+      false,
+      true,
+      false
+     ],
+     "language_index": 0
+    },
+    {
+     "arguments": [
+      "-a",
+      "--npl",
+      "--no-beaming"
+     ],
+     "checks": [
+      true,
+      true,
+      false,
+      false,
+      true,
+      true
+     ],
+     "language_index": 0
+    },
+    {
+     "arguments": [
+      "--npl",
+      "-m"
+     ],
+     "checks": [
+      true,
+      true,
+      false,
+      true,
+      false,
+      false
+     ],
+     "language_index": 0
+    },
+    {
+     "arguments": [
+      "--npl"
+     ],
+     "checks": [
+      true,
+      true,
+      false,
+      true,
+      false,
+      true
+     ],
+     "language_index": 0
+    },
+    {
+     "arguments": [
+      "-a",
+      "--npl",
+      "-m"
+     ],
+     "checks": [
+      true,
+      true,
+      false,
+      true,
+      true,
+      false
+     ],
+     "language_index": 0
+    },
+    {
+     "arguments": [
+      "-a",
+      "--npl"
+     ],
+     "checks": [
+      true,
+      true,
+      false,
+      true,
+      true,
+      true
+     ],
+     "language_index": 0
+    },
+    {
+     "arguments": [
+      "--no-beaming",
+      "-m"
+     ],
+     "checks": [
+      true,
+      true,
+      true,
+      false,
+      false,
+      false
+     ],
+     "language_index": 0
+    },
+    {
+     "arguments": [
+      "--no-beaming"
+     ],
+     "checks": [
+      true,
+      true,
+      true,
+      false,
+      false,
+      true
+     ],
+     "language_index": 0
+    },
+    {
+     "arguments": [
+      "-a",
+      "--no-beaming",
+      "-m"
+     ],
+     "checks": [
+      true,
+      true,
+      true,
+      false,
+      true,
+      false
+     ],
+     "language_index": 0
+    },
+    {
+     "arguments": [
+      "-a",
+      "--no-beaming"
+     ],
+     "checks": [
+      true,
+      true,
+      true,
+      false,
+      true,
+      true
+     ],
+     "language_index": 0
+    },
+    {
+     "arguments": [
+      "-m"
+     ],
+     "checks": [
+      true,
+      true,
+      true,
+      true,
+      false,
+      false
+     ],
+     "language_index": 0
+    },
+    {
+     "arguments": [],
+     "checks": [
+      true,
+      true,
+      true,
+      true,
+      false,
+      true
+     ],
+     "language_index": 0
+    },
+    {
+     "arguments": [
+      "-a",
+      "-m"
+     ],
+     "checks": [
+      true,
+      true,
+      true,
+      true,
+      true,
+      false
+     ],
+     "language_index": 0
+    },
+    {
+     "arguments": [
+      "-a"
+     ],
+     "checks": [
+      true,
+      true,
+      true,
+      true,
+      true,
+      true
+     ],
+     "language_index": 0
+    },
+    {
+     "arguments": [
+      "-a"
+     ],
+     "checks": [
+      true,
+      true,
+      true,
+      true,
+      true,
+      true
+     ],
+     "language_index": 0
+    },
+    {
+     "arguments": [
+      "-a",
+      "--language=nederlands"
+     ],
+     "checks": [
+      true,
+      true,
+      true,
+      true,
+      true,
+      true
+     ],
+     "language_index": 1
+    },
+    {
+     "arguments": [
+      "-a",
+      "--language=catalan"
+     ],
+     "checks": [
+      true,
+      true,
+      true,
+      true,
+      true,
+      true
+     ],
+     "language_index": 2
+    },
+    {
+     "arguments": [
+      "-a",
+      "--language=deutsch"
+     ],
+     "checks": [
+      true,
+      true,
+      true,
+      true,
+      true,
+      true
+     ],
+     "language_index": 3
+    },
+    {
+     "arguments": [
+      "-a",
+      "--language=english"
+     ],
+     "checks": [
+      true,
+      true,
+      true,
+      true,
+      true,
+      true
+     ],
+     "language_index": 4
+    },
+    {
+     "arguments": [
+      "-a",
+      "--language=espanol"
+     ],
+     "checks": [
+      true,
+      true,
+      true,
+      true,
+      true,
+      true
+     ],
+     "language_index": 5
+    },
+    {
+     "arguments": [
+      "-a",
+      "--language=italiano"
+     ],
+     "checks": [
+      true,
+      true,
+      true,
+      true,
+      true,
+      true
+     ],
+     "language_index": 6
+    },
+    {
+     "arguments": [
+      "-a",
+      "--language=norsk"
+     ],
+     "checks": [
+      true,
+      true,
+      true,
+      true,
+      true,
+      true
+     ],
+     "language_index": 7
+    },
+    {
+     "arguments": [
+      "-a",
+      "--language=portugues"
+     ],
+     "checks": [
+      true,
+      true,
+      true,
+      true,
+      true,
+      true
+     ],
+     "language_index": 8
+    },
+    {
+     "arguments": [
+      "-a",
+      "--language=suomi"
+     ],
+     "checks": [
+      true,
+      true,
+      true,
+      true,
+      true,
+      true
+     ],
+     "language_index": 9
+    },
+    {
+     "arguments": [
+      "-a",
+      "--language=svenska"
+     ],
+     "checks": [
+      true,
+      true,
+      true,
+      true,
+      true,
+      true
+     ],
+     "language_index": 10
+    },
+    {
+     "arguments": [
+      "-a",
+      "--language=vlaams"
+     ],
+     "checks": [
+      true,
+      true,
+      true,
+      true,
+      true,
+      true
+     ],
+     "language_index": 11
+    }
+   ],
+   "imp_program": "musicxml2ly",
+   "import_checks": [
+    "articulation-directions",
+    "rest-positions",
+    "page-layout",
+    "import-beaming",
+    "absolute-mode",
+    "comment-out-midi"
+   ],
+   "import_defaults": [
+    false,
+    false,
+    false,
+    false,
+    false,
+    false
+   ],
+   "import_texts": [
+    "Import articulation directions",
+    "Import rest positions",
+    "Import page layout",
+    "Import beaming",
+    "Pitches in absolute mode",
+    "Comment out midi block"
+   ],
+   "languages": [
+    "Default",
+    "nederlands",
+    "catalan",
+    "deutsch",
+    "english",
+    "espanol",
+    "italiano",
+    "norsk",
+    "portugues",
+    "suomi",
+    "svenska",
+    "vlaams"
+   ],
+   "ok_text": "Run musicxml2ly",
+   "post_cases": [
+    {
+     "checks": [
+      false,
+      false,
+      false,
+      false
+     ],
+     "settings": [
+      false,
+      false,
+      false,
+      false
+     ]
+    },
+    {
+     "checks": [
+      false,
+      false,
+      false,
+      true
+     ],
+     "settings": [
+      false,
+      false,
+      false,
+      true
+     ]
+    },
+    {
+     "checks": [
+      false,
+      false,
+      true,
+      false
+     ],
+     "settings": [
+      false,
+      false,
+      true,
+      false
+     ]
+    },
+    {
+     "checks": [
+      false,
+      false,
+      true,
+      true
+     ],
+     "settings": [
+      false,
+      false,
+      true,
+      true
+     ]
+    },
+    {
+     "checks": [
+      false,
+      true,
+      false,
+      false
+     ],
+     "settings": [
+      false,
+      true,
+      false,
+      false
+     ]
+    },
+    {
+     "checks": [
+      false,
+      true,
+      false,
+      true
+     ],
+     "settings": [
+      false,
+      true,
+      false,
+      true
+     ]
+    },
+    {
+     "checks": [
+      false,
+      true,
+      true,
+      false
+     ],
+     "settings": [
+      false,
+      true,
+      true,
+      false
+     ]
+    },
+    {
+     "checks": [
+      false,
+      true,
+      true,
+      true
+     ],
+     "settings": [
+      false,
+      true,
+      true,
+      true
+     ]
+    },
+    {
+     "checks": [
+      true,
+      false,
+      false,
+      false
+     ],
+     "settings": [
+      true,
+      false,
+      false,
+      false
+     ]
+    },
+    {
+     "checks": [
+      true,
+      false,
+      false,
+      true
+     ],
+     "settings": [
+      true,
+      false,
+      false,
+      true
+     ]
+    },
+    {
+     "checks": [
+      true,
+      false,
+      true,
+      false
+     ],
+     "settings": [
+      true,
+      false,
+      true,
+      false
+     ]
+    },
+    {
+     "checks": [
+      true,
+      false,
+      true,
+      true
+     ],
+     "settings": [
+      true,
+      false,
+      true,
+      true
+     ]
+    },
+    {
+     "checks": [
+      true,
+      true,
+      false,
+      false
+     ],
+     "settings": [
+      true,
+      true,
+      false,
+      false
+     ]
+    },
+    {
+     "checks": [
+      true,
+      true,
+      false,
+      true
+     ],
+     "settings": [
+      true,
+      true,
+      false,
+      true
+     ]
+    },
+    {
+     "checks": [
+      true,
+      true,
+      true,
+      false
+     ],
+     "settings": [
+      true,
+      true,
+      true,
+      false
+     ]
+    },
+    {
+     "checks": [
+      true,
+      true,
+      true,
+      true
+     ],
+     "settings": [
+      true,
+      true,
+      true,
+      true
+     ]
+    }
+   ],
+   "post_checks": [
+    "reformat",
+    "trim-durations",
+    "remove-scaling",
+    "engrave-directly"
+   ],
+   "post_defaults": [
+    true,
+    false,
+    false,
+    true
+   ],
+   "post_texts": [
+    "Reformat source",
+    "Trim durations (Make implicit per line)",
+    "Remove fraction duration scaling",
+    "Engrave directly"
+   ],
+   "reloaded_import_checks": [
+    true,
+    true,
+    true,
+    true,
+    true,
+    true
+   ],
+   "reloaded_language_index": 11,
+   "reloaded_post_checks": [
+    true,
+    true,
+    true,
+    true
+   ],
+   "saved_settings": {
+    "musicxml_import/absolute-mode": true,
+    "musicxml_import/articulation-directions": true,
+    "musicxml_import/comment-out-midi": true,
+    "musicxml_import/engrave-directly": true,
+    "musicxml_import/import-beaming": true,
+    "musicxml_import/language": "vlaams",
+    "musicxml_import/page-layout": true,
+    "musicxml_import/reformat": true,
+    "musicxml_import/remove-scaling": true,
+    "musicxml_import/rest-positions": true,
+    "musicxml_import/trim-durations": true
+   },
+   "userguide_page": "musicxml_import",
+   "window_title": "Import Music XML"
+  }
+ },
+ "importable": {
+  ".abc": false,
+  "a": false,
+  "a.Mid": false,
+  "a.XML": false,
+  "a.abc": true,
+  "a.abc.txt": false,
+  "a.ly": false,
+  "a.mid": true,
+  "a.midi": true,
+  "a.musicxml": true,
+  "a.mxl": true,
+  "a.xml": true,
+  "a.xml.gz": false
+ },
+ "languages": [
+  "nederlands",
+  "catalan",
+  "deutsch",
+  "english",
+  "espanol",
+  "italiano",
+  "norsk",
+  "portugues",
+  "suomi",
+  "svenska",
+  "vlaams"
+ ],
+ "next_file": {
+  "/tmp/dir-2/song-2.ly": "/tmp/dir-2/song-3.ly",
+  "/tmp/dir-2/song.ly": "/tmp/dir-2/song-1.ly",
+  "a-b-2.ly": "a-b-3.ly",
+  "noext-3": "noext-4",
+  "noextension": "noextension-1",
+  "song- 3.ly": "song-4.ly",
+  "song-+4.ly": "song-5.ly",
+  "song--1.ly": "song--2.ly",
+  "song-.ly": "song--1.ly",
+  "song-0.ly": "song-1.ly",
+  "song-03.ly": "song-4.ly",
+  "song-1.ly": "song-2.ly",
+  "song-10.ly": "song-11.ly",
+  "song-9.ly": "song-10.ly",
+  "song-x.ly": "song-x-1.ly",
+  "song.ly": "song-1.ly",
+  "song.tar.gz": "song.tar-1.gz"
+ },
+ "targets": {
+  ".abc": ".abc",
+  ".mid": ".midi",
+  ".midi": ".midi",
+  ".musicxml": ".musicxml",
+  ".mxl": ".musicxml",
+  ".xml": ".musicxml"
+ }
+}

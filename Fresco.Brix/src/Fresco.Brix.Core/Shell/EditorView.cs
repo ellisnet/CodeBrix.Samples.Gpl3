@@ -44,10 +44,13 @@ public sealed class EditorView : Grid
     /// <param name="state">The document's shared editor state.</param>
     /// <param name="editorFontFamily">The monospace font resource for the
     /// editor text, or null for the inherited font.</param>
+    /// <param name="editorFontSize">The text size, or 0 for the default —
+    /// what the Fonts &amp; Colors preferences page writes.</param>
     public EditorView(
         EditorDocument document,
         DocumentEditorState state,
-        FontFamily editorFontFamily = null)
+        FontFamily editorFontFamily = null,
+        double editorFontSize = 0)
     {
         Document = document ?? throw new ArgumentNullException(nameof(document));
         State = state ?? throw new ArgumentNullException(nameof(state));
@@ -57,7 +60,9 @@ public sealed class EditorView : Grid
             //The SAME text store the other views use: this is the whole point.
             Document = document.Document,
             ShowLineNumbers = true,
-            FontSize = 13,
+            FontSize = editorFontSize > 0
+                ? editorFontSize
+                : Fresco.Brix.Editor.TextFormatData.DefaultFontSize,
         };
 
         if (editorFontFamily != null)
@@ -142,6 +147,14 @@ public sealed class EditorView : Grid
     {
         Editor.CaretOffset = Document.OffsetAtPosition(line, column);
         Editor.ScrollTo(line, column);
+    }
+
+    /// <summary>Puts the caret at a character offset and scrolls it into view.</summary>
+    /// <param name="offset">The offset from the start of the document.</param>
+    public void GoToOffset(int offset)
+    {
+        Editor.CaretOffset = Math.Clamp(offset, 0, Editor.Document.TextLength);
+        Editor.ScrollTo(Line, Column);
     }
 
     /// <summary>Gives the view keyboard focus.</summary>

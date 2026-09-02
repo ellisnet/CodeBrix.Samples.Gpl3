@@ -8,6 +8,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Text;
 
 namespace Fresco.Brix.Services; //was previously: frescobaldi/i18n/__init__.py
@@ -98,10 +99,12 @@ public static class I18n
     /// <returns>The translator.</returns>
     /// <remarks>
     /// Upstream's <c>i18n.translator(lang)</c>, which loads that language's
-    /// catalog and hands back its <c>gettext</c>. Until W-I18N brings the
-    /// catalogs there is only English to hand back, so every answer but the
-    /// installed one is English — which is exactly what the score wizard's
-    /// instrument-name language setting then produces.
+    /// catalog and hands back its <c>gettext</c>. That is what this does now
+    /// that the catalogs are installed: the Score Wizard's instrument-name
+    /// language setting really does write the part names in the language it
+    /// names, whatever the interface is set to. A language with no catalog —
+    /// which the picker never offers — answers English rather than throwing in
+    /// front of the user.
     /// </remarks>
     public static Translator TranslatorFor(string language)
     {
@@ -112,7 +115,21 @@ public static class I18n
             return Current;
         }
 
-        return static (_, message) => message;
+        try
+        {
+            ITranslationCatalog catalog = LanguageSetup.CatalogFor(language);
+            if (catalog == null) { return static (_, message) => message; }
+
+            return (context, message) => catalog.Lookup(context, message) ?? message;
+        }
+        catch (UnknownLanguageException)
+        {
+            return static (_, message) => message;
+        }
+        catch (IOException)
+        {
+            return static (_, message) => message;
+        }
     }
 
     /// <summary>Translates a message.</summary>

@@ -136,7 +136,7 @@ public sealed class SessionManager
         _store.SetCurrentSession(name);
         if (data == null) { return null; }
 
-        DocumentInfo.GlobalIncludePath = data.IncludePath;
+        DocumentInfo.SessionIncludePath = data.IncludePath;
 
         List<EditorDocument> opened = new List<EditorDocument>();
         Func<string, Task<bool>> open = OpenPathAsync;

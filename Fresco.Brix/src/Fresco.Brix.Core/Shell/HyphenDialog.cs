@@ -68,7 +68,12 @@ public static class HyphenDialog
         => HyphenDictionaries.FindDictionaries(settings)
             .Select(pair => new HyphenLanguage(
                 LanguageName(pair.Key), pair.Key, pair.Value))
-            .OrderBy(l => l.Name, StringComparer.CurrentCulture)
+            //Upstream sorts the (name, code, file) tuples, which in Python is
+            //by code point; the same order is kept here so the list reads the
+            //way Frescobaldi's does.
+            //was previously: StringComparer.CurrentCulture, which was the right
+            //answer while the names came from the framework's culture data.
+            .OrderBy(l => l.Name, StringComparer.Ordinal)
             .ThenBy(l => l.Code, StringComparer.Ordinal)
             .ToArray();
 
@@ -127,12 +132,15 @@ public static class HyphenDialog
         });
         panel.Children.Add(list);
 
+        //Upstream's `userguide.addButton(b, "lyrics")'.
+        panel.Children.Add(UserGuide.GuideHelp.ButtonRow("lyrics"));
+
         ContentDialog dialog = new ContentDialog
         {
-            Title = I18n.Get("dialog title", "Hyphenate Lyrics Text"),
+            Title = I18n.Get("Hyphenate Lyrics Text"),
             Content = panel,
-            PrimaryButtonText = I18n.Get("OK"),
-            CloseButtonText = I18n.Get("Cancel"),
+            PrimaryButtonText = StandardButtons.Ok,
+            CloseButtonText = StandardButtons.Cancel,
             DefaultButton = ContentDialogButton.Primary,
             IsPrimaryButtonEnabled = languages.Count > 0,
             XamlRoot = xamlRoot,
@@ -160,7 +168,11 @@ public static class HyphenDialog
         string lastUsed = settings?.GetString(HyphenDictionaries.LastUsedKey);
         if (!string.IsNullOrEmpty(lastUsed)) { yield return lastUsed; }
 
-        string current = CultureInfo.CurrentUICulture.Name.Replace('-', '_');
+        //Upstream's `i18n.setup.preferred()[0]', then that one's base: the
+        //language the OPERATING SYSTEM asks for, not the one the interface was
+        //set to. A user reading a German interface may well be typing Dutch
+        //lyrics, and it is the system locale that guesses better.
+        string current = LanguageSetup.Preferred().FirstOrDefault();
         if (!string.IsNullOrEmpty(current))
         {
             yield return current;
@@ -168,25 +180,23 @@ public static class HyphenDialog
         }
     }
 
-    /// <summary>Names a language in the user's own language.</summary>
+    /// <summary>Names a language in the application's own language.</summary>
     /// <param name="code">The code, such as <c>nl_NL</c>.</param>
     /// <returns>The name, or the code when it names no language.</returns>
-    /// <remarks>Upstream reads this out of its own <c>language_names</c>
-    /// tables, which are 3,573 lines of generated CLDR data and arrive with
-    /// W-I18N. The same data is already on this machine, inside the ICU the
-    /// platform carries, so it is asked for here — and when W-I18N brings the
-    /// ported tables, this is the one place that changes.</remarks>
+    /// <remarks>
+    /// Upstream's <c>language_names.languageName(lang, i18n.setup.current())</c>:
+    /// the name is written in whatever language the INTERFACE is in.
+    /// //was previously: the running framework's own culture data
+    /// (<c>CultureInfo.DisplayName</c>), which stood in while W-I18N was still
+    /// owed. The ported tables answer differently in two ways that matter —
+    /// they are KDE's names rather than the CLDR's, and they carry no country
+    /// (a dictionary for <c>de_DE</c> is named "German", and its code is beside
+    /// it in the row) — so the dialog now says exactly what upstream's says.
+    /// </remarks>
     private static string LanguageName(string code)
     {
         if (string.IsNullOrEmpty(code)) { return string.Empty; }
 
-        try
-        {
-            return CultureInfo.GetCultureInfo(code.Replace('_', '-')).DisplayName;
-        }
-        catch (CultureNotFoundException)
-        {
-            return code;
-        }
+        return LanguageNames.LanguageName(code, I18n.Language);
     }
 }

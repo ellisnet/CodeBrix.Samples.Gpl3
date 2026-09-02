@@ -1,0 +1,26 @@
+vendored faces (24):
+  C059 -- CodeBrix.LilyPort.Engine.dll/CodeBrix.LilyPort.Engine.Fonts.text.C059-Roman.otf
+  C059 -- CodeBrix.LilyPort.Engine.dll/CodeBrix.LilyPort.Engine.Fonts.text.C059-Bold.otf
+  C059 -- CodeBrix.LilyPort.Engine.dll/CodeBrix.LilyPort.Engine.Fonts.text.C059-Italic.otf
+  C059 -- CodeBrix.LilyPort.Engine.dll/CodeBrix.LilyPort.Engine.Fonts.text.C059-BdIta.otf
+  TeX Gyre Schola -- CodeBrix.LilyPort.Engine.dll/CodeBrix.LilyPort.Engine.Fonts.text.texgyreschola-regular.otf
+  TeX Gyre Schola -- CodeBrix.LilyPort.Engine.dll/CodeBrix.LilyPort.Engine.Fonts.text.texgyreschola-bold.otf
+  TeX Gyre Schola -- CodeBrix.LilyPort.Engine.dll/CodeBrix.LilyPort.Engine.Fonts.text.texgyreschola-italic.otf
+  TeX Gyre Schola -- CodeBrix.LilyPort.Engine.dll/CodeBrix.LilyPort.Engine.Fonts.text.texgyreschola-bolditalic.otf
+  Nimbus Sans -- CodeBrix.LilyPort.Engine.dll/CodeBrix.LilyPort.Engine.Fonts.text.NimbusSans-Regular.otf
+  Nimbus Sans -- CodeBrix.LilyPort.Engine.dll/CodeBrix.LilyPort.Engine.Fonts.text.NimbusSans-Bold.otf
+  Nimbus Sans -- CodeBrix.LilyPort.Engine.dll/CodeBrix.LilyPort.Engine.Fonts.text.NimbusSans-Italic.otf
+  Nimbus Sans -- CodeBrix.LilyPort.Engine.dll/CodeBrix.LilyPort.Engine.Fonts.text.NimbusSans-BoldItalic.otf
+  TeX Gyre Heros -- CodeBrix.LilyPort.Engine.dll/CodeBrix.LilyPort.Engine.Fonts.text.texgyreheros-regular.otf
+  TeX Gyre Heros -- CodeBrix.LilyPort.Engine.dll/CodeBrix.LilyPort.Engine.Fonts.text.texgyreheros-bold.otf
+  TeX Gyre Heros -- CodeBrix.LilyPort.Engine.dll/CodeBrix.LilyPort.Engine.Fonts.text.texgyreheros-italic.otf
+  TeX Gyre Heros -- CodeBrix.LilyPort.Engine.dll/CodeBrix.LilyPort.Engine.Fonts.text.texgyreheros-bolditalic.otf
+  Nimbus Mono PS -- CodeBrix.LilyPort.Engine.dll/CodeBrix.LilyPort.Engine.Fonts.text.NimbusMonoPS-Regular.otf
+  Nimbus Mono PS -- CodeBrix.LilyPort.Engine.dll/CodeBrix.LilyPort.Engine.Fonts.text.NimbusMonoPS-Bold.otf
+  Nimbus Mono PS -- CodeBrix.LilyPort.Engine.dll/CodeBrix.LilyPort.Engine.Fonts.text.NimbusMonoPS-Italic.otf
+  Nimbus Mono PS -- CodeBrix.LilyPort.Engine.dll/CodeBrix.LilyPort.Engine.Fonts.text.NimbusMonoPS-BoldItalic.otf
+  TeX Gyre Cursor -- CodeBrix.LilyPort.Engine.dll/CodeBrix.LilyPort.Engine.Fonts.text.texgyrecursor-regular.otf
+  TeX Gyre Cursor -- CodeBrix.LilyPort.Engine.dll/CodeBrix.LilyPort.Engine.Fonts.text.texgyrecursor-bold.otf
+  TeX Gyre Cursor -- CodeBrix.LilyPort.Engine.dll/CodeBrix.LilyPort.Engine.Fonts.text.texgyrecursor-italic.otf
+  TeX Gyre Cursor -- CodeBrix.LilyPort.Engine.dll/CodeBrix.LilyPort.Engine.Fonts.text.texgyrecursor-bolditalic.otf
+document-supplied fonts (0):

@@ -11,7 +11,9 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace Fresco.Brix.Sessions; //was previously: frescobaldi/sessions/dialog.py
@@ -76,16 +78,19 @@ public static class SessionDialogs
         });
         panel.Children.Add(includePath);
 
+        //Upstream's `userguide.addButton(b, "sessions")'.
+        panel.Children.Add(UserGuide.GuideHelp.ButtonRow("sessions"));
+
         ContentDialog dialog = new ContentDialog
         {
             Title = name == null
-                ? I18n.Get("dialog title", "New Session")
+                ? I18n.Get("Edit new session")
                 : I18n.Format(
-                    I18n.Get("dialog title", "Edit session: {name}"),
+                    I18n.Get("Edit session: {name}"),
                     ("name", name)),
             Content = new ScrollViewer { Content = panel },
-            PrimaryButtonText = I18n.Get("OK"),
-            CloseButtonText = I18n.Get("Cancel"),
+            PrimaryButtonText = StandardButtons.Ok,
+            CloseButtonText = StandardButtons.Cancel,
             DefaultButton = ContentDialogButton.Primary,
             XamlRoot = xamlRoot,
         };
@@ -96,9 +101,60 @@ public static class SessionDialogs
         nameBox.TextChanged += (_, _) => Check();
         Check();
 
-        if (await dialog.ShowAsync() != ContentDialogResult.Primary) { return null; }
+        //was previously: the dialog closed on OK and whatever was typed was
+        //written, so a name that already existed SILENTLY overwrote another
+        //session. Upstream refuses to close until the name is acceptable
+        //(SessionEditor.done -> validate), and this is that loop: the dialog is
+        //re-shown with everything the user typed still in it.
+        string chosen;
+        while (true)
+        {
+            if (await dialog.ShowAsync() != ContentDialogResult.Primary) { return null; }
 
-        string chosen = nameBox.Text.Trim();
+            chosen = nameBox.Text.Trim();
+            nameBox.Text = chosen;
+
+            if (chosen.Length == 0)
+            {
+                await Shell.InputDialogs.AlertAsync(
+                    xamlRoot,
+                    I18n.Get("Warning"),
+                    I18n.Get("Please enter a session name."));
+                if (name != null) { nameBox.Text = name; }
+
+                continue;
+            }
+
+            //Upstream's reserved name: `-' is what the "no session" entry is
+            //stored as, so a session may not be called it.
+            if (string.Equals(chosen, "-", StringComparison.Ordinal))
+            {
+                await Shell.InputDialogs.AlertAsync(
+                    xamlRoot,
+                    I18n.Get("Warning"),
+                    I18n.Format(
+                        I18n.Get("Please do not use the name '{name}'."),
+                        ("name", "-")));
+                continue;
+            }
+
+            if (!string.Equals(chosen, name, StringComparison.Ordinal)
+                && store.SessionNames().Contains(chosen))
+            {
+                bool overwrite = await Shell.InputDialogs.ConfirmAsync(
+                    xamlRoot,
+                    I18n.Get("Warning"),
+                    I18n.Format(
+                        I18n.Get("Another session with the name {name} already "
+                            + "exists.\n\nDo you want to overwrite it?"),
+                        ("name", chosen)),
+                    StandardButtons.Overwrite);
+                if (!overwrite) { continue; }
+            }
+
+            break;
+        }
+
         if (name != null
             && !string.Equals(chosen, name, StringComparison.Ordinal))
         {
@@ -124,8 +180,21 @@ public static class SessionDialogs
     /// <summary>Lists the sessions and lets the user manage them.</summary>
     /// <param name="xamlRoot">The root to attach the dialog to.</param>
     /// <param name="store">The stored sessions.</param>
+    /// <param name="pickImportPathAsync">Asks the user which file to import a
+    /// session from, or null when the head has no file dialog.</param>
+    /// <param name="pickExportPathAsync">Asks where to export a session to,
+    /// given a suggested file name, or null.</param>
+    /// <param name="activateAsync">Switches to a session, or null.</param>
     /// <returns>The task.</returns>
-    public static async Task ManageAsync(XamlRoot xamlRoot, SessionStore store)
+    /// <remarks>//was previously: New, Edit, Remove and Close only. Upstream's
+    /// <c>SessionManagerDialog</c> also carries Import, Export and Activate
+    /// beside them, and a Help button on its button box.</remarks>
+    public static async Task ManageAsync(
+        XamlRoot xamlRoot,
+        SessionStore store,
+        Func<Task<string>> pickImportPathAsync = null,
+        Func<string, Task<string>> pickExportPathAsync = null,
+        Func<string, Task> activateAsync = null)
     {
         ListView list = new ListView
         {
@@ -143,17 +212,54 @@ public static class SessionDialogs
 
         Fill();
 
-        Button add = new Button { Content = MenuBuilder.Display(I18n.Get("&New...")) };
+        Button add = new Button { Content = MenuBuilder.Display(I18n.Get("New Session", "&New...")) };
         Button edit = new Button { Content = MenuBuilder.Display(I18n.Get("&Edit...")) };
         Button remove = new Button
         {
             Content = MenuBuilder.Display(I18n.Get("&Remove")),
         };
 
+        Button import = new Button
+        {
+            Content = MenuBuilder.Display(I18n.Get("&Import...")),
+            IsEnabled = pickImportPathAsync != null,
+        };
+        ToolTipService.SetToolTip(
+            import, I18n.Get("Opens a dialog to import a session from a file."));
+        Button export = new Button
+        {
+            Content = MenuBuilder.Display(I18n.Get("E&xport...")),
+            IsEnabled = false,
+        };
+        ToolTipService.SetToolTip(
+            export, I18n.Get("Opens a dialog to export a session to a file."));
+        Button activate = new Button
+        {
+            Content = MenuBuilder.Display(I18n.Get("&Activate")),
+            IsEnabled = false,
+        };
+        ToolTipService.SetToolTip(
+            activate, I18n.Get("Switches to the selected session."));
+
         StackPanel buttons = new StackPanel { Spacing = 6, Width = 120 };
         buttons.Children.Add(add);
         buttons.Children.Add(edit);
         buttons.Children.Add(remove);
+        buttons.Children.Add(import);
+        buttons.Children.Add(export);
+        buttons.Children.Add(activate);
+        buttons.Children.Add(UserGuide.GuideHelp.Button("sessions"));
+
+        //Upstream's `enableButtons': Export and Activate need a selection.
+        void EnableButtons()
+        {
+            bool selected = list.SelectedItem is string;
+            export.IsEnabled = selected && pickExportPathAsync != null;
+            activate.IsEnabled = selected && activateAsync != null;
+        }
+
+        list.SelectionChanged += (_, _) => EnableButtons();
+        EnableButtons();
 
         Grid content = new Grid { ColumnSpacing = 8, MinWidth = 460 };
         content.ColumnDefinitions.Add(new ColumnDefinition
@@ -168,7 +274,7 @@ public static class SessionDialogs
 
         ContentDialog dialog = new ContentDialog
         {
-            Title = I18n.Get("dialog title", "Manage Sessions"),
+            Title = I18n.Get("Manage Sessions"),
             Content = content,
             CloseButtonText = I18n.Get("Close"),
             XamlRoot = xamlRoot,
@@ -192,8 +298,138 @@ public static class SessionDialogs
 
             store.Delete(chosen);
             Fill();
+            EnableButtons();
+        };
+        import.Click += async (_, _) =>
+        {
+            if (pickImportPathAsync == null) { return; }
+
+            string path = await pickImportPathAsync();
+            if (string.IsNullOrEmpty(path)) { return; }
+
+            try
+            {
+                StoredSessionFile file = JsonSerializer.Deserialize<StoredSessionFile>(
+                    File.ReadAllText(path));
+                if (file?.Name == null) { return; }
+
+                store.Write(file.Name, file.ToData());
+                Fill();
+                list.SelectedItem = file.Name;
+            }
+            catch (Exception error) when (
+                error is IOException or UnauthorizedAccessException or JsonException)
+            {
+                await Shell.InputDialogs.AlertAsync(
+                    xamlRoot,
+                    I18n.Get("Error"),
+                    I18n.Format(I18n.Get("Could not read from: {url}"), ("url", path))
+                        + "\n\n" + error.Message);
+            }
+        };
+        export.Click += async (_, _) =>
+        {
+            if (pickExportPathAsync == null
+                || list.SelectedItem is not string chosen)
+            {
+                return;
+            }
+
+            string path = await pickExportPathAsync(chosen + ".json");
+            if (string.IsNullOrEmpty(path)) { return; }
+
+            try
+            {
+                File.WriteAllText(
+                    path,
+                    JsonSerializer.Serialize(
+                        StoredSessionFile.From(chosen, store.Read(chosen)),
+                        new JsonSerializerOptions { WriteIndented = true }));
+            }
+            catch (Exception error) when (
+                error is IOException or UnauthorizedAccessException or JsonException)
+            {
+                await Shell.InputDialogs.AlertAsync(
+                    xamlRoot,
+                    I18n.Get("Error"),
+                    I18n.Format(I18n.Get("Could not write to: {url}"), ("url", path))
+                        + "\n\n" + error.Message);
+            }
+        };
+        activate.Click += async (_, _) =>
+        {
+            if (activateAsync == null || list.SelectedItem is not string chosen)
+            {
+                return;
+            }
+
+            //Upstream closes the manager and switches; the switch opens and
+            //closes documents, so the dialog goes first.
+            dialog.Hide();
+            await activateAsync(chosen);
         };
 
         await dialog.ShowAsync();
     }
+}
+
+/// <summary>
+/// One session as an exported FILE — upstream's json dictionary, which is a
+/// session's settings group with its name added.
+/// </summary>
+/// <remarks>Upstream's <c>SessionList.exportItem</c> dumps every key of the
+/// session's settings group plus the name; the keys here are this port's own
+/// <see cref="SessionData"/>, so an exported file is readable by this
+/// application and not by Frescobaldi. That is a divergence of FORMAT and not
+/// of behaviour: the two applications store a session's URLs differently
+/// (upstream writes QUrl strings), so a shared format would be a lie.</remarks>
+public sealed class StoredSessionFile
+{
+    /// <summary>Gets or sets the session's name.</summary>
+    public string Name { get; set; }
+
+    /// <summary>Gets or sets the documents it holds.</summary>
+    public List<string> Urls { get; set; }
+
+    /// <summary>Gets or sets which of them was in front.</summary>
+    public int ActiveIndex { get; set; }
+
+    /// <summary>Gets or sets whether the document list is always saved.</summary>
+    public bool AutoSave { get; set; }
+
+    /// <summary>Gets or sets the session's base directory.</summary>
+    public string BaseDirectory { get; set; }
+
+    /// <summary>Gets or sets the session's own include path.</summary>
+    public List<string> IncludePath { get; set; }
+
+    /// <summary>Makes an exportable record of a session.</summary>
+    /// <param name="name">The session name.</param>
+    /// <param name="data">Its data, or null.</param>
+    /// <returns>The record.</returns>
+    public static StoredSessionFile From(string name, SessionData data)
+    {
+        data ??= new SessionData();
+        return new StoredSessionFile
+        {
+            Name = name,
+            Urls = new List<string>(data.Paths ?? Array.Empty<string>()),
+            ActiveIndex = data.ActiveIndex,
+            AutoSave = data.AutoSave,
+            BaseDirectory = data.BaseDirectory,
+            IncludePath = new List<string>(data.IncludePath ?? Array.Empty<string>()),
+        };
+    }
+
+    /// <summary>Reads the record back as session data.</summary>
+    /// <returns>The data.</returns>
+    public SessionData ToData()
+        => new SessionData
+        {
+            Paths = Urls ?? new List<string>(),
+            ActiveIndex = ActiveIndex,
+            AutoSave = AutoSave,
+            BaseDirectory = BaseDirectory,
+            IncludePath = IncludePath ?? new List<string>(),
+        };
 }

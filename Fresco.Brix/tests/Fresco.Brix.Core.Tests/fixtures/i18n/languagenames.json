@@ -1,0 +1,2694 @@
+{
+ "entries_per_table": {
+  "C": 188,
+  "cs": 188,
+  "de": 188,
+  "es": 188,
+  "fr": 188,
+  "gl": 188,
+  "hu": 188,
+  "it": 188,
+  "ja": 188,
+  "nl": 188,
+  "pl": 188,
+  "pt_BR": 188,
+  "ru": 188,
+  "tr": 188,
+  "uk": 188,
+  "zh_CN": 188,
+  "zh_HK": 164,
+  "zh_TW": 188
+ },
+ "rows": [
+  {
+   "answer": "Afar",
+   "code": "aa",
+   "language": "C"
+  },
+  {
+   "answer": "Czech",
+   "code": "cs",
+   "language": "C"
+  },
+  {
+   "answer": "German",
+   "code": "de",
+   "language": "C"
+  },
+  {
+   "answer": "German",
+   "code": "de_DE",
+   "language": "C"
+  },
+  {
+   "answer": "Greek",
+   "code": "el",
+   "language": "C"
+  },
+  {
+   "answer": "English",
+   "code": "en",
+   "language": "C"
+  },
+  {
+   "answer": "British English",
+   "code": "en_GB",
+   "language": "C"
+  },
+  {
+   "answer": "Spanish",
+   "code": "es",
+   "language": "C"
+  },
+  {
+   "answer": "French",
+   "code": "fr",
+   "language": "C"
+  },
+  {
+   "answer": "French",
+   "code": "fr_CA",
+   "language": "C"
+  },
+  {
+   "answer": "Galician",
+   "code": "gl",
+   "language": "C"
+  },
+  {
+   "answer": "Hungarian",
+   "code": "hu",
+   "language": "C"
+  },
+  {
+   "answer": "Italian",
+   "code": "it",
+   "language": "C"
+  },
+  {
+   "answer": "Japanese",
+   "code": "ja",
+   "language": "C"
+  },
+  {
+   "answer": "Korean",
+   "code": "ko",
+   "language": "C"
+  },
+  {
+   "answer": "Dutch",
+   "code": "nl",
+   "language": "C"
+  },
+  {
+   "answer": "Dutch",
+   "code": "nl_NL",
+   "language": "C"
+  },
+  {
+   "answer": "Norwegian Nynorsk",
+   "code": "nn",
+   "language": "C"
+  },
+  {
+   "answer": "Polish",
+   "code": "pl",
+   "language": "C"
+  },
+  {
+   "answer": "Portuguese",
+   "code": "pt",
+   "language": "C"
+  },
+  {
+   "answer": "Brazilian Portuguese",
+   "code": "pt_BR",
+   "language": "C"
+  },
+  {
+   "answer": "Russian",
+   "code": "ru",
+   "language": "C"
+  },
+  {
+   "answer": "Swedish",
+   "code": "sv",
+   "language": "C"
+  },
+  {
+   "answer": "Turkish",
+   "code": "tr",
+   "language": "C"
+  },
+  {
+   "answer": "Ukrainian",
+   "code": "uk",
+   "language": "C"
+  },
+  {
+   "answer": "Chinese",
+   "code": "zh",
+   "language": "C"
+  },
+  {
+   "answer": "Chinese Simplified",
+   "code": "zh_CN",
+   "language": "C"
+  },
+  {
+   "answer": "Chinese Traditional",
+   "code": "zh_TW",
+   "language": "C"
+  },
+  {
+   "answer": "xx",
+   "code": "xx",
+   "language": "C"
+  },
+  {
+   "answer": "xx_YY",
+   "code": "xx_YY",
+   "language": "C"
+  },
+  {
+   "answer": "",
+   "code": "",
+   "language": "C"
+  },
+  {
+   "answer": "Afar",
+   "code": "aa",
+   "language": "en"
+  },
+  {
+   "answer": "Czech",
+   "code": "cs",
+   "language": "en"
+  },
+  {
+   "answer": "German",
+   "code": "de",
+   "language": "en"
+  },
+  {
+   "answer": "German",
+   "code": "de_DE",
+   "language": "en"
+  },
+  {
+   "answer": "Greek",
+   "code": "el",
+   "language": "en"
+  },
+  {
+   "answer": "English",
+   "code": "en",
+   "language": "en"
+  },
+  {
+   "answer": "British English",
+   "code": "en_GB",
+   "language": "en"
+  },
+  {
+   "answer": "Spanish",
+   "code": "es",
+   "language": "en"
+  },
+  {
+   "answer": "French",
+   "code": "fr",
+   "language": "en"
+  },
+  {
+   "answer": "French",
+   "code": "fr_CA",
+   "language": "en"
+  },
+  {
+   "answer": "Galician",
+   "code": "gl",
+   "language": "en"
+  },
+  {
+   "answer": "Hungarian",
+   "code": "hu",
+   "language": "en"
+  },
+  {
+   "answer": "Italian",
+   "code": "it",
+   "language": "en"
+  },
+  {
+   "answer": "Japanese",
+   "code": "ja",
+   "language": "en"
+  },
+  {
+   "answer": "Korean",
+   "code": "ko",
+   "language": "en"
+  },
+  {
+   "answer": "Dutch",
+   "code": "nl",
+   "language": "en"
+  },
+  {
+   "answer": "Dutch",
+   "code": "nl_NL",
+   "language": "en"
+  },
+  {
+   "answer": "Norwegian Nynorsk",
+   "code": "nn",
+   "language": "en"
+  },
+  {
+   "answer": "Polish",
+   "code": "pl",
+   "language": "en"
+  },
+  {
+   "answer": "Portuguese",
+   "code": "pt",
+   "language": "en"
+  },
+  {
+   "answer": "Brazilian Portuguese",
+   "code": "pt_BR",
+   "language": "en"
+  },
+  {
+   "answer": "Russian",
+   "code": "ru",
+   "language": "en"
+  },
+  {
+   "answer": "Swedish",
+   "code": "sv",
+   "language": "en"
+  },
+  {
+   "answer": "Turkish",
+   "code": "tr",
+   "language": "en"
+  },
+  {
+   "answer": "Ukrainian",
+   "code": "uk",
+   "language": "en"
+  },
+  {
+   "answer": "Chinese",
+   "code": "zh",
+   "language": "en"
+  },
+  {
+   "answer": "Chinese Simplified",
+   "code": "zh_CN",
+   "language": "en"
+  },
+  {
+   "answer": "Chinese Traditional",
+   "code": "zh_TW",
+   "language": "en"
+  },
+  {
+   "answer": "xx",
+   "code": "xx",
+   "language": "en"
+  },
+  {
+   "answer": "xx_YY",
+   "code": "xx_YY",
+   "language": "en"
+  },
+  {
+   "answer": "",
+   "code": "",
+   "language": "en"
+  },
+  {
+   "answer": "Afar",
+   "code": "aa",
+   "language": "sv"
+  },
+  {
+   "answer": "Czech",
+   "code": "cs",
+   "language": "sv"
+  },
+  {
+   "answer": "German",
+   "code": "de",
+   "language": "sv"
+  },
+  {
+   "answer": "German",
+   "code": "de_DE",
+   "language": "sv"
+  },
+  {
+   "answer": "Greek",
+   "code": "el",
+   "language": "sv"
+  },
+  {
+   "answer": "English",
+   "code": "en",
+   "language": "sv"
+  },
+  {
+   "answer": "British English",
+   "code": "en_GB",
+   "language": "sv"
+  },
+  {
+   "answer": "Spanish",
+   "code": "es",
+   "language": "sv"
+  },
+  {
+   "answer": "French",
+   "code": "fr",
+   "language": "sv"
+  },
+  {
+   "answer": "French",
+   "code": "fr_CA",
+   "language": "sv"
+  },
+  {
+   "answer": "Galician",
+   "code": "gl",
+   "language": "sv"
+  },
+  {
+   "answer": "Hungarian",
+   "code": "hu",
+   "language": "sv"
+  },
+  {
+   "answer": "Italian",
+   "code": "it",
+   "language": "sv"
+  },
+  {
+   "answer": "Japanese",
+   "code": "ja",
+   "language": "sv"
+  },
+  {
+   "answer": "Korean",
+   "code": "ko",
+   "language": "sv"
+  },
+  {
+   "answer": "Dutch",
+   "code": "nl",
+   "language": "sv"
+  },
+  {
+   "answer": "Dutch",
+   "code": "nl_NL",
+   "language": "sv"
+  },
+  {
+   "answer": "Norwegian Nynorsk",
+   "code": "nn",
+   "language": "sv"
+  },
+  {
+   "answer": "Polish",
+   "code": "pl",
+   "language": "sv"
+  },
+  {
+   "answer": "Portuguese",
+   "code": "pt",
+   "language": "sv"
+  },
+  {
+   "answer": "Brazilian Portuguese",
+   "code": "pt_BR",
+   "language": "sv"
+  },
+  {
+   "answer": "Russian",
+   "code": "ru",
+   "language": "sv"
+  },
+  {
+   "answer": "Swedish",
+   "code": "sv",
+   "language": "sv"
+  },
+  {
+   "answer": "Turkish",
+   "code": "tr",
+   "language": "sv"
+  },
+  {
+   "answer": "Ukrainian",
+   "code": "uk",
+   "language": "sv"
+  },
+  {
+   "answer": "Chinese",
+   "code": "zh",
+   "language": "sv"
+  },
+  {
+   "answer": "Chinese Simplified",
+   "code": "zh_CN",
+   "language": "sv"
+  },
+  {
+   "answer": "Chinese Traditional",
+   "code": "zh_TW",
+   "language": "sv"
+  },
+  {
+   "answer": "xx",
+   "code": "xx",
+   "language": "sv"
+  },
+  {
+   "answer": "xx_YY",
+   "code": "xx_YY",
+   "language": "sv"
+  },
+  {
+   "answer": "",
+   "code": "",
+   "language": "sv"
+  },
+  {
+   "answer": "Afar",
+   "code": "aa",
+   "language": null
+  },
+  {
+   "answer": "Czech",
+   "code": "cs",
+   "language": null
+  },
+  {
+   "answer": "German",
+   "code": "de",
+   "language": null
+  },
+  {
+   "answer": "German",
+   "code": "de_DE",
+   "language": null
+  },
+  {
+   "answer": "Greek",
+   "code": "el",
+   "language": null
+  },
+  {
+   "answer": "English",
+   "code": "en",
+   "language": null
+  },
+  {
+   "answer": "British English",
+   "code": "en_GB",
+   "language": null
+  },
+  {
+   "answer": "Spanish",
+   "code": "es",
+   "language": null
+  },
+  {
+   "answer": "French",
+   "code": "fr",
+   "language": null
+  },
+  {
+   "answer": "French",
+   "code": "fr_CA",
+   "language": null
+  },
+  {
+   "answer": "Galician",
+   "code": "gl",
+   "language": null
+  },
+  {
+   "answer": "Hungarian",
+   "code": "hu",
+   "language": null
+  },
+  {
+   "answer": "Italian",
+   "code": "it",
+   "language": null
+  },
+  {
+   "answer": "Japanese",
+   "code": "ja",
+   "language": null
+  },
+  {
+   "answer": "Korean",
+   "code": "ko",
+   "language": null
+  },
+  {
+   "answer": "Dutch",
+   "code": "nl",
+   "language": null
+  },
+  {
+   "answer": "Dutch",
+   "code": "nl_NL",
+   "language": null
+  },
+  {
+   "answer": "Norwegian Nynorsk",
+   "code": "nn",
+   "language": null
+  },
+  {
+   "answer": "Polish",
+   "code": "pl",
+   "language": null
+  },
+  {
+   "answer": "Portuguese",
+   "code": "pt",
+   "language": null
+  },
+  {
+   "answer": "Brazilian Portuguese",
+   "code": "pt_BR",
+   "language": null
+  },
+  {
+   "answer": "Russian",
+   "code": "ru",
+   "language": null
+  },
+  {
+   "answer": "Swedish",
+   "code": "sv",
+   "language": null
+  },
+  {
+   "answer": "Turkish",
+   "code": "tr",
+   "language": null
+  },
+  {
+   "answer": "Ukrainian",
+   "code": "uk",
+   "language": null
+  },
+  {
+   "answer": "Chinese",
+   "code": "zh",
+   "language": null
+  },
+  {
+   "answer": "Chinese Simplified",
+   "code": "zh_CN",
+   "language": null
+  },
+  {
+   "answer": "Chinese Traditional",
+   "code": "zh_TW",
+   "language": null
+  },
+  {
+   "answer": "xx",
+   "code": "xx",
+   "language": null
+  },
+  {
+   "answer": "xx_YY",
+   "code": "xx_YY",
+   "language": null
+  },
+  {
+   "answer": "",
+   "code": "",
+   "language": null
+  },
+  {
+   "answer": "Afar",
+   "code": "aa",
+   "language": "cs"
+  },
+  {
+   "answer": "Český",
+   "code": "cs",
+   "language": "cs"
+  },
+  {
+   "answer": "Německý",
+   "code": "de",
+   "language": "cs"
+  },
+  {
+   "answer": "Německý",
+   "code": "de_DE",
+   "language": "cs"
+  },
+  {
+   "answer": "Řecký",
+   "code": "el",
+   "language": "cs"
+  },
+  {
+   "answer": "Anglický",
+   "code": "en",
+   "language": "cs"
+  },
+  {
+   "answer": "Britská angličtina",
+   "code": "en_GB",
+   "language": "cs"
+  },
+  {
+   "answer": "Španělský",
+   "code": "es",
+   "language": "cs"
+  },
+  {
+   "answer": "Francouzský",
+   "code": "fr",
+   "language": "cs"
+  },
+  {
+   "answer": "Francouzský",
+   "code": "fr_CA",
+   "language": "cs"
+  },
+  {
+   "answer": "Galicijský",
+   "code": "gl",
+   "language": "cs"
+  },
+  {
+   "answer": "Maďarský",
+   "code": "hu",
+   "language": "cs"
+  },
+  {
+   "answer": "Italský",
+   "code": "it",
+   "language": "cs"
+  },
+  {
+   "answer": "Japonský",
+   "code": "ja",
+   "language": "cs"
+  },
+  {
+   "answer": "Korejský",
+   "code": "ko",
+   "language": "cs"
+  },
+  {
+   "answer": "Nizozemský",
+   "code": "nl",
+   "language": "cs"
+  },
+  {
+   "answer": "Nizozemský",
+   "code": "nl_NL",
+   "language": "cs"
+  },
+  {
+   "answer": "Norský (Nynorsk)",
+   "code": "nn",
+   "language": "cs"
+  },
+  {
+   "answer": "Polský",
+   "code": "pl",
+   "language": "cs"
+  },
+  {
+   "answer": "Portugalský",
+   "code": "pt",
+   "language": "cs"
+  },
+  {
+   "answer": "Portugalský (Brazílie)",
+   "code": "pt_BR",
+   "language": "cs"
+  },
+  {
+   "answer": "Ruský",
+   "code": "ru",
+   "language": "cs"
+  },
+  {
+   "answer": "Švédský",
+   "code": "sv",
+   "language": "cs"
+  },
+  {
+   "answer": "Turecký",
+   "code": "tr",
+   "language": "cs"
+  },
+  {
+   "answer": "Ukrajinský",
+   "code": "uk",
+   "language": "cs"
+  },
+  {
+   "answer": "Čínský",
+   "code": "zh",
+   "language": "cs"
+  },
+  {
+   "answer": "Čínský (zjednodušená)",
+   "code": "zh_CN",
+   "language": "cs"
+  },
+  {
+   "answer": "Čínský (tradiční)",
+   "code": "zh_TW",
+   "language": "cs"
+  },
+  {
+   "answer": "xx",
+   "code": "xx",
+   "language": "cs"
+  },
+  {
+   "answer": "xx_YY",
+   "code": "xx_YY",
+   "language": "cs"
+  },
+  {
+   "answer": "",
+   "code": "",
+   "language": "cs"
+  },
+  {
+   "answer": "Afar",
+   "code": "aa",
+   "language": "de"
+  },
+  {
+   "answer": "Tschechisch",
+   "code": "cs",
+   "language": "de"
+  },
+  {
+   "answer": "Deutsch",
+   "code": "de",
+   "language": "de"
+  },
+  {
+   "answer": "Deutsch",
+   "code": "de_DE",
+   "language": "de"
+  },
+  {
+   "answer": "Griechisch",
+   "code": "el",
+   "language": "de"
+  },
+  {
+   "answer": "Englisch",
+   "code": "en",
+   "language": "de"
+  },
+  {
+   "answer": "Englisch (UK)",
+   "code": "en_GB",
+   "language": "de"
+  },
+  {
+   "answer": "Spanisch",
+   "code": "es",
+   "language": "de"
+  },
+  {
+   "answer": "Französisch",
+   "code": "fr",
+   "language": "de"
+  },
+  {
+   "answer": "Französisch",
+   "code": "fr_CA",
+   "language": "de"
+  },
+  {
+   "answer": "Galicisch",
+   "code": "gl",
+   "language": "de"
+  },
+  {
+   "answer": "Ungarisch",
+   "code": "hu",
+   "language": "de"
+  },
+  {
+   "answer": "Italienisch",
+   "code": "it",
+   "language": "de"
+  },
+  {
+   "answer": "Japanisch",
+   "code": "ja",
+   "language": "de"
+  },
+  {
+   "answer": "Koreanisch",
+   "code": "ko",
+   "language": "de"
+  },
+  {
+   "answer": "Niederländisch",
+   "code": "nl",
+   "language": "de"
+  },
+  {
+   "answer": "Niederländisch",
+   "code": "nl_NL",
+   "language": "de"
+  },
+  {
+   "answer": "Norwegisch (Nynorsk)",
+   "code": "nn",
+   "language": "de"
+  },
+  {
+   "answer": "Polnisch",
+   "code": "pl",
+   "language": "de"
+  },
+  {
+   "answer": "Portugiesisch",
+   "code": "pt",
+   "language": "de"
+  },
+  {
+   "answer": "Brasilianisches Portugiesisch",
+   "code": "pt_BR",
+   "language": "de"
+  },
+  {
+   "answer": "Russisch",
+   "code": "ru",
+   "language": "de"
+  },
+  {
+   "answer": "Schwedisch",
+   "code": "sv",
+   "language": "de"
+  },
+  {
+   "answer": "Türkisch",
+   "code": "tr",
+   "language": "de"
+  },
+  {
+   "answer": "Ukrainisch",
+   "code": "uk",
+   "language": "de"
+  },
+  {
+   "answer": "Chinesisch",
+   "code": "zh",
+   "language": "de"
+  },
+  {
+   "answer": "Chinesisch (Kurzzeichen)",
+   "code": "zh_CN",
+   "language": "de"
+  },
+  {
+   "answer": "Chinesisch (Langzeichen)",
+   "code": "zh_TW",
+   "language": "de"
+  },
+  {
+   "answer": "xx",
+   "code": "xx",
+   "language": "de"
+  },
+  {
+   "answer": "xx_YY",
+   "code": "xx_YY",
+   "language": "de"
+  },
+  {
+   "answer": "",
+   "code": "",
+   "language": "de"
+  },
+  {
+   "answer": "Afar",
+   "code": "aa",
+   "language": "es"
+  },
+  {
+   "answer": "Checo",
+   "code": "cs",
+   "language": "es"
+  },
+  {
+   "answer": "Alemán",
+   "code": "de",
+   "language": "es"
+  },
+  {
+   "answer": "Alemán",
+   "code": "de_DE",
+   "language": "es"
+  },
+  {
+   "answer": "Griego",
+   "code": "el",
+   "language": "es"
+  },
+  {
+   "answer": "Inglés",
+   "code": "en",
+   "language": "es"
+  },
+  {
+   "answer": "Inglés británico",
+   "code": "en_GB",
+   "language": "es"
+  },
+  {
+   "answer": "Español",
+   "code": "es",
+   "language": "es"
+  },
+  {
+   "answer": "Francés",
+   "code": "fr",
+   "language": "es"
+  },
+  {
+   "answer": "Francés",
+   "code": "fr_CA",
+   "language": "es"
+  },
+  {
+   "answer": "Gallego",
+   "code": "gl",
+   "language": "es"
+  },
+  {
+   "answer": "Húngaro",
+   "code": "hu",
+   "language": "es"
+  },
+  {
+   "answer": "Italiano",
+   "code": "it",
+   "language": "es"
+  },
+  {
+   "answer": "Japonés",
+   "code": "ja",
+   "language": "es"
+  },
+  {
+   "answer": "Coreano",
+   "code": "ko",
+   "language": "es"
+  },
+  {
+   "answer": "Holandés",
+   "code": "nl",
+   "language": "es"
+  },
+  {
+   "answer": "Holandés",
+   "code": "nl_NL",
+   "language": "es"
+  },
+  {
+   "answer": "Noruego Nynorsk",
+   "code": "nn",
+   "language": "es"
+  },
+  {
+   "answer": "Polaco",
+   "code": "pl",
+   "language": "es"
+  },
+  {
+   "answer": "Portugués",
+   "code": "pt",
+   "language": "es"
+  },
+  {
+   "answer": "Portugués brasileño",
+   "code": "pt_BR",
+   "language": "es"
+  },
+  {
+   "answer": "Ruso",
+   "code": "ru",
+   "language": "es"
+  },
+  {
+   "answer": "Sueco",
+   "code": "sv",
+   "language": "es"
+  },
+  {
+   "answer": "Turco",
+   "code": "tr",
+   "language": "es"
+  },
+  {
+   "answer": "Ucraniano",
+   "code": "uk",
+   "language": "es"
+  },
+  {
+   "answer": "Chino",
+   "code": "zh",
+   "language": "es"
+  },
+  {
+   "answer": "Chino simplificado",
+   "code": "zh_CN",
+   "language": "es"
+  },
+  {
+   "answer": "Chino tradicional",
+   "code": "zh_TW",
+   "language": "es"
+  },
+  {
+   "answer": "xx",
+   "code": "xx",
+   "language": "es"
+  },
+  {
+   "answer": "xx_YY",
+   "code": "xx_YY",
+   "language": "es"
+  },
+  {
+   "answer": "",
+   "code": "",
+   "language": "es"
+  },
+  {
+   "answer": "Afar",
+   "code": "aa",
+   "language": "fr"
+  },
+  {
+   "answer": "Tchèque",
+   "code": "cs",
+   "language": "fr"
+  },
+  {
+   "answer": "Allemand",
+   "code": "de",
+   "language": "fr"
+  },
+  {
+   "answer": "Allemand",
+   "code": "de_DE",
+   "language": "fr"
+  },
+  {
+   "answer": "Grec",
+   "code": "el",
+   "language": "fr"
+  },
+  {
+   "answer": "Anglais",
+   "code": "en",
+   "language": "fr"
+  },
+  {
+   "answer": "Anglais britannique",
+   "code": "en_GB",
+   "language": "fr"
+  },
+  {
+   "answer": "Espagnol",
+   "code": "es",
+   "language": "fr"
+  },
+  {
+   "answer": "Français",
+   "code": "fr",
+   "language": "fr"
+  },
+  {
+   "answer": "Français",
+   "code": "fr_CA",
+   "language": "fr"
+  },
+  {
+   "answer": "Galicien",
+   "code": "gl",
+   "language": "fr"
+  },
+  {
+   "answer": "Hongrois",
+   "code": "hu",
+   "language": "fr"
+  },
+  {
+   "answer": "Italien",
+   "code": "it",
+   "language": "fr"
+  },
+  {
+   "answer": "Japonais",
+   "code": "ja",
+   "language": "fr"
+  },
+  {
+   "answer": "Coréen",
+   "code": "ko",
+   "language": "fr"
+  },
+  {
+   "answer": "Hollandais",
+   "code": "nl",
+   "language": "fr"
+  },
+  {
+   "answer": "Hollandais",
+   "code": "nl_NL",
+   "language": "fr"
+  },
+  {
+   "answer": "Norvégien Nynorsk",
+   "code": "nn",
+   "language": "fr"
+  },
+  {
+   "answer": "Polonais",
+   "code": "pl",
+   "language": "fr"
+  },
+  {
+   "answer": "Portugais",
+   "code": "pt",
+   "language": "fr"
+  },
+  {
+   "answer": "Portugais Brésilien",
+   "code": "pt_BR",
+   "language": "fr"
+  },
+  {
+   "answer": "Russe",
+   "code": "ru",
+   "language": "fr"
+  },
+  {
+   "answer": "Suédois",
+   "code": "sv",
+   "language": "fr"
+  },
+  {
+   "answer": "Turc",
+   "code": "tr",
+   "language": "fr"
+  },
+  {
+   "answer": "Ukrainien",
+   "code": "uk",
+   "language": "fr"
+  },
+  {
+   "answer": "Chinois",
+   "code": "zh",
+   "language": "fr"
+  },
+  {
+   "answer": "Chinois simplifié",
+   "code": "zh_CN",
+   "language": "fr"
+  },
+  {
+   "answer": "Chinois traditionnel",
+   "code": "zh_TW",
+   "language": "fr"
+  },
+  {
+   "answer": "xx",
+   "code": "xx",
+   "language": "fr"
+  },
+  {
+   "answer": "xx_YY",
+   "code": "xx_YY",
+   "language": "fr"
+  },
+  {
+   "answer": "",
+   "code": "",
+   "language": "fr"
+  },
+  {
+   "answer": "Afar",
+   "code": "aa",
+   "language": "gl"
+  },
+  {
+   "answer": "Checo",
+   "code": "cs",
+   "language": "gl"
+  },
+  {
+   "answer": "Alemán",
+   "code": "de",
+   "language": "gl"
+  },
+  {
+   "answer": "Alemán",
+   "code": "de_DE",
+   "language": "gl"
+  },
+  {
+   "answer": "Grego",
+   "code": "el",
+   "language": "gl"
+  },
+  {
+   "answer": "Inglés",
+   "code": "en",
+   "language": "gl"
+  },
+  {
+   "answer": "Inglés británico",
+   "code": "en_GB",
+   "language": "gl"
+  },
+  {
+   "answer": "Castelán",
+   "code": "es",
+   "language": "gl"
+  },
+  {
+   "answer": "Francés",
+   "code": "fr",
+   "language": "gl"
+  },
+  {
+   "answer": "Francés",
+   "code": "fr_CA",
+   "language": "gl"
+  },
+  {
+   "answer": "Galego",
+   "code": "gl",
+   "language": "gl"
+  },
+  {
+   "answer": "Húngaro",
+   "code": "hu",
+   "language": "gl"
+  },
+  {
+   "answer": "Italiano",
+   "code": "it",
+   "language": "gl"
+  },
+  {
+   "answer": "Xaponés",
+   "code": "ja",
+   "language": "gl"
+  },
+  {
+   "answer": "Coreano",
+   "code": "ko",
+   "language": "gl"
+  },
+  {
+   "answer": "Holandés",
+   "code": "nl",
+   "language": "gl"
+  },
+  {
+   "answer": "Holandés",
+   "code": "nl_NL",
+   "language": "gl"
+  },
+  {
+   "answer": "Noruegués Nynorsk",
+   "code": "nn",
+   "language": "gl"
+  },
+  {
+   "answer": "Polaco",
+   "code": "pl",
+   "language": "gl"
+  },
+  {
+   "answer": "Portugués",
+   "code": "pt",
+   "language": "gl"
+  },
+  {
+   "answer": "Portugués do Brasil",
+   "code": "pt_BR",
+   "language": "gl"
+  },
+  {
+   "answer": "Ruso",
+   "code": "ru",
+   "language": "gl"
+  },
+  {
+   "answer": "Sueco",
+   "code": "sv",
+   "language": "gl"
+  },
+  {
+   "answer": "Turco",
+   "code": "tr",
+   "language": "gl"
+  },
+  {
+   "answer": "Ucraíno",
+   "code": "uk",
+   "language": "gl"
+  },
+  {
+   "answer": "Chinés",
+   "code": "zh",
+   "language": "gl"
+  },
+  {
+   "answer": "Chinés simplificado",
+   "code": "zh_CN",
+   "language": "gl"
+  },
+  {
+   "answer": "Chinés tradicional",
+   "code": "zh_TW",
+   "language": "gl"
+  },
+  {
+   "answer": "xx",
+   "code": "xx",
+   "language": "gl"
+  },
+  {
+   "answer": "xx_YY",
+   "code": "xx_YY",
+   "language": "gl"
+  },
+  {
+   "answer": "",
+   "code": "",
+   "language": "gl"
+  },
+  {
+   "answer": "Afar",
+   "code": "aa",
+   "language": "it"
+  },
+  {
+   "answer": "Ceco",
+   "code": "cs",
+   "language": "it"
+  },
+  {
+   "answer": "Tedesco",
+   "code": "de",
+   "language": "it"
+  },
+  {
+   "answer": "Tedesco",
+   "code": "de_DE",
+   "language": "it"
+  },
+  {
+   "answer": "Greco",
+   "code": "el",
+   "language": "it"
+  },
+  {
+   "answer": "Inglese",
+   "code": "en",
+   "language": "it"
+  },
+  {
+   "answer": "Inglese britannico",
+   "code": "en_GB",
+   "language": "it"
+  },
+  {
+   "answer": "Spagnolo",
+   "code": "es",
+   "language": "it"
+  },
+  {
+   "answer": "Francese",
+   "code": "fr",
+   "language": "it"
+  },
+  {
+   "answer": "Francese",
+   "code": "fr_CA",
+   "language": "it"
+  },
+  {
+   "answer": "Gallego",
+   "code": "gl",
+   "language": "it"
+  },
+  {
+   "answer": "Ungherese",
+   "code": "hu",
+   "language": "it"
+  },
+  {
+   "answer": "Italiano",
+   "code": "it",
+   "language": "it"
+  },
+  {
+   "answer": "Giapponese",
+   "code": "ja",
+   "language": "it"
+  },
+  {
+   "answer": "Coreano",
+   "code": "ko",
+   "language": "it"
+  },
+  {
+   "answer": "Olandese",
+   "code": "nl",
+   "language": "it"
+  },
+  {
+   "answer": "Olandese",
+   "code": "nl_NL",
+   "language": "it"
+  },
+  {
+   "answer": "Norvegese nynorsk",
+   "code": "nn",
+   "language": "it"
+  },
+  {
+   "answer": "Polacco",
+   "code": "pl",
+   "language": "it"
+  },
+  {
+   "answer": "Portoghese",
+   "code": "pt",
+   "language": "it"
+  },
+  {
+   "answer": "Portoghese brasiliano",
+   "code": "pt_BR",
+   "language": "it"
+  },
+  {
+   "answer": "Russo",
+   "code": "ru",
+   "language": "it"
+  },
+  {
+   "answer": "Svedese",
+   "code": "sv",
+   "language": "it"
+  },
+  {
+   "answer": "Turco",
+   "code": "tr",
+   "language": "it"
+  },
+  {
+   "answer": "Ucraino",
+   "code": "uk",
+   "language": "it"
+  },
+  {
+   "answer": "Cinese",
+   "code": "zh",
+   "language": "it"
+  },
+  {
+   "answer": "Cinese semplificato",
+   "code": "zh_CN",
+   "language": "it"
+  },
+  {
+   "answer": "Cinese tradizionale",
+   "code": "zh_TW",
+   "language": "it"
+  },
+  {
+   "answer": "xx",
+   "code": "xx",
+   "language": "it"
+  },
+  {
+   "answer": "xx_YY",
+   "code": "xx_YY",
+   "language": "it"
+  },
+  {
+   "answer": "",
+   "code": "",
+   "language": "it"
+  },
+  {
+   "answer": "Afar",
+   "code": "aa",
+   "language": "nl"
+  },
+  {
+   "answer": "Tsjechisch",
+   "code": "cs",
+   "language": "nl"
+  },
+  {
+   "answer": "Duits",
+   "code": "de",
+   "language": "nl"
+  },
+  {
+   "answer": "Duits",
+   "code": "de_DE",
+   "language": "nl"
+  },
+  {
+   "answer": "Grieks",
+   "code": "el",
+   "language": "nl"
+  },
+  {
+   "answer": "Engels",
+   "code": "en",
+   "language": "nl"
+  },
+  {
+   "answer": "Brits Engels",
+   "code": "en_GB",
+   "language": "nl"
+  },
+  {
+   "answer": "Spaans",
+   "code": "es",
+   "language": "nl"
+  },
+  {
+   "answer": "Frans",
+   "code": "fr",
+   "language": "nl"
+  },
+  {
+   "answer": "Frans",
+   "code": "fr_CA",
+   "language": "nl"
+  },
+  {
+   "answer": "Galicisch",
+   "code": "gl",
+   "language": "nl"
+  },
+  {
+   "answer": "Hongaars",
+   "code": "hu",
+   "language": "nl"
+  },
+  {
+   "answer": "Italiaans",
+   "code": "it",
+   "language": "nl"
+  },
+  {
+   "answer": "Japans",
+   "code": "ja",
+   "language": "nl"
+  },
+  {
+   "answer": "Koreaans",
+   "code": "ko",
+   "language": "nl"
+  },
+  {
+   "answer": "Nederlands",
+   "code": "nl",
+   "language": "nl"
+  },
+  {
+   "answer": "Nederlands",
+   "code": "nl_NL",
+   "language": "nl"
+  },
+  {
+   "answer": "Noors Nynorsk",
+   "code": "nn",
+   "language": "nl"
+  },
+  {
+   "answer": "Pools",
+   "code": "pl",
+   "language": "nl"
+  },
+  {
+   "answer": "Portugees",
+   "code": "pt",
+   "language": "nl"
+  },
+  {
+   "answer": "Braziliaans Portugees",
+   "code": "pt_BR",
+   "language": "nl"
+  },
+  {
+   "answer": "Russisch",
+   "code": "ru",
+   "language": "nl"
+  },
+  {
+   "answer": "Zweeds",
+   "code": "sv",
+   "language": "nl"
+  },
+  {
+   "answer": "Turks",
+   "code": "tr",
+   "language": "nl"
+  },
+  {
+   "answer": "Oekraïens",
+   "code": "uk",
+   "language": "nl"
+  },
+  {
+   "answer": "Chinees",
+   "code": "zh",
+   "language": "nl"
+  },
+  {
+   "answer": "Vereenvoudigd Chinees",
+   "code": "zh_CN",
+   "language": "nl"
+  },
+  {
+   "answer": "Traditioneel Chinees",
+   "code": "zh_TW",
+   "language": "nl"
+  },
+  {
+   "answer": "xx",
+   "code": "xx",
+   "language": "nl"
+  },
+  {
+   "answer": "xx_YY",
+   "code": "xx_YY",
+   "language": "nl"
+  },
+  {
+   "answer": "",
+   "code": "",
+   "language": "nl"
+  },
+  {
+   "answer": "Afarski",
+   "code": "aa",
+   "language": "pl"
+  },
+  {
+   "answer": "Czeski",
+   "code": "cs",
+   "language": "pl"
+  },
+  {
+   "answer": "Niemiecki",
+   "code": "de",
+   "language": "pl"
+  },
+  {
+   "answer": "Niemiecki",
+   "code": "de_DE",
+   "language": "pl"
+  },
+  {
+   "answer": "Grecki",
+   "code": "el",
+   "language": "pl"
+  },
+  {
+   "answer": "Angielski",
+   "code": "en",
+   "language": "pl"
+  },
+  {
+   "answer": "Angielski brytyjski",
+   "code": "en_GB",
+   "language": "pl"
+  },
+  {
+   "answer": "Hiszpański",
+   "code": "es",
+   "language": "pl"
+  },
+  {
+   "answer": "Francuski",
+   "code": "fr",
+   "language": "pl"
+  },
+  {
+   "answer": "Francuski",
+   "code": "fr_CA",
+   "language": "pl"
+  },
+  {
+   "answer": "Galicyjski",
+   "code": "gl",
+   "language": "pl"
+  },
+  {
+   "answer": "Węgierski",
+   "code": "hu",
+   "language": "pl"
+  },
+  {
+   "answer": "Włoski",
+   "code": "it",
+   "language": "pl"
+  },
+  {
+   "answer": "Japoński",
+   "code": "ja",
+   "language": "pl"
+  },
+  {
+   "answer": "Koreański",
+   "code": "ko",
+   "language": "pl"
+  },
+  {
+   "answer": "Holenderski",
+   "code": "nl",
+   "language": "pl"
+  },
+  {
+   "answer": "Holenderski",
+   "code": "nl_NL",
+   "language": "pl"
+  },
+  {
+   "answer": "Norweski Nynorsk",
+   "code": "nn",
+   "language": "pl"
+  },
+  {
+   "answer": "Polski",
+   "code": "pl",
+   "language": "pl"
+  },
+  {
+   "answer": "Portugalski",
+   "code": "pt",
+   "language": "pl"
+  },
+  {
+   "answer": "Portugalski (brazylijski)",
+   "code": "pt_BR",
+   "language": "pl"
+  },
+  {
+   "answer": "Rosyjski",
+   "code": "ru",
+   "language": "pl"
+  },
+  {
+   "answer": "Szwedzki",
+   "code": "sv",
+   "language": "pl"
+  },
+  {
+   "answer": "Turecki",
+   "code": "tr",
+   "language": "pl"
+  },
+  {
+   "answer": "Ukraiński",
+   "code": "uk",
+   "language": "pl"
+  },
+  {
+   "answer": "Chiński",
+   "code": "zh",
+   "language": "pl"
+  },
+  {
+   "answer": "Chiński uproszczony",
+   "code": "zh_CN",
+   "language": "pl"
+  },
+  {
+   "answer": "Chiński tradycyjny",
+   "code": "zh_TW",
+   "language": "pl"
+  },
+  {
+   "answer": "xx",
+   "code": "xx",
+   "language": "pl"
+  },
+  {
+   "answer": "xx_YY",
+   "code": "xx_YY",
+   "language": "pl"
+  },
+  {
+   "answer": "",
+   "code": "",
+   "language": "pl"
+  },
+  {
+   "answer": "Afar",
+   "code": "aa",
+   "language": "pt_BR"
+  },
+  {
+   "answer": "Tcheco",
+   "code": "cs",
+   "language": "pt_BR"
+  },
+  {
+   "answer": "Alemão",
+   "code": "de",
+   "language": "pt_BR"
+  },
+  {
+   "answer": "Alemão",
+   "code": "de_DE",
+   "language": "pt_BR"
+  },
+  {
+   "answer": "Grego",
+   "code": "el",
+   "language": "pt_BR"
+  },
+  {
+   "answer": "Inglês",
+   "code": "en",
+   "language": "pt_BR"
+  },
+  {
+   "answer": "Inglês britânico",
+   "code": "en_GB",
+   "language": "pt_BR"
+  },
+  {
+   "answer": "Espanhol",
+   "code": "es",
+   "language": "pt_BR"
+  },
+  {
+   "answer": "Francês",
+   "code": "fr",
+   "language": "pt_BR"
+  },
+  {
+   "answer": "Francês",
+   "code": "fr_CA",
+   "language": "pt_BR"
+  },
+  {
+   "answer": "Galego",
+   "code": "gl",
+   "language": "pt_BR"
+  },
+  {
+   "answer": "Húngaro",
+   "code": "hu",
+   "language": "pt_BR"
+  },
+  {
+   "answer": "Italiano",
+   "code": "it",
+   "language": "pt_BR"
+  },
+  {
+   "answer": "Japonês",
+   "code": "ja",
+   "language": "pt_BR"
+  },
+  {
+   "answer": "Coreano",
+   "code": "ko",
+   "language": "pt_BR"
+  },
+  {
+   "answer": "Holandês",
+   "code": "nl",
+   "language": "pt_BR"
+  },
+  {
+   "answer": "Holandês",
+   "code": "nl_NL",
+   "language": "pt_BR"
+  },
+  {
+   "answer": "Novo norueguês",
+   "code": "nn",
+   "language": "pt_BR"
+  },
+  {
+   "answer": "Polonês",
+   "code": "pl",
+   "language": "pt_BR"
+  },
+  {
+   "answer": "Português",
+   "code": "pt",
+   "language": "pt_BR"
+  },
+  {
+   "answer": "Português do Brasil",
+   "code": "pt_BR",
+   "language": "pt_BR"
+  },
+  {
+   "answer": "Russo",
+   "code": "ru",
+   "language": "pt_BR"
+  },
+  {
+   "answer": "Sueco",
+   "code": "sv",
+   "language": "pt_BR"
+  },
+  {
+   "answer": "Turco",
+   "code": "tr",
+   "language": "pt_BR"
+  },
+  {
+   "answer": "Ucraniano",
+   "code": "uk",
+   "language": "pt_BR"
+  },
+  {
+   "answer": "Chinês",
+   "code": "zh",
+   "language": "pt_BR"
+  },
+  {
+   "answer": "Chinês simplificado",
+   "code": "zh_CN",
+   "language": "pt_BR"
+  },
+  {
+   "answer": "Chinês tradicional",
+   "code": "zh_TW",
+   "language": "pt_BR"
+  },
+  {
+   "answer": "xx",
+   "code": "xx",
+   "language": "pt_BR"
+  },
+  {
+   "answer": "xx_YY",
+   "code": "xx_YY",
+   "language": "pt_BR"
+  },
+  {
+   "answer": "",
+   "code": "",
+   "language": "pt_BR"
+  },
+  {
+   "answer": "Афарский",
+   "code": "aa",
+   "language": "ru"
+  },
+  {
+   "answer": "Чешский",
+   "code": "cs",
+   "language": "ru"
+  },
+  {
+   "answer": "Немецкий",
+   "code": "de",
+   "language": "ru"
+  },
+  {
+   "answer": "Немецкий",
+   "code": "de_DE",
+   "language": "ru"
+  },
+  {
+   "answer": "Греческий",
+   "code": "el",
+   "language": "ru"
+  },
+  {
+   "answer": "Английский",
+   "code": "en",
+   "language": "ru"
+  },
+  {
+   "answer": "Английский (Великобритания)",
+   "code": "en_GB",
+   "language": "ru"
+  },
+  {
+   "answer": "Испанский",
+   "code": "es",
+   "language": "ru"
+  },
+  {
+   "answer": "Французский",
+   "code": "fr",
+   "language": "ru"
+  },
+  {
+   "answer": "Французский",
+   "code": "fr_CA",
+   "language": "ru"
+  },
+  {
+   "answer": "Галисийский",
+   "code": "gl",
+   "language": "ru"
+  },
+  {
+   "answer": "Венгерский",
+   "code": "hu",
+   "language": "ru"
+  },
+  {
+   "answer": "Итальянский",
+   "code": "it",
+   "language": "ru"
+  },
+  {
+   "answer": "Японский",
+   "code": "ja",
+   "language": "ru"
+  },
+  {
+   "answer": "Корейский",
+   "code": "ko",
+   "language": "ru"
+  },
+  {
+   "answer": "Голландский",
+   "code": "nl",
+   "language": "ru"
+  },
+  {
+   "answer": "Голландский",
+   "code": "nl_NL",
+   "language": "ru"
+  },
+  {
+   "answer": "Норвежский (нюнорск)",
+   "code": "nn",
+   "language": "ru"
+  },
+  {
+   "answer": "Польский",
+   "code": "pl",
+   "language": "ru"
+  },
+  {
+   "answer": "Португальский",
+   "code": "pt",
+   "language": "ru"
+  },
+  {
+   "answer": "Португальский (Бразилия)",
+   "code": "pt_BR",
+   "language": "ru"
+  },
+  {
+   "answer": "Русский",
+   "code": "ru",
+   "language": "ru"
+  },
+  {
+   "answer": "Шведский",
+   "code": "sv",
+   "language": "ru"
+  },
+  {
+   "answer": "Турецкий",
+   "code": "tr",
+   "language": "ru"
+  },
+  {
+   "answer": "Украинский",
+   "code": "uk",
+   "language": "ru"
+  },
+  {
+   "answer": "Китайский",
+   "code": "zh",
+   "language": "ru"
+  },
+  {
+   "answer": "Китайский (Китай)",
+   "code": "zh_CN",
+   "language": "ru"
+  },
+  {
+   "answer": "Китайский (Тайвань)",
+   "code": "zh_TW",
+   "language": "ru"
+  },
+  {
+   "answer": "xx",
+   "code": "xx",
+   "language": "ru"
+  },
+  {
+   "answer": "xx_YY",
+   "code": "xx_YY",
+   "language": "ru"
+  },
+  {
+   "answer": "",
+   "code": "",
+   "language": "ru"
+  },
+  {
+   "answer": "Afar",
+   "code": "aa",
+   "language": "sv"
+  },
+  {
+   "answer": "Czech",
+   "code": "cs",
+   "language": "sv"
+  },
+  {
+   "answer": "German",
+   "code": "de",
+   "language": "sv"
+  },
+  {
+   "answer": "German",
+   "code": "de_DE",
+   "language": "sv"
+  },
+  {
+   "answer": "Greek",
+   "code": "el",
+   "language": "sv"
+  },
+  {
+   "answer": "English",
+   "code": "en",
+   "language": "sv"
+  },
+  {
+   "answer": "British English",
+   "code": "en_GB",
+   "language": "sv"
+  },
+  {
+   "answer": "Spanish",
+   "code": "es",
+   "language": "sv"
+  },
+  {
+   "answer": "French",
+   "code": "fr",
+   "language": "sv"
+  },
+  {
+   "answer": "French",
+   "code": "fr_CA",
+   "language": "sv"
+  },
+  {
+   "answer": "Galician",
+   "code": "gl",
+   "language": "sv"
+  },
+  {
+   "answer": "Hungarian",
+   "code": "hu",
+   "language": "sv"
+  },
+  {
+   "answer": "Italian",
+   "code": "it",
+   "language": "sv"
+  },
+  {
+   "answer": "Japanese",
+   "code": "ja",
+   "language": "sv"
+  },
+  {
+   "answer": "Korean",
+   "code": "ko",
+   "language": "sv"
+  },
+  {
+   "answer": "Dutch",
+   "code": "nl",
+   "language": "sv"
+  },
+  {
+   "answer": "Dutch",
+   "code": "nl_NL",
+   "language": "sv"
+  },
+  {
+   "answer": "Norwegian Nynorsk",
+   "code": "nn",
+   "language": "sv"
+  },
+  {
+   "answer": "Polish",
+   "code": "pl",
+   "language": "sv"
+  },
+  {
+   "answer": "Portuguese",
+   "code": "pt",
+   "language": "sv"
+  },
+  {
+   "answer": "Brazilian Portuguese",
+   "code": "pt_BR",
+   "language": "sv"
+  },
+  {
+   "answer": "Russian",
+   "code": "ru",
+   "language": "sv"
+  },
+  {
+   "answer": "Swedish",
+   "code": "sv",
+   "language": "sv"
+  },
+  {
+   "answer": "Turkish",
+   "code": "tr",
+   "language": "sv"
+  },
+  {
+   "answer": "Ukrainian",
+   "code": "uk",
+   "language": "sv"
+  },
+  {
+   "answer": "Chinese",
+   "code": "zh",
+   "language": "sv"
+  },
+  {
+   "answer": "Chinese Simplified",
+   "code": "zh_CN",
+   "language": "sv"
+  },
+  {
+   "answer": "Chinese Traditional",
+   "code": "zh_TW",
+   "language": "sv"
+  },
+  {
+   "answer": "xx",
+   "code": "xx",
+   "language": "sv"
+  },
+  {
+   "answer": "xx_YY",
+   "code": "xx_YY",
+   "language": "sv"
+  },
+  {
+   "answer": "",
+   "code": "",
+   "language": "sv"
+  },
+  {
+   "answer": "Afar",
+   "code": "aa",
+   "language": "tr"
+  },
+  {
+   "answer": "Çekçe",
+   "code": "cs",
+   "language": "tr"
+  },
+  {
+   "answer": "Almanca",
+   "code": "de",
+   "language": "tr"
+  },
+  {
+   "answer": "Almanca",
+   "code": "de_DE",
+   "language": "tr"
+  },
+  {
+   "answer": "Yunanca",
+   "code": "el",
+   "language": "tr"
+  },
+  {
+   "answer": "İngilizce",
+   "code": "en",
+   "language": "tr"
+  },
+  {
+   "answer": "İngiliz İngilizcesi",
+   "code": "en_GB",
+   "language": "tr"
+  },
+  {
+   "answer": "İspanyolca",
+   "code": "es",
+   "language": "tr"
+  },
+  {
+   "answer": "Fransızca",
+   "code": "fr",
+   "language": "tr"
+  },
+  {
+   "answer": "Fransızca",
+   "code": "fr_CA",
+   "language": "tr"
+  },
+  {
+   "answer": "Galce",
+   "code": "gl",
+   "language": "tr"
+  },
+  {
+   "answer": "Macarca",
+   "code": "hu",
+   "language": "tr"
+  },
+  {
+   "answer": "İtalyanca",
+   "code": "it",
+   "language": "tr"
+  },
+  {
+   "answer": "Japonca",
+   "code": "ja",
+   "language": "tr"
+  },
+  {
+   "answer": "Korece",
+   "code": "ko",
+   "language": "tr"
+  },
+  {
+   "answer": "Flamanca",
+   "code": "nl",
+   "language": "tr"
+  },
+  {
+   "answer": "Flamanca",
+   "code": "nl_NL",
+   "language": "tr"
+  },
+  {
+   "answer": "Norveççe Nynorsk",
+   "code": "nn",
+   "language": "tr"
+  },
+  {
+   "answer": "Lehçe",
+   "code": "pl",
+   "language": "tr"
+  },
+  {
+   "answer": "Portekizce",
+   "code": "pt",
+   "language": "tr"
+  },
+  {
+   "answer": "Brezilya Portekizcesi",
+   "code": "pt_BR",
+   "language": "tr"
+  },
+  {
+   "answer": "Rusça",
+   "code": "ru",
+   "language": "tr"
+  },
+  {
+   "answer": "İsveççe",
+   "code": "sv",
+   "language": "tr"
+  },
+  {
+   "answer": "Türkçe",
+   "code": "tr",
+   "language": "tr"
+  },
+  {
+   "answer": "Ukrayna Dili",
+   "code": "uk",
+   "language": "tr"
+  },
+  {
+   "answer": "Çince",
+   "code": "zh",
+   "language": "tr"
+  },
+  {
+   "answer": "Basitleştirilmiş Çince",
+   "code": "zh_CN",
+   "language": "tr"
+  },
+  {
+   "answer": "Geleneksel Çince",
+   "code": "zh_TW",
+   "language": "tr"
+  },
+  {
+   "answer": "xx",
+   "code": "xx",
+   "language": "tr"
+  },
+  {
+   "answer": "xx_YY",
+   "code": "xx_YY",
+   "language": "tr"
+  },
+  {
+   "answer": "",
+   "code": "",
+   "language": "tr"
+  },
+  {
+   "answer": "Афар",
+   "code": "aa",
+   "language": "uk"
+  },
+  {
+   "answer": "Чеська",
+   "code": "cs",
+   "language": "uk"
+  },
+  {
+   "answer": "Німецька",
+   "code": "de",
+   "language": "uk"
+  },
+  {
+   "answer": "Німецька",
+   "code": "de_DE",
+   "language": "uk"
+  },
+  {
+   "answer": "Грецька",
+   "code": "el",
+   "language": "uk"
+  },
+  {
+   "answer": "Англійська",
+   "code": "en",
+   "language": "uk"
+  },
+  {
+   "answer": "Англійська (Великобританія)",
+   "code": "en_GB",
+   "language": "uk"
+  },
+  {
+   "answer": "Іспанська",
+   "code": "es",
+   "language": "uk"
+  },
+  {
+   "answer": "Французька",
+   "code": "fr",
+   "language": "uk"
+  },
+  {
+   "answer": "Французька",
+   "code": "fr_CA",
+   "language": "uk"
+  },
+  {
+   "answer": "Галісійська",
+   "code": "gl",
+   "language": "uk"
+  },
+  {
+   "answer": "Угорська",
+   "code": "hu",
+   "language": "uk"
+  },
+  {
+   "answer": "Італійська",
+   "code": "it",
+   "language": "uk"
+  },
+  {
+   "answer": "Японська",
+   "code": "ja",
+   "language": "uk"
+  },
+  {
+   "answer": "Корейська",
+   "code": "ko",
+   "language": "uk"
+  },
+  {
+   "answer": "Голландська",
+   "code": "nl",
+   "language": "uk"
+  },
+  {
+   "answer": "Голландська",
+   "code": "nl_NL",
+   "language": "uk"
+  },
+  {
+   "answer": "Норвезька (Nynorsk)",
+   "code": "nn",
+   "language": "uk"
+  },
+  {
+   "answer": "Польська",
+   "code": "pl",
+   "language": "uk"
+  },
+  {
+   "answer": "Португальська",
+   "code": "pt",
+   "language": "uk"
+  },
+  {
+   "answer": "Бразильська португальська",
+   "code": "pt_BR",
+   "language": "uk"
+  },
+  {
+   "answer": "Російська",
+   "code": "ru",
+   "language": "uk"
+  },
+  {
+   "answer": "Шведська",
+   "code": "sv",
+   "language": "uk"
+  },
+  {
+   "answer": "Турецька",
+   "code": "tr",
+   "language": "uk"
+  },
+  {
+   "answer": "Українська",
+   "code": "uk",
+   "language": "uk"
+  },
+  {
+   "answer": "Китайська",
+   "code": "zh",
+   "language": "uk"
+  },
+  {
+   "answer": "Китайська (спрощена)",
+   "code": "zh_CN",
+   "language": "uk"
+  },
+  {
+   "answer": "Китайська (традиційна)",
+   "code": "zh_TW",
+   "language": "uk"
+  },
+  {
+   "answer": "xx",
+   "code": "xx",
+   "language": "uk"
+  },
+  {
+   "answer": "xx_YY",
+   "code": "xx_YY",
+   "language": "uk"
+  },
+  {
+   "answer": "",
+   "code": "",
+   "language": "uk"
+  }
+ ],
+ "tables_kept": [
+  "C",
+  "cs",
+  "de",
+  "es",
+  "fr",
+  "gl",
+  "it",
+  "nl",
+  "pl",
+  "pt_BR",
+  "ru",
+  "tr",
+  "uk"
+ ],
+ "tables_upstream": [
+  "C",
+  "cs",
+  "de",
+  "es",
+  "fr",
+  "gl",
+  "hu",
+  "it",
+  "ja",
+  "nl",
+  "pl",
+  "pt_BR",
+  "ru",
+  "tr",
+  "uk",
+  "zh_CN",
+  "zh_HK",
+  "zh_TW"
+ ]
+}

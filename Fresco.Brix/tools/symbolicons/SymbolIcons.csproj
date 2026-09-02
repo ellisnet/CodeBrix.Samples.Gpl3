@@ -17,11 +17,18 @@
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
   </PropertyGroup>
 
+  <!-- The engine, as the PUBLISHED package — the same pin the application
+       carries in src/Fresco.Brix.Core/Fresco.Brix.Core.csproj, so the icons are
+       always engraved by the engine the application ships with. ONE reference
+       is the whole engine: the facade bundles Engine, Backends, Parsing and
+       Flower inside itself with PrivateAssets="all" and depends on
+       CodeBrix.LilyScheme.LgplLicenseForever from nuget.org.
+       //was previously: four ProjectReferences into
+       ..\..\..\CodeBrix.LilyPort\src\... — CodeBrix.LilyPort moved to its own
+       repository on 2026-08-27 and those relative paths went with it (board
+       row W13b). -->
   <ItemGroup>
-    <ProjectReference Include="..\..\..\CodeBrix.LilyPort\src\CodeBrix.LilyPort\CodeBrix.LilyPort.csproj" />
-    <ProjectReference Include="..\..\..\CodeBrix.LilyPort\src\CodeBrix.LilyPort.Engine\CodeBrix.LilyPort.Engine.csproj" />
-    <ProjectReference Include="..\..\..\CodeBrix.LilyPort\src\CodeBrix.LilyPort.Backends\CodeBrix.LilyPort.Backends.csproj" />
-    <ProjectReference Include="..\..\..\CodeBrix.LilyPort\src\CodeBrix.LilyPort.Parsing\CodeBrix.LilyPort.Parsing.csproj" />
+    <PackageReference Include="CodeBrix.LilyPort.GplLicenseForever" Version="1.0.244.98" />
   </ItemGroup>
 
 </Project>

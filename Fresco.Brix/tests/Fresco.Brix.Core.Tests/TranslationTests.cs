@@ -42,6 +42,9 @@ internal sealed class TestCatalog : ITranslationCatalog
 }
 
 /// <summary>Looking user-visible strings up.</summary>
+/// <remarks>The installed catalog is process-wide, so these share the
+/// collection that installs one (board trap 55).</remarks>
+[Collection(nameof(LanguageCollection))]
 public class TranslationTests : IDisposable
 {
     public void Dispose() => I18n.Install(null);

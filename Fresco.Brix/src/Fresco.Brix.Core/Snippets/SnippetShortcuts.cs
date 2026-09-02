@@ -27,10 +27,11 @@ namespace Fresco.Brix.Snippets; //was previously: frescobaldi/snippet/tool.py (S
 /// list in step as snippets come and go.
 /// </para>
 /// <para>
-/// Six of upstream's default shortcuts are for snippets that run Python code
-/// and are therefore not shipped (FR5.3): they are listed in the defaults
-/// table all the same, so that a user who writes their own snippet under one
-/// of those names gets upstream's key for it.
+/// //was previously: eleven more defaults sat in the table below, for snippets
+/// //that run Python code and were therefore not shipped (FR5.3). Ruling FD10
+/// //makes all twenty-two of those NATIVE COMMANDS, so their keys moved with
+/// //them to <c>EditorCommandActions</c> — a snippet and a command holding the
+/// //same key would be a conflict the shortcuts page could not resolve.
 /// </para>
 /// </remarks>
 public sealed class SnippetShortcuts : ActionCollection
@@ -51,19 +52,12 @@ public sealed class SnippetShortcuts : ActionCollection
             ["ly_version"] = "Ctrl+Shift+V",
             ["blankline"] = "Ctrl+Shift+Return",
             ["repeat"] = "Ctrl+Shift+R",
-            //Not shipped (FR5.3), kept so a user's own snippet under the name
-            //inherits upstream's key:
-            ["next_blank_line"] = "Alt+Down",
-            ["previous_blank_line"] = "Alt+Up",
-            ["next_blank_line_select"] = "Alt+Shift+Down",
-            ["previous_blank_line_select"] = "Alt+Shift+Up",
-            ["removelines"] = "Ctrl+K",
-            ["quotes_s"] = "Ctrl+'",
-            ["quotes_d"] = "Ctrl+\"",
-            ["uppercase"] = "Ctrl+U",
-            ["lowercase"] = "Ctrl+Shift+U",
-            ["last_note"] = "Ctrl+;",
-            ["double"] = "Ctrl+D",
+            //was previously: eleven more rows here — next_blank_line,
+            //previous_blank_line, next_blank_line_select,
+            //previous_blank_line_select, removelines, quotes_s, quotes_d,
+            //uppercase, lowercase, last_note and double. FD10 makes each of
+            //them a native command, and the command carries the key now
+            //(EditorCommands.All).
         };
 
     private readonly SnippetLibrary _library;

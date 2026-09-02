@@ -19,10 +19,19 @@ namespace Fresco.Brix.Commands; //was previously: PyQt6 QKeySequence, as Frescob
 /// <summary>
 /// One keyboard shortcut: a key with its modifiers.
 /// <para>
-/// Qt's <c>QKeySequence</c> can hold up to four chords; Frescobaldi never
-/// uses more than one, and where it wants alternatives it hands the action a
-/// LIST of sequences. This type is therefore one chord, and actions carry a
-/// list — which is exactly how the shortcuts read in the upstream source.
+/// Qt's <c>QKeySequence</c> can hold up to four chords; where Frescobaldi
+/// wants alternatives it hands the action a LIST of sequences. This type is
+/// therefore one chord, and actions carry a list — which is how all but two of
+/// the shortcuts read in the upstream source.
+/// </para>
+/// <para>
+/// //was previously: this paragraph asserted that Frescobaldi "never uses more
+/// than one" chord. It does, in exactly two places: the <c>comment</c> and
+/// <c>uncomment</c> commands default to <c>Ctrl+Alt+C, Ctrl+Alt+C</c> and
+/// <c>Ctrl+Alt+C, Ctrl+Alt+U</c> (snippet/tool.py). Those two defaults are
+/// therefore NOT carried, and the divergence is declared where the commands
+/// are declared (<c>Tools/EditorCommands</c>) rather than left to be
+/// discovered as a missing key.
 /// </para>
 /// </summary>
 public sealed class KeySequence : IEquatable<KeySequence>
@@ -66,7 +75,27 @@ public sealed class KeySequence : IEquatable<KeySequence>
 
         VirtualKeyModifiers modifiers = VirtualKeyModifiers.None;
         string[] parts = text.Split('+');
-        for (int i = 0; i < parts.Length - 1; i++)
+
+        //THE KEY ITSELF MAY BE '+'. Qt writes its ZoomIn standard key as
+        //"Ctrl++", which splits into ["Ctrl", "", ""] — the empty tail is the
+        //separator's other half. Without this the whole shortcut parsed to
+        //nothing and the command silently lost its key (board trap 37).
+        //was previously: the last part was always the key, so any shortcut
+        //ending in a literal plus returned null.
+        int modifierCount = parts.Length - 1;
+        string plusKey = null;
+        if (parts.Length >= 3 && parts[parts.Length - 1].Length == 0)
+        {
+            plusKey = "+";
+            modifierCount = parts.Length - 2;
+        }
+        else if (string.Equals(text.Trim(), "+", StringComparison.Ordinal))
+        {
+            plusKey = "+";
+            modifierCount = 0;
+        }
+
+        for (int i = 0; i < modifierCount; i++)
         {
             switch (parts[i].Trim().ToLowerInvariant())
             {
@@ -80,7 +109,7 @@ public sealed class KeySequence : IEquatable<KeySequence>
             }
         }
 
-        string keyText = parts[parts.Length - 1].Trim();
+        string keyText = plusKey ?? parts[parts.Length - 1].Trim();
         if (KeyNames.TryGetValue(keyText.ToLowerInvariant(), out var key))
         {
             return new KeySequence(key, modifiers);
@@ -339,6 +368,15 @@ public static class StandardKeys
     /// <summary>Window &gt; Previous View.</summary>
     public static IReadOnlyList<KeySequence> PreviousChild { get; }
         = Keys("Ctrl+Shift+Tab");
+
+    /// <summary>Music &gt; Zoom In.</summary>
+    /// <remarks>Qt's <c>ZoomIn</c>, which qpageview's own
+    /// <c>ViewActions.setActionShortcuts</c> hangs on the zoom commands. The
+    /// key is a literal plus, so it reaches the parser as "Ctrl++".</remarks>
+    public static IReadOnlyList<KeySequence> ZoomIn { get; } = Keys("Ctrl++");
+
+    /// <summary>Music &gt; Zoom Out.</summary>
+    public static IReadOnlyList<KeySequence> ZoomOut { get; } = Keys("Ctrl+-");
 
     private static IReadOnlyList<KeySequence> Keys(params string[] shortcuts)
         => shortcuts.Select(KeySequence.Parse).Where(k => k != null).ToArray();

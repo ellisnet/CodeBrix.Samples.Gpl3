@@ -28,8 +28,15 @@ namespace Fresco.Brix.Snippets; //was previously: frescobaldi/snippet/snippets.p
 /// </remarks>
 public sealed class SnippetLibrary
 {
-    /// <summary>The settings prefix snippets live under.</summary>
-    public const string SettingsPrefix = "snippets/";
+    /// <summary>
+    /// The settings key the user's snippets live under — ONE key holding every
+    /// stored snippet as a JSON object, by name.
+    /// </summary>
+    /// <remarks>//was previously: <c>snippets/</c>, a PREFIX with a
+    /// <c>text</c>, <c>title</c> and <c>deleted</c> key per snippet under it,
+    /// which the store this replaced could enumerate. The settings add-in has
+    /// no prefix-scan API by design (board W13 item 9, route (a)).</remarks>
+    public const string SettingsKey = "snippets";
 
     private readonly SettingsStore _settings;
     private readonly Dictionary<string, SnippetText> _parsed
@@ -47,14 +54,20 @@ public sealed class SnippetLibrary
     /// <returns>The names.</returns>
     public IReadOnlyCollection<string> Names()
     {
+        Dictionary<string, StoredSnippet> stored = ReadStored();
         HashSet<string> names = new HashSet<string>(
             BuiltinSnippets.ByName.Keys, StringComparer.Ordinal);
-        foreach (var name in StoredNames())
+        foreach (var pair in stored)
         {
-            names.Add(name);
+            if (!string.IsNullOrEmpty(pair.Value?.Text)
+                || !string.IsNullOrEmpty(pair.Value?.Title))
+            {
+                names.Add(pair.Key);
+            }
         }
 
-        names.RemoveWhere(IsDeleted);
+        names.RemoveWhere(
+            n => stored.TryGetValue(n, out var snippet) && snippet != null && snippet.Deleted);
         return names;
     }
 
@@ -68,7 +81,7 @@ public sealed class SnippetLibrary
     /// <returns>The text, or the empty string.</returns>
     public string Text(string name)
     {
-        string stored = _settings?.GetString(Key(name, "text"));
+        string stored = Stored(name)?.Text;
         if (!string.IsNullOrEmpty(stored)) { return stored; }
 
         return BuiltinSnippets.ByName.TryGetValue(name, out var builtin)
@@ -83,7 +96,7 @@ public sealed class SnippetLibrary
     /// <returns>The title.</returns>
     public string Title(string name, bool fallback = true)
     {
-        string stored = _settings?.GetString(Key(name, "title"));
+        string stored = Stored(name)?.Title;
         if (!string.IsNullOrEmpty(stored)) { return stored; }
 
         if (BuiltinSnippets.ByName.TryGetValue(name, out var builtin)
@@ -162,17 +175,22 @@ public sealed class SnippetLibrary
             return name;
         }
 
+        Dictionary<string, StoredSnippet> stored = ReadStored();
         if (string.IsNullOrEmpty(title) && string.IsNullOrEmpty(text))
         {
-            Forget(name);
+            Forget(stored, name);
         }
         else
         {
-            Write(Key(name, "text"), text);
-            Write(Key(name, "title"), title);
-            _settings.Remove(Key(name, "deleted"));
+            stored[name] = new StoredSnippet
+            {
+                Text = string.IsNullOrEmpty(text) ? null : text,
+                Title = string.IsNullOrEmpty(title) ? null : title,
+                Deleted = false,
+            };
         }
 
+        WriteStored(stored);
         Changed?.Invoke(this, EventArgs.Empty);
         return name;
     }
@@ -188,13 +206,15 @@ public sealed class SnippetLibrary
             return;
         }
 
-        Forget(name);
+        Dictionary<string, StoredSnippet> stored = ReadStored();
+        Forget(stored, name);
         if (BuiltinSnippets.ByName.ContainsKey(name))
         {
             //A built-in cannot be removed, only marked gone.
-            _settings.SetString(Key(name, "deleted"), "1");
+            stored[name] = new StoredSnippet { Deleted = true };
         }
 
+        WriteStored(stored);
         Changed?.Invoke(this, EventArgs.Empty);
     }
 
@@ -215,42 +235,75 @@ public sealed class SnippetLibrary
         }
     }
 
-    private bool IsDeleted(string name)
-        => !string.IsNullOrEmpty(_settings?.GetString(Key(name, "deleted")));
-
     private IReadOnlyCollection<string> StoredNames()
     {
+        //A "deleted" mark is not a stored snippet; it is the absence of one.
         HashSet<string> names = new HashSet<string>(StringComparer.Ordinal);
-        if (_settings == null) { return names; }
-
-        foreach (var key in _settings.KeysWithPrefix(SettingsPrefix))
+        foreach (var pair in ReadStored())
         {
-            string rest = key.Substring(SettingsPrefix.Length);
-            int slash = rest.IndexOf('/');
-            if (slash <= 0) { continue; }
-
-            string name = rest.Substring(0, slash);
-            //A "deleted" mark is not a stored snippet; it is the absence of one.
-            if (!rest.EndsWith("/deleted", StringComparison.Ordinal))
+            if (!string.IsNullOrEmpty(pair.Value?.Text)
+                || !string.IsNullOrEmpty(pair.Value?.Title))
             {
-                names.Add(name);
+                names.Add(pair.Key);
             }
         }
 
         return names;
     }
 
-    private void Forget(string name)
+    private StoredSnippet Stored(string name)
+        => name != null && ReadStored().TryGetValue(name, out var snippet)
+            ? snippet
+            : null;
+
+    private Dictionary<string, StoredSnippet> ReadStored()
+        => _settings?.Get<Dictionary<string, StoredSnippet>>(SettingsKey)
+            ?? new Dictionary<string, StoredSnippet>(StringComparer.Ordinal);
+
+    private void WriteStored(Dictionary<string, StoredSnippet> stored)
     {
-        _settings.Remove(Key(name, "text"));
-        _settings.Remove(Key(name, "title"));
+        if (_settings == null) { return; }
+
+        if (stored.Count == 0)
+        {
+            _settings.Remove(SettingsKey);
+        }
+        else
+        {
+            _settings.Set(SettingsKey, stored);
+        }
     }
 
-    private void Write(string key, string value)
+    //Forgetting a snippet drops what the user wrote, but not the mark that says
+    //a built-in is gone — which is why the entry survives when it carries one.
+    private static void Forget(Dictionary<string, StoredSnippet> stored, string name)
     {
-        if (string.IsNullOrEmpty(value)) { _settings.Remove(key); } else { _settings.SetString(key, value); }
-    }
+        if (!stored.TryGetValue(name, out var snippet)) { return; }
 
-    private static string Key(string name, string part)
-        => SettingsPrefix + name + "/" + part;
+        if (snippet != null && snippet.Deleted)
+        {
+            snippet.Text = null;
+            snippet.Title = null;
+        }
+        else
+        {
+            stored.Remove(name);
+        }
+    }
+}
+
+/// <summary>
+/// One snippet as the settings store holds it: what the user wrote over the
+/// built-in, or the mark saying they removed a built-in altogether.
+/// </summary>
+public sealed class StoredSnippet
+{
+    /// <summary>Gets or sets the snippet's text, or null when unchanged.</summary>
+    public string Text { get; set; }
+
+    /// <summary>Gets or sets the snippet's title, or null when unchanged.</summary>
+    public string Title { get; set; }
+
+    /// <summary>Gets or sets whether a built-in snippet was removed.</summary>
+    public bool Deleted { get; set; }
 }

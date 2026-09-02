@@ -49,7 +49,10 @@ public sealed class CharacterMapPanel : Panel
     {
         _settings = settings;
         _displayFont = displayFont;
-        ToggleAction.WithShortcut("Meta+Alt+U");
+        //was previously: "Meta+Alt+U". Upstream's default is Meta+Alt+T
+        //(charmap/__init__.py), nothing else in this application claims it, and
+        //no ruling or note ever justified the change.
+        ToggleAction.WithShortcut("Meta+Alt+T");
     }
 
     /// <summary>Gets or sets what to do with a character the user picks.</summary>
@@ -60,7 +63,7 @@ public sealed class CharacterMapPanel : Panel
 
     /// <inheritdoc/>
     public override void TranslateUI()
-        => ToggleAction.Text = I18n.Get("Special C&haracters");
+        => ToggleAction.Text = I18n.Get("Special Charac&ters");
 
     /// <summary>Shows the characters of one block.</summary>
     /// <param name="block">The block.</param>

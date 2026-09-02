@@ -9,22 +9,25 @@
     <!-- The view is a CodeBrix.Platform control; it never references LilyPort
          (architecture §5.1) — the engine reaches it only through the SVG files
          it wrote and the typeface seam the host fills in. -->
-    <PackageReference Include="CodeBrix.Platform.ApacheLicenseForever" Version="1.0.231.233" />
+    <PackageReference Include="CodeBrix.Platform.ApacheLicenseForever" Version="1.0.243.226" />
     <!-- SKXamlCanvas - the SkiaSharp drawing surface the pages are painted on -->
     <PackageReference Include="CodeBrix.Platform.SkiaSharp.Views.MitLicenseForever" Version="4.151.0" />
     <!-- The SVG engine (FR11, board trap 13): parses a page once into an
          SKPicture that redraws at any zoom, and hands back the point-and-click
-         anchors with their page-coordinate bounds. -->
-    <PackageReference Include="CodeBrix.SkiaSvg.MitLicenseForever" Version="1.0.214.1201" />
+         anchors with their page-coordinate bounds.
+         //was previously: 1.0.214.1201 (the W4 pin). -->
+    <PackageReference Include="CodeBrix.SkiaSvg.MitLicenseForever" Version="1.0.238.140" />
     <!-- The PDF writer (board FD13, re-measured at W11½ and ruled (b) under FR7):
          Html2Pdf places the engine's own SVG pages as vector content through a
          fully managed chain, and CffSubsetMode = Sparse subsets the engine's CFF
-         faces — which is what 1.0.238.1192 was published for. PdfDocCreate is
-         pinned beside it so the family cannot drift; PdfDocuments (reading the
-         result back for /Rotate and the document information) comes with them.
-         //was previously: nothing — the PDF was drawn onto SkiaSharp's own PDF
-         backend (W11), which the house's no-Skia-beyond-the-UI rule retires. -->
-    <PackageReference Include="CodeBrix.PdfDocCreate.Html2Pdf.MitLicenseForever" Version="1.0.238.1192" />
-    <PackageReference Include="CodeBrix.PdfDocCreate.MitLicenseForever" Version="1.0.238.1192" />
+         faces. PdfDocCreate is pinned beside it so the family cannot drift;
+         PdfDocuments (reading the result back for /Rotate and the document
+         information) comes with them.
+         //was previously: 1.0.238.1192, the family publish that added opt-in CFF
+         subsetting (W11½); before that nothing — the PDF was drawn onto
+         SkiaSharp's own PDF backend (W11), which the house's
+         no-Skia-beyond-the-UI rule retires. -->
+    <PackageReference Include="CodeBrix.PdfDocCreate.Html2Pdf.MitLicenseForever" Version="1.0.243.38" />
+    <PackageReference Include="CodeBrix.PdfDocCreate.MitLicenseForever" Version="1.0.243.38" />
   </ItemGroup>
 </Project>

@@ -1,0 +1,728 @@
+[
+  {
+    "name": "set-0",
+    "files": [
+      {
+        "file": "emmentaler-11.otf",
+        "isMusicFont": true,
+        "family": "emmentaler",
+        "size": "11",
+        "type": "otf"
+      },
+      {
+        "file": "emmentaler-11.svg",
+        "isMusicFont": true,
+        "family": "emmentaler",
+        "size": "11",
+        "type": "svg"
+      },
+      {
+        "file": "emmentaler-11.woff",
+        "isMusicFont": true,
+        "family": "emmentaler",
+        "size": "11",
+        "type": "woff"
+      },
+      {
+        "file": "emmentaler-13.otf",
+        "isMusicFont": true,
+        "family": "emmentaler",
+        "size": "13",
+        "type": "otf"
+      },
+      {
+        "file": "emmentaler-13.svg",
+        "isMusicFont": true,
+        "family": "emmentaler",
+        "size": "13",
+        "type": "svg"
+      },
+      {
+        "file": "emmentaler-13.woff",
+        "isMusicFont": true,
+        "family": "emmentaler",
+        "size": "13",
+        "type": "woff"
+      },
+      {
+        "file": "emmentaler-14.otf",
+        "isMusicFont": true,
+        "family": "emmentaler",
+        "size": "14",
+        "type": "otf"
+      },
+      {
+        "file": "emmentaler-14.svg",
+        "isMusicFont": true,
+        "family": "emmentaler",
+        "size": "14",
+        "type": "svg"
+      },
+      {
+        "file": "emmentaler-14.woff",
+        "isMusicFont": true,
+        "family": "emmentaler",
+        "size": "14",
+        "type": "woff"
+      },
+      {
+        "file": "emmentaler-16.otf",
+        "isMusicFont": true,
+        "family": "emmentaler",
+        "size": "16",
+        "type": "otf"
+      },
+      {
+        "file": "emmentaler-16.svg",
+        "isMusicFont": true,
+        "family": "emmentaler",
+        "size": "16",
+        "type": "svg"
+      },
+      {
+        "file": "emmentaler-16.woff",
+        "isMusicFont": true,
+        "family": "emmentaler",
+        "size": "16",
+        "type": "woff"
+      },
+      {
+        "file": "emmentaler-18.otf",
+        "isMusicFont": true,
+        "family": "emmentaler",
+        "size": "18",
+        "type": "otf"
+      },
+      {
+        "file": "emmentaler-18.svg",
+        "isMusicFont": true,
+        "family": "emmentaler",
+        "size": "18",
+        "type": "svg"
+      },
+      {
+        "file": "emmentaler-18.woff",
+        "isMusicFont": true,
+        "family": "emmentaler",
+        "size": "18",
+        "type": "woff"
+      },
+      {
+        "file": "emmentaler-20.otf",
+        "isMusicFont": true,
+        "family": "emmentaler",
+        "size": "20",
+        "type": "otf"
+      },
+      {
+        "file": "emmentaler-20.svg",
+        "isMusicFont": true,
+        "family": "emmentaler",
+        "size": "20",
+        "type": "svg"
+      },
+      {
+        "file": "emmentaler-20.woff",
+        "isMusicFont": true,
+        "family": "emmentaler",
+        "size": "20",
+        "type": "woff"
+      },
+      {
+        "file": "emmentaler-23.otf",
+        "isMusicFont": true,
+        "family": "emmentaler",
+        "size": "23",
+        "type": "otf"
+      },
+      {
+        "file": "emmentaler-23.svg",
+        "isMusicFont": true,
+        "family": "emmentaler",
+        "size": "23",
+        "type": "svg"
+      },
+      {
+        "file": "emmentaler-23.woff",
+        "isMusicFont": true,
+        "family": "emmentaler",
+        "size": "23",
+        "type": "woff"
+      },
+      {
+        "file": "emmentaler-26.otf",
+        "isMusicFont": true,
+        "family": "emmentaler",
+        "size": "26",
+        "type": "otf"
+      },
+      {
+        "file": "emmentaler-26.svg",
+        "isMusicFont": true,
+        "family": "emmentaler",
+        "size": "26",
+        "type": "svg"
+      },
+      {
+        "file": "emmentaler-26.woff",
+        "isMusicFont": true,
+        "family": "emmentaler",
+        "size": "26",
+        "type": "woff"
+      },
+      {
+        "file": "emmentaler-brace.otf",
+        "isMusicFont": true,
+        "family": "emmentaler",
+        "size": "brace",
+        "type": "otf"
+      },
+      {
+        "file": "emmentaler-brace.svg",
+        "isMusicFont": true,
+        "family": "emmentaler",
+        "size": "brace",
+        "type": "svg"
+      },
+      {
+        "file": "emmentaler-brace.woff",
+        "isMusicFont": true,
+        "family": "emmentaler",
+        "size": "brace",
+        "type": "woff"
+      }
+    ],
+    "families": [
+      {
+        "family": "emmentaler",
+        "complete": true,
+        "types": {
+          "otf": {
+            "sizes": [
+              "11",
+              "13",
+              "14",
+              "16",
+              "18",
+              "20",
+              "23",
+              "26",
+              "brace"
+            ],
+            "missingSizes": [],
+            "hasBrace": true,
+            "complete": true
+          },
+          "svg": {
+            "sizes": [
+              "11",
+              "13",
+              "14",
+              "16",
+              "18",
+              "20",
+              "23",
+              "26",
+              "brace"
+            ],
+            "missingSizes": [],
+            "hasBrace": true,
+            "complete": true
+          },
+          "woff": {
+            "sizes": [
+              "11",
+              "13",
+              "14",
+              "16",
+              "18",
+              "20",
+              "23",
+              "26",
+              "brace"
+            ],
+            "missingSizes": [],
+            "hasBrace": true,
+            "complete": true
+          }
+        }
+      }
+    ],
+    "sizesList": [
+      "11",
+      "13",
+      "14",
+      "16",
+      "18",
+      "20",
+      "23",
+      "26"
+    ]
+  },
+  {
+    "name": "set-1",
+    "files": [
+      {
+        "file": "lilyjazz-11.otf",
+        "isMusicFont": true,
+        "family": "lilyjazz",
+        "size": "11",
+        "type": "otf"
+      },
+      {
+        "file": "lilyjazz-13.otf",
+        "isMusicFont": true,
+        "family": "lilyjazz",
+        "size": "13",
+        "type": "otf"
+      },
+      {
+        "file": "lilyjazz-14.otf",
+        "isMusicFont": true,
+        "family": "lilyjazz",
+        "size": "14",
+        "type": "otf"
+      },
+      {
+        "file": "lilyjazz-16.otf",
+        "isMusicFont": true,
+        "family": "lilyjazz",
+        "size": "16",
+        "type": "otf"
+      },
+      {
+        "file": "lilyjazz-18.otf",
+        "isMusicFont": true,
+        "family": "lilyjazz",
+        "size": "18",
+        "type": "otf"
+      },
+      {
+        "file": "lilyjazz-20.otf",
+        "isMusicFont": true,
+        "family": "lilyjazz",
+        "size": "20",
+        "type": "otf"
+      },
+      {
+        "file": "lilyjazz-23.otf",
+        "isMusicFont": true,
+        "family": "lilyjazz",
+        "size": "23",
+        "type": "otf"
+      },
+      {
+        "file": "lilyjazz-26.otf",
+        "isMusicFont": true,
+        "family": "lilyjazz",
+        "size": "26",
+        "type": "otf"
+      },
+      {
+        "file": "lilyjazz-brace.otf",
+        "isMusicFont": true,
+        "family": "lilyjazz",
+        "size": "brace",
+        "type": "otf"
+      }
+    ],
+    "families": [
+      {
+        "family": "lilyjazz",
+        "complete": false,
+        "types": {
+          "otf": {
+            "sizes": [
+              "11",
+              "13",
+              "14",
+              "16",
+              "18",
+              "20",
+              "23",
+              "26",
+              "brace"
+            ],
+            "missingSizes": [],
+            "hasBrace": true,
+            "complete": true
+          },
+          "svg": {
+            "sizes": [],
+            "missingSizes": [
+              "11",
+              "13",
+              "14",
+              "16",
+              "18",
+              "20",
+              "23",
+              "26"
+            ],
+            "hasBrace": false,
+            "complete": false
+          },
+          "woff": {
+            "sizes": [],
+            "missingSizes": [
+              "11",
+              "13",
+              "14",
+              "16",
+              "18",
+              "20",
+              "23",
+              "26"
+            ],
+            "hasBrace": false,
+            "complete": false
+          }
+        }
+      }
+    ],
+    "sizesList": [
+      "11",
+      "13",
+      "14",
+      "16",
+      "18",
+      "20",
+      "23",
+      "26"
+    ]
+  },
+  {
+    "name": "set-2",
+    "files": [
+      {
+        "file": "beethoven-11.otf",
+        "isMusicFont": true,
+        "family": "beethoven",
+        "size": "11",
+        "type": "otf"
+      },
+      {
+        "file": "beethoven-20.otf",
+        "isMusicFont": true,
+        "family": "beethoven",
+        "size": "20",
+        "type": "otf"
+      },
+      {
+        "file": "beethoven-26.otf",
+        "isMusicFont": true,
+        "family": "beethoven",
+        "size": "26",
+        "type": "otf"
+      }
+    ],
+    "families": [
+      {
+        "family": "beethoven",
+        "complete": false,
+        "types": {
+          "otf": {
+            "sizes": [
+              "11",
+              "20",
+              "26"
+            ],
+            "missingSizes": [
+              "13",
+              "14",
+              "16",
+              "18",
+              "23"
+            ],
+            "hasBrace": false,
+            "complete": false
+          },
+          "svg": {
+            "sizes": [],
+            "missingSizes": [
+              "11",
+              "13",
+              "14",
+              "16",
+              "18",
+              "20",
+              "23",
+              "26"
+            ],
+            "hasBrace": false,
+            "complete": false
+          },
+          "woff": {
+            "sizes": [],
+            "missingSizes": [
+              "11",
+              "13",
+              "14",
+              "16",
+              "18",
+              "20",
+              "23",
+              "26"
+            ],
+            "hasBrace": false,
+            "complete": false
+          }
+        }
+      }
+    ],
+    "sizesList": [
+      "11",
+      "13",
+      "14",
+      "16",
+      "18",
+      "20",
+      "23",
+      "26"
+    ]
+  },
+  {
+    "name": "set-3",
+    "files": [
+      {
+        "file": "README.md",
+        "isMusicFont": false
+      },
+      {
+        "file": "emmentaler-20.ttf",
+        "isMusicFont": false
+      },
+      {
+        "file": "emmentaler-9.otf",
+        "isMusicFont": false
+      },
+      {
+        "file": "emmentaler-brace.pfb",
+        "isMusicFont": false
+      },
+      {
+        "file": "emmentaler.otf",
+        "isMusicFont": false
+      },
+      {
+        "file": "font-20.otf.bak",
+        "isMusicFont": false
+      }
+    ],
+    "families": [],
+    "sizesList": [
+      "11",
+      "13",
+      "14",
+      "16",
+      "18",
+      "20",
+      "23",
+      "26"
+    ]
+  },
+  {
+    "name": "set-4",
+    "files": [
+      {
+        "file": "haydn-brace.otf",
+        "isMusicFont": true,
+        "family": "haydn",
+        "size": "brace",
+        "type": "otf"
+      },
+      {
+        "file": "improviso-20.otf",
+        "isMusicFont": true,
+        "family": "improviso",
+        "size": "20",
+        "type": "otf"
+      },
+      {
+        "file": "my-font-2-16.otf",
+        "isMusicFont": true,
+        "family": "my-font-2",
+        "size": "16",
+        "type": "otf"
+      },
+      {
+        "file": "my-font-2-brace.svg",
+        "isMusicFont": true,
+        "family": "my-font-2",
+        "size": "brace",
+        "type": "svg"
+      }
+    ],
+    "families": [
+      {
+        "family": "haydn",
+        "complete": false,
+        "types": {
+          "otf": {
+            "sizes": [
+              "brace"
+            ],
+            "missingSizes": [
+              "11",
+              "13",
+              "14",
+              "16",
+              "18",
+              "20",
+              "23",
+              "26"
+            ],
+            "hasBrace": true,
+            "complete": false
+          },
+          "svg": {
+            "sizes": [],
+            "missingSizes": [
+              "11",
+              "13",
+              "14",
+              "16",
+              "18",
+              "20",
+              "23",
+              "26"
+            ],
+            "hasBrace": false,
+            "complete": false
+          },
+          "woff": {
+            "sizes": [],
+            "missingSizes": [
+              "11",
+              "13",
+              "14",
+              "16",
+              "18",
+              "20",
+              "23",
+              "26"
+            ],
+            "hasBrace": false,
+            "complete": false
+          }
+        }
+      },
+      {
+        "family": "improviso",
+        "complete": false,
+        "types": {
+          "otf": {
+            "sizes": [
+              "20"
+            ],
+            "missingSizes": [
+              "11",
+              "13",
+              "14",
+              "16",
+              "18",
+              "23",
+              "26"
+            ],
+            "hasBrace": false,
+            "complete": false
+          },
+          "svg": {
+            "sizes": [],
+            "missingSizes": [
+              "11",
+              "13",
+              "14",
+              "16",
+              "18",
+              "20",
+              "23",
+              "26"
+            ],
+            "hasBrace": false,
+            "complete": false
+          },
+          "woff": {
+            "sizes": [],
+            "missingSizes": [
+              "11",
+              "13",
+              "14",
+              "16",
+              "18",
+              "20",
+              "23",
+              "26"
+            ],
+            "hasBrace": false,
+            "complete": false
+          }
+        }
+      },
+      {
+        "family": "my-font-2",
+        "complete": false,
+        "types": {
+          "otf": {
+            "sizes": [
+              "16"
+            ],
+            "missingSizes": [
+              "11",
+              "13",
+              "14",
+              "18",
+              "20",
+              "23",
+              "26"
+            ],
+            "hasBrace": false,
+            "complete": false
+          },
+          "svg": {
+            "sizes": [
+              "brace"
+            ],
+            "missingSizes": [
+              "11",
+              "13",
+              "14",
+              "16",
+              "18",
+              "20",
+              "23",
+              "26"
+            ],
+            "hasBrace": true,
+            "complete": false
+          },
+          "woff": {
+            "sizes": [],
+            "missingSizes": [
+              "11",
+              "13",
+              "14",
+              "16",
+              "18",
+              "20",
+              "23",
+              "26"
+            ],
+            "hasBrace": false,
+            "complete": false
+          }
+        }
+      }
+    ],
+    "sizesList": [
+      "11",
+      "13",
+      "14",
+      "16",
+      "18",
+      "20",
+      "23",
+      "26"
+    ]
+  }
+]

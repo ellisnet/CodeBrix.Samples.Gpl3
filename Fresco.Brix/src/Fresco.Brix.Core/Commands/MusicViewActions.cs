@@ -128,11 +128,32 @@ public sealed class MusicViewActions : ActionCollection
     /// <summary>Music View &gt; Export SVG of the current page.</summary>
     public AppAction MusicExportSvg { get; private set; }
 
+    /// <summary>Music View toolbar &gt; the score chooser.</summary>
+    /// <remarks>Upstream's <c>music_document_select</c> is a
+    /// <c>ComboBoxAction</c> — the action IS the combo, and it carries the
+    /// caption, the tooltip and Ctrl+Shift+O. Here the combo is an ordinary
+    /// control on the panel's toolbar and this action gives it those three
+    /// things.</remarks>
+    public AppAction MusicDocumentSelect { get; private set; }
+
+    /// <summary>Music &gt; Maximize.</summary>
+    /// <remarks>Upstream's <c>music_maximize</c>: the Music View takes the
+    /// whole screen area. It carries no default shortcut.</remarks>
+    public AppAction MusicMaximize { get; private set; }
+
     /// <inheritdoc/>
     protected override void CreateActions()
     {
-        MusicZoomIn = Add("music_zoom_in").WithIcon("zoom-in");
-        MusicZoomOut = Add("music_zoom_out").WithIcon("zoom-out");
+        MusicMaximize = Add("music_maximize").WithIcon("view-fullscreen");
+        MusicDocumentSelect = Add("music_document_select")
+            .WithShortcut("Ctrl+Shift+O");
+        //Upstream inherits Qt's ZoomIn/ZoomOut standard keys from qpageview's
+        //own ViewActions.setActionShortcuts; on X11 they are Ctrl++ and Ctrl+-.
+        //was previously: neither had a keyboard route at all.
+        MusicZoomIn = Add("music_zoom_in").WithIcon("zoom-in")
+            .WithShortcuts(StandardKeys.ZoomIn);
+        MusicZoomOut = Add("music_zoom_out").WithIcon("zoom-out")
+            .WithShortcuts(StandardKeys.ZoomOut);
         MusicZoomOriginal = Add("music_zoom_original").WithIcon("zoom-original");
         MusicFitWidth = Add("music_fit_width").WithIcon("zoom-fit-width").AsToggle();
         MusicFitHeight = Add("music_fit_height").WithIcon("zoom-fit-height").AsToggle();
@@ -167,15 +188,35 @@ public sealed class MusicViewActions : ActionCollection
     /// <inheritdoc/>
     public override void TranslateUI()
     {
+        MusicMaximize.Text = I18n.Get("&Maximize");
+        MusicDocumentSelect.Text = I18n.Get("Select Music View Document");
+        //was previously: nothing — the chooser was a bare ComboBox with no
+        //action, so it had no caption, no Shortcuts-page row and no key.
+        //⚠ Upstream's tooltip is "Choose the PDF document to display."; this
+        //view shows the engraved SCORE, and a PDF is something this application
+        //exports rather than displays (FR7/FR8), so the tooltip is a
+        //Fresco.Brix-original msgid and is in the renamed-string table.
+        MusicDocumentSelect.ToolTip = I18n.Get("Choose the score to display.");
         MusicZoomIn.Text = I18n.Get("Zoom &In");
         MusicZoomOut.Text = I18n.Get("Zoom &Out");
-        MusicZoomOriginal.Text = I18n.Get("&Original Size");
+        MusicZoomOriginal.Text = I18n.Get("Original &Size");
         MusicFitWidth.Text = I18n.Get("Fit &Width");
         MusicFitHeight.Text = I18n.Get("Fit &Height");
         MusicFitBoth.Text = I18n.Get("Fit &Page");
         MusicSinglePages.Text = I18n.Get("Single Pages");
         MusicTwoPagesFirstRight.Text = I18n.Get("Two Pages (first page right)");
         MusicTwoPagesFirstLeft.Text = I18n.Get("Two Pages (first page left)");
+        //⚠ DELIBERATE DIVERGENCE FROM UPSTREAM (ruling FR14). qpageview 1.0.5 —
+        //the version Frescobaldi pins — says _("Grid Layout") here, but
+        //Frescobaldi's own catalogs never caught up: every one of them still
+        //carries the STALE msgid "Raster" (with the translator comment "a
+        //layout type (like grid)") and none has a "Grid Layout" entry at all.
+        //So Frescobaldi 4.0.7 shows an UNTRANSLATED "Grid Layout" in all
+        //thirteen of its languages while a perfectly good translation of
+        //"Raster" sits unreachable in each catalog. Keeping "Raster" is the
+        //msgid the translations can actually render; matching upstream's English
+        //would mean an untranslated entry in thirteen languages, to match a bug.
+        //Written up as a bug report in W13's STATUS file.
         MusicRaster.Text = I18n.Get("Raster");
         MusicHorizontal.Text = I18n.Get("Horizontal");
         MusicVertical.Text = I18n.Get("Vertical");

@@ -34,7 +34,10 @@ public sealed class DocumentEditorState
         Settings = settings;
         Highlighter = new LyHighlighter(document.Document);
         LyDocument = new AteLyDocument(document.Document, Highlighter);
-        Styler = new SchemeTokenStyler(new TextFormatData("default", settings));
+        //was previously: the scheme name "default", written out — the Fonts &
+        //Colors page (W12A) lets the user keep more than one.
+        Styler = new SchemeTokenStyler(
+            new TextFormatData(TextFormatData.CurrentScheme(settings), settings));
         Highlighter.Styler = Styler;
         MetaInfo = settings == null ? null : new MetaInfo(settings, document.Path);
         Folding = new LyFoldingStrategy(Highlighter);
@@ -83,11 +86,38 @@ public sealed class DocumentEditorState
     /// <summary>Gets the folding strategy over the shared tokenization.</summary>
     public LyFoldingStrategy Folding { get; }
 
+    /// <summary>
+    /// Gets or sets the store a state is built with when its caller names
+    /// none — the application sets it once, before any document exists.
+    /// </summary>
+    /// <remarks>
+    /// ⚠ THE ORDERING TRAP THIS CLOSES. A state is made ONCE, by whichever
+    /// caller asks first (<see cref="Plugin{TOwner,TSelf}.Instance"/>), and
+    /// most of the twenty-odd callers of <see cref="For"/> want only the token
+    /// cache or the ly-document bridge and pass no store. When one of those won
+    /// the race — the automatic engraver asking
+    /// <c>DocumentInfo.For(document).DocInfo()</c> as a document is added, say
+    /// — the state was built with a null store, so <see cref="MetaInfo"/> was
+    /// null for the document's whole life and every later
+    /// <c>For(document, settings)</c> answered that same store-less state. The
+    /// caret WAS remembered in memory and <c>MetaInfo.Save()</c> WAS called on
+    /// close; there was simply no meta-info object to write, which is why the
+    /// settings file never grew a <c>metainfo/documents</c> entry.
+    /// Upstream has no such race: <c>metainfo.py</c> reads
+    /// <c>app.settings()</c>, a process-wide object, so a store is always
+    /// there. This property is that process-wide object, and it makes the
+    /// answer the same whoever asks first.
+    /// </remarks>
+    public static SettingsStore DefaultSettings { get; set; }
+
     /// <summary>Gets the state for a document, creating it on first use.</summary>
     /// <param name="document">The document.</param>
-    /// <param name="settings">The settings store, or null.</param>
+    /// <param name="settings">The settings store, or null to use
+    /// <see cref="DefaultSettings"/>.</param>
     /// <returns>The state.</returns>
     public static DocumentEditorState For(
         EditorDocument document, SettingsStore settings = null)
-        => Instance(document, owner => new DocumentEditorState(owner, settings));
+        => Instance(
+            document,
+            owner => new DocumentEditorState(owner, settings ?? DefaultSettings));
 }

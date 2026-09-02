@@ -49,7 +49,12 @@ public sealed class ConvertLyOutcome
 /// one engine in, so the To version starts at what this engine reads and the
 /// user may still type another. And the two diff views are drawn as ordinary
 /// controls rather than as HTML in a browser, because FR8 puts no WebView in
-/// this application.
+/// this application — which is also why "Save as file" writes the side-by-side
+/// comparison as tab-separated TEXT where upstream writes the browser's HTML;
+/// the file keeps upstream's own <c>[html-diff]</c> name so a user who has both
+/// applications finds what they expect.
+/// //was previously: this paragraph promised "Run Again / Save as file" and
+/// only Run Again was built.
 /// </para>
 /// </remarks>
 public static class ConvertLyDialog
@@ -65,9 +70,17 @@ public static class ConvertLyDialog
     /// <param name="xamlRoot">The root to attach the dialog to.</param>
     /// <param name="text">The document as it stands.</param>
     /// <param name="settings">The store the checkbox remembers itself in.</param>
+    /// <param name="pickSavePathAsync">Asks the user where to write the page
+    /// that is showing, or null to leave the "Save as file" button out.</param>
+    /// <param name="documentPath">The document's own path, which upstream
+    /// builds the suggested file name from, or null.</param>
     /// <returns>What to do, or null when the user cancelled.</returns>
     public static async Task<ConvertLyOutcome> ShowAsync(
-        XamlRoot xamlRoot, string text, SettingsStore settings)
+        XamlRoot xamlRoot,
+        string text,
+        SettingsStore settings,
+        Func<string, Task<string>> pickSavePathAsync = null,
+        string documentPath = null)
     {
         string engineVersion = Fresco.Brix.Engrave.LilyPortEngine.CompatibleWithVersion;
 
@@ -103,6 +116,14 @@ public static class ConvertLyDialog
         changesView.Visibility = Visibility.Collapsed;
         diffView.Visibility = Visibility.Collapsed;
 
+        //Upstream's `getTabData': what the page that is SHOWING would be
+        //written as, kept as it is built so the Save button has something to
+        //write. Its three names and extensions are upstream's own.
+        System.Text.StringBuilder messagesText = new System.Text.StringBuilder();
+        System.Text.StringBuilder changesText = new System.Text.StringBuilder();
+        System.Text.StringBuilder diffText = new System.Text.StringBuilder();
+
+
         //Trap 18: the action texts keep upstream's & markers verbatim, because the
         //msgid a translation is keyed by includes them, and they are stripped at the
         //point of DISPLAY. A button caption is a point of display.
@@ -134,6 +155,51 @@ public static class ConvertLyDialog
         };
 
         Button runAgain = new Button { Content = I18n.Get("Run Again") };
+
+        //was previously: missing, while this class's own remarks said the
+        //dialog had it. Upstream's fourth button writes the page that is
+        //SHOWING to a file — messages as text, the side-by-side comparison and
+        //the unified diff each under upstream's own name.
+        Button saveAs = new Button
+        {
+            Content = I18n.Get("Save as file"),
+            IsEnabled = pickSavePathAsync != null,
+        };
+        saveAs.Click += async (_, _) =>
+        {
+            if (pickSavePathAsync == null) { return; }
+
+            (string name, string extension, string body) =
+                changesView.Visibility == Visibility.Visible
+                    ? ("html-diff", ".txt", changesText.ToString())
+                    : diffView.Visibility == Visibility.Visible
+                        ? ("uni-diff", ".diff", diffText.ToString())
+                        : ("message", ".txt", messagesText.ToString());
+
+            //Upstream's suggested name: the document's own, with the page's
+            //name in brackets and the page's extension.
+            string suggested = (string.IsNullOrEmpty(documentPath)
+                ? "convert-ly"
+                : System.IO.Path.GetFileNameWithoutExtension(documentPath))
+                + "[" + name + "]" + extension;
+            string path = await pickSavePathAsync(suggested);
+            if (string.IsNullOrEmpty(path)) { return; }
+
+            try
+            {
+                System.IO.File.WriteAllText(
+                    path, body, new System.Text.UTF8Encoding(false));
+            }
+            catch (Exception error) when (
+                error is System.IO.IOException or UnauthorizedAccessException)
+            {
+                await InputDialogs.AlertAsync(
+                    xamlRoot,
+                    I18n.Get("Error"),
+                    I18n.Format(I18n.Get("Could not write to: {url}"), ("url", path))
+                        + "\n\n" + error.Message);
+            }
+        };
         TextBlock summary = new TextBlock { TextWrapping = TextWrapping.Wrap };
 
         ConversionResult result = null;
@@ -143,6 +209,9 @@ public static class ConvertLyDialog
             messagesPage.Children.Clear();
             changesPage.Children.Clear();
             diffPage.Children.Clear();
+            messagesText.Clear();
+            changesText.Clear();
+            diffText.Clear();
 
             if (!ConversionVersion.TryParse(fromBox.Text, out ConversionVersion from))
             {
@@ -167,6 +236,7 @@ public static class ConvertLyDialog
                     TextWrapping = TextWrapping.Wrap,
                     FontFamily = MonospaceFont(),
                 });
+                messagesText.Append(message.TrimEnd('\n')).Append('\n');
             }
 
             if (result.Messages.Count == 0)
@@ -182,6 +252,16 @@ public static class ConvertLyDialog
             foreach (DiffRow row in rows)
             {
                 changesPage.Children.Add(SideBySide(row));
+                changesText
+                    .Append(row.LeftNumber == 0 ? string.Empty
+                        : row.LeftNumber.ToString(
+                            System.Globalization.CultureInfo.InvariantCulture))
+                    .Append('\t').Append(row.Left)
+                    .Append('\t')
+                    .Append(row.RightNumber == 0 ? string.Empty
+                        : row.RightNumber.ToString(
+                            System.Globalization.CultureInfo.InvariantCulture))
+                    .Append('\t').Append(row.Right).Append('\n');
             }
 
             foreach (DiffRow row in TextDiff.Unified(
@@ -189,6 +269,7 @@ public static class ConvertLyDialog
                 I18n.Get("Current Document"), I18n.Get("Converted Document")))
             {
                 diffPage.Children.Add(UnifiedLine(row));
+                diffText.Append(row.Left).Append('\n');
             }
 
             int changed = TextDiff.ChangeCount(rows);
@@ -249,16 +330,21 @@ public static class ConvertLyDialog
         tabs.Children.Add(diffTab);
         tabs.Children.Add(new TextBlock { Width = 24 });
         tabs.Children.Add(runAgain);
+        tabs.Children.Add(saveAs);
 
         //Trap 43's neighbour: overriding ContentDialogMaxWidth lets the dialog grow,
         //but nothing inside it ASKS for the room, so it comes up at its minimum. The
         //diff is the reason the dialog is wide, so the pages carry the demand.
-        Grid pages = new Grid { Height = 420, MinWidth = 1000 };
+        Grid pages = new Grid
+        {
+            Height = DialogSizing.ContentHeight(xamlRoot, 420),
+            MinWidth = 700,
+        };
         pages.Children.Add(messagesView);
         pages.Children.Add(changesView);
         pages.Children.Add(diffView);
 
-        StackPanel content = new StackPanel { Spacing = 10, MinWidth = 1000 };
+        StackPanel content = new StackPanel { Spacing = 10, MinWidth = 700 };
         content.Children.Add(versions);
         content.Children.Add(tabs);
         content.Children.Add(pages);
@@ -269,15 +355,16 @@ public static class ConvertLyDialog
         {
             Title = I18n.Get("Update with convert-ly"),
             Content = content,
-            PrimaryButtonText = I18n.Get("OK"),
-            CloseButtonText = I18n.Get("Cancel"),
+            PrimaryButtonText = StandardButtons.Ok,
+            CloseButtonText = StandardButtons.Cancel,
             DefaultButton = ContentDialogButton.Primary,
             XamlRoot = xamlRoot,
         };
 
         //Trap 43: the width comes from the RESOURCE, not from MaxWidth.
-        dialog.Resources["ContentDialogMaxWidth"] = 1200.0;
-        dialog.Resources["ContentDialogMaxHeight"] = 900.0;
+        //was previously: written out, so a window narrower than the content's
+        //MinWidth clipped it. See Shell/DialogSizing.
+        DialogSizing.Clamp(dialog, 1200, 900);
 
         if (await dialog.ShowAsync() != ContentDialogResult.Primary || result == null)
         {

@@ -1,3 +1,10 @@
+// Copyright (c) 2026 Jeremy Ellis and contributors
+//
+// Fresco.Brix is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+
 using Fresco.Brix.Helpers;
 using CodeBrix.Platform.Simple;
 using Microsoft.Extensions.DependencyInjection;
@@ -52,7 +59,17 @@ public partial class App : Application
     /// this in before the host is built; the window opens them at startup, and
     /// opens one empty document when there are none.
     /// </summary>
-    public static string[] CommandLinePaths { get; set; } = Array.Empty<string>();
+    public static System.Collections.Generic.IReadOnlyList<string> CommandLinePaths
+    { get; set; } = Array.Empty<string>();
+
+    /// <summary>
+    /// The whole command line, including the encoding and the place to go to.
+    /// </summary>
+    /// <remarks>Upstream's <c>args</c>: the local startup path honours
+    /// <c>--line</c>, <c>--column</c> and <c>--encoding</c> just as the
+    /// single-instance handover does.</remarks>
+    public static Services.CommandLineArguments CommandLine { get; set; }
+        = Services.CommandLineArguments.Parse(null);
 
     protected override void OnLaunched(LaunchActivatedEventArgs args)
     {

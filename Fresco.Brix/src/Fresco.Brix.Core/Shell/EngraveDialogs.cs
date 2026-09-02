@@ -76,7 +76,7 @@ public sealed class CustomEngraveDialog
         {
             Title = I18n.Get("Engrave custom"),
             PrimaryButtonText = MenuBuilder.Display(I18n.Get("Run LilyPort")),
-            CloseButtonText = I18n.Get("Cancel"),
+            CloseButtonText = StandardButtons.Cancel,
             DefaultButton = ContentDialogButton.Primary,
             XamlRoot = xamlRoot,
             Content = BuildContent(),
@@ -118,12 +118,30 @@ public sealed class CustomEngraveDialog
             _settings?.GetInt(ModeSettingKey) ?? 0, 0, ModeNames.Count - 1);
         panel.Children.Add(_mode);
 
+        //was previously: `IsChecked = true' written out, and the embed box
+        //always starting unticked. Upstream opens both on the PREFERENCES'
+        //defaults (engrave/custom.py reads `lilypond_settings'), which is the
+        //relationship the Tools page's "Running LilyPort" group restores.
         _deleteIntermediate = new CheckBox
         {
             Content = I18n.Get("Delete intermediate output files"),
-            IsChecked = true,
+            IsChecked = _settings?.GetBool(
+                Engrave.Engraver.DeleteIntermediateSettingKey, true) ?? true,
         };
-        _embedSource = new CheckBox { Content = I18n.Get("Embed Source Code") };
+        _embedSource = new CheckBox
+        {
+            Content = I18n.Get("Embed Source Code"),
+            IsChecked = _settings?.GetBool(
+                Engrave.Engraver.EmbedSourceSettingKey, false) ?? false,
+        };
+
+        //⚠ Upstream's next row is "Run LilyPond with English messages"
+        //(`no_translation'), which forces a LilyPond BINARY's translated
+        //message catalogs back to English for a bug report. CodeBrix.LilyPort
+        //ships no message catalogs at all — its diagnostics are English in
+        //every interface language already — so the row would be a control that
+        //changes nothing. Ruled out on that fact, not on FR5.1.
+
         panel.Children.Add(_deleteIntermediate);
         panel.Children.Add(_embedSource);
 
@@ -138,6 +156,9 @@ public sealed class CustomEngraveDialog
             Text = _settings?.GetString(OptionsSettingKey, string.Empty) ?? string.Empty,
         };
         panel.Children.Add(_extraOptions);
+
+        //Upstream's `userguide.addButton(self.buttons, "engrave_custom")'.
+        panel.Children.Add(UserGuide.GuideHelp.ButtonRow("engrave_custom"));
         return panel;
     }
 
@@ -221,6 +242,11 @@ public static class EngineInfoDialog
                     + " s"));
         panel.Children.Add(new TextBlock
         {
+            //FR13 EXEMPT, and deliberately so: this is an INFORMATIONAL
+            //message, which the ruling allows to state the lineage, and its
+            //whole purpose is to answer the question a Frescobaldi user brings
+            //with them — "where do I choose my LilyPond version?". Naming
+            //what is NOT here is the only way to answer it.
             Text = I18n.Get(
                 "Fresco.Brix engraves in this process. There is no external "
                 + "LilyPond installation, and no version to choose."),

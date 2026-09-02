@@ -579,7 +579,7 @@ public class HelperApplicationTests
     {
         //Arrange
         using SettingsStore settings = new SettingsStore(
-            Path.Combine(Path.GetTempPath(), "fresco-helpers-" + Guid.NewGuid() + ".sqlite"));
+            Path.Combine(Path.GetTempPath(), "fresco-helpers-" + Guid.NewGuid()));
         settings.SetString(HelperApplications.SettingsPrefix + "pdf", "okular --page $f");
 
         //Act

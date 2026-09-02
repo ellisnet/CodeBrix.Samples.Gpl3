@@ -11,9 +11,12 @@ using Fresco.Brix.Completion;
 using Fresco.Brix.Documents;
 using Fresco.Brix.Editor;
 using Fresco.Brix.Engrave;
+using Fresco.Brix.Import;
 using Fresco.Brix.Ly.Pitching;
 using Fresco.Brix.Midi;
 using Fresco.Brix.MusicView;
+using Fresco.Brix.ObjectEditor;
+using Fresco.Brix.Preferences;
 using Fresco.Brix.QuickInsert;
 using Fresco.Brix.ScoreWizard;
 using Fresco.Brix.Search;
@@ -23,6 +26,7 @@ using Fresco.Brix.Shell;
 using Fresco.Brix.Snippets;
 using Fresco.Brix.Tools;
 using Fresco.Brix.ViewModels;
+using Fresco.Brix.Widgets;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
@@ -34,14 +38,15 @@ using System.Threading.Tasks;
 using Windows.ApplicationModel.DataTransfer;
 using Windows.Storage.Pickers;
 
-namespace Fresco.Brix.Views;
+namespace Fresco.Brix.Views; //was previously: frescobaldi/mainwindow.py and app.py
 
-public sealed partial class MainPage : Page, IWindowBridge
+public sealed partial class MainPage : Page, IWindowBridge, IRemoteCommandTarget
 {
     private DockShell _shell;
     private ViewManager _viewManager;
     private DocumentTabBar _tabBar;
     private ShortcutRegistrar _shortcuts;
+    private EditorContextMenu _editorContextMenu;
     private SideBarManager _sideBar;
     private LogPanel _logPanel;
     private MusicViewPanel _musicViewPanel;
@@ -56,6 +61,10 @@ public sealed partial class MainPage : Page, IWindowBridge
     private DocumentationPanel _docPanel;
     private SearchBar _searchBar;
     private Completer _completer;
+    private PreferencesDialog _preferences;
+    private ObjectEditorPanel _objectEditorPanel;
+    private ChangedDocumentsDialog _changedDocuments;
+    private bool _showingChangedDocuments;
 
     public MainPage()
     {
@@ -96,6 +105,13 @@ public sealed partial class MainPage : Page, IWindowBridge
     /// <inheritdoc/>
     public Func<string, string, string, Task<string>> PickExportPathAsync { get; set; }
 
+    /// <inheritdoc/>
+    public Func<IReadOnlyList<string>, bool, Task<IReadOnlyList<string>>>
+        PickImportPathsAsync { get; set; }
+
+    /// <inheritdoc/>
+    public Func<ImportFormat, Task<ImportSettings>> ConfigureImportAsync { get; set; }
+
     public Func<EditorView> ActiveView { get; set; }
 
     public Action<bool> SetFullScreen { get; set; }
@@ -103,6 +119,12 @@ public sealed partial class MainPage : Page, IWindowBridge
     public Action Quit { get; set; }
 
     public Func<string, string, Task<bool>> ConfirmAsync { get; set; }
+
+    /// <inheritdoc/>
+    public Func<string, string, Task> AlertAsync { get; set; }
+
+    /// <inheritdoc/>
+    public Func<string, string, Task<CloseAnswer>> AskSaveDiscardAsync { get; set; }
 
     #endregion
 
@@ -116,10 +138,23 @@ public sealed partial class MainPage : Page, IWindowBridge
         PickOpenPathAsync = PickOpenAsync;
         PickSavePathAsync = PickSaveAsync;
         PickExportPathAsync = PickExportAsync;
+        PickImportPathsAsync = PickImportAsync;
+        ConfigureImportAsync
+            = format => ImportDialog.ShowAsync(XamlRoot, format, viewModel.Settings);
         ActiveView = () => _viewManager?.ActiveView;
         SetFullScreen = _ => { }; //The heads' fullscreen switch lands with W12's polish.
-        Quit = () => Microsoft.UI.Xaml.Application.Current.Exit();
+        Quit = () =>
+        {
+            //Upstream connects app.aboutToQuit to server.close, so the socket
+            //goes with the process that made it rather than being left behind
+            //for the next launch to find and have to clear away.
+            RemoteInstance.Quit();
+            Microsoft.UI.Xaml.Application.Current.Exit();
+        };
         ConfirmAsync = AskAsync;
+        AlertAsync = (title, message)
+            => InputDialogs.AlertAsync(XamlRoot, title, message);
+        AskSaveDiscardAsync = AskSaveDiscardCancelAsync;
         viewModel.Window = this;
 
         //Every pane gets the musical position of its caret on its status bar,
@@ -144,6 +179,25 @@ public sealed partial class MainPage : Page, IWindowBridge
                 //And the commands that need a selection follow it, so one of
                 //them is enabled the moment there IS a selection.
                 created.View.SelectionChanged += (_, _) => UpdateSelectionActions();
+
+                //Upstream's contextmenu.py, which view.py opens on a
+                //contextMenuEvent. The editor takes the pointer event itself,
+                //so the handler is added with handledEventsToo (board trap 26's
+                //neighbour — the same reason the log's click handler is).
+                EditorView withMenu = created.View;
+                withMenu.Editor.TextArea.AddHandler(
+                    UIElement.RightTappedEvent,
+                    new Microsoft.UI.Xaml.Input.RightTappedEventHandler((_, args) =>
+                    {
+                        if (_editorContextMenu == null) { return; }
+
+                        _editorContextMenu.Show(
+                            withMenu,
+                            withMenu.Editor.TextArea,
+                            args.GetPosition(withMenu.Editor.TextArea));
+                        args.Handled = true;
+                    }),
+                    handledEventsToo: true);
             };
         };
 
@@ -164,19 +218,16 @@ public sealed partial class MainPage : Page, IWindowBridge
         viewModel.Panels = new PanelManager(_shell, viewModel.Settings);
         viewModel.ActionManager.Add(viewModel.Panels.Actions);
 
-        //Upstream's panel order within each Tools submenu, kept so a user who
-        //knows Frescobaldi finds them where they expect.
+        //The panels are CONSTRUCTED in the order their wiring needs and
+        //REGISTERED further down, in upstream's own Tools-submenu order — see
+        //the AddPanel block below.
         _logPanel = new LogPanel(
             viewModel.Documents, viewModel.LogActions, viewModel.Settings)
         {
             ShowReference = ShowErrorReference,
         };
-        viewModel.Panels.AddPanel(_logPanel, "viewers");
-
         _layoutControlPanel = new LayoutControlPanel(
             viewModel.EngraveActions, viewModel.Settings);
-        viewModel.Panels.AddPanel(_layoutControlPanel, "viewers");
-
         //The Music View is upstream's first "viewers" panel and its own dock
         //area; it needs the window to be able to put the caret where a click in
         //the music points, and to know which editor view the caret is in.
@@ -192,27 +243,22 @@ public sealed partial class MainPage : Page, IWindowBridge
             PickExportPathAsync = PickExportAsync,
             Report = message => viewModel.StatusText = message,
         };
-        viewModel.Panels.AddPanel(_musicViewPanel, "viewers");
         _viewManager.ViewChanged += (_, _) => _musicViewPanel.SetEditorView(_viewManager.ActiveView);
         _musicViewPanel.SetEditorView(_viewManager.ActiveView);
 
         _documentListPanel = new DocumentListPanel(
             viewModel.Documents, viewModel.Settings);
-        viewModel.Panels.AddPanel(_documentListPanel, "structure");
-
         _outlinePanel = new OutlinePanel(viewModel.Documents, viewModel.Settings)
         {
             GoTo = (document, offset) => viewModel.Browser.GoTo(document, offset),
             CaretPosition = () => _viewManager?.ActiveView?.Editor.CaretOffset ?? 0,
         };
-        viewModel.Panels.AddPanel(_outlinePanel, "structure");
-
         _quickInsertPanel = new QuickInsertPanel(viewModel.Settings)
         {
             Insert = InsertQuickItem,
             FocusEditor = () => _viewManager?.ActiveView?.FocusEditor(),
+            QuickRemove = viewModel.DocumentActions.QuickRemove,
         };
-        viewModel.Panels.AddPanel(_quickInsertPanel, "coding");
         viewModel.ActionManager.Add(_quickInsertPanel.Shortcuts);
 
         _snippetPanel = new SnippetPanel(
@@ -226,14 +272,24 @@ public sealed partial class MainPage : Page, IWindowBridge
             PickImportPathAsync = () => PickOpenAsync(".xml"),
             PickExportPathAsync = name => PickSaveAsync(name),
         };
-        viewModel.Panels.AddPanel(_snippetPanel, "coding");
         viewModel.ActionManager.Add(_snippetPanel.Actions);
 
         _charMapPanel = new CharacterMapPanel(viewModel.Settings, EditorFontFamily())
         {
             InsertText = InsertAtCursor,
         };
-        viewModel.Panels.AddPanel(_charMapPanel, "coding");
+        //Upstream's panelmanager loads the Object Editor LAST and only behind
+        //its own test: "The Object editor is highly experimental and should be
+        //commented out for stable releases." Its other half —
+        //app.is_git_controlled() — has nothing to ask here (FR5.7 keeps
+        //version control out of the application), so the preference is the
+        //whole test, and it is read once, which is why upstream's own tool tip
+        //says a restart is needed.
+        if (viewModel.Settings?.GetBool(GeneralValues.ExperimentalFeaturesKey, false)
+            ?? false)
+        {
+            _objectEditorPanel = new ObjectEditorPanel(viewModel.Settings);
+        }
 
         //The MIDI player. Upstream's own Tools submenu for it, and its own
         //place in that submenu's order.
@@ -242,8 +298,6 @@ public sealed partial class MainPage : Page, IWindowBridge
             viewModel.MidiActions,
             viewModel.MidiPlayer,
             viewModel.Settings);
-        viewModel.Panels.AddPanel(_midiPanel, "midi");
-
         //The manuals. Upstream docks its help browser on the right, hidden,
         //and so does this: opening it is what reads a manual off the disk.
         _docPanel = new DocumentationPanel(
@@ -253,20 +307,69 @@ public sealed partial class MainPage : Page, IWindowBridge
             WordAtCursor = WordAtCursor,
             ShowStatus = text => viewModel.StatusText = text,
         };
+        //Upstream's panel order within each Tools submenu, kept so a user who
+        //knows Frescobaldi finds them where they expect. Registration order is
+        //what decides it (panelmanager.py loads them in this sequence), so the
+        //panels are added HERE rather than where each is built.
+        //was previously: the AddPanel calls sat beside each constructor, which
+        //made Viewers read Log, Layout Control, Music View, Documentation and
+        //Coding read Quick Insert, Snippets, Special Characters — in
+        //contradiction of the comment above the block that said otherwise.
+        //Upstream: Music View, [SVG View — W4 merged], [Manuscript Viewer —
+        //post-v1], Documentation Browser, Log, Layout Control Options; then
+        //Quick Insert, Special Characters, Snippets, [Object Editor];
+        //then Documents, Outline; then MIDI Player.
+        viewModel.Panels.AddPanel(_musicViewPanel, "viewers");
         viewModel.Panels.AddPanel(_docPanel, "viewers");
+        viewModel.Panels.AddPanel(_logPanel, "viewers");
+        viewModel.Panels.AddPanel(_layoutControlPanel, "viewers");
+
+        viewModel.Panels.AddPanel(_quickInsertPanel, "coding");
+        viewModel.Panels.AddPanel(_charMapPanel, "coding");
+        viewModel.Panels.AddPanel(_snippetPanel, "coding");
+        if (_objectEditorPanel != null)
+        {
+            viewModel.Panels.AddPanel(_objectEditorPanel, "coding");
+        }
+
+        viewModel.Panels.AddPanel(_documentListPanel, "structure");
+        viewModel.Panels.AddPanel(_outlinePanel, "structure");
+
+        viewModel.Panels.AddPanel(_midiPanel, "midi");
+
+        //Music > Maximize. Upstream floats the Music View's dock widget and
+        //shows it maximized (panel.Panel.maximize); this shell has no floating
+        //dock widgets, so the panel takes the whole window instead and the same
+        //command puts the layout back — see DockShell.MaximizePanel.
+        viewModel.MusicViewActions.MusicMaximize.Handler = () =>
+        {
+            if (_shell.MaximizedPanel == _musicViewPanel)
+            {
+                _shell.RestoreFromMaximized();
+                return;
+            }
+
+            _shell.MaximizePanel(_musicViewPanel);
+        };
+
+        //The Music View's context menu needs the window for its two dialogs:
+        //Edit in Place puts one on screen, and Help opens the user guide.
+        _musicViewPanel.EditInPlace = (document, offset) => _ = EditInPlaceAsync(
+            viewModel, document, offset);
+        _musicViewPanel.ShowHelp = () => _ = viewModel.UserGuide.ShowAsync(
+            XamlRoot, "musicview");
 
         WireEditorTools(viewModel);
         WireMusicTools(viewModel);
         WireEngraving(viewModel);
         WireScoreWizard(viewModel);
+        WireDocumentFonts(viewModel);
 
         _tabBar = new DocumentTabBar(viewModel.Documents)
         {
-            ContextMenu = new DocumentContextMenu(
-                document => viewModel.SaveAsync(document, saveAs: false),
-                document => viewModel.SaveAsync(document, saveAs: true),
-                viewModel.CloseAsync,
-                viewModel.CloseOthersAsync),
+            ContextMenu = MakeDocumentContextMenu(viewModel),
+            TabsClosable = viewModel.Settings?.GetBool(
+                GeneralValues.TabsClosableKey, true) ?? true,
         };
         _tabBar.CloseRequested += async (_, e) => await viewModel.CloseAsync(e.Document);
         TabBarHost.Content = _tabBar;
@@ -320,10 +423,117 @@ public sealed partial class MainPage : Page, IWindowBridge
             () => PitchTools.LanguageOf(_viewManager?.ActiveView?.Document),
             language => _ = ChangePitchLanguageAsync(viewModel, language),
             viewModel.ScoreWizardActions,
-            viewModel.DocumentationActions);
+            viewModel.DocumentationActions,
+            viewModel.EditorCommandActions,
+            viewModel.FontsActions,
+            viewModel.FileImportActions,
+            viewModel.MatchingPairActions,
+            viewModel.LogActions,
+            () => viewModel.Engraver?.StickyDocument,
+            () => _viewManager?.ActiveView?.HasSelection ?? false);
+
+        WireExternalChanges(viewModel);
+
+        //Upstream installs exception.ExceptionDialog as the process's
+        //sys.excepthook (frescobaldi/__main__.py); this is the same moment —
+        //the window exists, so a failure has somewhere to be shown.
+        InternalErrorDialog.Install(() => XamlRoot, OnUiThread);
+
+        //FD5: start listening for a later launch, now that this window can act
+        //on what it is told. Upstream does the same thing at the same moment,
+        //with QTimer.singleShot(0, remote.setup).
+        RemoteInstance.Setup(viewModel.Settings, this, OnUiThread);
 
         _ = StartWithSessionAsync(viewModel);
     }
+
+    /// <summary>
+    /// Connects the document watcher and the "Modified Files" window to the
+    /// window they need.
+    /// </summary>
+    /// <param name="viewModel">The window's state.</param>
+    /// <remarks>
+    /// Upstream's <c>externalchanges</c> module does this at import time,
+    /// because its window is a module-level singleton it can make on demand;
+    /// here the window supplies the two things the service cannot have on its
+    /// own — a thread to come back on, and something to show.
+    /// </remarks>
+    private void WireExternalChanges(MainViewModel viewModel)
+    {
+        viewModel.DocumentWatcher.ToUiThread = OnUiThread;
+        viewModel.ExternalChanges.ToUiThread = OnUiThread;
+        viewModel.ExternalChanges.Display
+            = documents => _ = ShowChangedDocumentsAsync(documents);
+
+        //Upstream's four connections: a document that has been dealt with
+        //leaves the list, and the window hides when the list empties.
+        void Remove(object sender, DocumentEventArgs e)
+            => _changedDocuments?.RemoveDocument(e.Document);
+
+        viewModel.Documents.DocumentClosed += Remove;
+        viewModel.Documents.DocumentSaved += Remove;
+        viewModel.Documents.DocumentUrlChanged += Remove;
+        viewModel.Documents.DocumentLoaded += Remove;
+
+        //Upstream's "initial setup" at the bottom of externalchanges/__init__.py.
+        viewModel.ExternalChanges.Setup();
+    }
+
+    /// <summary>Shows the "Modified Files" window.</summary>
+    /// <param name="documents">The documents that changed.</param>
+    /// <returns>The running task.</returns>
+    /// <remarks>Upstream's window is non-modal and simply re-filled when it is
+    /// already up; a <c>ContentDialog</c> cannot be shown twice, so a second
+    /// call while it is open re-fills it and returns.</remarks>
+    private async Task ShowChangedDocumentsAsync(IReadOnlyList<EditorDocument> documents)
+    {
+        MainViewModel viewModel = ViewModel;
+        if (viewModel == null) { return; }
+
+        _changedDocuments ??= new ChangedDocumentsDialog(viewModel.ExternalChanges);
+        _changedDocuments.SetDocuments(documents);
+        if (_showingChangedDocuments) { return; }
+
+        _showingChangedDocuments = true;
+        try
+        {
+            await _changedDocuments.ShowAsync(XamlRoot);
+        }
+        finally
+        {
+            _showingChangedDocuments = false;
+        }
+    }
+
+    #region | IRemoteCommandTarget — what a later launch can ask of this window |
+
+    /// <inheritdoc/>
+    public void OpenPath(string path, string encoding)
+        => _ = ViewModel?.OpenPathAsync(path, encoding);
+
+    /// <inheritdoc/>
+    public void SetCurrent(string path)
+    {
+        //Upstream catches OSError from app.openUrl and does nothing, because
+        //`open' has already been sent for the same file; the same "it is only
+        //current if it is open" rule is said here by looking it up.
+        EditorDocument document = ViewModel?.Documents.FindDocument(path);
+        if (document != null) { ViewModel.Documents.CurrentDocument = document; }
+    }
+
+    /// <inheritdoc/>
+    public void SetCursor(int line, int column)
+        => _viewManager?.ActiveView?.GoTo(line, column);
+
+    /// <inheritdoc/>
+    public void ActivateWindow()
+    {
+        //Upstream's activateWindow() + raise_().
+        App.Shell?.Activate();
+        _viewManager?.ActiveView?.FocusEditor();
+    }
+
+    #endregion
 
     /// <summary>
     /// Connects the editor tools to the view they act on: the completer, the
@@ -381,6 +591,20 @@ public sealed partial class MainPage : Page, IWindowBridge
         };
 
         MainActions actions = viewModel.Actions;
+        actions.EditPreferences.AsyncHandler = () => ShowPreferencesAsync(viewModel);
+        actions.HelpAbout.AsyncHandler = () => AboutDialog.ShowAsync(
+            XamlRoot, page => viewModel.UserGuide.RenderPage(page));
+
+        //The user guide (board decision FD8). `help_manual' carries the system
+        //help key already; this is what upstream's `userguide.show()' does, and
+        //GuideHelp is the seam every dialog's Help button reaches it through
+        //(upstream's module-level `userguide.show'/`addButton').
+        actions.HelpManual.AsyncHandler
+            = () => viewModel.UserGuide.ShowAsync(XamlRoot);
+        Fresco.Brix.UserGuide.GuideHelp.Show
+            = page => viewModel.UserGuide.ShowAsync(XamlRoot, page);
+        viewModel.UserGuide.ReportError = message => viewModel.StatusText = message;
+        actions.ViewGotoLine.AsyncHandler = () => GoToLineAsync();
         actions.EditFind.Handler = () => WithView(v => _searchBar.Find(v));
         actions.EditReplace.Handler = () => WithView(v => _searchBar.Replace(v));
         actions.EditFindNext.Handler = () => _searchBar.FindNext();
@@ -442,16 +666,46 @@ public sealed partial class MainPage : Page, IWindowBridge
         marks.ViewNextMark.Handler = () => StepMark(viewModel, forward: true);
         marks.ViewPreviousMark.Handler = () => StepMark(viewModel, forward: false);
 
+        //View > Matching Pair / Select Matching Pair: the other half of
+        //upstream's matcher.Matcher. The match itself is already computed for
+        //the highlight; these two only move or select over the answer.
+        MatchingPairActions pairs = viewModel.MatchingPairActions;
+        pairs.ViewMatchingPair.Handler = () => GoToMatchingPair(select: false);
+        pairs.ViewMatchingPairSelect.Handler = () => GoToMatchingPair(select: true);
+
         //The document list's context menu acts on whatever is selected there.
-        _documentListPanel.ContextMenu = new DocumentContextMenu(
-            d => viewModel.SaveAsync(d, saveAs: false),
-            d => viewModel.SaveAsync(d, saveAs: true),
-            viewModel.CloseAsync,
-            viewModel.CloseOthersAsync);
+        _documentListPanel.ContextMenu = MakeDocumentContextMenu(viewModel);
+
+        //The EDITOR's own right-click menu (upstream's contextmenu.py). Every
+        //command it offers was already built; this is the route to them.
+        _editorContextMenu = new EditorContextMenu(
+            viewModel.Actions, viewModel.DocumentActions, _snippetPanel.Actions)
+        {
+            OpenFile = path => _ = OpenAndRaiseAsync(viewModel, path),
+            DocumentOf = target => target.DocumentIn(viewModel.Documents),
+            GoToDefinition = target =>
+            {
+                EditorDocument document = target.DocumentIn(viewModel.Documents);
+                if (document == null && target.Filename != null)
+                {
+                    _ = viewModel.OpenPathAsync(target.Filename);
+                    document = viewModel.Documents.FindDocument(target.Filename);
+                }
+
+                if (document != null)
+                {
+                    viewModel.Browser.GoTo(document, target.Position);
+                }
+            },
+        };
 
         //Snippets that carry a shortcut apply to the pane with the caret.
         viewModel.SnippetShortcuts.Apply = ApplySnippet;
+
+        //FD10's twenty-two native editor commands do the same.
+        viewModel.EditorCommandActions.Apply = name => _ = RunEditorCommandAsync(name);
         _snippetPanel.DialogRoot = XamlRoot;
+        _snippetPanel.ActionManager = viewModel.ActionManager;
         _snippetPanel.Actions.Activate.Handler = () => _snippetPanel.Activate();
         _snippetPanel.Actions.ManageTemplates.Handler
             = () => _snippetPanel.ManageTemplates();
@@ -477,9 +731,14 @@ public sealed partial class MainPage : Page, IWindowBridge
 
             return true;
         };
-        viewModel.SessionManager.OpenPathAsync = viewModel.OpenPathAsync;
+        viewModel.SessionManager.OpenPathAsync = path => viewModel.OpenPathAsync(path);
         viewModel.SessionManager.Actions.SessionManage.AsyncHandler
-            = () => SessionDialogs.ManageAsync(XamlRoot, viewModel.SessionStore);
+            = () => SessionDialogs.ManageAsync(
+                XamlRoot,
+                viewModel.SessionStore,
+                () => PickOpenAsync(".json"),
+                name => PickSaveAsync(name),
+                name => viewModel.SessionManager.StartSessionAsync(name));
     }
 
     /// <summary>
@@ -588,13 +847,14 @@ public sealed partial class MainPage : Page, IWindowBridge
         string language = PitchTools.LanguageOf(document);
         string text = await InputDialogs.GetTextAsync(
             XamlRoot,
-            I18n.Get("dialog title", "Transpose"),
+            I18n.Get("Transpose"),
             I18n.Format(
                 I18n.Get("Please enter two absolute pitches, separated by a space, "
                     + "using the pitch name language \"{language}\"."),
                 ("language", language)),
             string.Empty,
-            validate: entered => PitchTools.IsTransposeInput(entered, language));
+            validate: entered => PitchTools.IsTransposeInput(entered, language),
+            helpPage: "transpose");
         if (string.IsNullOrEmpty(text)) { return; }
 
         await ApplyTransposerAsync(
@@ -608,11 +868,12 @@ public sealed partial class MainPage : Page, IWindowBridge
     {
         string text = await InputDialogs.GetTextAsync(
             XamlRoot,
-            I18n.Get("dialog title", "Transpose"),
+            I18n.Get("Transpose"),
             I18n.Get("Please enter the number of steps to alter by, "
                 + "followed by a key signature. (i.e. \"5 F\")"),
             string.Empty,
-            validate: PitchTools.IsModalTransposeInput);
+            validate: PitchTools.IsModalTransposeInput,
+            helpPage: "modal_transpose");
         if (string.IsNullOrEmpty(text)) { return; }
 
         await ApplyTransposerAsync(
@@ -664,7 +925,7 @@ public sealed partial class MainPage : Page, IWindowBridge
         if (failedLanguage == null) { return; }
 
         await AskAsync(
-            I18n.Get("dialog title", "Transpose"),
+            I18n.Get("Transpose"),
             I18n.Format(
                 I18n.Get("Can't perform the requested transposition.\n\n"
                     + "The transposed music would contain quarter-tone alterations "
@@ -685,7 +946,7 @@ public sealed partial class MainPage : Page, IWindowBridge
         if (result == LanguageChange.NotAvailable)
         {
             await AskAsync(
-                I18n.Get("dialog title", "Pitch Name Language"),
+                I18n.Get("Pitch Name Language"),
                 I18n.Format(
                     I18n.Get("Can't perform the requested translation.\n\n"
                         + "The music contains quarter-tone alterations, but "
@@ -701,7 +962,7 @@ public sealed partial class MainPage : Page, IWindowBridge
         //LilyPond — and what the sentence is really about is the version the
         //DOCUMENT declares. W-I18N: a Fresco.Brix-original msgid.
         await AskAsync(
-            I18n.Get("dialog title", "Pitch Name Language"),
+            I18n.Get("Pitch Name Language"),
             I18n.Get("The pitch language of the selected text has been "
                 + "updated, but you need to manually add the following "
                 + "command to your document:")
@@ -725,11 +986,12 @@ public sealed partial class MainPage : Page, IWindowBridge
 
         string text = await InputDialogs.GetTextAsync(
             XamlRoot,
-            I18n.Get("dialog title", "Apply Rhythm"),
+            I18n.Get("Apply Rhythm"),
             I18n.Get("Enter a rhythm:"),
             string.Empty,
             pattern: RhythmTools.ApplyPattern,
-            completions: RhythmTools.TypedRhythms);
+            completions: RhythmTools.TypedRhythms,
+            helpPage: "rhythm");
         if (string.IsNullOrEmpty(text)) { return; }
 
         WithToolCursor(cursor => RhythmTools.Apply(cursor, text));
@@ -794,7 +1056,11 @@ public sealed partial class MainPage : Page, IWindowBridge
 
         string text = view.Document.Text;
         ConvertLyOutcome outcome = await ConvertLyDialog.ShowAsync(
-            XamlRoot, text, viewModel.Settings);
+            XamlRoot,
+            text,
+            viewModel.Settings,
+            name => PickSaveAsync(name),
+            view.Document.Path);
         if (outcome == null) { return; }
 
         string converted = outcome.Text;
@@ -882,9 +1148,16 @@ public sealed partial class MainPage : Page, IWindowBridge
         //Files named on the command line open on top of the session, and an
         //empty window still gets its untitled document.
         if (viewModel.Documents.Documents.Count == 0
-            || (App.CommandLinePaths?.Length ?? 0) > 0)
+            || (App.CommandLinePaths?.Count ?? 0) > 0)
         {
-            await viewModel.StartAsync(App.CommandLinePaths);
+            await viewModel.StartAsync(App.CommandLinePaths, App.CommandLine.Encoding);
+        }
+
+        //Upstream: "if urls and args.line is not None" — the place to go to is
+        //applied to the LAST document loaded, once everything is open.
+        if ((App.CommandLinePaths?.Count ?? 0) > 0 && App.CommandLine.Line != null)
+        {
+            SetCursor(App.CommandLine.Line.Value, App.CommandLine.Column ?? 1);
         }
     }
 
@@ -925,6 +1198,14 @@ public sealed partial class MainPage : Page, IWindowBridge
             if (lyricAction != null) { lyricAction.IsEnabled = hasSelection; }
         }
 
+        //FD10's four commands that decline without a selection (upstream's
+        //`selection: yes`): the menu entry greys out exactly as it does there.
+        foreach (var name in EditorCommands.SelectionCommandNames)
+        {
+            AppAction command = viewModel.EditorCommandActions.Action(name);
+            if (command != null) { command.IsEnabled = hasSelection; }
+        }
+
         _snippetPanel.Actions.CopyToSnippet.IsEnabled = hasSelection;
     }
 
@@ -933,6 +1214,40 @@ public sealed partial class MainPage : Page, IWindowBridge
         EditorView view = _viewManager?.ActiveView;
         if (view != null) { work(view); }
     }
+
+    /// <summary>
+    /// Moves the caret to the token matching the one under it, selecting from
+    /// here to there when asked.
+    /// </summary>
+    /// <param name="select">Whether to select the range rather than jump.</param>
+    /// <remarks>
+    /// Upstream's <c>Matcher.goto_match</c>. It answers nothing when the caret
+    /// is not on a match token, and nothing when the partner could not be
+    /// found — a list of fewer than two cursors, exactly as here.
+    /// ⚠ One divergence, forced by the editor's API: upstream leaves the caret
+    /// at the FAR end of a backwards selection (the anchor is the token the
+    /// caret was on); <c>EditorView.Select</c> always leaves the caret after
+    /// the range. The range selected is the same either way.
+    /// </remarks>
+    private void GoToMatchingPair(bool select)
+        => WithView(view =>
+        {
+            var matches = TokenMatcher.Matches(
+                view.State.LyDocument, view.Editor.CaretOffset);
+            if (matches.Count < 2) { return; }
+
+            var here = matches[0];
+            var there = matches[1];
+            if (!select)
+            {
+                view.GoToOffset(there.Start);
+                return;
+            }
+
+            int start = Math.Min(here.Start, there.Start);
+            int end = Math.Max(here.Start + here.Length, there.Start + there.Length);
+            view.Select(start, end - start);
+        });
 
     private void WithLyCursor(Action<Fresco.Brix.Ly.Cursor> work)
         => WithView(view =>
@@ -984,6 +1299,21 @@ public sealed partial class MainPage : Page, IWindowBridge
             DocumentActions.AutoIndentName,
             viewModel.DocumentActions.ToolsIndentAuto.IsChecked));
 
+    /// <summary>Opens a file and makes it the current document.</summary>
+    /// <param name="viewModel">The window's state.</param>
+    /// <param name="path">The file.</param>
+    /// <returns>The task.</returns>
+    /// <remarks>Upstream's context-menu Open entry does exactly this — open,
+    /// then <c>browseriface.setCurrentDocument</c>, so the jump is one the
+    /// Back command can undo.</remarks>
+    private static async Task OpenAndRaiseAsync(MainViewModel viewModel, string path)
+    {
+        if (!await viewModel.OpenPathAsync(path)) { return; }
+
+        EditorDocument opened = viewModel.Documents.FindDocument(path);
+        if (opened != null) { viewModel.Browser.SetCurrentDocument(opened); }
+    }
+
     private void GoToFileOrDefinition(MainViewModel viewModel) => WithView(view =>
     {
         //Upstream tries the file first and falls back to the definition, so
@@ -1016,6 +1346,97 @@ public sealed partial class MainPage : Page, IWindowBridge
 
         if (document != null) { viewModel.Browser.GoTo(document, target.Position); }
     });
+
+    /// <summary>
+    /// Builds the right-click menu a document carries — on its tab and on its
+    /// row in the Documents panel.
+    /// </summary>
+    /// <param name="viewModel">The window's state.</param>
+    /// <returns>The menu.</returns>
+    /// <remarks>Both places show the same menu upstream, so both are built the
+    /// same way here — including the nested Documents submenu and the sticky
+    /// pin, which need the document list and the engraver.</remarks>
+    private static DocumentContextMenu MakeDocumentContextMenu(MainViewModel viewModel)
+        => new DocumentContextMenu(
+            document => viewModel.SaveAsync(document, saveAs: false),
+            document => viewModel.SaveAsync(document, saveAs: true),
+            viewModel.CloseAsync,
+            viewModel.CloseOthersAsync)
+        {
+            Documents = viewModel.Documents,
+            StickyDocument = () => viewModel.Engraver?.StickyDocument,
+            ToggleSticky = document => viewModel.Engraver?.SetStickyDocument(
+                viewModel.Engraver.StickyDocument == document ? null : document),
+        };
+
+    /// <summary>
+    /// Music View context menu &gt; Edit in Place: the one line the click
+    /// resolved to, edited without leaving the music.
+    /// </summary>
+    /// <param name="viewModel">The window's state.</param>
+    /// <param name="document">The document the click pointed into.</param>
+    /// <param name="offset">Where in it.</param>
+    /// <returns>The task.</returns>
+    /// <remarks>Upstream's <c>editinplace.edit(panel.widget(), cursor,
+    /// position)</c>. The dialog itself was ported whole at W5 and had no
+    /// caller until now; raising the document first is what upstream's own
+    /// cursor-based call does implicitly, and it is what makes the edit land
+    /// where the user can see it.</remarks>
+    private async Task EditInPlaceAsync(
+        MainViewModel viewModel, EditorDocument document, int offset)
+    {
+        if (document == null) { return; }
+
+        bool changed = await EditInPlace.ShowAsync(
+            XamlRoot, document, offset, viewModel.Settings, EditorFontFamily());
+        if (changed) { viewModel.Documents.CurrentDocument = document; }
+    }
+
+    /// <summary>
+    /// View &gt; Go to Line: asks for a line number and puts the caret on that
+    /// line, past whatever it is indented by.
+    /// </summary>
+    /// <returns>The task.</returns>
+    /// <remarks>Upstream's <c>MainWindow.gotoLine</c>. Its two behaviours are
+    /// kept whole: the range offered is 1 to the document's line count, and the
+    /// caret lands on the line's first non-blank character rather than in its
+    /// indentation. Upstream shows the box as a popup at the caret; the
+    /// platform's only modal is centred, and that is the one divergence.</remarks>
+    private async Task GoToLineAsync()
+    {
+        EditorView view = _viewManager?.ActiveView;
+        if (view == null) { return; }
+
+        int lineCount = view.Editor.Document.LineCount;
+        int current = view.Line;
+        //Upstream's popup carries no title at all; the dialog's own caption is
+        //the menu entry's, so no new msgid is invented for it.
+        int? answer = await InputDialogs.GetIntegerAsync(
+            XamlRoot,
+            ActionCollectionManager.RemoveAccelerator(
+                I18n.Get("&Go to Line...")).TrimEnd('.'),
+            I18n.Format(
+                I18n.Get("Go to Line Number (1-{num}):"),
+                ("num", lineCount.ToString(
+                    System.Globalization.CultureInfo.InvariantCulture))),
+            current,
+            1,
+            lineCount);
+        if (answer == null || answer.Value == current) { return; }
+
+        //Upstream steps past the indentation so the caret lands on the text
+        //rather than inside the leading whitespace.
+        var line = view.Editor.Document.GetLineByNumber(answer.Value);
+        string text = view.Editor.Document.GetText(line.Offset, line.Length);
+        int indent = 0;
+        while (indent < text.Length && (text[indent] == ' ' || text[indent] == '\t'))
+        {
+            indent++;
+        }
+
+        view.GoTo(answer.Value, indent + 1);
+        view.FocusEditor();
+    }
 
     private async Task CutAndAssignAsync(MainViewModel viewModel)
     {
@@ -1071,19 +1492,86 @@ public sealed partial class MainPage : Page, IWindowBridge
         EditorView view = _viewManager?.ActiveView;
         if (view == null) { return; }
 
-        string title = await InputDialogs.GetTextAsync(
-            XamlRoot,
+        //was previously: a bare name prompt. Upstream's TemplateDialog also
+        //carries the run-on-create checkbox and refuses to overwrite a template
+        //silently; the mechanism for the checkbox
+        //(SnippetTemplate.FromDocument's engraveOnUse, which writes the
+        //`template-run;' marker) was already here and was never offered.
+        CheckBox runOnCreate = new CheckBox
+        {
+            Content = I18n.Get(
+                "Run LilyPond when creating a new document from this template"),
+            //Upstream ticks it when the document would actually produce
+            //something: LilyPond mode, complete, and with output.
+            IsChecked = WouldEngrave(view.Document),
+        };
+
+        TextDialog dialog = new TextDialog(
             I18n.Get("Save as Template"),
-            I18n.Get("Please enter a template name:"),
-            string.Empty,
-            pattern: @"\w(.*\w)?");
+            I18n.Get("Please enter a template name:"));
+        dialog.SetValidateExpression(@"\w(.*\w)?");
+        dialog.AddUnderBox(runOnCreate);
+
+        if (!await dialog.ShowAsync(XamlRoot)) { return; }
+
+        string title = dialog.Text;
         if (string.IsNullOrEmpty(title)) { return; }
+
+        //Upstream matches an existing template by its TITLE and overwrites that
+        //snippet, rather than adding a second one with the same title.
+        string existing = null;
+        foreach (var name in viewModel.SnippetLibrary.NamesByTitle())
+        {
+            if (!viewModel.SnippetLibrary.Get(name).Variables.ContainsKey("template"))
+            {
+                continue;
+            }
+
+            if (string.Equals(
+                viewModel.SnippetLibrary.Title(name), title, StringComparison.Ordinal))
+            {
+                existing = name;
+                break;
+            }
+        }
+
+        if (existing != null
+            && !await InputDialogs.ConfirmAsync(
+                XamlRoot,
+                I18n.Get("Overwrite Template?"),
+                I18n.Format(
+                    I18n.Get("A template named \"{name}\" already exists.\n\n"
+                        + "Do you want to overwrite it?"),
+                    ("name", title)),
+                StandardButtons.Overwrite))
+        {
+            return;
+        }
 
         //The caret (and the selection's anchor) become $CURSOR and $ANCHOR, so
         //a new document from the template opens with the caret where it is now.
         string text = SnippetTemplate.FromDocument(
-            view.Document.Text, view.SelectionStart, view.SelectionEnd);
-        viewModel.SnippetLibrary.Save(null, text, title);
+            view.Document.Text,
+            view.SelectionStart,
+            view.SelectionEnd,
+            runOnCreate.IsChecked == true);
+        viewModel.SnippetLibrary.Save(existing, text, title);
+    }
+
+    /// <summary>
+    /// Whether a new document made from this one would be worth engraving at
+    /// once — what upstream ticks the template's run box from.
+    /// </summary>
+    /// <param name="document">The document.</param>
+    /// <returns>Whether it would engrave to something.</returns>
+    private static bool WouldEngrave(EditorDocument document)
+    {
+        if (document == null) { return false; }
+
+        DocumentInfo info = DocumentInfo.For(document);
+        return info.Mode() == "lilypond"
+            && info.DocInfo().Complete()
+            && info.Music().HasOutput();
     }
 
     private void ApplySnippet(string name)
@@ -1099,6 +1587,47 @@ public sealed partial class MainPage : Page, IWindowBridge
             view.SelectionStart,
             view.SelectionEnd);
         if (!result.Inserted) { return; }
+
+        view.Select(
+            Math.Min(result.SelectionStart, result.SelectionEnd),
+            Math.Abs(result.SelectionEnd - result.SelectionStart));
+        view.FocusEditor();
+    }
+
+    /// <summary>
+    /// Runs one of FD10's twenty-two native editor commands over the pane the
+    /// caret is in.
+    /// </summary>
+    /// <param name="name">Upstream's own command name.</param>
+    /// <returns>The running task.</returns>
+    /// <remarks>Only one of the twenty-two asks the user anything, and it is
+    /// asked HERE rather than inside the command, so the command itself stays
+    /// a plain function of the document and is testable without a window.</remarks>
+    private async Task RunEditorCommandAsync(string name)
+    {
+        MainViewModel viewModel = ViewModel;
+        EditorView view = _viewManager?.ActiveView;
+        if (viewModel == null || view == null) { return; }
+
+        (int Red, int Green, int Blue)? color = null;
+        if (EditorCommands.ByName.TryGetValue(name, out EditorCommandInfo info)
+            && info.NeedsColor)
+        {
+            Windows.UI.Color? chosen = await InputDialogs.GetColorAsync(
+                XamlRoot, I18n.Get("Select Color"));
+            if (chosen == null) { return; }
+
+            color = (chosen.Value.R, chosen.Value.G, chosen.Value.B);
+        }
+
+        EditorCommandResult result = EditorCommands.Run(
+            name,
+            view.Document,
+            view.SelectionStart,
+            view.SelectionEnd,
+            viewModel.Settings,
+            color);
+        if (!result.Applied) { view.FocusEditor(); return; }
 
         view.Select(
             Math.Min(result.SelectionStart, result.SelectionEnd),
@@ -1221,6 +1750,56 @@ public sealed partial class MainPage : Page, IWindowBridge
         viewModel.Documents.CurrentDocument = document;
     }
 
+    /// <summary>Connects Tools &gt; Document Fonts to its dialog.</summary>
+    /// <param name="viewModel">The window's state.</param>
+    private void WireDocumentFonts(MainViewModel viewModel)
+        => viewModel.FontsActions.DocumentFonts.AsyncHandler
+            = () => ShowDocumentFontsAsync(viewModel);
+
+    /// <summary>
+    /// Shows the Document Fonts dialog and inserts what it wrote at the caret.
+    /// </summary>
+    /// <param name="viewModel">The window's state.</param>
+    /// <returns>Nothing.</returns>
+    /// <remarks>Upstream's <c>Fonts.document_fonts</c>: the generated command
+    /// is inserted at the current cursor position, with a trailing newline.
+    /// //was previously: upstream chooses between this dialog and the OLD
+    /// "Set Document Fonts" one on the document's declared LilyPond version.
+    /// There is one engine here (FR5.1), so there is one dialog, and
+    /// `oldfontsdialog.py' is unreachable and dropped.</remarks>
+    private async Task ShowDocumentFontsAsync(MainViewModel viewModel)
+    {
+        DocumentFontsDialog dialog = viewModel.DocumentFonts;
+        dialog.PickAsync = PickPathAsync;
+        dialog.CopyToClipboard = text =>
+        {
+            DataPackage package = new DataPackage();
+            package.SetText(text);
+            Clipboard.SetContent(package);
+            Clipboard.Flush();
+        };
+        dialog.CurrentDocumentText = () => _viewManager?.ActiveView?.Document.Document.Text;
+        dialog.CurrentDocumentDirectory = () =>
+        {
+            string path = _viewManager?.ActiveView?.Document.Path;
+            return string.IsNullOrEmpty(path)
+                ? null
+                : System.IO.Path.GetDirectoryName(path);
+        };
+
+        string command = await dialog.ShowAsync(XamlRoot);
+        if (string.IsNullOrEmpty(command)) { return; }
+
+        EditorView view = _viewManager?.ActiveView;
+        if (view == null) { return; }
+
+        int start = Math.Min(view.SelectionStart, view.SelectionEnd);
+        int length = Math.Abs(view.SelectionEnd - view.SelectionStart);
+        view.Editor.Document.Replace(start, length, command);
+        view.Select(start + command.Length, 0);
+        view.FocusEditor();
+    }
+
     /// <summary>Engraves a piece of source and shows it.</summary>
     /// <param name="viewModel">The window's state.</param>
     /// <param name="text">The source.</param>
@@ -1298,6 +1877,12 @@ public sealed partial class MainPage : Page, IWindowBridge
         if (document == null || viewModel == null) { return; }
 
         viewModel.Documents.CurrentDocument = document;
+
+        //Upstream's SVG view emits `cursor' for the same click, and the object
+        //editor's setObjectFromCursor is what listens to it. The Music View's
+        //point-and-click is that signal here.
+        _objectEditorPanel?.SetObjectFromCursor(document, offset);
+
         EditorView view = _viewManager?.ActiveView;
         if (view?.Document != document) { return; }
 
@@ -1441,12 +2026,201 @@ public sealed partial class MainPage : Page, IWindowBridge
         {
             Title = title,
             Content = message,
-            PrimaryButtonText = I18n.Get("&Discard").Replace("&", string.Empty),
-            CloseButtonText = I18n.Get("Cancel"),
+            PrimaryButtonText = StandardButtons.Discard,
+            CloseButtonText = StandardButtons.Cancel,
             XamlRoot = XamlRoot,
         };
 
         return await dialog.ShowAsync() == ContentDialogResult.Primary;
+    }
+
+    /// <summary>
+    /// Asks whether to save, discard or keep a modified document that is being
+    /// closed.
+    /// </summary>
+    /// <param name="title">The dialog title.</param>
+    /// <param name="message">The question.</param>
+    /// <returns>What the user chose.</returns>
+    /// <remarks>Upstream's three-button <c>QMessageBox.warning</c>
+    /// (mainwindow.py, <c>queryCloseDocument</c>). A ContentDialog carries
+    /// exactly three buttons (board trap 43/50), which is what this needs and
+    /// no more.</remarks>
+    private async Task<CloseAnswer> AskSaveDiscardCancelAsync(
+        string title, string message)
+    {
+        ContentDialog dialog = new ContentDialog
+        {
+            Title = title,
+            Content = new TextBlock
+            {
+                Text = message,
+                TextWrapping = TextWrapping.Wrap,
+            },
+            PrimaryButtonText = StandardButtons.Save,
+            SecondaryButtonText = StandardButtons.Discard,
+            CloseButtonText = StandardButtons.Cancel,
+            DefaultButton = ContentDialogButton.Primary,
+            XamlRoot = XamlRoot,
+        };
+
+        return await dialog.ShowAsync() switch
+        {
+            ContentDialogResult.Primary => CloseAnswer.Save,
+            ContentDialogResult.Secondary => CloseAnswer.Discard,
+            _ => CloseAnswer.Cancel,
+        };
+    }
+
+    /// <summary>Opens the Preferences window and applies what it changed.</summary>
+    /// <param name="viewModel">The window's state.</param>
+    /// <returns>The running task.</returns>
+    /// <remarks>
+    /// Upstream keeps ONE preferences dialog per window and re-shows it, so it
+    /// re-opens on the page the user was last on; the same instance is kept
+    /// here for the same reason.
+    /// </remarks>
+    private async Task ShowPreferencesAsync(MainViewModel viewModel)
+    {
+        if (_preferences == null)
+        {
+            _preferences = new PreferencesDialog(new PreferencesContext
+            {
+                Settings = viewModel.Settings,
+                Actions = viewModel.ActionManager,
+                Snippets = viewModel.SnippetLibrary,
+                MidiPlayer = viewModel.MidiPlayer,
+                Manuals = viewModel.Manuals,
+                SessionStore = viewModel.SessionStore,
+                PickAsync = PickPathAsync,
+                PickFileAsync = PickFileOfTypeAsync,
+            });
+
+            //Upstream's app.settingsChanged(): the window re-reads what it
+            //needs rather than the dialog reaching into it.
+            _preferences.SettingsChanged += (_, _) => ApplyChangedSettings(viewModel);
+        }
+
+        await _preferences.ShowAsync(XamlRoot);
+    }
+
+    /// <summary>
+    /// Re-reads the settings a preference change makes visible at once.
+    /// </summary>
+    /// <param name="viewModel">The window's state.</param>
+    /// <remarks>
+    /// The colours and the editor's size are re-applied to every open document
+    /// so a change is seen without a relaunch. What is read at the moment it is
+    /// used — the indent widths, the smart-home key, the source-export options,
+    /// the helper commands — needs nothing done to it.
+    /// </remarks>
+    private void ApplyChangedSettings(MainViewModel viewModel)
+    {
+        //Upstream connects remote.setup and externalchanges.setup to
+        //app.settingsChanged, so both preferences take effect at once rather
+        //than at the next launch.
+        RemoteInstance.Setup(viewModel.Settings, this, OnUiThread);
+        viewModel.ExternalChanges.Setup();
+
+        //Upstream's tabbar reads `tabs_closable' on settingsChanged too.
+        if (_tabBar != null)
+        {
+            _tabBar.TabsClosable = viewModel.Settings?.GetBool(
+                GeneralValues.TabsClosableKey, true) ?? true;
+        }
+
+        TextFormatData scheme = new TextFormatData(
+            TextFormatData.CurrentScheme(viewModel.Settings), viewModel.Settings);
+
+        foreach (var document in viewModel.Documents.Documents)
+        {
+            DocumentEditorState.For(document, viewModel.Settings).Styler.Scheme = scheme;
+        }
+
+        foreach (var space in _viewManager.ViewSpaces)
+        {
+            EditorView view = space.ActiveView;
+            if (view == null) { continue; }
+
+            view.Editor.FontSize = scheme.FontSize > 0
+                ? scheme.FontSize
+                : TextFormatData.DefaultFontSize;
+            view.Editor.TextArea.TextView.Redraw();
+        }
+    }
+
+    /// <summary>Asks the user for a folder or a file, for a preferences row.</summary>
+    /// <param name="mode">What is wanted.</param>
+    /// <param name="current">The path to start from.</param>
+    /// <returns>The path, or null when the user cancelled.</returns>
+    private async Task<string> PickPathAsync(UrlRequesterMode mode, string current)
+    {
+        if (mode == UrlRequesterMode.Directory)
+        {
+            var folders = new FolderPicker
+            {
+                SuggestedStartLocation = PickerLocationId.DocumentsLibrary,
+            };
+            folders.FileTypeFilter.Add("*");
+            var folder = await folders.PickSingleFolderAsync();
+            return folder?.Path;
+        }
+
+        return await PickOpenAsync("*");
+    }
+
+    /// <summary>Asks the user for a file with one of a list of suffixes.</summary>
+    /// <param name="extensions">The suffixes, each with its dot.</param>
+    /// <returns>The path, or null when the user cancelled.</returns>
+    private async Task<string> PickFileOfTypeAsync(IReadOnlyList<string> extensions)
+    {
+        var picker = new FileOpenPicker
+        {
+            SuggestedStartLocation = PickerLocationId.DocumentsLibrary,
+        };
+        foreach (var extension in extensions ?? Array.Empty<string>())
+        {
+            picker.FileTypeFilter.Add(extension);
+        }
+
+        picker.FileTypeFilter.Add("*");
+        var file = await picker.PickSingleFileAsync();
+        return file?.Path;
+    }
+
+    /// <summary>Asks the user for one or more files to import.</summary>
+    /// <param name="extensions">The suffixes to offer, each with its dot.</param>
+    /// <param name="multiple">Whether more than one file may be chosen.</param>
+    /// <returns>The paths, or an empty list when the user cancelled.</returns>
+    /// <remarks>
+    /// Upstream's <c>get_import_file</c>: <c>getOpenFileNames</c> for the
+    /// generic import and <c>getOpenFileName</c> for the three specific ones.
+    /// ⚠ "All Files" is offered as upstream offers it, which is exactly why the
+    /// view model still checks each chosen file's suffix.
+    /// </remarks>
+    private async Task<IReadOnlyList<string>> PickImportAsync(
+        IReadOnlyList<string> extensions, bool multiple)
+    {
+        var picker = new FileOpenPicker
+        {
+            SuggestedStartLocation = PickerLocationId.DocumentsLibrary,
+        };
+        foreach (var extension in extensions ?? Array.Empty<string>())
+        {
+            picker.FileTypeFilter.Add(extension);
+        }
+
+        picker.FileTypeFilter.Add("*");
+
+        if (!multiple)
+        {
+            var one = await picker.PickSingleFileAsync();
+            return one == null ? Array.Empty<string>() : new[] { one.Path };
+        }
+
+        var files = await picker.PickMultipleFilesAsync();
+        return files == null
+            ? Array.Empty<string>()
+            : files.Select(file => file.Path).ToArray();
     }
 
     private Task<string> PickOpenAsync() => PickOpenAsync(null);

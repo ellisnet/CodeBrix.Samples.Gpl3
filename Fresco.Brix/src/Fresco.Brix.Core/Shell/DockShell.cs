@@ -34,7 +34,9 @@ public sealed class DockShell : SplitContainer
     private readonly Dictionary<DockArea, TabView> _areas
         = new Dictionary<DockArea, TabView>();
     private readonly List<Panel> _panels = new List<Panel>();
+    private readonly List<Panel> _hiddenByMaximize = new List<Panel>();
     private UIElement _center;
+    private Panel _maximized;
 
     /// <summary>Creates the shell.</summary>
     public DockShell()
@@ -78,7 +80,17 @@ public sealed class DockShell : SplitContainer
         if (panel == null) { throw new ArgumentNullException(nameof(panel)); }
 
         _panels.Add(panel);
-        panel.VisibilityChanged += (_, _) => Refresh(panel);
+        panel.VisibilityChanged += (_, _) =>
+        {
+            //Closing the maximized panel puts the window back rather than
+            //leaving it empty.
+            if (ReferenceEquals(panel, _maximized) && !panel.IsVisible)
+            {
+                RestoreFromMaximized();
+            }
+
+            Refresh(panel);
+        };
         panel.Activated += (_, _) => BringToFront(panel);
         if (panel.IsVisible)
         {
@@ -107,6 +119,70 @@ public sealed class DockShell : SplitContainer
         }
     }
 
+    /// <summary>Gets the panel filling the window, or null.</summary>
+    public Panel MaximizedPanel => _maximized;
+
+    /// <summary>
+    /// Gives one panel the whole window, hiding the editor area and every
+    /// other panel until <see cref="RestoreFromMaximized"/> puts them back.
+    /// </summary>
+    /// <param name="panel">The panel to maximize.</param>
+    /// <remarks>
+    /// ⚠ MECHANISM DIVERGENCE, declared here. Upstream's
+    /// <c>panel.Panel.maximize</c> is two lines — <c>setFloating(True)</c> then
+    /// <c>showMaximized()</c> — because a Qt dock widget can leave the window
+    /// and become a top-level one; it is then restored by re-docking it, so
+    /// upstream's action has nothing to undo. This shell is "a modest app-level
+    /// dock shell" with no floating dock widgets at all, so the same INTENT —
+    /// give this panel the whole screen area — is carried out inside the
+    /// window, and because there is no float to re-dock, invoking the command
+    /// again is what puts the layout back. What the user sees is what upstream's
+    /// user sees: the Music View filling everything.
+    /// </remarks>
+    public void MaximizePanel(Panel panel)
+    {
+        if (panel == null) { return; }
+
+        if (_maximized != null) { RestoreFromMaximized(); }
+
+        panel.IsVisible = true;
+        BringToFront(panel);
+
+        _hiddenByMaximize.Clear();
+        foreach (var other in _panels)
+        {
+            if (ReferenceEquals(other, panel) || !other.IsVisible) { continue; }
+
+            _hiddenByMaximize.Add(other);
+            other.IsVisible = false;
+        }
+
+        if (_center != null && _middleRow.IndexOf(_center) >= 0)
+        {
+            _middleRow.RemovePane(_center);
+        }
+
+        _maximized = panel;
+        RebalanceMiddle();
+    }
+
+    /// <summary>Puts the layout back the way it was before a maximize.</summary>
+    public void RestoreFromMaximized()
+    {
+        if (_maximized == null) { return; }
+
+        _maximized = null;
+        if (_center != null && _middleRow.IndexOf(_center) < 0)
+        {
+            _middleRow.InsertPane(LeftAreaIsShown ? 1 : 0, _center);
+        }
+
+        foreach (var other in _hiddenByMaximize) { other.IsVisible = true; }
+
+        _hiddenByMaximize.Clear();
+        RebalanceMiddle();
+    }
+
     private void Refresh(Panel panel)
     {
         TabView view = AreaView(panel.Area);
@@ -117,7 +193,12 @@ public sealed class DockShell : SplitContainer
         {
             TabViewItem tab = new TabViewItem
             {
-                Header = panel.Title,
+                //A fresh TextBlock rather than the bare string: a string header
+                //is realised through a recycled ContentPresenter, and a tab that
+                //is removed and re-added then lands its header's presenter on a
+                //control inside the NEXT tab's content (seen as the Layout
+                //Control panel's last checkbox taking the tab's own title).
+                Header = new TextBlock { Text = panel.Title },
                 Tag = panel,
                 //The tab is the panel's only close affordance; closing it is
                 //the same as unchecking the panel's action.
@@ -129,6 +210,15 @@ public sealed class DockShell : SplitContainer
         }
         else if (!panel.IsVisible && existing != null)
         {
+            //THE CONTENT GOES FIRST. A panel's widget is built once and kept
+            //(Panel.Widget), so the SAME element is handed to whichever tab is
+            //holding it — and an element has one parent. Leaving it attached to
+            //a tab that is being thrown away and then giving it to a new one
+            //left the old presenter still claiming it, which showed up as the
+            //panel's LAST control taking the tab header's text. Clearing it
+            //here is what makes hiding and showing a panel repeatable, and the
+            //Music View's Maximize does exactly that to every other panel.
+            existing.Content = null;
             view.TabItems.Remove(existing);
         }
 

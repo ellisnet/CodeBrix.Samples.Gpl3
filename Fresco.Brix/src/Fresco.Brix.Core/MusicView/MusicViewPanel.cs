@@ -12,6 +12,7 @@ using Fresco.Brix.Engrave;
 using Fresco.Brix.Services;
 using Fresco.Brix.Shell;
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using SkiaSharp;
@@ -220,7 +221,13 @@ public sealed class MusicViewPanel : Shell.Panel
         _view.CurrentPageChanged += (_, _) => UpdatePageLabel();
         _view.ContextMenuRequested += OnContextMenuRequested;
 
-        _contextMenu = new MusicViewContextMenu(Actions) { OpenExternalUrl = OpenExternalUrl };
+        _contextMenu = new MusicViewContextMenu(Actions)
+        {
+            OpenExternalUrl = OpenExternalUrl,
+            HasSelection = () => _view?.RubberBand?.HasSelection == true,
+            EditInPlace = (document, offset) => EditInPlace?.Invoke(document, offset),
+            ShowHelp = () => ShowHelp?.Invoke(),
+        };
 
         ReadSettings();
 
@@ -256,6 +263,24 @@ public sealed class MusicViewPanel : Shell.Panel
 
             ShowScore(_chooser.SelectedIndex);
         };
+
+        //Upstream's music_document_select IS this combo (a ComboBoxAction), so
+        //the combo takes its caption, its tooltip and its Ctrl+Shift+O — which
+        //drops the list open, because that is all a chooser can do from the
+        //keyboard.
+        if (Actions?.MusicDocumentSelect != null)
+        {
+            AutomationProperties.SetName(
+                _chooser,
+                Shell.MenuBuilder.Display(Actions.MusicDocumentSelect.Text));
+            ToolTipService.SetToolTip(_chooser, Actions.MusicDocumentSelect.ToolTip);
+            Actions.MusicDocumentSelect.Handler = () =>
+            {
+                _chooser.Focus(FocusState.Programmatic);
+                _chooser.IsDropDownOpen = true;
+            };
+        }
+
         bar.Children.Add(_chooser);
 
         bar.Children.Add(ToolButton(Actions.MusicZoomOut, "-"));
@@ -594,15 +619,52 @@ public sealed class MusicViewPanel : Shell.Panel
         UpdateChooser();
     }
 
+    /// <summary>Answers whether a finished job's scores should take the panel.</summary>
+    /// <param name="finished">The document the job ran for.</param>
+    /// <param name="bound">The document the panel is bound to, or null.</param>
+    /// <param name="current">The application's current document, or null.</param>
+    /// <returns>True when the panel should show <paramref name="finished"/>.</returns>
+    /// <remarks>
+    /// <paramref name="bound"/> deliberately LAGS <paramref name="current"/>:
+    /// <see cref="SetDocument"/> refuses to follow a source with nothing to show,
+    /// so that switching to a never-engraved document leaves the last score up
+    /// rather than blanking the panel. A job that finishes for the document the
+    /// user is actually LOOKING at therefore has to be able to take the panel on
+    /// its own — otherwise the panel stays bound to whatever came before and
+    /// shows nothing at all, which is what engraving a document created by the
+    /// Score Wizard (or opened from a file) did.
+    /// </remarks>
+    internal static bool AdoptsFinishedJob(
+        EditorDocument finished, EditorDocument bound, EditorDocument current)
+        => bound == null || finished == bound || finished == current;
+
     private void OnJobFinished(JobEventArgs e)
     {
         EditorDocument document = e?.Document;
         if (document == null) { return; }
 
-        if (!ScoreDocuments.For(document).Update(settings: _settings)) { return; }
+        bool adopts = AdoptsFinishedJob(document, _document, _documents.CurrentDocument);
+
+        if (!ScoreDocuments.For(document).Update(settings: _settings))
+        {
+            //was previously: a bare `return'. Nothing CHANGED about the scores,
+            //so there is nothing to re-render — unless this panel was opened
+            //AFTER they were registered, in which case it has never looked and
+            //is showing nothing at all. That is what a File > Open or an import
+            //followed by opening the Music View did, and switching tabs cleared
+            //it. The guard is deliberately narrow: a finished job still does
+            //not force a re-render for a panel that is already showing them.
+            if (adopts && _scores.Count == 0)
+            {
+                _document = document;
+                UpdateScores();
+            }
+
+            return;
+        }
 
         ScoreDocuments.RaiseScoreUpdated(document);
-        if (document == _document || _document == null)
+        if (adopts)
         {
             _document = document;
             UpdateScores();
@@ -703,6 +765,21 @@ public sealed class MusicViewPanel : Shell.Panel
     /// </remarks>
     public Action<string> OpenExternalUrl { get; set; }
 
+    /// <summary>
+    /// Gets or sets what the context menu's "Edit in Place" entry does with the
+    /// source position under the pointer.
+    /// </summary>
+    /// <remarks>Only the window can put a dialog on screen and hand the editor
+    /// its font, so the panel asks rather than opens — the same seam
+    /// <see cref="ShowCursor"/> uses.</remarks>
+    public Action<EditorDocument, int> EditInPlace { get; set; }
+
+    /// <summary>
+    /// Gets or sets what the context menu's Help entry opens — the user guide's
+    /// <c>musicview</c> page.
+    /// </summary>
+    public Action ShowHelp { get; set; }
+
     private void OnContextMenuRequested(object sender, MusicContextMenuEventArgs e)
     {
         (EditorDocument Document, int Offset)? source = null;
@@ -795,8 +872,12 @@ public sealed class MusicViewPanel : Shell.Panel
             return;
         }
 
-        _musicHighlighter.Color = ToSkia(new TextFormatData("default", _settings)
-            .BaseColor("musichighlight"));
+        //was previously: the scheme name "default", written out. The Fonts &
+        //Colors preferences page (W12A) lets the user keep more than one, so
+        //the name comes from the setting that page writes.
+        _musicHighlighter.Color = ToSkia(
+            new TextFormatData(TextFormatData.CurrentScheme(_settings), _settings)
+                .BaseColor("musichighlight"));
 
         string mode = _settings.GetString(ViewSettingsPrefix + "viewmode", "fitwidth");
         _view.ViewMode = mode switch
@@ -812,6 +893,25 @@ public sealed class MusicViewPanel : Shell.Panel
         _view.Layout.Margins = new PageMargins(_view.DropShadowEnabled ? 6 : 1);
         Actions.MusicContinuous.IsChecked = _view.ContinuousMode;
         UpdateModeChecks();
+
+        //was previously: the orientation was not here and not in WriteSettings
+        //either, so choosing Horizontal and then "Save current settings" dropped
+        //it silently and the next launch came back vertical — every other part of
+        //the view's state round-tripped. It is read and written with the rest
+        //now, which is also the default the Music View preferences page sets.
+        //The layout engine below calls UpdateViewport(), so the new orientation
+        //is laid out without a second pass.
+        _view.Layout.Orientation = string.Equals(
+            _settings.GetString(ViewSettingsPrefix + "orientation", "vertical"),
+            "horizontal",
+            StringComparison.Ordinal)
+                ? LayoutOrientation.Horizontal
+                : LayoutOrientation.Vertical;
+        Actions.MusicHorizontal.IsChecked
+            = _view.Layout.Orientation == LayoutOrientation.Horizontal;
+        Actions.MusicVertical.IsChecked
+            = _view.Layout.Orientation == LayoutOrientation.Vertical;
+
         SetLayoutEngine(_settings.GetString(ViewSettingsPrefix + "layout", "single"));
     }
 
@@ -828,6 +928,13 @@ public sealed class MusicViewPanel : Shell.Panel
         });
         _settings.SetDouble(ViewSettingsPrefix + "zoom", _view.ZoomFactor);
         _settings.SetBool(ViewSettingsPrefix + "continuous", _view.ContinuousMode);
+        //was previously: missing, though SetOrientation calls this method for the
+        //express purpose of remembering the choice. See ReadSettings.
+        _settings.SetString(
+            ViewSettingsPrefix + "orientation",
+            _view.Layout.Orientation == LayoutOrientation.Horizontal
+                ? "horizontal"
+                : "vertical");
         _settings.SetString(ViewSettingsPrefix + "layout", _view.Layout.Engine switch
         {
             RasterLayoutEngine => "raster",
