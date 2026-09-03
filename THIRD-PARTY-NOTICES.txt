@@ -1,0 +1,17 @@
+THIRD-PARTY NOTICES
+===================
+
+This repository is licensed under the GNU General Public License version 3
+(see LICENSE).
+
+Each application folder in this repository carries its own
+THIRD-PARTY-NOTICES.txt. That file is the authoritative record of the
+third-party code, data and assets the application adapts, bundles, or uses
+at run time, together with their licenses and upstream locations. Where an
+application must ship the full text of a third-party license, that text is
+in the application folder as well.
+
+Third-party CODE dependencies are consumed as NuGet packages. Each package
+carries its own license and third-party notices in its own repository/package
+(the CodeBrix.* packages ship their own THIRD-PARTY-NOTICES.txt), so those are
+not reproduced here.
