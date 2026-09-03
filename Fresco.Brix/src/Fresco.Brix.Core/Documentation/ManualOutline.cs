@@ -76,13 +76,20 @@ public sealed class ManualStructure
     /// <param name="width">The page width, in points.</param>
     /// <param name="height">The page height, in points.</param>
     /// <param name="outline">The table of contents, in reading order.</param>
+    /// <param name="pageSizes">Each page's own size in points, or null when
+    /// every page is <paramref name="width"/> by <paramref name="height"/>.</param>
     internal ManualStructure(
-        int pageCount, double width, double height, IReadOnlyList<ManualOutlineEntry> outline)
+        int pageCount,
+        double width,
+        double height,
+        IReadOnlyList<ManualOutlineEntry> outline,
+        IReadOnlyList<PageSize> pageSizes = null)
     {
         PageCount = pageCount;
         PageWidthPoints = width;
         PageHeightPoints = height;
         Outline = outline;
+        PageSizes = pageSizes ?? Array.Empty<PageSize>();
     }
 
     /// <summary>Gets how many pages the manual has.</summary>
@@ -96,7 +103,26 @@ public sealed class ManualStructure
 
     /// <summary>Gets the table of contents, flattened into reading order.</summary>
     public IReadOnlyList<ManualOutlineEntry> Outline { get; }
+
+    /// <summary>Gets each page's own size, in points.</summary>
+    /// <remarks>
+    /// //was previously: nothing — the nine bundled manuals are 595&#215;842pt
+    /// from end to end (measured at W10, asserted by
+    /// <c>ManualCatalogTests</c>), so ONE geometry was enough. Board wave W15
+    /// opens a PDF the USER chose, which may perfectly well mix portrait and
+    /// landscape or A4 and Letter, so every page's own size is read too — it
+    /// costs nothing, because the page objects are already walked to build the
+    /// destination map. <see cref="PageWidthPoints"/> and
+    /// <see cref="PageHeightPoints"/> stay the FIRST page's, which is what the
+    /// Documentation Browser reads.
+    /// </remarks>
+    public IReadOnlyList<PageSize> PageSizes { get; }
 }
+
+/// <summary>One page's size, in points.</summary>
+/// <param name="Width">The width, in points.</param>
+/// <param name="Height">The height, in points.</param>
+public readonly record struct PageSize(double Width, double Height);
 
 /// <summary>
 /// A manual's table of contents, read out of the PDF's own bookmark tree.
@@ -143,7 +169,18 @@ public static class ManualOutline
             //are looked up rather than counted — walking Pages to find each one
             //would be quadratic, and the Internals Reference has 810 of them.
             Dictionary<PdfPage, int> numbers = new Dictionary<PdfPage, int>();
-            for (int i = 0; i < document.PageCount; i++) { numbers[document.Pages[i]] = i + 1; }
+            List<PageSize> sizes = new List<PageSize>(document.PageCount);
+            for (int i = 0; i < document.PageCount; i++)
+            {
+                PdfPage page = document.Pages[i];
+                numbers[page] = i + 1;
+
+                //Board trap 65: PdfPage.Width/Height are the box AS TURNED by
+                ///Rotate, which is exactly the size the page is DISPLAYED at —
+                //so this is the number the paged view wants and no rotation
+                //arithmetic belongs here.
+                sizes.Add(new PageSize(page.Width.Point, page.Height.Point));
+            }
 
             List<ManualOutlineEntry> entries = new List<ManualOutlineEntry>();
             Walk(document.Outlines, 0, numbers, entries);
@@ -157,7 +194,7 @@ public static class ManualOutline
             //wrong shape.
             PdfPage first = document.Pages[0];
             return new ManualStructure(
-                document.PageCount, first.Width.Point, first.Height.Point, entries);
+                document.PageCount, first.Width.Point, first.Height.Point, entries, sizes);
         }
         catch (Exception exception) when (exception is IOException
             or UnauthorizedAccessException or InvalidOperationException

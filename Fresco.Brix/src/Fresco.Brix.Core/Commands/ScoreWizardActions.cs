@@ -34,8 +34,13 @@ public sealed class ScoreWizardActions : ActionCollection
     /// <inheritdoc/>
     protected override void CreateActions()
     {
-        ScoreWizard = Add("scorewiz").WithShortcut("Ctrl+Shift+N");
-        ScoreWizardFromCurrent = Add("scorewiz_from_current");
+        //was previously: neither carried an icon name, because no icon set was
+        //shipped. Upstream gives both `tools-score-wizard'
+        //(scorewiz/__init__.py:62,66).
+        ScoreWizard = Add("scorewiz").WithIcon("tools-score-wizard")
+            .WithShortcut("Ctrl+Shift+N");
+        ScoreWizardFromCurrent = Add("scorewiz_from_current")
+            .WithIcon("tools-score-wizard");
     }
 
     /// <inheritdoc/>

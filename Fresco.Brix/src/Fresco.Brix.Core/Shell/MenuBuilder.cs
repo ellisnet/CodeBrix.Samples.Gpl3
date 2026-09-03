@@ -270,6 +270,150 @@ public static class MenuBuilder
         return item;
     }
 
+    /// <summary>
+    /// Fills a menu with upstream's <c>menu_file_save</c> — Save As, Save Copy
+    /// or Selection As, Rename/Move, Save as Template and Save All.
+    /// </summary>
+    /// <param name="items">The menu's items, which are replaced.</param>
+    /// <param name="main">The window's own commands.</param>
+    /// <param name="snippetActions">The Snippets panel's commands, or null.</param>
+    /// <remarks>
+    /// It is a filler rather than a menu because it has TWO callers: the File
+    /// menu, and the main toolbar's Save button when
+    /// <c>verbose_toolbuttons</c> is set — which is exactly why upstream makes
+    /// it a function too.
+    /// </remarks>
+    public static void FillSave(
+        IList<MenuFlyoutItemBase> items,
+        MainActions main,
+        SnippetToolActions snippetActions)
+    {
+        if (items == null || main == null) { return; }
+
+        Empty(items);
+        items.Add(ItemFor(main.FileSaveAs));
+        items.Add(ItemFor(main.FileSaveCopyAs));
+        items.Add(ItemFor(main.FileRename));
+        if (snippetActions != null)
+        {
+            items.Add(ItemFor(snippetActions.SaveAsTemplate));
+        }
+
+        items.Add(ItemFor(main.FileSaveAll));
+    }
+
+    /// <summary>
+    /// Fills a menu with upstream's <c>menu_file_close</c> — Close Other, Close
+    /// All and Close All and Session.
+    /// </summary>
+    /// <param name="items">The menu's items, which are replaced.</param>
+    /// <param name="main">The window's own commands.</param>
+    public static void FillClose(IList<MenuFlyoutItemBase> items, MainActions main)
+    {
+        if (items == null || main == null) { return; }
+
+        Empty(items);
+        items.Add(ItemFor(main.FileCloseOther));
+        items.Add(ItemFor(main.FileCloseAll));
+        items.Add(ItemFor(main.FileCloseAllAndSession));
+    }
+
+    /// <summary>Fills a menu with the recently opened files.</summary>
+    /// <param name="items">The menu's items, which are replaced.</param>
+    /// <param name="recentFiles">The list.</param>
+    /// <param name="openRecent">What picking one does.</param>
+    /// <remarks>
+    /// Upstream's <c>menu_recent_files</c> has two callers as well: the File
+    /// menu, and the main toolbar's Open button, which carries it as a
+    /// pull-down whatever <c>verbose_toolbuttons</c> says
+    /// (<c>mainwindow.createToolBars</c>).
+    /// </remarks>
+    public static void FillRecent(
+        IList<MenuFlyoutItemBase> items,
+        RecentFiles recentFiles,
+        Action<string> openRecent)
+    {
+        if (items == null) { return; }
+
+        Empty(items);
+        foreach (var path in recentFiles?.Paths() ?? Array.Empty<string>())
+        {
+            //was previously: the bare file name. Upstream's entry text is
+            //"<basename>  (<homified dirname>)" (mainwindow.py), which is
+            //what tells two files of the same name apart at a glance; the
+            //full path stays on the tooltip, which upstream does not have
+            //and which costs nothing.
+            MenuFlyoutItem entry = new MenuFlyoutItem
+            {
+                Text = System.IO.Path.GetFileName(path) + "  ("
+                    + PathUtil.Homify(System.IO.Path.GetDirectoryName(path))
+                    + ")",
+            };
+            ToolTipService.SetToolTip(entry, path);
+            entry.Click += (_, _) => openRecent?.Invoke(path);
+            items.Add(entry);
+        }
+    }
+
+    /// <summary>
+    /// Fills a menu with the New group: the wizard, then the template
+    /// snippets, then Manage Templates.
+    /// </summary>
+    /// <param name="items">The menu's items, which are replaced.</param>
+    /// <param name="snippets">The snippet library.</param>
+    /// <param name="actions">The Snippets panel's commands.</param>
+    /// <param name="apply">What picking a template does.</param>
+    /// <param name="scoreWizard">The Score Wizard's commands, or null.</param>
+    /// <remarks>
+    /// Upstream's <c>snippet.menu.TemplateMenu</c>, which the File menu shows
+    /// and which the main toolbar's New button hangs off itself when
+    /// <c>verbose_toolbuttons</c> is set.
+    /// </remarks>
+    public static void FillTemplates(
+        IList<MenuFlyoutItemBase> items,
+        SnippetLibrary snippets,
+        SnippetToolActions actions,
+        Action<string> apply,
+        ScoreWizardActions scoreWizard)
+    {
+        if (items == null || snippets == null || actions == null) { return; }
+
+        Empty(items);
+
+        //The wizard opens this menu, exactly as it does upstream: it is
+        //the other way of starting a document from nothing.
+        if (scoreWizard != null)
+        {
+            items.Add(ItemFor(scoreWizard.ScoreWizard));
+            items.Add(ItemFor(scoreWizard.ScoreWizardFromCurrent));
+            items.Add(new MenuFlyoutSeparator());
+        }
+
+        foreach (var (_, names) in SnippetFilter.Grouped(snippets, "template"))
+        {
+            foreach (var name in names)
+            {
+                items.Add(SnippetItem(snippets, name, apply));
+            }
+
+            items.Add(new MenuFlyoutSeparator());
+        }
+
+        items.Add(ItemFor(actions.ManageTemplates));
+    }
+
+    /// <summary>Empties a menu from the END (board trap 39).</summary>
+    /// <param name="items">The items.</param>
+    /// <remarks>A menu that has been opened once ignores <c>Clear()</c>;
+    /// removing from the end is what it does honour.</remarks>
+    private static void Empty(IList<MenuFlyoutItemBase> items)
+    {
+        while (items.Count > 0)
+        {
+            items.RemoveAt(items.Count - 1);
+        }
+    }
+
     private static MenuBarItem FileMenu(
         MainActions main,
         RecentFiles recentFiles,
@@ -302,26 +446,27 @@ public static class MenuBuilder
         menu.Items.Add(ItemFor(main.FileOpen));
         menu.Items.Add(RecentMenu(main, recentFiles, openRecent));
         menu.Items.Add(ItemFor(main.FileClose));
-        menu.Items.Add(Submenu(I18n.Get("submenu title", "Close"),
-            main.FileCloseOther, main.FileCloseAll, main.FileCloseAllAndSession));
+        MenuFlyoutSubItem closeMenu = new MenuFlyoutSubItem
+        {
+            Text = Display(I18n.Get("submenu title", "Close")),
+        };
+        FillClose(closeMenu.Items, main);
+        menu.Items.Add(closeMenu);
         menu.Items.Add(ItemFor(main.FileSave));
 
         //was previously: four entries, with "Save as Template..." standing on
         //its own further down the File menu. Upstream puts it FOURTH of five in
         //this submenu (menu.py menu_file_save), between Rename and Save All.
+        //was previously: the five entries were added here inline. Upstream's
+        //`menu_file_save' is a FUNCTION because the main toolbar's Save button
+        //hangs the same menu off itself when `verbose_toolbuttons' is set
+        //(mainwindow.settingsChanged), so it is one here too — MainToolbar
+        //calls the same filler.
         MenuFlyoutSubItem saveMenu = new MenuFlyoutSubItem
         {
             Text = Display(I18n.Get("submenu title", "Save")),
         };
-        saveMenu.Items.Add(ItemFor(main.FileSaveAs));
-        saveMenu.Items.Add(ItemFor(main.FileSaveCopyAs));
-        saveMenu.Items.Add(ItemFor(main.FileRename));
-        if (snippetActions != null)
-        {
-            saveMenu.Items.Add(ItemFor(snippetActions.SaveAsTemplate));
-        }
-
-        saveMenu.Items.Add(ItemFor(main.FileSaveAll));
+        FillSave(saveMenu.Items, main, snippetActions);
         menu.Items.Add(saveMenu);
         menu.Items.Add(new MenuFlyoutSeparator());
         //was previously: the submenu carried the export half alone, because
@@ -386,25 +531,7 @@ public static class MenuBuilder
 
         void Fill()
         {
-            submenu.Items.Clear();
-            foreach (var path in recentFiles?.Paths() ?? Array.Empty<string>())
-            {
-                //was previously: the bare file name. Upstream's entry text is
-                //"<basename>  (<homified dirname>)" (mainwindow.py), which is
-                //what tells two files of the same name apart at a glance; the
-                //full path stays on the tooltip, which upstream does not have
-                //and which costs nothing.
-                MenuFlyoutItem entry = new MenuFlyoutItem
-                {
-                    Text = System.IO.Path.GetFileName(path) + "  ("
-                        + PathUtil.Homify(System.IO.Path.GetDirectoryName(path))
-                        + ")",
-                };
-                ToolTipService.SetToolTip(entry, path);
-                entry.Click += (_, _) => openRecent?.Invoke(path);
-                submenu.Items.Add(entry);
-            }
-
+            FillRecent(submenu.Items, recentFiles, openRecent);
             submenu.IsEnabled = submenu.Items.Count > 0;
         }
 
@@ -632,11 +759,15 @@ public static class MenuBuilder
         menu.Items.Add(ItemFor(music.MusicSyncCursor));
         menu.Items.Add(new MenuFlyoutSeparator());
 
-        //⚠ Upstream has the magnifier on the Music View TOOLBAR only
-        //(mainwindow.py toolbar_music). This application has no window toolbar,
-        //so the menu is the only way to reach it; if a toolbar is ever built it
-        //moves back. Board §9 records the toolbar itself as post-v1.
-        menu.Items.Add(ItemFor(music.MusicMagnifier));
+        //was previously: the magnifier was HERE, with a note saying that
+        //upstream has it on the Music View toolbar only (mainwindow.py
+        //toolbar_music) and that this application had no window toolbar to put
+        //it on, so the menu was the only way to reach it (audit A EXTRA-01).
+        //Board wave W14 built both bars, so the note's own condition — "if a
+        //toolbar is ever built it moves back" — has been met and it has: the
+        //magnifier is on the Music View Toolbar and nowhere else, exactly as
+        //upstream has it.
+
         //Where upstream's Print sat, which ruling FR5.5 removed permanently.
         menu.Items.Add(Submenu(
             I18n.Get("submenu title", "&Export"),
@@ -1082,33 +1213,7 @@ public static class MenuBuilder
         };
 
         void Fill()
-        {
-            while (submenu.Items.Count > 0)
-            {
-                submenu.Items.RemoveAt(submenu.Items.Count - 1);
-            }
-
-            //The wizard opens this menu, exactly as it does upstream: it is
-            //the other way of starting a document from nothing.
-            if (scoreWizard != null)
-            {
-                submenu.Items.Add(ItemFor(scoreWizard.ScoreWizard));
-                submenu.Items.Add(ItemFor(scoreWizard.ScoreWizardFromCurrent));
-                submenu.Items.Add(new MenuFlyoutSeparator());
-            }
-
-            foreach (var (_, names) in SnippetFilter.Grouped(snippets, "template"))
-            {
-                foreach (var name in names)
-                {
-                    submenu.Items.Add(SnippetItem(snippets, name, apply));
-                }
-
-                submenu.Items.Add(new MenuFlyoutSeparator());
-            }
-
-            submenu.Items.Add(ItemFor(actions.ManageTemplates));
-        }
+            => FillTemplates(submenu.Items, snippets, actions, apply, scoreWizard);
 
         bool stale = false;
         snippets.Changed += (_, _) => stale = true;

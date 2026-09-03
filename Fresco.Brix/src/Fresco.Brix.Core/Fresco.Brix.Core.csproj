@@ -42,8 +42,9 @@
     <PackageReference Include="CodeBrix.Platform.AppSettings.ApacheLicenseForever" Version="1.0.243.226" />
     <!-- MIDI playback (FR6): the SoundFont synthesizer the MIDI panel plays
          through, in-process, with no MIDI ports of any kind.
+         //was previously: 1.0.241.985 (W13 item 8, 2026-09-01);
          //was previously: 1.0.233.886 (the FR6 pin, W8). -->
-    <PackageReference Include="CodeBrix.Audio.MitLicenseForever" Version="1.0.241.985" />
+    <PackageReference Include="CodeBrix.Audio.MitLicenseForever" Version="1.0.245.150" />
     <!-- The documentation viewer (FR8): the manuals are PDFs LilyPort rendered
          and there is NO WebView anywhere, so the pages are rasterised by
          PDFium through this package and drawn in the same paged view the Music
@@ -235,5 +236,37 @@
   <ItemGroup>
     <EmbeddedResource Include="assets\symbols\*.svg"
                       LogicalName="Fresco.Brix.Symbols.%(Filename).svg" />
+  </ItemGroup>
+
+  <!-- The two window toolbars' icons (board wave W14, ruling FR16). They are
+       Frescobaldi's OWN Light and Dark icon sets, taken from the commit this
+       application was ported from, where they are the default look: Tabler
+       Icons (MIT, Pawel Kuna) modified for Frescobaldi and conveyed under its
+       GPL-2.0-or-later. Copy them in with tools/iconclean, which ships nothing
+       and is not in the solution; see assets/icons/README-frescobaldi-icons.txt
+       and THIRD-PARTY-NOTICES.txt section 11.
+
+       EmbeddedResource, exactly as the Quick Insert glyphs above are, and read
+       through the same one renderer (QuickInsert/SymbolIcons — board rule 6b
+       forbids a second Skia call site). Two prefixes, because the set is chosen
+       at runtime by the platform's theme (Services/IconTheme).
+
+       ⚠ ONE of these thirty files is NOT a byte-for-byte copy of upstream's:
+       tools-score-wizard.svg, in both sets, is a DELIBERATE DIVERGENCE FROM
+       UPSTREAM (ruling FR14) — upstream's is 6.4 MB of orphan Inkscape
+       path-effect definitions for a 24-pixel icon. See IconTheme and the
+       README beside the assets.
+
+       The licence and the provenance travel with the files as ordinary text
+       beside them AND in the application's own output folder, because the
+       artwork is third-party work aggregated with the program (board rule 13). -->
+  <ItemGroup>
+    <EmbeddedResource Include="assets\icons\light\*.svg"
+                      LogicalName="Fresco.Brix.Icons.Light.%(Filename).svg" />
+    <EmbeddedResource Include="assets\icons\dark\*.svg"
+                      LogicalName="Fresco.Brix.Icons.Dark.%(Filename).svg" />
+    <None Include="assets\icons\*.txt"
+          Link="assets\icons\%(Filename)%(Extension)"
+          CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

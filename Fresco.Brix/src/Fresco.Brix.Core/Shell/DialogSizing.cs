@@ -86,5 +86,15 @@ public static class DialogSizing
     }
 
     /// <summary>What a dialog's own title and button rows take.</summary>
-    private const double Chrome = 200;
+    /// <remarks>
+    /// MEASURED on the X11 head at 1024x768 rather than guessed: the smoke
+    /// layer leaves the same 48 pixels <see cref="Clamp"/> allows for, and
+    /// inside the dialog the title row, the button row and the content
+    /// presenter's own padding take 160 more, so a content element may ask for
+    /// the window height less 208. //was previously: 200, which was eight
+    /// pixels too generous — enough to clip the last row of the Document Fonts
+    /// dialog's left-hand column ("Restore Defaults" and "Help") at exactly
+    /// that window size.
+    /// </remarks>
+    private const double Chrome = 208;
 }

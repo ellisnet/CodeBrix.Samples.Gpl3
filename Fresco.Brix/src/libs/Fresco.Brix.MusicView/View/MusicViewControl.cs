@@ -144,6 +144,7 @@ public sealed class MusicViewControl : Grid, IOverlayHost
     private Magnifier _magnifier;
     private bool _magnifierResizing;
     private bool _suppressNextContextMenu;
+    private bool _rightPressInBand;
 
     /// <summary>Creates an empty view.</summary>
     public MusicViewControl()
@@ -236,6 +237,21 @@ public sealed class MusicViewControl : Grid, IOverlayHost
 
     /// <summary>Gets the layout holding the pages.</summary>
     public PageLayout Layout { get; }
+
+    /// <summary>
+    /// Answers whether a right press at a place on the band starts a NEW band.
+    /// </summary>
+    /// <param name="edge">What the press landed on.</param>
+    /// <returns>Whether a new band is begun.</returns>
+    /// <remarks>
+    /// Upstream's rule, one line of it: <c>qpageview/rubberband.py:400-402</c>
+    /// starts a drag for the show button only when the press is NOT inside the
+    /// band, so that right-clicking a selection reaches the context menu with
+    /// the selection intact. A press on an EDGE still starts a new band, as it
+    /// does there.
+    /// </remarks>
+    public static bool StartsNewBand(RubberBandEdge edge)
+        => edge != RubberBandEdge.Inside;
 
     /// <summary>
     /// Gets the rubberband selection, or null when the view has none.
@@ -1067,6 +1083,26 @@ public sealed class MusicViewControl : Grid, IOverlayHost
         //kept away from the context menu.
         if (properties.IsRightButtonPressed)
         {
+            //was previously: BeginNew unconditionally — which threw the
+            //selection away on EVERY right press, so the context menu's Copy to
+            //Image entry (upstream's addCopyImageAction, shown only when the
+            //band HAS a selection) could never appear in either viewer: the
+            //user right-dragged a region, right-clicked to reach the menu, and
+            //the click itself wiped what they had selected. Upstream is
+            //explicit about the rule — qpageview/rubberband.py:400-402,
+            //"if self.showbutton != RightButton or self.edge(pos) != _INSIDE:
+            //startDrag(...)" — a right press INSIDE the band starts nothing, so
+            //the selection survives to the menu the release raises. Found on
+            //X11 at board wave W15, in the Manuscript Viewer; the Music View
+            //had the identical fault, from the same line.
+            if (!StartsNewBand(_rubberBand.EdgeAt(at)))
+            {
+                _rightPressInBand = true;
+                _canvas.CapturePointer(e.Pointer);
+                e.Handled = true;
+                return;
+            }
+
             _rubberBand.BeginNew(at);
             _canvas.CapturePointer(e.Pointer);
             e.Handled = true;
@@ -1155,6 +1191,18 @@ public sealed class MusicViewControl : Grid, IOverlayHost
 
             _canvas.ReleasePointerCapture(e.Pointer);
             _suppressNextContextMenu = true;
+            e.Handled = true;
+            return;
+        }
+
+        //A right press that landed INSIDE the band started nothing; the release
+        //ends it without touching the selection, so the context menu it raises
+        //still has something to copy.
+        if (_rightPressInBand)
+        {
+            _rightPressInBand = false;
+            _canvas.ReleasePointerCapture(e.Pointer);
+            _suppressNextContextMenu = false;
             e.Handled = true;
             return;
         }

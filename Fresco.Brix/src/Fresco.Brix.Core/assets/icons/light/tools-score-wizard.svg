@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+category: System
+tags: [magic, tool, color, pixel, design, wand]
+version: "1.5"
+unicode: "ebcb"
+-->
+
+<svg
+   width="24"
+   height="24"
+   viewBox="0 0 24 24"
+   fill="none"
+   stroke="currentColor"
+   stroke-width="2"
+   stroke-linecap="round"
+   stroke-linejoin="round"
+   version="1.1"
+   id="svg4"
+   xml:space="preserve"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"><defs
+     id="defs4" /><g
+     id="g12"><g
+       id="g36"
+       transform="translate(-2.0087212,-1.5936452)"><g
+         id="g3"
+         transform="rotate(-45,49.269494,-9.5990957)"><rect
+           style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:0;stroke-linecap:square;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
+           id="rect2"
+           width="1.2301998"
+           height="13.561502"
+           x="7.2923183"
+           y="-18.174519" /><rect
+           style="fill:none;fill-opacity:1;stroke:#000000;stroke-width:0.8;stroke-linecap:square;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
+           id="rect3"
+           width="1.6992779"
+           height="19.550985"
+           x="7.0759039"
+           y="-23.959393"
+           rx="5.5055614"
+           ry="1.1481909" /></g><path
+         style="fill:none;stroke:#000000;stroke-width:1.29002;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none"
+         d="M 11.931394,20.793981 V 18.238655"
+         id="path22" /><path
+         style="fill:none;stroke:#000000;stroke-width:1.29002;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none"
+         d="M 6.834838,6.419762 5.02795,4.612874"
+         id="path28" /><path
+         style="fill:none;stroke:#000000;stroke-width:1.29002;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none"
+         d="M 5.02795,18.419762 6.834838,16.612874"
+         id="path29" /><path
+         style="fill:none;stroke:#000000;stroke-width:1.29002;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none"
+         d="M 2.6537312,11.516318 H 5.2090568"
+         id="path30" /><path
+         style="fill:none;stroke:#000000;stroke-width:1.29002;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none"
+         d="m 18.653731,11.516318 h 2.555326"
+         id="path34" /><path
+         style="fill:none;stroke:#000000;stroke-width:1.29002;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none"
+         d="M 17.02795,6.419762 18.834838,4.612874"
+         id="path35" /><path
+         style="fill:none;stroke:#000000;stroke-width:1.29002;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none"
+         d="M 11.931394,4.7939808 V 2.2386552"
+         id="path36" /></g></g></svg>

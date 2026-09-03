@@ -79,8 +79,17 @@ public interface IPageImageSource
 /// and the source caches those.
 /// </para>
 /// <para>
-/// A raster page carries no links. Upstream's ImagePage has none either, and
-/// the point-and-click machinery has nothing to say about a manual.
+/// //was previously: "A raster page carries no links. Upstream's ImagePage has
+/// none either, and the point-and-click machinery has nothing to say about a
+/// manual." That was true while the only raster pages in the application were
+/// the bundled manuals'. The Manuscript Viewer (board wave W15) shows a PDF the
+/// USER chose, which may be a score engraved with point-and-click links, and
+/// upstream's own viewer binds them — so a raster page now carries whatever
+/// links its host read out of the file, and carries none when nobody set any.
+/// Upstream's <c>ImagePage</c> has no links because its host reads them from
+/// the Poppler document instead (<c>viewers/pointandclick.py</c> walks
+/// <c>page.links()</c>); the link list is on the PAGE here because that is
+/// where <see cref="ScorePage.LinksAt"/> and the view's hit-testing look.
 /// </para>
 /// </remarks>
 public sealed class RasterPage : ScorePage
@@ -89,6 +98,7 @@ public sealed class RasterPage : ScorePage
     public const double PdfDpi = 72.0;
 
     private readonly IPageImageSource _source;
+    private LinkList _pageLinks;
     private bool _sized;
 
     /// <summary>Creates a page over a picture source.</summary>
@@ -106,6 +116,21 @@ public sealed class RasterPage : ScorePage
 
     /// <summary>Gets where the picture comes from.</summary>
     public IPageImageSource Source => _source;
+
+    /// <summary>Gives the page the clickable areas its host read from the file.</summary>
+    /// <param name="links">The links, in 0.0-to-1.0 page coordinates, or null
+    /// for none.</param>
+    /// <remarks>
+    /// A PDF's link annotations are read by the application (the view library
+    /// knows nothing about PDF — see <see cref="IPageImageSource"/>), so the
+    /// host hands them over once the file has been read. Setting them again
+    /// replaces what was there.
+    /// </remarks>
+    public void SetLinks(LinkList links)
+    {
+        _pageLinks = links;
+        InvalidateLinks();
+    }
 
     /// <summary>Creates one page per page of a source set.</summary>
     /// <param name="sources">The sources, in page order.</param>
@@ -125,6 +150,9 @@ public sealed class RasterPage : ScorePage
 
         return pages;
     }
+
+    /// <inheritdoc/>
+    protected override LinkList GetLinks() => _pageLinks ?? base.GetLinks();
 
     /// <inheritdoc/>
     protected override void EnsureSize()

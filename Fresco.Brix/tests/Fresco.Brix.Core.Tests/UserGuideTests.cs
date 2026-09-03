@@ -27,10 +27,14 @@ namespace Fresco.Brix.Core.Tests;
 /// <remarks>
 /// <see cref="UserGuideParityTests"/> proves the FRAMEWORK against
 /// Frescobaldi's own code, over Frescobaldi's own pages. This proves the
-/// CORPUS: 68 of upstream's 80 pages, edited, plus one page that is this
+/// CORPUS: 69 of upstream's 80 pages, edited, plus one page that is this
 /// application's own.
-/// //was previously: 69 of upstream's 80, before <c>manuscriptview</c> was
-/// dropped with the tool it documents (W13 / audit B N4).
+/// //was previously: 68, while <c>manuscriptview</c> was dropped with the tool
+/// it documents (W13 / audit B N4). Jeremy ruled the Manuscript Viewer into v1
+/// on 2026-09-02 (ruling FR17, board wave W15), so the page is back — edited:
+/// the printing sentence is gone (FR5.5) and it says what this application's
+/// own PDF export does and does not write.
+/// //was previously that: 69 of upstream's 80, before the page was dropped.
 /// </remarks>
 public class UserGuideTests
 {
@@ -39,9 +43,11 @@ public class UserGuideTests
     /// reason.
     /// </summary>
     /// <remarks>
-    /// They are not shipped and nothing links to them. Eleven are killed by a
-    /// ruling; the twelfth, <c>manuscriptview</c>, is killed by the tool it
-    /// documents not existing here.
+    /// They are not shipped and nothing links to them. All eleven are killed by
+    /// a ruling.
+    /// //was previously: twelve, the twelfth being <c>manuscriptview</c>, killed
+    /// by the tool it documents not existing here. The tool exists now (ruling
+    /// FR17, board wave W15) and the page ships with it.
     /// </remarks>
     private static readonly IReadOnlyDictionary<string, string> DeadPages
         = new Dictionary<string, string>(StringComparer.Ordinal)
@@ -57,11 +63,10 @@ public class UserGuideTests
             ["prefs_lilypond_autoversion"] = "FR5.1",
             ["prefs_lilydoc"] = "FR5.1 + FR8 — the manuals are bundled assets",
             ["midi_synth"] = "FR6 — synthesis is in-process, no MIDI ports",
-            //was previously: absent — the page shipped while the panel it
-            //describes did not. There is no Manuscript Viewer here (the
-            //viewers/ family is post-v1) and the page was also the last one
-            //still describing printing, which FR5.5 removed.
-            ["manuscriptview"] = "W13 — no Manuscript Viewer panel; post-v1",
+            //was previously: ["manuscriptview"] = "W13 — no Manuscript Viewer
+            //panel; post-v1". The panel is v1 (ruling FR17, board wave W15) and
+            //the page ships again, with the printing sentence taken out under
+            //FR5.5 — which is what put it on this list in the first place.
         };
 
     /// <summary>
@@ -390,12 +395,13 @@ public class UserGuideTests
         //Act
         IReadOnlyList<string> names = library.Names();
 
-        //Assert — 80 upstream pages, 12 dropped, 1 written here: 68 + 1.
-        //was previously: 70, as 69 + 1, before `manuscriptview' was dropped
-        //with the tool it documents (W13 / audit B N4 — there is no Manuscript
-        //Viewer panel here, so the page told the reader a feature was there).
+        //Assert — 80 upstream pages, 11 dropped, 1 written here: 69 + 1.
+        //was previously: 69, as 68 + 1, while `manuscriptview' was dropped with
+        //the tool it documents. Jeremy ruled the tool into v1 on 2026-09-02
+        //(FR17), so the page is back.
+        //was previously that: 70, as 69 + 1, before the page was dropped.
         //was previously that: 65, with the five import pages held back.
-        names.Count.Should().Be(69);
+        names.Count.Should().Be(70);
         foreach (string dead in DeadPages.Keys)
         {
             names.Should().NotContain(dead);

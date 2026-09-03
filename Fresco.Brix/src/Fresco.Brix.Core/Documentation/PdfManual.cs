@@ -45,6 +45,16 @@ namespace Fresco.Brix.Documentation;
 /// takes an <see cref="IPageImageSource"/>; everything below is application
 /// code. That is the same boundary that keeps LilyPort out of the view.
 /// </para>
+/// <para>
+/// ⚠ AND IT IS NOT ONLY A MANUAL. Board wave W15 (the Manuscript Viewer, ruling
+/// FR17) shows a PDF the USER chose in the same paged view, and it does so
+/// through THIS class rather than a second rasteriser path — see
+/// <see cref="OpenFileAsync"/>, where <see cref="Definition"/> is null because
+/// the file is not one of the bundled manuals. The name is the Documentation
+/// Browser's; the machinery — the byte-capped picture cache, the render-width
+/// bucketing, the 2,048-pixel cap and the worker that fills them — is general
+/// and is deliberately not duplicated.
+/// </para>
 /// </remarks>
 public sealed class PdfManual : IDisposable
 {
@@ -85,7 +95,8 @@ public sealed class PdfManual : IDisposable
         int pageCount,
         double pageWidth,
         double pageHeight,
-        IReadOnlyList<ManualOutlineEntry> outline)
+        IReadOnlyList<ManualOutlineEntry> outline,
+        IReadOnlyList<PageSize> pageSizes)
     {
         Definition = definition;
         Path = path;
@@ -93,6 +104,7 @@ public sealed class PdfManual : IDisposable
         PageWidthPoints = pageWidth;
         PageHeightPoints = pageHeight;
         Outline = outline;
+        PageSizes = pageSizes ?? Array.Empty<PageSize>();
 
         //Captured where the manual is opened, which is the UI thread. Every
         //picture is rasterised on a worker and handed back through this, so the
@@ -107,7 +119,10 @@ public sealed class PdfManual : IDisposable
         }
     }
 
-    /// <summary>Gets which manual this is.</summary>
+    /// <summary>Gets which manual this is, or null for a file that is not one.</summary>
+    /// <remarks>A PDF opened by <see cref="OpenFileAsync"/> — the Manuscript
+    /// Viewer's route — has no definition, because it is not one of the nine
+    /// bundled manuals.</remarks>
     public ManualDefinition Definition { get; }
 
     /// <summary>Gets the PDF's path.</summary>
@@ -124,6 +139,12 @@ public sealed class PdfManual : IDisposable
 
     /// <summary>Gets the table of contents, flattened into reading order.</summary>
     public IReadOnlyList<ManualOutlineEntry> Outline { get; }
+
+    /// <summary>Gets each page's own size, in points.</summary>
+    /// <remarks>A user's PDF may mix page shapes; the nine bundled manuals do
+    /// not (board wave W10's measurement). Empty means "they are all
+    /// <see cref="PageWidthPoints"/> by <see cref="PageHeightPoints"/>".</remarks>
+    public IReadOnlyList<PageSize> PageSizes { get; }
 
     /// <summary>Gets the pages, as picture sources the paged view can draw.</summary>
     public IReadOnlyList<IPageImageSource> Pages => _pages;
@@ -151,7 +172,32 @@ public sealed class PdfManual : IDisposable
 
         return new PdfManual(
             definition, path, structure.PageCount,
-            structure.PageWidthPoints, structure.PageHeightPoints, structure.Outline);
+            structure.PageWidthPoints, structure.PageHeightPoints, structure.Outline,
+            structure.PageSizes);
+    }
+
+    /// <summary>Opens ANY PDF, reading its geometry and contents off the disk.</summary>
+    /// <param name="path">The PDF.</param>
+    /// <returns>The open PDF, or null when the file is missing or unreadable.</returns>
+    /// <remarks>
+    /// <see cref="OpenAsync"/> without a <see cref="ManualDefinition"/>: the
+    /// Manuscript Viewer's opener (board wave W15, ruling FR17). Everything the
+    /// paged view then does — the page sources, the cache, the outline — is the
+    /// same, which is the point of not writing a second one.
+    /// </remarks>
+    public static async Task<PdfManual> OpenFileAsync(string path)
+    {
+        if (string.IsNullOrEmpty(path) || !File.Exists(path)) { return null; }
+
+        ManualStructure structure = await Task
+            .Run(() => ManualOutline.ReadStructure(path))
+            .ConfigureAwait(true);
+        if (structure == null) { return null; }
+
+        return new PdfManual(
+            null, path, structure.PageCount,
+            structure.PageWidthPoints, structure.PageHeightPoints, structure.Outline,
+            structure.PageSizes);
     }
 
     /// <summary>Builds a view document over this manual's pages.</summary>
@@ -172,6 +218,14 @@ public sealed class PdfManual : IDisposable
         _cachedBytes = 0;
         _rasterizer.Dispose();
     }
+
+    /// <summary>Answers a page's own size in points.</summary>
+    /// <param name="number">The 1-based page number.</param>
+    /// <returns>The size.</returns>
+    internal PageSize SizeOf(int number)
+        => number >= 1 && number <= PageSizes.Count
+            ? PageSizes[number - 1]
+            : new PageSize(PageWidthPoints, PageHeightPoints);
 
     /// <summary>The width a page is actually rendered at for a wanted width.</summary>
     /// <param name="wantedWidth">The width the layout asked for.</param>
@@ -215,7 +269,11 @@ public sealed class PdfManual : IDisposable
         //The dpi that produces the wanted pixel width. PDFium is asked in dots
         //per inch and the page is measured in points, which is the same inch
         //counted seventy-two ways.
-        int dpi = Math.Max(1, (int)Math.Round(width * 72.0 / PageWidthPoints));
+        //was previously: PageWidthPoints, the FIRST page's width, for every
+        //page — right for the nine bundled manuals, which are one shape from
+        //end to end, and wrong for a user's PDF that mixes portrait and
+        //landscape (board wave W15).
+        int dpi = Math.Max(1, (int)Math.Round(width * 72.0 / SizeOf(number).Width));
 
         _ = Task.Run(async () =>
         {
@@ -349,7 +407,13 @@ public sealed class PdfManual : IDisposable
         internal int Number { get; }
 
         public (double Width, double Height) NaturalSize
-            => (_manual.PageWidthPoints, _manual.PageHeightPoints);
+        {
+            get
+            {
+                PageSize size = _manual.SizeOf(Number);
+                return (size.Width, size.Height);
+            }
+        }
 
         public SKImage Image(int widthPixels, int heightPixels)
             => _manual.ImageFor(this, widthPixels);

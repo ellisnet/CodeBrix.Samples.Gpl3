@@ -35,6 +35,11 @@ public sealed class DockShell : SplitContainer
         = new Dictionary<DockArea, TabView>();
     private readonly List<Panel> _panels = new List<Panel>();
     private readonly List<Panel> _hiddenByMaximize = new List<Panel>();
+
+    //Which tab was UP in each OTHER area when a maximize started. Upstream
+    //never disturbs the other panels at all — it floats the one being
+    //maximized — so putting them back has to put their own tab back with them.
+    private readonly DockLayout _showingBeforeMaximize = new DockLayout();
     private UIElement _center;
     private Panel _maximized;
 
@@ -128,6 +133,7 @@ public sealed class DockShell : SplitContainer
     /// </summary>
     /// <param name="panel">The panel to maximize.</param>
     /// <remarks>
+    /// <para>
     /// ⚠ MECHANISM DIVERGENCE, declared here. Upstream's
     /// <c>panel.Panel.maximize</c> is two lines — <c>setFloating(True)</c> then
     /// <c>showMaximized()</c> — because a Qt dock widget can leave the window
@@ -138,12 +144,24 @@ public sealed class DockShell : SplitContainer
     /// window, and because there is no float to re-dock, invoking the command
     /// again is what puts the layout back. What the user sees is what upstream's
     /// user sees: the Music View filling everything.
+    /// </para>
+    /// <para>
+    /// Because the other panels ARE disturbed here where upstream's are not,
+    /// the tab that was showing in each other area is remembered before they
+    /// are hidden and raised again by <see cref="RestoreFromMaximized"/>:
+    /// showing a panel makes it its area's current tab, so without that the
+    /// LAST one re-shown in an area would be left showing instead of the user's
+    /// own. The maximized panel keeps its own area, being what the user was
+    /// looking at.
+    /// </para>
     /// </remarks>
     public void MaximizePanel(Panel panel)
     {
         if (panel == null) { return; }
 
         if (_maximized != null) { RestoreFromMaximized(); }
+
+        RememberShowingTabs(panel);
 
         panel.IsVisible = true;
         BringToFront(panel);
@@ -167,10 +185,15 @@ public sealed class DockShell : SplitContainer
     }
 
     /// <summary>Puts the layout back the way it was before a maximize.</summary>
+    /// <remarks>Every area gets the tab it was showing back — the other areas
+    /// the one they had (<see cref="RememberShowingTabs"/>), and the maximized
+    /// panel's own area the maximized panel, which is what the user has been
+    /// looking at and what upstream's re-docked floating panel is.</remarks>
     public void RestoreFromMaximized()
     {
         if (_maximized == null) { return; }
 
+        Panel wasMaximized = _maximized;
         _maximized = null;
         if (_center != null && _middleRow.IndexOf(_center) < 0)
         {
@@ -180,7 +203,146 @@ public sealed class DockShell : SplitContainer
         foreach (var other in _hiddenByMaximize) { other.IsVisible = true; }
 
         _hiddenByMaximize.Clear();
+        RaiseRememberedTabs();
+        BringToFront(wasMaximized);
         RebalanceMiddle();
+    }
+
+    /// <summary>Records the tab showing in every area but one panel's own.</summary>
+    /// <param name="maximizing">The panel about to fill the window.</param>
+    private void RememberShowingTabs(Panel maximizing)
+    {
+        _showingBeforeMaximize.Panels.Clear();
+        foreach (var pair in _areas)
+        {
+            if (maximizing != null && pair.Key == maximizing.Area) { continue; }
+
+            if (pair.Value.SelectedItem is not TabViewItem selected
+                || selected.Tag is not Panel showing)
+            {
+                continue;
+            }
+
+            _showingBeforeMaximize.Panels.Add(new DockPanelState
+            {
+                Name = showing.Name,
+                Area = pair.Key,
+                IsActive = true,
+            });
+        }
+    }
+
+    /// <summary>Puts each remembered tab back up, then forgets them.</summary>
+    private void RaiseRememberedTabs()
+    {
+        foreach (DockArea area in _areas.Keys.ToList())
+        {
+            string showing = _showingBeforeMaximize.ActiveIn(area);
+            if (showing == null) { continue; }
+
+            Panel panel = _panels.FirstOrDefault(
+                p => string.Equals(p.Name, showing, StringComparison.Ordinal));
+            if (panel != null && panel.IsVisible) { BringToFront(panel); }
+        }
+
+        _showingBeforeMaximize.Panels.Clear();
+    }
+
+    /// <summary>
+    /// Reads the arrangement out of the shell, so it can be put back after a
+    /// relaunch.
+    /// </summary>
+    /// <returns>What is open, where, in what tab order, and how big.</returns>
+    /// <remarks>Upstream's <c>QMainWindow.saveState()</c>, called from
+    /// <c>mainwindow.py</c>'s <c>writeSettings</c> — see
+    /// <see cref="DockLayout"/> for the declared difference of mechanism.
+    /// A maximized panel is NOT what gets recorded: the arrangement it
+    /// interrupted is, so quitting from Music &gt; Maximize brings the
+    /// user's own layout back rather than the full-window one.</remarks>
+    public DockLayout CaptureLayout()
+    {
+        DockLayout layout = new DockLayout();
+        foreach (var pair in _areas)
+        {
+            TabView view = pair.Value;
+            foreach (var tab in view.TabItems.OfType<TabViewItem>())
+            {
+                if (tab.Tag is not Panel panel) { continue; }
+
+                layout.Panels.Add(new DockPanelState
+                {
+                    Name = panel.Name,
+                    Area = pair.Key,
+                    IsActive = ReferenceEquals(view.SelectedItem, tab),
+                });
+            }
+        }
+
+        //A maximized panel has emptied every other area, so the weights on
+        //screen are not the ones worth keeping.
+        foreach (var panel in _hiddenByMaximize)
+        {
+            if (layout.Panels.Any(
+                p => string.Equals(p.Name, panel.Name, StringComparison.Ordinal)))
+            {
+                continue;
+            }
+
+            layout.Panels.Add(new DockPanelState
+            {
+                Name = panel.Name,
+                Area = panel.Area,
+                //was previously: always false, which lost the tab the user had
+                //up in that area whenever the quit came from Music > Maximize.
+                IsActive = string.Equals(
+                    _showingBeforeMaximize.ActiveIn(panel.Area),
+                    panel.Name,
+                    StringComparison.Ordinal),
+            });
+        }
+
+        layout.MiddleSizes = _middleRow.Sizes().ToList();
+        layout.OuterSizes = Sizes().ToList();
+        return layout;
+    }
+
+    /// <summary>Puts a remembered arrangement back.</summary>
+    /// <param name="layout">The arrangement, or null.</param>
+    /// <remarks>
+    /// Upstream's <c>restoreState()</c>, called from <c>readSettings</c> as the
+    /// window is built. Called ONCE, while the window is being built and
+    /// before the user can have moved anything: it opens the panels in the
+    /// stored tab order, raises the one that was showing in each area, and only
+    /// THEN sets the divider weights, because opening an area rebalances them
+    /// (<see cref="RebalanceMiddle"/>). A stored panel this build no longer
+    /// offers is skipped rather than refusing the whole arrangement.
+    /// </remarks>
+    public void ApplyLayout(DockLayout layout)
+    {
+        if (layout == null || layout.IsEmpty) { return; }
+
+        foreach (var state in layout.Panels)
+        {
+            Panel panel = _panels.FirstOrDefault(
+                p => string.Equals(p.Name, state.Name, StringComparison.Ordinal));
+            if (panel == null) { continue; }
+
+            panel.Area = state.Area;
+            panel.IsVisible = true;
+        }
+
+        foreach (DockArea area in _areas.Keys.ToList())
+        {
+            string active = layout.ActiveIn(area);
+            if (active == null) { continue; }
+
+            Panel panel = _panels.FirstOrDefault(
+                p => string.Equals(p.Name, active, StringComparison.Ordinal));
+            if (panel != null) { BringToFront(panel); }
+        }
+
+        _middleRow.SetSizes(layout.MiddleSizes);
+        SetSizes(layout.OuterSizes);
     }
 
     private void Refresh(Panel panel)

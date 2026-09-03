@@ -17,6 +17,19 @@ namespace Fresco.Brix.Engrave; //was previously: frescobaldi/engrave/__init__.py
 
 // Modified by Jeremy Ellis - 2026 - as part of the Fresco.Brix port.
 
+/// <summary>What the one engrave button on the toolbar does when it is pressed.</summary>
+public enum EngraveRunnerAction
+{
+    /// <summary>Engrave a preview.</summary>
+    Preview,
+
+    /// <summary>Open the custom-engrave window.</summary>
+    Custom,
+
+    /// <summary>Stop the job that is running.</summary>
+    Abort,
+}
+
 /// <summary>Which way a document is engraved.</summary>
 public enum EngraveMode
 {
@@ -259,6 +272,20 @@ public sealed class Engraver
         //the document while it runs cannot move where the output is looked for.
         ResultFiles.For(document).SaveDocumentInfo(DateTime.UtcNow);
         EngraveErrors.For(document);
+
+        //was previously: the commands were updated only from
+        //JobManager.AnyJobStarted, which JobManager raises BEFORE it calls
+        //EngraveJob.StartAsync — deliberately, so that a log connected by the
+        //announcement sees the run's very first message. At that instant the
+        //job's IsRunning is still FALSE, so UpdateActions computed "not
+        //running" and every one of its answers was a run behind: Engrave
+        //(preview) stayed enabled through the whole run, Abort stayed
+        //disabled, and the toolbar's engrave button never turned into a stop
+        //button. Nothing showed it until board wave W14 gave engrave_runner a
+        //caller. The job's OWN Started event is raised inside StartAsync, just
+        //after IsRunning becomes true, which is the moment upstream's
+        //job.manager signals fire.
+        job.Started += (_, _) => UpdateActions();
         JobManager.For(document).StartJob(job);
     }
 
@@ -307,6 +334,30 @@ public sealed class Engraver
         return job is not { IsRunning: true } || JobAttributes.For(job).Hidden;
     }
 
+    /// <summary>
+    /// Gets or sets how to ask whether Shift is held down, or null when
+    /// nothing can be asked.
+    /// </summary>
+    /// <remarks>
+    /// Upstream reads <c>QApplication.keyboardModifiers()</c> inside
+    /// <c>engraveRunner</c>. This is that read, injected: the engraver is
+    /// host-free and the keyboard is the window's to ask (board trap 38 — the
+    /// answer comes from the keyboard source, not from an event's arguments).
+    /// </remarks>
+    public Func<bool> IsShiftHeld { get; set; }
+
+    /// <summary>Answers what the one engrave button does when it is pressed.</summary>
+    /// <param name="isRunning">Whether a visible job is running.</param>
+    /// <param name="shiftHeld">Whether Shift is held down.</param>
+    /// <returns>What to do.</returns>
+    /// <remarks>Upstream's <c>Engraver.engraveRunner</c>, whole: a running job
+    /// is aborted whatever is held down; Shift asks for the custom dialog;
+    /// otherwise a preview runs.</remarks>
+    public static EngraveRunnerAction RunnerActionFor(bool isRunning, bool shiftHeld)
+        => isRunning ? EngraveRunnerAction.Abort
+            : shiftHeld ? EngraveRunnerAction.Custom
+            : EngraveRunnerAction.Preview;
+
     /// <summary>Keeps the commands' enabled state in step with what is running.</summary>
     public void UpdateActions()
     {
@@ -341,9 +392,26 @@ public sealed class Engraver
     {
         Actions.EngraveRunner.Handler = () =>
         {
+            //was previously: a running job was aborted and anything else ran a
+            //preview — the Shift branch was missing, because nothing could
+            //click the button (there was no toolbar). Upstream's
+            //`engraveRunner' has three branches and the tooltip promises all
+            //three: "Engrave (preview; Shift-click for custom)".
             EngraveJob job = RunningJob();
-            if (job != null) { job.Abort(); }
-            else { Engrave(EngraveMode.Preview); }
+            switch (RunnerActionFor(job != null, IsShiftHeld?.Invoke() == true))
+            {
+                case EngraveRunnerAction.Abort:
+                    job.Abort();
+                    break;
+
+                case EngraveRunnerAction.Custom:
+                    CustomEngraveRequested?.Invoke(this, EventArgs.Empty);
+                    break;
+
+                default:
+                    Engrave(EngraveMode.Preview);
+                    break;
+            }
         };
         Actions.EngravePreview.Handler = () => Engrave(EngraveMode.Preview);
         Actions.EngravePublish.Handler = () => Engrave(EngraveMode.Publish);

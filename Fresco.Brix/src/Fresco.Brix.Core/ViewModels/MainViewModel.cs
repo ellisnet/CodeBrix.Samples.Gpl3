@@ -179,6 +179,7 @@ public class MainViewModel : SimpleViewModel
         FileImportActions = new FileImportActions(_settings);
         MidiActions = new MidiActions(_settings);
         DocumentationActions = new DocumentationActions(_settings);
+        ManuscriptViewerActions = new ManuscriptViewerActions(_settings);
         EditorCommandActions = new EditorCommandActions(_settings);
 
         //The desktop's own viewers, file manager and terminal. It reads the
@@ -222,6 +223,7 @@ public class MainViewModel : SimpleViewModel
         ActionManager.Add(FileImportActions);
         ActionManager.Add(MidiActions);
         ActionManager.Add(DocumentationActions);
+        ActionManager.Add(ManuscriptViewerActions);
         ActionManager.Add(EditorCommandActions);
         ActionManager.Add(Browser.Actions);
         ActionManager.Add(SnippetShortcuts);
@@ -326,6 +328,10 @@ public class MainViewModel : SimpleViewModel
 
     /// <summary>Gets the documentation browser's commands.</summary>
     public DocumentationActions DocumentationActions { get; }
+
+    /// <summary>Gets the Manuscript Viewer's commands.</summary>
+    /// <remarks>Board wave W15, ruling FR17.</remarks>
+    public ManuscriptViewerActions ManuscriptViewerActions { get; }
 
     /// <summary>Gets the service that hands a file or URL to the desktop.</summary>
     public HelperApplications Helpers { get; }

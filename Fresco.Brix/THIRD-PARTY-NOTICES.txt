@@ -97,7 +97,7 @@ HOW THIS FILE IS MAINTAINED
 2.1c User-guide pages
   Upstream:   frescobaldi/userguide/*.md (80 pages) and 5 of its screenshots
   License:    GPL-2.0-or-later, with Frescobaldi
-  Shipped as: src/Fresco.Brix.Core/assets/userguide/ (68 pages, 44 of them
+  Shipped as: src/Fresco.Brix.Core/assets/userguide/ (69 pages, 45 of them
               EDITED, plus one page written here; auto_complete_*.png copied
               verbatim)
 
@@ -107,16 +107,19 @@ HOW THIS FILE IS MAINTAINED
   folder can be emptied -- Help > User Guide then says the guide is not
   installed and the application runs on.
 
-  Of upstream's 80 pages, 12 are not shipped. Eleven go because the feature
-  they describe is ruled out here (extensions, user scripting, version-control
-  tracking, the LilyPond version and documentation preferences, MIDI ports);
-  the twelfth, manuscriptview.md, goes because there is no Manuscript Viewer
-  panel in this application for it to describe. Of the 68 that remain, 44 are
-  EDITED -- this application is not Frescobaldi and does not run LilyPond, so
-  the text says what it does instead -- and the other 24 needed no change and
-  are shipped as upstream wrote them. One page, prefs_documentation.md, has no
-  upstream original and is Fresco.Brix's own, GPL-3.0-only with the rest of
-  this repository.
+  Of upstream's 80 pages, 11 are not shipped: the feature each describes is
+  ruled out here (extensions, user scripting, version-control tracking, the
+  LilyPond version and documentation preferences, MIDI ports). Of the 69 that
+  remain, 45 are EDITED -- this application is not Frescobaldi and does not run
+  LilyPond, so the text says what it does instead -- and the other 24 needed no
+  change and are shipped as upstream wrote them. One page,
+  prefs_documentation.md, has no upstream original and is Fresco.Brix's own,
+  GPL-3.0-only with the rest of this repository.
+  //was previously: 12 not shipped and 68 remaining, the twelfth being
+  manuscriptview.md, which went because there was no Manuscript Viewer panel to
+  describe. Jeremy ruled the panel into v1 on 2026-09-02 (ruling FR17) and the
+  page ships again, EDITED: its printing sentence is gone under ruling FR5.5,
+  and it says what this application's own PDF export does and does not write.
 
   The five File > Import pages (import, import_all, abc_import, midi_import,
   musicxml_import) joined that set with the import wave. Four of them are
@@ -707,12 +710,20 @@ RELATED SOFTWARE, WHICH IS NOT FDL
 
   Discharged since this list was written:
 
-  - Frescobaldi's icon assets (W13). NONE is reused. The audit compared
+  - Frescobaldi's icon assets. RE-OPENED and DISCHARGED BY SECTION 11 (W14,
+    2026-09-02). //was previously: "NONE is reused. The audit compared
     upstream's 331 icons/ and css/ files against every file in this repository
     by content hash and by name and found no match, and no source file
-    references an icon asset. The only upstream-derived images here are the
-    five user-guide screenshots in section 2.1c; the 135 symbol SVGs in
-    section 2.2 are the engine's own output. No notices row is owed.
+    references an icon asset. [...] No notices row is owed." That was a true
+    account of the repository on 2026-09-01 and it is why the window toolbars
+    were recorded as post-v1 work: a toolbar needs icons, and there were none.
+    Ruling FR16 (Jeremy, 2026-09-02) reversed that decision and settled the
+    artwork question with it -- thirty of upstream's Light/Dark SVGs now ship.
+    Section 11 is their row. The rest of that finding stands unchanged: the
+    other 301 icons/ and css/ files are still not reused, the five user-guide
+    screenshots in section 2.1c are still the only other upstream-derived
+    images, and the 135 symbol SVGs in section 2.2 are still the engine's own
+    output.
 
   - Frescobaldi's translation catalogs, section 2.3 (W-I18N). Thirteen of them
     ship, compiled, with their translators named; the five CJK catalogs are not
@@ -731,3 +742,101 @@ RELATED SOFTWARE, WHICH IS NOT FDL
     STATUS_frescobrix_fd11_research_2026-09-01.txt. fi_FI, id_ID and nl_NL stay
     flagged in section 5, as a record of what their licenses say rather than as
     work still owed.
+
+================================================================================
+11. THE TOOLBAR ICONS -- TABLER ICONS, AS MODIFIED FOR FRESCOBALDI
+================================================================================
+
+  Board wave W14, ruling FR16 (Jeremy, 2026-09-02). The window's two toolbars
+  draw their buttons with Frescobaldi's OWN light and dark icon sets -- the
+  ones that are the default look at the commit this application was ported
+  from. Two licenses are involved, and both travel with the files.
+
+11.1 The artwork -- Tabler Icons
+  Upstream:   https://github.com/tabler/tabler-icons
+  License:    MIT
+  Copyright:  Copyright (c) 2020-2026 Paweł Kuna
+  Text:       src/Fresco.Brix.Core/assets/icons/LICENSE-TablerIcons.txt
+              (the project's own LICENSE file, fetched verbatim 2026-09-02)
+
+  Every one of these icons is drawn from Tabler's 24-pixel line-art set; the
+  files still carry Tabler's own category, tags, version and unicode comment
+  header. The MIT license requires its notice to travel with the work, which
+  is why the text sits beside the files as well as here.
+
+11.2 The modifications -- Frescobaldi's Light and Dark sets
+  Upstream:   frescobaldi/icons/Light/scalable/ and
+              frescobaldi/icons/Dark/scalable/ (110 files each)
+  Revision:   cec205b9 -- which IS the merge of pull request #2067,
+              "Icon theme dark/light for MacOS and Windows", by GitHub user
+              inkandpaper-app, merged 2026-07-27
+  License:    GPL-2.0-or-later, with Frescobaldi (section 1)
+  Authors:    inkandpaper-app, and Wilbert Berendsen and contributors for the
+              names and the theme mechanism
+  Shipped as: src/Fresco.Brix.Core/assets/icons/light/*.svg
+              src/Fresco.Brix.Core/assets/icons/dark/*.svg
+  Notice:     src/Fresco.Brix.Core/assets/icons/README-frescobaldi-icons.txt
+  Copied by:  tools/iconclean/iconclean.py (ships nothing, not in the solution)
+
+  Frescobaldi recoloured and in several cases redrew the Tabler originals --
+  the light set strokes in black or `currentColor', the dark set in white --
+  and added music-specific ones that Tabler has no equivalent for
+  (lilypond-run, lilypond-stop). Those modifications are Frescobaldi's, under
+  Frescobaldi's license, which is why this row is GPL-2.0-or-later while 11.1
+  is MIT.
+
+  THIRTY-EIGHT FILES SHIP -- nineteen names in each set, which is what the two
+  window toolbars and the Manuscript Viewer's panel toolbar reference and
+  nothing more:
+
+    document-new       document-open      document-save      document-close
+    go-previous        go-next            edit-undo          edit-redo
+    tools-score-wizard lilypond-run       lilypond-stop      zoom-in
+    zoom-out           zoom-magnifier     edit-clear         help-contents
+    reload             rotate-left        rotate-right
+
+  //was previously: thirty files, fifteen names, "which is what the two
+  toolbars reference". The last four arrived with the Manuscript Viewer (board
+  wave W15, ruling FR17), whose panel carries a toolbar of its own; its other
+  buttons reuse names already in the list.
+
+  Upstream's file NAMES are kept unchanged, so a file can be traced to the one
+  it came from. A file name is not a user interface element, so ruling FR13
+  does not reach them (the names lilypond-run and lilypond-stop are upstream's
+  and stay; nothing a user sees says LilyPond).
+
+  Which set is drawn follows the platform's theme, as upstream's follows Qt's
+  palette -- Services/IconTheme. Upstream's "Use Symbolic Icons" preference,
+  which switches to its classic TangoExt look instead, is NOT ported: neither
+  Tango 0.8.90 nor TangoExt is used here at all, and no file from either is in
+  this repository.
+
+11.3 One file diverges -- tools-score-wizard.svg (ruling FR14)
+
+  ⚠ DELIBERATE DIVERGENCE FROM UPSTREAM. Thirty-six of the thirty-eight files
+  are byte-for-byte copies. The two copies of tools-score-wizard.svg are not.
+  //was previously: twenty-eight of thirty, before board wave W15 added four
+  names to each set.
+
+  Upstream's file is 6,474,769 bytes in the Light set and 6,474,783 in the
+  Dark set -- 228,519 lines each, for a 24-pixel icon whose whole drawing is
+  7 <path>, 2 <rect> and 28 <g>. The remaining ~228,000 lines are 20,760
+  orphan <inkscape:path-effect> elements an Inkscape session accumulated
+  inside <defs> and never dropped.
+
+  tools/iconclean/iconclean.py removes them, in two steps that cannot change
+  the drawing: Inkscape's own plain-SVG writer with its unused-definition
+  sweep (`inkscape --export-plain-svg --vacuum-defs'), which drops every
+  element and attribute in Inkscape's private XML namespaces -- namespaces an
+  SVG renderer is required to ignore -- and then a pass that deletes groups
+  with no children. The shipped files are 2,761 and 2,742 bytes.
+
+  The claim is PROVEN, not asserted: upstream's original is recorded
+  gzip-compressed at tests/Fresco.Brix.Core.Tests/fixtures/icons/, and
+  IconThemeTests renders it and the shipped file through this application's
+  own renderer at 24, 48 and 96 pixels and asserts that every pixel agrees.
+  It does, exactly -- the largest channel difference is zero, in both sets, at
+  all three sizes.
+
+  The divergence is written up as a bug report against Frescobaldi in
+  STATUS_frescobrix_w14_2026-09-02.txt.

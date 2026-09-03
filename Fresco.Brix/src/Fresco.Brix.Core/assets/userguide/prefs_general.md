@@ -3,6 +3,15 @@
 Under *General* preferences, you can choose in which language {appname}'s
 user interface is translated.
 
+The toolbar icons come in a light set and a dark set, and {appname} draws
+whichever one suits the colours your desktop asks for. There is nothing to
+choose here: the set changes with the desktop.
+
+Under *Add pull-down menus in main toolbar* you can ask the file related
+buttons on the main toolbar to carry pull-down menus with additional
+functions — the templates under *New*, and the *Save* and *Close* sub-menus of
+the File menu.
+
 You can also choose whether a file opened from elsewhere — a file manager, or a
 second launch of the program — is opened in the window that is already running,
 or in a new one.

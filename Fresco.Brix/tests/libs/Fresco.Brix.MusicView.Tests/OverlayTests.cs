@@ -153,6 +153,24 @@ public class RubberBandTests
         edge.Should().Be(expected);
     }
 
+    [Theory]
+    [InlineData(RubberBandEdge.Outside, true)]
+    [InlineData(RubberBandEdge.Left, true)]
+    [InlineData(RubberBandEdge.Right | RubberBandEdge.Bottom, true)]
+    [InlineData(RubberBandEdge.Inside, false)]
+    public void a_right_press_inside_the_band_starts_nothing(
+        RubberBandEdge edge, bool expected)
+    {
+        //Arrange, Act, Assert — upstream's own rule, one line of it:
+        //qpageview/rubberband.py:400-402 starts a drag for the show button only
+        //when the press is NOT inside the band, so right-clicking a selection
+        //reaches the context menu with the selection still there. Without it,
+        //the click wiped what the user had just selected and Copy to Image
+        //never appeared (found on X11 at board wave W15; the Music View had the
+        //same fault).
+        MusicViewControl.StartsNewBand(edge).Should().Be(expected);
+    }
+
     [Fact]
     public void dragging_an_edge_moves_only_that_edge()
     {

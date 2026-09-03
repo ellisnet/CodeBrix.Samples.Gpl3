@@ -58,6 +58,7 @@ you can also remove them by hand with the option {menu_clear_error_marks}.
 scorewiz
 quickinsert
 musicview
+manuscriptview
 outline
 
 #VARS

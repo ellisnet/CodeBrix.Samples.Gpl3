@@ -128,12 +128,23 @@ public sealed class MusicViewActions : ActionCollection
     /// <summary>Music View &gt; Export SVG of the current page.</summary>
     public AppAction MusicExportSvg { get; private set; }
 
+    /// <summary>Music View toolbar &gt; the zoom chooser.</summary>
+    /// <remarks>Upstream's <c>music_zoom_combo</c> is qpageview's
+    /// <c>ZoomerAction</c> — the action IS the combo box, and it carries the
+    /// caption "Zoom Music" and, from the Shortcuts page, whatever key drops
+    /// its list open. //was previously: absent, because there was no toolbar to
+    /// put it on (audit A GAP-26).</remarks>
+    public AppAction MusicZoomCombo { get; private set; }
+
     /// <summary>Music View toolbar &gt; the score chooser.</summary>
     /// <remarks>Upstream's <c>music_document_select</c> is a
     /// <c>ComboBoxAction</c> — the action IS the combo, and it carries the
     /// caption, the tooltip and Ctrl+Shift+O. Here the combo is an ordinary
-    /// control on the panel's toolbar and this action gives it those three
-    /// things.</remarks>
+    /// control on the window's Music View Toolbar and this action gives it
+    /// those three things.
+    /// //was previously: "…on the panel's toolbar…", which is where it was
+    /// until board wave W14 moved it to the window bar, as upstream has it.
+    /// </remarks>
     public AppAction MusicDocumentSelect { get; private set; }
 
     /// <summary>Music &gt; Maximize.</summary>
@@ -147,6 +158,7 @@ public sealed class MusicViewActions : ActionCollection
         MusicMaximize = Add("music_maximize").WithIcon("view-fullscreen");
         MusicDocumentSelect = Add("music_document_select")
             .WithShortcut("Ctrl+Shift+O");
+        MusicZoomCombo = Add("music_zoom_combo");
         //Upstream inherits Qt's ZoomIn/ZoomOut standard keys from qpageview's
         //own ViewActions.setActionShortcuts; on X11 they are Ctrl++ and Ctrl+-.
         //was previously: neither had a keyboard route at all.
@@ -179,7 +191,11 @@ public sealed class MusicViewActions : ActionCollection
             .WithShortcut("Ctrl+Shift+C");
         //A TOGGLE, as upstream's is: the glass is either available or not,
         //and while it is available Ctrl and the left button call it up.
-        MusicMagnifier = Add("music_magnifier").WithIcon("zoom-in").AsToggle();
+        //was previously: .WithIcon("zoom-in") — a placeholder from when no icon
+        //set was shipped and no name was ever resolved. qpageview's own name
+        //for it is `zoom-magnifier' (viewactions setActionIcons), which is
+        //what both shipped sets carry.
+        MusicMagnifier = Add("music_magnifier").WithIcon("zoom-magnifier").AsToggle();
         MusicExportPdf = Add("music_export_pdf").WithIcon("document-export");
         MusicExportPng = Add("music_export_png").WithIcon("document-export");
         MusicExportSvg = Add("music_export_svg").WithIcon("document-export");
@@ -191,12 +207,14 @@ public sealed class MusicViewActions : ActionCollection
         MusicMaximize.Text = I18n.Get("&Maximize");
         MusicDocumentSelect.Text = I18n.Get("Select Music View Document");
         //was previously: nothing — the chooser was a bare ComboBox with no
-        //action, so it had no caption, no Shortcuts-page row and no key.
+        //action, so it had no caption, no Shortcuts-page row and no key
+        //(audit A GAP-25).
         //⚠ Upstream's tooltip is "Choose the PDF document to display."; this
         //view shows the engraved SCORE, and a PDF is something this application
         //exports rather than displays (FR7/FR8), so the tooltip is a
         //Fresco.Brix-original msgid and is in the renamed-string table.
         MusicDocumentSelect.ToolTip = I18n.Get("Choose the score to display.");
+        MusicZoomCombo.Text = I18n.Get("Zoom Music");
         MusicZoomIn.Text = I18n.Get("Zoom &In");
         MusicZoomOut.Text = I18n.Get("Zoom &Out");
         MusicZoomOriginal.Text = I18n.Get("Original &Size");

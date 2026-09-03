@@ -93,6 +93,15 @@ public sealed class GeneralValues : IPreferenceValues
     /// <summary>The setting for stripping trailing whitespace on save.</summary>
     public const string StripWhitespaceKey = "strip_trailing_whitespace";
 
+    /// <summary>
+    /// The setting that gives the main toolbar's file buttons their pull-down
+    /// menus.
+    /// </summary>
+    /// <remarks>Upstream's own key and default
+    /// (<c>preferences/general.py</c>, <c>mainwindow.settingsChanged</c>): off
+    /// unless the user asks for it.</remarks>
+    public const string VerboseToolButtonsKey = "verbose_toolbuttons";
+
     /// <summary>The setting for remembering per-document state.</summary>
     public const string MetaInfoKey = "metainfo";
 
@@ -146,6 +155,15 @@ public sealed class GeneralValues : IPreferenceValues
     /// <summary>Gets or sets whether trailing whitespace goes on save.</summary>
     public bool StripTrailingWhitespace { get; set; }
 
+    /// <summary>
+    /// Gets or sets whether New, Save and Close carry pull-down menus on the
+    /// main toolbar.
+    /// </summary>
+    /// <remarks>Upstream's <c>verbose_toolbuttons</c>, default off. When it is
+    /// on, New gets the template menu and Save and Close get their File-menu
+    /// sub-menus (<c>mainwindow.settingsChanged</c>).</remarks>
+    public bool VerboseToolButtons { get; set; }
+
     /// <summary>Gets or sets whether a backup copy is kept.</summary>
     public bool KeepBackup { get; set; }
 
@@ -189,6 +207,7 @@ public sealed class GeneralValues : IPreferenceValues
         NewDocumentTemplate =
             settings?.GetString(NewDocumentTemplateKey, string.Empty) ?? string.Empty;
 
+        VerboseToolButtons = settings?.GetBool(VerboseToolButtonsKey, false) ?? false;
         StripTrailingWhitespace = settings?.GetBool(StripWhitespaceKey, false) ?? false;
         KeepBackup = settings?.GetBool(Backup.KeepSettingKey, false) ?? false;
         RememberMetaInfo = settings?.GetBool(MetaInfoKey, true) ?? true;
@@ -231,6 +250,7 @@ public sealed class GeneralValues : IPreferenceValues
             settings.SetString(NewDocumentTemplateKey, NewDocumentTemplate);
         }
 
+        settings.SetBool(VerboseToolButtonsKey, VerboseToolButtons);
         settings.SetBool(StripWhitespaceKey, StripTrailingWhitespace);
         settings.SetBool(Backup.KeepSettingKey, KeepBackup);
         settings.SetBool(MetaInfoKey, RememberMetaInfo);

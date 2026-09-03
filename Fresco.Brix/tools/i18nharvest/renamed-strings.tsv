@@ -106,9 +106,9 @@ NEW	-	-	Import Midi
 NEW	-	-	Import abc
 NEW	-	-	Importing {filename}...
 NEW	-	-	Installed in {folder}
-NEW	-	-	Jump
 NEW	-	-	Load time:
 NEW	-	-	Manual to show first:
+NEW	-	-	Missing file
 NEW	-	-	Music font preview
 NEW	-	-	Music is played inside the program, through the instrument bank named below. Choose a SoundFont of your own to play through that instead.
 NEW	-	-	No hyphenation dictionaries were found.

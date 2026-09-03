@@ -532,3 +532,50 @@ public class MusicViewAdoptionTests
         adopts.Should().BeFalse();
     }
 }
+
+/// <summary>
+/// What a click on a clickable object in the score means — upstream's three
+/// branches, stated where they can be checked without a window.
+/// </summary>
+public class MusicLinkClickTests
+{
+    [Fact]
+    public void a_plain_click_moves_the_caret_to_what_was_clicked()
+    {
+        //Act
+        MusicLinkAction action = MusicViewPanel.LinkClickActionFor(
+            rightButton: false, shiftHeld: false);
+
+        //Assert
+        action.Should().Be(MusicLinkAction.GoToCursor);
+    }
+
+    [Fact]
+    public void a_shift_click_opens_edit_in_place_on_what_was_clicked()
+    {
+        //Act
+        //musicview/widget.py:131-133 — `if ev.modifiers() & ShiftModifier:
+        //editinplace.edit(self, cursor, ...)'. The guide page this application
+        //ships (musicview_editinplace) tells the user to do exactly this.
+        MusicLinkAction action = MusicViewPanel.LinkClickActionFor(
+            rightButton: false, shiftHeld: true);
+
+        //Assert
+        action.Should().Be(MusicLinkAction.EditInPlace);
+    }
+
+    [Fact]
+    public void the_right_button_does_nothing_because_the_menu_has_had_it()
+    {
+        //Act
+        //musicview/widget.py:129-130 — `if ev.button() == RightButton: return'.
+        MusicLinkAction plain = MusicViewPanel.LinkClickActionFor(
+            rightButton: true, shiftHeld: false);
+        MusicLinkAction shifted = MusicViewPanel.LinkClickActionFor(
+            rightButton: true, shiftHeld: true);
+
+        //Assert
+        plain.Should().Be(MusicLinkAction.None);
+        shifted.Should().Be(MusicLinkAction.None);
+    }
+}

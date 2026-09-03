@@ -46,6 +46,7 @@ public sealed partial class MainPage : Page, IWindowBridge, IRemoteCommandTarget
     private ViewManager _viewManager;
     private DocumentTabBar _tabBar;
     private ShortcutRegistrar _shortcuts;
+    private MainToolbar _toolbar;
     private EditorContextMenu _editorContextMenu;
     private SideBarManager _sideBar;
     private LogPanel _logPanel;
@@ -59,6 +60,7 @@ public sealed partial class MainPage : Page, IWindowBridge, IRemoteCommandTarget
     private QuickInsertPanel _quickInsertPanel;
     private MidiPanel _midiPanel;
     private DocumentationPanel _docPanel;
+    private ManuscriptViewerPanel _manuscriptPanel;
     private SearchBar _searchBar;
     private Completer _completer;
     private PreferencesDialog _preferences;
@@ -145,12 +147,24 @@ public sealed partial class MainPage : Page, IWindowBridge, IRemoteCommandTarget
         SetFullScreen = _ => { }; //The heads' fullscreen switch lands with W12's polish.
         Quit = () =>
         {
+            //Upstream's closeEvent writes the window settings out before it
+            //lets the last window go (mainwindow.py:343-345).
+            SaveWindowLayout();
+
             //Upstream connects app.aboutToQuit to server.close, so the socket
             //goes with the process that made it rather than being left behind
             //for the next launch to find and have to clear away.
             RemoteInstance.Quit();
             Microsoft.UI.Xaml.Application.Current.Exit();
         };
+
+        //...and the desktop's own close button is the same door: upstream
+        //reaches writeSettings through closeEvent whichever way the window is
+        //asked to go. Saving twice is harmless — it writes the same thing.
+        if (App.Shell != null)
+        {
+            App.Shell.Closed += (_, _) => SaveWindowLayout();
+        }
         ConfirmAsync = AskAsync;
         AlertAsync = (title, message)
             => InputDialogs.AlertAsync(XamlRoot, title, message);
@@ -237,7 +251,15 @@ public sealed partial class MainPage : Page, IWindowBridge, IRemoteCommandTarget
             new LilyPortTypefaceResolver(),
             viewModel.Settings)
         {
-            ShowCursor = ShowMusicCursor,
+            //A click in the score is a JUMP, so it is remembered: upstream's
+            //musicview/widget.py:139 sends the very same click through
+            //`browseriface.get(mainwindow).setTextCursor(cursor,
+            //findOpenView=True)' rather than moving the caret itself, which is
+            //what puts an entry in the Back/Forward history. Browser.GoTo ends
+            //in ShowMusicCursor through GoToPosition, so the caret still moves
+            //exactly as it did.
+            //was previously: ShowCursor = ShowMusicCursor,
+            ShowCursor = (document, offset) => viewModel.Browser.GoTo(document, offset),
             CurrentEditorView = () => _viewManager?.ActiveView,
             OpenExternalUrl = OpenExternalFile,
             PickExportPathAsync = PickExportAsync,
@@ -307,6 +329,31 @@ public sealed partial class MainPage : Page, IWindowBridge, IRemoteCommandTarget
             WordAtCursor = WordAtCursor,
             ShowStatus = text => viewModel.StatusText = text,
         };
+        //The Manuscript Viewer (board wave W15, ruling FR17). Upstream docks it
+        //on the right, hidden, and gives it Meta+Alt+A; it shows PDF files the
+        //USER chose, in the same paged view the Music View and the
+        //Documentation Browser use.
+        _manuscriptPanel = new ManuscriptViewerPanel(
+            viewModel.ManuscriptViewerActions, viewModel.Documents, viewModel.Settings)
+        {
+            PickManuscriptsAsync = PickManuscriptsAsync,
+            PickExportPathAsync = PickExportAsync,
+            OpenExternalUrl = OpenExternalFile,
+            ShowCursor = (document, offset) => viewModel.Browser.GoTo(document, offset),
+            CurrentEditorView = () => _viewManager?.ActiveView,
+            IsShiftHeld = MainToolbar.ShiftHeld,
+            Report = message => viewModel.StatusText = message,
+        };
+        _manuscriptPanel.EditInPlace = (document, offset) => _ = EditInPlaceAsync(
+            viewModel, document, offset);
+        _manuscriptPanel.ShowHelp = () => _ = viewModel.UserGuide.ShowAsync(
+            XamlRoot, ManuscriptViewerPanel.HelpPage);
+        _manuscriptPanel.AskDropMissingAsync = AskDropMissingManuscriptAsync;
+        _manuscriptPanel.ReportMissing = ReportMissingManuscripts;
+        _viewManager.ViewChanged += (_, _)
+            => _manuscriptPanel.SetEditorView(_viewManager.ActiveView);
+        _manuscriptPanel.SetEditorView(_viewManager.ActiveView);
+
         //Upstream's panel order within each Tools submenu, kept so a user who
         //knows Frescobaldi finds them where they expect. Registration order is
         //what decides it (panelmanager.py loads them in this sequence), so the
@@ -315,11 +362,16 @@ public sealed partial class MainPage : Page, IWindowBridge, IRemoteCommandTarget
         //made Viewers read Log, Layout Control, Music View, Documentation and
         //Coding read Quick Insert, Snippets, Special Characters — in
         //contradiction of the comment above the block that said otherwise.
-        //Upstream: Music View, [SVG View — W4 merged], [Manuscript Viewer —
-        //post-v1], Documentation Browser, Log, Layout Control Options; then
+        //Upstream: Music View, [SVG View — W4 merged], Manuscript Viewer,
+        //Documentation Browser, Log, Layout Control Options; then
         //Quick Insert, Special Characters, Snippets, [Object Editor];
         //then Documents, Outline; then MIDI Player.
+        //was previously: "[Manuscript Viewer — post-v1]". Jeremy ruled it into
+        //v1 on 2026-09-02 (ruling FR17), and panelmanager.py:72 loads it in the
+        //"viewers" group between the SVG View and the help browser, which is
+        //exactly where it goes here.
         viewModel.Panels.AddPanel(_musicViewPanel, "viewers");
+        viewModel.Panels.AddPanel(_manuscriptPanel, "viewers");
         viewModel.Panels.AddPanel(_docPanel, "viewers");
         viewModel.Panels.AddPanel(_logPanel, "viewers");
         viewModel.Panels.AddPanel(_layoutControlPanel, "viewers");
@@ -336,6 +388,13 @@ public sealed partial class MainPage : Page, IWindowBridge, IRemoteCommandTarget
         viewModel.Panels.AddPanel(_outlinePanel, "structure");
 
         viewModel.Panels.AddPanel(_midiPanel, "midi");
+
+        //Upstream's readSettings (mainwindow.py:391-401) — the window comes
+        //back the size it was, with the tools that were open still open, in
+        //their areas, in their tab order, at the divider positions the user
+        //left. Done HERE: the panels exist and nothing has been able to move
+        //them yet.
+        RestoreWindowLayout(viewModel);
 
         //Music > Maximize. Upstream floats the Music View's dock widget and
         //shows it maximized (panel.Panel.maximize); this shell has no floating
@@ -358,6 +417,13 @@ public sealed partial class MainPage : Page, IWindowBridge, IRemoteCommandTarget
             viewModel, document, offset);
         _musicViewPanel.ShowHelp = () => _ = viewModel.UserGuide.ShowAsync(
             XamlRoot, "musicview");
+
+        //Shift-clicking an object in the score opens Edit in Place on it —
+        //upstream's musicview/widget.py:131-134, and what the guide page this
+        //application ships (musicview_editinplace) tells the user to do. The
+        //modifier is read from the keyboard source, not from the pointer event
+        //(board trap 38), which is why the panel asks for it.
+        _musicViewPanel.IsShiftHeld = MainToolbar.ShiftHeld;
 
         WireEditorTools(viewModel);
         WireMusicTools(viewModel);
@@ -431,6 +497,31 @@ public sealed partial class MainPage : Page, IWindowBridge, IRemoteCommandTarget
             viewModel.LogActions,
             () => viewModel.Engraver?.StickyDocument,
             () => _viewManager?.ActiveView?.HasSelection ?? false);
+
+        //The two window toolbars (board wave W14, ruling FR16). They are built
+        //AFTER the menus, because two of their pull-downs are the File menu's
+        //own sub-menus and one is the recent-files menu, and because the
+        //toolbar reads the same preference the menus were built from.
+        _toolbar = new MainToolbar(
+            viewModel.Actions,
+            viewModel.Browser.Actions,
+            viewModel.ScoreWizardActions,
+            viewModel.EngraveActions,
+            viewModel.MusicViewActions,
+            viewModel.SnippetLibrary,
+            _snippetPanel.Actions,
+            ApplySnippet,
+            viewModel.RecentFiles,
+            path => _ = viewModel.OpenPathAsync(path),
+            viewModel.Settings)
+        {
+            MusicView = _musicViewPanel,
+        };
+        ToolbarHost.Content = _toolbar;
+
+        //Upstream reads QApplication.keyboardModifiers() inside engraveRunner;
+        //the engraver is host-free, so the window hands it the read (trap 38).
+        viewModel.Engraver.IsShiftHeld = MainToolbar.ShiftHeld;
 
         WireExternalChanges(viewModel);
 
@@ -732,6 +823,14 @@ public sealed partial class MainPage : Page, IWindowBridge, IRemoteCommandTarget
             return true;
         };
         viewModel.SessionManager.OpenPathAsync = path => viewModel.OpenPathAsync(path);
+
+        //The open manuscripts travel with the named session, as the user guide
+        //promises (upstream's viewers/pdfwidget.py slotSaveSessionData /
+        //slotSessionChanged).
+        viewModel.SessionManager.CollectManuscripts
+            = () => _manuscriptPanel.SessionData();
+        viewModel.SessionManager.RestoreManuscripts
+            = (paths, active) => _manuscriptPanel.RestoreSession(paths, active);
         viewModel.SessionManager.Actions.SessionManage.AsyncHandler
             = () => SessionDialogs.ManageAsync(
                 XamlRoot,
@@ -1861,6 +1960,51 @@ public sealed partial class MainPage : Page, IWindowBridge, IRemoteCommandTarget
         }
     }
 
+    /// <summary>
+    /// Puts the window back the way the last quit left it: its size, the tool
+    /// panels that were open, where they were docked, which one was showing in
+    /// each area, and the divider positions between them.
+    /// </summary>
+    /// <param name="viewModel">The window's state.</param>
+    /// <remarks>Upstream's <c>readSettings</c> — <c>mainwindow.py:391-401</c>,
+    /// which resizes and then calls <c>restoreState</c>. Nothing stored means
+    /// nothing applied, so a first launch opens at the head's own size with no
+    /// tool open.</remarks>
+    private void RestoreWindowLayout(MainViewModel viewModel)
+    {
+        Services.SettingsStore settings = viewModel?.Settings;
+        if (settings == null) { return; }
+
+        (int width, int height) = DockLayout.LoadWindowSize(settings);
+        if (width > 0 && height > 0)
+        {
+            App.Shell?.AppWindow?.Resize(
+                new Windows.Graphics.SizeInt32 { Width = width, Height = height });
+        }
+
+        _shell?.ApplyLayout(DockLayout.Load(settings));
+    }
+
+    /// <summary>Writes the window arrangement out for the next launch.</summary>
+    /// <remarks>Upstream's <c>writeSettings</c> — <c>mainwindow.py:403-411</c>,
+    /// reached from <c>closeEvent</c> for the last window.</remarks>
+    private void SaveWindowLayout()
+    {
+        Services.SettingsStore settings = ViewModel?.Settings;
+        if (settings == null || _shell == null) { return; }
+
+        _shell.CaptureLayout().Save(settings);
+
+        //The WINDOW's own bounds, not AppWindow.Size: on the X11 head the
+        //latter answers the FRAMED size (measured 1220x850 for a 1200x800
+        //window), so feeding it back to Resize — which sets the size the
+        //window itself gets — would grow the window by the frame on every
+        //launch. Bounds is what Resize is the inverse of.
+        Windows.Foundation.Rect bounds = App.Shell?.Bounds ?? default;
+        DockLayout.SaveWindowSize(
+            settings, (int)Math.Round(bounds.Width), (int)Math.Round(bounds.Height));
+    }
+
     /// <summary>Puts the caret where an engine message pointed.</summary>
     /// <param name="reference">The reference.</param>
     /// <summary>Puts the caret where a click in the Music View points.</summary>
@@ -2020,6 +2164,114 @@ public sealed partial class MainPage : Page, IWindowBridge, IRemoteCommandTarget
         if (App.Shell != null) { App.Shell.Title = ViewModel.WindowTitle; }
     }
 
+    /// <summary>Asks the user which PDF files to open as manuscripts.</summary>
+    /// <returns>The paths, or an empty list when the user cancelled.</returns>
+    /// <remarks>
+    /// Upstream's <c>openViewdocs</c>: <c>getOpenFileNames</c> — multi-select —
+    /// filtered to <c>"{} (*.pdf)".format(_("PDF Files"))</c>, captioned with
+    /// the manuscript viewer's own "Open Manuscript(s)". Its <c>directory</c>
+    /// argument (the current manuscript's folder, then the current document's,
+    /// then the application's base directory) has no counterpart: the platform
+    /// picker takes a <c>PickerLocationId</c>, not a path, and remembers where
+    /// the user last was itself.
+    /// </remarks>
+    private async Task<IReadOnlyList<string>> PickManuscriptsAsync()
+    {
+        FileOpenPicker picker = new FileOpenPicker
+        {
+            SuggestedStartLocation = PickerLocationId.DocumentsLibrary,
+        };
+        picker.FileTypeFilter.Add(".pdf");
+        picker.FileTypeFilter.Add("*");
+
+        var files = await picker.PickMultipleFilesAsync();
+        return files == null
+            ? Array.Empty<string>()
+            : files.Select(file => file.Path).ToArray();
+    }
+
+    /// <summary>
+    /// Asks whether to drop a manuscript whose file is no longer there.
+    /// </summary>
+    /// <param name="path">The file.</param>
+    /// <returns>Whether the user wants the name taken off the list.</returns>
+    /// <remarks>
+    /// Upstream's FIRST missing-file prompt (<c>viewers/pdfwidget.py:164-177</c>):
+    /// a Yes/No dialog titled "Missing file", carrying the question and a tool
+    /// tip explaining what No does.
+    /// ⚠ THE BUTTONS ARE NOT "Yes" AND "No". Qt fills a standard button's
+    /// caption in from ITS OWN catalogs, which this application does not ship,
+    /// and <c>Services/StandardButtons</c> already records that decision for
+    /// the template-overwrite question: only the ten <c>QPlatformTheme</c>
+    /// strings Frescobaldi lists are translated here, and "Yes" is not among
+    /// them. The buttons therefore say what they DO, in strings that are
+    /// translated — Qt's own "Remove" and "Cancel".
+    /// </remarks>
+    private async Task<bool> AskDropMissingManuscriptAsync(string path)
+    {
+        TextBlock message = new TextBlock
+        {
+            Text = I18n.Format(
+                I18n.Get("The file {filename} is missing.\n\n"
+                    + "Do you want to remove the filename from the list?"),
+                ("filename", path)),
+            TextWrapping = TextWrapping.Wrap,
+            MaxWidth = 520,
+        };
+
+        //Upstream's own tool tip on the dialog, kept verbatim.
+        ToolTipService.SetToolTip(message, I18n.Get(
+            "Answering 'No' will give you a chance to restore the "
+            + "file without having to re-add it."));
+
+        ContentDialog dialog = new ContentDialog
+        {
+            Title = I18n.Get("Missing file"),
+            Content = message,
+            PrimaryButtonText = I18n.Get("QFileDialog", "Remove"),
+            CloseButtonText = StandardButtons.Cancel,
+            DefaultButton = ContentDialogButton.Close,
+            XamlRoot = XamlRoot,
+        };
+
+        return await dialog.ShowAsync() == ContentDialogResult.Primary;
+    }
+
+    /// <summary>Reports the manuscripts a restored session could not find.</summary>
+    /// <param name="paths">The files.</param>
+    /// <remarks>Upstream's SECOND missing-file prompt
+    /// (<c>viewers/__init__.py:263-272</c>): a warning titled "Missing files in
+    /// {name}", where the name is the panel's own display name, over a plural
+    /// message and the list of files.</remarks>
+    private void ReportMissingManuscripts(IReadOnlyList<string> paths)
+    {
+        if (paths == null || paths.Count == 0) { return; }
+
+        string report = I18n.Get(
+            "The following file is missing and could not be loaded "
+            + "when restoring a session:",
+            "The following files are missing and could not be loaded "
+            + "when restoring a session:",
+            paths.Count);
+
+        ContentDialog dialog = new ContentDialog
+        {
+            Title = I18n.Format(
+                I18n.Get("Missing files in {name}"),
+                ("name", MenuBuilder.Display(_manuscriptPanel.ToggleAction.Text))),
+            Content = new TextBlock
+            {
+                Text = report + "\n\n" + string.Join("\n", paths),
+                TextWrapping = TextWrapping.Wrap,
+                MaxWidth = 520,
+            },
+            CloseButtonText = StandardButtons.Ok,
+            XamlRoot = XamlRoot,
+        };
+
+        _ = dialog.ShowAsync();
+    }
+
     private async Task<bool> AskAsync(string title, string message)
     {
         ContentDialog dialog = new ContentDialog
@@ -2120,6 +2372,11 @@ public sealed partial class MainPage : Page, IWindowBridge, IRemoteCommandTarget
         //than at the next launch.
         RemoteInstance.Setup(viewModel.Settings, this, OnUiThread);
         viewModel.ExternalChanges.Setup();
+
+        //Upstream's settingsChanged hangs or unhangs the main toolbar's three
+        //pull-down menus the moment `verbose_toolbuttons' changes
+        //(mainwindow.settingsChanged).
+        _toolbar?.SettingsChanged();
 
         //Upstream's tabbar reads `tabs_closable' on settingsChanged too.
         if (_tabBar != null)

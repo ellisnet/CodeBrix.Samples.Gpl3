@@ -688,6 +688,8 @@ public class QtShortcutNameTests
     [InlineData("Alt+'")]
     [InlineData("Meta+Alt+P")]
     [InlineData("Meta+Alt+R")]
+    //The Manuscript Viewer's panel toggle (board wave W15, ruling FR17).
+    [InlineData("Meta+Alt+A")]
     [InlineData("Media Play")]
     [InlineData("Media Stop")]
     [InlineData("Media Previous")]

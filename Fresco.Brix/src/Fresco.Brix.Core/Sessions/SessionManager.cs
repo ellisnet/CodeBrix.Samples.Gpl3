@@ -68,6 +68,28 @@ public sealed class SessionManager
     /// <summary>Gets or sets how to open a file.</summary>
     public Func<string, Task<bool>> OpenPathAsync { get; set; }
 
+    /// <summary>
+    /// Gets or sets how the Manuscript Viewer is asked what it has open, or
+    /// null when there is no such panel.
+    /// </summary>
+    /// <remarks>
+    /// Upstream's <c>app.saveSessionData</c> signal, which the viewer's widget
+    /// connects to and answers by writing its own array into the session's
+    /// group (<c>viewers/pdfwidget.py:302</c>). The seam is a function rather
+    /// than an event because the answer is DATA the session writes, and a
+    /// session that is written while the panel has never been opened must get
+    /// an empty answer rather than no answer.
+    /// </remarks>
+    public Func<(IReadOnlyList<string> Paths, int Active)> CollectManuscripts { get; set; }
+
+    /// <summary>
+    /// Gets or sets how the Manuscript Viewer is given back what a session held.
+    /// </summary>
+    /// <remarks>Upstream's <c>app.sessionChanged</c>, which the viewer's widget
+    /// answers by emptying its list and refilling it from the session's own
+    /// array (<c>viewers/pdfwidget.py:270</c>).</remarks>
+    public Action<IReadOnlyList<string>, int> RestoreManuscripts { get; set; }
+
     /// <summary>Makes a new session and saves the open documents into it.</summary>
     /// <returns>The task.</returns>
     public async Task NewAsync()
@@ -138,6 +160,13 @@ public sealed class SessionManager
 
         DocumentInfo.SessionIncludePath = data.IncludePath;
 
+        //Upstream restores the manuscripts on `sessionChanged', which app.py
+        //raises BEFORE the session's own documents are opened. The order
+        //matters here for a reason it does not there: closing every document
+        //closes every manuscript (upstream's allDocumentsClosed wiring), and
+        //the close has already happened by now.
+        RestoreManuscripts?.Invoke(data.Manuscripts, data.ActiveManuscript);
+
         List<EditorDocument> opened = new List<EditorDocument>();
         Func<string, Task<bool>> open = OpenPathAsync;
         foreach (var path in data.Paths)
@@ -171,6 +200,17 @@ public sealed class SessionManager
         SessionData data = _store.Read(name) ?? new SessionData();
         data.Paths = saved.Select(d => d.Path).ToList();
         data.ActiveIndex = saved.IndexOf(_documents.CurrentDocument);
+
+        //The Manuscript Viewer's own list travels with the session, as the user
+        //guide promises: "the opened manuscripts are maintained in sessions,
+        //alongside the input documents".
+        if (CollectManuscripts != null)
+        {
+            var manuscripts = CollectManuscripts();
+            data.Manuscripts = manuscripts.Paths ?? Array.Empty<string>();
+            data.ActiveManuscript = manuscripts.Active;
+        }
+
         _store.Write(name, data);
         SavingSession?.Invoke(this, new SessionEventArgs(name));
     }

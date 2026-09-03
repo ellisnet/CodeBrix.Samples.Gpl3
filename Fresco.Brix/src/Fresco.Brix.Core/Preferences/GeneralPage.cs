@@ -34,6 +34,7 @@ public sealed class GeneralPage : PreferencesPage
     private CheckBox _tabsClosable;
     private ComboBox _newDocument;
     private ComboBox _template;
+    private CheckBox _verboseToolButtons;
     private CheckBox _stripWhitespace;
     private CheckBox _keepBackup;
     private CheckBox _metaInfo;
@@ -79,6 +80,7 @@ public sealed class GeneralPage : PreferencesPage
         _template.SelectedIndex = template < 0 && _templates.Count > 0 ? 0 : template;
         _template.IsEnabled = Values.NewDocument == GeneralValues.NewDocumentKind.Template;
 
+        _verboseToolButtons.IsChecked = Values.VerboseToolButtons;
         _stripWhitespace.IsChecked = Values.StripTrailingWhitespace;
         _keepBackup.IsChecked = Values.KeepBackup;
         _metaInfo.IsChecked = Values.RememberMetaInfo;
@@ -114,6 +116,7 @@ public sealed class GeneralPage : PreferencesPage
                 ? _templates[_template.SelectedIndex]
                 : string.Empty;
 
+        Values.VerboseToolButtons = _verboseToolButtons.IsChecked == true;
         Values.StripTrailingWhitespace = _stripWhitespace.IsChecked == true;
         Values.KeepBackup = _keepBackup.IsChecked == true;
         Values.RememberMetaInfo = _metaInfo.IsChecked == true;
@@ -226,6 +229,16 @@ public sealed class GeneralPage : PreferencesPage
         _template.SelectionChanged += (_, _) => MarkChanged();
         FillTemplates();
 
+        //Upstream's own place for it: the FIRST widget of the Sessions and
+        //Files group, above the three tabs (preferences/general.py, class
+        //SessionsAndFiles). //was previously: absent, because the window had no
+        //toolbar for the menus to hang on — ruling FR16 built both bars.
+        _verboseToolButtons = Tick(
+            I18n.Get("Add pull-down menus in main toolbar"),
+            I18n.Get(
+                "If set, the file related buttons in the main toolbar will "
+                + "provide pull-down menus with additional functions."));
+
         _stripWhitespace = Tick(
             I18n.Get("Strip trailing whitespace"),
             I18n.Format(
@@ -276,6 +289,7 @@ public sealed class GeneralPage : PreferencesPage
         _session.SelectionChanged += (_, _) => MarkChanged();
 
         return Rows(
+            _verboseToolButtons,
             Group(I18n.Get("New Document"), Rows(
                 Labelled(I18n.Get("New document:"), _newDocument),
                 Labelled(I18n.Get("Template:"), _template))),

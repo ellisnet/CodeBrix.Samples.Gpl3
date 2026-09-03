@@ -16,6 +16,8 @@
         <Grid.RowDefinitions>
             <!-- The menu bar -->
             <RowDefinition Height="Auto" />
+            <!-- The two window toolbars, side by side on one row -->
+            <RowDefinition Height="Auto" />
             <!-- The document tabs -->
             <RowDefinition Height="Auto" />
             <!-- The dock shell: tool panels around the editor area -->
@@ -26,21 +28,29 @@
 
         <MenuBar x:Name="MainMenuBar" Grid.Row="0" />
 
+        <!-- The Main Toolbar and the Music View Toolbar (board wave W14,
+             ruling FR16). Built in code for the same reason the shell and the
+             tab bar are: the buttons follow the command objects, their icons
+             are rendered from the shipped SVG sets at the window's own theme,
+             and three of them carry pull-down menus. -->
+        <ContentControl x:Name="ToolbarHost" Grid.Row="1"
+                        HorizontalContentAlignment="Stretch" />
+
         <!-- The tab bar and the shell are built in code: the shell's splitters
              and panel hosts are code-built controls (there is no dock
              framework in the platform), and the tabs follow the document list
              rather than an items source. -->
-        <ContentControl x:Name="TabBarHost" Grid.Row="1"
+        <ContentControl x:Name="TabBarHost" Grid.Row="2"
                         HorizontalContentAlignment="Stretch" />
 
-        <ContentControl x:Name="ShellHost" Grid.Row="2"
+        <ContentControl x:Name="ShellHost" Grid.Row="3"
                         HorizontalContentAlignment="Stretch"
                         VerticalContentAlignment="Stretch" />
 
         <!-- The window's message line. The caret position lives on each
              editor pane's own status bar, as it does upstream, so this stays
              out of the way until there is something to say. -->
-        <TextBlock x:Name="StatusLine" Grid.Row="3" Padding="8,4,8,6"
+        <TextBlock x:Name="StatusLine" Grid.Row="4" Padding="8,4,8,6"
                    Visibility="Collapsed"
                    Text="{d:Binding StatusText}" />
     </Grid>

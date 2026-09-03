@@ -41,6 +41,10 @@ namespace Fresco.Brix.Tools; //was previously: frescobaldi/editinplace.py
 /// </remarks>
 public static class EditInPlace
 {
+    /// <summary>The user-guide page this dialog's Help button opens.</summary>
+    /// <remarks>Upstream's own identifier, from <c>editinplace.py:79</c>.</remarks>
+    public const string HelpPage = "musicview_editinplace";
+
     /// <summary>Puts the dialog in front of the user.</summary>
     /// <param name="xamlRoot">The root to attach the dialog to.</param>
     /// <param name="document">The document.</param>
@@ -91,6 +95,14 @@ public static class EditInPlace
             TextWrapping = TextWrapping.Wrap,
         });
         panel.Children.Add(box);
+
+        //Upstream gives this dialog its own Help button —
+        //`userguide.addButton(self.buttonBox(), "musicview_editinplace")'
+        //(editinplace.py:79). A ContentDialog's three buttons are spent on
+        //OK/Cancel (board trap 50), so it goes at the foot of the content, in
+        //the same place Widgets/WidgetDialog puts its own HelpPage button.
+        panel.Children.Add(
+            UserGuide.GuideHelp.ButtonRow(HelpPage));
 
         ContentDialog dialog = new ContentDialog
         {

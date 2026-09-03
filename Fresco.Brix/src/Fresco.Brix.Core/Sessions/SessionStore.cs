@@ -32,6 +32,23 @@ public sealed class SessionData
 
     /// <summary>Gets or sets the extra <c>\include</c> directories.</summary>
     public IReadOnlyList<string> IncludePath { get; set; } = Array.Empty<string>();
+
+    /// <summary>Gets or sets the manuscripts the Manuscript Viewer had open.</summary>
+    /// <remarks>
+    /// Upstream keeps these in the session too, under a key of the viewer's own
+    /// name — <c>&lt;viewerName&gt;-documents</c>, i.e.
+    /// <c>manuscriptview-documents</c> — written as a QSettings ARRAY of
+    /// <c>filename</c>/<c>isactive</c> pairs beside the session's
+    /// <c>urls</c> (<c>viewers/pdfwidget.py:302-327</c>). The user guide states
+    /// it as a promise: "the opened manuscripts are maintained in sessions,
+    /// alongside the input documents".
+    /// </remarks>
+    public IReadOnlyList<string> Manuscripts { get; set; } = Array.Empty<string>();
+
+    /// <summary>Gets or sets which manuscript was in front, or -1.</summary>
+    /// <remarks>Upstream's per-entry <c>isactive</c> flag, as an index —
+    /// exactly one entry may carry it, which is what an index says.</remarks>
+    public int ActiveManuscript { get; set; } = -1;
 }
 
 /// <summary>What the application does with the session it was started in.</summary>
@@ -153,6 +170,9 @@ public sealed class SessionStore
             AutoSave = session.AutoSave,
             BaseDirectory = NullIfEmpty(session.BaseDirectory),
             IncludePath = session.IncludePath ?? (IReadOnlyList<string>)Array.Empty<string>(),
+            Manuscripts = session.ManuscriptUrls
+                ?? (IReadOnlyList<string>)Array.Empty<string>(),
+            ActiveManuscript = session.ActiveManuscript,
         };
     }
 
@@ -173,6 +193,8 @@ public sealed class SessionStore
         session.AutoSave = data.AutoSave;
         session.BaseDirectory = NullIfEmpty(data.BaseDirectory);
         session.IncludePath = new List<string>(data.IncludePath ?? Array.Empty<string>());
+        session.ManuscriptUrls = new List<string>(data.Manuscripts ?? Array.Empty<string>());
+        session.ActiveManuscript = data.ActiveManuscript >= 0 ? data.ActiveManuscript : -1;
 
         WriteStored(stored);
         SessionsChanged?.Invoke(this, EventArgs.Empty);
@@ -347,6 +369,16 @@ public sealed class StoredSession
 
     /// <summary>Gets or sets the extra <c>\include</c> directories.</summary>
     public List<string> IncludePath { get; set; }
+
+    /// <summary>Gets or sets the manuscripts the Manuscript Viewer had open.</summary>
+    /// <remarks>Upstream's <c>manuscriptview-documents</c> array (board wave
+    /// W15). One more member of the same JSON object, for the reason the
+    /// remarks on this class give: the settings add-in has no prefix-scan
+    /// API.</remarks>
+    public List<string> ManuscriptUrls { get; set; }
+
+    /// <summary>Gets or sets which manuscript was in front, or -1.</summary>
+    public int ActiveManuscript { get; set; } = -1;
 }
 
 /// <summary>

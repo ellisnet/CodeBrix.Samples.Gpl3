@@ -12,9 +12,7 @@ using Fresco.Brix.Engrave;
 using Fresco.Brix.Services;
 using Fresco.Brix.Shell;
 using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Media;
 using SkiaSharp;
 using System;
 using System.Collections.Generic;
@@ -59,15 +57,18 @@ public sealed class MusicViewPanel : Shell.Panel
 
     private MusicViewControl _view;
     private MusicViewContextMenu _contextMenu;
-    private ComboBox _chooser;
-    private TextBlock _pageLabel;
     private EditorDocument _document;
     private EditorView _editorView;
     private PointAndClickLinks _links;
     private IReadOnlyList<MusicDocument> _scores = Array.Empty<MusicDocument>();
     private (int Start, int Length)? _highlightRange;
     private bool _clickingLink;
-    private bool _updatingChooser;
+
+    //was previously: the chooser's own SelectedIndex. The chooser moved to the
+    //window's Music View Toolbar (board wave W14 / ruling FR16 — upstream's own
+    //arrangement: its panel has NO toolbar), so the panel keeps the index
+    //itself and the bar follows it.
+    private int _currentScoreIndex = -1;
 
     /// <summary>Creates the Music View panel.</summary>
     /// <param name="documents">The open documents.</param>
@@ -101,6 +102,80 @@ public sealed class MusicViewPanel : Shell.Panel
     /// <summary>Gets the Music View's commands.</summary>
     public MusicViewActions Actions { get; }
 
+    /// <summary>Raised when the list of engraved scores changed.</summary>
+    /// <remarks>Upstream's <c>DocumentChooserAction.documentsChanged</c>. The
+    /// chooser that listens to it is on the window's toolbar.</remarks>
+    public event EventHandler ScoresChanged;
+
+    /// <summary>
+    /// Raised when the page, the zoom or the view mode changed.
+    /// </summary>
+    /// <remarks>Upstream's view emits <c>currentPageNumberChanged</c>,
+    /// <c>pageCountChanged</c>, <c>zoomFactorChanged</c> and
+    /// <c>viewModeChanged</c> separately and <c>ViewActions</c> connects to all
+    /// four; the toolbar here re-reads all of them at once, which is the same
+    /// answer for a great deal less wiring.</remarks>
+    public event EventHandler ViewStateChanged;
+
+    /// <summary>Gets the engraved scores' names, for the toolbar's chooser.</summary>
+    /// <returns>The names, in order.</returns>
+    public IReadOnlyList<string> ScoreNames()
+    {
+        List<string> names = new List<string>(_scores.Count);
+        foreach (MusicDocument score in _scores) { names.Add(DisplayName(score)); }
+
+        return names;
+    }
+
+    /// <summary>Gets which score is shown, or -1.</summary>
+    public int CurrentScoreIndex => _currentScoreIndex;
+
+    /// <summary>Shows one of the engraved scores.</summary>
+    /// <param name="index">Which one, or -1 for none.</param>
+    public void SelectScore(int index)
+    {
+        if (index == _currentScoreIndex) { return; }
+
+        ShowScore(index);
+    }
+
+    /// <summary>Gets how many pages the score being shown has.</summary>
+    public int PageCount => _view?.PageCount ?? 0;
+
+    /// <summary>Gets which page is shown, one-based, or 0.</summary>
+    public int CurrentPageNumber => _view == null || _view.PageCount == 0
+        ? 0
+        : _view.CurrentPageNumber;
+
+    /// <summary>Shows a page.</summary>
+    /// <param name="number">The page, one-based.</param>
+    public void GoToPage(int number) => WithView(v => v.SetCurrentPageNumber(number));
+
+    /// <summary>Gets how the view fits its pages.</summary>
+    public ViewMode CurrentViewMode => _view?.ViewMode ?? ViewMode.FixedScale;
+
+    /// <summary>Gets the zoom factor, 1.0 being 100%.</summary>
+    public double ZoomFactor => _view?.ZoomFactor ?? 1.0;
+
+    /// <summary>Fits the pages the given way, and remembers it.</summary>
+    /// <param name="mode">The mode.</param>
+    /// <remarks>The toolbar's zoom chooser lists the three fit modes above the
+    /// percentages, exactly as upstream's does.</remarks>
+    public void ApplyViewMode(ViewMode mode) => SetViewMode(mode);
+
+    /// <summary>Zooms to a factor, and remembers it.</summary>
+    /// <param name="factor">The factor, 1.0 being 100%.</param>
+    public void ApplyZoomFactor(double factor)
+    {
+        WithView(v =>
+        {
+            v.ViewMode = ViewMode.FixedScale;
+            v.ZoomFactor = factor;
+            WriteSettings();
+        });
+        UpdateModeChecks();
+    }
+
     /// <summary>Gets or sets how the caret is put where a link points.</summary>
     /// <remarks>
     /// The panel does not know how to focus a view or open a document in one —
@@ -110,6 +185,26 @@ public sealed class MusicViewPanel : Shell.Panel
 
     /// <summary>Gets or sets how the editor view showing a document is found.</summary>
     public Func<EditorView> CurrentEditorView { get; set; }
+
+    /// <summary>Gets or sets how the panel asks whether Shift is held down.</summary>
+    /// <remarks>Board trap 38: the answer comes from the keyboard source, which
+    /// is the window's to ask, not from the pointer event's arguments. Upstream
+    /// reads the click's own <c>ev.modifiers()</c> because Qt puts them there
+    /// (<c>musicview/widget.py:131</c>).</remarks>
+    public Func<bool> IsShiftHeld { get; set; }
+
+    /// <summary>Says what a click on a link in the score does.</summary>
+    /// <param name="rightButton">Whether it was the right button.</param>
+    /// <param name="shiftHeld">Whether Shift was held down.</param>
+    /// <returns>What the click means.</returns>
+    /// <remarks>Upstream's <c>slotLinkClicked</c>, whole
+    /// (<c>musicview/widget.py:129-140</c>): the right button does nothing here
+    /// because the context menu has already had it; Shift opens Edit in Place
+    /// at the place clicked; anything else moves the caret there.</remarks>
+    public static MusicLinkAction LinkClickActionFor(bool rightButton, bool shiftHeld)
+        => rightButton ? MusicLinkAction.None
+            : shiftHeld ? MusicLinkAction.EditInPlace
+            : MusicLinkAction.GoToCursor;
 
     /// <inheritdoc/>
     public override string Title => I18n.Get("window title", "Music View");
@@ -219,6 +314,13 @@ public sealed class MusicViewPanel : Shell.Panel
         _view.LinkHovered += OnLinkHovered;
         _view.LinkLeft += OnLinkLeft;
         _view.CurrentPageChanged += (_, _) => UpdatePageLabel();
+
+        //The window's Music View Toolbar shows the page, the zoom and the fit
+        //mode, so all three have to say when they move. Upstream connects
+        //qpageview's four separate signals to its ViewActions for the same
+        //reason (viewactions.ViewActions.setView).
+        _view.ZoomChanged += (_, _) => ViewStateChanged?.Invoke(this, EventArgs.Empty);
+        _view.ViewChanged += (_, _) => ViewStateChanged?.Invoke(this, EventArgs.Empty);
         _view.ContextMenuRequested += OnContextMenuRequested;
 
         _contextMenu = new MusicViewContextMenu(Actions)
@@ -231,11 +333,12 @@ public sealed class MusicViewPanel : Shell.Panel
 
         ReadSettings();
 
+        //was previously: a Grid whose first row was the panel's OWN toolbar —
+        //the score chooser plus Width/Height/Page/Jump buttons (audit A EXTRA-03,
+        //GAP-26). Upstream's Music View panel has no toolbar of its own: every
+        //one of those controls is on the window's Music View Toolbar, which
+        //board wave W14 built. The panel is the view now, and nothing else.
         var root = new Grid();
-        root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-        root.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
-        root.Children.Add(BuildToolBar());
-        Grid.SetRow(_view, 1);
         root.Children.Add(_view);
 
         if (_document != null) { UpdateScores(); }
@@ -245,71 +348,6 @@ public sealed class MusicViewPanel : Shell.Panel
 
     private static string DisplayName(MusicDocument score)
         => score?.FileName == null ? string.Empty : Path.GetFileName(score.FileName);
-
-    private UIElement BuildToolBar()
-    {
-        var bar = new StackPanel
-        {
-            Orientation = Orientation.Horizontal,
-            Spacing = 4,
-            Padding = new Thickness(4, 2, 4, 2),
-            Background = new SolidColorBrush(Color.FromArgb(0x18, 0, 0, 0)),
-        };
-
-        _chooser = new ComboBox { MinWidth = 140, IsEnabled = false };
-        _chooser.SelectionChanged += (_, _) =>
-        {
-            if (_updatingChooser) { return; }
-
-            ShowScore(_chooser.SelectedIndex);
-        };
-
-        //Upstream's music_document_select IS this combo (a ComboBoxAction), so
-        //the combo takes its caption, its tooltip and its Ctrl+Shift+O — which
-        //drops the list open, because that is all a chooser can do from the
-        //keyboard.
-        if (Actions?.MusicDocumentSelect != null)
-        {
-            AutomationProperties.SetName(
-                _chooser,
-                Shell.MenuBuilder.Display(Actions.MusicDocumentSelect.Text));
-            ToolTipService.SetToolTip(_chooser, Actions.MusicDocumentSelect.ToolTip);
-            Actions.MusicDocumentSelect.Handler = () =>
-            {
-                _chooser.Focus(FocusState.Programmatic);
-                _chooser.IsDropDownOpen = true;
-            };
-        }
-
-        bar.Children.Add(_chooser);
-
-        bar.Children.Add(ToolButton(Actions.MusicZoomOut, "-"));
-        bar.Children.Add(ToolButton(Actions.MusicZoomOriginal, "1:1"));
-        bar.Children.Add(ToolButton(Actions.MusicZoomIn, "+"));
-        bar.Children.Add(ToolButton(Actions.MusicFitWidth, I18n.Get("Width")));
-        bar.Children.Add(ToolButton(Actions.MusicFitHeight, I18n.Get("Height")));
-        bar.Children.Add(ToolButton(Actions.MusicFitBoth, I18n.Get("Page")));
-        bar.Children.Add(ToolButton(Actions.MusicPreviousPage, "<"));
-
-        _pageLabel = new TextBlock { VerticalAlignment = VerticalAlignment.Center, MinWidth = 70 };
-        bar.Children.Add(_pageLabel);
-
-        bar.Children.Add(ToolButton(Actions.MusicNextPage, ">"));
-        bar.Children.Add(ToolButton(Actions.MusicJumpToCursor, I18n.Get("Jump")));
-        return bar;
-    }
-
-    private Button ToolButton(AppAction action, string caption)
-    {
-        var button = new Button
-        {
-            Content = caption,
-            Padding = new Thickness(6, 1, 6, 1),
-            MinWidth = 0,
-        };
-        button.Click += (_, _) => action.Trigger();
-        return button;
-    }
 
     /// <summary>Gets or sets who asks the user where to save an export.</summary>
     /// <remarks>
@@ -326,10 +364,9 @@ public sealed class MusicViewPanel : Shell.Panel
     /// <summary>Gets the score being shown, or null.</summary>
     /// <returns>The score.</returns>
     public MusicDocument CurrentScore()
-    {
-        int index = _chooser?.SelectedIndex ?? -1;
-        return index >= 0 && index < _scores.Count ? _scores[index] : null;
-    }
+        => _currentScoreIndex >= 0 && _currentScoreIndex < _scores.Count
+            ? _scores[_currentScoreIndex]
+            : null;
 
     /// <summary>Gets the page being shown, or null.</summary>
     /// <returns>The page.</returns>
@@ -680,28 +717,15 @@ public sealed class MusicViewPanel : Shell.Panel
         ShowScore(_scores.Count > 0 ? 0 : -1);
     }
 
-    private void UpdateChooser()
-    {
-        if (_chooser == null) { return; }
-
-        _updatingChooser = true;
-        try
-        {
-            _chooser.Items.Clear();
-            foreach (MusicDocument score in _scores) { _chooser.Items.Add(DisplayName(score)); }
-
-            _chooser.IsEnabled = _scores.Count > 0;
-            if (_scores.Count > 0) { _chooser.SelectedIndex = 0; }
-        }
-        finally
-        {
-            _updatingChooser = false;
-        }
-    }
+    private void UpdateChooser() => ScoresChanged?.Invoke(this, EventArgs.Empty);
 
     private void ShowScore(int index)
     {
-        if (_view == null) { return; }
+        if (_view == null)
+        {
+            _currentScoreIndex = index >= 0 && index < _scores.Count ? index : -1;
+            return;
+        }
 
         _links?.Detach();
         _links = null;
@@ -709,11 +733,13 @@ public sealed class MusicViewPanel : Shell.Panel
 
         if (index < 0 || index >= _scores.Count)
         {
+            _currentScoreIndex = -1;
             _view.Clear();
             UpdatePageLabel();
             return;
         }
 
+        _currentScoreIndex = index;
         MusicDocument score = _scores[index];
         _links = BuildLinks(score);
         _view.SetDocument(score);
@@ -791,14 +817,27 @@ public sealed class MusicViewPanel : Shell.Panel
         _contextMenu?.Show(e.Target, e.Position, e.Link, source);
     }
 
+    //was previously: the right button returned and everything else moved the
+    //caret — upstream's Shift branch, which opens Edit in Place on the object
+    //clicked, was missing even though the guide page this application ships
+    //(musicview_editinplace) tells the user to use it.
     private void OnLinkClicked(object sender, MusicLinkEventArgs e)
     {
-        if (e.Properties is { IsRightButtonPressed: true }) { return; }
+        MusicLinkAction action = LinkClickActionFor(
+            e.Properties is { IsRightButtonPressed: true },
+            IsShiftHeld?.Invoke() == true);
+        if (action == MusicLinkAction.None) { return; }
 
         if (!TextEditLink.TryParse(e.Link.Url, out TextEditPlace place)) { return; }
 
         var target = _links?.Cursor(PathUtil.NormPath(place.FileName), place.Line, place.Column, true);
         if (target == null) { return; }
+
+        if (action == MusicLinkAction.EditInPlace)
+        {
+            EditInPlace?.Invoke(target.Value.Document, target.Value.Offset);
+            return;
+        }
 
         _clickingLink = true;
         try
@@ -847,17 +886,11 @@ public sealed class MusicViewPanel : Shell.Panel
         return Color.FromArgb(128, color.R, color.G, color.B);
     }
 
-    private void UpdatePageLabel()
-    {
-        if (_pageLabel == null) { return; }
-
-        _pageLabel.Text = _view == null || _view.PageCount == 0
-            ? string.Empty
-            : I18n.Format(
-                I18n.Get("{num} of {total}"),
-                ("num", _view.CurrentPageNumber),
-                ("total", _view.PageCount));
-    }
+    //was previously: this wrote the panel toolbar's own page label. That label
+    //is now the window toolbar's pager box, which formats the same msgid
+    //("{num} of {total}") in PagerDisplay; the panel just says that something
+    //moved.
+    private void UpdatePageLabel() => ViewStateChanged?.Invoke(this, EventArgs.Empty);
 
     private void ReadSettings()
     {
@@ -944,4 +977,20 @@ public sealed class MusicViewPanel : Shell.Panel
     }
 
     private static SKColor ToSkia(Color color) => new SKColor(color.R, color.G, color.B, color.A);
+}
+
+/// <summary>What a click on a link in the score means.</summary>
+/// <remarks>Upstream's three branches in <c>musicview/widget.py</c>'s
+/// <c>slotLinkClicked</c>, named so the rule can be stated once and tested
+/// without a window.</remarks>
+public enum MusicLinkAction
+{
+    /// <summary>Nothing: the context menu has already had this click.</summary>
+    None,
+
+    /// <summary>Open the Edit in Place dialog at the place clicked.</summary>
+    EditInPlace,
+
+    /// <summary>Move the caret to the place clicked.</summary>
+    GoToCursor,
 }

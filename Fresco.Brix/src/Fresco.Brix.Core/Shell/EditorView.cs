@@ -37,6 +37,8 @@ public sealed class EditorView : Grid
     /// <summary>The metainfo value the caret position is remembered in.</summary>
     public const string RememberedPositionName = "position";
 
+    private readonly DeferredFocus _pendingFocus = new DeferredFocus();
+
     private FoldingManager _foldingManager;
 
     /// <summary>Creates a view of a document.</summary>
@@ -92,6 +94,12 @@ public sealed class EditorView : Grid
         };
         Editor.Document.TextChanged += (_, _) => RefreshFoldings();
         Editor.GotFocus += (_, _) => Focused?.Invoke(this, EventArgs.Empty);
+
+        //A focus request made before the editor was in the tree is honoured
+        //here, and only if it is still waiting: a view that loads with nothing
+        //pending must never pull the keyboard away from wherever it is.
+        Editor.Loaded
+            += (_, _) => _pendingFocus.Honour(() => Editor.Focus(FocusState.Programmatic));
         Editor.TextArea.SelectionChanged
             += (_, _) => SelectionChanged?.Invoke(this, EventArgs.Empty);
 
@@ -158,7 +166,19 @@ public sealed class EditorView : Grid
     }
 
     /// <summary>Gives the view keyboard focus.</summary>
-    public void FocusEditor() => Editor.Focus(FocusState.Programmatic);
+    /// <remarks>
+    /// A view the pane has only just built is not in the live visual tree
+    /// yet, and a XAML control that is not in the tree answers false to
+    /// <c>Focus</c> and stays unfocused — which is why a brand new document
+    /// used to open with the keyboard still on the chrome. Qt has no such gap
+    /// (<c>QWidget.setFocus()</c> on a widget that has not been shown is
+    /// remembered and honoured when it is shown), so upstream's
+    /// <c>viewmanager.py:260</c> can focus a view it built a line earlier.
+    /// <see cref="DeferredFocus"/> carries the request across the gap.
+    /// </remarks>
+    //was previously: public void FocusEditor() => Editor.Focus(FocusState.Programmatic);
+    public void FocusEditor()
+        => _pendingFocus.Request(() => Editor.Focus(FocusState.Programmatic));
 
     /// <summary>Gets or sets the strip shown under the editor, or null.</summary>
     /// <remarks>The search bar lives here. Only one thing at a time occupies

@@ -919,7 +919,19 @@ public sealed class DocumentFontsDialog
         options.Children.Add(
             SettingsEditor.Wrap(I18n.Get("Configure command generation"), generation));
 
-        page.Children.Add(options);
+        //A scroller of the column's own. This is the tallest of the four pages
+        //— two groups of check boxes, two combo boxes and a text box — and in
+        //a short window it is the one thing here that cannot shrink. Upstream's
+        //own tab is a QScrollArea for the same reason. //was previously: the
+        //StackPanel went straight into the column and was clipped instead.
+        ScrollViewer optionsScroller = new ScrollViewer
+        {
+            VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
+            HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled,
+            VerticalScrollMode = ScrollMode.Auto,
+            Content = options,
+        };
+        page.Children.Add(optionsScroller);
 
         _commandText = new TextBox
         {
