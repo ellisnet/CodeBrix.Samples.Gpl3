@@ -18,6 +18,18 @@ namespace Fresco.Brix;
 
 public partial class App : Application
 {
+    //The size the window opens at when nothing is remembered, and the smallest size it
+    //may be dragged to. The window's chrome (menu bar, the two toolbars on one row, the
+    //document tabs and the status line) takes about 150 units of height before the dock
+    //shell starts, and the shell puts the Music View beside the editor, so 1280 by 840
+    //leaves an editor column and a whole engraved page side by side at a readable zoom.
+    //The minimum is where the two toolbars stop fitting on one row and the widest thing
+    //the application raises (a dialog whose content asks for 700) stops fitting.
+    private const int LaunchWidth = 1280;
+    private const int LaunchHeight = 840;
+    private const int MinimumWidth = 900;
+    private const int MinimumHeight = 620;
+
     public App()
     {
         //Set Roboto as the default font for all text in the application
@@ -42,6 +54,21 @@ public partial class App : Application
             services.AddSingleton<Engrave.LilyPortEngine>();
         });
         SimpleViewModel.SetIsDesignMode(false);
+
+        //The size the first window opens at. ApplicationView.PreferredLaunchViewSize is
+        //the only public seam an application has for its own launch size: every desktop
+        //head reads it while it is creating the native window and falls back to the
+        //platform's own 1024 by 640 when it is empty, so it has to be set before any
+        //window exists. On the Linux X11 head the numbers are NATIVE pixels of the
+        //window's CLIENT area, which on a display at scale 1 is the same as logical
+        //units; how each of the other heads reads them is written up in the report that
+        //accompanied this change. The value is set on every launch, unconditionally,
+        //because the platform remembers it in its own settings file; setting it every
+        //time keeps that file in step with this source file instead of letting an old
+        //value linger. A size the user left behind still wins: the window's own store
+        //remembers it, and MainPage.RestoreWindowLayout applies it once the page loads.
+        Windows.UI.ViewManagement.ApplicationView.PreferredLaunchViewSize =
+            new Windows.Foundation.Size(LaunchWidth, LaunchHeight);
 
         InitializeComponent();
     }
@@ -78,6 +105,19 @@ public partial class App : Application
             Title = "Fresco.Brix"
         };
         Shell = MainWindow;
+
+        //The smallest size the user may drag the window to. The presenter is already in
+        //place here: constructing a Window builds its native window straight away once
+        //the application has finished initializing, and the window's default presenter is
+        //an OverlappedPresenter. Setting the minimum now, before Activate(), means the
+        //window manager has the constraint before the window is ever shown; setting it
+        //after Activate() also works, but the window has been mapped once by then. No
+        //maximum is set, so the window can still be resized up and maximized.
+        if (MainWindow.AppWindow.Presenter is Microsoft.UI.Windowing.OverlappedPresenter presenter)
+        {
+            presenter.PreferredMinimumWidth = MinimumWidth;
+            presenter.PreferredMinimumHeight = MinimumHeight;
+        }
 
         if (MainWindow.Content is not Frame rootFrame)
         {
