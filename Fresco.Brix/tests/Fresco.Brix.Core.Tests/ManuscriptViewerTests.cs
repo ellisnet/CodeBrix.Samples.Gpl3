@@ -76,7 +76,7 @@ internal static class ManuscriptFixture
 
         PdfDocument document = new PdfDocument();
 
-        //⚠ THE PADDING IS LOAD-BEARING. CodeBrix.PdfDocuments 1.0.243.38 (which
+        //⚠ THE PADDING IS LOAD-BEARING. CodeBrix.PdfDocuments 1.0.254.196 (which
         //the pinned CodeBrix.PdfRasterizer brings) refuses ANY PDF smaller than
         //1,024 bytes — PdfReader.Open throws "The file is not a valid PDF
         //document." on a file that is structurally perfect, measured at 1,022

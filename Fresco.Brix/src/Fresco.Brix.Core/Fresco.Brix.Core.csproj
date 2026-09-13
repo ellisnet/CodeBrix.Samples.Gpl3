@@ -7,21 +7,21 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.11" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="10.0.11" />
-    <PackageReference Include="CodeBrix.Platform.ApacheLicenseForever" Version="1.0.243.226" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.12" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="10.0.12" />
+    <PackageReference Include="CodeBrix.Platform.ApacheLicenseForever" Version="1.0.254.167" />
     <!-- The two OFL font packages (FD4) at the versions the PDF writer's family
          requires (the Html2Pdf family depends on Roboto and RobotoMono minimums;
          NuGet refuses the downgrade otherwise — board trap 66). Same faces,
          newer packages. //was previously: Roboto 1.0.238.528 and RobotoMono
-         1.0.238.534 (W11½'s forced move); before that Roboto 1.0.209.315 (the
+         1.0.248.1223 (W11½'s forced move); before that Roboto 1.0.209.315 (the
          scaffold pin) and RobotoMono 1.0.216.1150 (FD4, W2). RobotoMono
-         1.0.238.534 is still the latest published build of that package. -->
-    <PackageReference Include="CodeBrix.Platform.Fonts.Roboto.OflLicenseForever" Version="1.0.240.51" />
+         1.0.248.1223 is still the latest published build of that package. -->
+    <PackageReference Include="CodeBrix.Platform.Fonts.Roboto.OflLicenseForever" Version="1.0.248.1219" />
     <!-- The editor: the AvalonEdit-class text editing add-in (family version) -->
-    <PackageReference Include="CodeBrix.Platform.AdvancedTextEdit.ApacheLicenseForever" Version="1.0.243.226" />
+    <PackageReference Include="CodeBrix.Platform.AdvancedTextEdit.ApacheLicenseForever" Version="1.0.254.167" />
     <!-- The editor monospace font (FD4) -->
-    <PackageReference Include="CodeBrix.Platform.Fonts.RobotoMono.OflLicenseForever" Version="1.0.238.534" />
+    <PackageReference Include="CodeBrix.Platform.Fonts.RobotoMono.OflLicenseForever" Version="1.0.248.1223" />
     <!-- The settings store: the AppSettings add-in (W13 item 9, ruled by Jeremy
          on 2026-09-01 — the hard cut-over). Services/SettingsStore is now a THIN
          FACADE over the add-in's AppSettingsStore, which owns the file
@@ -39,12 +39,12 @@
          <ApplicationData>/Fresco.Brix/settings.sqlite. That file is left
          exactly where it is — there is NO migration (Jeremy's ruling): the
          application takes its first-run path with defaults. -->
-    <PackageReference Include="CodeBrix.Platform.AppSettings.ApacheLicenseForever" Version="1.0.243.226" />
+    <PackageReference Include="CodeBrix.Platform.AppSettings.ApacheLicenseForever" Version="1.0.254.167" />
     <!-- MIDI playback (FR6): the SoundFont synthesizer the MIDI panel plays
          through, in-process, with no MIDI ports of any kind.
          //was previously: 1.0.241.985 (W13 item 8, 2026-09-01);
          //was previously: 1.0.233.886 (the FR6 pin, W8). -->
-    <PackageReference Include="CodeBrix.Audio.MitLicenseForever" Version="1.0.245.150" />
+    <PackageReference Include="CodeBrix.Audio.MitLicenseForever" Version="1.0.250.60" />
     <!-- The documentation viewer (FR8): the manuals are PDFs LilyPort rendered
          and there is NO WebView anywhere, so the pages are rasterised by
          PDFium through this package and drawn in the same paged view the Music
@@ -61,7 +61,7 @@
          authorised on 2026-08-21; before that 1.0.217.117, the version the
          board's pin table was verified at on 2026-08-19.
          tools/manuals carries the same version. -->
-    <PackageReference Include="CodeBrix.PdfRasterizer.MitLicenseForever" Version="1.0.243.38" />
+    <PackageReference Include="CodeBrix.PdfRasterizer.MitLicenseForever" Version="1.0.254.196" />
   </ItemGroup>
 
   <ItemGroup>
@@ -91,7 +91,7 @@
        reference. CodeBrix.LilyPort moved to its own repository on 2026-08-27
        and those relative paths went with it. -->
   <ItemGroup>
-    <PackageReference Include="CodeBrix.LilyPort.GplLicenseForever" Version="1.0.244.98" />
+    <PackageReference Include="CodeBrix.LilyPort.GplLicenseForever" Version="1.0.255.1042" />
   </ItemGroup>
 
   <!-- NO Emmentaler font copy here, and that is correct. The engine carries its
@@ -123,9 +123,7 @@
        folder in this file uses. -->
 
   <ItemGroup>
-    <None Include="assets\layoutcontrol\*"
-          Link="assets\layoutcontrol\%(Filename)%(Extension)"
-          CopyToOutputDirectory="PreserveNewest" />
+    <None Include="assets\layoutcontrol\*" Link="assets\layoutcontrol\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <!-- The six sample scores the Document Fonts dialog engraves. They are
@@ -134,9 +132,7 @@
        THIRD-PARTY-NOTICES.txt section 2.1b. Content, not embedded, because the
        preview engraves a FILE and because the folder has to be droppable. -->
   <ItemGroup>
-    <None Include="assets\fonttemplates\*.ly"
-          Link="assets\fonttemplates\%(Filename)%(Extension)"
-          CopyToOutputDirectory="PreserveNewest" />
+    <None Include="assets\fonttemplates\*.ly" Link="assets\fonttemplates\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <!-- The user guide's pages (board decision FD8). They are Frescobaldi's own
@@ -150,9 +146,7 @@
        folder is droppable — with it emptied, Help > User Guide says the guide
        is not installed and the application runs on. -->
   <ItemGroup>
-    <None Include="assets\userguide\*"
-          Link="assets\userguide\%(Filename)%(Extension)"
-          CopyToOutputDirectory="PreserveNewest" />
+    <None Include="assets\userguide\*" Link="assets\userguide\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <!-- The interface translations (board wave W-I18N, ruling FR5.6). They are
@@ -170,12 +164,8 @@
        the same place beside the program, because that is where
        Services/LanguageSetup looks for it. -->
   <ItemGroup>
-    <None Include="assets\i18n\**\*.mo"
-          Link="assets\i18n\%(RecursiveDir)%(Filename)%(Extension)"
-          CopyToOutputDirectory="PreserveNewest" />
-    <None Include="assets\i18n\README.txt"
-          Link="assets\i18n\README.txt"
-          CopyToOutputDirectory="PreserveNewest" />
+    <None Include="assets\i18n\**\*.mo" Link="assets\i18n\%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="assets\i18n\README.txt" Link="assets\i18n\README.txt" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <!-- The hyphenation dictionaries, which the Hyphenate Lyrics Text command
@@ -187,9 +177,7 @@
        the notices have to travel WITH the files and because the search that
        finds them is a directory search either way. -->
   <ItemGroup>
-    <None Include="assets\hyphdicts\*"
-          Link="assets\hyphdicts\%(Filename)%(Extension)"
-          CopyToOutputDirectory="PreserveNewest" />
+    <None Include="assets\hyphdicts\*" Link="assets\hyphdicts\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <!-- The in-box General MIDI SoundFont (board decision FD2, ruled 2026-08-20).
@@ -207,9 +195,7 @@
        application still runs, reading whatever .sf2 or .sfz the user picks,
        so the license has to travel beside the data. -->
   <ItemGroup>
-    <None Include="assets\soundfonts\*"
-          Link="assets\soundfonts\%(Filename)%(Extension)"
-          CopyToOutputDirectory="PreserveNewest" />
+    <None Include="assets\soundfonts\*" Link="assets\soundfonts\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <!-- The nine bundled manuals (board wave W10). They are GNU FDL documents,
@@ -225,17 +211,14 @@
        and the SoundFont are: the licence has to travel WITH the files, and 27
        megabytes has no business inside an assembly. -->
   <ItemGroup>
-    <None Include="assets\docs\*"
-          Link="assets\docs\%(Filename)%(Extension)"
-          CopyToOutputDirectory="PreserveNewest" />
+    <None Include="assets\docs\*" Link="assets\docs\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <!-- The Quick Insert panel's button icons, engraved by LilyPort itself from
        Frescobaldi's symbol sources (GPL). Regenerate with
        tools/symbolicons; the tool ships nothing and is not in the solution. -->
   <ItemGroup>
-    <EmbeddedResource Include="assets\symbols\*.svg"
-                      LogicalName="Fresco.Brix.Symbols.%(Filename).svg" />
+    <EmbeddedResource Include="assets\symbols\*.svg" LogicalName="Fresco.Brix.Symbols.%(Filename).svg" />
   </ItemGroup>
 
   <!-- The two window toolbars' icons (board wave W14, ruling FR16). They are
@@ -261,12 +244,8 @@
        beside them AND in the application's own output folder, because the
        artwork is third-party work aggregated with the program (board rule 13). -->
   <ItemGroup>
-    <EmbeddedResource Include="assets\icons\light\*.svg"
-                      LogicalName="Fresco.Brix.Icons.Light.%(Filename).svg" />
-    <EmbeddedResource Include="assets\icons\dark\*.svg"
-                      LogicalName="Fresco.Brix.Icons.Dark.%(Filename).svg" />
-    <None Include="assets\icons\*.txt"
-          Link="assets\icons\%(Filename)%(Extension)"
-          CopyToOutputDirectory="PreserveNewest" />
+    <EmbeddedResource Include="assets\icons\light\*.svg" LogicalName="Fresco.Brix.Icons.Light.%(Filename).svg" />
+    <EmbeddedResource Include="assets\icons\dark\*.svg" LogicalName="Fresco.Brix.Icons.Dark.%(Filename).svg" />
+    <None Include="assets\icons\*.txt" Link="assets\icons\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>
