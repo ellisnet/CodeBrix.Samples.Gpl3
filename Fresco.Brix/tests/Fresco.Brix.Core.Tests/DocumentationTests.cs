@@ -7,9 +7,14 @@
 
 using CodeBrix.PdfDocuments.Pdf;
 using CodeBrix.PdfDocuments.Pdf.IO;
+using CodeBrix.Platform.UI.CommandBar;
+using Fresco.Brix.Commands;
 using Fresco.Brix.Documentation;
 using Fresco.Brix.MusicView;
 using Fresco.Brix.Services;
+using Fresco.Brix.Shell;
+using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
 using SilverAssertions;
 using SkiaSharp;
 using System;
@@ -17,6 +22,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Windows.Foundation;
 using Xunit;
 
 namespace Fresco.Brix.Core.Tests;
@@ -617,4 +623,232 @@ public class HelperApplicationTests
     /// current drive here. On Linux and macOS this is "/tmp/x" unchanged.</remarks>
     private static string Rooted(string name)
         => Path.GetFullPath(Path.Combine("/tmp", name));
+}
+
+/// <summary>
+/// The Documentation Browser's own toolbar, built without a window.
+/// </summary>
+/// <remarks>
+/// The bar is asked for directly rather than through the panel's widget: the
+/// widget also opens a manual and renders its first page, and neither has
+/// anything to do with what is on the bar. Every class that builds a
+/// CodeBrix.Platform XAML object belongs to <see cref="XamlTestCollection"/>.
+/// </remarks>
+[Collection(XamlTestCollection.Name)]
+public class DocumentationToolBarTests
+{
+    /// <summary>
+    /// The panel's own order. Back, Forward, the separator between them and the
+    /// rest, and Home are upstream's (docbrowser/browser.py:72-82); the contents
+    /// toggle, the five view buttons and the pager are this panel's, because a
+    /// set of PDFs needs them and a web view did not.
+    /// </summary>
+    /// <remarks>A null stands for a separator, "&lt;page&gt;" for the page
+    /// label, and the rest are the captions the buttons show.</remarks>
+    private static readonly string[] PanelOrder =
+    {
+        "<<", ">>", null, "Home", "Contents",
+        null, "-", "1:1", "+", "Width", "Page",
+        null, "<", "<page>", ">",
+        null, "Open",
+    };
+
+    [Fact]
+    public void the_bar_holds_one_item_per_entry_in_the_panels_own_order()
+    {
+        //Arrange
+        DocumentationPanel panel = Panel(out _);
+
+        //Act
+        ToolBar bar = BarOf(panel);
+
+        //Assert
+        IReadOnlyList<UIElement> items = Items(bar);
+        items.Count.Should().Be(PanelOrder.Length);
+        for (int index = 0; index < PanelOrder.Length; index++)
+        {
+            switch (PanelOrder[index])
+            {
+                case null:
+                    items[index].Should().BeOfType<ToolBarSeparator>();
+                    break;
+                case "<page>":
+                    items[index].Should().BeOfType<TextBlock>();
+                    break;
+                default:
+                    ToolButton button = items[index].Should()
+                        .BeAssignableTo<ToolButton>().Subject;
+                    button.Text.Should().Be(PanelOrder[index]);
+                    break;
+            }
+        }
+    }
+
+    [Fact]
+    public void the_bar_shows_text_because_the_captions_are_the_labels()
+    {
+        //Arrange
+        DocumentationPanel panel = Panel(out _);
+
+        //Act
+        ToolBar bar = BarOf(panel);
+
+        //Assert — upstream's docbrowser toolbar follows the window's icon
+        //style; this one shows its captions, and the chevron replaced the
+        //scrolling row.
+        ToolBarProperties.GetLabelMode(bar).Should().Be(LabelMode.TextOnly);
+        ToolBarProperties.GetShowToolTips(bar).Should().BeTrue();
+        bar.OverflowMode.Should().Be(OverflowMode.Chevron);
+        bar.Title.Should().Be(panel.Title);
+    }
+
+    [Fact]
+    public void the_three_commands_that_ship_no_artwork_are_why_this_bar_shows_text()
+    {
+        //Arrange, Act, Assert — of the six commands on the bar only these three
+        //name a file the two shipped icon sets carry, so an icon bar would be
+        //three decorated buttons among ten bare ones. A name no set ships hands
+        //back nothing at all, which is what a blank square would have been.
+        IconTheme.Source("go-previous").Should().NotBeNull();
+        IconTheme.Source("go-next").Should().NotBeNull();
+        IconTheme.Source("document-open").Should().NotBeNull();
+        IconTheme.Source("go-home").Should().BeNull();
+        IconTheme.Source("go-up").Should().BeNull();
+        IconTheme.Source("go-down").Should().BeNull();
+    }
+
+    [Fact]
+    public void a_caption_that_is_not_the_commands_name_carries_frescos_own_tip()
+    {
+        //Arrange
+        DocumentationPanel panel = Panel(out DocumentationActions actions);
+        ToolBar bar = BarOf(panel);
+
+        //Act
+        IReadOnlyList<ToolButton> buttons = Buttons(bar);
+
+        //Assert — the add-in must not compose a tool tip out of "<<", so the
+        //application writes the whole thing; where the caption IS the label,
+        //Home, the add-in composes it and lands on the same string.
+        ToolTipService.GetToolTip(buttons[0]).Should().Be("Back");
+        ToolTipService.GetToolTip(buttons[0])
+            .Should().Be(ToolbarLayout.ToolTipFor(actions.HelpBack));
+        ToolTipService.GetToolTip(buttons[1]).Should().Be("Forward");
+        buttons.Single(b => b.Text == "Home").ComposedToolTipText.Should().Be("Home");
+        ToolTipService.GetToolTip(buttons.Single(b => b.Text == "Open"))
+            .Should().Be("Open in External Viewer");
+    }
+
+    [Fact]
+    public void the_view_buttons_that_have_no_command_still_say_what_they_do()
+    {
+        //Arrange — the five are this panel's own, so nothing names them but the
+        //msgids the Manuscript Viewer's own actions already carry.
+        DocumentationPanel panel = Panel(out _);
+
+        //Act
+        IReadOnlyList<ToolButton> buttons = Buttons(BarOf(panel));
+
+        //Assert
+        ToolTipService.GetToolTip(buttons.Single(b => b.Text == "-"))
+            .Should().Be("Zoom Out");
+        ToolTipService.GetToolTip(buttons.Single(b => b.Text == "1:1"))
+            .Should().Be("Original Size");
+        ToolTipService.GetToolTip(buttons.Single(b => b.Text == "+"))
+            .Should().Be("Zoom In");
+        ToolTipService.GetToolTip(buttons.Single(b => b.Text == "Width"))
+            .Should().Be("Fit Width");
+        ToolTipService.GetToolTip(buttons.Single(b => b.Text == "Page"))
+            .Should().Be("Fit Page");
+        //Six buttons on this bar have no command behind them at all: these
+        //five and the contents toggle.
+        buttons.Where(b => b.Command == null).Should().HaveCount(6);
+    }
+
+    [Fact]
+    public void the_contents_button_is_a_toggle_and_a_click_flips_it_once()
+    {
+        //Arrange — this toggle drives no AppAction, so there is no second flip
+        //to keep in step with: the toggle IS the state, and it is remembered.
+        SettingsStore settings = TestSettings.Create();
+        DocumentationPanel panel = new DocumentationPanel(
+            new ManualLibrary(), new DocumentationActions(settings), settings);
+        ToolToggleButton contents = (ToolToggleButton)Items(BarOf(panel))
+            .OfType<ToolButton>().Single(b => b.Text == "Contents");
+        bool before = contents.IsChecked;
+
+        //Act — the same code path a pointer takes.
+        new ToolToggleButtonAutomationPeer(contents).Toggle();
+
+        //Assert
+        before.Should().BeTrue();
+        contents.IsChecked.Should().BeFalse();
+        settings.GetBool(DocumentationPanel.SettingsPrefix + "contents", true)
+            .Should().BeFalse();
+    }
+
+    [Fact]
+    public void back_and_forward_follow_the_history_without_the_panel_setting_it()
+    {
+        //Arrange — nothing sets IsEnabled on a button; it follows the command's
+        //CanExecute, which AppAction answers from its own IsEnabled.
+        DocumentationPanel panel = Panel(out DocumentationActions actions);
+        IReadOnlyList<ToolButton> buttons = Buttons(BarOf(panel));
+
+        //Act
+        bool disabled = buttons[0].IsEnabled;
+        actions.HelpBack.IsEnabled = true;
+
+        //Assert — a fresh panel has been nowhere, so there is nothing to go
+        //back to.
+        disabled.Should().BeFalse();
+        buttons[0].IsEnabled.Should().BeTrue();
+    }
+
+    [Fact]
+    public void a_narrow_bar_pushes_its_trailing_items_behind_the_chevron()
+    {
+        //Arrange — the behaviour that replaces the hidden horizontal scrollbar.
+        TestHost.EnsureReady();
+        DocumentationPanel panel = Panel(out _);
+        ToolBar bar = BarOf(panel);
+
+        //Act
+        bar.Measure(new Size(1600d, 100d));
+        bool fitsWide = bar.HasOverflowItems;
+        bar.Measure(new Size(120d, 100d));
+
+        //Assert
+        fitsWide.Should().BeFalse();
+        bar.HasOverflowItems.Should().BeTrue();
+        bar.OverflowItems.Should().NotBeEmpty();
+    }
+
+    /// <summary>Makes a panel over a store of its own.</summary>
+    /// <param name="actions">The panel's commands.</param>
+    /// <returns>The panel.</returns>
+    private static DocumentationPanel Panel(out DocumentationActions actions)
+    {
+        SettingsStore settings = TestSettings.Create();
+        actions = new DocumentationActions(settings);
+        return new DocumentationPanel(new ManualLibrary(), actions, settings);
+    }
+
+    /// <summary>Answers the bar under the panel's chooser row.</summary>
+    /// <param name="panel">The panel.</param>
+    /// <returns>The bar.</returns>
+    private static ToolBar BarOf(DocumentationPanel panel)
+        => ((Grid)panel.BuildToolBar()).Children.OfType<ToolBar>().Single();
+
+    /// <summary>Answers the elements on a bar, in bar order.</summary>
+    /// <param name="bar">The bar.</param>
+    /// <returns>The elements.</returns>
+    private static IReadOnlyList<UIElement> Items(ToolBar bar)
+        => bar.Items.Cast<UIElement>().ToList();
+
+    /// <summary>Answers every button on a bar.</summary>
+    /// <param name="bar">The bar.</param>
+    /// <returns>The buttons.</returns>
+    private static IReadOnlyList<ToolButton> Buttons(ToolBar bar)
+        => Items(bar).OfType<ToolButton>().ToList();
 }

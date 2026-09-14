@@ -227,7 +227,12 @@ public sealed partial class MainPage : Page, IWindowBridge, IRemoteCommandTarget
             _viewManager, viewModel.SideBarActions, viewModel.Settings);
 
         _shell = new DockShell { Center = _viewManager };
-        ShellHost.Content = _shell;
+        ShellHost.Content = _shell.Root;
+
+        //A divider the user has finished dragging is written out there and
+        //then, as well as on the way out: upstream saves only on close, but
+        //upstream's dividers are not the only thing this key holds.
+        _shell.LayoutChanged += (_, _) => SaveWindowLayout();
 
         viewModel.Panels = new PanelManager(_shell, viewModel.Settings);
         viewModel.ActionManager.Add(viewModel.Panels.Actions);
@@ -341,7 +346,7 @@ public sealed partial class MainPage : Page, IWindowBridge, IRemoteCommandTarget
             OpenExternalUrl = OpenExternalFile,
             ShowCursor = (document, offset) => viewModel.Browser.GoTo(document, offset),
             CurrentEditorView = () => _viewManager?.ActiveView,
-            IsShiftHeld = MainToolbar.ShiftHeld,
+            IsShiftHeld = ToolbarLayout.ShiftHeld,
             Report = message => viewModel.StatusText = message,
         };
         _manuscriptPanel.EditInPlace = (document, offset) => _ = EditInPlaceAsync(
@@ -423,7 +428,7 @@ public sealed partial class MainPage : Page, IWindowBridge, IRemoteCommandTarget
         //application ships (musicview_editinplace) tells the user to do. The
         //modifier is read from the keyboard source, not from the pointer event
         //(board trap 38), which is why the panel asks for it.
-        _musicViewPanel.IsShiftHeld = MainToolbar.ShiftHeld;
+        _musicViewPanel.IsShiftHeld = ToolbarLayout.ShiftHeld;
 
         WireEditorTools(viewModel);
         WireMusicTools(viewModel);
@@ -521,7 +526,7 @@ public sealed partial class MainPage : Page, IWindowBridge, IRemoteCommandTarget
 
         //Upstream reads QApplication.keyboardModifiers() inside engraveRunner;
         //the engraver is host-free, so the window hands it the read (trap 38).
-        viewModel.Engraver.IsShiftHeld = MainToolbar.ShiftHeld;
+        viewModel.Engraver.IsShiftHeld = ToolbarLayout.ShiftHeld;
 
         WireExternalChanges(viewModel);
 
@@ -1995,18 +2000,20 @@ public sealed partial class MainPage : Page, IWindowBridge, IRemoteCommandTarget
 
         _shell.CaptureLayout().Save(settings);
 
-        //The WINDOW's own bounds, not AppWindow.Size: on the X11 head the
-        //latter answers the FRAMED size (measured 1220x850 for a 1200x800
-        //window), so feeding it back to Resize — which sets the size the
-        //window itself gets — would grow the window by the frame on every
-        //launch. Bounds is what Resize is the inverse of.
-        Windows.Foundation.Rect bounds = App.Shell?.Bounds ?? default;
-        DockLayout.SaveWindowSize(
-            settings, (int)Math.Round(bounds.Width), (int)Math.Round(bounds.Height));
+        //AppWindow.Size, not the window's Bounds. Resize and Size are a matched
+        //pair — whatever quantity one sets, the other reports — and on the X11
+        //head that pair is the FRAMED size, the window plus whatever the window
+        //manager draws around it, while Bounds keeps answering the CLIENT area
+        //the page is laid out into. Storing Bounds and restoring through Resize
+        //therefore loses the frame on every round trip, and the window shrinks
+        //by the frame on each launch. Storing what Resize consumes makes the
+        //round trip exact: launch N + 1 opens the same window as launch N.
+        Microsoft.UI.Windowing.AppWindow window = App.Shell?.AppWindow;
+        Windows.Graphics.SizeInt32 size =
+            window != null ? window.Size : default;
+        DockLayout.SaveWindowSize(settings, size.Width, size.Height);
     }
 
-    /// <summary>Puts the caret where an engine message pointed.</summary>
-    /// <param name="reference">The reference.</param>
     /// <summary>Puts the caret where a click in the Music View points.</summary>
     /// <param name="document">The source document the link points into.</param>
     /// <param name="offset">Where in it.</param>
@@ -2036,6 +2043,8 @@ public sealed partial class MainPage : Page, IWindowBridge, IRemoteCommandTarget
         view.FocusEditor();
     }
 
+    /// <summary>Puts the caret where an engine message pointed.</summary>
+    /// <param name="reference">The reference.</param>
     private void ShowErrorReference(ErrorReference reference)
     {
         MainViewModel viewModel = ViewModel;

@@ -40,6 +40,20 @@
          exactly where it is — there is NO migration (Jeremy's ruling): the
          application takes its first-run path with defaults. -->
     <PackageReference Include="CodeBrix.Platform.AppSettings.ApacheLicenseForever" Version="1.0.254.167" />
+    <!-- The two window toolbars and the two panel toolbars: the CommandBar
+         add-in. ToolBarTray/ToolBar/ToolButton/ToolDropDownButton/
+         ToolToggleButton/ToolBarSeparator replace the hand-built StackPanel row
+         in Shell/MainToolbar.cs, which was written when CodeBrix.Platform had no
+         toolbar control. The add-in owns the chrome, the chevron overflow, the
+         keyboard walk and the automation peers.
+         It carries a HARD dependency on the Svg add-in
+         (CodeBrix.Platform.Svg.ApacheLicenseForever), which is how the button
+         icons are drawn: the embedded light/dark icon SVGs below are handed to
+         SvgIconSource through cb-res:// URIs. The Svg add-in in turn brings
+         CodeBrix.Platform.Graphics2DSK, CodeBrix.SkiaSvg and
+         CodeBrix.Platform.SkiaSharp.Views — the last two at the versions
+         Fresco.Brix.MusicView already pins. Apache-2.0 and MIT throughout. -->
+    <PackageReference Include="CodeBrix.Platform.CommandBar.ApacheLicenseForever" Version="1.0.254.167" />
     <!-- MIDI playback (FR6): the SoundFont synthesizer the MIDI panel plays
          through, in-process, with no MIDI ports of any kind.
          //was previously: 1.0.241.985 (W13 item 8, 2026-09-01);
@@ -221,7 +235,7 @@
     <EmbeddedResource Include="assets\symbols\*.svg" LogicalName="Fresco.Brix.Symbols.%(Filename).svg" />
   </ItemGroup>
 
-  <!-- The two window toolbars' icons (board wave W14, ruling FR16). They are
+  <!-- The toolbars' icons (board wave W14, ruling FR16). They are
        Frescobaldi's OWN Light and Dark icon sets, taken from the commit this
        application was ported from, where they are the default look: Tabler
        Icons (MIT, Pawel Kuna) modified for Frescobaldi and conveyed under its
@@ -229,10 +243,18 @@
        and is not in the solution; see assets/icons/README-frescobaldi-icons.txt
        and THIRD-PARTY-NOTICES.txt section 11.
 
-       EmbeddedResource, exactly as the Quick Insert glyphs above are, and read
-       through the same one renderer (QuickInsert/SymbolIcons — board rule 6b
-       forbids a second Skia call site). Two prefixes, because the set is chosen
-       at runtime by the platform's theme (Services/IconTheme).
+       EmbeddedResource, exactly as the Quick Insert glyphs above are, but read
+       two ways. A toolbar button's icon is drawn BY THE PLATFORM: the CommandBar
+       add-in above brings the Svg add-in with it, and Services/IconTheme hands
+       that add-in the light file and the dark file of a pair as cb-res:// URIs
+       naming these logical names, so the platform reads the resource out of
+       this assembly and draws it, untinted, at the window's own theme.
+       Everything else that wants one of these files as a bitmap still goes
+       through the application's own renderer, QuickInsert/SymbolIcons, which is
+       what the Quick Insert glyphs above use and what the parity test renders
+       through; board rule 6b is why there is one such renderer and not two.
+       Two prefixes, because the set is chosen at runtime by the platform's
+       theme (Services/IconTheme).
 
        ⚠ ONE of these thirty files is NOT a byte-for-byte copy of upstream's:
        tools-score-wizard.svg, in both sets, is a DELIBERATE DIVERGENCE FROM

@@ -61,8 +61,15 @@ public class DockLayoutTests : IDisposable
                 Name = "logtool", Area = DockArea.Bottom, IsActive = true,
             },
         },
-        MiddleSizes = new List<double> { 2.25, 1.75 },
-        OuterSizes = new List<double> { 4.0, 1.0 },
+        Sizes = new ShellLayout
+        {
+            OuterSidePercent = 31d,
+            OuterStackPercent = 69d,
+            OuterUpperPercent = 72d,
+            OuterLowerPercent = 28d,
+            InnerSidePercent = 24d,
+            InnerStackPercent = 76d,
+        },
     };
 
     // -------------------------------------------------------------- the keys
@@ -97,8 +104,99 @@ public class DockLayoutTests : IDisposable
             .Equal(new[] { DockArea.Right, DockArea.Right, DockArea.Bottom });
         read.Panels.Select(p => p.IsActive).Should()
             .Equal(new[] { true, false, true });
-        read.MiddleSizes.Should().Equal(new[] { 2.25, 1.75 });
-        read.OuterSizes.Should().Equal(new[] { 4.0, 1.0 });
+        read.Sizes.OuterSidePercent.Should().Be(31d);
+        read.Sizes.OuterStackPercent.Should().Be(69d);
+        read.Sizes.OuterUpperPercent.Should().Be(72d);
+        read.Sizes.OuterLowerPercent.Should().Be(28d);
+        read.Sizes.InnerSidePercent.Should().Be(24d);
+        read.Sizes.InnerStackPercent.Should().Be(76d);
+        read.Sizes.IsUsable.Should().BeTrue();
+    }
+
+    [Fact]
+    public void an_arrangement_that_recorded_no_dividers_opens_at_the_defaults()
+    {
+        //Arrange
+        DockLayout written = new DockLayout
+        {
+            Panels =
+            {
+                new DockPanelState
+                {
+                    Name = "musicview", Area = DockArea.Right, IsActive = true,
+                },
+            },
+        };
+
+        //Act
+        written.Save(_settings);
+        DockLayout read = DockLayout.Load(_settings);
+
+        //Assert
+        read.Sizes.Should().NotBeNull();
+        read.Sizes.OuterSidePercent.Should().Be(ShellLayout.DefaultOuterSidePercent);
+        read.Sizes.InnerSidePercent.Should().Be(ShellLayout.DefaultInnerSidePercent);
+        read.Sizes.IsUsable.Should().BeTrue();
+    }
+
+    [Fact]
+    public void an_arrangement_written_by_the_shell_that_came_before_yields_defaults()
+    {
+        //Arrange
+        //The shell that came before this one stored two lists of splitter
+        //weights whose length followed how many areas were on screen. Exactly that payload, written into the
+        //store the way the shell that came before this one wrote it.
+        _settings.Set(
+            DockLayout.StateKey,
+            new
+            {
+                Panels = new[]
+                {
+                    new { Name = "logtool", Area = DockArea.Bottom, IsActive = true },
+                },
+                MiddleSizes = new[] { 1.0, 3.0, 1.0 },
+                OuterSizes = new[] { 4.0, 1.0 },
+            });
+
+        //Act
+        DockLayout read = DockLayout.Load(_settings);
+
+        //Assert
+        //It is read for its panels and nothing else: there is no migration, so
+        //the dividers open where the shell says they should rather than being
+        //given weights written for a shell with different panes.
+        read.Should().NotBeNull();
+        read.Panels.Count.Should().Be(1);
+        read.ActiveIn(DockArea.Bottom).Should().Be("logtool");
+        read.Sizes.IsUsable.Should().BeTrue();
+        read.Sizes.Matches(new ShellLayout()).Should().BeTrue();
+    }
+
+    [Fact]
+    public void an_arrangement_whose_dividers_make_no_sense_is_not_applied()
+    {
+        //Arrange
+        DockLayout written = new DockLayout
+        {
+            Panels =
+            {
+                new DockPanelState
+                {
+                    Name = "logtool", Area = DockArea.Bottom, IsActive = true,
+                },
+            },
+            Sizes = new ShellLayout { OuterSidePercent = 0d, OuterStackPercent = 100d },
+        };
+
+        //Act
+        written.Save(_settings);
+        DockLayout read = DockLayout.Load(_settings);
+
+        //Assert
+        //A share of zero says "that strip is shut", which is the panel toggles'
+        //business; the shell asks this before it hands the shares over.
+        read.Panels.Count.Should().Be(1);
+        read.Sizes.IsUsable.Should().BeFalse();
     }
 
     [Fact]
@@ -179,7 +277,7 @@ public class DockLayoutTests : IDisposable
         //Arrange
         DockLayout layout = new DockLayout
         {
-            MiddleSizes = new List<double> { 3.0, 1.0 },
+            Sizes = new ShellLayout { OuterSidePercent = 31d, OuterStackPercent = 69d },
         };
 
         //Assert
@@ -217,6 +315,31 @@ public class DockLayoutTests : IDisposable
         //Assert
         size.Width.Should().Be(1100);
         size.Height.Should().Be(700);
+    }
+
+    [Fact]
+    public void the_size_a_launch_reads_is_the_size_the_next_launch_writes()
+    {
+        //Arrange
+        //What makes the window come back the same size is that the quantity
+        //stored is the quantity the head is handed to open the window with, so
+        //that reading it and writing it again changes nothing. The window class
+        //holds up its end by saving AppWindow.Size, which is exactly what
+        //AppWindow.Resize consumes; this is the store's end of the same round
+        //trip, which has to survive being replayed launch after launch.
+        DockLayout.SaveWindowSize(_settings, 1260, 790);
+
+        //Act
+        (int Width, int Height) first = DockLayout.LoadWindowSize(_settings);
+        DockLayout.SaveWindowSize(_settings, first.Width, first.Height);
+        (int Width, int Height) second = DockLayout.LoadWindowSize(_settings);
+        DockLayout.SaveWindowSize(_settings, second.Width, second.Height);
+        (int Width, int Height) third = DockLayout.LoadWindowSize(_settings);
+
+        //Assert
+        first.Should().Be((1260, 790));
+        second.Should().Be(first);
+        third.Should().Be(first);
     }
 
     [Fact]
@@ -280,17 +403,23 @@ public class DockLayoutTests : IDisposable
     }
 
     [Fact]
-    public void a_maximize_remembers_the_showing_tab_of_every_area_but_its_own()
+    public void a_maximize_does_not_disturb_what_is_recorded()
     {
         //Arrange
-        //What DockShell.RememberShowingTabs records when the Music View, which
-        //lives on the right, is given the whole window: the tab that was up in
-        //every OTHER area, and nothing for the right, whose showing tab is the
-        //maximized panel itself.
-        DockLayout remembered = new DockLayout
+        //This case used to fence DockShell.RememberShowingTabs, which
+        //existed because a maximize HID every other panel and the tab each area
+        //had up was lost with them. A maximize collapses the other panes now
+        //and hides nothing, so there is nothing to remember and nothing to fold
+        //back in: what a quit from Music > Maximize records is simply what is
+        //open, which is what this asserts.
+        DockLayout recorded = new DockLayout
         {
             Panels =
             {
+                new DockPanelState
+                {
+                    Name = "musicview", Area = DockArea.Right, IsActive = true,
+                },
                 new DockPanelState
                 {
                     Name = "logtool", Area = DockArea.Bottom, IsActive = true,
@@ -303,15 +432,16 @@ public class DockLayoutTests : IDisposable
         };
 
         //Act
-        string bottom = remembered.ActiveIn(DockArea.Bottom);
-        string left = remembered.ActiveIn(DockArea.Left);
-        string right = remembered.ActiveIn(DockArea.Right);
+        recorded.Save(_settings);
+        DockLayout read = DockLayout.Load(_settings);
 
         //Assert
-        //Restoring raises these two by name, so the panel that was showing
-        //comes back showing rather than whichever was re-shown last.
-        bottom.Should().Be("logtool");
-        left.Should().Be("snippettool");
-        right.Should().BeNull();
+        //Every area still names the tab it had up, the maximized panel's own
+        //area included — nothing was hidden, so nothing had to be restored to
+        //the record before it was written.
+        read.ActiveIn(DockArea.Right).Should().Be("musicview");
+        read.ActiveIn(DockArea.Bottom).Should().Be("logtool");
+        read.ActiveIn(DockArea.Left).Should().Be("snippettool");
+        read.Panels.Count.Should().Be(3);
     }
 }

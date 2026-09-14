@@ -333,11 +333,12 @@ public sealed class MusicViewPanel : Shell.Panel
 
         ReadSettings();
 
-        //was previously: a Grid whose first row was the panel's OWN toolbar —
-        //the score chooser plus Width/Height/Page/Jump buttons (audit A EXTRA-03,
-        //GAP-26). Upstream's Music View panel has no toolbar of its own: every
-        //one of those controls is on the window's Music View Toolbar, which
-        //board wave W14 built. The panel is the view now, and nothing else.
+        //The panel used to be a Grid whose first row was a toolbar of its OWN
+        //— the score chooser plus Width/Height/Page/Jump buttons (audit A
+        //EXTRA-03, GAP-26). Upstream's Music View panel has no toolbar of its
+        //own: every one of those controls is on the window's Music View
+        //Toolbar, which board wave W14 built. The panel is the view now, and
+        //nothing else.
         var root = new Grid();
         root.Children.Add(_view);
 

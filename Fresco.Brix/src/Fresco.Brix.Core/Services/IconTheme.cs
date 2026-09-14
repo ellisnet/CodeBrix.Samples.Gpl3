@@ -5,6 +5,7 @@
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
+using CodeBrix.Platform.UI.CommandBar;
 using Fresco.Brix.QuickInsert;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -28,8 +29,9 @@ public enum IconSet
 }
 
 /// <summary>
-/// The two window toolbars' icons: Frescobaldi's own Light and Dark sets,
-/// chosen by the platform's theme and drawn in the theme's foreground colour.
+/// The toolbars' icons: Frescobaldi's own Light and Dark sets, handed to the
+/// platform as a light/dark pair so that the theme picks which of the two is
+/// drawn.
 /// </summary>
 /// <remarks>
 /// <para>
@@ -42,9 +44,14 @@ public enum IconSet
 /// Upstream picks the set by comparing its palette's window colour with its
 /// window-text colour — <c>icons/__init__.py update_theme()</c> — and re-picks
 /// it whenever Qt sends <c>ApplicationPaletteChange</c>
-/// (<c>icons/change_theme_eventhandler.py</c>). The same rule here reads the
-/// platform's own answer to the same question, <c>FrameworkElement.ActualTheme</c>,
-/// and re-reads it on <c>ActualThemeChanged</c>.
+/// (<c>icons/change_theme_eventhandler.py</c>). A toolbar button asks the same
+/// question a different way: <see cref="Source"/> hands the platform BOTH files
+/// of a pair, and the platform draws whichever one the element's resolved theme
+/// asks for and redraws when that theme changes, so nothing here has to watch
+/// for the change or rebuild a bar when it happens.
+/// <see cref="SetFor"/>, <see cref="PrefixFor"/> and <see cref="Follow"/> are
+/// the same rule spelled out for a caller that wants one named file rather than
+/// a pair.
 /// </para>
 /// <para>
 /// ⚠ Upstream's rule is guarded by its <c>system_icons</c> preference, which
@@ -95,6 +102,14 @@ public static class IconTheme
     /// proves the pixels through this application's own renderer.
     /// </remarks>
     public const string DivergentIconName = "tools-score-wizard";
+
+    /// <summary>
+    /// The icon sources handed out so far, one per name, and the lock guarding
+    /// them. A name that no set ships is remembered as a null so the miss is
+    /// answered from the dictionary too.
+    /// </summary>
+    private static readonly Dictionary<string, SvgIconSource> _sources =
+        new Dictionary<string, SvgIconSource>();
 
     /// <summary>
     /// Every icon name the toolbars reference, in the order the bars use them.
@@ -176,6 +191,93 @@ public static class IconTheme
     /// <returns>Whether it does.</returns>
     public static bool Has(IconSet set, string name)
         => SymbolIcons.Has(PrefixFor(set), name);
+
+    /// <summary>
+    /// Hands out the toolbar icon a name stands for, as the light/dark pair the
+    /// CommandBar add-in draws from.
+    /// </summary>
+    /// <param name="name">The icon name, without its extension.</param>
+    /// <returns>
+    /// The icon source, or null when neither set ships that name — which is what
+    /// makes the add-in fall back to the button's text rather than draw a blank
+    /// square.
+    /// </returns>
+    /// <remarks>
+    /// <para>
+    /// The two files are named by their FULL manifest resource name. The
+    /// <c>cb-res://</c> scheme will also match a bare suffix, but only when
+    /// exactly one embedded resource ends that way, and this assembly embeds
+    /// both sets under names that differ in one segment — so the terse form
+    /// <c>cb-res://Fresco.Brix.Core/zoom-in.svg</c> matches two resources and
+    /// resolves to NOTHING. A missing icon is a blank icon, never an exception,
+    /// so <c>IconThemeTests</c> walks every name in both sets to fence it.
+    /// </para>
+    /// <para>
+    /// No tint is set. Upstream's two sets already encode the foreground as a
+    /// literal black (Light) or white (Dark), and a tint could not reach it
+    /// anyway: the add-in tints by handing the parser a stylesheet, and 9 of the
+    /// 19 light files and 16 of the 19 dark files write their colour in an
+    /// inline <c>style=</c> attribute, which outranks a stylesheet. Tinting would
+    /// therefore recolour part of each icon and not the rest. The bitmap route
+    /// below still forces every pixel to the theme foreground, which is why the
+    /// two routes differ by the ~6% luminance between #101010/#e8e8e8 and
+    /// #000000/#ffffff.
+    /// </para>
+    /// <para>
+    /// A source is CACHED and shared by every button that asks for the name: an
+    /// icon SOURCE may be shared, an icon ELEMENT may not, and the source creates
+    /// an element of its own for each button. The dictionary is guarded because
+    /// the test suite reaches it from more than one thread; the application only
+    /// ever reaches it from the UI thread.
+    /// </para>
+    /// </remarks>
+    public static SvgIconSource Source(string name)
+    {
+        if (string.IsNullOrEmpty(name)) { return null; }
+
+        lock (_sources)
+        {
+            if (_sources.TryGetValue(name, out SvgIconSource cached)) { return cached; }
+
+            bool light = Has(IconSet.Light, name);
+            bool dark = Has(IconSet.Dark, name);
+            if (!light && !dark)
+            {
+                _sources[name] = null;
+                return null;
+            }
+
+            //Either set stands in for the other when only one of them ships the
+            //name, so the button never draws nothing at one theme and something
+            //at the other. Both sets ship all of Names today; this is the guard
+            //for a name added to one set and forgotten in the other.
+            Uri lightUri = ResourceUri(light ? LightPrefix : DarkPrefix, name);
+            Uri darkUri = ResourceUri(dark ? DarkPrefix : LightPrefix, name);
+
+            SvgIconSource source = new SvgIconSource
+            {
+                Source = lightUri,
+                Dark = darkUri,
+                TintMode = IconTintMode.None,
+                Size = ToolbarIconSize,
+            };
+
+            _sources[name] = source;
+            return source;
+        }
+    }
+
+    /// <summary>Builds the resource URI one icon file is read through.</summary>
+    /// <param name="prefix">The set's resource prefix.</param>
+    /// <param name="name">The icon name, without its extension.</param>
+    /// <returns>The <c>cb-res://</c> URI naming the embedded file.</returns>
+    /// <remarks>
+    /// Building it through the add-in's own factory registers this assembly as a
+    /// side effect, which is what lets the URI resolve from a process that never
+    /// loaded the assembly by name.
+    /// </remarks>
+    public static Uri ResourceUri(string prefix, string name)
+        => IconResourceScheme.Create(typeof(IconTheme).Assembly, prefix + name + ".svg");
 
     /// <summary>Renders an icon into a bitmap.</summary>
     /// <param name="theme">The theme the element resolved to.</param>

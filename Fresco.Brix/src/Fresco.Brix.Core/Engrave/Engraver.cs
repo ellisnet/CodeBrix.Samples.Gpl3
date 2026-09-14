@@ -392,11 +392,11 @@ public sealed class Engraver
     {
         Actions.EngraveRunner.Handler = () =>
         {
-            //was previously: a running job was aborted and anything else ran a
-            //preview — the Shift branch was missing, because nothing could
-            //click the button (there was no toolbar). Upstream's
-            //`engraveRunner' has three branches and the tooltip promises all
-            //three: "Engrave (preview; Shift-click for custom)".
+            //Upstream's `engraveRunner' has three branches and the tool tip
+            //promises all three: "Engrave (preview; Shift-click for custom)".
+            //Only two of them were reachable while the window carried no
+            //toolbar, because the button that reads the modifier is the one
+            //route into the third.
             EngraveJob job = RunningJob();
             switch (RunnerActionFor(job != null, IsShiftHeld?.Invoke() == true))
             {

@@ -8,18 +8,24 @@
 using CodeBrix.PdfDocuments.Drawing;
 using CodeBrix.PdfDocuments.Pdf;
 using CodeBrix.PdfDocuments.Pdf.Annotations;
+using CodeBrix.Platform.UI.CommandBar;
 using Fresco.Brix.Commands;
 using Fresco.Brix.Documentation;
 using Fresco.Brix.Manuscripts;
 using Fresco.Brix.MusicView;
+using Fresco.Brix.Services;
 using Fresco.Brix.Sessions;
 using Fresco.Brix.Shell;
+using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Automation;
+using Microsoft.UI.Xaml.Controls;
 using SilverAssertions;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Windows.Foundation;
 using Xunit;
 
 namespace Fresco.Brix.Core.Tests;
@@ -816,4 +822,293 @@ public class ManuscriptViewerActionsTests
         ManuscriptViewerPanel.HelpPage.Should().Be("manuscriptview");
         ManuscriptViewerPanel.SettingsPrefix.Should().Be("manuscriptview/");
     }
+}
+
+/// <summary>
+/// The Manuscript Viewer's own toolbar, built without a window.
+/// </summary>
+/// <remarks>
+/// <para>
+/// The bar is asked for directly rather than through the panel's widget,
+/// because the widget also builds a page view, a context menu and an open
+/// manuscript, and none of those has anything to do with what is on the bar.
+/// </para>
+/// <para>
+/// Every class that builds a CodeBrix.Platform XAML object belongs to
+/// <see cref="XamlTestCollection"/>: the framework's object model is
+/// single-threaded and the host-free bootstrap tells every test thread it has
+/// thread access, so the collection is what keeps that work off the other
+/// 3,700 tests' threads.
+/// </para>
+/// </remarks>
+[Collection(XamlTestCollection.Name)]
+public class ManuscriptViewerToolBarTests
+{
+    /// <summary>
+    /// Upstream's own order, entry for entry — <c>AbstractViewerToolbar.populate</c>
+    /// (viewers/toolbar.py:81-94) — with the two differences this port records
+    /// out loud: no Print (ruling FR5.5), which takes the separator before it
+    /// with it, and Reload at the end (board wave W15).
+    /// </summary>
+    /// <remarks>A null stands for a separator; the three strings that are not
+    /// command names are the three controls that are not buttons.</remarks>
+    private static readonly string[] UpstreamOrder =
+    {
+        "viewer_open",
+        "viewer_close",
+        null,
+        "<chooser>",
+        null,
+        "viewer_zoom_in",
+        "<zoom>",
+        "viewer_zoom_out",
+        "viewer_magnifier",
+        null,
+        "viewer_prev_page",
+        "<pager>",
+        "viewer_next_page",
+        null,
+        "viewer_rotate_left",
+        "viewer_rotate_right",
+        null,
+        "viewer_reload",
+        "<spacer>",
+        "viewer_help",
+    };
+
+    [Fact]
+    public void the_bar_holds_one_item_per_upstream_entry_in_upstreams_order()
+    {
+        //Arrange
+        ManuscriptViewerActions actions = new ManuscriptViewerActions(TestSettings.Create());
+        ManuscriptViewerPanel panel = new ManuscriptViewerPanel(actions);
+
+        //Act
+        ToolBar bar = panel.BuildToolBar();
+
+        //Assert — one bar, not two rows: upstream's is a single QToolBar and the
+        //chevron is what a dock panel's toolbar was missing.
+        IReadOnlyList<UIElement> items = Items(bar);
+        items.Count.Should().Be(UpstreamOrder.Length);
+        for (int index = 0; index < UpstreamOrder.Length; index++)
+        {
+            switch (UpstreamOrder[index])
+            {
+                case null:
+                    items[index].Should().BeOfType<ToolBarSeparator>();
+                    break;
+                case "<chooser>":
+                case "<zoom>":
+                    items[index].Should().BeOfType<ComboBox>();
+                    break;
+                case "<pager>":
+                    items[index].Should().BeOfType<TextBox>();
+                    break;
+                case "<spacer>":
+                    items[index].Should().BeOfType<ToolBarSpacer>();
+                    break;
+                default:
+                    ToolButton button = items[index].Should()
+                        .BeAssignableTo<ToolButton>().Subject;
+                    ((AppAction)button.Command).Name.Should().Be(UpstreamOrder[index]);
+                    break;
+            }
+        }
+    }
+
+    [Fact]
+    public void the_help_button_is_last_and_a_filling_spacer_pushes_it_there()
+    {
+        //Arrange
+        ManuscriptViewerActions actions = new ManuscriptViewerActions(TestSettings.Create());
+        ManuscriptViewerPanel panel = new ManuscriptViewerPanel(actions);
+
+        //Act
+        IReadOnlyList<UIElement> items = Items(panel.BuildToolBar());
+
+        //Assert — upstream keeps Help in a second, right-aligned toolbar with a
+        //stretch before it (viewers/toolbar.py createLayout). One filling spacer
+        //is that stretch.
+        ToolButton help = items[^1].Should().BeAssignableTo<ToolButton>().Subject;
+        ((AppAction)help.Command).Should().BeSameAs(actions.ViewerHelp);
+        ToolBarSpacer spacer = items[^2].Should().BeOfType<ToolBarSpacer>().Subject;
+        spacer.Fill.Should().BeTrue();
+    }
+
+    [Fact]
+    public void every_icon_the_bar_asks_for_ships_in_both_sets()
+    {
+        //Arrange
+        ManuscriptViewerActions actions = new ManuscriptViewerActions(TestSettings.Create());
+        ManuscriptViewerPanel panel = new ManuscriptViewerPanel(actions);
+
+        //Act
+        IReadOnlyList<ToolButton> buttons = Buttons(panel.BuildToolBar());
+
+        //Assert — a name no set ships hands back NOTHING, and a missing icon is
+        //a blank icon rather than an exception, so this is the one trap on this
+        //bar that would never be noticed in a build log.
+        buttons.Should().NotBeEmpty();
+        foreach (ToolButton button in buttons)
+        {
+            AppAction action = (AppAction)button.Command;
+            IconTheme.Has(IconSet.Light, action.IconName).Should().BeTrue();
+            IconTheme.Has(IconSet.Dark, action.IconName).Should().BeTrue();
+            button.Icon.Should().BeSameAs(IconTheme.Source(action.IconName));
+            button.Icon.Should().NotBeNull();
+        }
+    }
+
+    [Fact]
+    public void the_magnifier_is_a_toggle_and_a_click_flips_the_action_once()
+    {
+        //Arrange — the one checkable action on the bar.
+        ManuscriptViewerActions actions = new ManuscriptViewerActions(TestSettings.Create());
+        ManuscriptViewerPanel panel = new ManuscriptViewerPanel(actions);
+        ToolToggleButton magnifier =
+            (ToolToggleButton)ButtonFor(panel.BuildToolBar(), "viewer_magnifier");
+        bool before = actions.ViewerMagnifier.IsChecked;
+        int triggered = 0;
+        actions.ViewerMagnifier.Triggered += (_, _) => triggered++;
+
+        //Act — the same code path a pointer takes.
+        new ToolToggleButtonAutomationPeer(magnifier).Toggle();
+
+        //Assert — the toggle flips its own state and the command flips the
+        //action's, one flip each. Writing the action from the button as well
+        //would cancel the two out and leave the magnifier where it was.
+        triggered.Should().Be(1);
+        actions.ViewerMagnifier.IsChecked.Should().Be(!before);
+        magnifier.IsChecked.Should().Be(actions.ViewerMagnifier.IsChecked);
+    }
+
+    [Fact]
+    public void a_button_whose_tip_is_its_label_lets_the_add_in_compose_it()
+    {
+        //Arrange
+        ManuscriptViewerActions actions = new ManuscriptViewerActions(TestSettings.Create());
+        ManuscriptViewerPanel panel = new ManuscriptViewerPanel(actions);
+
+        //Act
+        ToolButton open = ButtonFor(panel.BuildToolBar(), "viewer_open");
+
+        //Assert — Qt's own shape for a toolbar button, and the same string
+        //ToolbarLayout.ToolTipFor writes.
+        open.ComposedToolTipText.Should().Be("Open manuscript(s)");
+        open.ComposedToolTipText.Should().Be(ToolbarLayout.ToolTipFor(actions.ViewerOpen));
+    }
+
+    [Fact]
+    public void a_button_whose_tip_is_not_its_label_keeps_frescos_own_words()
+    {
+        //Arrange — three of this bar's actions carry a tool tip of their own.
+        ManuscriptViewerActions actions = new ManuscriptViewerActions(TestSettings.Create());
+        ManuscriptViewerPanel panel = new ManuscriptViewerPanel(actions);
+        ToolBar bar = panel.BuildToolBar();
+
+        //Act
+        ToolButton next = ButtonFor(bar, "viewer_next_page");
+        ToolButton magnifier = ButtonFor(bar, "viewer_magnifier");
+
+        //Assert — the application set these, so the add-in leaves them alone.
+        ToolTipService.GetToolTip(next).Should().Be("Show the next page.");
+        ToolTipService.GetToolTip(magnifier).Should().Be(
+            "Shows a magnifying glass; hold Ctrl and drag with the left button.");
+        ToolTipService.GetToolTip(magnifier)
+            .Should().Be(ToolbarLayout.ToolTipFor(actions.ViewerMagnifier));
+    }
+
+    [Fact]
+    public void the_chooser_says_what_it_is_and_upstreams_own_tip()
+    {
+        //Arrange
+        ManuscriptViewerActions actions = new ManuscriptViewerActions(TestSettings.Create());
+        ManuscriptViewerPanel panel = new ManuscriptViewerPanel(actions);
+
+        //Act — upstream keeps the chooser inline, fourth on the bar.
+        ComboBox chooser = (ComboBox)Items(panel.BuildToolBar())[3];
+
+        //Assert
+        AutomationProperties.GetName(chooser).Should().Be("Select Manuscript Document");
+        AutomationProperties.GetHelpText(chooser).Should().Be(panel.Title);
+        ToolTipService.GetToolTip(chooser).Should().Be("Choose the PDF document to display.");
+    }
+
+    [Fact]
+    public void the_bar_carries_the_presentation_a_panel_toolbar_asks_for()
+    {
+        //Arrange
+        ManuscriptViewerActions actions = new ManuscriptViewerActions(TestSettings.Create());
+        ManuscriptViewerPanel panel = new ManuscriptViewerPanel(actions);
+
+        //Act — the three settings are inherited attached properties, set once on
+        //the bar.
+        ToolBar bar = panel.BuildToolBar();
+
+        //Assert — Qt's ToolButtonIconOnly at the size IconTheme names, with a
+        //tool tip on every button, and the chevron that replaced the scrolling
+        //row.
+        ToolBarProperties.GetIconSize(bar).Should().Be(IconTheme.ToolbarIconSize);
+        ToolBarProperties.GetLabelMode(bar).Should().Be(LabelMode.IconOnly);
+        ToolBarProperties.GetShowToolTips(bar).Should().BeTrue();
+        bar.OverflowMode.Should().Be(OverflowMode.Chevron);
+        bar.Title.Should().Be(panel.Title);
+    }
+
+    [Fact]
+    public void a_narrow_bar_pushes_its_trailing_items_behind_the_chevron()
+    {
+        //Arrange — the behaviour that replaces the hidden horizontal scrollbar.
+        TestHost.EnsureReady();
+        ManuscriptViewerActions actions = new ManuscriptViewerActions(TestSettings.Create());
+        ManuscriptViewerPanel panel = new ManuscriptViewerPanel(actions);
+        ToolBar bar = panel.BuildToolBar();
+
+        //Act
+        bar.Measure(new Size(1600d, 100d));
+        bool fitsWide = bar.HasOverflowItems;
+        bar.Measure(new Size(120d, 100d));
+
+        //Assert
+        fitsWide.Should().BeFalse();
+        bar.HasOverflowItems.Should().BeTrue();
+        bar.OverflowItems.Should().NotBeEmpty();
+    }
+
+    [Fact]
+    public void the_show_toolbar_command_still_hides_and_shows_the_bar()
+    {
+        //Arrange — upstream's viewer_show_toolbar, which defaults to true.
+        ManuscriptViewerActions actions = new ManuscriptViewerActions(TestSettings.Create());
+        ManuscriptViewerPanel panel = new ManuscriptViewerPanel(actions);
+        ToolBar bar = panel.BuildToolBar();
+
+        //Act
+        actions.ViewerShowToolbar.Trigger();
+        Visibility hidden = bar.Visibility;
+        actions.ViewerShowToolbar.Trigger();
+
+        //Assert
+        hidden.Should().Be(Visibility.Collapsed);
+        bar.Visibility.Should().Be(Visibility.Visible);
+    }
+
+    /// <summary>Answers the elements on a bar, in bar order.</summary>
+    /// <param name="bar">The bar.</param>
+    /// <returns>The elements.</returns>
+    private static IReadOnlyList<UIElement> Items(ToolBar bar)
+        => bar.Items.Cast<UIElement>().ToList();
+
+    /// <summary>Answers every button on a bar.</summary>
+    /// <param name="bar">The bar.</param>
+    /// <returns>The buttons.</returns>
+    private static IReadOnlyList<ToolButton> Buttons(ToolBar bar)
+        => Items(bar).OfType<ToolButton>().ToList();
+
+    /// <summary>Answers the button a named command sits behind.</summary>
+    /// <param name="bar">The bar.</param>
+    /// <param name="name">The command's name.</param>
+    /// <returns>The button.</returns>
+    private static ToolButton ButtonFor(ToolBar bar, string name)
+        => Buttons(bar).Single(b => ((AppAction)b.Command).Name == name);
 }

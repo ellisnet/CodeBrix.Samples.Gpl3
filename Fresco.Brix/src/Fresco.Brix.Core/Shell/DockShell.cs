@@ -5,6 +5,7 @@
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
+using CodeBrix.Platform.UI.Toolkit;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using System;
@@ -24,31 +25,140 @@ namespace Fresco.Brix.Shell; //was previously: the QMainWindow dock arrangement 
 /// tools sees nothing but the editor.
 /// </para>
 /// </summary>
-public sealed class DockShell : SplitContainer
+/// <remarks>
+/// <para>
+/// The working area is two nested CodeBrix.Platform <c>TriPaneView</c> controls
+/// rather than the nested splitters it used to be. A pane control offers three
+/// regions and the window needs four, so the OUTER control keeps the right
+/// strip in its side pane, the bottom strip in its lower pane, and the whole of
+/// the rest of the window in its upper pane — where the INNER control keeps the
+/// left strip in its side pane and the editor in its upper pane. The inner
+/// control's lower pane is not one of the window's regions; it is held shut for
+/// the life of the window, which is why the inner stack divider is never drawn.
+/// Three dividers are on screen, exactly as before: the outer side divider
+/// between the editor block and the right strip, the outer stack divider
+/// between the editor block and the bottom strip, and the inner side divider
+/// between the left strip and the editor.
+/// </para>
+/// <para>
+/// ⚠ DECLARED DIVERGENCE, on the LEFT side only. Frescobaldi is a
+/// <c>QMainWindow</c> whose four dock areas own the corners the Qt way, so
+/// upstream's Log stops at the left dock and at the right dock, and neither the
+/// Quick Insert panel nor the Music View is ever run under. Here the Music View
+/// gets that treatment exactly — the right strip runs the full height of the
+/// window and the bottom strip stops dead at the outer side divider — but the
+/// bottom strip DOES run under the left strip, because the bottom strip and the
+/// left strip belong to different controls and only one of the two can own that
+/// corner. The right-hand corner is the one worth having: the Music View is the
+/// panel a user works beside all day, where every panel of the left strip is
+/// hidden until it is asked for. The shell that came before this one ran the
+/// bottom strip under BOTH docks, so this is half of an old divergence retired
+/// rather than a new one taken on.
+/// </para>
+/// <para>
+/// A strip is created once and then stays in its pane for the life of the
+/// window. Showing and hiding an area is the pane opening and shutting, not the
+/// strip being taken out of a container and put back: the tab strip and every
+/// panel widget in it stay in the visual tree, keeping their scroll positions
+/// and their selections, and nothing has to be re-parented.
+/// </para>
+/// </remarks>
+public sealed class DockShell
 {
-    private readonly SplitContainer _middleRow = new SplitContainer
+    //The narrowest the editor is ever laid out at. It is the outer control's
+    //StackMinLength when the left strip is shut, and part of it when the strip
+    //is open — see ApplyPanes.
+    private const double EditorMinLength = 200d;
+
+    //The editor's lion's share, the floors under a drag, and the scroll policy
+    //are all set here rather than after the fact: a percent written in an
+    //object initializer is already in force on the first frame drawn, so
+    //nothing has to wait for the window to load. The three vertical scroll
+    //settings are what make the panes FILL: every pane of a pane control sits
+    //in a scroll viewer, and a scroll viewer measures its content with
+    //unbounded height unless its vertical scroll bar is Disabled — with the
+    //default the editor, the log, the tree views and every FillGrid panel would
+    //come out a few pixels tall. The outer upper pane's setting is the one that
+    //keeps the INNER control from being measured unbounded.
+    private readonly TriPaneView _inner = new TriPaneView
     {
-        Orientation = Orientation.Horizontal,
+        SidePanePlacement = TriPaneViewSidePanePlacement.Left,
+        SidePanePercent = ShellLayout.DefaultInnerSidePercent,
+        StackPercent = ShellLayout.DefaultInnerStackPercent,
+        UpperPanePercent = 100d,
+
+        //Not a region of the window. Held at zero for the life of the window,
+        //which with RestoreGripMode.Never means the inner stack divider is
+        //never drawn and no grip is ever offered for it.
+        LowerPanePercent = 0d,
+        SidePaneMinLength = 200d,
+        StackMinLength = 200d,
+        SidePaneVerticalScrollBarVisibility = ScrollBarVisibility.Disabled,
+        UpperPaneVerticalScrollBarVisibility = ScrollBarVisibility.Disabled,
+        LowerPaneVerticalScrollBarVisibility = ScrollBarVisibility.Disabled,
+        IsDragToMinimizeEnabled = false,
+        RestoreGripMode = TriPaneViewRestoreGripMode.Never,
     };
+
+    private readonly TriPaneView _outer = new TriPaneView
+    {
+        SidePanePlacement = TriPaneViewSidePanePlacement.Right,
+        SidePanePercent = ShellLayout.DefaultOuterSidePercent,
+        StackPercent = ShellLayout.DefaultOuterStackPercent,
+        UpperPanePercent = ShellLayout.DefaultOuterUpperPercent,
+        LowerPanePercent = ShellLayout.DefaultOuterLowerPercent,
+        SidePaneMinLength = 200d,
+        StackMinLength = EditorMinLength,
+        UpperPaneMinLength = 200d,
+        LowerPaneMinLength = 80d,
+        SidePaneVerticalScrollBarVisibility = ScrollBarVisibility.Disabled,
+        UpperPaneVerticalScrollBarVisibility = ScrollBarVisibility.Disabled,
+        LowerPaneVerticalScrollBarVisibility = ScrollBarVisibility.Disabled,
+        IsDragToMinimizeEnabled = false,
+        RestoreGripMode = TriPaneViewRestoreGripMode.Never,
+    };
+
+    //The shares the user last had, kept here rather than read off the controls
+    //at the last moment: a shut strip's own share reads as zero, and writing
+    //THAT out would bring the strip back with no width at all on the next
+    //launch. An axis is recorded only while both of its panes are open, so a
+    //strip that is shut keeps the width it had when it was last on screen.
+    private readonly ShellLayout _sizes = new ShellLayout();
 
     private readonly Dictionary<DockArea, TabView> _areas
         = new Dictionary<DockArea, TabView>();
     private readonly List<Panel> _panels = new List<Panel>();
-    private readonly List<Panel> _hiddenByMaximize = new List<Panel>();
-
-    //Which tab was UP in each OTHER area when a maximize started. Upstream
-    //never disturbs the other panels at all — it floats the one being
-    //maximized — so putting them back has to put their own tab back with them.
-    private readonly DockLayout _showingBeforeMaximize = new DockLayout();
     private UIElement _center;
     private Panel _maximized;
 
     /// <summary>Creates the shell.</summary>
     public DockShell()
     {
-        Orientation = Orientation.Vertical;
-        AddPane(_middleRow);
+        _outer.UpperPane = _inner;
+
+        //Every strip starts shut, because no panel is visible yet. Minimizing
+        //rather than writing a zero percent is what gives each one a snapshot
+        //of the weight it should come back at; a pane that was simply set to
+        //zero has nothing to go back to and reopens at the control's own class
+        //default instead of the share this shell chose.
+        _outer.MinimizeSidePane();
+        _outer.MinimizeLowerPane();
+        _inner.MinimizeSidePane();
+
+        _outer.DividerDragCompleted += (_, _) => OnDividerDragCompleted();
+        _inner.DividerDragCompleted += (_, _) => OnDividerDragCompleted();
     }
+
+    /// <summary>Raised when the user has finished dragging a divider.</summary>
+    /// <remarks>The window writes the arrangement out on this as well as on the
+    /// way out, so a divider the user moved is where they left it on the next
+    /// launch. A gesture that moved nothing does not raise it.</remarks>
+    public event EventHandler LayoutChanged;
+
+    /// <summary>Gets the element the window puts in its content host.</summary>
+    /// <remarks>A pane control is sealed, so this shell OWNS one rather than
+    /// being one.</remarks>
+    public UIElement Root => _outer;
 
     /// <summary>Gets or sets what sits in the middle — the editor area.</summary>
     public UIElement Center
@@ -56,27 +166,16 @@ public sealed class DockShell : SplitContainer
         get => _center;
         set
         {
-            if (_center != null)
-            {
-                _middleRow.RemovePane(_center);
-            }
-
             _center = value;
-            if (_center != null)
-            {
-                //The centre always goes between the left and right areas.
-                _middleRow.InsertPane(LeftAreaIsShown ? 1 : 0, _center);
-                RebalanceMiddle();
-            }
+            _inner.UpperPane = _center;
         }
     }
 
     /// <summary>Gets the panels the shell knows about.</summary>
     public IReadOnlyList<Panel> Panels => _panels;
 
-    private bool LeftAreaIsShown
-        => _areas.TryGetValue(DockArea.Left, out var view)
-            && _middleRow.IndexOf(view) >= 0;
+    /// <summary>Gets the panel filling the window, or null.</summary>
+    public Panel MaximizedPanel => _maximized;
 
     /// <summary>Adds a panel and watches it for show/hide.</summary>
     /// <param name="panel">The panel.</param>
@@ -124,12 +223,9 @@ public sealed class DockShell : SplitContainer
         }
     }
 
-    /// <summary>Gets the panel filling the window, or null.</summary>
-    public Panel MaximizedPanel => _maximized;
-
     /// <summary>
-    /// Gives one panel the whole window, hiding the editor area and every
-    /// other panel until <see cref="RestoreFromMaximized"/> puts them back.
+    /// Gives one panel the whole window, collapsing every other pane until
+    /// <see cref="RestoreFromMaximized"/> opens them again.
     /// </summary>
     /// <param name="panel">The panel to maximize.</param>
     /// <remarks>
@@ -146,106 +242,45 @@ public sealed class DockShell : SplitContainer
     /// user sees: the Music View filling everything.
     /// </para>
     /// <para>
-    /// Because the other panels ARE disturbed here where upstream's are not,
-    /// the tab that was showing in each other area is remembered before they
-    /// are hidden and raised again by <see cref="RestoreFromMaximized"/>:
-    /// showing a panel makes it its area's current tab, so without that the
-    /// LAST one re-shown in an area would be left showing instead of the user's
-    /// own. The maximized panel keeps its own area, being what the user was
-    /// looking at.
+    /// Nothing is hidden to make room. The OTHER PANES are collapsed and every
+    /// panel stays exactly as it was — visible, in its own tab, with its Tools
+    /// menu still checked, and with its scroll position and its selection
+    /// intact, because no widget ever leaves the visual tree. That is the one
+    /// visible difference from the shell that came before this one, which hid
+    /// every other panel and pulled the editor out of its container, and lost
+    /// their state doing it.
     /// </para>
     /// </remarks>
     public void MaximizePanel(Panel panel)
     {
         if (panel == null) { return; }
 
-        if (_maximized != null) { RestoreFromMaximized(); }
-
-        RememberShowingTabs(panel);
-
         panel.IsVisible = true;
         BringToFront(panel);
 
-        _hiddenByMaximize.Clear();
-        foreach (var other in _panels)
-        {
-            if (ReferenceEquals(other, panel) || !other.IsVisible) { continue; }
-
-            _hiddenByMaximize.Add(other);
-            other.IsVisible = false;
-        }
-
-        if (_center != null && _middleRow.IndexOf(_center) >= 0)
-        {
-            _middleRow.RemovePane(_center);
-        }
-
         _maximized = panel;
-        RebalanceMiddle();
+        ApplyPanes(ShellLayout.PanesForMaximized(ShellLayout.RegionOf(panel.Area)));
     }
 
     /// <summary>Puts the layout back the way it was before a maximize.</summary>
-    /// <remarks>Every area gets the tab it was showing back — the other areas
-    /// the one they had (<see cref="RememberShowingTabs"/>), and the maximized
-    /// panel's own area the maximized panel, which is what the user has been
-    /// looking at and what upstream's re-docked floating panel is.</remarks>
+    /// <remarks>Pane by pane, and never through the control's own "restore
+    /// everything": the inner control's lower pane is not one of the window's
+    /// regions, and a pane held at zero beside a pane that is not reads as
+    /// minimized, so restoring everything would open a fourth region this
+    /// window does not have. Nothing has to be re-shown or re-raised, because
+    /// nothing was hidden.</remarks>
     public void RestoreFromMaximized()
     {
         if (_maximized == null) { return; }
 
         Panel wasMaximized = _maximized;
         _maximized = null;
-        if (_center != null && _middleRow.IndexOf(_center) < 0)
-        {
-            _middleRow.InsertPane(LeftAreaIsShown ? 1 : 0, _center);
-        }
+        ApplyPanes(WantedPanes());
 
-        foreach (var other in _hiddenByMaximize) { other.IsVisible = true; }
-
-        _hiddenByMaximize.Clear();
-        RaiseRememberedTabs();
-        BringToFront(wasMaximized);
-        RebalanceMiddle();
-    }
-
-    /// <summary>Records the tab showing in every area but one panel's own.</summary>
-    /// <param name="maximizing">The panel about to fill the window.</param>
-    private void RememberShowingTabs(Panel maximizing)
-    {
-        _showingBeforeMaximize.Panels.Clear();
-        foreach (var pair in _areas)
-        {
-            if (maximizing != null && pair.Key == maximizing.Area) { continue; }
-
-            if (pair.Value.SelectedItem is not TabViewItem selected
-                || selected.Tag is not Panel showing)
-            {
-                continue;
-            }
-
-            _showingBeforeMaximize.Panels.Add(new DockPanelState
-            {
-                Name = showing.Name,
-                Area = pair.Key,
-                IsActive = true,
-            });
-        }
-    }
-
-    /// <summary>Puts each remembered tab back up, then forgets them.</summary>
-    private void RaiseRememberedTabs()
-    {
-        foreach (DockArea area in _areas.Keys.ToList())
-        {
-            string showing = _showingBeforeMaximize.ActiveIn(area);
-            if (showing == null) { continue; }
-
-            Panel panel = _panels.FirstOrDefault(
-                p => string.Equals(p.Name, showing, StringComparison.Ordinal));
-            if (panel != null && panel.IsVisible) { BringToFront(panel); }
-        }
-
-        _showingBeforeMaximize.Panels.Clear();
+        //Only a panel that is still open is raised. Closing the maximized panel
+        //is one of the two ways out of a maximize, and raising it here would
+        //open again the very panel the user has just closed.
+        if (wasMaximized.IsVisible) { BringToFront(wasMaximized); }
     }
 
     /// <summary>
@@ -256,9 +291,10 @@ public sealed class DockShell : SplitContainer
     /// <remarks>Upstream's <c>QMainWindow.saveState()</c>, called from
     /// <c>mainwindow.py</c>'s <c>writeSettings</c> — see
     /// <see cref="DockLayout"/> for the declared difference of mechanism.
-    /// A maximized panel is NOT what gets recorded: the arrangement it
-    /// interrupted is, so quitting from Music &gt; Maximize brings the
-    /// user's own layout back rather than the full-window one.</remarks>
+    /// A maximize disturbs nothing that is recorded here: every panel is still
+    /// open, in its own area, with its own tab up, so quitting from
+    /// Music &gt; Maximize records the user's own arrangement without having to
+    /// reconstruct it.</remarks>
     public DockLayout CaptureLayout()
     {
         DockLayout layout = new DockLayout();
@@ -278,44 +314,34 @@ public sealed class DockShell : SplitContainer
             }
         }
 
-        //A maximized panel has emptied every other area, so the weights on
-        //screen are not the ones worth keeping.
-        foreach (var panel in _hiddenByMaximize)
-        {
-            if (layout.Panels.Any(
-                p => string.Equals(p.Name, panel.Name, StringComparison.Ordinal)))
-            {
-                continue;
-            }
-
-            layout.Panels.Add(new DockPanelState
-            {
-                Name = panel.Name,
-                Area = panel.Area,
-                //was previously: always false, which lost the tab the user had
-                //up in that area whenever the quit came from Music > Maximize.
-                IsActive = string.Equals(
-                    _showingBeforeMaximize.ActiveIn(panel.Area),
-                    panel.Name,
-                    StringComparison.Ordinal),
-            });
-        }
-
-        layout.MiddleSizes = _middleRow.Sizes().ToList();
-        layout.OuterSizes = Sizes().ToList();
+        RecordSizes();
+        layout.Sizes.CopyFrom(_sizes);
         return layout;
     }
 
     /// <summary>Puts a remembered arrangement back.</summary>
     /// <param name="layout">The arrangement, or null.</param>
     /// <remarks>
+    /// <para>
     /// Upstream's <c>restoreState()</c>, called from <c>readSettings</c> as the
     /// window is built. Called ONCE, while the window is being built and
     /// before the user can have moved anything: it opens the panels in the
     /// stored tab order, raises the one that was showing in each area, and only
-    /// THEN sets the divider weights, because opening an area rebalances them
-    /// (<see cref="RebalanceMiddle"/>). A stored panel this build no longer
-    /// offers is skipped rather than refusing the whole arrangement.
+    /// THEN gives the dividers their shares, because opening an area moves them.
+    /// A stored panel this build no longer offers is skipped rather than
+    /// refusing the whole arrangement.
+    /// </para>
+    /// <para>
+    /// The arrangement the <see cref="SplitContainer"/> shell that came before
+    /// this one wrote held two lists of weights whose length followed how many
+    /// areas were on screen.
+    /// There is no honest way to replay such a list into a pane control that
+    /// has no list to put it in, so — the ruling already recorded for the
+    /// settings store itself — there is NO migration: an arrangement written by
+    /// that shell carries no usable shares, and the window opens at the shares
+    /// chosen here. The panels it recorded, and the window size, are read as
+    /// they always were.
+    /// </para>
     /// </remarks>
     public void ApplyLayout(DockLayout layout)
     {
@@ -341,8 +367,148 @@ public sealed class DockShell : SplitContainer
             if (panel != null) { BringToFront(panel); }
         }
 
-        _middleRow.SetSizes(layout.MiddleSizes);
-        SetSizes(layout.OuterSizes);
+        if (layout.Sizes == null || !layout.Sizes.IsUsable) { return; }
+
+        _sizes.CopyFrom(layout.Sizes);
+        ApplySizes();
+    }
+
+    /// <summary>Gives both controls the shares the shell is holding.</summary>
+    /// <remarks>A pane that is shut is opened, given its share and shut again,
+    /// which is how the share reaches the control's own snapshot: the strip
+    /// then comes back at the width the user left it at rather than at this
+    /// shell's default the first time they open it. None of that is visible —
+    /// this runs while the window is still being built.</remarks>
+    private void ApplySizes()
+    {
+        ApplySidePercents(_outer, _sizes.OuterSidePercent, _sizes.OuterStackPercent);
+        ApplyStackPercents(_outer, _sizes.OuterUpperPercent, _sizes.OuterLowerPercent);
+        ApplySidePercents(_inner, _sizes.InnerSidePercent, _sizes.InnerStackPercent);
+    }
+
+    private static void ApplySidePercents(TriPaneView panes, double side, double stack)
+    {
+        bool wasMinimized = panes.IsSidePaneMinimized;
+        if (wasMinimized) { panes.RestoreSidePane(); }
+
+        panes.SidePanePercent = side;
+        panes.StackPercent = stack;
+        if (wasMinimized) { panes.MinimizeSidePane(); }
+    }
+
+    private static void ApplyStackPercents(TriPaneView panes, double upper, double lower)
+    {
+        bool wasMinimized = panes.IsLowerPaneMinimized;
+        if (wasMinimized) { panes.RestoreLowerPane(); }
+
+        panes.UpperPanePercent = upper;
+        panes.LowerPanePercent = lower;
+        if (wasMinimized) { panes.MinimizeLowerPane(); }
+    }
+
+    /// <summary>Takes down the shares of every divider that is on screen.</summary>
+    /// <remarks>An axis with a shut pane reads as a zero and a hundred, which
+    /// says nothing about where the user put the divider, so only an axis with
+    /// both of its panes open is recorded. Everything else keeps the share it
+    /// last had.</remarks>
+    private void RecordSizes()
+    {
+        if (!_outer.IsSidePaneMinimized && _outer.StackPercent > 0d)
+        {
+            _sizes.OuterSidePercent = _outer.SidePanePercent;
+            _sizes.OuterStackPercent = _outer.StackPercent;
+        }
+
+        if (!_outer.IsUpperPaneMinimized && !_outer.IsLowerPaneMinimized)
+        {
+            _sizes.OuterUpperPercent = _outer.UpperPanePercent;
+            _sizes.OuterLowerPercent = _outer.LowerPanePercent;
+        }
+
+        if (!_inner.IsSidePaneMinimized && _inner.StackPercent > 0d)
+        {
+            _sizes.InnerSidePercent = _inner.SidePanePercent;
+            _sizes.InnerStackPercent = _inner.StackPercent;
+        }
+    }
+
+    /// <summary>Announces a divider the user actually moved.</summary>
+    /// <remarks>A gesture that changed nothing — a press and release on a
+    /// divider already sitting against its floor — announces itself the same
+    /// way a real drag does, so the shares are compared and an announcement
+    /// that says nothing new is dropped rather than sending the window off to
+    /// write a file.</remarks>
+    private void OnDividerDragCompleted()
+    {
+        ShellLayout before = new ShellLayout();
+        before.CopyFrom(_sizes);
+        RecordSizes();
+        if (_sizes.Matches(before)) { return; }
+
+        LayoutChanged?.Invoke(this, EventArgs.Empty);
+    }
+
+    /// <summary>Which panes the panels that are open ask for.</summary>
+    /// <returns>The five panes.</returns>
+    private ShellPanes WantedPanes()
+        => ShellLayout.PanesFor(
+            AreaHasATab(DockArea.Left),
+            AreaHasATab(DockArea.Right),
+            AreaHasATab(DockArea.Bottom));
+
+    private bool AreaHasATab(DockArea area)
+        => _areas.TryGetValue(area, out var view) && view.TabItems.Count > 0;
+
+    /// <summary>Opens and shuts the panes so the window looks like this.</summary>
+    /// <param name="wanted">Which panes are to be open.</param>
+    /// <remarks>Everything that is to be open is opened BEFORE anything is
+    /// shut, on both controls: a control refuses a request that would leave it
+    /// with nothing open at all, and doing it in the other order would walk
+    /// into that refusal on the way through. Opening a pane that is already
+    /// open, and shutting one that is already shut, are both nothing at all —
+    /// in particular a second shut does not overwrite the snapshot the first
+    /// one took.</remarks>
+    private void ApplyPanes(ShellPanes wanted)
+    {
+        if (wanted == null) { return; }
+
+        //A pane control narrower than the sum of its own floors gives its side
+        //pane the floor and its stack whatever is left, which can be nothing at
+        //all: measured on X11, dragging the outer side divider down to the
+        //editor block's 200 left the left strip at its own 200 and the EDITOR
+        //at zero width, with the inner side divider gone with it. So the outer
+        //stack's floor is the room the inner control actually needs — its side
+        //pane's floor, its divider, and the editor's — whenever the left strip
+        //is open, and just the editor's when it is not.
+        _outer.StackMinLength = wanted.LeftStripIsOpen
+            ? _inner.SidePaneMinLength + _inner.DividerThickness + EditorMinLength
+            : EditorMinLength;
+
+        //The inner control is only touched while it is on screen. When the
+        //editor block is collapsed the left strip and the editor keep whatever
+        //arrangement they had, and it is there again the moment the block
+        //reopens.
+        if (wanted.EditorBlockIsOpen)
+        {
+            _outer.RestoreUpperPane();
+            if (wanted.EditorIsOpen) { _inner.RestoreUpperPane(); }
+
+            if (wanted.LeftStripIsOpen) { _inner.RestoreSidePane(); }
+
+            if (!wanted.EditorIsOpen) { _inner.MinimizeUpperPane(); }
+
+            if (!wanted.LeftStripIsOpen) { _inner.MinimizeSidePane(); }
+        }
+
+        if (wanted.RightStripIsOpen) { _outer.RestoreSidePane(); }
+
+        if (wanted.BottomStripIsOpen) { _outer.RestoreLowerPane(); }
+
+        if (!wanted.EditorBlockIsOpen) { _outer.MinimizeUpperPane(); }
+
+        if (!wanted.RightStripIsOpen) { _outer.MinimizeSidePane(); }
+
+        if (!wanted.BottomStripIsOpen) { _outer.MinimizeLowerPane(); }
     }
 
     private void Refresh(Panel panel)
@@ -378,13 +544,15 @@ public sealed class DockShell : SplitContainer
             //a tab that is being thrown away and then giving it to a new one
             //left the old presenter still claiming it, which showed up as the
             //panel's LAST control taking the tab header's text. Clearing it
-            //here is what makes hiding and showing a panel repeatable, and the
-            //Music View's Maximize does exactly that to every other panel.
+            //here is what makes hiding and showing a panel repeatable.
             existing.Content = null;
             view.TabItems.Remove(existing);
         }
 
-        ShowOrHideArea(panel.Area, view);
+        //A maximize is the one arrangement the panels do not get a say in: it
+        //is undone by the command that made it, or by closing the panel that
+        //asked for it.
+        if (_maximized == null) { ApplyPanes(WantedPanes()); }
     }
 
     private TabView AreaView(DockArea area)
@@ -407,62 +575,22 @@ public sealed class DockShell : SplitContainer
         };
 
         _areas[area] = view;
-        return view;
-    }
 
-    private void ShowOrHideArea(DockArea area, TabView view)
-    {
-        bool wanted = view.TabItems.Count > 0;
-        SplitContainer host = area == DockArea.Bottom ? this : _middleRow;
-        bool shown = host.IndexOf(view) >= 0;
-
-        if (wanted == shown) { return; }
-
-        if (!wanted)
-        {
-            host.RemovePane(view);
-            RebalanceMiddle();
-            return;
-        }
-
+        //Each strip goes into its pane once and stays there. From here on it is
+        //the PANE that opens and shuts.
         switch (area)
         {
             case DockArea.Left:
-                host.InsertPane(0, view);
+                _inner.SidePane = view;
                 break;
             case DockArea.Right:
-                host.AddPane(view);
+                _outer.SidePane = view;
                 break;
             default:
-                //The bottom area is the second pane of the outer, vertical
-                //container, under the whole middle row.
-                host.AddPane(view);
+                _outer.LowerPane = view;
                 break;
         }
 
-        RebalanceMiddle();
-    }
-
-    /// <summary>
-    /// Gives the editor the lion's share: a docked tool area takes about a
-    /// quarter of the width, and the bottom area about a fifth of the height.
-    /// </summary>
-    private void RebalanceMiddle()
-    {
-        List<double> middle = new List<double>();
-        foreach (var pane in _middleRow.Panes)
-        {
-            middle.Add(ReferenceEquals(pane, _center) ? 3.0 : 1.0);
-        }
-
-        _middleRow.SetSizes(middle);
-
-        List<double> outer = new List<double>();
-        foreach (var pane in Panes)
-        {
-            outer.Add(ReferenceEquals(pane, _middleRow) ? 4.0 : 1.0);
-        }
-
-        SetSizes(outer);
+        return view;
     }
 }

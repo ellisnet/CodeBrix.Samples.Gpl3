@@ -5,20 +5,18 @@
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
+using CodeBrix.Platform.UI.CommandBar;
 using Fresco.Brix.Commands;
 using Fresco.Brix.Documentation;
 using Fresco.Brix.MusicView;
 using Fresco.Brix.Services;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Controls.Primitives;
-using Microsoft.UI.Xaml.Media;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
-using Windows.UI;
 
 namespace Fresco.Brix.Shell; //was previously: frescobaldi/docbrowser/ (__init__.py + browser.py)
 
@@ -75,6 +73,7 @@ public sealed class DocumentationPanel : Panel
     private readonly List<Place> _forward = new List<Place>();
 
     private MusicViewControl _view;
+    private ToolBar _toolbar;
     private ComboBox _chooser;
     private ListView _contents;
     private TextBlock _pageLabel;
@@ -135,6 +134,11 @@ public sealed class DocumentationPanel : Panel
     public override void TranslateUI()
     {
         ToggleAction.Text = I18n.Get("&Documentation Browser");
+
+        //The bar's title is the panel's, and it is read out as the tail of
+        //every button's accessible name, so it follows the language too.
+        if (_toolbar != null) { _toolbar.Title = Title; }
+
         UpdatePageLabel();
     }
 
@@ -252,28 +256,46 @@ public sealed class DocumentationPanel : Panel
     /// </summary>
     /// <returns>The toolbar.</returns>
     /// <remarks>
-    /// ⚠ TWO ROWS, AND THE SECOND ONE SCROLLS, because this panel lives in a
-    /// dock area a user can make narrow. Upstream's is one QToolBar, which Qt
-    /// gives an overflow chevron for nothing; the platform's has no such thing,
-    /// so eleven controls in one row simply run off the edge and the last of
-    /// them cannot be reached at all. The chooser gets the full width because
-    /// it carries the longest text and is the control a reader uses most.
+    /// <para>
+    /// The button row is one CodeBrix.Platform <see cref="ToolBar"/>, so what
+    /// does not fit in a narrow dock moves behind the overflow chevron, in
+    /// order, and comes back when the room does. It used to be a horizontally
+    /// scrolling row with its scrollbar hidden, because the platform had no
+    /// chevron and eleven controls in one row simply ran off the edge and the
+    /// last of them could not be reached at all (board trap 57).
+    /// </para>
+    /// <para>
+    /// THE CHOOSER KEEPS ITS OWN LINE. Upstream has it inline, at the end of the
+    /// one toolbar, because a web view's toolbar carries five buttons; this one
+    /// carries thirteen and the chooser's text is a MANUAL'S TITLE — "LilyPond
+    /// Learning Manual" — so inline it would either be clipped or push half the
+    /// bar behind the chevron. The Manuscript Viewer's chooser, which carries a
+    /// file name, IS inline, where upstream has it.
+    /// </para>
+    /// <para>
+    /// THE BAR SHOWS TEXT, not icons: of the six commands on it only Back,
+    /// Forward and Open in External Viewer name artwork the two shipped icon
+    /// sets carry (<c>go-home</c>, <c>go-up</c> and <c>go-down</c> are not among
+    /// the nineteen), and the five view buttons have no command at all, so an
+    /// icon bar would be three decorated buttons among ten bare ones.
+    /// </para>
+    /// <para>
+    /// Where a caption IS the command's name — Home, Contents — the add-in
+    /// composes the tool tip from it. Where it is not — "&lt;&lt;", "1:1", "+"
+    /// — the application writes the whole tip and the add-in leaves it alone.
+    /// </para>
     /// </remarks>
-    private UIElement BuildToolBar()
+    internal UIElement BuildToolBar()
     {
-        Grid rows = new Grid { Padding = new Thickness(4, 2, 4, 2) };
+        Grid rows = new Grid();
         rows.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
         rows.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-        rows.Background = new SolidColorBrush(Color.FromArgb(0x18, 0, 0, 0));
 
-        StackPanel bar = new StackPanel
+        _chooser = new ComboBox
         {
-            Orientation = Orientation.Horizontal,
-            Spacing = 4,
-            Margin = new Thickness(0, 3, 0, 0),
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            Margin = new Thickness(4, 2, 4, 2),
         };
-
-        _chooser = new ComboBox { HorizontalAlignment = HorizontalAlignment.Stretch };
         _chooser.SelectionChanged += (_, _) =>
         {
             if (_updatingChooser) { return; }
@@ -286,62 +308,66 @@ public sealed class DocumentationPanel : Panel
         };
         rows.Children.Add(_chooser);
 
-        bar.Children.Add(ToolButton(Actions?.HelpBack, "<<"));
-        bar.Children.Add(ToolButton(Actions?.HelpForward, ">>"));
-        bar.Children.Add(ToolButton(Actions?.HelpHome, I18n.Get("Home")));
+        ToolBar bar = PanelToolbar.Create(Title, LabelMode.TextOnly);
+        bar.Items.Add(PanelToolbar.ButtonFor(Actions?.HelpBack, "<<"));
+        bar.Items.Add(PanelToolbar.ButtonFor(Actions?.HelpForward, ">>"));
 
-        ToggleButton contents = new ToggleButton
-        {
-            Content = I18n.Get("Contents"),
-            Padding = new Thickness(6, 1, 6, 1),
-            MinWidth = 0,
-        };
-        contents.Checked += (_, _) => SetContentsVisible(true);
-        contents.Unchecked += (_, _) => SetContentsVisible(false);
-        contents.IsChecked = _settings?.GetBool(SettingsPrefix + "contents", true) ?? true;
-        SetContentsVisible(contents.IsChecked == true);
-        bar.Children.Add(contents);
+        //Upstream's own separator, between the two history buttons and the rest
+        //(docbrowser/browser.py).
+        bar.Items.Add(new ToolBarSeparator());
+        bar.Items.Add(PanelToolbar.ButtonFor(Actions?.HelpHome));
+        bar.Items.Add(BuildContentsToggle());
 
-        bar.Children.Add(ToolButton(null, "-", () => _view?.ZoomOut()));
-        bar.Children.Add(ToolButton(null, "1:1", () => _view?.ZoomOriginal()));
-        bar.Children.Add(ToolButton(null, "+", () => _view?.ZoomIn()));
-        bar.Children.Add(ToolButton(null, I18n.Get("Width"), () => SetViewMode(ViewMode.FitWidth)));
-        bar.Children.Add(ToolButton(null, I18n.Get("Page"), () => SetViewMode(ViewMode.FitBoth)));
-        bar.Children.Add(ToolButton(Actions?.HelpPreviousPage, "<"));
+        bar.Items.Add(new ToolBarSeparator());
+        bar.Items.Add(PanelToolbar.Button(
+            "-", MenuBuilder.Display(I18n.Get("Zoom &Out")), () => _view?.ZoomOut()));
+        bar.Items.Add(PanelToolbar.Button(
+            "1:1", MenuBuilder.Display(I18n.Get("Original &Size")), () => _view?.ZoomOriginal()));
+        bar.Items.Add(PanelToolbar.Button(
+            "+", MenuBuilder.Display(I18n.Get("Zoom &In")), () => _view?.ZoomIn()));
+        bar.Items.Add(PanelToolbar.Button(
+            I18n.Get("Width"),
+            MenuBuilder.Display(I18n.Get("Fit &Width")),
+            () => SetViewMode(ViewMode.FitWidth)));
+        bar.Items.Add(PanelToolbar.Button(
+            I18n.Get("Page"),
+            MenuBuilder.Display(I18n.Get("Fit &Page")),
+            () => SetViewMode(ViewMode.FitBoth)));
+
+        bar.Items.Add(new ToolBarSeparator());
+        bar.Items.Add(PanelToolbar.ButtonFor(Actions?.HelpPreviousPage, "<"));
 
         _pageLabel = new TextBlock { VerticalAlignment = VerticalAlignment.Center, MinWidth = 70 };
-        bar.Children.Add(_pageLabel);
+        bar.Items.Add(_pageLabel);
 
-        bar.Children.Add(ToolButton(Actions?.HelpNextPage, ">"));
-        bar.Children.Add(ToolButton(Actions?.HelpExternalViewer, I18n.Get("Open")));
+        bar.Items.Add(PanelToolbar.ButtonFor(Actions?.HelpNextPage, ">"));
+        bar.Items.Add(new ToolBarSeparator());
+        bar.Items.Add(PanelToolbar.ButtonFor(Actions?.HelpExternalViewer, I18n.Get("Open")));
 
-        ScrollViewer scroller = new ScrollViewer
-        {
-            Content = bar,
-            HorizontalScrollMode = ScrollMode.Auto,
-            HorizontalScrollBarVisibility = ScrollBarVisibility.Hidden,
-            VerticalScrollMode = ScrollMode.Disabled,
-            VerticalScrollBarVisibility = ScrollBarVisibility.Disabled,
-        };
-        Grid.SetRow(scroller, 1);
-        rows.Children.Add(scroller);
+        Grid.SetRow(bar, 1);
+        rows.Children.Add(bar);
+        _toolbar = bar;
         return rows;
     }
 
-    private static Button ToolButton(AppAction action, string caption, Action fallback = null)
+    /// <summary>Builds the button that shows and hides the contents list.</summary>
+    /// <returns>The toggle.</returns>
+    /// <remarks>
+    /// There is no <see cref="AppAction"/> behind this one — the contents list
+    /// is this panel's own, and upstream has no such list at all — so there is
+    /// no second flip to keep in step with: the click flips the toggle, and the
+    /// toggle is what the list follows.
+    /// </remarks>
+    private ToolToggleButton BuildContentsToggle()
     {
-        Button button = new Button
+        ToolToggleButton contents = new ToolToggleButton
         {
-            Content = caption,
-            Padding = new Thickness(6, 1, 6, 1),
-            MinWidth = 0,
+            Text = I18n.Get("Contents"),
+            IsChecked = _settings?.GetBool(SettingsPrefix + "contents", true) ?? true,
         };
-        button.Click += (_, _) =>
-        {
-            if (action != null) { action.Trigger(); }
-            else { fallback?.Invoke(); }
-        };
-        return button;
+        contents.IsCheckedChanged += (sender, _) => SetContentsVisible(sender.IsChecked);
+        SetContentsVisible(contents.IsChecked);
+        return contents;
     }
 
     private void WireActions()
@@ -476,10 +502,13 @@ public sealed class DocumentationPanel : Panel
 
     private void SetContentsVisible(bool visible)
     {
+        //The preference is written first: the toolbar is built before the panel
+        //body in a test that asks for the bar on its own, and what the reader
+        //last chose is worth remembering either way.
+        _settings?.SetBool(SettingsPrefix + "contents", visible);
         if (_contents == null) { return; }
 
         _contents.Visibility = visible ? Visibility.Visible : Visibility.Collapsed;
-        _settings?.SetBool(SettingsPrefix + "contents", visible);
     }
 
     private void SetViewMode(ViewMode mode)

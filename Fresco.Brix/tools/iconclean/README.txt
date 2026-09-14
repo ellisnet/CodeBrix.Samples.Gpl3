@@ -8,7 +8,7 @@ rule 3). Run it by hand when the icon set changes.
 
 THE FILES
 
-  iconclean.py    the tool. Copies the icons the two window toolbars reference
+  iconclean.py    the tool. Copies the icons the toolbars reference
                   out of frescobaldi/icons/{Light,Dark}/scalable/ into
                     src/Fresco.Brix.Core/assets/icons/{light,dark}/
                   byte for byte -- except the one file ruling FR14 says to

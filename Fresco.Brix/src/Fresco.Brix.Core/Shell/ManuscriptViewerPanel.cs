@@ -5,6 +5,7 @@
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
+using CodeBrix.Platform.UI.CommandBar;
 using Fresco.Brix.Commands;
 using Fresco.Brix.Documents;
 using Fresco.Brix.Editor;
@@ -14,8 +15,6 @@ using Fresco.Brix.Services;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Controls.Primitives;
-using Microsoft.UI.Xaml.Media;
 using SkiaSharp;
 using System;
 using System.Collections.Generic;
@@ -88,8 +87,7 @@ public sealed class ManuscriptViewerPanel : Panel
 
     private MusicViewControl _view;
     private ManuscriptViewerContextMenu _contextMenu;
-    private Grid _toolbar;
-    private StackPanel _bar;
+    private ToolBar _toolbar;
     private ComboBox _chooser;
     private ComboBox _zoomChooser;
     private TextBox _pager;
@@ -100,7 +98,6 @@ public sealed class ManuscriptViewerPanel : Panel
     private bool _writingChooser;
     private bool _writingZoom;
     private bool _clickingLink;
-    private bool _built;
 
     /// <summary>Creates the Manuscript Viewer.</summary>
     /// <param name="actions">The panel's commands.</param>
@@ -208,6 +205,11 @@ public sealed class ManuscriptViewerPanel : Panel
     {
         //Upstream's toggleViewAction text, which is the Tools > Viewers entry.
         ToggleAction.Text = I18n.Get("Manuscript Viewer");
+
+        //The bar's title is the panel's, and it is read out as the tail of
+        //every button's accessible name, so it follows the language too.
+        if (_toolbar != null) { _toolbar.Title = Title; }
+
         UpdateViewState();
     }
 
@@ -341,20 +343,88 @@ public sealed class ManuscriptViewerPanel : Panel
         return new FillGrid { Children = { root } };
     }
 
-    private UIElement BuildToolBar()
+    /// <summary>Builds the panel's toolbar.</summary>
+    /// <returns>The bar.</returns>
+    /// <remarks>
+    /// <para>
+    /// ONE bar, in upstream's own order (<c>AbstractViewerToolbar.populate</c>),
+    /// with the chooser inline where upstream puts it and Help pushed to the far
+    /// end by a filling spacer — which is upstream's own arrangement: a main
+    /// toolbar and a right-aligned help toolbar with a stretch between them
+    /// (<c>viewers/toolbar.py createLayout</c>).
+    /// </para>
+    /// <para>
+    /// The bar used to be two rows, the second of them scrolling sideways with
+    /// its scrollbar hidden, because a dock panel's toolbar had no overflow
+    /// chevron and sixteen controls ran off the edge of a narrow dock (board
+    /// trap 57). The CommandBar add-in's chevron is that missing affordance, so
+    /// the panel is back to upstream's single bar — and the chooser stays near
+    /// the front of it, where upstream has it, which is what keeps it the last
+    /// control to move behind the chevron rather than the first.
+    /// </para>
+    /// <para>
+    /// Two of upstream's entries are not here: Print, permanently (ruling
+    /// FR5.5), and the separator that stood before it. Reload is here and is not
+    /// upstream's — the board's W15 row puts it on the bar, because a manuscript
+    /// that changed on disk is the one thing a reader of a manuscript most often
+    /// wants a button for, and upstream reaches it only through the context menu.
+    /// </para>
+    /// </remarks>
+    internal ToolBar BuildToolBar()
     {
-        //⚠ TWO ROWS, AND THE SECOND ONE SCROLLS — the Documentation Browser's
-        //arrangement, for the Documentation Browser's reason (board trap 57): a
-        //dock panel's toolbar has no overflow chevron, so upstream's single
-        //QToolBar of sixteen controls would simply run off the edge of a narrow
-        //dock. The chooser takes the whole first row because it carries the
-        //longest text — a file name — and is the control a reader uses most.
-        _toolbar = new Grid { Padding = new Thickness(4, 2, 4, 2) };
-        _toolbar.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-        _toolbar.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-        _toolbar.Background = new SolidColorBrush(Color.FromArgb(0x18, 0, 0, 0));
+        _toolbar = PanelToolbar.Create(Title, LabelMode.IconOnly);
 
-        _chooser = new ComboBox { HorizontalAlignment = HorizontalAlignment.Stretch };
+        _toolbar.Items.Add(PanelToolbar.ButtonFor(Actions.ViewerOpen));
+        _toolbar.Items.Add(PanelToolbar.ButtonFor(Actions.ViewerClose));
+        _toolbar.Items.Add(new ToolBarSeparator());
+        _toolbar.Items.Add(BuildChooser());
+
+        //was previously (upstream): a separator, viewer_print, a separator.
+        //Printing is ruled out for good (FR5.5), so the button is gone and the
+        //two separators it stood between are the one below.
+        _toolbar.Items.Add(new ToolBarSeparator());
+        _toolbar.Items.Add(PanelToolbar.ButtonFor(Actions.ViewerZoomIn));
+        _toolbar.Items.Add(BuildZoomChooser());
+        _toolbar.Items.Add(PanelToolbar.ButtonFor(Actions.ViewerZoomOut));
+        _toolbar.Items.Add(PanelToolbar.ButtonFor(Actions.ViewerMagnifier));
+        _toolbar.Items.Add(new ToolBarSeparator());
+        _toolbar.Items.Add(PanelToolbar.ButtonFor(Actions.ViewerPreviousPage));
+        _toolbar.Items.Add(BuildPager());
+        _toolbar.Items.Add(PanelToolbar.ButtonFor(Actions.ViewerNextPage));
+        _toolbar.Items.Add(new ToolBarSeparator());
+        _toolbar.Items.Add(PanelToolbar.ButtonFor(Actions.ViewerRotateLeft));
+        _toolbar.Items.Add(PanelToolbar.ButtonFor(Actions.ViewerRotateRight));
+        _toolbar.Items.Add(new ToolBarSeparator());
+        _toolbar.Items.Add(PanelToolbar.ButtonFor(Actions.ViewerReload));
+
+        //Upstream keeps Help in a SECOND toolbar, right-aligned, "not intended
+        //to be configured" (viewers/toolbar.py createLayout/populate). A filling
+        //spacer is what pushes it there, and it has something to fill because
+        //this bar stretches across a Grid row rather than sharing a tray with
+        //another bar (the add-in's pitfall 7).
+        _toolbar.Items.Add(new ToolBarSpacer { Fill = true });
+        _toolbar.Items.Add(PanelToolbar.ButtonFor(Actions.ViewerHelp));
+
+        UpdateViewState();
+        return _toolbar;
+    }
+
+    /// <summary>Builds the chooser naming which manuscript is shown.</summary>
+    /// <returns>The chooser.</returns>
+    /// <remarks>
+    /// Upstream's <c>ViewdocChooser</c> grows to fit its widest file name
+    /// (<c>AdjustToContents</c>). A maximum is set here because this one shares
+    /// a bar in a dock strip rather than a window's own toolbar: without it, one
+    /// long file name would push every control after it behind the chevron.
+    /// </remarks>
+    private UIElement BuildChooser()
+    {
+        _chooser = new ComboBox
+        {
+            MinWidth = 120,
+            MaxWidth = 220,
+            VerticalAlignment = VerticalAlignment.Center,
+        };
         _chooser.SelectionChanged += (_, _) =>
         {
             if (_writingChooser) { return; }
@@ -363,6 +433,7 @@ public sealed class ManuscriptViewerPanel : Panel
         };
         AutomationProperties.SetName(
             _chooser, MenuBuilder.Display(Actions.ViewerDocumentSelect.Text));
+        AutomationProperties.SetHelpText(_chooser, Title);
         ToolTipService.SetToolTip(_chooser, Actions.ViewerDocumentSelect.ToolTip);
 
         //Upstream's ViewdocChooserAction IS the combo, and triggering it drops
@@ -377,154 +448,8 @@ public sealed class ManuscriptViewerPanel : Panel
             _chooser.Focus(FocusState.Programmatic);
             _chooser.IsDropDownOpen = true;
         };
-        _toolbar.Children.Add(_chooser);
 
-        _bar = new StackPanel
-        {
-            Orientation = Orientation.Horizontal,
-            Spacing = 2,
-            Margin = new Thickness(0, 3, 0, 0),
-            VerticalAlignment = VerticalAlignment.Center,
-        };
-
-        Grid row = new Grid();
-        row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-        row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-        row.Children.Add(new ScrollViewer
-        {
-            Content = _bar,
-            HorizontalScrollMode = ScrollMode.Auto,
-            HorizontalScrollBarVisibility = ScrollBarVisibility.Hidden,
-            VerticalScrollMode = ScrollMode.Disabled,
-            VerticalScrollBarVisibility = ScrollBarVisibility.Disabled,
-        });
-
-        //Upstream keeps Help in a SECOND toolbar, right-aligned, "not intended
-        //to be configured" (viewers/toolbar.py createLayout/populate).
-        FrameworkElement help = ToolButton(Actions.ViewerHelp);
-        Grid.SetColumn(help, 1);
-        row.Children.Add(help);
-
-        Grid.SetRow(row, 1);
-        _toolbar.Children.Add(row);
-
-        //The icons follow the platform's theme, as the window toolbars' do; the
-        //subscription is made on Loaded because ActualTheme is not resolved
-        //before the control is in a tree.
-        _toolbar.Loaded += (_, _) =>
-        {
-            if (_built) { return; }
-
-            IconTheme.Follow(_toolbar, _ => FillBar());
-            FillBar();
-        };
-
-        return _toolbar;
-    }
-
-    /// <summary>Fills the button row, in upstream's order.</summary>
-    /// <remarks>
-    /// <c>AbstractViewerToolbar.populate</c>, minus the two entries that cannot
-    /// be here: the chooser (which is on the row above) and Print (ruling
-    /// FR5.5). Reload is on the bar because the board's W15 row puts it there —
-    /// upstream reaches it only through the context menu, and a manuscript that
-    /// changed on disk is the one thing a reader of a manuscript most often
-    /// wants a button for.
-    /// </remarks>
-    private void FillBar()
-    {
-        if (_bar == null) { return; }
-
-        _built = true;
-        while (_bar.Children.Count > 0) { _bar.Children.RemoveAt(_bar.Children.Count - 1); }
-
-        _zoomChooser = null;
-        _pager = null;
-
-        _bar.Children.Add(ToolButton(Actions.ViewerOpen));
-        _bar.Children.Add(ToolButton(Actions.ViewerClose));
-        _bar.Children.Add(Separator());
-        _bar.Children.Add(ToolButton(Actions.ViewerZoomIn));
-        _bar.Children.Add(BuildZoomChooser());
-        _bar.Children.Add(ToolButton(Actions.ViewerZoomOut));
-        _bar.Children.Add(ToolButton(Actions.ViewerMagnifier));
-        _bar.Children.Add(Separator());
-        _bar.Children.Add(ToolButton(Actions.ViewerPreviousPage));
-        _bar.Children.Add(BuildPager());
-        _bar.Children.Add(ToolButton(Actions.ViewerNextPage));
-        _bar.Children.Add(Separator());
-        _bar.Children.Add(ToolButton(Actions.ViewerRotateLeft));
-        _bar.Children.Add(ToolButton(Actions.ViewerRotateRight));
-        _bar.Children.Add(Separator());
-        _bar.Children.Add(ToolButton(Actions.ViewerReload));
-
-        UpdateViewState();
-    }
-
-    private static Border Separator()
-        => new Border
-        {
-            Width = 1,
-            Margin = new Thickness(4, 4, 4, 4),
-            Background = new SolidColorBrush(Color.FromArgb(0x40, 0x80, 0x80, 0x80)),
-        };
-
-    private FrameworkElement ToolButton(AppAction action)
-    {
-        //The same drawn button the window toolbars use (board wave W14): this
-        //platform build ships no CommandBar/AppBarButton, and traps 20/40/53
-        //are the standing account of what a themed control with no template
-        //does on the Skia heads.
-        ButtonBase button = action.IsCheckable
-            ? new ToggleButton { IsChecked = action.IsChecked }
-            : new Button();
-        button.Padding = new Thickness(5, 3, 5, 3);
-        button.MinWidth = 0;
-
-        void Update()
-        {
-            button.IsEnabled = action.IsEnabled;
-            button.Content = ContentFor(action);
-            ToolTipService.SetToolTip(button, MainToolbar.ToolTipFor(action));
-            AutomationProperties.SetName(button, MenuBuilder.Display(action.Text));
-            AutomationProperties.SetHelpText(button, Title);
-            if (button is ToggleButton box) { box.IsChecked = action.IsChecked; }
-        }
-
-        if (button is ToggleButton toggle)
-        {
-            toggle.Click += (_, _) =>
-            {
-                action.IsChecked = toggle.IsChecked != true;
-                action.Trigger();
-            };
-        }
-        else
-        {
-            button.Click += (_, _) => action.Trigger();
-        }
-
-        Update();
-        action.PropertyChanged += (_, _) => Update();
-        return button;
-    }
-
-    private UIElement ContentFor(AppAction action)
-    {
-        UIElement content = string.IsNullOrEmpty(action.IconName) || _toolbar == null
-            ? null
-            : IconTheme.Image(_toolbar.ActualTheme, action.IconName);
-
-        //No icon of that name in the shipped sets — the button says what it
-        //does instead, in the short form Qt would put under an icon.
-        content ??= new TextBlock
-        {
-            Text = MenuBuilder.Display(action.IconText),
-            VerticalAlignment = VerticalAlignment.Center,
-        };
-
-        content.Opacity = action.IsEnabled ? 1.0 : 0.4;
-        return content;
+        return _chooser;
     }
 
     private UIElement BuildZoomChooser()
@@ -534,6 +459,7 @@ public sealed class ManuscriptViewerPanel : Panel
         {
             MinWidth = 92,
             ItemsSource = _zoomEntries.Select(entry => entry.Caption).ToList(),
+            VerticalAlignment = VerticalAlignment.Center,
         };
         AutomationProperties.SetName(
             _zoomChooser, MenuBuilder.Display(Actions.ViewerZoomCombo.Text));
@@ -560,7 +486,12 @@ public sealed class ManuscriptViewerPanel : Panel
 
     private UIElement BuildPager()
     {
-        _pager = new TextBox { MinWidth = 76, TextAlignment = TextAlignment.Center };
+        _pager = new TextBox
+        {
+            MinWidth = 76,
+            TextAlignment = TextAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center,
+        };
         AutomationProperties.SetName(_pager, MenuBuilder.Display(I18n.Get("Page")));
         AutomationProperties.SetHelpText(_pager, Title);
         _pager.KeyDown += (_, e) =>

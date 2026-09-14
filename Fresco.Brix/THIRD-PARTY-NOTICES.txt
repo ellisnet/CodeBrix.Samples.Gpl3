@@ -748,9 +748,10 @@ RELATED SOFTWARE, WHICH IS NOT FDL
 ================================================================================
 
   Board wave W14, ruling FR16 (Jeremy, 2026-09-02). The window's two toolbars
-  draw their buttons with Frescobaldi's OWN light and dark icon sets -- the
-  ones that are the default look at the commit this application was ported
-  from. Two licenses are involved, and both travel with the files.
+  and the Manuscript Viewer's panel toolbar draw their buttons with
+  Frescobaldi's OWN light and dark icon sets -- the ones that are the default
+  look at the commit this application was ported from. Two licenses are
+  involved, and both travel with the files.
 
 11.1 The artwork -- Tabler Icons
   Upstream:   https://github.com/tabler/tabler-icons
@@ -805,11 +806,21 @@ RELATED SOFTWARE, WHICH IS NOT FDL
   does not reach them (the names lilypond-run and lilypond-stop are upstream's
   and stay; nothing a user sees says LilyPond).
 
-  Which set is drawn follows the platform's theme, as upstream's follows Qt's
-  palette -- Services/IconTheme. Upstream's "Use Symbolic Icons" preference,
-  which switches to its classic TangoExt look instead, is NOT ported: neither
-  Tango 0.8.90 nor TangoExt is used here at all, and no file from either is in
-  this repository.
+  HOW THE ARTWORK IS DRAWN. Services/IconTheme names the light file and the
+  dark file of a pair as embedded-resource URIs and hands the pair to the
+  platform's own SVG icon route, which reads the file out of this assembly and
+  draws it. The set that is drawn follows the platform's theme, as upstream's
+  follows Qt's palette, and the platform re-reads the pair when the theme or
+  the display scale changes. No tint or colour filter is applied on the way
+  through: each set already carries the strokes Frescobaldi drew for the
+  background it is meant for, so what reaches the screen is the shipped file
+  itself. The Quick Insert palettes' glyphs are a different set of files and
+  are drawn by this application's own renderer (QuickInsert/SymbolIcons),
+  which is also what the parity test in 11.3 renders through.
+
+  Upstream's "Use Symbolic Icons" preference, which switches to its classic
+  TangoExt look instead, is NOT ported: neither Tango 0.8.90 nor TangoExt is
+  used here at all, and no file from either is in this repository.
 
 11.3 One file diverges -- tools-score-wizard.svg (ruling FR14)
 

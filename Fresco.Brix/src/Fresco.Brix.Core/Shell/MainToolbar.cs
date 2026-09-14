@@ -5,6 +5,7 @@
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
+using CodeBrix.Platform.UI.CommandBar;
 using Fresco.Brix.Commands;
 using Fresco.Brix.MusicView;
 using Fresco.Brix.Preferences;
@@ -14,13 +15,10 @@ using Fresco.Brix.Tools;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Controls.Primitives;
-using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using System;
 using System.Collections.Generic;
 using Windows.System;
-using Windows.UI;
 
 namespace Fresco.Brix.Shell; //was previously: frescobaldi/mainwindow.py (createToolBars)
 
@@ -32,35 +30,32 @@ namespace Fresco.Brix.Shell; //was previously: frescobaldi/mainwindow.py (create
 /// </summary>
 /// <remarks>
 /// <para>
-/// //was previously: nothing. The window had no toolbar at all, which is why
-/// <c>engrave_runner</c> — an action that exists only for one — was unreachable
-/// (audit A GAP-24). Ruling FR16 (Jeremy, 2026-09-02) brings both of upstream's
-/// bars into v1.
-/// </para>
-/// <para>
 /// Upstream calls <c>addToolBar</c> twice, so Qt lays the two bars out side by
-/// side in the same top area. A CodeBrix.Platform window has no toolbar area,
-/// so the two runs of controls are drawn on one row here, with a wider gap
-/// between them than the gap a separator makes inside a bar.
+/// side in the same top area. This class IS that area: it is one
+/// <see cref="ToolBarTray"/> from the CodeBrix.Platform CommandBar add-in
+/// holding two real <see cref="ToolBar"/>s, which lays them side by side on one
+/// row and wraps the second to a row of its own when the window is too narrow
+/// to hold both. The gap the tray leaves between two bars is what Qt draws
+/// between two docked toolbars.
 /// </para>
 /// <para>
-/// ⚠ The buttons are DRAWN, not <c>CommandBar</c>/<c>AppBarButton</c>: this
-/// platform build ships neither (its FluentTheme descriptors stub
-/// <c>Is_Microsoft_UI_Xaml_Controls_Primitives_CommandBarTemplateSettings_Available</c>
-/// to false), and board traps 20/40/53 are the standing account of what happens
-/// when a themed control has no template on the Skia heads. The pattern is the
-/// one the dock panels' own toolbars already use (trap 57), including the
-/// hidden-scrollbar <see cref="ScrollViewer"/> that keeps the last button
-/// reachable in a narrow window.
+/// The window had no toolbar at all before ruling FR16 (Jeremy, 2026-09-02),
+/// which is why <c>engrave_runner</c> — an action that exists only for one —
+/// was unreachable (audit A GAP-24). The first build of this class drew the
+/// buttons by hand, because this platform build ships no
+/// <c>CommandBar</c>/<c>AppBarButton</c>; the add-in is the platform's answer to
+/// exactly that, and it brings the overflow chevron, keyboard navigation along
+/// a bar, access keys and automation peers that the hand-built row had to do
+/// without.
+/// </para>
+/// <para>
+/// <see cref="ToolbarLayout"/> still says WHAT is on each bar and in what
+/// order, as data, so the order stays assertable without a window; this class
+/// only turns each entry into an element.
 /// </para>
 /// </remarks>
-public sealed class MainToolbar : Grid
+public sealed class MainToolbar : ToolBarTray
 {
-    private const string ArrowGlyph = "▾";
-
-    /// <summary>How much of a disabled button's icon is drawn.</summary>
-    private const double DisabledOpacity = 0.4;
-
     private readonly MainActions _main;
     private readonly BrowserActions _browser;
     private readonly ScoreWizardActions _scoreWizard;
@@ -73,17 +68,11 @@ public sealed class MainToolbar : Grid
     private readonly Action<string> _openRecent;
     private readonly SettingsStore _settings;
 
-    private readonly StackPanel _bar = new StackPanel
-    {
-        Orientation = Orientation.Horizontal,
-        Spacing = 2,
-        VerticalAlignment = VerticalAlignment.Center,
-    };
-
     private ComboBox _scoreChooser;
     private ComboBox _zoomChooser;
     private TextBox _pager;
     private MusicViewPanel _musicView;
+    private FrameworkElement _widthSource;
     private IReadOnlyList<ZoomEntry> _zoomEntries = Array.Empty<ZoomEntry>();
     private bool _writingChooser;
     private bool _writingZoom;
@@ -127,32 +116,28 @@ public sealed class MainToolbar : Grid
         _openRecent = openRecent;
         _settings = settings;
 
-        //The same translucent wash the dock panels' toolbars carry, so the row
-        //reads as chrome under the menu bar rather than as part of the page.
-        Background = new SolidColorBrush(Color.FromArgb(0x18, 0, 0, 0));
-        Padding = new Thickness(4, 2, 4, 2);
+        //The four presentation settings are INHERITED attached properties, so
+        //setting them on the tray settles both bars and every button on them.
+        //Upstream's toolbars are Qt's ToolButtonIconOnly at the icon size
+        //IconTheme already names, and Qt writes a tool tip for every button.
+        ToolBarProperties.SetIconSize(this, IconTheme.ToolbarIconSize);
+        ToolBarProperties.SetLabelMode(this, LabelMode.IconOnly);
+        ToolBarProperties.SetShowToolTips(this, true);
 
-        Children.Add(new ScrollViewer
-        {
-            Content = _bar,
-            HorizontalScrollMode = ScrollMode.Auto,
-            HorizontalScrollBarVisibility = ScrollBarVisibility.Hidden,
-            VerticalScrollMode = ScrollMode.Disabled,
-            VerticalScrollBarVisibility = ScrollBarVisibility.Disabled,
-        });
-
-        //The icons follow the platform's theme, the way upstream's follow Qt's
-        //palette. The subscription is made on Loaded, because ActualTheme is
-        //not resolved before the control is in a tree.
+        //The bars are built once the tray is in a tree, because a button's icon
+        //resolves against the theme the tree says it is in. A theme change no
+        //longer rebuilds anything: an icon element re-renders itself when the
+        //theme or the display scale changes, which is also what keeps it
+        //pixel-exact at a fractional scale.
         Loaded += (_, _) =>
         {
+            FollowHostWidth();
             if (_built) { return; }
 
-            //Upstream re-picks its icon theme on Qt's ApplicationPaletteChange
-            //(icons/change_theme_eventhandler.py); this is the same moment.
-            IconTheme.Follow(this, _ => Rebuild());
             Rebuild();
         };
+
+        Unloaded += (_, _) => StopFollowingHostWidth();
     }
 
     /// <summary>
@@ -184,40 +169,13 @@ public sealed class MainToolbar : Grid
         }
     }
 
-    /// <summary>Rebuilds both bars from the current preference and theme.</summary>
+    /// <summary>Rebuilds both bars from the current preference.</summary>
     /// <remarks>
     /// Upstream's <c>mainwindow.settingsChanged</c> hangs or unhangs the three
     /// pull-down menus the moment <c>verbose_toolbuttons</c> changes; the
-    /// window calls this from the same place, and a theme change comes through
-    /// here too because the icons are rendered, not swapped.
+    /// window calls this from the same place.
     /// </remarks>
     public void SettingsChanged() => Rebuild();
-
-    /// <summary>Answers whether the Shift key is held down.</summary>
-    /// <returns>Whether it is.</returns>
-    /// <remarks>
-    /// Board trap 38: a modifier is read from the keyboard source rather than
-    /// from an event's arguments, because ALT reads as SHIFT in the editor's
-    /// key arguments on the Skia heads. Upstream reads
-    /// <c>QApplication.keyboardModifiers()</c> at the same moment, inside
-    /// <c>engrave.engraveRunner</c>.
-    /// </remarks>
-    public static bool ShiftHeld()
-    {
-        try
-        {
-            return (Microsoft.UI.Input.InputKeyboardSource
-                    .GetKeyStateForCurrentThread(VirtualKey.Shift)
-                & Windows.UI.Core.CoreVirtualKeyStates.Down)
-                == Windows.UI.Core.CoreVirtualKeyStates.Down;
-        }
-        catch (Exception)
-        {
-            //A head with no keyboard source to ask cannot know, and "not held"
-            //is the answer that runs a preview rather than opening a dialog.
-            return false;
-        }
-    }
 
     /// <summary>Answers whether the pull-down menus are wanted.</summary>
     /// <param name="settings">The store, or null for the default.</param>
@@ -227,152 +185,193 @@ public sealed class MainToolbar : Grid
     public static bool VerboseToolButtons(SettingsStore settings)
         => settings?.GetBool(GeneralValues.VerboseToolButtonsKey, false) ?? false;
 
+    /// <summary>Caps the tray at the width its host was arranged to.</summary>
+    /// <remarks>
+    /// A <see cref="ContentControl"/> measures its content with an UNBOUNDED
+    /// width, so a tray hosted in one is offered infinite room: it never wraps
+    /// its second bar to a second row, and no bar ever moves its trailing items
+    /// behind the overflow chevron. The ARRANGE pass is right — the host reports
+    /// the window's own width — so the host's arranged width is handed back to
+    /// the tray as a maximum and the next measure is bounded by it. This is a
+    /// CodeBrix.Platform defect worked around here; it is in the package fixlist
+    /// of 2026-09-13.
+    /// </remarks>
+    private void FollowHostWidth()
+    {
+        if (_widthSource != null) { return; }
+
+        FrameworkElement nearest = null;
+        DependencyObject parent = VisualTreeHelper.GetParent(this);
+        while (parent != null)
+        {
+            if (parent is ContentControl host)
+            {
+                _widthSource = host;
+                break;
+            }
+
+            nearest ??= parent as FrameworkElement;
+            parent = VisualTreeHelper.GetParent(parent);
+        }
+
+        _widthSource ??= nearest;
+        if (_widthSource == null) { return; }
+
+        _widthSource.SizeChanged += OnHostSizeChanged;
+        ApplyHostWidth(_widthSource.ActualWidth);
+    }
+
+    private void StopFollowingHostWidth()
+    {
+        if (_widthSource == null) { return; }
+
+        _widthSource.SizeChanged -= OnHostSizeChanged;
+        _widthSource = null;
+    }
+
+    private void OnHostSizeChanged(object sender, SizeChangedEventArgs e)
+        => ApplyHostWidth(e.NewSize.Width);
+
+    private void ApplyHostWidth(double width)
+    {
+        if (width > 0 && !double.IsInfinity(width)) { MaxWidth = width; }
+    }
+
     private void Rebuild()
     {
         _built = true;
 
-        while (_bar.Children.Count > 0)
+        while (Children.Count > 0)
         {
-            _bar.Children.RemoveAt(_bar.Children.Count - 1);
+            Children.RemoveAt(Children.Count - 1);
         }
 
         _scoreChooser = null;
         _zoomChooser = null;
         _pager = null;
 
+        ToolBar mainBar = new ToolBar { Title = ToolbarLayout.MainTitle() };
         bool verbose = VerboseToolButtons(_settings);
         foreach (ToolbarEntry entry in ToolbarLayout.Main(
             _main, _browser, _scoreWizard, _engrave, verbose))
         {
-            Add(entry, ToolbarLayout.MainTitle());
+            Add(mainBar, entry);
         }
+
+        if (mainBar.Items.Count > 0) { Children.Add(mainBar); }
 
         IReadOnlyList<ToolbarEntry> musicEntries = ToolbarLayout.Music(_music);
         if (musicEntries.Count > 0)
         {
-            //The gap BETWEEN the two bars, which is what Qt draws when two
-            //toolbars share a row.
-            _bar.Children.Add(new Border
+            ToolBar musicBar = new ToolBar { Title = ToolbarLayout.MusicTitle() };
+            foreach (ToolbarEntry entry in musicEntries)
             {
-                Width = 1,
-                Margin = new Thickness(10, 3, 10, 3),
-                Background = new SolidColorBrush(Color.FromArgb(0x50, 0x80, 0x80, 0x80)),
-            });
-        }
+                Add(musicBar, entry);
+            }
 
-        foreach (ToolbarEntry entry in musicEntries)
-        {
-            Add(entry, ToolbarLayout.MusicTitle());
+            Children.Add(musicBar);
         }
 
         OnScoresChanged(this, EventArgs.Empty);
         OnViewStateChanged(this, EventArgs.Empty);
     }
 
-    private void Add(ToolbarEntry entry, string barTitle)
+    private void Add(ToolBar bar, ToolbarEntry entry)
     {
         switch (entry.Kind)
         {
             case ToolbarEntryKind.Separator:
-                _bar.Children.Add(new Border
-                {
-                    Width = 1,
-                    Margin = new Thickness(4, 4, 4, 4),
-                    Background = new SolidColorBrush(
-                        Color.FromArgb(0x40, 0x80, 0x80, 0x80)),
-                });
+                bar.Items.Add(new ToolBarSeparator());
                 return;
 
             case ToolbarEntryKind.Widget:
-                UIElement control = ControlFor(entry, barTitle);
-                if (control != null) { _bar.Children.Add(control); }
+                UIElement control = ControlFor(entry, bar.Title);
+                if (control != null) { bar.Items.Add(control); }
 
                 return;
 
             default:
                 if (entry.Action == null) { return; }
 
-                _bar.Children.Add(ButtonFor(entry, barTitle));
+                bar.Items.Add(ButtonFor(entry));
                 return;
         }
     }
 
-    private UIElement ButtonFor(ToolbarEntry entry, string barTitle)
+    private ToolButton ButtonFor(ToolbarEntry entry)
     {
         AppAction action = entry.Action;
-        ButtonBase button = action.IsCheckable
-            ? new ToggleButton { IsChecked = action.IsChecked }
-            : new Button();
-
-        button.Padding = new Thickness(5, 3, 5, 3);
-        button.MinWidth = 0;
-        button.IsEnabled = action.IsEnabled;
-        button.Content = ContentFor(action);
-        Describe(button, action, barTitle);
-
-        if (button is ToggleButton toggle)
+        ToolButton button;
+        if (entry.Menu != ToolbarMenu.None)
         {
-            toggle.Click += (_, _) =>
+            //Qt's MenuButtonPopup, as one button: the main part IS the action
+            //and the arrow part opens the menu. Nothing on either bar is a
+            //checkable action AND a menu button, so a menu wins the choice.
+            MenuFlyout flyout = new MenuFlyout();
+            flyout.Opening += (_, _) => FillMenu(flyout, entry.Menu);
+            button = new ToolDropDownButton
             {
-                //A ToggleButton has already flipped itself by the time it is
-                //clicked; AppAction.Trigger flips the action. Setting the
-                //action's state from the button first keeps the two from
-                //cancelling each other out.
-                action.IsChecked = toggle.IsChecked != true;
-                action.Trigger();
+                PopupMode = PopupMode.MenuButton,
+                Flyout = flyout,
             };
+        }
+        else if (action.IsCheckable)
+        {
+            button = new ToolToggleButton { IsChecked = action.IsChecked };
         }
         else
         {
-            button.Click += (_, _) => action.Trigger();
+            button = new ToolButton();
         }
+
+        //IsEnabled is NOT set here. The button follows the command's
+        //CanExecute, which AppAction answers from IsEnabled and re-raises on
+        //every change; an explicit IsEnabled would outrank the command for good.
+        button.Command = action;
+
+        //A tool tip the action writes for itself is not the button's label, so
+        //the application sets it: the add-in leaves a tool tip it did not
+        //compose alone. That is how the engrave button promises a preview and
+        //then, while a job runs, offers to abort it. Once the application has
+        //set one, that button never composes another — so the flag stays on and
+        //the application keeps saying the whole tip. Every other button says
+        //nothing at all here and the add-in composes "Text (Shortcut)", which
+        //is the same string ToolbarLayout.ToolTipFor writes.
+        bool applicationOwnsToolTip = false;
 
         void Update()
         {
-            button.IsEnabled = action.IsEnabled;
-            button.Content = ContentFor(action);
-            Describe(button, action, barTitle);
-            if (button is ToggleButton box) { box.IsChecked = action.IsChecked; }
+            button.Text = MenuBuilder.Display(action.Text);
+            button.Shortcut = action.Shortcuts.Count > 0
+                ? action.Shortcuts[0].ToString()
+                : null;
+
+            //No icon of that name in the shipped sets hands back nothing at
+            //all, which is what makes the add-in show the button's text rather
+            //than draw a blank square. Emptying assets/icons/ leaves a working,
+            //if wordy, pair of toolbars.
+            button.Icon = IconTheme.Source(action.IconName);
+
+            if (applicationOwnsToolTip || !string.IsNullOrEmpty(action.ToolTip))
+            {
+                applicationOwnsToolTip = true;
+                ToolTipService.SetToolTip(button, ToolbarLayout.ToolTipFor(action));
+            }
+
+            //A click flips the toggle's own state and, separately, runs the
+            //command, which flips the action's — one flip each, ending in step.
+            //The action is never written from here, which is what keeps the two
+            //from cancelling each other out.
+            if (button is ToolToggleButton box) { box.IsChecked = action.IsChecked; }
         }
 
         Update();
 
-        //Board trap 41's neighbour: a toolbar button is never removed from the
-        //tree while the bar lives, so one subscription is enough — but it is
-        //dropped when the bar is rebuilt, which is why Rebuild makes new ones.
+        //A toolbar button is never removed from the tree while its bar lives,
+        //so one subscription is enough — but it is dropped when the bars are
+        //rebuilt, which is why Rebuild makes new ones.
         action.PropertyChanged += (_, _) => Update();
-
-        if (entry.Menu == ToolbarMenu.None) { return button; }
-
-        //Qt's MenuButtonPopup: the button IS the action, and a small arrow
-        //beside it opens the menu.
-        Button arrow = new Button
-        {
-            Content = new TextBlock { Text = ArrowGlyph, FontSize = 10 },
-            Padding = new Thickness(2, 3, 2, 3),
-            MinWidth = 0,
-        };
-        AutomationProperties.SetName(
-            arrow, MenuBuilder.Display(action.Text) + " " + ArrowGlyph);
-
-        MenuFlyout flyout = new MenuFlyout();
-        flyout.Opening += (_, _) => FillMenu(flyout, entry.Menu);
-        arrow.Flyout = flyout;
-
-        //Qt disables a tool button whole — arrow, menu and all — when its
-        //action is disabled, so the arrow follows the same state the button
-        //does.
-        arrow.IsEnabled = action.IsEnabled;
-        action.PropertyChanged += (_, _) => arrow.IsEnabled = action.IsEnabled;
-
-        StackPanel pair = new StackPanel
-        {
-            Orientation = Orientation.Horizontal,
-            Spacing = 0,
-        };
-        pair.Children.Add(button);
-        pair.Children.Add(arrow);
-        return pair;
+        return button;
     }
 
     private void FillMenu(MenuFlyout flyout, ToolbarMenu menu)
@@ -416,62 +415,6 @@ public sealed class MainToolbar : Grid
         }
     }
 
-    private UIElement ContentFor(AppAction action)
-    {
-        UIElement content = string.IsNullOrEmpty(action.IconName)
-            ? null
-            : IconTheme.Image(ActualTheme, action.IconName);
-
-        //No icon of that name in the shipped sets — the button says what it
-        //does instead, in the short form Qt would put under an icon. Emptying
-        //assets/icons/ leaves a working, if wordy, pair of toolbars.
-        content ??= new TextBlock
-        {
-            Text = MenuBuilder.Display(action.IconText),
-            VerticalAlignment = VerticalAlignment.Center,
-        };
-
-        //was previously: the content was returned at full opacity whatever the
-        //command's state, so a DISABLED toolbar button looked exactly like an
-        //enabled one — Go to previous position was greyed out on the View menu
-        //and bright on the bar at the same moment. The button itself is
-        //disabled either way; this is the affordance Qt draws for free by
-        //rendering a disabled action's icon in a greyed mode.
-        content.Opacity = action.IsEnabled ? 1.0 : DisabledOpacity;
-        return content;
-    }
-
-    /// <summary>Answers the tool tip a toolbar button carries.</summary>
-    /// <param name="action">The command the button fires.</param>
-    /// <returns>The tip.</returns>
-    /// <remarks>
-    /// Qt's own shape for a toolbar button: what the command is, then its
-    /// shortcut in parentheses. An action that sets a tool tip of its own says
-    /// that instead of its menu text — which is how the engrave button
-    /// promises "Engrave (preview; press Shift for custom)" and then, while a
-    /// job runs, "Abort engraving job". The accelerator marker is stripped at
-    /// DISPLAY (board trap 18), never out of the msgid.
-    /// </remarks>
-    public static string ToolTipFor(AppAction action)
-    {
-        if (action == null) { return string.Empty; }
-
-        string text = string.IsNullOrEmpty(action.ToolTip)
-            ? MenuBuilder.Display(action.Text)
-            : MenuBuilder.Display(action.ToolTip);
-        return action.Shortcuts.Count > 0
-            ? text + " (" + action.Shortcuts[0] + ")"
-            : text;
-    }
-
-    private static void Describe(
-        DependencyObject button, AppAction action, string barTitle)
-    {
-        ToolTipService.SetToolTip(button, ToolTipFor(action));
-        AutomationProperties.SetName(button, MenuBuilder.Display(action.Text));
-        AutomationProperties.SetHelpText(button, barTitle);
-    }
-
     private UIElement ControlFor(ToolbarEntry entry, string barTitle)
     {
         switch (entry.Widget)
@@ -492,7 +435,12 @@ public sealed class MainToolbar : Grid
 
     private UIElement BuildScoreChooser(AppAction action, string barTitle)
     {
-        _scoreChooser = new ComboBox { MinWidth = 150, IsEnabled = false };
+        _scoreChooser = new ComboBox
+        {
+            MinWidth = 150,
+            IsEnabled = false,
+            VerticalAlignment = VerticalAlignment.Center,
+        };
         _scoreChooser.SelectionChanged += (_, _) =>
         {
             if (_writingChooser) { return; }
@@ -523,7 +471,11 @@ public sealed class MainToolbar : Grid
     private UIElement BuildZoomChooser(string barTitle)
     {
         _zoomEntries = ZoomLevels.Entries();
-        _zoomChooser = new ComboBox { MinWidth = 84 };
+        _zoomChooser = new ComboBox
+        {
+            MinWidth = 84,
+            VerticalAlignment = VerticalAlignment.Center,
+        };
         foreach (ZoomEntry entry in _zoomEntries)
         {
             _zoomChooser.Items.Add(entry.Caption);
@@ -575,6 +527,7 @@ public sealed class MainToolbar : Grid
             Width = 96,
             TextAlignment = TextAlignment.Center,
             IsEnabled = false,
+            VerticalAlignment = VerticalAlignment.Center,
         };
         AutomationProperties.SetName(
             _pager, MenuBuilder.Display(I18n.Get("{num} of {total}")));
@@ -697,9 +650,8 @@ public sealed class MainToolbar : Grid
             //percentage is shown as a row of its own, added while it is
             //current and removed the moment it stops being: the box reads
             //"240%" as upstream's does, at the cost of one extra line in the
-            //open list.
-            //was previously: SelectedIndex = -1, which left the box EMPTY and
-            //the user with no way to read the current zoom at all.
+            //open list. Leaving SelectedIndex at -1 instead would leave the box
+            //EMPTY and the user with no way to read the current zoom at all.
             if (index < 0)
             {
                 _zoomChooser.Items.Add(

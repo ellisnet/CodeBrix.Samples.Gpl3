@@ -35,7 +35,7 @@ at the root collects the how-tos mined from all of the applications.
 
 | Application | What it is | Headline CodeBrix libraries |
 | --- | --- | --- |
-| [Fresco.Brix](Fresco.Brix/README.md) | A desktop music-notation editor and engraving environment: write music in the LilyPond language in a language-aware code editor, engrave it in process with no LilyPond installation, then read, play, annotate and export the score | CodeBrix.LilyPort, CodeBrix.Platform with the AdvancedTextEdit and AppSettings add-ins, CodeBrix.Audio, CodeBrix.SkiaSvg, CodeBrix.PdfRasterizer, CodeBrix.PdfDocCreate and its Html2Pdf add-on |
+| [Fresco.Brix](Fresco.Brix/README.md) | A desktop music-notation editor and engraving environment: write music in the LilyPond language in a language-aware code editor, engrave it in process with no LilyPond installation, then read, play, annotate and export the score | CodeBrix.LilyPort, CodeBrix.Platform with the AdvancedTextEdit, AppSettings and CommandBar add-ins, CodeBrix.Audio, CodeBrix.SkiaSvg, CodeBrix.PdfRasterizer, CodeBrix.PdfDocCreate and its Html2Pdf add-on |
 
 ## Blueprints
 

@@ -5,6 +5,7 @@
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
+using CodeBrix.Platform.UI.CommandBar;
 using Fresco.Brix.QuickInsert;
 using Fresco.Brix.Services;
 using Microsoft.UI.Xaml;
@@ -23,6 +24,7 @@ namespace Fresco.Brix.Core.Tests;
 /// The two toolbars' icon sets: what ships, which set a theme asks for, and
 /// ruling FR14's one cleaned file.
 /// </summary>
+[Collection(XamlTestCollection.Name)]
 public class IconThemeTests
 {
     /// <summary>Every icon name the two window toolbars reference.</summary>
@@ -133,6 +135,95 @@ public class IconThemeTests
     }
 
     [Theory]
+    [MemberData(nameof(IconNames))]
+    public void every_toolbar_icon_opens_through_the_resource_scheme_in_both_sets(string name)
+    {
+        //Arrange
+        Uri light = IconTheme.ResourceUri(IconTheme.LightPrefix, name);
+        Uri dark = IconTheme.ResourceUri(IconTheme.DarkPrefix, name);
+
+        //Act
+        bool lightOpened = IconResourceScheme.TryOpen(light, out Stream lightBytes);
+        bool darkOpened = IconResourceScheme.TryOpen(dark, out Stream darkBytes);
+
+        using (lightBytes)
+        using (darkBytes)
+        {
+            //Assert — this is the route the toolbar buttons read their artwork
+            //through, and a URI that does not resolve draws a BLANK icon rather
+            //than raising anything, so nothing but a test can catch it.
+            lightOpened.Should().BeTrue();
+            darkOpened.Should().BeTrue();
+            lightBytes.Length.Should().BeGreaterThan(0);
+            darkBytes.Length.Should().BeGreaterThan(0);
+        }
+    }
+
+    [Fact]
+    public void the_terse_resource_uri_is_ambiguous_and_opens_nothing()
+    {
+        //Arrange — the short form the scheme also accepts, which matches a
+        //manifest name by suffix.
+        Uri terse = new Uri("cb-res://Fresco.Brix.Core/zoom-in.svg");
+
+        //Act
+        bool opened = IconResourceScheme.TryOpen(terse, out Stream bytes);
+
+        using (bytes)
+        {
+            //Assert — this assembly embeds both sets under names that differ in
+            //one segment, so the suffix matches TWO resources and the scheme
+            //refuses to guess. IconTheme therefore names the full manifest
+            //resource, and every button icon depends on it doing so.
+            opened.Should().BeFalse();
+            bytes.Should().BeNull();
+        }
+    }
+
+    [Theory]
+    [MemberData(nameof(IconNames))]
+    public void an_icon_source_carries_both_sets_at_the_toolbar_size_and_no_tint(string name)
+    {
+        //Arrange, Act
+        SvgIconSource source = IconTheme.Source(name);
+
+        //Assert — the pair is what makes the icon follow the theme without the
+        //bar being rebuilt, and no tint is set because a stylesheet cannot
+        //outrank the inline style= colours most of these files carry.
+        source.Should().NotBeNull();
+        source.Source.Should().Be(IconTheme.ResourceUri(IconTheme.LightPrefix, name));
+        source.Dark.Should().Be(IconTheme.ResourceUri(IconTheme.DarkPrefix, name));
+        source.TintMode.Should().Be(IconTintMode.None);
+        source.Tint.Should().BeNull();
+        source.Size.Should().Be(IconTheme.ToolbarIconSize);
+    }
+
+    [Fact]
+    public void one_name_hands_out_one_source_however_many_buttons_ask()
+    {
+        //Arrange, Act
+        SvgIconSource first = IconTheme.Source("document-new");
+        SvgIconSource second = IconTheme.Source("document-new");
+
+        //Assert — an icon SOURCE may be shared by many buttons (it makes an
+        //element of its own for each); an icon ELEMENT may not.
+        first.Should().BeSameAs(second);
+    }
+
+    [Fact]
+    public void a_name_no_set_ships_has_no_source_at_all()
+    {
+        //Arrange, Act
+        SvgIconSource missing = IconTheme.Source("no-such-icon");
+
+        //Assert — null is deliberate: the add-in shows the button's text rather
+        //than a blank square when there is no icon.
+        missing.Should().BeNull();
+        IconTheme.Source(null).Should().BeNull();
+        IconTheme.Source(string.Empty).Should().BeNull();
+    }
+
+    [Theory]
     [InlineData("light", 24)]
     [InlineData("light", 48)]
     [InlineData("light", 96)]
@@ -156,8 +247,13 @@ public class IconThemeTests
         Color ink = Color.FromArgb(0xff, 0x30, 0x60, 0x90);
         string prefix = set == "dark" ? IconTheme.DarkPrefix : IconTheme.LightPrefix;
 
-        //Act — BOTH files go through the application's own renderer, the one
-        //the toolbar buttons draw with.
+        //Act — BOTH files go through SymbolIcons, which is still the
+        //application's ONE Skia call site (board rule 6b) and is still what the
+        //Quick Insert panel draws its glyphs with. It is no longer what the
+        //window's toolbar buttons draw with: those go through the CommandBar
+        //add-in's SVG route (IconTheme.Source). So this case stays a proof about
+        //the FILE — that the cleaned artwork is pixel-identical to upstream's —
+        //and stops being a proof about what a toolbar BUTTON puts on screen.
         byte[] original;
         using (Stream file = File.OpenRead(Path.Combine(
             "fixtures", "icons",

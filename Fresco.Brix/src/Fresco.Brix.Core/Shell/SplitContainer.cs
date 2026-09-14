@@ -23,10 +23,15 @@ namespace Fresco.Brix.Shell; //was previously: PyQt6 QSplitter, as Frescobaldi's
 /// can be nested inside another to build any arrangement of panes.
 /// <para>
 /// Frescobaldi's window is built out of Qt splitters — the editor area splits
-/// into views, and the tool panels dock around it. CodeBrix.Platform has no
-/// splitter control, so this is the port's own: only what the shell needs
-/// (add, insert, remove, index, proportional sizes), not a general-purpose
-/// docking library.
+/// into views, and the tool panels dock around it. CodeBrix.Platform's own
+/// splitter is a pane control of exactly three panes, and the editor area needs
+/// one that nests without limit: a view space splits into two, and either of
+/// those splits again, as many times as the user asks. So this is the port's
+/// own, and it is what the editor area (<see cref="ViewManager"/>) and the
+/// Document Fonts dialog are built on — only what they need (add, insert,
+/// remove, index, proportional sizes), not a general-purpose docking library.
+/// The window's own working area is not one of them any more; it is two nested
+/// pane controls (<see cref="DockShell"/>).
 /// </para>
 /// </summary>
 public class SplitContainer : Grid

@@ -5,19 +5,24 @@
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
+using CodeBrix.Platform.UI.CommandBar;
 using Fresco.Brix.Commands;
 using Fresco.Brix.Engrave;
 using Fresco.Brix.MusicView;
 using Fresco.Brix.Preferences;
 using Fresco.Brix.Services;
 using Fresco.Brix.Shell;
+using Fresco.Brix.Snippets;
 using Fresco.Brix.Tools;
+using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
 using SilverAssertions;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Windows.Foundation;
 using Xunit;
 
 namespace Fresco.Brix.Core.Tests;
@@ -232,8 +237,8 @@ public class MainToolbarTests : IDisposable
         EngraveActions engrave = new EngraveActions(_settings);
 
         //Act
-        string newDocument = MainToolbar.ToolTipFor(main.FileNew);
-        string runner = MainToolbar.ToolTipFor(engrave.EngraveRunner);
+        string newDocument = ToolbarLayout.ToolTipFor(main.FileNew);
+        string runner = ToolbarLayout.ToolTipFor(engrave.EngraveRunner);
 
         //Assert — Qt's own shape, with the accelerator marker stripped at
         //display (board trap 18) and an action's own tool tip winning over its
@@ -452,4 +457,353 @@ public class MusicToolbarWidgetTests
         //box, so the first run of digits is the answer.
         page.Should().Be(expected);
     }
+}
+
+/// <summary>
+/// What the builder makes of each layout entry: the two bars, the elements on
+/// them, and the state that has to keep following the commands.
+/// </summary>
+/// <remarks>
+/// <para>
+/// These cases build real CodeBrix.Platform elements in a process with no
+/// window, which the module initializers in this project make possible; the
+/// collection they belong to is what keeps that work off every other test
+/// thread.
+/// </para>
+/// <para>
+/// The bars are built by <see cref="MainToolbar.SettingsChanged"/> rather than
+/// by being loaded into a tree, because that is the same call the window makes
+/// when the pull-down preference changes and it is the only route that does not
+/// need a window.
+/// </para>
+/// </remarks>
+[Collection(XamlTestCollection.Name)]
+public class MainToolbarBuilderTests : IDisposable
+{
+    private readonly string _folder = Path.Combine(
+        Path.GetTempPath(), "frescobrix-builder-" + Guid.NewGuid().ToString("N"));
+
+    private readonly SettingsStore _settings;
+    private MainActions _main;
+    private BrowserActions _browser;
+    private ScoreWizardActions _scoreWizard;
+    private EngraveActions _engrave;
+    private MusicViewActions _music;
+
+    /// <summary>Creates the fixture with a store of its own.</summary>
+    public MainToolbarBuilderTests()
+    {
+        Directory.CreateDirectory(_folder);
+        _settings = new SettingsStore(_folder);
+    }
+
+    /// <summary>Removes the scratch store.</summary>
+    public void Dispose()
+    {
+        _settings?.Dispose();
+        try { Directory.Delete(_folder, true); }
+        catch (IOException) { }
+
+        GC.SuppressFinalize(this);
+    }
+
+    [Fact]
+    public void the_tray_holds_the_two_bars_upstream_names()
+    {
+        //Arrange, Act
+        MainToolbar toolbar = Build();
+
+        //Assert — upstream adds two QToolBars to the same area, and Qt names
+        //each of them; the tray is that area.
+        IReadOnlyList<ToolBar> bars = Bars(toolbar);
+        bars.Count.Should().Be(2);
+        bars[0].Title.Should().Be(ToolbarLayout.MainTitle());
+        bars[1].Title.Should().Be(ToolbarLayout.MusicTitle());
+    }
+
+    [Fact]
+    public void the_main_bar_holds_one_item_per_layout_entry()
+    {
+        //Arrange
+        MainToolbar toolbar = Build();
+        IReadOnlyList<ToolbarEntry> entries = ToolbarLayout.Main(
+            _main, _browser, _scoreWizard, _engrave, verboseToolButtons: false);
+
+        //Act
+        IReadOnlyList<UIElement> items = Items(Bars(toolbar)[0]);
+
+        //Assert — the order model and the bar say the same thing, entry for
+        //entry: a separator entry is a separator, an action entry is a button.
+        items.Count.Should().Be(entries.Count);
+        for (int index = 0; index < entries.Count; index++)
+        {
+            if (entries[index].Kind == ToolbarEntryKind.Separator)
+            {
+                items[index].Should().BeOfType<ToolBarSeparator>();
+                continue;
+            }
+
+            ToolButton button = items[index].Should().BeAssignableTo<ToolButton>().Subject;
+            button.Command.Should().BeSameAs(entries[index].Action);
+        }
+    }
+
+    [Fact]
+    public void the_music_bar_holds_one_item_per_layout_entry()
+    {
+        //Arrange
+        MainToolbar toolbar = Build();
+        IReadOnlyList<ToolbarEntry> entries = ToolbarLayout.Music(_music);
+
+        //Act
+        IReadOnlyList<UIElement> items = Items(Bars(toolbar)[1]);
+
+        //Assert — the three entries that are not buttons are the controls
+        //upstream puts on the bar: a score chooser, a zoom chooser and a pager.
+        items.Count.Should().Be(entries.Count);
+        items.OfType<ComboBox>().Count().Should().Be(2);
+        items.OfType<TextBox>().Count().Should().Be(1);
+        items.OfType<ToolBarSeparator>().Count()
+            .Should().Be(entries.Count(e => e.Kind == ToolbarEntryKind.Separator));
+    }
+
+    [Fact]
+    public void every_button_carries_the_icon_its_action_names()
+    {
+        //Arrange
+        MainToolbar toolbar = Build();
+
+        //Act
+        IReadOnlyList<ToolButton> buttons = Buttons(toolbar);
+
+        //Assert — a name no set ships hands back nothing, and nothing is what
+        //makes a button show its text instead of a blank square. Every name on
+        //either bar ships in both sets, so every button has artwork.
+        buttons.Should().NotBeEmpty();
+        foreach (ToolButton button in buttons)
+        {
+            AppAction action = (AppAction)button.Command;
+            button.Icon.Should().BeSameAs(IconTheme.Source(action.IconName));
+            button.Icon.Should().NotBeNull();
+        }
+    }
+
+    [Fact]
+    public void the_open_button_is_a_drop_down_with_the_recent_files_flyout()
+    {
+        //Arrange
+        MainToolbar toolbar = Build();
+
+        //Act
+        ToolDropDownButton open = (ToolDropDownButton)ButtonFor(toolbar, "file_open");
+
+        //Assert — Qt's MenuButtonPopup: the main part opens a file, the arrow
+        //part shows the recent ones. Upstream hangs this menu on the Open
+        //button whatever verbose_toolbuttons says.
+        open.PopupMode.Should().Be(PopupMode.MenuButton);
+        open.Flyout.Should().BeOfType<MenuFlyout>();
+        open.Command.Should().BeSameAs(_main.FileOpen);
+    }
+
+    [Fact]
+    public void the_preference_changes_which_buttons_are_drop_downs_without_a_restart()
+    {
+        //Arrange — the same toolbar throughout, as the window keeps.
+        MainToolbar toolbar = Build();
+        IReadOnlyList<string> quietDropDowns = DropDownNames(toolbar);
+
+        //Act — upstream's mainwindow.settingsChanged, which the window calls
+        //from the preferences page.
+        GeneralValues values = new GeneralValues();
+        values.Load(_settings);
+        values.VerboseToolButtons = true;
+        values.Save(_settings);
+        toolbar.SettingsChanged();
+
+        //Assert
+        quietDropDowns.Should().BeEquivalentTo(new[] { "file_open", "engrave_runner" });
+        DropDownNames(toolbar).Should().BeEquivalentTo(
+            new[] { "file_new", "file_open", "file_save", "file_close", "engrave_runner" });
+    }
+
+    [Fact]
+    public void the_magnifier_is_a_toggle_and_a_click_flips_the_action_once()
+    {
+        //Arrange — the one checkable action on either bar.
+        MainToolbar toolbar = Build();
+        ToolToggleButton magnifier =
+            (ToolToggleButton)ButtonFor(toolbar, "music_magnifier");
+        bool before = _music.MusicMagnifier.IsChecked;
+        int triggered = 0;
+        _music.MusicMagnifier.Triggered += (_, _) => triggered++;
+
+        //Act — the same code path a pointer takes.
+        new ToolToggleButtonAutomationPeer(magnifier).Toggle();
+
+        //Assert — the toggle flips its own state and the command flips the
+        //action's, one flip each. Writing the action from the button as well
+        //would cancel the two out and leave the magnifier where it was.
+        triggered.Should().Be(1);
+        _music.MusicMagnifier.IsChecked.Should().Be(!before);
+        magnifier.IsChecked.Should().Be(_music.MusicMagnifier.IsChecked);
+    }
+
+    [Fact]
+    public void a_disabled_action_disables_its_button()
+    {
+        //Arrange
+        MainToolbar toolbar = Build();
+        ToolButton back = ButtonFor(toolbar, "go_back");
+
+        //Act — nothing sets IsEnabled on the button; it follows the command's
+        //CanExecute, which AppAction answers from IsEnabled.
+        _browser.GoBack.IsEnabled = false;
+        bool disabled = back.IsEnabled;
+        _browser.GoBack.IsEnabled = true;
+
+        //Assert
+        disabled.Should().BeFalse();
+        back.IsEnabled.Should().BeTrue();
+    }
+
+    [Fact]
+    public void a_buttons_composed_tooltip_is_the_one_fresco_writes()
+    {
+        //Arrange
+        MainToolbar toolbar = Build();
+
+        //Act
+        ToolButton newDocument = ButtonFor(toolbar, "file_new");
+
+        //Assert — the add-in composes it from the two strings the builder hands
+        //over, and lands on the wording MainToolbarTests pins.
+        newDocument.ComposedToolTipText.Should().Be("New Document (Ctrl+N)");
+        newDocument.ComposedToolTipText
+            .Should().Be(ToolbarLayout.ToolTipFor(_main.FileNew));
+        ToolTipService.GetToolTip(newDocument).Should().Be("New Document (Ctrl+N)");
+    }
+
+    [Fact]
+    public void the_engrave_buttons_icon_and_tooltip_follow_the_job()
+    {
+        //Arrange — engrave_runner is the one action whose tool tip is not its
+        //label, so the application writes it and the add-in leaves it alone.
+        MainToolbar toolbar = Build();
+        ToolButton runner = ButtonFor(toolbar, "engrave_runner");
+        object promise = ToolTipService.GetToolTip(runner);
+        object idle = runner.Icon;
+
+        //Act — what Engraver.UpdateActions does when a job starts.
+        _engrave.EngraveRunner.IconName = "lilypond-stop";
+        _engrave.EngraveRunner.ToolTip = "Abort engraving job";
+
+        //Assert
+        promise.Should().Be("Engrave (preview; Shift-click for custom)");
+        idle.Should().BeSameAs(IconTheme.Source("lilypond-run"));
+        runner.Icon.Should().BeSameAs(IconTheme.Source("lilypond-stop"));
+        ToolTipService.GetToolTip(runner).Should().Be("Abort engraving job");
+    }
+
+    [Fact]
+    public void the_bars_carry_the_presentation_upstream_asks_for()
+    {
+        //Arrange
+        MainToolbar toolbar = Build();
+
+        //Act — the three settings are inherited attached properties, set once
+        //on the tray.
+        double iconSize = ToolBarProperties.GetIconSize(toolbar);
+        LabelMode labelMode = ToolBarProperties.GetLabelMode(toolbar);
+        bool showToolTips = ToolBarProperties.GetShowToolTips(toolbar);
+
+        //Assert — Qt's ToolButtonIconOnly at the size IconTheme names, with a
+        //tool tip on every button.
+        iconSize.Should().Be(IconTheme.ToolbarIconSize);
+        labelMode.Should().Be(LabelMode.IconOnly);
+        showToolTips.Should().BeTrue();
+        ToolBarProperties.GetIconSize(Bars(toolbar)[0]).Should().Be(24d);
+    }
+
+    [Fact]
+    public void a_narrow_bar_pushes_its_trailing_items_behind_the_chevron()
+    {
+        //Arrange — the behaviour that replaces the hand-built row's hidden
+        //horizontal scrollbar.
+        TestHost.EnsureReady();
+        MainToolbar toolbar = Build();
+        ToolBar mainBar = Bars(toolbar)[0];
+
+        //Act
+        mainBar.Measure(new Size(1200d, 100d));
+        bool fitsWide = mainBar.HasOverflowItems;
+        mainBar.Measure(new Size(90d, 100d));
+
+        //Assert
+        fitsWide.Should().BeFalse();
+        mainBar.HasOverflowItems.Should().BeTrue();
+        mainBar.OverflowItems.Should().NotBeEmpty();
+    }
+
+    /// <summary>Builds a toolbar over this fixture's own action collections.</summary>
+    /// <returns>The toolbar, with both bars already built.</returns>
+    private MainToolbar Build()
+    {
+        _main = new MainActions(_settings);
+        _browser = new BrowserActions(_settings);
+        _scoreWizard = new ScoreWizardActions(_settings);
+        _engrave = new EngraveActions(_settings);
+        _music = new MusicViewActions(_settings);
+
+        MainToolbar toolbar = new MainToolbar(
+            _main,
+            _browser,
+            _scoreWizard,
+            _engrave,
+            _music,
+            new SnippetLibrary(_settings),
+            new SnippetToolActions(_settings),
+            _ => { },
+            new RecentFiles(_settings),
+            _ => { },
+            _settings);
+
+        //The window builds the bars when the tray enters the tree; nothing
+        //enters a tree here, so the same rebuild is asked for directly.
+        toolbar.SettingsChanged();
+        return toolbar;
+    }
+
+    /// <summary>Answers the bars on a tray.</summary>
+    /// <param name="toolbar">The toolbar.</param>
+    /// <returns>The bars, in tray order.</returns>
+    private static IReadOnlyList<ToolBar> Bars(MainToolbar toolbar)
+        => toolbar.Children.OfType<ToolBar>().ToList();
+
+    /// <summary>Answers the elements on a bar.</summary>
+    /// <param name="bar">The bar.</param>
+    /// <returns>The elements, in bar order.</returns>
+    private static IReadOnlyList<UIElement> Items(ToolBar bar)
+        => bar.Items.Cast<UIElement>().ToList();
+
+    /// <summary>Answers every button on either bar.</summary>
+    /// <param name="toolbar">The toolbar.</param>
+    /// <returns>The buttons.</returns>
+    private static IReadOnlyList<ToolButton> Buttons(MainToolbar toolbar)
+        => Bars(toolbar).SelectMany(Items).OfType<ToolButton>().ToList();
+
+    /// <summary>Answers the button a named command sits behind.</summary>
+    /// <param name="toolbar">The toolbar.</param>
+    /// <param name="name">The command's name.</param>
+    /// <returns>The button.</returns>
+    private static ToolButton ButtonFor(MainToolbar toolbar, string name)
+        => Buttons(toolbar).Single(b => ((AppAction)b.Command).Name == name);
+
+    /// <summary>Answers which commands are behind a drop-down button.</summary>
+    /// <param name="toolbar">The toolbar.</param>
+    /// <returns>The command names.</returns>
+    private static IReadOnlyList<string> DropDownNames(MainToolbar toolbar)
+        => Buttons(toolbar)
+            .OfType<ToolDropDownButton>()
+            .Select(b => ((AppAction)b.Command).Name)
+            .ToList();
 }

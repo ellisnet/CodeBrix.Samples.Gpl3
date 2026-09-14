@@ -8,7 +8,9 @@
 using Fresco.Brix.Commands;
 using Fresco.Brix.Services;
 using Fresco.Brix.Tools;
+using System;
 using System.Collections.Generic;
+using Windows.System;
 
 namespace Fresco.Brix.Shell; //was previously: frescobaldi/mainwindow.py (createToolBars, settingsChanged)
 
@@ -127,10 +129,11 @@ public sealed class ToolbarEntry
 /// </para>
 /// <para>
 /// Upstream adds two <c>QToolBar</c>s to the same top area, which Qt lays out
-/// side by side on one row until they no longer fit. There is no toolbar area
-/// in a CodeBrix.Platform window, so <see cref="MainToolbar"/> draws the two
-/// bars as two runs of controls on one row under the menu bar — the same
-/// arrangement, said out loud.
+/// side by side on one row until they no longer fit. The CommandBar add-in's
+/// <c>ToolBarTray</c> is that area: <see cref="MainToolbar"/> is one tray
+/// holding two real bars, laid out side by side on one row under the menu bar
+/// and wrapping the second to a row of its own when the window is too narrow
+/// for both.
 /// </para>
 /// <para>
 /// <c>music_print</c> is missing from the Music View bar and is not coming
@@ -149,6 +152,64 @@ public static class ToolbarLayout
 
     /// <summary>The Music View Toolbar's title.</summary>
     public static string MusicTitle() => I18n.Get("Music View Toolbar");
+
+    /// <summary>Answers whether the Shift key is held down.</summary>
+    /// <returns>Whether it is.</returns>
+    /// <remarks>
+    /// Board trap 38: a modifier is read from the keyboard source rather than
+    /// from an event's arguments, because ALT reads as SHIFT in the editor's
+    /// key arguments on the Skia heads. Upstream reads
+    /// <c>QApplication.keyboardModifiers()</c> at the same moment, inside
+    /// <c>engrave.engraveRunner</c>.
+    /// </remarks>
+    public static bool ShiftHeld()
+    {
+        try
+        {
+            return (Microsoft.UI.Input.InputKeyboardSource
+                    .GetKeyStateForCurrentThread(VirtualKey.Shift)
+                & Windows.UI.Core.CoreVirtualKeyStates.Down)
+                == Windows.UI.Core.CoreVirtualKeyStates.Down;
+        }
+        catch (Exception)
+        {
+            //A head with no keyboard source to ask cannot know, and "not held"
+            //is the answer that runs a preview rather than opening a dialog.
+            return false;
+        }
+    }
+
+    /// <summary>Answers the tool tip a toolbar button carries.</summary>
+    /// <param name="action">The command the button fires.</param>
+    /// <returns>The tip.</returns>
+    /// <remarks>
+    /// <para>
+    /// Qt's own shape for a toolbar button: what the command is, then its
+    /// shortcut in parentheses. An action that sets a tool tip of its own says
+    /// that instead of its menu text — which is how the engrave button
+    /// promises "Engrave (preview; press Shift for custom)" and then, while a
+    /// job runs, "Abort engraving job". The accelerator marker is stripped at
+    /// DISPLAY (board trap 18), never out of the msgid.
+    /// </para>
+    /// <para>
+    /// The window's two bars no longer call this for an ordinary button: the
+    /// CommandBar add-in composes the same string from the button's own Text
+    /// and Shortcut. It is still what says the wording, it is still how the
+    /// engrave button's non-label tip is written, and the Manuscript Viewer's
+    /// own toolbar sets every one of its tips with it.
+    /// </para>
+    /// </remarks>
+    public static string ToolTipFor(AppAction action)
+    {
+        if (action == null) { return string.Empty; }
+
+        string text = string.IsNullOrEmpty(action.ToolTip)
+            ? MenuBuilder.Display(action.Text)
+            : MenuBuilder.Display(action.ToolTip);
+        return action.Shortcuts.Count > 0
+            ? text + " (" + action.Shortcuts[0] + ")"
+            : text;
+    }
 
     /// <summary>Builds the Main Toolbar's entries.</summary>
     /// <param name="main">The window's own commands.</param>

@@ -132,8 +132,8 @@ public sealed class MusicViewActions : ActionCollection
     /// <remarks>Upstream's <c>music_zoom_combo</c> is qpageview's
     /// <c>ZoomerAction</c> — the action IS the combo box, and it carries the
     /// caption "Zoom Music" and, from the Shortcuts page, whatever key drops
-    /// its list open. //was previously: absent, because there was no toolbar to
-    /// put it on (audit A GAP-26).</remarks>
+    /// its list open. The action had nothing to sit on while the window carried
+    /// no toolbar (audit A GAP-26).</remarks>
     public AppAction MusicZoomCombo { get; private set; }
 
     /// <summary>Music View toolbar &gt; the score chooser.</summary>

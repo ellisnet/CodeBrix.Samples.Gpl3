@@ -48,11 +48,23 @@ public sealed class DockPanelState
 /// the opaque byte array <c>QMainWindow.saveState()</c> produces — a Qt private
 /// format describing dock widgets, their areas, their tabification and the
 /// toolbars. There is no such call to port: this shell is the repository's own
-/// (<see cref="DockShell"/> over <see cref="SplitContainer"/>), so the KEY is
-/// upstream's and what it holds says the same things in this shell's own terms.
-/// The sizes are the dividers' relative weights rather than pixels, which is
-/// what <see cref="SplitContainer"/> works in and what makes the arrangement
-/// come back the same on a screen of another size.
+/// (<see cref="DockShell"/> over two nested CodeBrix.Platform pane controls), so
+/// the KEY is upstream's and what it holds says the same things in this shell's
+/// own terms. The sizes are the shares each side of a divider has of its own
+/// axis rather than pixels, which is what the controls work in and what makes
+/// the arrangement come back the same on a screen of another size.
+/// </para>
+/// <para>
+/// The shell that came before this one stored two lists of splitter weights,
+/// <c>MiddleSizes</c> and <c>OuterSizes</c>, whose LENGTH followed how many
+/// areas happened to be on screen when they were written. The shell has no
+/// such lists any more, and a list of three weights cannot be honestly
+/// replayed into a control that has no third pane to give one to, so an
+/// arrangement written by that shell simply carries no usable shares: it is
+/// read for its panels, and the dividers open where
+/// <see cref="ShellLayout"/> says they should. That is the ruling already
+/// recorded for the settings store itself — no migration, first run at the
+/// defaults.
 /// </para>
 /// </remarks>
 public sealed class DockLayout
@@ -67,16 +79,14 @@ public sealed class DockLayout
     public List<DockPanelState> Panels { get; set; } = new List<DockPanelState>();
 
     /// <summary>
-    /// Gets or sets the middle row's divider weights — left area, editor,
-    /// right area, for whichever of those were on screen.
+    /// Gets or sets where the three dividers were — one pair of shares per
+    /// divider.
     /// </summary>
-    public List<double> MiddleSizes { get; set; } = new List<double>();
-
-    /// <summary>
-    /// Gets or sets the outer column's divider weights — the middle row and
-    /// the bottom area, for whichever were on screen.
-    /// </summary>
-    public List<double> OuterSizes { get; set; } = new List<double>();
+    /// <remarks>An arrangement written by the shell that came before this one
+    /// has none of these, so this reads as the shares the window opens at:
+    /// <see cref="ShellLayout.IsUsable"/> is what the shell asks before it
+    /// applies them.</remarks>
+    public ShellLayout Sizes { get; set; } = new ShellLayout();
 
     /// <summary>Gets whether nothing was recorded.</summary>
     /// <remarks>A first launch has nothing stored, and an arrangement with no

@@ -1255,13 +1255,136 @@ private MainViewModel ViewModel => DataContext as MainViewModel;
 **When you want this.** You want tool panels around a center area, resizable by
 dragging, that come back where the user left them.
 
-**The MVVM shape.** The shell is a `Grid`-derived container built in code;
-panels are plain objects with a widget and a toggle command. The view model
-holds the panel manager and owns the settings store; the page captures and
-applies the arrangement, because only the page can see it.
+**The MVVM shape.** The platform's toolkit ships a three-pane control: a side
+pane, and a stack of an upper and a lower pane beside it, with a draggable
+divider on each axis. A window that wants four regions around an editor — a
+left strip, a right strip, a bottom strip and the editor itself — needs one
+more region than that, so the shell NESTS two of them and owns the pair; it is
+not a control itself. Panels stay plain objects with a widget and a toggle
+command. The view model holds the panel manager and owns the settings store;
+the page captures and applies the arrangement, because only the page can see
+it.
 
-**Code.** The divider is a plain `Grid` with its own pointer handling, because
-the themed `Thumb` paints nothing on the Skia heads:
+**Code.** Nest the two controls mirrored, so that each strip is owned by
+whichever control can give it the shape it should have. Here the OUTER control
+places its side pane on the right and keeps the right strip there, full window
+height, with the bottom strip in its lower pane; the INNER control is the outer
+control's upper pane, places its side pane on the left, and keeps the left
+strip there with the editor in its upper pane. One pane of the inner control is
+left over, and is simply never opened:
+
+```csharp
+// From CodeBrix.Samples.Gpl3/Fresco.Brix/src/Fresco.Brix.Core/Shell/DockShell.cs
+private readonly TriPaneView _inner = new TriPaneView
+{
+    SidePanePlacement = TriPaneViewSidePanePlacement.Left,
+    SidePanePercent = ShellLayout.DefaultInnerSidePercent,
+    StackPercent = ShellLayout.DefaultInnerStackPercent,
+    UpperPanePercent = 100d,
+
+    //Not a region of the window. Held at zero for the life of the window,
+    //which with RestoreGripMode.Never means the inner stack divider is
+    //never drawn and no grip is ever offered for it.
+    LowerPanePercent = 0d,
+    SidePaneMinLength = 200d,
+    StackMinLength = 200d,
+    SidePaneVerticalScrollBarVisibility = ScrollBarVisibility.Disabled,
+    UpperPaneVerticalScrollBarVisibility = ScrollBarVisibility.Disabled,
+    LowerPaneVerticalScrollBarVisibility = ScrollBarVisibility.Disabled,
+    IsDragToMinimizeEnabled = false,
+    RestoreGripMode = TriPaneViewRestoreGripMode.Never,
+};
+
+private readonly TriPaneView _outer = new TriPaneView
+{
+    SidePanePlacement = TriPaneViewSidePanePlacement.Right,
+    // ... the same four percents, from the same ShellLayout constants
+    SidePaneMinLength = 200d,
+    StackMinLength = EditorMinLength,
+    UpperPaneMinLength = 200d,
+    LowerPaneMinLength = 80d,
+    // ... the same three scroll settings, and the same two drag settings
+};
+```
+
+The three vertical scroll settings are not decoration. Every pane of the
+control sits in a scroll viewer, and a scroll viewer measures its content with
+unbounded height unless its vertical scroll bar is `Disabled`, so a pane that
+should FILL comes out a few pixels tall without them — including the outer
+upper pane, which is what keeps the INNER control from being measured unbounded.
+
+A strip is shown and hidden by opening and minimizing its pane, never by
+writing a zero share, because minimizing is what takes the snapshot the strip
+reopens at:
+
+```csharp
+// From CodeBrix.Samples.Gpl3/Fresco.Brix/src/Fresco.Brix.Core/Shell/DockShell.cs
+public DockShell()
+{
+    _outer.UpperPane = _inner;
+
+    //Every strip starts shut, because no panel is visible yet. Minimizing
+    //rather than writing a zero percent is what gives each one a snapshot
+    //of the weight it should come back at; a pane that was simply set to
+    //zero has nothing to go back to and reopens at the control's own class
+    //default instead of the share this shell chose.
+    _outer.MinimizeSidePane();
+    _outer.MinimizeLowerPane();
+    _inner.MinimizeSidePane();
+
+    _outer.DividerDragCompleted += (_, _) => OnDividerDragCompleted();
+    _inner.DividerDragCompleted += (_, _) => OnDividerDragCompleted();
+}
+```
+
+Order matters when several panes change at once, and so does the floor under
+the stack once a second control is living inside it:
+
+```csharp
+// From CodeBrix.Samples.Gpl3/Fresco.Brix/src/Fresco.Brix.Core/Shell/DockShell.cs
+/// <remarks>Everything that is to be open is opened BEFORE anything is
+/// shut, on both controls: a control refuses a request that would leave it
+/// with nothing open at all, and doing it in the other order would walk
+/// into that refusal on the way through. [...]</remarks>
+private void ApplyPanes(ShellPanes wanted)
+{
+    if (wanted == null) { return; }
+
+    //A pane control narrower than the sum of its own floors gives its side
+    //pane the floor and its stack whatever is left, which can be nothing at
+    //all: measured on X11, dragging the outer side divider down to the
+    //editor block's 200 left the left strip at its own 200 and the EDITOR
+    //at zero width, with the inner side divider gone with it. So the outer
+    //stack's floor is the room the inner control actually needs — its side
+    //pane's floor, its divider, and the editor's — whenever the left strip
+    //is open, and just the editor's when it is not.
+    _outer.StackMinLength = wanted.LeftStripIsOpen
+        ? _inner.SidePaneMinLength + _inner.DividerThickness + EditorMinLength
+        : EditorMinLength;
+
+    //The inner control is only touched while it is on screen. [...]
+    if (wanted.EditorBlockIsOpen)
+    {
+        _outer.RestoreUpperPane();
+        if (wanted.EditorIsOpen) { _inner.RestoreUpperPane(); }
+
+        if (wanted.LeftStripIsOpen) { _inner.RestoreSidePane(); }
+
+        if (!wanted.EditorIsOpen) { _inner.MinimizeUpperPane(); }
+
+        if (!wanted.LeftStripIsOpen) { _inner.MinimizeSidePane(); }
+    }
+
+    if (wanted.RightStripIsOpen) { _outer.RestoreSidePane(); }
+    // ... the bottom strip, then the three minimize calls, in the same shape
+}
+```
+
+Inside the editor region the application still needs a splitter of its own,
+because a view space splits in two and either half splits again, as many times
+as the user asks, which a fixed three-pane control cannot do. Its divider is a
+plain `Grid` with its own pointer handling, because the themed `Thumb` paints
+nothing on the Skia heads:
 
 ```csharp
 // From CodeBrix.Samples.Gpl3/Fresco.Brix/src/Fresco.Brix.Core/Shell/SplitContainer.cs
@@ -1316,7 +1439,12 @@ to move them yet:
 ```csharp
 // From CodeBrix.Samples.Gpl3/Fresco.Brix/src/Fresco.Brix.UI/Views/MainPage.xaml.cs
 _shell = new DockShell { Center = _viewManager };
-ShellHost.Content = _shell;
+ShellHost.Content = _shell.Root;
+
+//A divider the user has finished dragging is written out there and
+//then, as well as on the way out: upstream saves only on close, but
+//upstream's dividers are not the only thing this key holds.
+_shell.LayoutChanged += (_, _) => SaveWindowLayout();
 
 viewModel.Panels = new PanelManager(_shell, viewModel.Settings);
 viewModel.ActionManager.Add(viewModel.Panels.Actions);
@@ -1342,7 +1470,7 @@ statement as the sample has it:
 // The sample's RestoreWindowLayout and SaveWindowLayout read and write the
 // settings store from the page. Here the view model owns the store, as it owns
 // every other service, and the page passes it what only the page can see: the
-// captured layout and the window's own bounds.
+// captured layout and the window's own size.
 
 // On the view model:
 public DockLayout LoadLayout() => DockLayout.Load(_settings);
@@ -1375,21 +1503,27 @@ private void SaveWindowLayout()
 {
     if (ViewModel == null || _shell == null) { return; }
 
-    //The WINDOW's own bounds, not AppWindow.Size: on the X11 head the
-    //latter answers the FRAMED size [...] so feeding it back to Resize —
-    //which sets the size the window itself gets — would grow the window by
-    //the frame on every launch. Bounds is what Resize is the inverse of.
-    Windows.Foundation.Rect bounds = App.Shell?.Bounds ?? default;
-    ViewModel.SaveLayout(
-        _shell.CaptureLayout(),
-        (int)Math.Round(bounds.Width),
-        (int)Math.Round(bounds.Height));
+    //AppWindow.Size, not the window's Bounds. Resize and Size are a matched
+    //pair — whatever quantity one sets, the other reports — and on the X11
+    //head that pair is the FRAMED size, the window plus whatever the window
+    //manager draws around it, while Bounds keeps answering the CLIENT area
+    //the page is laid out into. Storing Bounds and restoring through Resize
+    //therefore loses the frame on every round trip, and the window shrinks
+    //by the frame on each launch. Storing what Resize consumes makes the
+    //round trip exact: launch N + 1 opens the same window as launch N.
+    Microsoft.UI.Windowing.AppWindow window = App.Shell?.AppWindow;
+    Windows.Graphics.SizeInt32 size = window != null ? window.Size : default;
+    ViewModel.SaveLayout(_shell.CaptureLayout(), size.Width, size.Height);
 }
 ```
 
 **Where to look.**
-`Fresco.Brix/src/Fresco.Brix.Core/Shell/SplitContainer.cs`,
 `Fresco.Brix/src/Fresco.Brix.Core/Shell/DockShell.cs`,
+`Fresco.Brix/src/Fresco.Brix.Core/Shell/ShellLayout.cs` (the five panes the
+window uses, the default shares, and the arithmetic that decides which panes a
+set of open panels asks for),
+`Fresco.Brix/src/Fresco.Brix.Core/Shell/SplitContainer.cs` (the editor area's
+own recursive splitter),
 `Fresco.Brix/src/Fresco.Brix.Core/Shell/DockLayout.cs`,
 `Fresco.Brix/src/Fresco.Brix.Core/Shell/Panel.cs`,
 `Fresco.Brix/src/Fresco.Brix.Core/Shell/PanelManager.cs`,
@@ -1398,20 +1532,50 @@ private void SaveWindowLayout()
 
 **Sharp edges.**
 
+- Disable the VERTICAL scroll bar on every pane whose content should fill it.
+  Each pane sits in a scroll viewer, which measures with unbounded height
+  unless the bar is `Disabled`, and an editor, a log or a grid of controls then
+  comes out a few pixels tall. On a nested pair the outer pane HOLDING the
+  inner control needs it too, or the inner control is the thing measured
+  unbounded.
+- Close a pane by minimizing it, never by writing a zero share. Minimizing
+  records what the pane should come back at; a pane set to zero has nothing to
+  come back to and reopens at the control's own class default.
+- Open everything that is to be open before you shut anything, on both
+  controls. A control refuses a request that would leave it with nothing open,
+  and the other order walks into that refusal halfway through.
+- Never call a restore-everything method on a control one of whose panes is
+  deliberately unused: it reopens that pane at the class default, and a region
+  the window does not have appears on screen. Restore pane by pane instead.
+- A control given less room than the sum of its own floors gives the side pane
+  its floor and the stack whatever is left, which can be zero. When a second
+  control lives in the stack, the stack's floor has to be the room that control
+  actually needs — its own side floor, plus its divider, plus its content's
+  floor — or the inner content vanishes at the end of a drag.
+- Save what the window's resize call CONSUMES, not the client bounds. On the
+  LinuxX11 head `AppWindow.Resize` and `AppWindow.Size` are a matched pair in
+  the FRAMED size while `Bounds` answers the client area, so storing `Bounds`
+  and restoring through `Resize` loses the frame on every launch and the window
+  shrinks a little each time.
+- Store divider positions as the share each side has of its own axis, not as
+  pixels, so the layout survives a different screen — and a share read back
+  from a pane that is currently shut reads as zero, so record an axis only
+  while both of its panes are open.
 - The themed `Thumb` paints nothing on the Skia heads, and so do a standalone
-  `ScrollBar` and the themed tab controls. The answer used throughout this
-  application is a plain `Grid` with its own pointer handling; `TrackBar.cs`
-  says the same thing about `Slider`.
-- Save the window's `Bounds`, not `AppWindow.Size`. On the LinuxX11 head the
-  latter is the framed size, so feeding it back into `Resize()` grows the
-  window by the frame width on every launch.
-- Store divider positions as relative weights, not pixels, so the layout
-  survives a different screen.
+  `ScrollBar` and the themed tab controls. Where you draw your own divider the
+  answer used throughout this application is a plain `Grid` with its own
+  pointer handling; `TrackBar.cs` says the same thing about `Slider`.
+- A drawn divider and the control's own divider are both about six pixels
+  wide. A press four pixels off the centre does nothing at all and looks
+  exactly like a divider that is dead, so aim at the centre when you drive one
+  from a test.
 - A panel's widget is built once and kept, and an element has one parent, so a
   tab being rebuilt must have its content moved before the old tab is thrown
   away.
 - Write the layout on both the explicit Quit path and the window's `Closed`
-  event. Writing it twice is harmless, because it writes the same thing.
+  event, and on the control's drag-completed event as well if a divider the
+  user moved should survive a crash. Writing it twice is harmless, because it
+  writes the same thing.
 - Panel registration order is what decides menu order. Register them in one
   block so the order is readable.
 
@@ -1514,7 +1678,16 @@ type adds those and raises `INotifyPropertyChanged` for them; the builders
 subscribe and re-read on change. Either way the builder holds no logic: it
 follows the command.
 
-**Code.**
+Menus are built by hand from the command list. Toolbars are not: the CommandBar
+add-in ships the bar, the tray that lays two bars out side by side, the button
+types, the separators, the overflow chevron, the keyboard walk along a bar and
+the automation peers, so the application's job shrinks to handing each button a
+command object and saying what goes on which bar in what order. Keeping that
+order as DATA — a list of entries in a static class — is what lets the order be
+asserted in a host-free test, with no window anywhere.
+
+**Code.** A menu entry follows its command and re-reads on change, hooking
+again on `Loaded`:
 
 ```csharp
 // From CodeBrix.Samples.Gpl3/Fresco.Brix/src/Fresco.Brix.Core/Shell/MenuBuilder.cs
@@ -1556,38 +1729,117 @@ private static void Follow(AppAction action, MenuFlyoutItemBase item, Action upd
 }
 ```
 
+A toolbar button is bound to the command object and given nothing else. It is
+never handed an explicit enabled state, and its click is never wired by hand:
+
 ```csharp
 // From CodeBrix.Samples.Gpl3/Fresco.Brix/src/Fresco.Brix.Core/Shell/MainToolbar.cs
-private UIElement ButtonFor(ToolbarEntry entry, string barTitle)
+private ToolButton ButtonFor(ToolbarEntry entry)
 {
     AppAction action = entry.Action;
-    ButtonBase button = action.IsCheckable
-        ? new ToggleButton { IsChecked = action.IsChecked }
-        : new Button();
-
-    button.Content = ContentFor(action);
-    Describe(button, action, barTitle);
-
-    if (button is ToggleButton toggle)
+    ToolButton button;
+    if (entry.Menu != ToolbarMenu.None)
     {
-        toggle.Click += (_, _) =>
+        //Qt's MenuButtonPopup, as one button: the main part IS the action
+        //and the arrow part opens the menu. [...]
+        MenuFlyout flyout = new MenuFlyout();
+        flyout.Opening += (_, _) => FillMenu(flyout, entry.Menu);
+        button = new ToolDropDownButton
         {
-            //A ToggleButton has already flipped itself by the time it is
-            //clicked; AppAction.Trigger flips the action. Setting the
-            //action's state from the button first keeps the two from
-            //cancelling each other out.
-            action.IsChecked = toggle.IsChecked != true;
-            action.Trigger();
+            PopupMode = PopupMode.MenuButton,
+            Flyout = flyout,
         };
     }
-    else { button.Click += (_, _) => action.Trigger(); }
+    else if (action.IsCheckable)
+    {
+        button = new ToolToggleButton { IsChecked = action.IsChecked };
+    }
+    else
+    {
+        button = new ToolButton();
+    }
 
-    void Update() { /* re-reads IsEnabled/Content/tooltip/IsChecked */ }
+    //IsEnabled is NOT set here. The button follows the command's
+    //CanExecute, which AppAction answers from IsEnabled and re-raises on
+    //every change; an explicit IsEnabled would outrank the command for good.
+    button.Command = action;
+
+    //A tool tip the action writes for itself is not the button's label, so
+    //the application sets it: the add-in leaves a tool tip it did not
+    //compose alone. [...] Every other button says
+    //nothing at all here and the add-in composes "Text (Shortcut)", which
+    //is the same string ToolbarLayout.ToolTipFor writes.
+    bool applicationOwnsToolTip = false;
+
+    void Update()
+    {
+        button.Text = MenuBuilder.Display(action.Text);
+        button.Shortcut = action.Shortcuts.Count > 0
+            ? action.Shortcuts[0].ToString()
+            : null;
+
+        //No icon of that name in the shipped sets hands back nothing at
+        //all, which is what makes the add-in show the button's text rather
+        //than draw a blank square. [...]
+        button.Icon = IconTheme.Source(action.IconName);
+
+        if (applicationOwnsToolTip || !string.IsNullOrEmpty(action.ToolTip))
+        {
+            applicationOwnsToolTip = true;
+            ToolTipService.SetToolTip(button, ToolbarLayout.ToolTipFor(action));
+        }
+
+        //A click flips the toggle's own state and, separately, runs the
+        //command, which flips the action's — one flip each, ending in step.
+        //The action is never written from here, which is what keeps the two
+        //from cancelling each other out.
+        if (button is ToolToggleButton box) { box.IsChecked = action.IsChecked; }
+    }
+
     Update();
+
+    // ... one PropertyChanged subscription, because a toolbar button is never
+    // removed from the tree while its bar lives
     action.PropertyChanged += (_, _) => Update();
-    // ... an arrow Button carrying a MenuFlyout when the entry has one
+    return button;
 }
 ```
+
+The presentation settings are inherited attached properties, so setting them
+once on the tray settles both bars and every button on them — and a tray hosted
+in a `ContentControl` has to be told how wide it is allowed to be, or it never
+wraps and never chevrons:
+
+```csharp
+// From CodeBrix.Samples.Gpl3/Fresco.Brix/src/Fresco.Brix.Core/Shell/MainToolbar.cs
+//The four presentation settings are INHERITED attached properties, so
+//setting them on the tray settles both bars and every button on them. [...]
+ToolBarProperties.SetIconSize(this, IconTheme.ToolbarIconSize);
+ToolBarProperties.SetLabelMode(this, LabelMode.IconOnly);
+ToolBarProperties.SetShowToolTips(this, true);
+
+// ... and, from FollowHostWidth, which walks up to the nearest ContentControl
+// on Loaded and follows its SizeChanged:
+
+/// <summary>Caps the tray at the width its host was arranged to.</summary>
+/// <remarks>
+/// A <see cref="ContentControl"/> measures its content with an UNBOUNDED
+/// width, so a tray hosted in one is offered infinite room: it never wraps
+/// its second bar to a second row, and no bar ever moves its trailing items
+/// behind the overflow chevron. The ARRANGE pass is right — the host reports
+/// the window's own width — so the host's arranged width is handed back to
+/// the tray as a maximum and the next measure is bounded by it. [...]
+/// </remarks>
+private void ApplyHostWidth(double width)
+{
+    if (width > 0 && !double.IsInfinity(width)) { MaxWidth = width; }
+}
+```
+
+A panel that carries its own bar needs none of that width work — a bar measured
+inside a real dock strip is measured against the strip's real width and grows
+its chevron on its own — so the pieces the panels share are one small static
+builder, and each panel says only what is on its bar and in what order.
 
 One button changes meaning as state changes, and its handler asks the keyboard
 for the modifier rather than trusting the event:
@@ -1617,8 +1869,16 @@ the Core library, not inside a click handler.
 
 **Where to look.**
 `Fresco.Brix/src/Fresco.Brix.Core/Shell/MenuBuilder.cs`,
-`Fresco.Brix/src/Fresco.Brix.Core/Shell/MainToolbar.cs`,
-`Fresco.Brix/src/Fresco.Brix.Core/Shell/ToolbarLayout.cs`,
+`Fresco.Brix/src/Fresco.Brix.Core/Shell/MainToolbar.cs` (the window's tray of
+two bars),
+`Fresco.Brix/src/Fresco.Brix.Core/Shell/ToolbarLayout.cs` (what is on each
+window bar and in what order, as data, plus the wording of a tool tip that is
+not a label),
+`Fresco.Brix/src/Fresco.Brix.Core/Shell/PanelToolbar.cs` (the static builder
+the two panel bars share),
+`Fresco.Brix/src/Fresco.Brix.Core/Shell/ManuscriptViewerPanel.cs` and
+`Fresco.Brix/src/Fresco.Brix.Core/Shell/DocumentationPanel.cs` (one bar each,
+icons on one and captions on the other),
 `Fresco.Brix/src/Fresco.Brix.Core/Commands/AppAction.cs`,
 `Fresco.Brix/src/Fresco.Brix.Core/Commands/ActionCollection.cs`,
 `Fresco.Brix/src/Fresco.Brix.Core/Commands/ActionCollectionManager.cs`.
@@ -1638,11 +1898,31 @@ the Core library, not inside a click handler.
   it inside a try/catch and route the failure somewhere visible; this
   application routes it to a static failure handler the window points at its
   internal-error dialog.
+- Never set `IsEnabled` on a button that carries a command. The button already
+  follows the command's `CanExecute`, and an explicit `IsEnabled` outranks it
+  from then on, so the button stops greying out when the command does.
+- Let the bar compose the ordinary tool tip out of the button's label and its
+  shortcut, and set a tip yourself only where the command's own tip is NOT its
+  label. Latch a flag the first time you set one: once the application owns a
+  button's tip it has to keep saying the whole thing, because the bar will not
+  compose over it.
+- A checkable button and its command each flip once — the button flips itself
+  on the click, the command flips the action — so writing the action's state
+  from the click handler as well makes the two cancel out. Re-read the action
+  onto the button when the action changes, and never the other way.
+- A tray or a bar hosted in a `ContentControl` is measured with an unbounded
+  width, so it never wraps to a second row and never moves anything behind the
+  overflow chevron. Hand it the host's ARRANGED width back as a `MaxWidth` and
+  the next measure is bounded. A bar placed in a real, sized container does not
+  need this.
+- An icon name that no shipped set carries should resolve to nothing rather
+  than to a blank square: the bar then falls back to the button's text, and
+  emptying the icon folder leaves a working, if wordy, toolbar.
 - Re-create toolbar buttons when the bar is rebuilt: the change subscription
   goes with the old button.
-- A `ToggleButton` has already flipped itself by the time its click handler
-  runs. Set the command's state from the button before triggering, or the two
-  cancel out.
+- Keep what is on each bar, and in what order, as data in its own class. That
+  is what makes the order assertable in a host-free test, and it survives the
+  bar being rebuilt for a preference change.
 
 ### Show and size a modal dialog on the Skia heads
 
@@ -1723,14 +2003,70 @@ public async Task<bool> ShowAsync(XamlRoot xamlRoot)
 ### Render embedded SVG icons through one renderer and pick the set by theme
 
 **When you want this.** Vector icons that follow the desktop's light or dark
-scheme, shipped inside the assembly, recolored to the theme's foreground.
+scheme, shipped inside the assembly, drawn by the platform where it can draw
+them and recolored by your own renderer where it cannot.
 
 **The MVVM shape.** Icons are `EmbeddedResource` items under two logical-name
-prefixes. One static renderer turns a named resource into an `Image`; a theme
-helper chooses the prefix and the foreground, and returns an unsubscribe action
-so a control can follow theme changes and stop following when it goes away.
+prefixes, one per theme, and there are two ways to get one onto the screen.
+Where the platform can draw the file itself — a toolbar button is the case here
+— hand it BOTH files of a pair as resource URIs and let it pick, so no code of
+yours watches the theme at all. Where you need the pixels (a bitmap, a
+measurement, a test that compares two renderings), one static renderer of your
+own turns a named resource into an `Image`, and a theme helper chooses the
+prefix and the foreground and returns an unsubscribe action.
 
-**Code.**
+**Code.** The pair, built once per name and cached, with either set standing in
+for the other when only one of them ships a name:
+
+```csharp
+// From CodeBrix.Samples.Gpl3/Fresco.Brix/src/Fresco.Brix.Core/Services/IconTheme.cs
+public static SvgIconSource Source(string name)
+{
+    if (string.IsNullOrEmpty(name)) { return null; }
+
+    lock (_sources)
+    {
+        if (_sources.TryGetValue(name, out SvgIconSource cached)) { return cached; }
+
+        bool light = Has(IconSet.Light, name);
+        bool dark = Has(IconSet.Dark, name);
+        if (!light && !dark)
+        {
+            _sources[name] = null;
+            return null;
+        }
+
+        //Either set stands in for the other when only one of them ships the
+        //name, so the button never draws nothing at one theme and something
+        //at the other. [...]
+        Uri lightUri = ResourceUri(light ? LightPrefix : DarkPrefix, name);
+        Uri darkUri = ResourceUri(dark ? DarkPrefix : LightPrefix, name);
+
+        SvgIconSource source = new SvgIconSource
+        {
+            Source = lightUri,
+            Dark = darkUri,
+            TintMode = IconTintMode.None,
+            Size = ToolbarIconSize,
+        };
+
+        _sources[name] = source;
+        return source;
+    }
+}
+
+/// <summary>Builds the resource URI one icon file is read through.</summary>
+public static Uri ResourceUri(string prefix, string name)
+    => IconResourceScheme.Create(typeof(IconTheme).Assembly, prefix + name + ".svg");
+```
+
+`TintMode` is `None` deliberately: each of the two sets already carries the
+strokes that are right for the background it is meant for, so tinting would
+overpaint an intent the artwork already expresses. A set that encoded its
+foreground as one colour for both themes would want the opposite.
+
+The same two prefixes, the same embedded files, through the application's own
+renderer, for everything the platform is not drawing:
 
 ```csharp
 // From CodeBrix.Samples.Gpl3/Fresco.Brix/src/Fresco.Brix.Core/Services/IconTheme.cs
@@ -1788,10 +2124,15 @@ canvas.DrawPicture(picture, paint);
 ```
 
 **Where to look.**
-`Fresco.Brix/src/Fresco.Brix.Core/Services/IconTheme.cs`,
+`Fresco.Brix/src/Fresco.Brix.Core/Services/IconTheme.cs` (`Source` and
+`ResourceUri` for the platform route, `Image` and `Bitmap` for the renderer),
 `Fresco.Brix/src/Fresco.Brix.Core/QuickInsert/SymbolIcons.cs`,
+`Fresco.Brix/src/Fresco.Brix.Core/Shell/MainToolbar.cs` and
+`Fresco.Brix/src/Fresco.Brix.Core/Shell/PanelToolbar.cs` (the one line each
+that puts an icon on a button),
 `Fresco.Brix/src/Fresco.Brix.Core/Fresco.Brix.Core.csproj` (the two
-`EmbeddedResource` groups and their `LogicalName` prefixes).
+`EmbeddedResource` groups, their `LogicalName` prefixes, and the comment
+recording that the same files are read both ways).
 
 The same parser reads whole engraved pages and turns their anchors into
 clickable regions in
@@ -1799,15 +2140,26 @@ clickable regions in
 
 **Sharp edges.**
 
-- Keep one renderer. Every SVG in the application, from toolbar icons to the
-  generated symbol glyphs, goes through one call site by rule; a second one is a
-  second place to fix a rendering problem.
-- Ask whether the resource exists before rendering. The toolbar falls back to a
-  text caption when an icon is absent, so emptying the icon folder leaves a
-  working, if wordy, toolbar.
-- Draw a button's icon at reduced opacity while its command is disabled. Full
-  opacity on a disabled button looks enabled; the toolbar's comment records
-  that defect and the fix.
+- Keep ONE renderer of your own. Every SVG the application rasterizes itself,
+  from a measured icon to the generated symbol glyphs, goes through one call
+  site by rule; a second one is a second place to fix a rendering problem. The
+  platform's own icon route is not a second one of yours — it is the platform
+  drawing, which is the whole reason to prefer it where it fits.
+- Name the resource in FULL when you build a resource URI. A terse suffix that
+  happens to match a file in both prefixes matches neither unambiguously and
+  resolves to nothing, with no error to see.
+- Answer "no such icon" with nothing at all rather than with a blank square.
+  The bar then falls back to the button's text, so emptying the icon folder
+  leaves a working, if wordy, toolbar — and cache the miss, so a name nobody
+  ships is answered from the dictionary too.
+- Let the control draw its own disabled state. A hand-built button had to draw
+  its icon at reduced opacity itself, because full opacity on a disabled button
+  looks enabled; a button that carries a command and an icon source gets that
+  from the control instead, which is one fewer thing to get wrong.
+- Decide tinting from what the artwork already says. Two sets drawn for two
+  backgrounds want no tint; one set that encodes its foreground as a single
+  colour wants a colour filter over the picture, which is what the renderer
+  above does with `SrcIn`.
 
 ## Graphics and rendering
 
@@ -3700,8 +4052,10 @@ groups, each with a comment that says why that choice was made.
           CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
-  <!-- The two window toolbars' icons [...] EmbeddedResource, exactly as the
-       Quick Insert glyphs are, and read through the same one renderer [...]
+  <!-- The toolbars' icons [...] EmbeddedResource, exactly as the Quick
+       Insert glyphs are, but read two ways. A toolbar button's icon is drawn
+       BY THE PLATFORM [...] Everything else that wants one of these files as a
+       bitmap still goes through the application's own renderer [...]
        Two prefixes, because the set is chosen at runtime by the platform's
        theme (Services/IconTheme). -->
   <ItemGroup>

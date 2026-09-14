@@ -106,11 +106,12 @@ own, while the application's chrome names the engine that is actually running.
 - How an import or upgrade that used to shell out to a command-line tool
   becomes a library call and one undo step:
   [Convert a file through a library in process and apply the result as one undo step](../BLUEPRINTS.md#convert-a-file-through-a-library-in-process-and-apply-the-result-as-one-undo-step).
-- How to build tool panels around a center area, resizable by dragging, that
-  come back where the user left them:
+- How to give a window four tool regions around an editor by nesting two of
+  the platform's three-pane controls, resizable by dragging, coming back where
+  the user left them:
   [Build a dock shell with drawn splitters and remember its arrangement](../BLUEPRINTS.md#build-a-dock-shell-with-drawn-splitters-and-remember-its-arrangement).
-- How menus and toolbars follow command objects, with enabled and checked state
-  that stays correct:
+- How menus and toolbar buttons follow command objects, with enabled, checked
+  and tool-tip state that stays correct:
   [Build menus and toolbars in code from command objects](../BLUEPRINTS.md#build-menus-and-toolbars-in-code-from-command-objects).
 - How accelerators fire before their menu has ever been opened, and are not
   swallowed by a focused editor:
@@ -118,8 +119,9 @@ own, while the application's chrome names the engine that is actually running.
 - How to show a modal dialog on the Skia heads that is neither clipped by the
   window nor collapsed to nothing:
   [Show and size a modal dialog on the Skia heads](../BLUEPRINTS.md#show-and-size-a-modal-dialog-on-the-skia-heads).
-- How vector icons ship inside the assembly, follow the theme and recolor to
-  its foreground, through one renderer:
+- How vector icons ship inside the assembly and follow the theme, whether the
+  platform draws them from an embedded-resource URI or the application renders
+  them itself:
   [Render embedded SVG icons through one renderer and pick the set by theme](../BLUEPRINTS.md#render-embedded-svg-icons-through-one-renderer-and-pick-the-set-by-theme).
 - How to keep every reader and writer of settings ignorant of which store they
   are talking to:
@@ -295,29 +297,33 @@ the oracles the parity tests assert against.
 
 | Library or add-in | What it does in this application | Where |
 | --- | --- | --- |
-| CodeBrix.Platform | The XAML framework, the six heads' UI, and the Simple toolkit (`SimpleServiceResolver`, `SimpleViewModel`) | `src/Fresco.Brix.UI/App.xaml.cs`, `src/Fresco.Brix.Core/ViewModels/MainViewModel.cs`, `src/Fresco.Brix.Core/Helpers/HostHelper.cs`, all of `Shell/` |
+| CodeBrix.Platform | The XAML framework, the six heads' UI, the Simple toolkit (`SimpleServiceResolver`, `SimpleViewModel`), and the toolkit's three-pane control, two of which nested are the window's working area | `src/Fresco.Brix.UI/App.xaml.cs`, `src/Fresco.Brix.Core/ViewModels/MainViewModel.cs`, `src/Fresco.Brix.Core/Helpers/HostHelper.cs`, all of `Shell/` |
 | The CodeBrix.Platform runtime for each head | One runtime package per head project, and nothing else in a head | the csproj in each of `src/Fresco.Brix.LinuxX11`, `LinuxWayland`, `LinuxFrameBuffer`, `MacOS`, `Win32Skia`, `WinWpfSkia` |
 | CodeBrix.LilyPort | The engraver, run in process; also the upgrade converter, the MusicXML, ABC and MIDI importers, and the engine's own font assets | `Engrave/LilyPortEngine.cs`, `Engrave/LilyPondJob.cs`, `Engrave/TextJobs.cs`, `Import/ImportJob.cs`, `Shell/ConvertLyDialog.cs`, `MusicView/LilyPortTypefaceResolver.cs`, `MusicView/LilyPortScorePdfFonts.cs`, `DocumentFonts/` |
 | CodeBrix.LilyScheme | The Scheme interpreter the engine runs on, used directly where the engine is loaded | `Engrave/LilyPortEngine.cs` |
 | The CodeBrix.Platform.AdvancedTextEdit add-in | The editing surface: text document, text areas, highlighting, folding, rendering, code completion, editing services | all of `Editor/` and `Completion/`, `Documents/AteLyDocument.cs`, `Documents/EditorDocument.cs`, `Shell/EditorView.cs`, `Shell/LogPanel.cs`, `Shell/OutlinePanel.cs`, `Shell/ShortcutRegistrar.cs`, `Search/SearchBar.cs`, `Snippets/SnippetInserter.cs`, `Tools/` |
 | The CodeBrix.Platform.AppSettings add-in | The one settings store behind every preference, session, shortcut, snippet and remembered layout | `Services/SettingsStore.cs`, the only file that names one of the add-in's types |
+| The CodeBrix.Platform.CommandBar add-in | All four toolbars — the two window bars and the two panel bars: the bars themselves, their buttons, pull-downs, separators and overflow chevrons, the keyboard walk along a bar, the automation peers, and the tool tips it composes from a button's label and shortcut | `Shell/MainToolbar.cs`, `Shell/ToolbarLayout.cs`, `Shell/PanelToolbar.cs`, `Shell/ManuscriptViewerPanel.cs`, `Shell/DocumentationPanel.cs` |
+| The CodeBrix.Platform.Svg add-in | Draws a toolbar button's icon straight from the embedded SVG the application names, at the window's theme | `Services/IconTheme.cs` |
 | CodeBrix.Audio | SoundFont and SFZ synthesis for MIDI playback, and for rendering a score to WAV | `Midi/MidiPlayerService.cs`, `Midi/MidiSong.cs`, `Midi/SoundFonts.cs`, `Export/AudioExport.cs` |
 | CodeBrix.PdfRasterizer | Draws the bundled manuals' pages in the Documentation Browser | `Documentation/PdfManual.cs` |
 | CodeBrix.PdfDocuments | Reads PDF outlines, link annotations and page information | `Documentation/ManualOutline.cs`, `Manuscripts/PdfLinks.cs`, `src/libs/Fresco.Brix.MusicView/Export/ScorePdf.cs` |
 | CodeBrix.Imaging | The pixel buffers a rasterized page arrives in | `Documentation/PdfManual.cs` |
-| CodeBrix.SkiaSvg | Parses an engraved SVG page into a retained scene graph whose anchor bounds are the point-and-click geometry; also renders the embedded icon and symbol SVGs | `src/libs/Fresco.Brix.MusicView/Pages/SvgPage.cs`, `QuickInsert/SymbolIcons.cs` |
+| CodeBrix.SkiaSvg | Parses an engraved SVG page into a retained scene graph whose anchor bounds are the point-and-click geometry; also renders the embedded symbol SVGs the Quick Insert palettes draw with | `src/libs/Fresco.Brix.MusicView/Pages/SvgPage.cs`, `QuickInsert/SymbolIcons.cs` |
 | CodeBrix.Platform.SkiaSharp.Views | The `SKXamlCanvas` the paged view draws on | `src/libs/Fresco.Brix.MusicView/View/MusicViewControl.cs` |
 | CodeBrix.PdfDocCreate and its Html2Pdf add-on | Writes the vector score PDF, with the engine's own faces registered and CFF-subset into the file | `src/libs/Fresco.Brix.MusicView/Export/ScorePdf.cs` |
 | CodeBrix.Platform.Fonts.Roboto | The interface font, and the fallback faces consulted for characters it has no glyph for | `src/Fresco.Brix.UI/App.xaml`, `App.xaml.cs` |
 | CodeBrix.Platform.Fonts.RobotoMono | The editor's monospace font | `src/Fresco.Brix.UI/App.xaml`, `Views/MainPage.xaml.cs` |
 
 Read the csproj files for what is named where, and for the exact packages. Core
-names the platform, the editor and settings add-ins, the audio library, the PDF
-rasterizer, the engraver and the two font packages; the paged-view library names
-the platform, the Skia views, the SVG parser and the PDF writers. The rest
-arrive with those: the csproj comments record that the PDF rasterizer brings the
-PDF document reader and the imaging library with it, that the settings add-in
-brings a database library that nothing under `src/` opens itself, and that the
+names the platform, the editor, settings and toolbar add-ins, the audio library,
+the PDF rasterizer, the engraver and the two font packages; the paged-view
+library names the platform, the Skia views, the SVG parser and the PDF writers.
+The rest arrive with those: the csproj comments record that the PDF rasterizer
+brings the PDF document reader and the imaging library with it, that the
+settings add-in brings a database library that nothing under `src/` opens
+itself, that the toolbar add-in brings the SVG add-in — which is how a button's
+icon is drawn — and the SVG parser and Skia views under it, and that the
 engraver's facade declares the Scheme interpreter as its one real dependency,
 which is why `Engrave/LilyPortEngine.cs` can use the interpreter as a
 first-class type without the package being named in a csproj.
@@ -478,26 +484,52 @@ and
 ### The window shell: docking, menus, toolbars, shortcuts and icons
 
 The shell is built in code from command objects rather than declared in XAML.
-`Shell/DockShell.cs` and `Shell/SplitContainer.cs` place tool panels around a
-center area with dividers that are plain `Grid` elements doing their own
-pointer capture, because the themed `Thumb`, the standalone `ScrollBar` and the
-themed tab controls paint nothing on the Skia heads; that is the house answer
-throughout this application, and `Shell/TrackBar.cs` says the same about
-`Slider`. `Shell/DockLayout.cs` stores divider positions as relative weights so
-a layout survives a different screen, and the window's own `Bounds` are what is
-saved, not the framed size an X11 window reports. `Shell/MenuBuilder.cs` and
-`Shell/MainToolbar.cs` follow one command object per entry and re-read its state
-on change, hooking again on `Loaded` because a flyout's items unload every time
-the menu closes. `Shell/ShortcutRegistrar.cs` puts accelerators on the window's
-root, not on menu items that are not in the visual tree until the menu is first
-opened, and pushes a stacked input handler onto each editor so commands get
-first refusal on a modified keystroke. `Shell/DialogSizing.cs` clamps a dialog
-against the actual `XamlRoot` size before it is shown. Icons are embedded SVGs
-under two logical-name prefixes, rendered by the one renderer in
-`QuickInsert/SymbolIcons.cs` and chosen by `Services/IconTheme.cs`. In the MVVM
-shape each of those entries is a `SimpleCommand` on a view model with
-`[AffectsCommands]` doing what hand-written enable and check updates do here,
-and the builders take the command list rather than the page. See
+The working area is four regions — a left strip, a right strip, a bottom strip
+and the editor — out of a platform control that offers three, so
+`Shell/DockShell.cs` nests two of them, mirrored: the OUTER control keeps the
+right strip in its side pane and the bottom strip in its lower pane, and the
+INNER control, which is the outer control's upper pane, keeps the left strip in
+its side pane and the editor in its upper pane. The inner control's lower pane
+is not a region of the window and is held shut for the life of it, so three
+dividers are on screen and each one is a real, themed divider the control draws.
+Two consequences are worth copying: every pane sits in a scroll viewer, so a
+pane whose content should FILL has to have its vertical scroll bar disabled or
+it comes out a few pixels tall; and a strip is closed by minimizing its pane,
+never by writing a zero share, because minimizing is what takes the snapshot the
+strip reopens at. Inside the editor region `Shell/SplitContainer.cs` is the
+application's own splitter, and that is where the drawn dividers are: a view
+space splits in two and either half splits again, as many times as the user
+asks, which a fixed three-pane control cannot do. Its divider is a plain `Grid`
+doing its own pointer capture, because the themed `Thumb`, the standalone
+`ScrollBar` and the themed tab controls paint nothing on the Skia heads; that is
+the house answer throughout this application, and `Shell/TrackBar.cs` says the
+same about `Slider`. `Shell/DockLayout.cs` stores each divider as the share its
+two sides have of their own axis rather than as pixels, so a layout survives a
+different screen, and the window size it stores is the one the window's own
+resize call consumes, so a launch reopens exactly the window the last one
+closed. `Shell/MenuBuilder.cs` follows one command object per menu entry and
+re-reads its state on change, hooking again on `Loaded` because a flyout's items
+unload every time the menu closes. The four toolbars are the CommandBar add-in's
+own bars: `Shell/MainToolbar.cs` is one tray holding the window's two bars side
+by side, and `Shell/PanelToolbar.cs` is the shared builder behind the Manuscript
+Viewer's bar and the Documentation Browser's. A button is handed the command
+object and nothing else — never an explicit enabled state, which would outrank
+the command for good — and the add-in composes its tool tip out of the label and
+the shortcut, except where a command carries a tip that is not its label and the
+application sets the whole thing. `Shell/ToolbarLayout.cs` says what is on each
+window bar and in what order, as data, so the order can be asserted without a
+window. `Shell/ShortcutRegistrar.cs` puts accelerators on the window's root, not
+on menu items that are not in the visual tree until the menu is first opened,
+and pushes a stacked input handler onto each editor so commands get first
+refusal on a modified keystroke. `Shell/DialogSizing.cs` clamps a dialog against
+the actual `XamlRoot` size before it is shown. Icons are embedded SVGs under two
+logical-name prefixes: `Services/IconTheme.cs` names the light file and the dark
+file of a pair as resource URIs and hands the pair to the toolbars, which is the
+platform drawing them, while `QuickInsert/SymbolIcons.cs` is the application's
+own renderer and draws the Quick Insert palettes' glyphs. In the MVVM shape each
+of those entries is a `SimpleCommand` on a view model with `[AffectsCommands]`
+doing what hand-written enable and check updates do here, and the builders take
+the command list rather than the page. See
 [Build a dock shell with drawn splitters and remember its arrangement](../BLUEPRINTS.md#build-a-dock-shell-with-drawn-splitters-and-remember-its-arrangement),
 [Build menus and toolbars in code from command objects](../BLUEPRINTS.md#build-menus-and-toolbars-in-code-from-command-objects),
 [Register window-level shortcuts that survive a focused text editor](../BLUEPRINTS.md#register-window-level-shortcuts-that-survive-a-focused-text-editor),
