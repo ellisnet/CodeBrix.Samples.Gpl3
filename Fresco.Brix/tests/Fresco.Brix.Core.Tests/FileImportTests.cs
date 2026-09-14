@@ -211,9 +211,11 @@ public class FileImportTests
     /// ⚠ <c>abc2ly</c>'s <c>error()</c> writes its message and RETURNS unless
     /// <c>--strict</c> is given, and Frescobaldi's dialog never gives it — so
     /// the script exits zero, upstream's job succeeds, and the document opens
-    /// with a hole in it and the reason in the log. The importer answers
-    /// <c>Succeeded == false</c> here because it counts errors rather than
-    /// reporting an exit code, so the job asks whether TEXT came out.
+    /// with a hole in it and the reason in the log. The importer's
+    /// <c>Succeeded</c> now answers the question the exit code answers, so it
+    /// is true here while <c>Errors</c> still counts the complaint.
+    /// //was previously: <c>Succeeded == false</c>, when the importer answered
+    /// with its error count (before CodeBrix.LilyPort 1.0.255.1042).
     /// </remarks>
     [Fact]
     public async Task a_file_the_converter_only_partly_understood_still_opens()
@@ -224,8 +226,8 @@ public class FileImportTests
         //Act
         ImportJob job = await RunAsync(ImportFormat.Abc, path, new AbcImportSettings());
 
-        //Assert
-        job.Result.Succeeded.Should().BeFalse();
+        //Assert — the run stood; the complaint is counted, not fatal.
+        job.Result.Succeeded.Should().BeTrue();
         job.Result.Errors.Should().Be(1);
         job.Text.Should().NotBeNullOrEmpty();
         job.Success.Should().BeTrue();

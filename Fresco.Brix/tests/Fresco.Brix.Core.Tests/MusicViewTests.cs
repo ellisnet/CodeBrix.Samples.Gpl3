@@ -85,51 +85,63 @@ public class ScoreGroupingTests
     public void files_of_one_score_are_grouped_and_put_in_page_order()
     {
         //Arrange — the natural sort's whole point: page 2 before page 10.
-        string[] files =
-        {
-            "/out/score-10.svg", "/out/score-2.svg", "/out/score-1.svg",
-        };
+        string[] files = NativePaths(
+            "/out/score-10.svg", "/out/score-2.svg", "/out/score-1.svg");
 
         //Act
         var groups = ScoreDocuments.GroupPages(files);
 
         //Assert
         groups.Count.Should().Be(1);
-        groups[0].BaseName.Should().Be("/out/score.svg");
-        groups[0].Pages.Should().Equal("/out/score-1.svg", "/out/score-2.svg", "/out/score-10.svg");
+        groups[0].BaseName.Should().Be(NativePath("/out/score.svg"));
+        groups[0].Pages.Should().Equal(
+            NativePaths("/out/score-1.svg", "/out/score-2.svg", "/out/score-10.svg"));
     }
 
     [Fact]
     public void a_single_page_score_keeps_its_own_name()
     {
         //Arrange
-        string[] files = { "/out/score.svg" };
+        string[] files = NativePaths("/out/score.svg");
 
         //Act
         var groups = ScoreDocuments.GroupPages(files);
 
         //Assert
-        groups[0].BaseName.Should().Be("/out/score.svg");
-        groups[0].Pages.Should().Equal("/out/score.svg");
+        groups[0].BaseName.Should().Be(NativePath("/out/score.svg"));
+        groups[0].Pages.Should().Equal(NativePaths("/out/score.svg"));
     }
 
     [Fact]
     public void two_scores_from_one_run_stay_apart()
     {
         //Arrange — what \bookOutputName produces.
-        string[] files =
-        {
-            "/out/violin-1.svg", "/out/piano-1.svg", "/out/violin-2.svg",
-        };
+        string[] files = NativePaths(
+            "/out/violin-1.svg", "/out/piano-1.svg", "/out/violin-2.svg");
 
         //Act
         var groups = ScoreDocuments.GroupPages(files);
 
         //Assert
         groups.Count.Should().Be(2);
-        groups.Select(g => g.BaseName).Should().Equal("/out/violin.svg", "/out/piano.svg");
+        groups.Select(g => g.BaseName).Should().Equal(
+            NativePaths("/out/violin.svg", "/out/piano.svg"));
         groups[0].Pages.Count.Should().Be(2);
     }
+
+    /// <summary>Spells a '/' path with the platform's directory separator.</summary>
+    /// <param name="path">The path.</param>
+    /// <returns>The path; unchanged on Linux and macOS.</returns>
+    /// <remarks>The grouping rebuilds each score's name from the directory and
+    /// the stem, which is written with the platform's own separator.</remarks>
+    private static string NativePath(string path)
+        => path.Replace('/', System.IO.Path.DirectorySeparatorChar);
+
+    /// <summary>Spells '/' paths with the platform's directory separator.</summary>
+    /// <param name="paths">The paths.</param>
+    /// <returns>The paths.</returns>
+    private static string[] NativePaths(params string[] paths)
+        => paths.Select(NativePath).ToArray();
 }
 
 /// <summary>Answering the score's font families from the engine's own faces.</summary>

@@ -456,7 +456,7 @@ internal static class RemoteTransport
     {
         //A pipe that does not exist would otherwise be POLLED for the whole
         //timeout, which would make every cold start pay for it three times.
-        if (!File.Exists(@"\\.\pipe\" + id)) { return null; }
+        if (!PipeExists(id)) { return null; }
 
         NamedPipeClientStream client = new NamedPipeClientStream(
             ".", id, PipeDirection.Out);
@@ -470,6 +470,41 @@ internal static class RemoteTransport
             client.Dispose();
             return null;
         }
+    }
+
+    /// <summary>Answers whether a pipe of this name exists, without touching it.</summary>
+    /// <param name="id">The pipe name.</param>
+    /// <returns>Whether it exists.</returns>
+    /// <remarks>
+    /// ⚠ NOT <c>File.Exists(@"\\.\pipe\" + id)</c>: asking Windows for a pipe's
+    /// attributes OPENS it, so a listener waiting in <c>WaitForConnection</c> is
+    /// handed a phantom client that hangs up at once. The listener reads nothing,
+    /// its connection's disposal makes the next instance, and the REAL client
+    /// then connects to that instance — which nobody reads — and blocks in its
+    /// first write. Listing the pipe namespace has no such side effect.
+    /// //was previously: <c>File.Exists(@"\\.\pipe\" + id)</c>, which deadlocked
+    /// <c>RemoteInstanceTests.a_whole_conversation_travels_over_a_real_socket</c>
+    /// on Windows.
+    /// </remarks>
+    private static bool PipeExists(string id)
+    {
+        const string PipeRoot = @"\\.\pipe\";
+        string wanted = PipeRoot + id;
+        try
+        {
+            foreach (var pipe in Directory.EnumerateFiles(PipeRoot))
+            {
+                //Pipe names are case-insensitive, as every Windows name is.
+                if (string.Equals(pipe, wanted, StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+            }
+        }
+        catch (IOException) { }
+        catch (UnauthorizedAccessException) { }
+
+        return false;
     }
 
     private sealed class UnixSocketListener : IRemoteListener

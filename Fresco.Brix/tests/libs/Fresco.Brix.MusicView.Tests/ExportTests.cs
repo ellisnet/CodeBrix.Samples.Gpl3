@@ -417,16 +417,23 @@ public class ImageExporterTests
         using SvgPage page = SizedPage("twinkle.svg");
         using var exporter = new ImageExporter(page);
 
-        //Act
-        exporter.FileName = "/scores/twinkle.svg";
+        //Act — the name is rebuilt with the platform's own separator, so the
+        //paths are spelled that way too.
+        exporter.FileName = Native("/scores/twinkle.svg");
         string fromSvg = exporter.SuggestedFileName();
-        exporter.FileName = "/scores/twinkle.png";
+        exporter.FileName = Native("/scores/twinkle.png");
         string fromPng = exporter.SuggestedFileName();
 
         //Assert
-        fromSvg.Should().Be("/scores/twinkle.png");
-        fromPng.Should().Be("/scores/twinkle-export.png");
+        fromSvg.Should().Be(Native("/scores/twinkle.png"));
+        fromPng.Should().Be(Native("/scores/twinkle-export.png"));
     }
+
+    /// <summary>Spells a '/' path with the platform's directory separator.</summary>
+    /// <param name="path">The path.</param>
+    /// <returns>The path; unchanged on Linux and macOS.</returns>
+    private static string Native(string path)
+        => path.Replace('/', Path.DirectorySeparatorChar);
 
     [Fact]
     public void the_preview_page_is_the_picture_at_its_own_size()

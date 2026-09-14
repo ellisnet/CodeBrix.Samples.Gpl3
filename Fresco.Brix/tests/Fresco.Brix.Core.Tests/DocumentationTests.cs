@@ -535,13 +535,13 @@ public class HelperApplicationTests
     {
         //Assert — upstream's own mapping, and the extension comparison is
         //invariant-culture so a Turkish locale does not lose ".MIDI".
-        HelperApplications.TypeFor(new Uri("/tmp/score.pdf", UriKind.Absolute))
+        HelperApplications.TypeFor(new Uri(Rooted("score.pdf"), UriKind.Absolute))
             .Should().Be("pdf");
-        HelperApplications.TypeFor(new Uri("/tmp/score.MIDI", UriKind.Absolute))
+        HelperApplications.TypeFor(new Uri(Rooted("score.MIDI"), UriKind.Absolute))
             .Should().Be("midi");
-        HelperApplications.TypeFor(new Uri("/tmp/page.JPEG", UriKind.Absolute))
+        HelperApplications.TypeFor(new Uri(Rooted("page.JPEG"), UriKind.Absolute))
             .Should().Be("image");
-        HelperApplications.TypeFor(new Uri("/tmp/score.svg", UriKind.Absolute))
+        HelperApplications.TypeFor(new Uri(Rooted("score.svg"), UriKind.Absolute))
             .Should().Be("browser");
         HelperApplications.TypeFor(new Uri("mailto:someone@example.com"))
             .Should().Be("email");
@@ -552,7 +552,7 @@ public class HelperApplicationTests
     {
         //Assert — only the default "browser" is refined; a caller asking for a
         //terminal in a directory means it.
-        HelperApplications.TypeFor(new Uri("/tmp", UriKind.Absolute), "shell")
+        HelperApplications.TypeFor(new Uri(Path.GetFullPath("/tmp"), UriKind.Absolute), "shell")
             .Should().Be("shell");
     }
 
@@ -605,7 +605,16 @@ public class HelperApplicationTests
         //Assert
         HelperApplications.LocalFile(new Uri("https://example.com/a.pdf"))
             .Should().BeNull();
-        HelperApplications.LocalFile(new Uri("/tmp/a.pdf", UriKind.Absolute))
-            .Should().Be("/tmp/a.pdf");
+        HelperApplications.LocalFile(new Uri(Rooted("a.pdf"), UriKind.Absolute))
+            .Should().Be(Rooted("a.pdf"));
     }
+
+    /// <summary>Gets a fully qualified path to a file in <c>/tmp</c>.</summary>
+    /// <param name="name">The file name.</param>
+    /// <returns>The path.</returns>
+    /// <remarks>"/tmp/x" is only an absolute URI where the file system's root
+    /// is "/"; on Windows it is rooted but not fully qualified, so it takes the
+    /// current drive here. On Linux and macOS this is "/tmp/x" unchanged.</remarks>
+    private static string Rooted(string name)
+        => Path.GetFullPath(Path.Combine("/tmp", name));
 }

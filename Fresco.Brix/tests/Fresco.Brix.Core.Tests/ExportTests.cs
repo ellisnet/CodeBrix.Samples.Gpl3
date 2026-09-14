@@ -280,9 +280,16 @@ public class ColoredHtmlTests
     [InlineData(null, "document.html")]
     public void the_suggested_name_never_overwrites_the_source(string from, string expected)
     {
-        //Assert — upstream's own rule, oddity included.
-        ColoredHtml.SuggestedName(from).Should().Be(expected);
+        //Assert — upstream's own rule, oddity included. The rows are written
+        //with '/'; the name is built with the platform's own separator.
+        ColoredHtml.SuggestedName(Native(from)).Should().Be(Native(expected));
     }
+
+    /// <summary>Spells a '/' path with the platform's directory separator.</summary>
+    /// <param name="path">The path, or null.</param>
+    /// <returns>The path; unchanged on Linux and macOS.</returns>
+    private static string Native(string path)
+        => path?.Replace('/', Path.DirectorySeparatorChar);
 }
 
 /// <summary>Writing the engraved score out.</summary>

@@ -153,9 +153,10 @@ public sealed class ImportJob : EngraveJob
         //understand" to stderr and returns, and only `--strict' (which
         //Frescobaldi's dialog never passes) makes it exit. So a warning-laden
         //ABC file opens in Frescobaldi with its warnings in the log, and it
-        //opens here the same way. `ImportResult.Succeeded' is the error COUNT
-        //being zero, which is a different question; it is on the FIXLIST for
-        //the package rather than worked around by hiding the document.
+        //opens here the same way. `ImportResult.Succeeded' now means that exit
+        //code too (CodeBrix.LilyPort 1.0.255.1042), so the two agree.
+        //was previously: `Succeeded' was the error COUNT being zero, a
+        //different question, which was on the FIXLIST for the package.
         return result.Text != null;
     }
 

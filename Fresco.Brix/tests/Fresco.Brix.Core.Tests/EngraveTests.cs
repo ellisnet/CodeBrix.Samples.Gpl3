@@ -403,7 +403,8 @@ public class DocumentInfoTests
 
         //Assert
         info.FileName.Should().NotBe(path);
-        File.ReadAllText(info.FileName).Should().Be("{ d'4 }\n");
+        //The scratch copy is written the way a save is: platform line endings.
+        File.ReadAllText(info.FileName).Should().Be("{ d'4 }" + Environment.NewLine);
 
         //The document's own folder goes on the front of the include path, so
         //its relative includes still resolve from the scratch area.

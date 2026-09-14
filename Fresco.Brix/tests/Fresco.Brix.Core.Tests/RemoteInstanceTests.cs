@@ -225,7 +225,8 @@ public class RemoteInstanceTests : IDisposable
 
         //Assert
         target.Opened.Should().ContainSingle();
-        target.Opened[0].Path.Should().Be("/tmp/one.ly");
+        //Escaping sends the FULL path, which on Windows carries the current drive.
+        target.Opened[0].Path.Should().Be(Path.GetFullPath("/tmp/one.ly"));
         target.Opened[0].Encoding.Should().Be("latin1");
         target.Current.Should().ContainSingle();
         target.Cursor.Should().Be((4, 7));
@@ -249,7 +250,7 @@ public class RemoteInstanceTests : IDisposable
 
         //Assert
         target.Opened.Should().ContainSingle();
-        target.Opened[0].Path.Should().Be("/tmp/two.ly");
+        target.Opened[0].Path.Should().Be(Path.GetFullPath("/tmp/two.ly"));
         target.Activated.Should().Be(1);
     }
 

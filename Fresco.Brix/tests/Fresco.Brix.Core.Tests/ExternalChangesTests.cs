@@ -250,7 +250,8 @@ public class ExternalChangesTests : IDisposable
 
         //Assert
         failures.Should().BeEmpty();
-        File.ReadAllText(document.Path).Should().Be("c4\n");
+        //A save writes platform line endings.
+        File.ReadAllText(document.Path).Should().Be("c4" + Environment.NewLine);
     }
 
     [Fact]
@@ -270,8 +271,11 @@ public class ExternalChangesTests : IDisposable
 
     private EditorDocument Open(string name, string text)
     {
+        //Written as this platform saves it — platform line endings — so a file
+        //"byte-for-byte what the document holds" really is, on every platform.
+        //was previously: the text as given, whose '\n' only matched on Linux and macOS.
         string path = Path.Combine(_directory, name);
-        File.WriteAllText(path, text);
+        File.WriteAllText(path, text.Replace("\n", Environment.NewLine));
         return _documents.OpenDocument(path);
     }
 }
