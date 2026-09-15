@@ -55,8 +55,12 @@ of truth for the exact package and version, and the code blocks below show
 - Views, XAML and custom controls
   - [Set a page DataContext in XAML and give the view model a XamlRoot](#set-a-page-datacontext-in-xaml-and-give-the-view-model-a-xamlroot)
   - [Build a dock shell with drawn splitters and remember its arrangement](#build-a-dock-shell-with-drawn-splitters-and-remember-its-arrangement)
+  - [Nest two TriPaneView controls to put four regions around an editor](#nest-two-tripaneview-controls-to-put-four-regions-around-an-editor)
+  - [Show and hide a TriPaneView pane by minimizing and restoring it](#show-and-hide-a-tripaneview-pane-by-minimizing-and-restoring-it)
   - [Register window-level shortcuts that survive a focused text editor](#register-window-level-shortcuts-that-survive-a-focused-text-editor)
   - [Build menus and toolbars in code from command objects](#build-menus-and-toolbars-in-code-from-command-objects)
+  - [Add the CommandBar add-in and build a tray of two toolbars from command objects](#add-the-commandbar-add-in-and-build-a-tray-of-two-toolbars-from-command-objects)
+  - [Give a panel its own toolbar with the CommandBar add-in](#give-a-panel-its-own-toolbar-with-the-commandbar-add-in)
   - [Show and size a modal dialog on the Skia heads](#show-and-size-a-modal-dialog-on-the-skia-heads)
   - [Render embedded SVG icons through one renderer and pick the set by theme](#render-embedded-svg-icons-through-one-renderer-and-pick-the-set-by-theme)
 - Graphics and rendering
@@ -82,6 +86,7 @@ of truth for the exact package and version, and the code blocks below show
   - [Offer context-aware autocompletion in the editor](#offer-context-aware-autocompletion-in-the-editor)
 - Testing
   - [Set up test projects on the Microsoft Testing Platform and check a port against recorded answers](#set-up-test-projects-on-the-microsoft-testing-platform-and-check-a-port-against-recorded-answers)
+  - [Assert a toolbar's contents and a shell's pane arithmetic in host-free tests](#assert-a-toolbars-contents-and-a-shells-pane-arithmetic-in-host-free-tests)
 - Project layout, packaging and native assets
   - [Put every package in a Core library and one runtime package in each head](#put-every-package-in-a-core-library-and-one-runtime-package-in-each-head)
   - [Give a library that references CodeBrix Platform its own RootNamespace](#give-a-library-that-references-codebrix-platform-its-own-rootnamespace)
@@ -1252,8 +1257,14 @@ private MainViewModel ViewModel => DataContext as MainViewModel;
 
 ### Build a dock shell with drawn splitters and remember its arrangement
 
-**When you want this.** You want tool panels around a center area, resizable by
-dragging, that come back where the user left them.
+**When you want this.** Tool panels around a center area, built out of two
+nested `TriPaneView` controls from the CodeBrix.Platform toolkit, resizable by
+dragging, coming back where the user left them.
+
+The two controls themselves, and the opening and shutting of their panes, are in
+[Nest two TriPaneView controls to put four regions around an editor](#nest-two-tripaneview-controls-to-put-four-regions-around-an-editor)
+and
+[Show and hide a TriPaneView pane by minimizing and restoring it](#show-and-hide-a-tripaneview-pane-by-minimizing-and-restoring-it).
 
 **The MVVM shape.** The platform's toolkit ships a three-pane control: a side
 pane, and a stack of an upper and a lower pane beside it, with a draggable
@@ -1566,8 +1577,8 @@ own recursive splitter),
   answer used throughout this application is a plain `Grid` with its own
   pointer handling; `TrackBar.cs` says the same thing about `Slider`.
 - A drawn divider and the control's own divider are both about six pixels
-  wide. A press four pixels off the centre does nothing at all and looks
-  exactly like a divider that is dead, so aim at the centre when you drive one
+  wide. A press four pixels off the center does nothing at all and looks
+  exactly like a divider that is dead, so aim at the center when you drive one
   from a test.
 - A panel's widget is built once and kept, and an element has one parent, so a
   tab being rebuilt must have its content moved before the old tab is thrown
@@ -1578,6 +1589,315 @@ own recursive splitter),
   writes the same thing.
 - Panel registration order is what decides menu order. Register them in one
   block so the order is readable.
+
+### Nest two TriPaneView controls to put four regions around an editor
+
+**When you want this.** A window with four regions around a center area, a left
+strip, a right strip, a bottom strip and the editor itself, built out of the
+platform toolkit's `TriPaneView`, which offers three.
+
+**The MVVM shape.** `TriPaneView` is part of the toolkit that ships inside the
+core CodeBrix.Platform package, so a project that already references the
+platform adds nothing at all to its csproj to use it; it is the one control in
+this recipe that costs no new reference. The control is sealed, so a window that
+needs a fourth region OWNS a pair of controls rather than deriving from one: a
+plain class holds the two, exposes the outer one as the element the page drops
+into its content host, and keeps the bookkeeping about which pane is which.
+Panels stay plain objects with a widget and a toggle command, the view model
+holds the panel manager, and the page is the only thing that ever touches a
+control.
+
+**Code.** Nest the two mirrored, so that each strip is owned by whichever
+control can give it the shape it should have. The OUTER control places its side
+pane on the right and keeps the right strip there, full window height, with the
+bottom strip in its lower pane and everything else in its upper pane:
+
+```csharp
+// From CodeBrix.Samples.Gpl3/Fresco.Brix/src/Fresco.Brix.Core/Shell/DockShell.cs
+private readonly TriPaneView _outer = new TriPaneView
+{
+    SidePanePlacement = TriPaneViewSidePanePlacement.Right,
+    SidePanePercent = ShellLayout.DefaultOuterSidePercent,
+    StackPercent = ShellLayout.DefaultOuterStackPercent,
+    UpperPanePercent = ShellLayout.DefaultOuterUpperPercent,
+    LowerPanePercent = ShellLayout.DefaultOuterLowerPercent,
+    SidePaneMinLength = 200d,
+    StackMinLength = EditorMinLength,
+    UpperPaneMinLength = 200d,
+    LowerPaneMinLength = 80d,
+    SidePaneVerticalScrollBarVisibility = ScrollBarVisibility.Disabled,
+    UpperPaneVerticalScrollBarVisibility = ScrollBarVisibility.Disabled,
+    LowerPaneVerticalScrollBarVisibility = ScrollBarVisibility.Disabled,
+    IsDragToMinimizeEnabled = false,
+    RestoreGripMode = TriPaneViewRestoreGripMode.Never,
+};
+```
+
+Everything the control needs is written in the object initializer, so it is
+already in force on the first frame drawn and nothing waits for the window to
+load. The three vertical scroll settings are not decoration: every pane sits in
+a scroll viewer, which measures its content with unbounded height unless its
+vertical scroll bar is `Disabled`, and in a nested pair the OUTER upper pane's
+setting is the one that keeps the inner control itself from being measured
+unbounded. `RestoreGripMode` is `Never` and drag-to-minimize is off because
+this window offers its own toggle command for every strip.
+
+The INNER control is the outer control's upper pane, and the editor is the
+inner control's upper pane, which is what puts the left strip and the editor
+inside the region the right strip and the bottom strip divide:
+
+```csharp
+// From CodeBrix.Samples.Gpl3/Fresco.Brix/src/Fresco.Brix.Core/Shell/DockShell.cs
+_outer.UpperPane = _inner;
+// ...
+/// <summary>Gets the element the window puts in its content host.</summary>
+/// <remarks>A pane control is sealed, so this shell OWNS one rather than
+/// being one.</remarks>
+public UIElement Root => _outer;
+
+/// <summary>Gets or sets what sits in the middle — the editor area.</summary>
+public UIElement Center
+{
+    get => _center;
+    set
+    {
+        _center = value;
+        _inner.UpperPane = _center;
+    }
+}
+```
+
+Each strip goes into its pane once and stays there for the life of the window,
+so showing and hiding an area is the pane opening and shutting rather than a
+widget being re-parented, and every tab keeps its scroll position and its
+selection:
+
+```csharp
+// From CodeBrix.Samples.Gpl3/Fresco.Brix/src/Fresco.Brix.Core/Shell/DockShell.cs
+//Each strip goes into its pane once and stays there. From here on it is
+//the PANE that opens and shuts.
+switch (area)
+{
+    case DockArea.Left:
+        _inner.SidePane = view;
+        break;
+    case DockArea.Right:
+        _outer.SidePane = view;
+        break;
+    default:
+        _outer.LowerPane = view;
+        break;
+}
+```
+
+Four regions out of two three-pane controls leaves one pane over. Choose which
+one deliberately, and hold it shut rather than filling it:
+
+```csharp
+// From CodeBrix.Samples.Gpl3/Fresco.Brix/src/Fresco.Brix.Core/Shell/DockShell.cs
+//Not a region of the window. Held at zero for the life of the window,
+//which with RestoreGripMode.Never means the inner stack divider is
+//never drawn and no grip is ever offered for it.
+LowerPanePercent = 0d,
+```
+
+A stack pane is the right one to give up, because a stack pane held at zero
+takes its divider off the screen with it: the window then shows exactly three
+dividers, and every one of them is a real, themed divider the control draws.
+The page does nothing but drop the outer control into a host and let it
+stretch:
+
+```xml
+<!-- From CodeBrix.Samples.Gpl3/Fresco.Brix/src/Fresco.Brix.UI/Views/MainPage.xaml -->
+<ContentControl x:Name="ShellHost" Grid.Row="3"
+                HorizontalContentAlignment="Stretch"
+                VerticalContentAlignment="Stretch" />
+```
+
+**Where to look.**
+`Fresco.Brix/src/Fresco.Brix.Core/Shell/DockShell.cs` (both initializers, the
+nesting, and the one place a strip is put into a pane),
+`Fresco.Brix/src/Fresco.Brix.Core/Shell/ShellLayout.cs` (the five panes the
+window uses, the default shares, and the arithmetic that decides which panes a
+set of open panels asks for),
+`Fresco.Brix/src/Fresco.Brix.UI/Views/MainPage.xaml` and
+`Fresco.Brix/src/Fresco.Brix.UI/Views/MainPage.xaml.cs` (the host, and the one
+line that fills it),
+`Fresco.Brix/src/Fresco.Brix.Core/Shell/SplitContainer.cs` (the editor area's
+own recursive splitter, which is what a fixed three-pane control cannot be).
+
+Opening and shutting a pane, and the floor the outer control needs once a
+second control is living in its stack, are in
+[Show and hide a TriPaneView pane by minimizing and restoring it](#show-and-hide-a-tripaneview-pane-by-minimizing-and-restoring-it).
+Persisting the arrangement, the drawn splitter inside the editor area, and the
+window size that survives a relaunch are in
+[Build a dock shell with drawn splitters and remember its arrangement](#build-a-dock-shell-with-drawn-splitters-and-remember-its-arrangement).
+
+**Sharp edges.**
+
+- Nothing is added to a csproj for this control. It is part of the toolkit in
+  the core platform package, which is already referenced, so a recipe that
+  reaches for a new package reference here is reaching for the wrong thing.
+- The control is sealed. Own a pair of them from a plain class and expose the
+  outer one as a `UIElement`; do not try to derive a shell from one.
+- Mirror the placement rather than repeating it. Whichever side pane you put
+  where decides which strip can run the full height of the window and which one
+  stops at a divider, and only one of the two controls can own a given corner.
+- Disable the VERTICAL scroll bar on every pane whose content should fill it,
+  including the outer pane that HOLDS the inner control, or the inner control is
+  the thing measured unbounded.
+- Give the leftover pane away on the stack axis, not the side axis, and hold it
+  at zero with the restore grip turned off. A stack pane held shut takes its
+  divider with it; a side pane held shut still leaves the window looking like it
+  has a region the user cannot reach.
+- Put each strip into its pane once. Re-parenting a strip to show or hide it
+  costs every scroll position and every selection inside it, and an element has
+  one parent, so the old container has to be cleared first or the content ends
+  up claimed twice.
+
+### Show and hide a TriPaneView pane by minimizing and restoring it
+
+**When you want this.** A strip that appears when the user opens a tool and
+disappears when the last tool in it is closed, coming back at the width they
+left it at rather than at the control's own default.
+
+**The MVVM shape.** The panels say what they want, as booleans, and one pure
+function turns those booleans into a description of which panes are to be open.
+That function lives in the Core library and names no XAML type at all, so the
+whole arrangement is decidable in a process with no window; the class that owns
+the controls is a thin driver over its answers. Panels raise a visibility event,
+the driver recomputes the whole arrangement rather than working out what
+changed, and asks for it.
+
+**Code.** A pane is shut by minimizing it and shown by restoring it. Never by
+writing a zero share:
+
+```csharp
+// From CodeBrix.Samples.Gpl3/Fresco.Brix/src/Fresco.Brix.Core/Shell/DockShell.cs
+//Every strip starts shut, because no panel is visible yet. Minimizing
+//rather than writing a zero percent is what gives each one a snapshot
+//of the weight it should come back at; a pane that was simply set to
+//zero has nothing to go back to and reopens at the control's own class
+//default instead of the share this shell chose.
+_outer.MinimizeSidePane();
+_outer.MinimizeLowerPane();
+_inner.MinimizeSidePane();
+```
+
+The snapshot is also the way a remembered share is handed to a pane that is
+currently shut: open it, write the share, shut it again, all while the window is
+still being built, so the strip comes back at the user's own width the first
+time they open it:
+
+```csharp
+// From CodeBrix.Samples.Gpl3/Fresco.Brix/src/Fresco.Brix.Core/Shell/DockShell.cs
+/// <summary>Gives both controls the shares the shell is holding.</summary>
+/// <remarks>A pane that is shut is opened, given its share and shut again,
+/// which is how the share reaches the control's own snapshot: the strip
+/// then comes back at the width the user left it at rather than at this
+/// shell's default the first time they open it. None of that is visible —
+/// this runs while the window is still being built.</remarks>
+private void ApplySizes()
+{
+    ApplySidePercents(_outer, _sizes.OuterSidePercent, _sizes.OuterStackPercent);
+    ApplyStackPercents(_outer, _sizes.OuterUpperPercent, _sizes.OuterLowerPercent);
+    ApplySidePercents(_inner, _sizes.InnerSidePercent, _sizes.InnerStackPercent);
+}
+
+private static void ApplySidePercents(TriPaneView panes, double side, double stack)
+{
+    bool wasMinimized = panes.IsSidePaneMinimized;
+    if (wasMinimized) { panes.RestoreSidePane(); }
+
+    panes.SidePanePercent = side;
+    panes.StackPercent = stack;
+    if (wasMinimized) { panes.MinimizeSidePane(); }
+}
+```
+
+A control refuses a request that would leave it with nothing open at all, so the
+description of a wanted arrangement carries the reading that says it never comes
+to that, and the driver opens everything that is to be open before it shuts
+anything:
+
+```csharp
+// From CodeBrix.Samples.Gpl3/Fresco.Brix/src/Fresco.Brix.Core/Shell/ShellLayout.cs
+/// <summary>Gets whether the outer control would keep at least one pane open.</summary>
+/// <remarks>A pane control refuses a request that would leave it with
+/// nothing open at all, so nothing the shell asks for may ever come to
+/// that: this is the reading that says it never does.</remarks>
+public bool OuterKeepsAPaneOpen
+    => RightStripIsOpen || EditorBlockIsOpen || BottomStripIsOpen;
+
+/// <summary>Gets whether the inner control would keep at least one pane open.</summary>
+/// <remarks>Read only while <see cref="EditorBlockIsOpen"/> is true; the
+/// inner control is left alone otherwise.</remarks>
+public bool InnerKeepsAPaneOpen => LeftStripIsOpen || EditorIsOpen;
+```
+
+Undoing a "give this panel the whole window" is the same code path, and it goes
+pane by pane rather than through the control's own restore-everything:
+
+```csharp
+// From CodeBrix.Samples.Gpl3/Fresco.Brix/src/Fresco.Brix.Core/Shell/DockShell.cs
+/// <summary>Puts the layout back the way it was before a maximize.</summary>
+/// <remarks>Pane by pane, and never through the control's own "restore
+/// everything": the inner control's lower pane is not one of the window's
+/// regions, and a pane held at zero beside a pane that is not reads as
+/// minimized, so restoring everything would open a fourth region this
+/// window does not have. Nothing has to be re-shown or re-raised, because
+/// nothing was hidden.</remarks>
+public void RestoreFromMaximized()
+{
+    if (_maximized == null) { return; }
+
+    Panel wasMaximized = _maximized;
+    _maximized = null;
+    ApplyPanes(WantedPanes());
+    // ...
+}
+```
+
+**Where to look.**
+`Fresco.Brix/src/Fresco.Brix.Core/Shell/DockShell.cs` (`ApplyPanes`, which is
+the driver, plus `ApplySizes` and `RecordSizes`),
+`Fresco.Brix/src/Fresco.Brix.Core/Shell/ShellLayout.cs` (`PanesFor`,
+`PanesForMaximized`, and the two readings above),
+`Fresco.Brix/src/Fresco.Brix.Core/Shell/Panel.cs` and
+`Fresco.Brix/src/Fresco.Brix.Core/Shell/PanelManager.cs` (what raises the event
+the driver answers).
+
+The nesting these panes belong to is in
+[Nest two TriPaneView controls to put four regions around an editor](#nest-two-tripaneview-controls-to-put-four-regions-around-an-editor);
+storing the shares and reading them back is in
+[Build a dock shell with drawn splitters and remember its arrangement](#build-a-dock-shell-with-drawn-splitters-and-remember-its-arrangement),
+whose sharp edges also carry the floor a nested pair needs under its stack.
+What a test can assert about all of this without a window is in
+[Assert a toolbar's contents and a shell's pane arithmetic in host-free tests](#assert-a-toolbars-contents-and-a-shells-pane-arithmetic-in-host-free-tests).
+
+**Sharp edges.**
+
+- Minimize to close, restore to open. A share of zero written by hand is not a
+  closed pane with a memory, it is a pane with nothing to come back to, and it
+  reopens at the control's own class default instead of yours.
+- Open everything that is to be open before you shut anything, on both controls.
+  A control refuses a request that would leave it with nothing open, and the
+  other order walks into that refusal halfway through and leaves the layout
+  somewhere neither you nor the user asked for.
+- Ask for the whole arrangement every time rather than working out what changed.
+  Minimizing a pane that is already shut does nothing and, in particular, does
+  not overwrite the snapshot the first minimize took; restoring one that is
+  already open does nothing either.
+- Never call a restore-everything method on a control one of whose panes is
+  deliberately unused. A pane held at zero beside a pane that is not reads as
+  minimized, so restore-everything gives it the control's default share and a
+  region the window does not have appears on screen. Restore pane by pane.
+- Reach a shut pane's remembered share by opening it, writing the share and
+  shutting it again, before the window is on screen. Writing the share while the
+  pane is shut goes nowhere the strip will read it from.
+- Read a share back only while both panes of that axis are open. A shut pane's
+  own share reads as zero, and storing THAT brings the strip back with no width
+  at all on the next launch.
 
 ### Register window-level shortcuts that survive a focused text editor
 
@@ -1665,9 +1985,15 @@ _shortcuts.RegisterAll(viewModel.ActionManager);
 
 ### Build menus and toolbars in code from command objects
 
-**When you want this.** Menus and toolbars whose entries follow one command
-object each, with correct enabled and checked state, built from data rather
-than from XAML.
+**When you want this.** Menus, and the buttons on a CommandBar add-in toolbar,
+whose entries follow one command object each, with correct enabled and checked
+state, built from data rather than from XAML.
+
+What a project adds to get those bars, and what a dock panel's own bar is made
+of, are in
+[Add the CommandBar add-in and build a tray of two toolbars from command objects](#add-the-commandbar-add-in-and-build-a-tray-of-two-toolbars-from-command-objects)
+and
+[Give a panel its own toolbar with the CommandBar add-in](#give-a-panel-its-own-toolbar-with-the-commandbar-add-in).
 
 **The MVVM shape.** The view model owns the commands and the handlers. A
 command that only needs Execute and CanExecute is a `SimpleCommand` on a
@@ -1924,6 +2250,409 @@ icons on one and captions on the other),
   is what makes the order assertable in a host-free test, and it survives the
   bar being rebuilt for a preference change.
 
+### Add the CommandBar add-in and build a tray of two toolbars from command objects
+
+**When you want this.** Real toolbars in a CodeBrix.Platform window: one or more
+bars laid out side by side, with an overflow chevron, keyboard navigation and
+automation peers, without writing any of that yourself.
+
+**The MVVM shape.** The CommandBar add-in is one package reference in the Core
+library's csproj, and that is the whole of what a project adds: the heads name
+nothing, and the add-in brings the SVG add-in with it, which is how a button's
+icon gets drawn. What arrives is the bar, the tray that lays bars out side by
+side, the button types (a plain button, a toggle, a drop-down whose main part is
+the command and whose arrow opens a menu), the separator, the filling spacer,
+the overflow chevron, the keyboard walk along a bar, the automation peers and a
+composed tool tip. What is left for the application is a view model that owns
+the commands and a small static class that says what is on each bar and in what
+order, as DATA, so the order can be asserted with no window anywhere.
+
+**Code.** The reference sits under a comment that records what it replaced and
+what it drags in with it:
+
+```xml
+<!-- From CodeBrix.Samples.Gpl3/Fresco.Brix/src/Fresco.Brix.Core/Fresco.Brix.Core.csproj -->
+<!-- The two window toolbars and the two panel toolbars: the CommandBar
+     add-in. ToolBarTray/ToolBar/ToolButton/ToolDropDownButton/
+     ToolToggleButton/ToolBarSeparator replace the hand-built StackPanel row
+     in Shell/MainToolbar.cs, which was written when CodeBrix.Platform had no
+     toolbar control. The add-in owns the chrome, the chevron overflow, the
+     keyboard walk and the automation peers.
+     It carries a HARD dependency on the Svg add-in
+     ...
+     icons are drawn: the embedded light/dark icon SVGs below are handed to
+     SvgIconSource through cb-res:// URIs. The Svg add-in in turn brings
+     ...
+     Fresco.Brix.MusicView already pins. Apache-2.0 and MIT throughout. -->
+```
+
+The class that IS the window's toolbar area derives from the tray, sets the
+presentation once, and builds its bars when it enters a tree:
+
+```csharp
+// From CodeBrix.Samples.Gpl3/Fresco.Brix/src/Fresco.Brix.Core/Shell/MainToolbar.cs
+public sealed class MainToolbar : ToolBarTray
+// ...
+ToolBarProperties.SetIconSize(this, IconTheme.ToolbarIconSize);
+ToolBarProperties.SetLabelMode(this, LabelMode.IconOnly);
+ToolBarProperties.SetShowToolTips(this, true);
+
+//The bars are built once the tray is in a tree, because a button's icon
+//resolves against the theme the tree says it is in. A theme change no
+//longer rebuilds anything: an icon element re-renders itself when the
+//theme or the display scale changes, which is also what keeps it
+//pixel-exact at a fractional scale.
+Loaded += (_, _) =>
+{
+    FollowHostWidth();
+    if (_built) { return; }
+
+    Rebuild();
+};
+
+Unloaded += (_, _) => StopFollowingHostWidth();
+```
+
+Each bar is filled from the layout class, and a bar with nothing on it is never
+added at all, so an application that ships a bar's commands conditionally does
+not leave an empty run of chrome behind:
+
+```csharp
+// From CodeBrix.Samples.Gpl3/Fresco.Brix/src/Fresco.Brix.Core/Shell/MainToolbar.cs
+private void Rebuild()
+{
+    _built = true;
+
+    while (Children.Count > 0)
+    {
+        Children.RemoveAt(Children.Count - 1);
+    }
+    // ...
+    ToolBar mainBar = new ToolBar { Title = ToolbarLayout.MainTitle() };
+    bool verbose = VerboseToolButtons(_settings);
+    foreach (ToolbarEntry entry in ToolbarLayout.Main(
+        _main, _browser, _scoreWizard, _engrave, verbose))
+    {
+        Add(mainBar, entry);
+    }
+
+    if (mainBar.Items.Count > 0) { Children.Add(mainBar); }
+
+    IReadOnlyList<ToolbarEntry> musicEntries = ToolbarLayout.Music(_music);
+    if (musicEntries.Count > 0)
+    {
+        ToolBar musicBar = new ToolBar { Title = ToolbarLayout.MusicTitle() };
+        foreach (ToolbarEntry entry in musicEntries)
+        {
+            Add(musicBar, entry);
+        }
+
+        Children.Add(musicBar);
+    }
+    // ...
+}
+```
+
+One entry becomes one item, and the three kinds an entry can be are the three
+things a bar takes:
+
+```csharp
+// From CodeBrix.Samples.Gpl3/Fresco.Brix/src/Fresco.Brix.Core/Shell/MainToolbar.cs
+private void Add(ToolBar bar, ToolbarEntry entry)
+{
+    switch (entry.Kind)
+    {
+        case ToolbarEntryKind.Separator:
+            bar.Items.Add(new ToolBarSeparator());
+            return;
+
+        case ToolbarEntryKind.Widget:
+            UIElement control = ControlFor(entry, bar.Title);
+            if (control != null) { bar.Items.Add(control); }
+
+            return;
+
+        default:
+            if (entry.Action == null) { return; }
+
+            bar.Items.Add(ButtonFor(entry));
+            return;
+    }
+}
+```
+
+The order itself is a list of entries in a static class, with a title per bar,
+and nothing in it names a XAML type:
+
+```csharp
+// From CodeBrix.Samples.Gpl3/Fresco.Brix/src/Fresco.Brix.Core/Shell/ToolbarLayout.cs
+/// <summary>The Main Toolbar's title.</summary>
+// ...
+public static string MainTitle() => I18n.Get("Main Toolbar");
+
+/// <summary>The Music View Toolbar's title.</summary>
+public static string MusicTitle() => I18n.Get("Music View Toolbar");
+// ...
+public static IReadOnlyList<ToolbarEntry> Music(MusicViewActions music)
+{
+    List<ToolbarEntry> entries = new List<ToolbarEntry>();
+    if (music == null) { return entries; }
+
+    entries.Add(ToolbarEntry.Control(
+        ToolbarWidget.DocumentChooser, music.MusicDocumentSelect));
+    // ...
+    entries.Add(ToolbarEntry.Separator());
+    entries.Add(ToolbarEntry.For(music.MusicZoomIn));
+    entries.Add(ToolbarEntry.Control(ToolbarWidget.ZoomChooser));
+    entries.Add(ToolbarEntry.For(music.MusicZoomOut));
+    entries.Add(ToolbarEntry.For(music.MusicMagnifier));
+    // ...
+    return entries;
+}
+```
+
+The page holds a stretched host for the tray and fills it in code, after the
+menus, because two of the pull-downs on the bars are the File menu's own
+sub-menus:
+
+```xml
+<!-- From CodeBrix.Samples.Gpl3/Fresco.Brix/src/Fresco.Brix.UI/Views/MainPage.xaml -->
+<ContentControl x:Name="ToolbarHost" Grid.Row="1"
+                HorizontalContentAlignment="Stretch" />
+```
+
+```csharp
+// From CodeBrix.Samples.Gpl3/Fresco.Brix/src/Fresco.Brix.UI/Views/MainPage.xaml.cs
+_toolbar = new MainToolbar(
+    viewModel.Actions,
+    viewModel.Browser.Actions,
+    // ... the rest of the command collections the two bars follow
+    viewModel.Settings)
+{
+    MusicView = _musicViewPanel,
+};
+ToolbarHost.Content = _toolbar;
+```
+
+How one entry turns into a button that follows its command (the enabled state,
+the checked state, the icon, and who writes the tool tip) is the same story the
+menus tell, and it is in
+[Build menus and toolbars in code from command objects](#build-menus-and-toolbars-in-code-from-command-objects)
+rather than repeated here. The icons the buttons carry come from
+[Render embedded SVG icons through one renderer and pick the set by theme](#render-embedded-svg-icons-through-one-renderer-and-pick-the-set-by-theme).
+
+**Where to look.**
+`Fresco.Brix/src/Fresco.Brix.Core/Fresco.Brix.Core.csproj` (the one reference,
+and the comment recording what the add-in brings with it),
+`Fresco.Brix/src/Fresco.Brix.Core/Shell/MainToolbar.cs` (the tray, the rebuild,
+and the width work a hosted tray needs),
+`Fresco.Brix/src/Fresco.Brix.Core/Shell/ToolbarLayout.cs` (what is on each bar
+and in what order, as data, plus the wording of a tool tip that is not a label),
+`Fresco.Brix/src/Fresco.Brix.UI/Views/MainPage.xaml` and
+`Fresco.Brix/src/Fresco.Brix.UI/Views/MainPage.xaml.cs` (the host, and the one
+line that fills it).
+
+A panel's own bar is built from the same pieces in
+[Give a panel its own toolbar with the CommandBar add-in](#give-a-panel-its-own-toolbar-with-the-commandbar-add-in),
+and what all of it can be asserted with no window is in
+[Assert a toolbar's contents and a shell's pane arithmetic in host-free tests](#assert-a-toolbars-contents-and-a-shells-pane-arithmetic-in-host-free-tests).
+
+**Sharp edges.**
+
+- One package reference, in the library every head already references. The heads
+  name nothing, and the SVG add-in that draws the icons arrives with the toolbar
+  add-in rather than being named again.
+- Set the presentation on the TRAY, not on each bar and not on each button. The
+  settings are inherited attached properties, so one call each settles every bar
+  and every button under it, and a single button can still override its own.
+- Build the bars once the tray is in a tree. A button's icon resolves against
+  the theme the tree says it is in, and a tray that builds in its constructor
+  has no tree to ask.
+- A tray hosted in a `ContentControl` is measured with an unbounded width, so it
+  never wraps a second bar to a second row and never moves anything behind the
+  chevron. Hand the host's ARRANGED width back as a maximum and the next measure
+  is bounded; a bar placed in a real, sized container needs none of this.
+- Keep what is on each bar, and in what order, as data in its own class. That is
+  what makes the order assertable with no window, and it survives the bars being
+  rebuilt when a preference changes.
+- Do not add an empty bar. A bar whose entries all came from a feature that is
+  switched off is a run of chrome with nothing in it.
+- Re-create the buttons when the bars are rebuilt. The subscription that keeps a
+  button following its command goes with the old button.
+
+### Give a panel its own toolbar with the CommandBar add-in
+
+**When you want this.** A dock panel with a real toolbar of its own, in a strip
+narrow enough that some of the buttons will not fit.
+
+**The MVVM shape.** A window's tray and a panel's bar share almost everything,
+so the shared part is one small static builder in the Core library: it creates a
+bar with the presentation set on it, and it turns a command object into a
+button. Each panel then says only what is on its bar and in what order. The
+builder is internal, takes command objects rather than a page, and names no
+panel, which is what lets two panels with very different bars use the same three
+methods.
+
+**Code.** The shared builder is the whole of what the panels have in common:
+
+```csharp
+// From CodeBrix.Samples.Gpl3/Fresco.Brix/src/Fresco.Brix.Core/Shell/PanelToolbar.cs
+/// <remarks>
+/// The presentation settings are INHERITED attached properties, so setting
+/// them on the bar settles every button on it and any one button can still
+/// override its own. <see cref="OverflowMode"/> is left at its default,
+/// <see cref="OverflowMode.Chevron"/>.
+/// </remarks>
+internal static ToolBar Create(string title, LabelMode labels)
+{
+    ToolBar bar = new ToolBar { Title = title ?? string.Empty };
+    ToolBarProperties.SetIconSize(bar, IconTheme.ToolbarIconSize);
+    ToolBarProperties.SetLabelMode(bar, labels);
+    ToolBarProperties.SetShowToolTips(bar, true);
+    return bar;
+}
+```
+
+The bar's title is not decoration: it is the bar's accessible name and the tail
+of each button's accessible name, which is what a panel would otherwise have to
+set on every control by hand.
+
+One panel asks for an icon bar and pushes its Help button to the far end with a
+filling spacer, which is what a bar that stretches across a row can do and a bar
+sharing a tray cannot:
+
+```csharp
+// From CodeBrix.Samples.Gpl3/Fresco.Brix/src/Fresco.Brix.Core/Shell/ManuscriptViewerPanel.cs
+internal ToolBar BuildToolBar()
+{
+    _toolbar = PanelToolbar.Create(Title, LabelMode.IconOnly);
+
+    _toolbar.Items.Add(PanelToolbar.ButtonFor(Actions.ViewerOpen));
+    _toolbar.Items.Add(PanelToolbar.ButtonFor(Actions.ViewerClose));
+    _toolbar.Items.Add(new ToolBarSeparator());
+    _toolbar.Items.Add(BuildChooser());
+    // ... zoom, paging and rotation, each group behind a separator of its own
+    _toolbar.Items.Add(PanelToolbar.ButtonFor(Actions.ViewerReload));
+
+    //Upstream keeps Help in a SECOND toolbar, right-aligned, "not intended
+    //to be configured" (viewers/toolbar.py createLayout/populate). A filling
+    //spacer is what pushes it there, and it has something to fill because
+    //this bar stretches across a Grid row rather than sharing a tray with
+    //another bar (the add-in's pitfall 7).
+    _toolbar.Items.Add(new ToolBarSpacer { Fill = true });
+    _toolbar.Items.Add(PanelToolbar.ButtonFor(Actions.ViewerHelp));
+
+    UpdateViewState();
+    return _toolbar;
+}
+```
+
+The other asks for a text bar, because most of its buttons name no artwork that
+the shipped icon sets carry and several of them have no command behind them at
+all. A caption that is not what the command is called is the one case where the
+application, not the add-in, writes the whole tool tip:
+
+```csharp
+// From CodeBrix.Samples.Gpl3/Fresco.Brix/src/Fresco.Brix.Core/Shell/DocumentationPanel.cs
+ToolBar bar = PanelToolbar.Create(Title, LabelMode.TextOnly);
+bar.Items.Add(PanelToolbar.ButtonFor(Actions?.HelpBack, "<<"));
+bar.Items.Add(PanelToolbar.ButtonFor(Actions?.HelpForward, ">>"));
+
+//Upstream's own separator, between the two history buttons and the rest
+//(docbrowser/browser.py).
+bar.Items.Add(new ToolBarSeparator());
+bar.Items.Add(PanelToolbar.ButtonFor(Actions?.HelpHome));
+bar.Items.Add(BuildContentsToggle());
+// ... the zoom and fit buttons, then paging, then the external-viewer button
+```
+
+```csharp
+// From CodeBrix.Samples.Gpl3/Fresco.Brix/src/Fresco.Brix.Core/Shell/PanelToolbar.cs
+/// <remarks>
+/// A caption such as "&lt;&lt;" is not what the command is called, so the
+/// add-in must not compose a tool tip out of it: the application sets the
+/// whole tip, in <see cref="ToolbarLayout.ToolTipFor"/>'s wording, and the
+/// add-in leaves a tip it did not compose alone.
+/// </remarks>
+internal static ToolButton ButtonFor(AppAction action, string caption)
+{
+    if (action == null) { return Button(caption, caption, null); }
+
+    ToolButton button = New(action);
+
+    void Update()
+    {
+        button.Text = caption;
+        ToolTipService.SetToolTip(button, ToolbarLayout.ToolTipFor(action));
+        ShowChecked(button, action);
+    }
+
+    Update();
+    action.PropertyChanged += (_, _) => Update();
+    return button;
+}
+```
+
+A bar in a dock strip needs no width rule of its own, and measuring is what
+settled that:
+
+```csharp
+// From CodeBrix.Samples.Gpl3/Fresco.Brix/src/Fresco.Brix.Core/Shell/PanelToolbar.cs
+/// A panel bar needs NO width rule of its own. <see cref="MainToolbar"/> has to
+/// cap its tray at its host's arranged width, because a
+/// <see cref="ContentControl"/> measures its content with an unbounded width
+/// and a tray offered infinite room never wraps and never chevrons (the package
+// ...
+/// dock strip does not have that problem — it is measured against the strip's
+// ...
+/// item back when the strip is widened, with no cap anywhere. The same cap was
+/// written here first and then removed once it was measured to do nothing.
+```
+
+The chevron is what makes a single bar workable in a narrow strip at all: what
+does not fit moves behind it, in order, and comes back when the room does, which
+is why neither panel needs a second row or a hidden horizontal scroll bar.
+
+**Where to look.**
+`Fresco.Brix/src/Fresco.Brix.Core/Shell/PanelToolbar.cs` (the shared builder:
+`Create`, the two `ButtonFor` overloads, and the command-free `Button`),
+`Fresco.Brix/src/Fresco.Brix.Core/Shell/ManuscriptViewerPanel.cs`
+(`BuildToolBar`, the filling spacer, and the chooser that caps its own width
+because it shares a bar in a dock strip),
+`Fresco.Brix/src/Fresco.Brix.Core/Shell/DocumentationPanel.cs` (`BuildToolBar`,
+and the chooser that is given a line of its own instead),
+`Fresco.Brix/src/Fresco.Brix.Core/Shell/ToolbarLayout.cs` (`ToolTipFor`, the
+wording a panel bar sets by hand).
+
+The window's own tray is in
+[Add the CommandBar add-in and build a tray of two toolbars from command objects](#add-the-commandbar-add-in-and-build-a-tray-of-two-toolbars-from-command-objects),
+and the rules a button follows in either place are in
+[Build menus and toolbars in code from command objects](#build-menus-and-toolbars-in-code-from-command-objects).
+
+**Sharp edges.**
+
+- Do not give a panel bar a width cap. A bar measured inside a real dock strip
+  is measured against the strip's real width and grows its chevron on its own;
+  the cap a hosted tray needs does nothing here, which is worth measuring before
+  copying it across.
+- A filling spacer fills what its bar has spare. In a bar that stretches across
+  a row that is the whole trailing end, which is how a Help button reaches the
+  far side; in a bar sharing a tray with another bar there is nothing spare to
+  fill and the spacer does nothing visible.
+- Give the bar its title. It is the bar's accessible name and it becomes the
+  tail of every button's accessible name, which is a whole class of
+  per-control automation properties you then do not write.
+- Pick the label mode from what the commands can actually show. A bar whose
+  commands mostly name no shipped icon is three decorated buttons among a row of
+  bare ones; text is the honest answer there, and icons the honest answer on a
+  bar whose commands all name artwork.
+- Let the add-in compose the tool tip where the caption IS the command's name,
+  and write the whole tip yourself where it is not. A caption invented for the
+  bar describes nothing, so a tip composed out of it describes nothing either.
+- A control on a bar that can hold a long string, such as a chooser over file
+  names, needs a maximum of its own in a narrow strip, or one long entry pushes
+  every control after it behind the chevron.
+
 ### Show and size a modal dialog on the Skia heads
 
 **When you want this.** A `ContentDialog` that is not clipped on a small window
@@ -2003,8 +2732,14 @@ public async Task<bool> ShowAsync(XamlRoot xamlRoot)
 ### Render embedded SVG icons through one renderer and pick the set by theme
 
 **When you want this.** Vector icons that follow the desktop's light or dark
-scheme, shipped inside the assembly, drawn by the platform where it can draw
-them and recolored by your own renderer where it cannot.
+scheme, shipped inside the assembly, handed to the platform as an
+`SvgIconSource` where it can draw them, as every CommandBar add-in toolbar
+button here does, and recolored by your own renderer where it cannot.
+
+The bars those buttons sit on are built in
+[Add the CommandBar add-in and build a tray of two toolbars from command objects](#add-the-commandbar-add-in-and-build-a-tray-of-two-toolbars-from-command-objects)
+and
+[Give a panel its own toolbar with the CommandBar add-in](#give-a-panel-its-own-toolbar-with-the-commandbar-add-in).
 
 **The MVVM shape.** Icons are `EmbeddedResource` items under two logical-name
 prefixes, one per theme, and there are two ways to get one onto the screen.
@@ -2063,7 +2798,7 @@ public static Uri ResourceUri(string prefix, string name)
 `TintMode` is `None` deliberately: each of the two sets already carries the
 strokes that are right for the background it is meant for, so tinting would
 overpaint an intent the artwork already expresses. A set that encoded its
-foreground as one colour for both themes would want the opposite.
+foreground as one color for both themes would want the opposite.
 
 The same two prefixes, the same embedded files, through the application's own
 renderer, for everything the platform is not drawing:
@@ -2158,7 +2893,7 @@ clickable regions in
   from the control instead, which is one fewer thing to get wrong.
 - Decide tinting from what the artwork already says. Two sets drawn for two
   backgrounds want no tint; one set that encodes its foreground as a single
-  colour wants a colour filter over the picture, which is what the renderer
+  color wants a color filter over the picture, which is what the renderer
   above does with `SrcIn`.
 
 ## Graphics and rendering
@@ -3819,6 +4554,280 @@ that opens a store in its own scratch directory),
   answer and a shorter fixture would be a dishonest one.
 - Generated data files each name the tool that regenerates them in a header
   comment, so nobody edits the output by mistake.
+
+### Assert a toolbar's contents and a shell's pane arithmetic in host-free tests
+
+**When you want this.** Coverage of the parts of a window that are ordinarily
+hardest to test: what is on a toolbar and in what order, what the buttons are
+bound to, and which panes a dock shell opens for a given set of visible panels.
+
+**The MVVM shape.** Two seams make all of it reachable. The first is DATA: what
+is on each bar and in what order is a list built by a static class that names no
+XAML type, so the order is a value a test can compare. The second is a PURE
+class: which panes are meant to be open is decided by static functions over
+booleans, in the Core library, with the class that owns the controls reduced to
+a driver over their answers. Where a test does need real elements, the platform
+builds them in a process with no window, so a bar can be constructed, measured
+and inspected without a head.
+
+**Code.** The order is asserted against the entries, not against the screen. A
+small projection turns the list into something readable, and the expectation is
+written out entry for entry:
+
+```csharp
+// From CodeBrix.Samples.Gpl3/Fresco.Brix/tests/Fresco.Brix.Core.Tests/MainToolbarTests.cs
+private static IEnumerable<string> Shape(IReadOnlyList<ToolbarEntry> entries)
+    => entries.Select(entry => entry.Kind switch
+    {
+        ToolbarEntryKind.Separator => "|",
+        ToolbarEntryKind.Widget => "<" + entry.Widget + ">",
+        _ => entry.Action.Name,
+    });
+
+[Fact]
+public void the_main_toolbar_is_upstreams_own_order()
+{
+    //Arrange, Act
+    IReadOnlyList<ToolbarEntry> entries = MainBar(verbose: false);
+
+    //Assert — mainwindow.createToolBars, entry for entry and separator for
+    //separator.
+    Shape(entries).Should().BeEquivalentTo(new[]
+    {
+        "file_new", "file_open", "file_save", "file_close",
+        "|", "go_back", "go_forward",
+        "|", "edit_undo", "edit_redo",
+        "|", "scorewiz", "engrave_runner",
+    });
+}
+```
+
+The elements themselves are built too, in the same process. The one thing to
+work around is that a tray builds its bars when it enters a tree and nothing
+here enters a tree, so the test asks for the rebuild the same way a preference
+change does:
+
+```csharp
+// From CodeBrix.Samples.Gpl3/Fresco.Brix/tests/Fresco.Brix.Core.Tests/MainToolbarTests.cs
+[Collection(XamlTestCollection.Name)]
+public class MainToolbarBuilderTests : IDisposable
+// ...
+    //The window builds the bars when the tray enters the tree; nothing
+    //enters a tree here, so the same rebuild is asked for directly.
+    toolbar.SettingsChanged();
+    return toolbar;
+```
+
+With the bars built, the data and the elements are checked against each other,
+which is what keeps the two from drifting apart:
+
+```csharp
+// From CodeBrix.Samples.Gpl3/Fresco.Brix/tests/Fresco.Brix.Core.Tests/MainToolbarTests.cs
+[Fact]
+public void the_main_bar_holds_one_item_per_layout_entry()
+{
+    //Arrange
+    MainToolbar toolbar = Build();
+    IReadOnlyList<ToolbarEntry> entries = ToolbarLayout.Main(
+        _main, _browser, _scoreWizard, _engrave, verboseToolButtons: false);
+
+    //Act
+    IReadOnlyList<UIElement> items = Items(Bars(toolbar)[0]);
+
+    //Assert — the order model and the bar say the same thing, entry for
+    //entry: a separator entry is a separator, an action entry is a button.
+    items.Count.Should().Be(entries.Count);
+    for (int index = 0; index < entries.Count; index++)
+    {
+        if (entries[index].Kind == ToolbarEntryKind.Separator)
+        {
+            items[index].Should().BeOfType<ToolBarSeparator>();
+            continue;
+        }
+
+        ToolButton button = items[index].Should().BeAssignableTo<ToolButton>().Subject;
+        button.Command.Should().BeSameAs(entries[index].Action);
+    }
+}
+```
+
+Even the overflow chevron is reachable, because a measure pass is all it takes
+to make a bar too narrow for its items:
+
+```csharp
+// From CodeBrix.Samples.Gpl3/Fresco.Brix/tests/Fresco.Brix.Core.Tests/MainToolbarTests.cs
+[Fact]
+public void a_narrow_bar_pushes_its_trailing_items_behind_the_chevron()
+{
+    //Arrange — the behaviour that replaces the hand-built row's hidden
+    //horizontal scrollbar.
+    TestHost.EnsureReady();
+    MainToolbar toolbar = Build();
+    ToolBar mainBar = Bars(toolbar)[0];
+
+    //Act
+    mainBar.Measure(new Size(1200d, 100d));
+    bool fitsWide = mainBar.HasOverflowItems;
+    mainBar.Measure(new Size(90d, 100d));
+
+    //Assert
+    fitsWide.Should().BeFalse();
+    mainBar.HasOverflowItems.Should().BeTrue();
+    mainBar.OverflowItems.Should().NotBeEmpty();
+}
+```
+
+The shell's arithmetic is asserted against the pure class, with no control
+anywhere. Two arrangements that should look the same are compared with each
+other rather than with a literal, and the invariant the controls impose is
+stated as a property over every case:
+
+```csharp
+// From CodeBrix.Samples.Gpl3/Fresco.Brix/tests/Fresco.Brix.Core.Tests/ShellLayoutTests.cs
+[Fact]
+public void maximizing_the_editor_is_the_same_picture_as_closing_every_tool()
+{
+    //Act
+    ShellPanes maximized = ShellLayout.PanesForMaximized(ShellRegion.Editor);
+    ShellPanes nothingOpen = ShellLayout.PanesFor(
+        leftHasPanel: false, rightHasPanel: false, bottomHasPanel: false);
+
+    //Assert
+    //Which is what makes the editor's case reachable without a command of
+    //its own: close every tool panel and the editor has the window.
+    maximized.EditorIsOpen.Should().Be(nothingOpen.EditorIsOpen);
+    maximized.EditorBlockIsOpen.Should().Be(nothingOpen.EditorBlockIsOpen);
+    maximized.LeftStripIsOpen.Should().Be(nothingOpen.LeftStripIsOpen);
+    maximized.RightStripIsOpen.Should().Be(nothingOpen.RightStripIsOpen);
+    maximized.BottomStripIsOpen.Should().Be(nothingOpen.BottomStripIsOpen);
+}
+
+[Theory]
+[InlineData(ShellRegion.Left)]
+[InlineData(ShellRegion.Right)]
+[InlineData(ShellRegion.Bottom)]
+[InlineData(ShellRegion.Editor)]
+public void a_maximize_never_asks_a_control_to_shut_its_last_pane(ShellRegion region)
+{
+    //Act
+    ShellPanes panes = ShellLayout.PanesForMaximized(region);
+
+    //Assert
+    panes.OuterKeepsAPaneOpen.Should().BeTrue();
+    if (panes.EditorBlockIsOpen) { panes.InnerKeepsAPaneOpen.Should().BeTrue(); }
+}
+```
+
+The assumptions the shell makes about the control ITSELF get their own suite, so
+that a change in the control fails here rather than on screen. Nothing in it
+draws: only the state the control keeps outside its template is asserted:
+
+```csharp
+// From CodeBrix.Samples.Gpl3/Fresco.Brix/tests/Fresco.Brix.Core.Tests/TriPaneViewShellAssumptionsTests.cs
+[Fact]
+public void restoring_a_pane_returns_the_share_it_was_minimized_at()
+{
+    //Arrange
+    TriPaneView outer = Outer();
+    outer.MinimizeLowerPane();
+
+    //Act
+    outer.RestoreLowerPane();
+
+    //Assert
+    //Not the control's own default of fifty: the shell's twenty, which is
+    //why every strip that starts shut is MINIMIZED rather than set to zero.
+    outer.IsLowerPaneMinimized.Should().BeFalse();
+    outer.LowerPanePercent.Should().Be(20d);
+}
+
+[Fact]
+public void minimizing_the_last_open_pane_is_refused()
+{
+    //Arrange
+    TriPaneView outer = Outer();
+    outer.MinimizeLowerPane();
+    outer.MinimizeUpperPane();
+
+    //Act
+    outer.MinimizeSidePane();
+
+    //Assert
+    //Which is why the shell opens every pane that is to be open before it
+    //shuts any that is to be shut.
+    outer.IsSidePaneMinimized.Should().BeFalse();
+    outer.SidePanePercent.Should().Be(25d);
+}
+```
+
+The same suite is where a wrong way of doing something is pinned down as a fact
+rather than as a comment, which is the cheapest possible guard on a sharp edge:
+
+```csharp
+// From CodeBrix.Samples.Gpl3/Fresco.Brix/tests/Fresco.Brix.Core.Tests/TriPaneViewShellAssumptionsTests.cs
+[Fact]
+public void restore_all_opens_a_lower_pane_that_was_meant_to_stay_shut()
+{
+    //Arrange
+    //The inner control's lower pane is not one of the window's regions.
+    TriPaneView inner = Inner();
+    inner.MinimizeUpperPane();
+
+    //Act
+    //The obvious way to undo a maximize, and the wrong one here.
+    inner.RestoreAll();
+
+    //Assert
+    //A pane held at zero beside a pane that is not reads as minimized, so
+    //restoring everything gives it the control's own default of fifty and
+    //the window grows a region it does not have. The shell restores pane by
+    //pane for exactly this reason.
+    inner.LowerPanePercent.Should().Be(50d);
+    inner.IsLowerPaneMinimized.Should().BeFalse();
+}
+```
+
+**Where to look.**
+`Fresco.Brix/tests/Fresco.Brix.Core.Tests/MainToolbarTests.cs` (the layout data,
+the builder over real elements, the tool tips and the chevron),
+`Fresco.Brix/tests/Fresco.Brix.Core.Tests/ToolTipComposerTests.cs` (who writes a
+button's tip, and what happens when the application writes one first),
+`Fresco.Brix/tests/Fresco.Brix.Core.Tests/ShellLayoutTests.cs` (the pure pane
+arithmetic and the default shares),
+`Fresco.Brix/tests/Fresco.Brix.Core.Tests/TriPaneViewShellAssumptionsTests.cs`
+(every assumption the shell makes about the control, asserted against the
+control),
+`Fresco.Brix/tests/Fresco.Brix.Core.Tests/DockLayoutTests.cs` (what survives
+being written out and read back).
+
+The shapes these tests are written against are in
+[Add the CommandBar add-in and build a tray of two toolbars from command objects](#add-the-commandbar-add-in-and-build-a-tray-of-two-toolbars-from-command-objects),
+[Nest two TriPaneView controls to put four regions around an editor](#nest-two-tripaneview-controls-to-put-four-regions-around-an-editor)
+and
+[Show and hide a TriPaneView pane by minimizing and restoring it](#show-and-hide-a-tripaneview-pane-by-minimizing-and-restoring-it);
+the project setup these suites run under is in
+[Set up test projects on the Microsoft Testing Platform and check a port against recorded answers](#set-up-test-projects-on-the-microsoft-testing-platform-and-check-a-port-against-recorded-answers).
+
+**Sharp edges.**
+
+- Assert the DATA and the elements against each other, not the elements against
+  a literal. A list of expected names checks the order; comparing the built bar
+  against that same list is what catches a builder that quietly drops an entry.
+- A tray builds its bars when it enters a tree. A test that never puts one in a
+  tree has to ask for the build through whatever public call the application
+  itself uses when a preference changes.
+- Keep the tests that build real elements in a collection of their own, so that
+  work stays off every other test thread.
+- Measure to reach layout behavior. The chevron, the wrap and the floors are all
+  measure-time decisions, so a measure pass at a chosen width is enough to
+  assert them, with nothing drawn and no window opened.
+- Do not reach for anything that needs the control's template. A default style
+  never resolves in a process with no application, so divider visibility,
+  cursors and pixel sizes belong to a suite that runs on a real head; the
+  shares, the minimized flags and the refusals do not.
+- Write down the WRONG way as a passing test. A test asserting that
+  restore-everything opens a pane you meant to keep shut is what stops the next
+  reader from tidying the pane-by-pane code into one call.
 
 ## Project layout, packaging and native assets
 

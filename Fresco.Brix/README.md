@@ -113,6 +113,18 @@ own, while the application's chrome names the engine that is actually running.
 - How menus and toolbar buttons follow command objects, with enabled, checked
   and tool-tip state that stays correct:
   [Build menus and toolbars in code from command objects](../BLUEPRINTS.md#build-menus-and-toolbars-in-code-from-command-objects).
+- How the four regions are nested out of two of the platform's three-pane
+  controls, and which pane is deliberately left unused:
+  [Nest two TriPaneView controls to put four regions around an editor](../BLUEPRINTS.md#nest-two-tripaneview-controls-to-put-four-regions-around-an-editor).
+- How a strip appears and disappears as its tools are opened and closed, coming
+  back at the width the user left it at:
+  [Show and hide a TriPaneView pane by minimizing and restoring it](../BLUEPRINTS.md#show-and-hide-a-tripaneview-pane-by-minimizing-and-restoring-it).
+- How one package reference buys real toolbars, with an overflow chevron,
+  keyboard navigation and automation peers already in them:
+  [Add the CommandBar add-in and build a tray of two toolbars from command objects](../BLUEPRINTS.md#add-the-commandbar-add-in-and-build-a-tray-of-two-toolbars-from-command-objects).
+- How a dock panel carries a toolbar of its own in a strip too narrow to show
+  all of it:
+  [Give a panel its own toolbar with the CommandBar add-in](../BLUEPRINTS.md#give-a-panel-its-own-toolbar-with-the-commandbar-add-in).
 - How accelerators fire before their menu has ever been opened, and are not
   swallowed by a focused editor:
   [Register window-level shortcuts that survive a focused text editor](../BLUEPRINTS.md#register-window-level-shortcuts-that-survive-a-focused-text-editor).
@@ -161,6 +173,9 @@ own, while the application's chrome names the engine that is actually running.
 - How the test projects are set up, and how a port is asserted against recorded
   answers from the thing it was ported from:
   [Set up test projects on the Microsoft Testing Platform and check a port against recorded answers](../BLUEPRINTS.md#set-up-test-projects-on-the-microsoft-testing-platform-and-check-a-port-against-recorded-answers).
+- How a toolbar's contents and a shell's pane arithmetic are asserted in a
+  process with no window at all:
+  [Assert a toolbar's contents and a shell's pane arithmetic in host-free tests](../BLUEPRINTS.md#assert-a-toolbars-contents-and-a-shells-pane-arithmetic-in-host-free-tests).
 
 ## Building, running and testing
 
@@ -531,7 +546,11 @@ of those entries is a `SimpleCommand` on a view model with `[AffectsCommands]`
 doing what hand-written enable and check updates do here, and the builders take
 the command list rather than the page. See
 [Build a dock shell with drawn splitters and remember its arrangement](../BLUEPRINTS.md#build-a-dock-shell-with-drawn-splitters-and-remember-its-arrangement),
+[Nest two TriPaneView controls to put four regions around an editor](../BLUEPRINTS.md#nest-two-tripaneview-controls-to-put-four-regions-around-an-editor),
+[Show and hide a TriPaneView pane by minimizing and restoring it](../BLUEPRINTS.md#show-and-hide-a-tripaneview-pane-by-minimizing-and-restoring-it),
 [Build menus and toolbars in code from command objects](../BLUEPRINTS.md#build-menus-and-toolbars-in-code-from-command-objects),
+[Add the CommandBar add-in and build a tray of two toolbars from command objects](../BLUEPRINTS.md#add-the-commandbar-add-in-and-build-a-tray-of-two-toolbars-from-command-objects),
+[Give a panel its own toolbar with the CommandBar add-in](../BLUEPRINTS.md#give-a-panel-its-own-toolbar-with-the-commandbar-add-in),
 [Register window-level shortcuts that survive a focused text editor](../BLUEPRINTS.md#register-window-level-shortcuts-that-survive-a-focused-text-editor),
 [Show and size a modal dialog on the Skia heads](../BLUEPRINTS.md#show-and-size-a-modal-dialog-on-the-skia-heads)
 and
@@ -678,8 +697,15 @@ shorter fixture would be a dishonest one. On the plumbing side, give every test
 its own scratch directory so no test can reach the real settings store, set the
 runtime-identifier lever in any test project that calls platform code, and
 remember that a plain `dotnet test` against a Microsoft.Testing.Platform
-executable can report that zero tests ran. See
-[Set up test projects on the Microsoft Testing Platform and check a port against recorded answers](../BLUEPRINTS.md#set-up-test-projects-on-the-microsoft-testing-platform-and-check-a-port-against-recorded-answers).
+executable can report that zero tests ran. The window itself is reached the same
+way: `Shell/ToolbarLayout.cs` and `Shell/ShellLayout.cs` are the two seams that
+make a toolbar's order and the shell's pane arithmetic values a test can
+compare, and where real elements are needed the platform builds them in a
+process with no window, so a bar can be constructed, measured and inspected
+without a head. See
+[Set up test projects on the Microsoft Testing Platform and check a port against recorded answers](../BLUEPRINTS.md#set-up-test-projects-on-the-microsoft-testing-platform-and-check-a-port-against-recorded-answers)
+and
+[Assert a toolbar's contents and a shell's pane arithmetic in host-free tests](../BLUEPRINTS.md#assert-a-toolbars-contents-and-a-shells-pane-arithmetic-in-host-free-tests).
 
 ## Third-party content
 
