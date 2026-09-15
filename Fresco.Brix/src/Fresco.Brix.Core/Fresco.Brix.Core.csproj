@@ -105,7 +105,7 @@
        reference. CodeBrix.LilyPort moved to its own repository on 2026-08-27
        and those relative paths went with it. -->
   <ItemGroup>
-    <PackageReference Include="CodeBrix.LilyPort.GplLicenseForever" Version="1.0.255.1042" />
+    <PackageReference Include="CodeBrix.LilyPort.GplLicenseForever" Version="1.0.258.1159" />
   </ItemGroup>
 
   <!-- NO Emmentaler font copy here, and that is correct. The engine carries its

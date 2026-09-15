@@ -24,7 +24,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.10.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.10.1" />
     <!-- Skia's native library. The heads get it from their runtime package; a
          host-free test process draws with the same Skia and must bring its own
          (house precedent: every sample library that renders). -->
