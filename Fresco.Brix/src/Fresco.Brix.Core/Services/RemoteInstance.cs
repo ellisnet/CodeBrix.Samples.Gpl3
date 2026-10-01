@@ -550,7 +550,14 @@ internal static class RemoteTransport
         {
             if (token.IsCancellationRequested) { return null; }
 
-            Socket accepted = _socket.Accept();
+            //On macOS, disposing a socket while another thread is inside a
+            //blocking native accept can itself block indefinitely. File > Quit
+            //disposes this listener on the UI thread. Use a cancellable,
+            //nonblocking socket operation there; only our background server
+            //thread waits for its result. Keep the other platforms unchanged.
+            Socket accepted = OperatingSystem.IsMacOS()
+                ? _socket.AcceptAsync(token).AsTask().GetAwaiter().GetResult()
+                : _socket.Accept();
             return new NetworkStream(accepted, ownsSocket: true);
         }
 

@@ -28,7 +28,9 @@ internal class Program
 
         var host = CodeBrixPlatformHostBuilder.Create()
             .App(() => new App())
-            .UseMacOS()
+            .UseMacOS(m => m
+                .UseSystemAppName("Fresco.Brix")
+                .UseSystemMenuBar())
             .UseDirectSkiaCanvasMode() //Experimental - should be safe to leave enabled
             .Build();
 

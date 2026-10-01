@@ -14,6 +14,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace Fresco.Brix.Core.Tests;
@@ -174,6 +175,18 @@ public class RemoteInstanceTests : IDisposable
         connection.CommandLine(CommandLineArguments.Parse(Array.Empty<string>()));
 
         //Assert
+        Encoding.UTF8.GetString(written.ToArray()).Should().Be("activate_window\n");
+    }
+
+    [Fact]
+    public void a_project_argument_is_not_sent_to_the_running_editor()
+    {
+        MemoryStream written = new MemoryStream();
+        RemoteConnection connection = new RemoteConnection(written);
+
+        connection.CommandLine(CommandLineArguments.Parse(
+            new[] { "Fresco.Brix.MacOS.csproj", "--line=9" }));
+
         Encoding.UTF8.GetString(written.ToArray()).Should().Be("activate_window\n");
     }
 
@@ -343,6 +356,60 @@ public class RemoteInstanceTests : IDisposable
         second.Should().BeNull();
     }
 
+    public static bool IsMacOS => OperatingSystem.IsMacOS();
+
+    [Theory(Skip = "Exercises macOS socket shutdown.", SkipUnless = nameof(IsMacOS))]
+    [InlineData(0)]
+    [InlineData(1)]
+    public async Task an_idle_macos_server_quits_without_waiting_for_another_client(int conversations)
+    {
+        string id = "frescobrix-test-" + Guid.NewGuid().ToString("N").Substring(0, 8);
+        var listener = new ObservedListener(RemoteTransport.TryListen(id));
+        var server = new RemoteServer(listener, new RecordingTarget(), null);
+        server.Start();
+        Task stopping = null;
+
+        try
+        {
+            for (int i = 0; i <= conversations; i++)
+            {
+                listener.AcceptStarted.Wait(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken)
+                    .Should().BeTrue();
+                listener.AcceptStarted.Reset();
+                // Allow the background thread to enter its pending socket wait.
+                await Task.Delay(100, TestContext.Current.CancellationToken);
+                if (i < conversations)
+                {
+                    using Stream client = RemoteTransport.TryConnect(id, 1000);
+                    client.Should().NotBeNull();
+                    new RemoteConnection(client).Close();
+                }
+            }
+
+            // This is called synchronously on the UI thread by File > Quit.
+            // Run it on a worker here so a regression fails instead of hanging
+            // the test runner itself.
+            stopping = Task.Run(server.Dispose, TestContext.Current.CancellationToken);
+            await stopping.WaitAsync(TimeSpan.FromSeconds(3), TestContext.Current.CancellationToken);
+            listener.AcceptFinished.Wait(TimeSpan.FromSeconds(3), TestContext.Current.CancellationToken)
+                .Should().BeTrue();
+            File.Exists(RemoteTransport.SocketPath(id)).Should().BeFalse();
+            using IRemoteListener replacement = RemoteTransport.TryListen(id);
+            replacement.Should().NotBeNull();
+        }
+        finally
+        {
+            stopping ??= Task.Run(server.Dispose, CancellationToken.None);
+            if (!stopping.IsCompleted)
+            {
+                // The old blocking accept needs a client to release it even
+                // after Dispose starts. Keep that failure bounded and clean.
+                using Stream wake = RemoteTransport.TryConnect(id, 1000);
+            }
+            await stopping.WaitAsync(TimeSpan.FromSeconds(5), CancellationToken.None);
+        }
+    }
+
     [Fact]
     public void connecting_to_a_name_nobody_listens_on_answers_nothing()
     {
@@ -392,6 +459,23 @@ public class RemoteInstanceTests : IDisposable
 
         //Assert
         handedOff.Should().BeFalse();
+    }
+
+    private sealed class ObservedListener(IRemoteListener inner) : IRemoteListener
+    {
+        public string Id => inner.Id;
+        internal ManualResetEventSlim AcceptStarted { get; } = new ManualResetEventSlim();
+        internal ManualResetEventSlim AcceptFinished { get; } = new ManualResetEventSlim();
+
+        public Stream Accept(CancellationToken token)
+        {
+            AcceptFinished.Reset();
+            AcceptStarted.Set();
+            try { return inner.Accept(token); }
+            finally { AcceptFinished.Set(); }
+        }
+
+        public void Dispose() => inner.Dispose();
     }
 
     private sealed class RecordingTarget : IRemoteCommandTarget
@@ -469,6 +553,73 @@ public class RemoteInstanceTests : IDisposable
 /// </summary>
 public class CommandLineArgumentsTests
 {
+    [Theory]
+    [InlineData(".ly")]
+    [InlineData(".lyi")]
+    [InlineData(".ily")]
+    [InlineData(".tex")]
+    [InlineData(".lytex")]
+    [InlineData(".latex")]
+    [InlineData(".docbook")]
+    [InlineData(".lyxml")]
+    [InlineData(".html")]
+    [InlineData(".htmly")]
+    [InlineData(".xml")]
+    [InlineData(".itely")]
+    [InlineData(".tely")]
+    [InlineData(".texi")]
+    [InlineData(".texinfo")]
+    [InlineData(".scm")]
+    public void supported_source_extensions_accept_uppercase_and_paths_with_spaces(string extension)
+    {
+        string lower = Path.Combine("my scores", "new score" + extension);
+        string upper = Path.Combine("my scores", "another score" + extension.ToUpperInvariant());
+
+        CommandLineArguments parsed = CommandLineArguments.Parse(new[] { lower, upper });
+
+        // Parsing accepts a new source path without requiring the file to exist.
+        parsed.Files.Should().Equal(lower, upper);
+    }
+
+    [Theory]
+    [InlineData("Fresco.Brix.MacOS.csproj")]
+    [InlineData("Fresco.Brix.slnx")]
+    [InlineData("Fresco.Brix.dll")]
+    [InlineData("README.md")]
+    [InlineData("score.ly.csproj")]
+    [InlineData("score.ly.bak")]
+    [InlineData("score")]
+    [InlineData("score.pdf")]
+    [InlineData("score.png")]
+    [InlineData("score.midi")]
+    [InlineData("score.mid")]
+    [InlineData("score.mxl")]
+    [InlineData("score.musicxml")]
+    [InlineData("score.abc")]
+    [InlineData("--unrecognized")]
+    [InlineData("")]
+    [InlineData(null)]
+    public void unrelated_arguments_and_import_formats_are_not_editor_documents(string argument)
+    {
+        CommandLineArguments.Parse(new[] { argument }).Files.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void forwarded_project_arguments_do_not_displace_scores_or_cursor_options()
+    {
+        CommandLineArguments parsed = CommandLineArguments.Parse(new[]
+        {
+            "Fresco.Brix.MacOS.csproj", "one.ly", "--encoding=utf-8",
+            "--line", "12", "--column=3", "-n", "--", "-two.ILY", "build.log",
+        });
+
+        parsed.Files.Should().Equal("one.ly", "-two.ILY");
+        parsed.Encoding.Should().Be("utf-8");
+        parsed.Line.Should().Be(12);
+        parsed.Column.Should().Be(3);
+        parsed.New.Should().BeTrue();
+    }
+
     [Fact]
     public void plain_arguments_are_files()
     {

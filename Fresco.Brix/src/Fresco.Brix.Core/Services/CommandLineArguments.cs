@@ -8,6 +8,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 
 namespace Fresco.Brix.Services; //was previously: frescobaldi/__main__.py (the argparse block)
 
@@ -30,15 +31,31 @@ namespace Fresco.Brix.Services; //was previously: frescobaldi/__main__.py (the a
 /// <c>--python-ly</c> has nothing to point at: there is no python-ly here).
 /// </para>
 /// <para>
-/// Anything unrecognised is treated as a FILE, which is what keeps a path
-/// beginning with a dash usable and what a desktop file manager passes.
+/// Unrecognised arguments are files only when their extension identifies an
+/// editable source document. This also accepts source paths beginning with a
+/// dash, while ignoring project files forwarded by <c>dotnet run</c>.
 /// </para>
 /// </remarks>
 public sealed class CommandLineArguments
 {
+    // Frescobaldi's app.filetypes(), without its interactive "All Files" filter,
+    // plus lilypond-book's documented .htmly spelling. Import-only formats such
+    // as MIDI and compressed MusicXML must go through File > Import instead.
+    // https://github.com/frescobaldi/frescobaldi/blob/master/frescobaldi/app.py
+    // https://lilypond.org/doc/v2.26/Documentation/usage-big-page.html#Filename-extensions
+    private static readonly HashSet<string> SourceExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+    {
+        ".ly", ".lyi", ".ily",
+        ".tex", ".lytex", ".latex",
+        ".docbook", ".lyxml",
+        ".html", ".htmly", ".xml",
+        ".itely", ".tely", ".texi", ".texinfo",
+        ".scm",
+    };
+
     private readonly List<string> _files = new List<string>();
 
-    /// <summary>Gets the files named on the command line, in order.</summary>
+    /// <summary>Gets supported source files named on the command line, in order.</summary>
     public IReadOnlyList<string> Files => _files;
 
     /// <summary>Gets the encoding to read the files in, or null.</summary>
@@ -97,7 +114,8 @@ public sealed class CommandLineArguments
             {
                 parsed.Column = ParseNumber(column);
             }
-            else if (!string.IsNullOrEmpty(argument))
+            else if (!string.IsNullOrEmpty(argument)
+                && SourceExtensions.Contains(Path.GetExtension(argument)))
             {
                 parsed._files.Add(argument);
             }
