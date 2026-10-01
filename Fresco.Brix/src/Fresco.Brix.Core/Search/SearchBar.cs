@@ -137,7 +137,8 @@ public sealed class SearchBar : Grid
         _regexCheck.Unchecked += (_, _) => SearchChanged();
         _searchEntry.KeyDown += EntryKeyDown;
         _replaceEntry.KeyDown += EntryKeyDown;
-        KeyDown += EntryKeyDown;
+        // Handle entry keys once. Registering the same handler on this parent
+        // can navigate twice when a TextBox key bubbles after its own processing.
 
         TranslateUI();
         ShowReplaceRow(false);
@@ -257,7 +258,7 @@ public sealed class SearchBar : Grid
             if (_view == null || _positions.Count == 0) { return; }
 
             int index = SearchLogic.BisectLeft(
-                _positions, _view.Editor.CaretOffset) - 1;
+                _positions, _view.SelectionStart) - 1;
             GoToPosition(index < 0 ? _positions.Count - 1 : index);
         }
         finally

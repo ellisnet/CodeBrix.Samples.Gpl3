@@ -7,6 +7,7 @@
 
 using Fresco.Brix.Editor;
 using Fresco.Brix.Engrave;
+using Fresco.Brix.QuickInsert;
 using Fresco.Brix.ScoreWizard;
 using Fresco.Brix.Services;
 using Microsoft.UI.Text;
@@ -322,6 +323,7 @@ public sealed class ScoreWizardDialog
             entries.Children.Add(label);
 
             TextBox box = new TextBox { Text = Model.Header(name) };
+            Microsoft.UI.Xaml.Automation.AutomationProperties.SetLabeledBy(box, label);
             string field = name;
             box.TextChanged += (_, _) =>
             {
@@ -369,14 +371,29 @@ public sealed class ScoreWizardDialog
         page.Children.Add(PreviewRow("meter", null, "arranger"));
         page.Children.Add(PreviewRow("piece", null, "opus"));
 
-        page.Children.Add(new TextBlock
+        // Music characters are absent from some desktop UI fonts. Reuse the
+        // embedded glyphs so this preview does not depend on installed fonts.
+        StackPanel music = new StackPanel
         {
-            Text = "𝄞  ♪ ♫ ♪ ♫",
+            Orientation = Orientation.Horizontal,
+            Spacing = 4,
             HorizontalAlignment = HorizontalAlignment.Center,
             Margin = new Thickness(0, 18, 0, 18),
             Opacity = 0.5,
-            FontSize = 22,
-        });
+        };
+        void DrawMusic()
+        {
+            music.Children.Clear();
+            foreach (string symbol in new[] { "clef_treble", "note_8", "note_16", "note_8", "note_16" })
+            {
+                Image icon = SymbolIcons.Icon(symbol, IconTheme.ForegroundFor(music.ActualTheme));
+                if (icon != null) { music.Children.Add(icon); }
+            }
+        }
+        DrawMusic();
+        music.Loaded += (_, _) => DrawMusic();
+        music.ActualThemeChanged += (_, _) => DrawMusic();
+        page.Children.Add(music);
 
         page.Children.Add(PreviewField(
             "copyright", HorizontalAlignment.Center, note: I18n.Get("bottom of first page")));

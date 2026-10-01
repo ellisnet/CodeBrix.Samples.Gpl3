@@ -15,6 +15,7 @@
     <Project Path="src/libs/Fresco.Brix.MusicView/Fresco.Brix.MusicView.csproj" />
   </Folder>
   <Folder Name="/Tests/">
+    <Project Path="tests/Fresco.Brix.PlayTests/Fresco.Brix.PlayTests.csproj" />
     <Project Path="tests/Fresco.Brix.Core.Tests/Fresco.Brix.Core.Tests.csproj" />
     <Project Path="tests/libs/Fresco.Brix.Ly.Tests/Fresco.Brix.Ly.Tests.csproj" />
     <Project Path="tests/libs/Fresco.Brix.MusicView.Tests/Fresco.Brix.MusicView.Tests.csproj" />

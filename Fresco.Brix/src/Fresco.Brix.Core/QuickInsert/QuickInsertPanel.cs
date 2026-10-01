@@ -10,6 +10,7 @@ using Fresco.Brix.Services;
 using Fresco.Brix.Shell;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Media;
 using System;
 using System.Collections.Generic;
@@ -444,10 +445,11 @@ public sealed class QuickInsertPanel : Panel
             VerticalAlignment = VerticalAlignment.Center,
         };
         _direction = new ComboBox { HorizontalAlignment = HorizontalAlignment.Stretch };
+        AutomationProperties.SetLabeledBy(_direction, label);
         _direction.Items.Add(I18n.Get("Up"));
         _direction.Items.Add(I18n.Get("Neutral"));
         _direction.Items.Add(I18n.Get("Down"));
-        _direction.SelectedIndex = Math.Clamp(_settings?.GetInt(DirectionKey) ?? 1, 0, 2);
+        _direction.SelectedIndex = Math.Clamp(_settings?.GetInt(DirectionKey, 1) ?? 1, 0, 2);
         _direction.SelectionChanged += (_, _)
             => _settings?.SetInt(DirectionKey, _direction.SelectedIndex);
 
@@ -586,6 +588,7 @@ public sealed class QuickInsertPanel : Panel
         };
 
         string key = Shortcuts.Shortcuts(definition.Name).FirstOrDefault()?.ToString();
+        AutomationProperties.SetName(button, definition.Text);
         ToolTipService.SetToolTip(
             button,
             key == null

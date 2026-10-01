@@ -312,6 +312,7 @@ conversation, including releasing the socket for the next launch.
 | Test project | Covers |
 | --- | --- |
 | `tests/Fresco.Brix.Core.Tests` | The application core: documents, editor tools, completion, engraving, export, import, the settings store, sessions, preferences, shortcuts, dock layout, MIDI, documentation, manuscripts, the score wizard, the user guide, i18n, the icon theme, the single-instance protocol, and the parity suites against recorded upstream answers |
+| [`tests/Fresco.Brix.PlayTests`](tests/Fresco.Brix.PlayTests/README.md) | Real shared-UI tests: documents, AdvancedTextEdit, menus/toolbars, split/dock layouts, dialogs, music tools and engraving; headless or visible preview, with SilverAssertions |
 | `tests/libs/Fresco.Brix.Ly.Tests` | The `Fresco.Brix.Ly` language library: lexer and tokenizer, document model, doc info, pitch, rhythm, colorize, the music DOM and MusicXML, plus schema-conformance tests against a vendored MusicXML schema |
 | `tests/libs/Fresco.Brix.MusicView.Tests` | The paged view library: page layout, SVG pages, raster pages, overlays, the rectangle index and the exporters |
 

@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>Fresco.Brix.PlayTests</RootNamespace>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <IsPackable>false</IsPackable>
+    <UseMicrosoftTestingPlatformRunner>true</UseMicrosoftTestingPlatformRunner>
+    <TestingPlatformDotnetTestSupport>true</TestingPlatformDotnetTestSupport>
+    <CodeBrixPlayTestPreferredOrientation Condition="'$(CodeBrixPlayTestPreferredOrientation)' == ''">Landscape</CodeBrixPlayTestPreferredOrientation>
+    <CodeBrixPlayTestPreferredTheme Condition="'$(CodeBrixPlayTestPreferredTheme)' == ''">Light</CodeBrixPlayTestPreferredTheme>
+    <PlayTestPackageVersion Condition="'$(PlayTestPackageVersion)' == ''">1.0.273.1-playtest.22</PlayTestPackageVersion>
+    <PlayTestPackageFeed Condition="'$(PlayTestPackageFeed)' == ''">$(MSBuildThisFileDirectory)../../../../CodeBrix.Platform/nugets/PlayTest</PlayTestPackageFeed>
+    <RestoreAdditionalProjectSources>$(RestoreAdditionalProjectSources);$(PlayTestPackageFeed)</RestoreAdditionalProjectSources>
+    <DefineConstants>$(DefineConstants);HAS_CODEBRIX;HAS_CODEBRIX_WINUI</DefineConstants>
+  </PropertyGroup>
+  <Import Project="../../src/Fresco.Brix.UI/Fresco.Brix.UI.projitems" Label="Shared" />
+  <ItemGroup>
+    <ProjectReference Include="../../src/Fresco.Brix.Core/Fresco.Brix.Core.csproj" />
+    <PackageReference Include="CodeBrix.Platform.PlayTest.ApacheLicenseForever" Version="$(PlayTestPackageVersion)" />
+    <!-- The app already uses this add-in. This test-only preview exercises its standard automation peer. -->
+    <PackageReference Include="CodeBrix.Platform.AdvancedTextEdit.ApacheLicenseForever" Version="$(PlayTestPackageVersion)" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.10.1" />
+    <PackageReference Include="SilverAssertions.ApacheLicenseForever" Version="1.0.248.1071" />
+    <PackageReference Include="xunit.v3" Version="4.0.1" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="4.0.0" PrivateAssets="all" />
+  </ItemGroup>
+</Project>

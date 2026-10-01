@@ -145,7 +145,7 @@ public static class SearchLogic
 
         if (!regex)
         {
-            return string.Equals(matchedText, term, StringComparison.Ordinal)
+            return string.Equals(matchedText, term, caseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase)
                 ? replacement ?? string.Empty
                 : null;
         }
