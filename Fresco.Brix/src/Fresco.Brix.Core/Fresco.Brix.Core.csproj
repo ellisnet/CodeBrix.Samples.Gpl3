@@ -9,7 +9,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.12" />
     <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="10.0.12" />
-    <PackageReference Include="CodeBrix.Platform.ApacheLicenseForever" Version="1.0.269.1395" />
+    <PackageReference Include="CodeBrix.Platform.ApacheLicenseForever" Version="1.0.275.207" />
     <!-- The two OFL font packages (FD4) at the versions the PDF writer's family
          requires (the Html2Pdf family depends on Roboto and RobotoMono minimums;
          NuGet refuses the downgrade otherwise — board trap 66). Same faces,
@@ -19,7 +19,7 @@
          1.0.248.1223 is still the latest published build of that package. -->
     <PackageReference Include="CodeBrix.Platform.Fonts.Roboto.OflLicenseForever" Version="1.0.248.1219" />
     <!-- The editor: the AvalonEdit-class text editing add-in (family version) -->
-    <PackageReference Include="CodeBrix.Platform.AdvancedTextEdit.ApacheLicenseForever" Version="1.0.269.1395" />
+    <PackageReference Include="CodeBrix.Platform.AdvancedTextEdit.ApacheLicenseForever" Version="1.0.275.207" />
     <!-- The editor monospace font (FD4) -->
     <PackageReference Include="CodeBrix.Platform.Fonts.RobotoMono.OflLicenseForever" Version="1.0.248.1223" />
     <!-- The settings store: the AppSettings add-in (W13 item 9, ruled by Jeremy
@@ -39,7 +39,7 @@
          <ApplicationData>/Fresco.Brix/settings.sqlite. That file is left
          exactly where it is — there is NO migration (Jeremy's ruling): the
          application takes its first-run path with defaults. -->
-    <PackageReference Include="CodeBrix.Platform.AppSettings.ApacheLicenseForever" Version="1.0.269.1395" />
+    <PackageReference Include="CodeBrix.Platform.AppSettings.ApacheLicenseForever" Version="1.0.275.207" />
     <!-- The two window toolbars and the two panel toolbars: the CommandBar
          add-in. ToolBarTray/ToolBar/ToolButton/ToolDropDownButton/
          ToolToggleButton/ToolBarSeparator replace the hand-built StackPanel row
@@ -53,7 +53,7 @@
          CodeBrix.Platform.Graphics2DSK, CodeBrix.SkiaSvg and
          CodeBrix.Platform.SkiaSharp.Views — the last two at the versions
          Fresco.Brix.MusicView already pins. Apache-2.0 and MIT throughout. -->
-    <PackageReference Include="CodeBrix.Platform.CommandBar.ApacheLicenseForever" Version="1.0.269.1395" />
+    <PackageReference Include="CodeBrix.Platform.CommandBar.ApacheLicenseForever" Version="1.0.275.207" />
     <!-- MIDI playback (FR6): the SoundFont synthesizer the MIDI panel plays
          through, in-process, with no MIDI ports of any kind.
          //was previously: 1.0.241.985 (W13 item 8, 2026-09-01);
