@@ -1,5 +1,13 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text.Json;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using CodeBrix.Platform.AppSettings;
 using CodeBrix.Platform.PlayTest;
+using CodeBrix.Platform.UI.AdvancedTextEdit;
 using Fresco.Brix.Services;
 using Fresco.Brix.Shell;
 using Fresco.Brix.ViewModels;
@@ -8,9 +16,6 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using Xunit;
-using System.Text.Json;
-using System.Text.RegularExpressions;
-using CodeBrix.Platform.UI.AdvancedTextEdit;
 
 [assembly: Xunit.v3.Parallelization(Mode = Xunit.Sdk.ParallelMode.None)]
 

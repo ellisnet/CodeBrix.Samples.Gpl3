@@ -198,13 +198,10 @@ All six are Skia heads; there are no native (WinUI 3, WPF, .NET MAUI) heads.
 though `EnableWindowsTargeting` lets it restore elsewhere; every other project
 targets `net10.0` and builds on any of the three operating systems.
 
-Application builds use the plain .NET 10 SDK. During the macOS menu preview,
-also supply the local Platform packages described below; rebuilding those
-packages requires the Platform checkout and Apple's native tools. The
-application itself needs no additional workloads or system libraries and
-downloads nothing at run time: the engraver, the SoundFont bank, the manuals, the
-hyphenation dictionaries, the translation catalogs and the fonts all arrive
-with the build. No account, token or network access is used anywhere in the
+Application builds use the plain .NET 10 SDK. The application itself needs no
+additional workloads or system libraries and downloads nothing at run time: the
+engraver, the SoundFont bank, the manuals, the hyphenation dictionaries, the
+translation catalogs and the fonts all arrive with the build. No account, token or network access is used anywhere in the
 application, and the user supplies no data to make it start.
 
 ```text
@@ -273,46 +270,17 @@ The independent `UseSystemAppName` option identifies the running application as
 The executable and assembly remain `Fresco.Brix.MacOS`. Either host option can
 be used alone, and their order does not matter.
 
-Until the next public Platform release, this macOS head uses local packages
-at `1.0.273.1-macosmenu.4` from `~/GitHome/CodeBrix.Platform/nugets/MacOSPreview`.
-To recreate them on another Mac, run this in the `CodeBrix.Platform` root:
-
-```sh
-python3 build/pack-macos-preview.py --version 1.0.273.1-macosmenu.4
-```
-
-The script builds the core/runtime dependencies and the macOS package without
-publishing. The native menu code is included in the regular
-`libCodeBrixNativeMac.dylib`; Apple Silicon uses the normal Xcode Release build
-for both ARM64 and x64. Intel can build it with Apple's Command Line Tools.
-The head's `MacOSPlatformPreviewFeed` and `MacOSPlatformPreviewVersion`
-properties can override the local source/version. Use a new prerelease version
-after changing Platform code. Other heads retain their published package pins.
-Once these APIs are published, replace this head's preview reference and remove
-the temporary feed/version properties; keep the opt-in in `Program.cs`.
-
-Validated on the Intel Mac with this preview: Cocoa's process name, macOS's
-registered running-application name and the actual AppKit application-menu
-caption all report `Fresco.Brix`, while the assembly remains `Fresco.Brix.MacOS`.
-Also checked: zero menu-bar layout height,
-repeated native Help opening/dismissal, Help > About (including reopening Help
-after closing the dialog), native File > New Document, and native File > Quit
-with a clean process exit. Help contains only the application's commands.
-The macOS head builds on Intel and cross-builds for `osx-arm64`; execution on
-Apple Silicon still needs validation there.
-
 On macOS, the single-instance listener uses a cancellable socket accept so
 File > Quit can stop an idle listener without freezing the UI. This also applies
 after another launch has handed files to the running window. The macOS branch
 is shared by Intel and Apple Silicon; Linux and Windows retain their existing
-listener behavior. This fix is in Fresco.Brix and needs no temporary Platform
-packages. `RemoteInstanceTests` covers quitting both before and after a remote
-conversation, including releasing the socket for the next launch.
+listener behavior. `RemoteInstanceTests` covers quitting both before and after a
+remote conversation, including releasing the socket for the next launch.
 
 | Test project | Covers |
 | --- | --- |
 | `tests/Fresco.Brix.Core.Tests` | The application core: documents, editor tools, completion, engraving, export, import, the settings store, sessions, preferences, shortcuts, dock layout, MIDI, documentation, manuscripts, the score wizard, the user guide, i18n, the icon theme, the single-instance protocol, and the parity suites against recorded upstream answers |
-| [`tests/Fresco.Brix.PlayTests`](tests/Fresco.Brix.PlayTests/README.md) | Real shared-UI tests: documents, AdvancedTextEdit, menus/toolbars, split/dock layouts, dialogs, music tools and engraving; headless or visible preview, with SilverAssertions |
+| [`tests/Fresco.Brix.PlayTests`](tests/Fresco.Brix.PlayTests/README.md) | Real shared-UI tests: documents, AdvancedTextEdit, menus/toolbars, split/dock layouts, dialogs, music tools and engraving; headless or in a headed window, with SilverAssertions |
 | `tests/libs/Fresco.Brix.Ly.Tests` | The `Fresco.Brix.Ly` language library: lexer and tokenizer, document model, doc info, pitch, rhythm, colorize, the music DOM and MusicXML, plus schema-conformance tests against a vendored MusicXML schema |
 | `tests/libs/Fresco.Brix.MusicView.Tests` | The paged view library: page layout, SVG pages, raster pages, overlays, the rectangle index and the exporters |
 

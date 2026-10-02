@@ -2,11 +2,6 @@
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <OutputType>Exe</OutputType>
-    <!-- Temporary local platform preview, built in the sibling Platform repo.
-         These properties affect this macOS head only. -->
-    <MacOSPlatformPreviewVersion Condition="'$(MacOSPlatformPreviewVersion)' == ''">1.0.273.1-macosmenu.4</MacOSPlatformPreviewVersion>
-    <MacOSPlatformPreviewFeed Condition="'$(MacOSPlatformPreviewFeed)' == ''">$(MSBuildThisFileDirectory)../../../../CodeBrix.Platform/nugets/MacOSPreview</MacOSPlatformPreviewFeed>
-    <RestoreAdditionalProjectSources>$(RestoreAdditionalProjectSources);$(MacOSPlatformPreviewFeed)</RestoreAdditionalProjectSources>
   </PropertyGroup>
 
   <!-- Tell MSBuild to treat .xaml files as CodeBrix.Platform XAML pages -->
@@ -23,6 +18,6 @@
 
   <!-- EXACTLY ONE platform head package; all other packages come from Fresco.Brix.Core -->
   <ItemGroup>
-    <PackageReference Include="CodeBrix.Platform.Runtime.Skia.MacOS.ApacheLicenseForever" Version="$(MacOSPlatformPreviewVersion)" />
+    <PackageReference Include="CodeBrix.Platform.Runtime.Skia.MacOS.ApacheLicenseForever" Version="1.0.275.207" />
   </ItemGroup>
 </Project>

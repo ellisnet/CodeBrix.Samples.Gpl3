@@ -1,3 +1,5 @@
+using System.Linq;
+using System.Threading.Tasks;
 using CodeBrix.Platform.PlayTest;
 using CodeBrix.Platform.UI.AdvancedTextEdit.CodeCompletion;
 using Fresco.Brix.Tools;

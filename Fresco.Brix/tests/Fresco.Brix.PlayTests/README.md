@@ -42,23 +42,14 @@ It captures the virtual surface without needing macOS Screen Recording access.
 The theme switch controls the application theme; the editor's separate syntax
 color scheme remains governed by Fresco's Fonts & Colors preferences.
 
-## Local preview packages
+The complete set of PlayTest command-line switches, environment variables and
+project properties is documented in the PlayTest package's `AGENT-README.txt`,
+which ships inside the `CodeBrix.Platform.PlayTest.ApacheLicenseForever` package
+and lives at
+[`src/Platform.UI.Runtime.Skia.PlayTest/AGENT-README.txt`](https://github.com/ellisnet/CodeBrix.Platform/blob/main/src/Platform.UI.Runtime.Skia.PlayTest/AGENT-README.txt)
+in CodeBrix.Platform.
 
-This test head temporarily uses matching PlayTest and AdvancedTextEdit previews
-from the sibling `CodeBrix.Platform/nugets/PlayTest` feed. The normal application
-heads and Core project's published package references remain independent.
-Rebuild previews from `CodeBrix.Platform` on a new checkout:
-
-```sh
-python3 build/pack-playtest-preview.py --version 1.0.273.1-playtest.22 --with-editor
-```
-
-Use a **fresh prerelease version** after changing framework/add-in source; the
-pack script refuses to overwrite an existing version. Update
-`PlayTestPackageVersion` in the test project, or pass
-`-p:PlayTestPackageVersion=<new-version>` to restore/build. `PlayTestPackageFeed`
-can point to a different local feed. These commands build packages locally;
-they do not publish anything.
+## Package references
 
 AdvancedTextEdit supplies a standard UI automation Value provider and focus
 peer in its own add-in. PlayTest has no dependency on that add-in, CommandBar,
@@ -103,35 +94,14 @@ screen demonstrates the same editor, toolbar, nested-menu and overflow APIs.
 
 ## Regressions covered by this suite
 
-The tests exposed and now guard Fresco's case-insensitive literal replacement,
-previous-match selection and duplicate search-key handling. Quick Insert now
-uses its intended Neutral default when no direction setting exists. Its icon
-buttons/direction chooser and the score wizard's header fields expose accessible
-names or labels, so tests can locate them by what users see.
-Screenshot review also caught missing music glyphs in the score wizard's header
-preview. It now uses the existing embedded music icons and follows the resolved
-theme, instead of depending on musical characters in the desktop UI font.
+The tests guard Fresco's case-insensitive literal replacement, previous-match
+selection and duplicate search-key handling. Quick Insert uses its intended
+Neutral default when no direction setting exists. Its icon buttons/direction
+chooser and the score wizard's header fields expose accessible names or labels,
+so tests can locate them by what users see. The score wizard's header preview
+uses the embedded music icons and follows the resolved theme, rather than
+depending on musical characters in the desktop UI font.
 
 Framework regressions cover AdvancedTextEdit focus, undoable value replacement
 and protected sections, empty completion lists allowing Enter, and element-based
 tab headers exposing their text. Those generic tests live in PlayTestDemo.
-
-## Validation on 2026-09-30
-
-Intel macOS 15.8.1, .NET SDK 10.0.401, local preview `.22`:
-
-| Run | Result |
-| --- | --- |
-| Fresco, headless, light/landscape | 104 passed; no failures or skips |
-| Fresco, headed, dark/portrait, automatic recording | 104 passed; no failures or skips; 1,169 PNGs |
-| Score wizard after the final music-icon correction, headed dark/portrait | 7 passed; 101 PNGs; corrected symbols visually checked |
-| PlayTestDemo framework regressions, headless and headed dark/portrait | 72 passed in each mode |
-| Existing Core search-logic tests | 10 passed |
-| PlayTests and normal macOS head builds | No warnings or errors |
-
-The full recording was checked for start/final images in all 104 cases, theory
-folders, outcomes, timestamps, source lines, unique paths, PNG integrity and
-1080×1920 dimensions. Representative editor, dialog and engraved-score captures
-were inspected. The normal macOS head still uses its existing package references.
-Windows, Linux and Apple Silicon execution of these new tests remains to be
-verified on those machines.
