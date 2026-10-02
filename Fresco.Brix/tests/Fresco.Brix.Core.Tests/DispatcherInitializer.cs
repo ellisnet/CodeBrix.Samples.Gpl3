@@ -42,12 +42,28 @@ internal static class DispatcherInitializer
     [ModuleInitializer]
     internal static void Initialize()
     {
+        //The Skia assemblies register their implementations of the framework's platform
+        //contracts from a bootstrap. A head's host runs it before anything else; a host-free
+        //test process has no head, so it runs here, first thing.
+        var bootstrapType = Type.GetType(
+            "CodeBrix.Platform.UI.Skia.SkiaPlatformBootstrap, CodeBrix.Platform.UI");
+        var ensureRegistered = bootstrapType?.GetMethod(
+            "EnsureRegistered", BindingFlags.NonPublic | BindingFlags.Static);
+        if (ensureRegistered is null)
+        {
+            throw new InvalidOperationException(
+                "Could not find SkiaPlatformBootstrap.EnsureRegistered in CodeBrix.Platform.UI. "
+                + "The test project's platform bootstrap needs updating to match the framework.");
+        }
+
+        ensureRegistered.Invoke(null, null);
+
         var dispatcherType = Type.GetType(
-            "CodeBrix.Platform.UI.Dispatching.NativeDispatcher, CodeBrix.Platform.UI.Dispatching");
+            "CodeBrix.Platform.UI.Dispatching.Skia.DispatcherPumpSkiaPlatform, CodeBrix.Platform.UI.Dispatching");
         if (dispatcherType is null)
         {
             throw new InvalidOperationException(
-                "Could not find NativeDispatcher in CodeBrix.Platform.UI.Dispatching. The "
+                "Could not find DispatcherPumpSkiaPlatform in CodeBrix.Platform.UI.Dispatching. The "
                 + "test project's dispatcher bootstrap needs updating to match the framework.");
         }
 
@@ -58,7 +74,7 @@ internal static class DispatcherInitializer
         if (hasAccessField is null || dispatchField is null)
         {
             throw new InvalidOperationException(
-                "NativeDispatcher no longer exposes HasThreadAccessOverride/DispatchOverride. "
+                "DispatcherPumpSkiaPlatform no longer exposes HasThreadAccessOverride/DispatchOverride. "
                 + "The test project's dispatcher bootstrap needs updating to match the framework.");
         }
 

@@ -42,7 +42,7 @@ internal static class DefaultStyleInitializer
         //Module initializers run in an order nothing here controls, and registering a
         //resource dictionary creates one, which asks the dispatcher whether it has thread
         //access. The add-in's own suite measured a NullReferenceException in
-        //NativeDispatcher.GetHasThreadAccess when the styles were registered before the
+        //DispatcherPumpSkiaPlatform.GetHasThreadAccess when the styles were registered before the
         //dispatcher bootstrap. DispatcherInitializer.Initialize only fills in what is still
         //null, so calling it here and letting the runtime call it again is harmless.
         DispatcherInitializer.Initialize();
