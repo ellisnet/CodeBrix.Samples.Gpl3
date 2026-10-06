@@ -28,7 +28,7 @@
        repository on 2026-08-27 and those relative paths went with it (board
        row W13b). -->
   <ItemGroup>
-    <PackageReference Include="CodeBrix.LilyPort.GplLicenseForever" Version="1.0.244.98" />
+    <PackageReference Include="CodeBrix.LilyPort.GplLicenseForever" Version="1.0.258.1159" />
   </ItemGroup>
 
 </Project>

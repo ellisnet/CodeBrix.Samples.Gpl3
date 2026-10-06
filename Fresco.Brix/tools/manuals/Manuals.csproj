@@ -43,7 +43,7 @@
          1.0.238.580 (W11½); 1.0.232.1177, authorised at W10 (2026-08-21); before
          that 1.0.217.117, the latest when the board's pin table was verified on
          2026-08-19. Fresco.Brix.Core carries the same version. -->
-    <PackageReference Include="CodeBrix.PdfRasterizer.MitLicenseForever" Version="1.0.243.38" />
+    <PackageReference Include="CodeBrix.PdfRasterizer.MitLicenseForever" Version="1.0.271.1182" />
   </ItemGroup>
 
 </Project>
