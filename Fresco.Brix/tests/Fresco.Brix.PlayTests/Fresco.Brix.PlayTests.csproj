@@ -15,9 +15,9 @@
   <Import Project="../../src/Fresco.Brix.UI/Fresco.Brix.UI.projitems" Label="Shared" />
   <ItemGroup>
     <ProjectReference Include="../../src/Fresco.Brix.Core/Fresco.Brix.Core.csproj" />
-    <PackageReference Include="CodeBrix.Platform.PlayTest.ApacheLicenseForever" Version="1.0.280.1176" />
+    <PackageReference Include="CodeBrix.Platform.PlayTest.ApacheLicenseForever" Version="1.0.281.314" />
     <!-- The app already uses this add-in. The tests exercise its standard automation peer. -->
-    <PackageReference Include="CodeBrix.Platform.AdvancedTextEdit.ApacheLicenseForever" Version="1.0.280.1176" />
+    <PackageReference Include="CodeBrix.Platform.AdvancedTextEdit.ApacheLicenseForever" Version="1.0.281.314" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.10.1" />
     <PackageReference Include="SilverAssertions.ApacheLicenseForever" Version="1.0.248.1071" />
     <PackageReference Include="xunit.v3" Version="4.0.1" />
