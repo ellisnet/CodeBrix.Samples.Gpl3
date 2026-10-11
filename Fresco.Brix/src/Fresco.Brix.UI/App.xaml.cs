@@ -59,10 +59,10 @@ public partial class App : Application
         //the only public seam an application has for its own launch size: every desktop
         //head reads it while it is creating the native window and falls back to the
         //platform's own 1024 by 640 when it is empty, so it has to be set before any
-        //window exists. On the Linux X11 head the numbers are NATIVE pixels of the
-        //window's CLIENT area, which on a display at scale 1 is the same as logical
-        //units; how each of the other heads reads them is written up in the report that
-        //accompanied this change. The value is set on every launch, unconditionally,
+        //window exists. The numbers are the window's CLIENT area in effective
+        //(logical) pixels, which is what the X11, Wayland and macOS heads open; the
+        //Win32Skia and WPF heads open them as the framed window instead, a frame too
+        //small. The value is set on every launch, unconditionally,
         //because the platform remembers it in its own settings file; setting it every
         //time keeps that file in step with this source file instead of letting an old
         //value linger. A size the user left behind still wins: the window's own store
