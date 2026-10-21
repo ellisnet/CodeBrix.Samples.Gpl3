@@ -162,7 +162,7 @@ public static class ManualOutline
             //InformationOnly: nothing here modifies the document, and the
             //cheaper open is the difference between a quarter of a second and
             //a full parse of thirty-four megabytes.
-            PdfDocument document = PdfReader.Open(path, PdfDocumentOpenMode.InformationOnly);
+            PdfDocument document = PdfReader.Open(path, PdfDocumentOpenMode.Import);
             if (document.PageCount < 1) { return null; }
 
             //A destination names a PAGE OBJECT, not a number, so the numbers

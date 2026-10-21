@@ -138,7 +138,7 @@ public class ManualCatalogTests
         foreach (ManualDefinition manual in ManualCatalog.All)
         {
             string path = Path.Combine(ManualLibrary.DefaultDirectory(), manual.FileName);
-            PdfDocument document = PdfReader.Open(path, PdfDocumentOpenMode.InformationOnly);
+            PdfDocument document = PdfReader.Open(path, PdfDocumentOpenMode.Import);
 
             //Act
             var sizes = new[] { 0, document.PageCount / 2, document.PageCount - 1 }

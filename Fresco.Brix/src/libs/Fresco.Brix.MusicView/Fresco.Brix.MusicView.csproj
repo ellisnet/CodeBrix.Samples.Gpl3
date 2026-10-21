@@ -16,7 +16,7 @@
          SKPicture that redraws at any zoom, and hands back the point-and-click
          anchors with their page-coordinate bounds.
          //was previously: 1.0.214.1201 (the W4 pin). -->
-    <PackageReference Include="CodeBrix.SkiaSvg.MitLicenseForever" Version="1.0.278.1152" />
+    <PackageReference Include="CodeBrix.SkiaSvg.MitLicenseForever" Version="1.0.291.924" />
     <!-- The PDF writer (board FD13, re-measured at W11½ and ruled (b) under FR7):
          Html2Pdf places the engine's own SVG pages as vector content through a
          fully managed chain, and CffSubsetMode = Sparse subsets the engine's CFF
@@ -27,7 +27,7 @@
          subsetting (W11½); before that nothing — the PDF was drawn onto
          SkiaSharp's own PDF backend (W11), which the house's
          no-Skia-beyond-the-UI rule retires. -->
-    <PackageReference Include="CodeBrix.PdfDocCreate.Html2Pdf.MitLicenseForever" Version="1.0.271.1182" />
-    <PackageReference Include="CodeBrix.PdfDocCreate.MitLicenseForever" Version="1.0.271.1182" />
+    <PackageReference Include="CodeBrix.PdfDocCreate.Html2Pdf.MitLicenseForever" Version="1.0.285.692" />
+    <PackageReference Include="CodeBrix.PdfDocCreate.MitLicenseForever" Version="1.0.285.692" />
   </ItemGroup>
 </Project>

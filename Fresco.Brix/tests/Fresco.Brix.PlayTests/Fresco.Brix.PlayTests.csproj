@@ -18,9 +18,9 @@
     <PackageReference Include="CodeBrix.Platform.PlayTest.ApacheLicenseForever" Version="1.0.291.1177" />
     <!-- The app already uses this add-in. The tests exercise its standard automation peer. -->
     <PackageReference Include="CodeBrix.Platform.AdvancedTextEdit.ApacheLicenseForever" Version="1.0.291.1177" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.10.1" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.11.0" />
     <PackageReference Include="SilverAssertions.ApacheLicenseForever" Version="1.0.248.1071" />
-    <PackageReference Include="xunit.v3" Version="4.0.1" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="4.0.0" PrivateAssets="all" />
+    <PackageReference Include="xunit.v3" Version="4.0.2" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="4.0.1" PrivateAssets="all" />
   </ItemGroup>
 </Project>
