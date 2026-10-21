@@ -1,5 +1,12 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
+    <!--
+      The WPF-hosted head must target net10.0-windows (the runtime package flows a
+      Microsoft.WindowsDesktop.App.WPF FrameworkReference). Do NOT set <UseWPF> here -
+      that would make the WPF build targets grab the CodeBrix.Platform XAML
+      Page items. EnableWindowsTargeting lets this head compile inside the cross-platform
+      solution on Linux and macOS build hosts.
+    -->
     <TargetFramework>net10.0-windows</TargetFramework>
     <OutputType>Exe</OutputType>
     <EnableWindowsTargeting>true</EnableWindowsTargeting>

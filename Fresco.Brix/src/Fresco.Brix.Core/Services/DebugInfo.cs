@@ -107,9 +107,8 @@ public static class DebugInfo
     /// </summary>
     /// <remarks>
     /// ⚠ Some packages stamp a PLACEHOLDER assembly version — the CodeBrix
-    /// Platform family's assemblies all say <c>255.255.255.255</c>, which is
-    /// its Uno-fork inheritance — so the assembly cannot be asked what package
-    /// it came from. The <c>.deps.json</c> beside the program CAN answer:
+    /// Platform family's assemblies all say <c>255.255.255.255</c>, so the
+    /// assembly cannot be asked what package it came from. The <c>.deps.json</c> beside the program CAN answer:
     /// restore wrote the resolved package identity and version for every file
     /// it copied, which is exactly what a bug report needs.
     /// </remarks>
